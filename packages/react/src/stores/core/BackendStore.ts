@@ -48,6 +48,7 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
   private lastFallbackPatches: readonly Patch[] | null = null;
   private readonly pendingPatchNotifications: PendingPatchNotification<Patch>[] = [];
   private readonly orphanPatchNotifications: Array<readonly Patch[] | null> = [];
+  private orphanPatchFlushScheduled = false;
   private listenerDispatchDepth = 0;
   private patchFlushScheduled = false;
 
@@ -60,10 +61,13 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
     this.backendSnapshotLastUpdate = this.backendSnapshot.lastUpdate;
     this.backendSnapshotValue = this.backendSnapshot.value;
     this.snapshot = this.toSnapshot(this.backendSnapshot);
-    this.hasPatchChannel = typeof backend.subscribeWithPatches === 'function';
-    this.unsubscribeBackendPatches = backend.subscribeWithPatches?.((patches) => {
-      this.capturePatchNotification(patches);
-    }) ?? (() => {});
+    const subscribeWithPatches = backend.subscribeWithPatches;
+    this.hasPatchChannel = typeof subscribeWithPatches === 'function';
+    this.unsubscribeBackendPatches = typeof subscribeWithPatches === 'function'
+      ? subscribeWithPatches.call(backend, (patches) => {
+          this.capturePatchNotification(patches);
+        })
+      : (() => {});
     this.unsubscribeBackend = backend.subscribe(() => {
       if (this.disposed) return;
       let nextBackendSnapshot: ReturnType<StateBackend<T>['getSnapshot']>;
@@ -143,12 +147,18 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
   }
 
   subscribe = (listener: Listener): Unsubscribe => {
+    if (typeof listener !== 'function') {
+      throw new TypeError('Store subscriber must be a function.');
+    }
     if (this.disposed) return () => {};
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   };
 
   subscribeWithPatches = (listener: BackendPatchListener<Patch>): Unsubscribe => {
+    if (typeof listener !== 'function') {
+      throw new TypeError('Patch subscriber must be a function.');
+    }
     if (this.disposed) return () => {};
     this.patchListeners.add(listener);
     return () => this.patchListeners.delete(listener);
@@ -250,8 +260,26 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
     }
     // The regular subscription may be invoked after this callback. Keep the
     // event until that transition arrives so patch-first and regular-first
-    // backends have identical observable semantics.
+    // backends have identical observable semantics. If no regular transition
+    // arrives, flush the patch-only event at the microtask boundary instead of
+    // retaining it indefinitely and attaching it to a future transition.
     this.orphanPatchNotifications.push(patches);
+    this.scheduleOrphanPatchFlush();
+  }
+
+  private scheduleOrphanPatchFlush(): void {
+    if (this.orphanPatchFlushScheduled) return;
+    this.orphanPatchFlushScheduled = true;
+    queueMicrotask(() => {
+      this.orphanPatchFlushScheduled = false;
+      if (this.disposed) {
+        this.orphanPatchNotifications.length = 0;
+        return;
+      }
+      while (this.orphanPatchNotifications.length > 0) {
+        this.deliverPatchNotification(this.orphanPatchNotifications.shift() ?? null);
+      }
+    });
   }
 
   private schedulePatchFlush(): void {
@@ -262,6 +290,7 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
       if (this.disposed) {
         this.pendingPatchNotifications.length = 0;
         this.orphanPatchNotifications.length = 0;
+        this.orphanPatchFlushScheduled = false;
         this.listenerDispatchDepth = 0;
         return;
       }

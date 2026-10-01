@@ -1,15 +1,15 @@
 {
   "schemaVersion": "context-action-coordinated-stable-plan.v2",
-  "release": "context-action-state-2026-10",
+  "release": "context-action-state-2026-10-patch-1",
   "status": "approved-for-candidate",
   "candidateDistTag": "next",
   "promotionDistTag": "latest",
   "packages": {
-    "@context-action/core": "1.2.4",
-    "@context-action/store-core": "0.1.1",
-    "@context-action/mutative-core": "0.8.12",
-    "@context-action/mutative": "0.8.13",
-    "@context-action/react": "4.0.5"
+    "@context-action/core": "1.2.5",
+    "@context-action/store-core": "0.1.2",
+    "@context-action/mutative-core": "0.8.13",
+    "@context-action/mutative": "0.8.14",
+    "@context-action/react": "4.0.6"
   },
   "provenanceBinding": "workflow-release-commit",
   "changelogDates": {
@@ -20,9 +20,9 @@
     "@context-action/react": "2026-10-02"
   },
   "reactDependencyFloors": {
-    "@context-action/core": "^1.2.4",
-    "@context-action/mutative": "^0.8.13",
-    "@context-action/store-core": "^0.1.1"
+    "@context-action/core": "^1.2.5",
+    "@context-action/mutative": "^0.8.14",
+    "@context-action/store-core": "^0.1.2"
   },
   "requiredChecks": [
     "pnpm release:check",
@@ -32,8 +32,8 @@
   "notes": [
     "The August plan remains historical and immutable.",
     "Every candidate attestation must match the workflow release_commit; no source SHA is fabricated in this plan.",
-    "This coordinated patch keeps Core 1.2, Store Core 0.1, Mutative 0.8, and React 4 aligned after runtime reliability fixes.",
-    "Mutative core and adapter remain on the maintained 0.8 patch line; the candidate carries the upstream mutative@1.3.0 baseline and preserves the reviewed fork inventory at 0.8.12.",
+    "This coordinated patch reissues Core 1.2.5, Store Core 0.1.2, Mutative Core 0.8.13, Mutative 0.8.14, and React 4.0.6 as one product-stability cohort.",
+    "Mutative core and adapter remain on the maintained 0.8 patch line; the candidate carries the acquired upstream mutative@1.3.0 baseline and preserves the reviewed scoped-adapter patch inventory.",
     "Preact UI remains workspace-only and is not published."
   ]
 }

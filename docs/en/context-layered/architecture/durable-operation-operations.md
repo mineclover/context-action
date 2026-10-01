@@ -1,7 +1,7 @@
 # Durable Operation Operations Runbook
 
 > **Development-track status:** This runbook describes the Durable 0.2 work in
-> progress. It is not a prerequisite for the Core 1.2.4 / React 4.0.5
+> progress. It is not a prerequisite for the Core 1.2.5 / React 4.0.6
 > state-management release, and `@context-action/react/tools` is intentionally
 > not shipped from that React artifact.
 

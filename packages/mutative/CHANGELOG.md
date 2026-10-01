@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.8.14] (2026-10-02)
+
+### Safe snapshots
+
+- Guard `WeakMap` and `WeakSet` mutators in defensive snapshots while preserving the upstream `mutative@1.3.0` scoped-adapter patch line.
+
 ## [0.8.13] (2026-10-02)
 
 - Align the optional Mutative backend adapter with `@context-action/mutative-core@0.8.12` and Store Core `0.1.1`.

@@ -41,16 +41,20 @@ async function expectArtifactAbsent(relativePath, description) {
   }
 }
 
-const [rootEsm, rootCjs, rootTypes, compiledStoreChunkEsm, compiledStoreChunkCjs] = await Promise.all([
+const [rootEsm, rootCjs, rootTypes, backendEsm, backendCjs, backendTypes, compiledStoreChunkEsm, compiledStoreChunkCjs] = await Promise.all([
   readArtifact('index.js'),
   readArtifact('index.cjs'),
   readArtifact('index.d.ts'),
+  readArtifact('backend.js'),
+  readArtifact('backend.cjs'),
+  readArtifact('backend.d.ts'),
   readArtifact('chunks/StoreRegistry.js'),
   readArtifact('chunks/StoreRegistry.cjs'),
 ]);
 
 const toolRuntimePattern = /@context-action\/tool-(?:protocol|durable-operations)/;
 const toolPublicApiPattern = /\b(?:createToolContext|ToolContextConfig|ToolRegistry)\b/;
+const mutativeRuntimePattern = /@context-action\/mutative(?:["'/]|$)|(?:require|from)\(['"](?:@context-action\/)?mutative(?:["'])/;
 
 for (const [relativePath, content] of [
   ['index.js', rootEsm],
@@ -78,6 +82,19 @@ expectAbsent(
 );
 
 for (const [relativePath, content] of [
+  ['backend.js', backendEsm],
+  ['backend.cjs', backendCjs],
+  ['backend.d.ts', backendTypes],
+]) {
+  expectAbsent(
+    content,
+    relativePath,
+    mutativeRuntimePattern,
+    'the user-owned backend entry must remain independent of the Mutative runtime',
+  );
+}
+
+for (const [relativePath, content] of [
   ['chunks/StoreRegistry.js', compiledStoreChunkEsm],
   ['chunks/StoreRegistry.cjs', compiledStoreChunkCjs],
 ]) {
@@ -100,5 +117,5 @@ if (failures.length > 0) {
   failures.forEach((failure) => console.error(`  ✗ ${failure}`));
   process.exitCode = 1;
 } else {
-  console.log('Verified React production artifact boundaries: public React 3 entries are tool-free.');
+  console.log('Verified React production artifact boundaries: public React 3 entries are tool-free and the backend entry is Mutative-free.');
 }

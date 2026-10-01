@@ -21,7 +21,7 @@ compatibility baseline while preserving Context-Action regression fixes.
 Upstream changes are synchronized deliberately and tracked in
 [`mutative-core/UPSTREAM.md`](../mutative-core/UPSTREAM.md); adapter-specific
 patch, history, and time-travel behavior is kept in this package. The scoped
-adapter is currently `0.8.13` and remains on its own `0.8.x` patch line. Run
+adapter is currently `0.8.14` and remains on its own `0.8.x` patch line. Run
 both package test suites after a fork update.
 
 ## Adapter contract
@@ -33,6 +33,10 @@ both package test suites after a fork update.
   use a `replace` patch so undo/redo preserves insertion order.
 - `deepClone` preserves Map, Set, Date, and RegExp instances while recursively
   cloning their values.
+- Safe backend snapshots freeze supported values and guard Map, Set, WeakMap,
+  WeakSet, and Date mutators. DOM objects, functions, promises, and other
+  host values remain caller-owned references because they cannot be cloned;
+  `immutableSnapshots` does not isolate mutation through those references.
 - Time-travel listeners receive the complete history and an optional
   transition-only patch list, which adapters use for precise path updates.
 - `createMutativeTimelineBackend()` supports explicit notification holds with

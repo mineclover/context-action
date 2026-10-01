@@ -1,5 +1,11 @@
 # Change Log
 
+## [4.0.6] (2026-10-02)
+
+### Backend and declaration reliability
+
+- Flush patch-only backend notifications, validate subscriber callbacks, and make generated store declarations self-contained for external TypeScript consumers.
+
 ## [4.0.5] (2026-10-02)
 
 - Rebind the backend subpath and dependency floors to the coordinated provenance cohort.

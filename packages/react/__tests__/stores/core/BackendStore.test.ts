@@ -49,6 +49,55 @@ describe('BackendStore', () => {
     store.dispose();
   });
 
+  it('rejects invalid runtime subscribers at the adapter boundary', () => {
+    const backend = createReferenceBackend('subscriber-validation', 0);
+    const store = createBackendStore('subscriber-validation', backend);
+
+    expect(() => store.subscribe(null as never)).toThrow(TypeError);
+    expect(() => store.subscribeWithPatches(null as never)).toThrow(TypeError);
+
+    store.dispose();
+  });
+
+  it('treats a malformed optional patch hook as an absent capability', () => {
+    const backend = {
+      ...createReferenceBackend('malformed-patch-hook', 0),
+      subscribeWithPatches: 'not-a-function',
+    } as unknown as StateBackend<number>;
+
+    expect(() => {
+      const store = createBackendStore('malformed-patch-hook', backend);
+      store.dispose();
+    }).not.toThrow();
+  });
+
+  it('preserves the backend receiver when registering a patch channel', async () => {
+    type Patch = { readonly path: readonly string[] };
+    const patchListeners = new Set<(patches: readonly Patch[] | null) => void>();
+    const base = createReferenceBackend('bound-patch-hook', 0);
+    const backend = {
+      ...base,
+      patchListeners,
+      subscribeWithPatches(this: { patchListeners: typeof patchListeners }, listener: (patches: readonly Patch[] | null) => void) {
+        this.patchListeners.add(listener);
+        return () => this.patchListeners.delete(listener);
+      },
+      emitPatch(patches: readonly Patch[] | null) {
+        for (const listener of [...this.patchListeners]) listener(patches);
+      },
+    };
+    const store = createBackendStore('bound-patch-hook', backend);
+    const observed: Array<readonly Patch[] | null> = [];
+    store.subscribeWithPatches(patches => observed.push(patches));
+    const patch = [{ path: ['value'] }] as const;
+
+    backend.emitPatch(patch);
+    await Promise.resolve();
+
+    expect(observed).toEqual([patch]);
+    store.dispose();
+  });
+
   it('pairs regular-first and patch-first backend notifications', async () => {
     type Patch = { readonly path: readonly string[] };
     const snapshot = { name: 'ordered', value: 0, version: 0, lastUpdate: 0 };
@@ -95,6 +144,34 @@ describe('BackendStore', () => {
     backend.publish(2, patch, 'patch-first');
 
     expect(observed).toEqual([patch, patch]);
+    store.dispose();
+  });
+
+  it('delivers patch-only notifications without attaching them to a future transition', async () => {
+    type Patch = { readonly path: readonly string[] };
+    const snapshot = { name: 'patch-only', value: 0, version: 0, lastUpdate: 0 };
+    const patchListeners = new Set<(patches: readonly Patch[] | null) => void>();
+    const backend: StateBackend<number, Patch> = {
+      name: 'patch-only',
+      getSnapshot: () => snapshot,
+      subscribe: () => () => {},
+      subscribeWithPatches: listener => {
+        patchListeners.add(listener);
+        return () => patchListeners.delete(listener);
+      },
+      setValue: () => {},
+      update: () => {},
+    };
+    const store = createBackendStore('patch-only', backend);
+    const observed: Array<readonly Patch[] | null> = [];
+    store.subscribeWithPatches(patches => observed.push(patches));
+    const patch = [{ path: ['value'] }] as const;
+
+    [...patchListeners].forEach(listener => listener(patch));
+    expect(observed).toEqual([]);
+    await Promise.resolve();
+    expect(observed).toEqual([patch]);
+
     store.dispose();
   });
 

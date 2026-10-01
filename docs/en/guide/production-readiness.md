@@ -27,16 +27,23 @@ The current stable release is the state-management surface:
 
 | Package | Version | Why it matters |
 | --- | --- | --- |
-| `@context-action/core` | `1.2.4` | Stable action lifecycle, dispatch trace, and observer semantics. |
-| `@context-action/store-core` | `0.1.1` | Framework-neutral state, patch, and timeline backend contracts. |
-| `@context-action/mutative-core` | `0.8.12` | Upstream `mutative@1.3.0` compatibility baseline and maintained fork fixes. |
-| `@context-action/mutative` | `0.8.13` | Immutable update, timeline batches, and transition metadata. |
-| `@context-action/react` | `4.0.5` | React lifecycle and SSR contract for the Store and Action APIs. |
+| `@context-action/core` | `1.2.5` | Stable action lifecycle, dispatch trace, and observer semantics. |
+| `@context-action/store-core` | `0.1.2` | Framework-neutral state, patch, and timeline backend contracts. |
+| `@context-action/mutative-core` | `0.8.13` | Upstream `mutative@1.3.0` compatibility baseline and maintained fork fixes. |
+| `@context-action/mutative` | `0.8.14` | Defensive collection snapshots, immutable update, and timeline batches. |
+| `@context-action/react` | `4.0.6` | React lifecycle, backend notification, declaration, and SSR contract. |
 
 The upstream baseline and scoped package versions are independent contracts.
 `mutative@1.3.0` identifies the acquired source baseline; it is not a runtime
 dependency or a scoped adapter version. The core lock and carried patches are
 verified with `pnpm verify:mutative-upstream`.
+
+The React package has two state integration routes. The root entry keeps the
+legacy `Store` and `TimeTravelStore` APIs and therefore installs
+`@context-action/mutative` at runtime. Applications that own their immutable
+semantics can use `@context-action/react/backend` with the framework-neutral
+`@context-action/store-core` contracts; that adapter entry does not execute
+Mutative code.
 
 Durable Operations 0.2 and its companion tool protocol work remain in active development. They are not a prerequisite for ordinary Store, Action, React 19.2, or SSR use.
 
@@ -88,7 +95,7 @@ See the [durable operations runbook](/en/context-layered/architecture/durable-op
 
 ## Production rollout checklist
 
-- Pin and test Core `1.2.4`, Mutative Core `0.8.12`, scoped adapter `0.8.13`, and React `4.0.5` together.
+- Pin and test Core `1.2.5`, Store Core `0.1.2`, Mutative Core `0.8.13`, scoped adapter `0.8.14`, and React `4.0.6` together.
 - Run `pnpm release:check` from the exact candidate commit.
 - Use the packed-consumer and React compatibility checks as release gates, not only workspace tests.
 - Roll out this cohort behind normal application canary and rollback controls.
