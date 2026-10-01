@@ -100,6 +100,20 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(travel.getPosition()).toBe(0);
   });
 
+  it('clamps back oversteps at the beginning of the retained history', () => {
+    const empty = createTimeTravel({ count: 0 }, { maxHistory: 0 });
+    expect(() => empty.back()).not.toThrow();
+    expect(empty.getPosition()).toBe(0);
+    expect(empty.getState()).toEqual({ count: 0 });
+
+    const travel = createTimeTravel({ count: 0 }, { maxHistory: 2 });
+    travel.setState((draft) => { draft.count = 1; });
+    travel.setState((draft) => { draft.count = 2; });
+    expect(() => travel.back(99)).not.toThrow();
+    expect(travel.getPosition()).toBe(0);
+    expect(travel.getState()).toEqual({ count: 0 });
+  });
+
   it('rejects invalid history bounds before creating a timeline', () => {
     for (const maxHistory of [Number.NaN, Number.POSITIVE_INFINITY, 1.5]) {
       expect(() => createTimeTravel({ count: 0 }, { maxHistory })).toThrow(

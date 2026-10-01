@@ -796,7 +796,10 @@ export class TimeTravel<
     if (!Number.isSafeInteger(amount) || amount < 0) {
       throw new RangeError('TimeTravel back amount must be a non-negative safe integer');
     }
-    this.go(this.position - amount, metadata);
+    // Undo is a bounded cursor operation. Overstepping the beginning should
+    // converge on the initial retained entry, just as forward() converges on
+    // the newest retained entry when it oversteps the end.
+    this.go(Math.max(0, this.position - amount), metadata);
   }
 
   /**
