@@ -57,4 +57,17 @@ describe('SSR and hydration boundaries', () => {
     expect(host.textContent).toBe('recovered');
     replacement.destroy();
   });
+
+  it('cleans the root and lease when the initial hydration render fails', () => {
+    const host = document.createElement('div');
+    host.innerHTML = '<span>Server label</span>';
+
+    expect(() => hydratePreact(host, FailingView, { label: 'fail' }))
+      .toThrow('hydrated render failed');
+    expect(host.childNodes).toHaveLength(0);
+
+    const replacement = mountPreact(host, FailingView, { label: 'recovered' });
+    expect(host.querySelectorAll('span')).toHaveLength(1);
+    replacement.destroy();
+  });
 });
