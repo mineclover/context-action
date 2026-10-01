@@ -49,6 +49,16 @@ describe('BackendStore', () => {
     store.dispose();
   });
 
+  it('rejects invalid runtime subscribers at the adapter boundary', () => {
+    const backend = createReferenceBackend('subscriber-validation', 0);
+    const store = createBackendStore('subscriber-validation', backend);
+
+    expect(() => store.subscribe(null as never)).toThrow(TypeError);
+    expect(() => store.subscribeWithPatches(null as never)).toThrow(TypeError);
+
+    store.dispose();
+  });
+
   it('pairs regular-first and patch-first backend notifications', async () => {
     type Patch = { readonly path: readonly string[] };
     const snapshot = { name: 'ordered', value: 0, version: 0, lastUpdate: 0 };

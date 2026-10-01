@@ -143,12 +143,18 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
   }
 
   subscribe = (listener: Listener): Unsubscribe => {
+    if (typeof listener !== 'function') {
+      throw new TypeError('Store subscriber must be a function.');
+    }
     if (this.disposed) return () => {};
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   };
 
   subscribeWithPatches = (listener: BackendPatchListener<Patch>): Unsubscribe => {
+    if (typeof listener !== 'function') {
+      throw new TypeError('Patch subscriber must be a function.');
+    }
     if (this.disposed) return () => {};
     this.patchListeners.add(listener);
     return () => this.patchListeners.delete(listener);
