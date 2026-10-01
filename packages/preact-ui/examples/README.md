@@ -35,11 +35,11 @@ Template의 두 패널은 하나의 모델을 공유합니다. 한쪽의 Increme
 
 ## 실행
 
-Node 24.11 이상, pnpm 10.30.3 기준입니다. 현재 lockfile 완료 여부는 [검증 기록](../docs/04-validation.md)을 먼저 확인합니다.
+Node 24.11 이상, pnpm 10.30.3 기준입니다. 현재 실행 결과와 남은 검증 범위는 [검증 기록](../docs/04-validation.md)을 확인합니다.
 
 ```sh
-# 초기 템플릿 통합 단계: 새 의존성을 해석하고 변경된 lockfile을 검토/커밋
-pnpm install --no-frozen-lockfile
+# workspace 검증
+pnpm install --frozen-lockfile
 pnpm --filter @context-action/core build
 pnpm --filter @context-action/preact build
 pnpm --filter @context-action/preact-ui build

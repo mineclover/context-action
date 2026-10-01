@@ -40,6 +40,7 @@ describe('<order-workspace> Web Component contract', () => {
     const Tag = defineOrderWorkspaceElement('test-order-workspace-2');
     const element = new Tag() as HTMLElement & {
       addItem: (item: { id: string; name: string; unitPrice: number; quantity: number }) => Promise<void>;
+      items: ReadonlyArray<{ id: string; quantity: number }>;
       dispose(): void;
     };
     cleanups.push(() => element.dispose());
@@ -47,11 +48,13 @@ describe('<order-workspace> Web Component contract', () => {
 
     let eventFired = false;
     let changedItemCount = 0;
+    let lastDetail: { draft: { items: Array<{ id: string; quantity: number }> } } | undefined;
 
     element.addEventListener('order-change', (e: Event) => {
       const custom = e as CustomEvent<{ draft: { items: Array<{ id: string }> } }>;
       eventFired = true;
       changedItemCount = custom.detail.draft.items.length;
+      lastDetail = custom.detail as typeof lastDetail;
     });
 
     await act(async () => {
@@ -65,10 +68,34 @@ describe('<order-workspace> Web Component contract', () => {
 
     expect(eventFired).toBe(true);
     expect(changedItemCount).toBe(1);
+    lastDetail!.draft.items[0]!.quantity = 99;
+    expect(element.items[0]?.quantity).toBe(2);
 
     const shadow = element.shadowRoot;
     const summaryCount = shadow?.querySelector('[data-testid="summary-count"]');
     expect(summaryCount?.textContent).toBe('2');
+  });
+
+  it('validates public string properties and returns defensive item snapshots', async () => {
+    const Tag = defineOrderWorkspaceElement('test-order-workspace-public-contract');
+    const element = new Tag() as HTMLElement & {
+      customerName: string;
+      items: ReadonlyArray<{ id: string; quantity: number }>;
+      addItem: (item: { id: string; name: string; unitPrice: number; quantity: number }) => Promise<void>;
+      dispose(): void;
+    };
+    cleanups.push(() => element.dispose());
+    document.body.append(element);
+
+    await act(async () => {
+      await element.addItem({ id: 'defensive', name: 'Defensive', unitPrice: 10, quantity: 2 });
+    });
+    const items = element.items as Array<{ id: string; quantity: number }>;
+    items[0]!.quantity = 77;
+    expect(element.items[0]?.quantity).toBe(2);
+
+    expect(() => { element.customerName = 42 as unknown as string; }).toThrow(TypeError);
+    expect(element.customerName).toBe('');
   });
 
   it('preserves model state across DOM disconnection and reconnection', async () => {

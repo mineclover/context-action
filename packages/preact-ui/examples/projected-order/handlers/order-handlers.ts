@@ -23,6 +23,31 @@ const DEFAULT_DRAFT: OrderDraft = {
   notes: '',
 };
 
+function cloneOrderState(source: OrderState): OrderState {
+  return {
+    draft: {
+      ...source.draft,
+      items: source.draft.items.map((item) => ({ ...item })),
+    },
+    submission: { ...source.submission },
+    validationIssues: source.validationIssues.map((issue) => ({ ...issue })),
+    activityLog: source.activityLog.map((entry) => ({ ...entry })),
+  };
+}
+
+function freezeOrderState(source: OrderState): Readonly<OrderState> {
+  const snapshot = cloneOrderState(source);
+  for (const item of snapshot.draft.items) Object.freeze(item);
+  Object.freeze(snapshot.draft.items);
+  Object.freeze(snapshot.draft);
+  Object.freeze(snapshot.submission);
+  for (const issue of snapshot.validationIssues) Object.freeze(issue);
+  Object.freeze(snapshot.validationIssues);
+  for (const entry of snapshot.activityLog) Object.freeze(entry);
+  Object.freeze(snapshot.activityLog);
+  return Object.freeze(snapshot);
+}
+
 export interface OrderModelOptions {
   initialDraft?: Partial<OrderDraft>;
   submitDelayMs?: number;
@@ -37,7 +62,11 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
   const submitDelayMs = options && 'submitDelayMs' in options ? options.submitDelayMs : 0;
 
   let state: OrderState = {
-    draft: { ...DEFAULT_DRAFT, ...initialDraft },
+    draft: {
+      ...DEFAULT_DRAFT,
+      ...initialDraft,
+      items: initialDraft?.items?.map((item) => ({ ...item })) ?? [],
+    },
     submission: { phase: 'idle' },
     validationIssues: [],
     activityLog: [
@@ -48,14 +77,19 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
       },
     ],
   };
+  let snapshot = freezeOrderState(state);
 
   let destroyed = false;
   const listeners = new Set<() => void>();
   const actions = new ActionRegister<OrderActions>({ name: 'ProjectedOrderModel' });
 
   const commit = (next: OrderState) => {
-    if (destroyed) throw new Error('OrderModel is destroyed');
+    // Async actions may finish after the owning element disconnects. Treat
+    // those late results as cancelled so a void-dispatched promise cannot
+    // surface an unhandled rejection or mutate a disposed domain owner.
+    if (destroyed) return;
     state = next;
+    snapshot = freezeOrderState(next);
     for (const notify of Array.from(listeners)) notify();
   };
 
@@ -191,7 +225,7 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
 
   return {
     source: {
-      getSnapshot: () => state,
+      getSnapshot: () => snapshot,
       subscribe(notify) {
         if (destroyed) throw new Error('OrderModel is destroyed');
         listeners.add(notify);

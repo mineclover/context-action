@@ -97,6 +97,7 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
           <div class="stepper">
             <button
               type="button"
+              aria-label="Decrease quantity"
               disabled={isDisabled || count <= min}
               onClick={() => {
                 if (countSignal.value > min) {
@@ -107,11 +108,12 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
             >
               −
             </button>
-            <span class="value-display" data-testid="stepper-count">
+            <span class="value-display" role="status" aria-live="polite" data-testid="stepper-count">
               {count}
             </span>
             <button
               type="button"
+              aria-label="Increase quantity"
               disabled={isDisabled || count >= max}
               onClick={() => {
                 if (countSignal.value < max) {
@@ -139,6 +141,9 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
               countSignal.value = parsed;
               updateValidationAndFormValue(parsed);
             }
+          }
+          if (name === 'min' || name === 'max') {
+            updateValidationAndFormValue(countSignal.value);
           }
         },
         onFormReset() {
