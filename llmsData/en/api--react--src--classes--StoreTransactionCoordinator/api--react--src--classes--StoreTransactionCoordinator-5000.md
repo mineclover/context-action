@@ -1,0 +1,15 @@
+---
+document_id: api--react--src--classes--StoreTransactionCoordinator
+category: api
+source_path: en/api/react/src/classes/StoreTransactionCoordinator.md
+character_limit: 5000
+last_update: '2026-10-01T08:20:17.298Z'
+update_status: auto_generated
+priority_score: 85
+priority_tier: high
+completion_status: completed
+workflow_stage: content_generated
+---
+Class: StoreTransactionCoordinator
+
+context-action-monorepo v1.0.1 context-action-monorepo / packages/react/src / StoreTransactionCoordinator Class: StoreTransactionCoordinator Defined in: packages/react/src/stores/core/StoreTransactionCoordinator.ts:75 Groups updates across multiple TimeTravelStores into one history entry per participant. The participant list is explicit so a transaction cannot accidentally capture unrelated global stores. Constructors Constructor > new StoreTransactionCoordinator(): StoreTransactionCoordinator Returns Type parameter StoreTransactionCoordinator Methods subscribe() > subscribe(listener): () => void Defined in: packages/react/src/stores/core/StoreTransactionCoordinator.ts:90 Parameters listener StoreTransactionListener Returns () => void serializeHistory() > serializeHistory(): string Defined in: packages/react/src/stores/core/StoreTransactionCoordinator.ts:95 Returns string getInspectorSnapshot() > getInspectorSnapshot(): StoreTransactionInspectorSnapshot Defined in: packages/react/src/stores/core/StoreTransactionCoordinator.ts:99 Returns StoreTransactionInspectorSnapshot bindInspector() > bindInspector(sink): () => void Defined in: packages/react/src/stores/core/StoreTransactionCoordinator.ts:104 Connect a serializable snapshot stream to DevTools, logs, or a protocol adapter. Parameters sink StoreTransactionInspectorSink Returns () => void begin() > begin(participants, options?): StoreTransactionHandle Defined in: packages/react/src/stores/core/StoreTransactionCoordinator.ts:155 Parameters participants readonly StoreTransactionParticipant&lt;any&gt;[] options? Omit\<StoreTransactionMeta, "id"\> = {} Returns StoreTransactionHandle run() > run&lt;R&gt;(participants, callback, options?): Promise&lt;R&gt; Defined in: packages/react/src/stores/core/StoreTransactionCoordinator.ts:283 Type Parameters R Type parameter R Parameters participants readonly StoreTransactionParticipant&lt;any&gt;[] callback (meta) => R \| Promise&lt;R&gt; options? Omit\<StoreTransactionMeta, "id"\> = {} Returns Promise&lt;R&gt; canUndo() > canUndo(): boolean Defined in: packages/react/src/stores/core/StoreTransactionCoordinator.ts:299 Returns boolean canRedo() > canRedo(): boolean Defined in: packages/react/src/stores/core/StoreTransactionCoordinator.ts:302 Returns boolean getPosition() > getPosition(): number Defined in: packages/react/src/stores/core/StoreTransactionCoordinator.ts:305 Returns number getHistory() > getHistory(): readonly StoreTransactionRecord[] Defined in: packages/react/src/stores/core/StoreTransactionCoordinator.ts:306 Returns readonly StoreTransactionRecord[] undo() > undo(): void Defined in: packages/react/src/stores/core/StoreTransactionCoordinator.ts:308 Returns void redo() > redo(): void Defined in: packages/react/src/stores/core/Sto
