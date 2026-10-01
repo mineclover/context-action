@@ -171,6 +171,31 @@ export class TimeTravel<
       );
     }
 
+    if (initialPatches !== undefined) {
+      const candidate = initialPatches as {
+        patches?: unknown;
+        inversePatches?: unknown;
+      };
+      const patchGroups = candidate?.patches;
+      const inverseGroups = candidate?.inversePatches;
+      if (!Array.isArray(patchGroups) || !Array.isArray(inverseGroups)) {
+        throw new TypeError(
+          'TimeTravel: initialPatches must contain patches and inversePatches arrays',
+        );
+      }
+      if (!patchGroups.every((group) => Array.isArray(group)) ||
+        !inverseGroups.every((group) => Array.isArray(group))) {
+        throw new TypeError(
+          'TimeTravel: initialPatches must contain patches and inversePatches arrays',
+        );
+      }
+      if (patchGroups.length !== inverseGroups.length) {
+        throw new RangeError(
+          'TimeTravel: initialPatches patches and inversePatches must have equal lengths',
+        );
+      }
+    }
+
     if (maxHistory === 0 && process.env.NODE_ENV !== 'production') {
       logger.warn('maxHistory is 0, undo/redo history is disabled');
     }

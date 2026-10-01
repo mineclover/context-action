@@ -273,6 +273,28 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(travel.getState()).toEqual({ count: 1 });
   });
 
+  it('rejects malformed initial patch history before replay can fail', () => {
+    expect(() => createTimeTravel(
+      { count: 0 },
+      {
+        initialPatches: {
+          patches: [[{ op: 'replace', path: ['count'], value: 1 }]],
+          inversePatches: [],
+        },
+      },
+    )).toThrow('initialPatches patches and inversePatches must have equal lengths');
+
+    expect(() => createTimeTravel(
+      { count: 0 },
+      {
+        initialPatches: {
+          patches: [{ not: 'a patch array' }],
+          inversePatches: [[]],
+        } as never,
+      },
+    )).toThrow('initialPatches must contain patches and inversePatches arrays');
+  });
+
   it('keeps the root reference in mutable mode while moving through history', () => {
     const travel = createTimeTravel({ count: 0 }, { mutable: true });
     const root = travel.getState();
