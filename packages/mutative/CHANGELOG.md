@@ -3,7 +3,9 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [0.9.0] (2026-10-01)
+## [0.8.9] (2026-10-01)
+
+- Record the acquired upstream `mutative@1.3.0` baseline and preserve the maintained fork patch contracts.
 
 - Add explicit timeline batches and transition metadata for multi-store transactions.
 - Reject invalid history cursor/step arguments before patch application.

@@ -16,11 +16,13 @@ Mutative API is needed without the Context-Action adapter.
 ## Maintenance policy
 
 `@context-action/mutative` and `@context-action/mutative-core` are maintained
-fork packages. Upstream changes are synchronized deliberately and tracked in
+fork packages. The core currently tracks the upstream `mutative@1.3.0`
+compatibility baseline while preserving Context-Action regression fixes.
+Upstream changes are synchronized deliberately and tracked in
 [`mutative-core/UPSTREAM.md`](../mutative-core/UPSTREAM.md); adapter-specific
-patch, history, and time-travel behavior is kept in this package. Keep their
-versions aligned for normal releases and run both package test suites after a
-fork update.
+patch, history, and time-travel behavior is kept in this package. The scoped
+adapter remains on its own `0.8.x` patch line. Run both package test suites
+after a fork update.
 
 ## Adapter contract
 

@@ -5,7 +5,7 @@ This candidate promotes the state-management contract as one protected cohort:
 | Package | Candidate | Contract boundary |
 | --- | --- | --- |
 | `@context-action/core` | `1.2.0` | Dispatch lifecycle traces and explicit transaction metadata |
-| `@context-action/mutative` | `0.9.0` | Timeline batches and transition metadata |
+| `@context-action/mutative` | `0.8.9` | Timeline batches and transition metadata |
 | `@context-action/react` | `4.0.0` | Safe manager reads, atomic multi-store transactions, inspector contracts |
 
 The August 2026 Core/React plan remains historical. This plan uses the exact

@@ -8,7 +8,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 ### Breaking changes
 
 - TimeTravelStoreManager defaults to defensive `readMode: safe`. Set `readMode: reference` explicitly to preserve reference reads. The direct factory keeps its reference default.
-- Require Core 1.2.0 and Mutative 0.9.0 for dispatch tracing and batched timeline transactions.
+- Require Core 1.2.0 and Mutative 0.8.9.0 for dispatch tracing and batched timeline transactions.
 
 ### Features
 

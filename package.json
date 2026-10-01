@@ -131,7 +131,8 @@
     "llms:code-mode": "node packages/llms-generator/dist/cli/index.js code-mode --force",
     "security:audit": "node scripts/security-audit.mjs",
     "security:audit:all": "pnpm security:audit",
-    "prepare": "husky"
+    "prepare": "husky",
+    "verify:mutative-upstream": "node scripts/verify-mutative-upstream.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
