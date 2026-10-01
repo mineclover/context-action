@@ -103,6 +103,16 @@ the npm tarball integrity and file inventory; run
 runtime. The baseline version and scoped package versions are separate release
 contracts.
 
+### Store backend boundary
+
+`@context-action/store-core` owns framework-neutral `StateBackend`,
+`TimelineBackend`, and `TransactionBackend` contracts. It has no React,
+Mutative, immutable-runtime, or DOM dependency. `@context-action/mutative` is
+an optional concrete backend; React bindings should depend on the contracts
+when they only need store or timeline capabilities. A backend without patches
+or timeline support must declare those capabilities instead of being treated
+as an immutable or time-travel implementation.
+
 ## 4. Package contract
 
 Every package README and manifest should answer these questions:

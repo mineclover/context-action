@@ -48,6 +48,12 @@ const packages = [
     imports: [{ specifier: '@context-action/core', exports: ['ActionRegister'] }],
   },
   {
+    name: '@context-action/store-core',
+    directory: 'packages/store-core',
+    imports: [],
+    supportsCjs: false,
+  },
+  {
     name: '@context-action/mutative-core',
     directory: 'packages/mutative-core',
     imports: [{ specifier: '@context-action/mutative-core', exports: ['create'] }],
@@ -677,10 +683,12 @@ function main() {
   }));
   const localPackageNames = new Set(optionValues('--local-package'));
   const requestedPackages = optionValue('--packages')?.split(',').filter(Boolean);
-  const selectedPackages = requestedPackages
-    ? packages.filter(({ name }) => requestedPackages.includes(name))
+  const requestedSet = requestedPackages ? new Set(requestedPackages) : null;
+  const selectedPackages = requestedSet
+    ? packages.filter(({ name }) => requestedSet.has(name)
+      || (name === '@context-action/store-core' && requestedSet.has('@context-action/react')))
     : packages;
-  if (selectedPackages.length === 0 || (requestedPackages && selectedPackages.length !== requestedPackages.length)) {
+  if (selectedPackages.length === 0 || (requestedPackages && packages.some(({ name }) => requestedSet.has(name) && !selectedPackages.some(packageDefinition => packageDefinition.name === name)))) {
     throw new Error('Requested published consumer packages must be known package names');
   }
   for (const name of packageTags.keys()) {

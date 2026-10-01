@@ -418,6 +418,10 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     return this.timeTravel.getPosition();
   }
 
+  getHistoryLength(): number {
+    return this.getHistory().length;
+  }
+
   /** Stable retained timeline identity for transaction coordination. */
   getHistoryEntryId(): number {
     if (this.isDisposed) return -1;

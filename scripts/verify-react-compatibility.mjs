@@ -39,6 +39,7 @@ try {
     '@context-action/mutative-core',
     '@context-action/mutative',
     '@context-action/core',
+    '@context-action/store-core',
     '@context-action/tool-protocol',
     '@context-action/tool-durable-operations',
     '@context-action/webmcp',
@@ -49,6 +50,7 @@ try {
 
   const candidatePackages = [
     'core',
+    'store-core',
     'mutative-core',
     'mutative',
     'tool-protocol',
