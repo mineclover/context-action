@@ -44,6 +44,6 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:12](h
 
 ### origin?
 
-> `readonly` `optional` **origin?**: `"user"` \| `"system"` \| `"network"` \| `"undo"` \| `"redo"` \| `"reset"`
+> `readonly` `optional` **origin?**: `"undo"` \| `"redo"` \| `"user"` \| `"system"` \| `"network"` \| `"reset"`
 
 Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:13](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L13)

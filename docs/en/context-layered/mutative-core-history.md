@@ -100,4 +100,5 @@ integrity and every `src` file hash, then compares the local fork against the
 committed lock inventory. It is read-only; never overwrite vendored source
 automatically. Review an inventory candidate with `--inventory`, commit the
 updated lock and provenance, and rerun `--check`. The upstream baseline
-`1.3.0` and the scoped `0.8.11` core/adapter versions are separate contracts.
+`1.3.0`, Mutative Core `0.8.11`, and scoped adapter `0.8.12` are separate
+release contracts.

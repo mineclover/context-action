@@ -6,7 +6,7 @@
 
 # Interface: StoreWriter\<T\>
 
-Defined in: [packages/react/src/stores/core/contracts.ts:30](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L30)
+Defined in: [packages/react/src/stores/core/contracts.ts:19](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L19)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Type parameter **T**
 
 > **setValue**(`value`, `meta?`): `void`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:31](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L31)
+Defined in: [packages/react/src/stores/core/contracts.ts:20](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L20)
 
 #### Parameters
 
@@ -30,7 +30,7 @@ Type parameter **T**
 
 ##### meta?
 
-[`StateMutationMeta`](StateMutationMeta.md)
+Type parameter **StateMutationMeta**
 
 #### Returns
 
@@ -42,7 +42,7 @@ Type parameter **T**
 
 > **update**(`updater`, `meta?`): `void`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:32](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L32)
+Defined in: [packages/react/src/stores/core/contracts.ts:21](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L21)
 
 #### Parameters
 
@@ -52,7 +52,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:32](https://github.com/
 
 ##### meta?
 
-[`StateMutationMeta`](StateMutationMeta.md)
+Type parameter **StateMutationMeta**
 
 #### Returns
 

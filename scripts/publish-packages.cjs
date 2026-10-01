@@ -109,6 +109,25 @@ function publishScopedPackages() {
     packageEntry,
     manifest: JSON.parse(readFileSync(path.join(packageEntry.location, 'package.json'), 'utf8')),
   }));
+  const publicationOrder = new Map(scopes.map((name, index) => [name, index]));
+  for (const { manifest } of selectedPackages) {
+    const dependencyNames = new Set([
+      ...Object.keys(manifest.dependencies ?? {}),
+      ...Object.keys(manifest.optionalDependencies ?? {}),
+      ...Object.keys(manifest.peerDependencies ?? {}),
+    ]);
+    for (const dependencyName of dependencyNames) {
+      const dependencyIndex = publicationOrder.get(dependencyName);
+      if (dependencyIndex === undefined) continue;
+      const packageIndex = publicationOrder.get(manifest.name);
+      if (dependencyIndex > packageIndex) {
+        throw new Error(
+          `Publication order must publish ${dependencyName} before ${manifest.name}; `
+          + `received ${scopes.join(' -> ')}`,
+        );
+      }
+    }
+  }
   for (const { packageEntry, manifest } of selectedPackages) {
     if (manifest.name !== packageEntry.name || !scopes.includes(manifest.name)) {
       throw new Error(`Selected package identity changed before publication: ${packageEntry.name}`);

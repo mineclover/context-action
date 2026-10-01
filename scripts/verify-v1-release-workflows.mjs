@@ -176,6 +176,7 @@ export function validateReleaseWorkflowSources({
     const coordinatedPackages = Object.keys(coordinatedPlan.packages ?? {});
     const expectedCoordinatedPackages = [
       '@context-action/core',
+      '@context-action/store-core',
       '@context-action/mutative-core',
       '@context-action/mutative',
       '@context-action/react',
@@ -199,6 +200,15 @@ export function validateReleaseWorkflowSources({
     for (const name of expectedCoordinatedPackages) {
       if (!candidatePublication.includes(`--scope ${name}`)) errors.push(`Coordinated stable candidate workflow must publish ${name}`);
     }
+    for (let index = 1; index < expectedCoordinatedPackages.length; index += 1) {
+      requireOrderedText(
+        errors,
+        candidatePublication,
+        `--scope ${expectedCoordinatedPackages[index - 1]}`,
+        `--scope ${expectedCoordinatedPackages[index]}`,
+        `Coordinated stable candidate workflow must publish ${expectedCoordinatedPackages[index - 1]} before ${expectedCoordinatedPackages[index]}`,
+      );
+    }
     requireCommandBeforePublication(
       errors,
       coordinatedCandidateInspection,
@@ -214,7 +224,7 @@ export function validateReleaseWorkflowSources({
     requireCommandBeforePublication(
       errors,
       coordinatedCandidateInspection,
-      /^node\s+scripts\/verify-published-tool-consumers\.cjs\s+--local\s+--cohort-only\s+--packages "@context-action\/core,@context-action\/mutative-core,@context-action\/mutative,@context-action\/react"$/u,
+      /^node\s+scripts\/verify-published-tool-consumers\.cjs\s+--local\s+--cohort-only\s+--packages "@context-action\/core,@context-action\/store-core,@context-action\/mutative-core,@context-action\/mutative,@context-action\/react"$/u,
       'Coordinated stable candidate workflow must validate the packed candidate closure before publication',
     );
     requireExactStepBeforePublication(
@@ -244,11 +254,11 @@ export function validateReleaseWorkflowSources({
       'git diff --cached --exit-code',
       'pnpm verify:coordinated-stable-release-plan',
       'node scripts/verify-coordinated-stable-provenance.mjs --tag next --commit "$RELEASE_COMMIT" --output reports/npm-coordinated-stable-promotion-preflight-provenance.json',
-      'pnpm verify:published-tool-consumers -- --tag next --packages "@context-action/core,@context-action/mutative-core,@context-action/mutative,@context-action/react"',
+      'pnpm verify:published-tool-consumers -- --tag next --packages "@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react"',
       'node scripts/promote-coordinated-stable.mjs --output reports/npm-coordinated-stable-promotion-summary.json',
-      'pnpm verify:published-tool-consumers -- --tag latest --packages "@context-action/core,@context-action/mutative-core,@context-action/mutative,@context-action/react"',
+      'pnpm verify:published-tool-consumers -- --tag latest --packages "@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react"',
       'node scripts/verify-coordinated-stable-provenance.mjs --tag latest --commit "$RELEASE_COMMIT" --output reports/npm-coordinated-stable-promotion-provenance.json',
-      'pnpm capture:published-release -- --tag latest --packages "@context-action/core,@context-action/mutative-core,@context-action/mutative,@context-action/react" --consumer-status passed --output reports/npm-coordinated-stable-promotion-registry-evidence.json',
+      'pnpm capture:published-release -- --tag latest --packages "@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react" --consumer-status passed --output reports/npm-coordinated-stable-promotion-registry-evidence.json',
     ]) {
       if (!promotionStatements.includes(required)) errors.push(`Coordinated stable promotion workflow must include ${required}`);
     }

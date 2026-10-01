@@ -6,7 +6,7 @@
 
 # Interface: StoreReader\<T\>
 
-Defined in: [packages/react/src/stores/core/contracts.ts:24](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L24)
+Defined in: [packages/react/src/stores/core/contracts.ts:14](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L14)
 
 ## Extended by
 
@@ -22,13 +22,13 @@ Type parameter **T**
 
 ### getSnapshot()
 
-> **getSnapshot**(): [`ReadonlyStateSnapshot`](ReadonlyStateSnapshot.md)&lt;`T`&gt;
+> **getSnapshot**(): `ReadonlyStateSnapshot`&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/contracts.ts:26](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L26)
+Defined in: [packages/react/src/stores/core/contracts.ts:16](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L16)
 
 #### Returns
 
-[`ReadonlyStateSnapshot`](ReadonlyStateSnapshot.md)&lt;`T`&gt;
+`ReadonlyStateSnapshot`&lt;`T`&gt;
 
 ***
 
@@ -36,7 +36,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:26](https://github.com/
 
 > **subscribe**(`listener`): () => `void`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:27](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L27)
+Defined in: [packages/react/src/stores/core/contracts.ts:17](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L17)
 
 #### Parameters
 
@@ -54,4 +54,4 @@ Defined in: [packages/react/src/stores/core/contracts.ts:27](https://github.com/
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:25](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L25)
+Defined in: [packages/react/src/stores/core/contracts.ts:15](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L15)

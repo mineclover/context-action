@@ -33,7 +33,7 @@ test('promotion uses durable registry journal markers and refuses local executio
   const source = read('scripts/promote-coordinated-stable.mjs');
   for (const required of [
     "process.env.GITHUB_ACTIONS !== 'true'",
-    "new Set(['@context-action/core', '@context-action/mutative-core', '@context-action/mutative', '@context-action/react'])",
+    "new Set(['@context-action/core', '@context-action/store-core', '@context-action/mutative-core', '@context-action/mutative', '@context-action/react'])",
     'packages.length !== expectedPackages.size',
     'packages.some(([name]) => !expectedPackages.has(name))',
     'stable-previous-',
@@ -56,17 +56,17 @@ test('promotion uses durable registry journal markers and refuses local executio
 test('provenance verification is bound to the approved Core and React cohort', () => {
   const source = read('scripts/verify-coordinated-stable-provenance.mjs');
   for (const required of [
-    "new Set(['@context-action/core', '@context-action/mutative-core', '@context-action/mutative', '@context-action/react'])",
+    "new Set(['@context-action/core', '@context-action/store-core', '@context-action/mutative-core', '@context-action/mutative', '@context-action/react'])",
     'packages.length !== expectedPackages.size',
     'packages.some(([name]) => !expectedPackages.has(name))',
-    'exact Core, Mutative core, Mutative and React cohort',
+    'exact Core, Store Core, Mutative core, Mutative and React cohort',
   ]) assert.ok(source.includes(required), `missing coordinated provenance cohort guard: ${required}`);
 });
 
 test('candidate and promotion workflows bind the exact coordinated cohort', () => {
   const candidate = read('.github/workflows/publish-coordinated-stable-candidate.yml');
   const promotion = read('.github/workflows/promote-coordinated-stable.yml');
-  const cohort = '@context-action/core,@context-action/mutative-core,@context-action/mutative,@context-action/react';
+  const cohort = '@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react';
   assert.ok(candidate.includes(`--packages "${cohort}"`));
   assert.ok(candidate.includes('pnpm verify:coordinated-stable-release-plan --require-current-source'));
   assert.ok(candidate.includes('run: pnpm verify:mutative-upstream'));

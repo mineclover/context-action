@@ -5,3 +5,13 @@ Framework-neutral contracts for Context-Action state and timeline adapters.
 This package intentionally has no React, Mutative, immutable runtime, or DOM
 dependency. Applications and integrations can provide their own `StateBackend`
 or `TimelineBackend`. `@context-action/mutative` is one optional implementation.
+
+The contracts are capability-oriented: a backend may support only snapshots and
+subscriptions, or may additionally provide patches and timeline entry
+identity. Consumers must not assume immutability or undo/redo unless the
+backend exposes that capability.
+
+`TransactionBackend.beginBatch(..., { deferNotification: true })` is an explicit
+notification hold. Pair it with `resumeNotifications()` and then call
+`flushNotifications()` when the surrounding integration is ready to publish the
+coalesced transition.

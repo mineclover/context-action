@@ -26,6 +26,6 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:17](h
 
 ### store
 
-> `readonly` **store**: [`TimeTravelStore`](../classes/TimeTravelStore.md)&lt;`T`&gt;
+> `readonly` **store**: `TransactionBackend`&lt;`T`&gt;
 
 Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:18](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L18)

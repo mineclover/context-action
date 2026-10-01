@@ -24,6 +24,14 @@ async function createFixture() {
     );
     packages.push({ name, version: '0.8.8', location });
   }
+  await writeFile(
+    path.join(root, 'packages', 'mutative', 'package.json'),
+    `${JSON.stringify({
+      name: '@context-action/mutative',
+      version: '0.8.8',
+      dependencies: { '@context-action/mutative-core': '^0.8.8' },
+    }, null, 2)}\n`,
+  );
 
   const pnpmPath = path.join(binaryDirectory, 'pnpm');
   await writeFile(pnpmPath, `#!/usr/bin/env node
@@ -154,6 +162,7 @@ function runHelper(
   publishFailures = [],
   integrities = {},
   packedManifests = {},
+  scopeOrder = fixture.packages.map(({ name }) => name),
 ) {
   return spawnSync(
     process.execPath,
@@ -162,7 +171,7 @@ function runHelper(
       '--summary-file', 'reports/summary.json',
       '--dist-tag', 'next',
       ...additionalArguments,
-      ...fixture.packages.flatMap(({ name }) => ['--scope', name]),
+      ...scopeOrder.flatMap(name => ['--scope', name]),
     ],
     {
       cwd: fixture.root,
@@ -178,6 +187,24 @@ function runHelper(
     },
   );
 }
+
+test('strict publication rejects a dependency after its consumer in the requested order', async () => {
+  await withFixture(async fixture => {
+    const result = runHelper(
+      fixture,
+      ['--require-all-unpublished'],
+      { '@context-action/mutative-core': [], '@context-action/mutative': [] },
+      {},
+      [],
+      {},
+      {},
+      ['@context-action/mutative', '@context-action/mutative-core'],
+    );
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Publication order must publish @context-action\/mutative-core before @context-action\/mutative/u);
+    assert.equal((await npmCalls(fixture)).filter(({ args }) => args[0] === 'publish').length, 0);
+  });
+});
 
 async function withFixture(callback) {
   const fixture = await createFixture();

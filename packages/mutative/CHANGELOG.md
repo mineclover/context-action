@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.12] (2026-10-02)
+
+### Backend adapters
+
+- Provide React-independent state and timeline backend factories backed by Mutative.
+
 ## [0.8.11] (2026-10-01)
 
 ### Reliability fixes

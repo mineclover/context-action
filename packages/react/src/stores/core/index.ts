@@ -11,6 +11,7 @@
 
 // Core Store class and factory
 export { Store, createStore } from './Store';
+export { BackendStore, createBackendStore } from './BackendStore';
 
 // Store Registry for managing multiple stores
 export { StoreRegistry } from './StoreRegistry';

@@ -67,6 +67,18 @@ export {
 
 // Time travel
 export { TimeTravel, createTimeTravel } from './time-travel';
+export {
+  MutativeStateBackend,
+  MutativeTimelineBackend,
+  createMutativeStateBackend,
+  createMutativeTimelineBackend,
+} from './backend';
+export type {
+  MutativeReadMode,
+  MutativeNotificationMode,
+  MutativeStateBackendOptions,
+  MutativeTimelineBackendOptions,
+} from './backend';
 
 // Utilities
 export {

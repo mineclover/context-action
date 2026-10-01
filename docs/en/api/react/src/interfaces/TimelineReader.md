@@ -6,7 +6,7 @@
 
 # Interface: TimelineReader\<T\>
 
-Defined in: [packages/react/src/stores/core/contracts.ts:35](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L35)
+Defined in: [packages/react/src/stores/core/contracts.ts:23](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L23)
 
 ## Extends
 
@@ -22,13 +22,13 @@ Type parameter **T**
 
 ### getSnapshot()
 
-> **getSnapshot**(): [`ReadonlyStateSnapshot`](ReadonlyStateSnapshot.md)&lt;`T`&gt;
+> **getSnapshot**(): `ReadonlyStateSnapshot`&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/contracts.ts:26](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L26)
+Defined in: [packages/react/src/stores/core/contracts.ts:16](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L16)
 
 #### Returns
 
-[`ReadonlyStateSnapshot`](ReadonlyStateSnapshot.md)&lt;`T`&gt;
+`ReadonlyStateSnapshot`&lt;`T`&gt;
 
 #### Inherited from
 
@@ -40,7 +40,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:26](https://github.com/
 
 > **subscribe**(`listener`): () => `void`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:27](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L27)
+Defined in: [packages/react/src/stores/core/contracts.ts:17](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L17)
 
 #### Parameters
 
@@ -62,7 +62,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:27](https://github.com/
 
 > **canUndo**(): `boolean`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:36](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L36)
+Defined in: [packages/react/src/stores/core/contracts.ts:24](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L24)
 
 #### Returns
 
@@ -74,7 +74,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:36](https://github.com/
 
 > **canRedo**(): `boolean`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:37](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L37)
+Defined in: [packages/react/src/stores/core/contracts.ts:25](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L25)
 
 #### Returns
 
@@ -86,7 +86,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:37](https://github.com/
 
 > **getPosition**(): `number`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:38](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L38)
+Defined in: [packages/react/src/stores/core/contracts.ts:26](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L26)
 
 #### Returns
 
@@ -98,7 +98,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:38](https://github.com/
 
 > **getHistoryLength**(): `number`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:39](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L39)
+Defined in: [packages/react/src/stores/core/contracts.ts:27](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L27)
 
 #### Returns
 
@@ -110,7 +110,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:39](https://github.com/
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:25](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L25)
+Defined in: [packages/react/src/stores/core/contracts.ts:15](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L15)
 
 #### Inherited from
 

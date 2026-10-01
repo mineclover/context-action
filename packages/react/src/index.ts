@@ -28,19 +28,7 @@ export type { TimeTravelControlsState } from './stores/hooks/useTimeTravelContro
 export { useTimeTravelPath, useTimeTravelSelector } from './stores/hooks/useTimeTravelPath';
 export type { UseTimeTravelPathOptions, UseTimeTravelSelectorOptions } from './stores/hooks/useTimeTravelPath';
 export type { IStore, Snapshot } from './stores/core/types';
-export type {
-  HistoryEntryId,
-  ReadonlyStateSnapshot,
-  StateBackend,
-  StateMutationMeta,
-  StateMutationOrigin,
-  StateTransition,
-  StoreReader,
-  StoreWriter,
-  TransactionBackend,
-  TimelineReader,
-  TimelineWriter,
-} from './stores/core/contracts';
+export type { StoreReader, StoreWriter, TimelineReader, TimelineWriter } from './stores/core/contracts';
 export { StoreTransactionCoordinator } from './stores/core/StoreTransactionCoordinator';
 export type { StoreTransactionEvent, StoreTransactionEventPhase, StoreTransactionHandle, StoreTransactionInspectorSink, StoreTransactionInspectorSnapshot, StoreTransactionListener, StoreTransactionMeta, StoreTransactionParticipant, StoreTransactionRecord } from './stores/core/StoreTransactionCoordinator';
 export { bindActionTransactions } from './stores/core/ActionTransactionBridge';
