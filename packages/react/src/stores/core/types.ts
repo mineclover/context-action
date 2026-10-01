@@ -1,3 +1,5 @@
+import type { DependencyList } from 'react';
+
 /**
  * @fileoverview Enhanced Store System Core Type Definitions
  * @implements store-integration-pattern
@@ -313,7 +315,7 @@ export interface HookOptions<T> {
   /** Enhanced error handler with retry capability */
   onError?: (error: Error, retryCount?: number) => undefined | boolean;
   /** React useEffect 의존성 */
-  dependencies?: React.DependencyList;
+  dependencies?: DependencyList;
   /** Enable automatic error recovery */
   enableRetry?: boolean;
   /** Maximum retry attempts */
