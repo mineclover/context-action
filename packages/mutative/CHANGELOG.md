@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## [0.9.0] (2026-10-01)
+## [0.8.9] (2026-10-01)
 
 - Add explicit timeline batches and transition metadata for multi-store transactions.
 - Reject invalid history cursor/step arguments before patch application.

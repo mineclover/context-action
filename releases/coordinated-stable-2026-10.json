@@ -6,7 +6,7 @@
   "promotionDistTag": "latest",
   "packages": {
     "@context-action/core": "1.2.0",
-    "@context-action/mutative": "0.9.0",
+    "@context-action/mutative": "0.8.9",
     "@context-action/react": "4.0.0"
   },
   "provenanceBinding": "workflow-release-commit",
@@ -17,7 +17,7 @@
   },
   "reactDependencyFloors": {
     "@context-action/core": "^1.2.0",
-    "@context-action/mutative": "^0.9.0"
+    "@context-action/mutative": "^0.8.9"
   },
   "requiredChecks": [
     "pnpm release:check",
@@ -27,7 +27,7 @@
   "notes": [
     "The August plan remains historical and immutable.",
     "Every candidate attestation must match the workflow release_commit; no source SHA is fabricated in this plan.",
-    "Mutative core 0.8.8 remains the already published dependency.",
+    "Mutative remains on the maintained 0.8 patch line; this candidate adds the batch and transition metadata APIs as 0.8.9.",
     "Preact UI remains workspace-only and is not published."
   ]
 }
