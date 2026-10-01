@@ -58,7 +58,7 @@ APIs from `@context-action/react`; the former `react18` compatibility entry
 point is no longer exported.
 The maintained `@context-action/mutative-core` / `@context-action/mutative`
 fork remains the immutable runtime contract. The current stable cohort uses
-Core `1.2.1`, Mutative Core and adapter `0.8.9`, and React `4.0.1`.
+Core `1.2.2`, Mutative Core and adapter `0.8.10`, and React `4.0.2`.
 `mutative@1.3.0` is the acquired upstream compatibility baseline, not a
 runtime replacement. Synchronize upstream changes through the reviewed
 [`UPSTREAM.md`](../../../packages/mutative-core/UPSTREAM.md) and
