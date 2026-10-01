@@ -11,6 +11,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -278,7 +279,7 @@ function acquireUpstream({ name, version, registry }) {
       }
     }
     const extractDirectory = path.join(temporaryDirectory, 'extract');
-    execFileSync('mkdir', ['-p', extractDirectory]);
+    mkdirSync(extractDirectory);
     execFileSync('tar', ['-xzf', archivePath, '-C', extractDirectory, '--no-same-owner']);
     const packageDirectory = path.join(extractDirectory, 'package');
     const packageManifest = JSON.parse(readFileSync(path.join(packageDirectory, 'package.json'), 'utf8'));
