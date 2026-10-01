@@ -8,7 +8,7 @@
 
 > **ActionDispatcherWithResult**\<`T`, `TResultMap`\> = \<`K`, `R`\>(`action`, ...`args`) => `Promise`\<[`ExecutionResult`](../interfaces/ExecutionResult.md)&lt;`R`&gt;\>
 
-Defined in: [packages/core/src/types.ts:1317](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1317)
+Defined in: [packages/core/src/types.ts:1323](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1323)
 
 Dispatch an action with the payload contract defined by its action key.
 

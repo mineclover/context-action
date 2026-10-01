@@ -40,7 +40,7 @@ Defined in: [packages/core/src/types.ts:390](https://github.com/mineclover/conte
 
 ### outcome
 
-> `readonly` **outcome**: `"completed"` \| `"failed"` \| `"cancelled"` \| `"debounced"` \| `"throttled"` \| `"completed_with_errors"`
+> `readonly` **outcome**: `"completed"` \| `"completed_with_errors"` \| `"failed"` \| `"cancelled"` \| `"debounced"` \| `"throttled"`
 
 Defined in: [packages/core/src/types.ts:391](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L391)
 

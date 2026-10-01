@@ -1063,7 +1063,13 @@ export interface ActionDispatchTrace {
   readonly dispatchId: string;
   readonly action: string;
   readonly phase: 'started' | 'settled';
-  readonly status?: 'completed' | 'failed' | 'cancelled' | 'debounced' | 'throttled';
+  readonly status?:
+    | 'completed'
+    | 'completed_with_errors'
+    | 'failed'
+    | 'cancelled'
+    | 'debounced'
+    | 'throttled';
   readonly transactionId?: string;
   readonly origin?: 'user' | 'system' | 'network' | 'undo' | 'redo' | 'reset';
   readonly label?: string;

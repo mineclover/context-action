@@ -5,10 +5,10 @@
  * Uses JSON patches from Store to determine if subscribed paths are affected.
  */
 
-import { useSyncExternalStore, useCallback, useRef, useMemo } from 'react';
 import type { Patches } from '@context-action/mutative';
+import { useCallback, useRef, useSyncExternalStore } from 'react';
 import type { Snapshot, Unsubscribe } from '../core/types';
-import { pathToPointer, isPointerPrefix } from '../utils/json-pointer';
+import { patchesAffectPath } from '../utils/patch-affects-path';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
 
 /**
@@ -34,40 +34,6 @@ export type StorePath = (string | number)[];
 export interface UseStorePathOptions<R> {
   /** Custom equality function for the selected value */
   equalityFn?: (a: R, b: R) => boolean;
-}
-
-// Use JSON Pointer utilities
-const pathToKey = pathToPointer;
-const isPathPrefix = isPointerPrefix;
-
-/**
- * Check if patches affect the target path
- * A patch affects a path if:
- * 1. The patch path is a prefix of target path (parent/ancestor changed)
- * 2. The target path is a prefix of patch path (descendant changed)
- * 3. The paths are exactly equal
- *
- * Uses JSON Pointer string comparison with proper boundary handling
- */
-function patchesAffectPath(patches: Patches | null, targetPath: StorePath, targetPathKey?: string): boolean {
-  if (!patches || patches.length === 0) return true; // No patches = full update
-
-  // Use pre-computed key if available, otherwise compute
-  const targetKey = targetPathKey ?? pathToKey(targetPath);
-
-  return patches.some(patch => {
-    const patchPath = patch.path as StorePath;
-
-    // Empty patch path means root replacement
-    if (patchPath.length === 0) return true;
-
-    const patchKey = pathToKey(patchPath);
-
-    // Check path relationship (either direction) with proper boundary handling
-    // isPathPrefix(patchKey, targetKey) = parent/ancestor changed
-    // isPathPrefix(targetKey, patchKey) = descendant changed
-    return isPathPrefix(patchKey, targetKey) || isPathPrefix(targetKey, patchKey);
-  });
 }
 
 /**
@@ -130,7 +96,6 @@ export function useStorePath<T, R = unknown>(
   }
 
   const stablePath = stablePathRef.current.path;
-  const pathKey = useMemo(() => pathToKey(stablePath), [stablePath]);
 
   // Cache for value comparison with path tracking for invalidation
   const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string }>({
@@ -148,13 +113,13 @@ export function useStorePath<T, R = unknown>(
   const subscribe = useCallback(
     (callback: () => void) => {
       return store.subscribeWithPatches((patches) => {
-        // Check if patches affect our path (using pre-computed key)
-        if (patchesAffectPath(patches, stablePath, pathKey)) {
+        // Check if patches affect our path
+        if (patchesAffectPath(patches, stablePath)) {
           callback();
         }
       });
     },
-    [store, stablePath, pathKey]
+    [store, stablePath]
   );
 
   // Get snapshot of value at path
@@ -244,12 +209,6 @@ export function useStoreSelectorWithPaths<T, R>(
     depsKey: null,
   });
 
-  // Pre-compute path keys for all dependencies (optimized matching)
-  const pathKeys = useMemo(
-    () => (stablePaths ? stablePaths.map(p => ({ path: p, key: pathToKey(p) })) : null),
-    [stablePaths]
-  );
-
   // Invalidate cache when dependencies change
   if (cacheRef.current.depsKey !== depsKey) {
     cacheRef.current = { value: undefined, depsKey };
@@ -258,20 +217,20 @@ export function useStoreSelectorWithPaths<T, R>(
   // Subscribe with patch awareness
   const subscribe = useCallback(
     (callback: () => void) => {
-      if (!pathKeys) {
+      if (!stablePaths) {
         // No path hints - subscribe to all changes
         return store.subscribe(callback);
       }
 
       return store.subscribeWithPatches((patches) => {
-        // Check if any dependent path is affected (using pre-computed keys)
-        const affected = pathKeys.some(({ path, key }) => patchesAffectPath(patches, path, key));
+        // Check if any dependent path is affected
+        const affected = stablePaths.some(path => patchesAffectPath(patches, path));
         if (affected) {
           callback();
         }
       });
     },
-    [store, pathKeys]
+    [store, stablePaths]
   );
 
   // Get snapshot using selector

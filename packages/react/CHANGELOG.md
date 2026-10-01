@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.0.2] (2026-10-01)
+
+### Reliability fixes
+
+- Keep action transactions committed for non-blocking handler errors while preserving the `completed_with_errors` outcome.
+- Reject duplicate transaction participants, restore canceled batches safely, and propagate undo/redo metadata through coordinated stores.
+- Invalidate path subscriptions when array structure shifts so indexed readers observe removals and truncation.
+
 ## [4.0.1] (2026-10-01)
 
 - Require Core `^1.2.1` and the scoped Mutative adapter `^0.8.9`, based on the acquired upstream `mutative@1.3.0` source plus maintained patches.

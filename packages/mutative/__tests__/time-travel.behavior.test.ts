@@ -18,6 +18,34 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(notifications).toBe(1);
   });
 
+  it('cancels an active batch without archiving rejected changes', () => {
+    const travel = createTimeTravel({ count: 0 });
+
+    travel.beginBatch({ label: 'rejected' });
+    travel.setState((draft) => {
+      draft.count = 1;
+    });
+    travel.cancelBatch();
+
+    expect(travel.getState()).toEqual({ count: 0 });
+    expect(travel.getPosition()).toBe(0);
+    expect(travel.getHistory()).toEqual([{ count: 0 }]);
+  });
+
+  it('restores nested batch frames without losing outer updates', () => {
+    const travel = createTimeTravel({ count: 0 });
+
+    travel.beginBatch({ label: 'outer' });
+    travel.setState((draft) => { draft.count = 1; });
+    travel.beginBatch({ label: 'nested' });
+    travel.setState((draft) => { draft.count = 2; });
+    travel.cancelBatch();
+    expect(travel.getState()).toEqual({ count: 1 });
+    travel.endBatch();
+
+    expect(travel.getHistory()).toEqual([{ count: 0 }, { count: 1 }]);
+  });
+
   it('rejects invalid positions and step counts before applying patches', () => {
     const travel = createTimeTravel({ count: 0 });
     expect(() => travel.go(Number.NaN)).toThrow('safe integer');

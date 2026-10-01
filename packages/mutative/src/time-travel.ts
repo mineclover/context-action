@@ -6,29 +6,29 @@
  */
 
 import {
-  create,
   apply,
+  create,
   type Draft,
   type Patches,
   rawReturn,
 } from '@context-action/mutative-core';
 import type {
-  PatchesOption,
-  TravelPatches,
-  TimeTravelOptions,
-  TimeTravelControls,
   ManualTimeTravelControls,
+  PatchesOption,
+  TimeTravelControls,
   TimeTravelListener,
+  TimeTravelOptions,
   TimeTravelTransitionMeta,
+  TravelPatches,
   Updater,
   Value,
 } from './types';
 import {
+  createLogger,
+  deepClone,
+  hasOnlyArrayIndices,
   isObjectLike,
   isPlainObject,
-  hasOnlyArrayIndices,
-  deepClone,
-  createLogger,
 } from './utils';
 
 const logger = createLogger('time-travel');
@@ -127,7 +127,14 @@ export class TimeTravel<
   private historyVersion = 0;
   private mutableFallbackWarned = false;
   private batchDepth = 0;
-  private batchInitialState: S | null = null;
+  private batchFrames: Array<{
+    state: S;
+    position: number;
+    allPatches: TravelPatches<P>;
+    tempPatches: TravelPatches<P>;
+    changed: boolean;
+    metadata?: TimeTravelTransitionMeta;
+  }> = [];
   private batchChanged = false;
   private batchMeta: TimeTravelTransitionMeta | undefined;
 
@@ -363,34 +370,77 @@ export class TimeTravel<
 
   beginBatch(metadata?: TimeTravelTransitionMeta): void {
     if (this.batchDepth === 0) {
-      this.batchInitialState = deepClone(this.state);
       this.batchChanged = false;
       this.batchMeta = metadata;
     }
+    this.batchFrames.push({
+      state: deepClone(this.state),
+      position: this.position,
+      allPatches: cloneTravelPatches(this.allPatches),
+      tempPatches: cloneTravelPatches(this.tempPatches),
+      changed: this.batchChanged,
+      metadata: this.batchMeta,
+    });
     this.batchDepth += 1;
   }
 
   endBatch(): void {
     if (this.batchDepth === 0) throw new Error('TimeTravel batch is not active');
+    const frame = this.batchFrames.pop()!;
     this.batchDepth -= 1;
     if (this.batchDepth !== 0) return;
 
-    const initialState = this.batchInitialState;
-    this.batchInitialState = null;
     const changed = this.batchChanged;
     const transitionMeta = this.batchMeta;
     this.batchChanged = false;
     this.batchMeta = undefined;
-    if (!changed || initialState === null) return;
+    if (!changed) return;
 
     const [, patches, inversePatches] = create(
-      initialState,
-      draft => overwriteDraftWith(draft, this.state),
+      frame.state,
+      (draft): S | undefined => {
+        if (isObjectLike(frame.state) && isObjectLike(this.state)) {
+          overwriteDraftWith(draft, this.state);
+          return;
+        }
+        return isObjectLike(this.state) ? rawReturn(this.state as object) as S : this.state;
+      },
       this.options,
     ) as [S, Patches<P>, Patches<P>];
     if (patches.length > 0 || inversePatches.length > 0) {
       this.commitPatches(patches, inversePatches, transitionMeta);
     }
+  }
+
+  /** Restore the active batch without archiving its rejected changes. */
+  cancelBatch(): void {
+    if (this.batchDepth === 0) throw new Error('TimeTravel batch is not active');
+    const frame = this.batchFrames.pop()!;
+    this.batchDepth -= 1;
+    this.state = frame.state;
+    this.position = frame.position;
+    this.allPatches = frame.allPatches;
+    this.tempPatches = frame.tempPatches;
+    this.pendingState = null;
+    this.invalidateHistoryCache();
+    this.batchChanged = frame.changed;
+    this.batchMeta = frame.metadata;
+
+    if (this.batchDepth > 0) {
+      // An outer batch may still contain updates from before this nested batch.
+      return;
+    }
+
+    this.batchChanged = false;
+    this.batchMeta = undefined;
+    const rootPath =
+      typeof this.options.enablePatches === 'object' &&
+      this.options.enablePatches.pathAsArray === false
+        ? ''
+        : [];
+    // Cancellation restores the pre-batch snapshot; it is not a committed
+    // transition and must not retain the rejected transaction metadata.
+    this.notify([{ op: 'replace', path: rootPath, value: this.state }] as unknown as Patches<P>);
   }
 
   /** Group synchronous or asynchronous updates into one history entry. */
@@ -574,7 +624,7 @@ export class TimeTravel<
   /**
    * Go to specific position in history
    */
-  go(nextPosition: number): void {
+  go(nextPosition: number, metadata?: TimeTravelTransitionMeta): void {
     if (!Number.isSafeInteger(nextPosition) || nextPosition < 0) {
       throw new RangeError('TimeTravel position must be a non-negative safe integer');
     }
@@ -634,27 +684,27 @@ export class TimeTravel<
 
     this.position = nextPosition;
     this.invalidateHistoryCache();
-    this.notify(patchesToApply);
+    this.notify(patchesToApply, metadata);
   }
 
   /**
    * Go back in history
    */
-  back(amount = 1): void {
+  back(amount = 1, metadata?: TimeTravelTransitionMeta): void {
     if (!Number.isSafeInteger(amount) || amount < 0) {
       throw new RangeError('TimeTravel back amount must be a non-negative safe integer');
     }
-    this.go(this.position - amount);
+    this.go(this.position - amount, metadata);
   }
 
   /**
    * Go forward in history
    */
-  forward(amount = 1): void {
+  forward(amount = 1, metadata?: TimeTravelTransitionMeta): void {
     if (!Number.isSafeInteger(amount) || amount < 0) {
       throw new RangeError('TimeTravel forward amount must be a non-negative safe integer');
     }
-    this.go(this.position + amount);
+    this.go(this.position + amount, metadata);
   }
 
   /**

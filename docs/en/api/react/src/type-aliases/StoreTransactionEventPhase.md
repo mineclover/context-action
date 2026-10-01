@@ -8,4 +8,4 @@
 
 > **StoreTransactionEventPhase** = `"started"` \| `"committed"` \| `"rolled_back"` \| `"undone"` \| `"redone"`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:27](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L27)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:81](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L81)

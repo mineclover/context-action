@@ -1,6 +1,6 @@
 {
   "name": "@context-action/mutative",
-  "version": "0.8.9",
+  "version": "0.8.10",
   "type": "module",
   "description": "Mutative-based immutability and time-travel utilities for @context-action",
   "main": "dist/index.cjs",
@@ -56,7 +56,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@context-action/mutative-core": "^0.8.9"
+    "@context-action/mutative-core": "^0.8.10"
   },
   "devDependencies": {
     "@types/node": "24.13.3",

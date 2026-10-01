@@ -11,28 +11,28 @@ import {
 } from './errors.js';
 import { executeParallel, executeRace, executeSequential } from './execution-modes.js';
 import {
-  ActionHandler,
+  ActionDispatchTrace,
+  ActionDispatchTraceListener,
   ActionEffectHandler,
-  EffectConfig,
   ActionGuardHandler,
+  ActionHandler,
+  ActionHandlerStats,
+  ActionNames,
   ActionObserverEvent,
   ActionObserverHandler,
-  ActionNames,
-  ActionHandlerStats,
   ActionPayloadMap,
   ActionRegisterConfig,
   ActionRegistryInfo,
   ActionResult,
   ActionResultHandler,
   ActionResultMap,
-  ActionDispatchTrace,
-  ActionDispatchTraceListener,
   DispatchArgs,
   DispatchOptions,
+  EffectConfig,
   ExecutionMode,
   ExecutionResult,
-  HandlerConfig,
   GuardConfig,
+  HandlerConfig,
   HandlerError,
   HandlerExecutionOutcome,
   HandlerRegistration,
@@ -848,7 +848,8 @@ export class ActionRegister<
     const notifyObservers = async (event: ActionObserverEvent<T[K], unknown>) => {
       if (notifiedObserverOutcomes.has(event.outcome)) return;
       notifiedObserverOutcomes.add(event.outcome);
-      if (event.outcome === 'failed') dispatchTraceStatus = 'failed';
+      if (event.outcome === 'completed_with_errors') dispatchTraceStatus = 'completed_with_errors';
+      else if (event.outcome === 'failed') dispatchTraceStatus = 'failed';
       else if (event.outcome === 'cancelled') dispatchTraceStatus = 'cancelled';
       else if (event.outcome === 'debounced') dispatchTraceStatus = 'debounced';
       else if (event.outcome === 'throttled') dispatchTraceStatus = 'throttled';
@@ -2145,9 +2146,22 @@ export class ActionRegister<
       throw error;
     });
 
-    const tracedPromise = this.withDispatchTrace(observedPromise, trace, result => (
-      result.success ? 'completed' : result.outcome === 'cancelled' ? 'cancelled' : 'failed'
-    ));
+    const tracedPromise = this.withDispatchTrace(observedPromise, trace, result => {
+      switch (result.outcome) {
+        case 'completed':
+          return 'completed';
+        case 'completed_with_errors':
+          return 'completed_with_errors';
+        case 'cancelled':
+          return 'cancelled';
+        case 'debounced':
+          return 'debounced';
+        case 'throttled':
+          return 'throttled';
+        default:
+          return 'failed';
+      }
+    });
     void tracedPromise.catch(() => {});
     return tracedPromise;
   }

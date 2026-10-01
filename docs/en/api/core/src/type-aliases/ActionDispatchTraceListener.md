@@ -8,7 +8,7 @@
 
 > **ActionDispatchTraceListener** = (`event`) => `void`
 
-Defined in: [packages/core/src/types.ts:1074](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1074)
+Defined in: [packages/core/src/types.ts:1080](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1080)
 
 ## Parameters
 

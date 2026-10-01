@@ -8,6 +8,6 @@
 
 > **ReservedActionKey** = `"then"` \| `"catch"` \| `"finally"` \| `"toJSON"` \| `"constructor"` \| `"__proto__"` \| `"prototype"`
 
-Defined in: [packages/core/src/types.ts:1296](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1296)
+Defined in: [packages/core/src/types.ts:1302](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1302)
 
 Property names reserved by the callable action proxy protocol.
