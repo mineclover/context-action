@@ -3,14 +3,22 @@ import { createMutativeStateBackend, createMutativeTimelineBackend } from '../sr
 
 describe('Mutative backend adapters', () => {
   it('provides a React-independent state backend with patches and safe snapshots', () => {
-    const backend = createMutativeStateBackend('state', { count: 0 }, { readMode: 'safe' });
+    const backend = createMutativeStateBackend(
+      'state',
+      { count: 0, nested: { value: 1 } },
+      { readMode: 'safe' },
+    );
     const listener = vi.fn();
     const patchListener = vi.fn();
     backend.subscribe(listener);
     backend.subscribeWithPatches?.(patchListener);
     backend.update(draft => { draft.count += 1; });
 
-    expect(backend.getSnapshot().value).toEqual({ count: 1 });
+    expect(backend.getSnapshot().value).toEqual({ count: 1, nested: { value: 1 } });
+    expect(Object.isFrozen(backend.getSnapshot().value)).toBe(true);
+    expect(Object.isFrozen(backend.getSnapshot().value.nested)).toBe(true);
+    expect(Reflect.set(backend.getSnapshot().value, 'count', 99)).toBe(false);
+    expect(backend.getSnapshot().value.count).toBe(1);
     expect(backend.getSnapshot()).toBe(backend.getSnapshot());
     expect(backend.capabilities?.immutableSnapshots).toBe(true);
     expect(backend.getLastPatches()).toHaveLength(1);
@@ -72,6 +80,46 @@ describe('Mutative backend adapters', () => {
     backend.reset({ label: 'reset' });
     expect(backend.getSnapshot().value).toEqual({ count: 0 });
     expect(() => backend.goToHistoryEntry(editedEntry)).toThrow('no longer retained');
+  });
+
+  it('freezes safe timeline snapshots without freezing reference-mode state', () => {
+    const safe = createMutativeTimelineBackend(
+      'safe-timeline',
+      {
+        nested: { count: 0 },
+        map: new Map([['count', 0]]),
+        set: new Set([1]),
+        date: new Date(0),
+      },
+      { readMode: 'safe' },
+    );
+    const safeValue = safe.getSnapshot().value;
+    expect(Object.isFrozen(safeValue)).toBe(true);
+    expect(Object.isFrozen(safeValue.nested)).toBe(true);
+    expect(Reflect.set(safeValue.nested, 'count', 10)).toBe(false);
+    expect(safe.getSnapshot().value.nested.count).toBe(0);
+    expect(Object.isFrozen(safeValue.map)).toBe(true);
+    expect(() => safeValue.map.set('count', 10)).toThrow('immutable snapshot Map');
+    expect(() => safeValue.map.delete('count')).toThrow('immutable snapshot Map');
+    expect(() => safeValue.map.clear()).toThrow('immutable snapshot Map');
+    expect(safe.getSnapshot().value.map.get('count')).toBe(0);
+    expect(Object.isFrozen(safeValue.set)).toBe(true);
+    expect(() => safeValue.set.add(2)).toThrow('immutable snapshot Set');
+    expect(() => safeValue.set.delete(1)).toThrow('immutable snapshot Set');
+    expect(() => safeValue.set.clear()).toThrow('immutable snapshot Set');
+    expect(safe.getSnapshot().value.set.has(1)).toBe(true);
+    expect(Object.isFrozen(safeValue.date)).toBe(true);
+    expect(() => safeValue.date.setTime(10)).toThrow('immutable snapshot Date');
+    expect(safe.getSnapshot().value.date.getTime()).toBe(0);
+
+    const reference = createMutativeTimelineBackend(
+      'reference-timeline',
+      { nested: { count: 0 }, map: new Map([['count', 0]]) },
+      { readMode: 'reference' },
+    );
+    expect(Object.isFrozen(reference.getSnapshot().value)).toBe(false);
+    reference.getSnapshot().value.map.set('count', 2);
+    expect(reference.getSnapshot().value.map.get('count')).toBe(2);
   });
 
   it('does not leave notification holds behind when beginBatch fails', () => {

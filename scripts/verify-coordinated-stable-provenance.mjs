@@ -5,6 +5,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { retryTransientRegistryVisibility } from './registry-visibility-retry.cjs';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const planPath = path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-10.json');
@@ -26,20 +27,29 @@ function run(command, argumentsList, cwd) {
 
 async function runNpmInstallWithRegistryRetry(argumentsList, cwd) {
   const environment = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.toLowerCase().startsWith('npm_config_')));
-  const delays = [1000, 2000, 4000, 8000, 12000];
-  for (let attempt = 0; attempt <= delays.length; attempt += 1) {
-    const result = spawnSync('npm', argumentsList, { cwd, encoding: 'utf8', env: environment });
-    if (result.status === 0) return result.stdout;
-    const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
-    const transientEtarget = /\bETARGET\b|No matching version found/iu.test(output);
-    if (!transientEtarget || attempt === delays.length) {
-      throw new Error(`npm ${argumentsList.join(' ')} failed:\n${output}`);
+  return retryTransientRegistryVisibility(async attempt => {
+    // A new cache per attempt prevents npm's negative metadata response from
+    // masking registry propagation on the next replica read.
+    const cacheDirectory = await mkdtemp(path.join(cwd, `.npm-cache-attempt-${attempt ?? 0}-`));
+    try {
+      const cacheIndex = argumentsList.indexOf('--cache');
+      const attemptArguments = cacheIndex === -1
+        ? [...argumentsList, '--cache', cacheDirectory, '--prefer-online']
+        : argumentsList.map((value, index) => index === cacheIndex + 1 ? cacheDirectory : value);
+      const result = spawnSync('npm', attemptArguments, { cwd, encoding: 'utf8', env: environment });
+      if (result.status === 0) return result.stdout;
+      const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
+      const failure = new Error(`npm ${attemptArguments.join(' ')} failed:\n${output}`);
+      failure.code = result.error?.code;
+      throw failure;
+    } finally {
+      await rm(cacheDirectory, { recursive: true, force: true });
     }
-    const delay = delays[attempt];
-    console.warn(`npm registry propagation returned ETARGET; retrying in ${delay}ms (attempt ${attempt + 2}/${delays.length + 1})`);
-    await new Promise(resolve => setTimeout(resolve, delay));
-  }
-  throw new Error('npm install retry loop exhausted');
+  }, {
+    onRetry: ({ attempt, nextAttempt, delay }) => {
+      console.warn(`npm registry propagation returned ETARGET; retrying in ${delay}ms (attempt ${nextAttempt})`);
+    },
+  });
 }
 
 function decodeStatement(bundle) {

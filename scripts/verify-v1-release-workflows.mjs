@@ -227,6 +227,12 @@ export function validateReleaseWorkflowSources({
       /^node\s+scripts\/verify-published-tool-consumers\.cjs\s+--local\s+--cohort-only\s+--packages "@context-action\/core,@context-action\/store-core,@context-action\/mutative-core,@context-action\/mutative,@context-action\/react"$/u,
       'Coordinated stable candidate workflow must validate the packed candidate closure before publication',
     );
+    requireCommandBeforePublication(
+      errors,
+      coordinatedCandidateInspection,
+      /^node\s+scripts\/verify-existing-cohort-provenance\.mjs\s+--commit "\$RELEASE_COMMIT"\s+--output reports\/npm-coordinated-stable-candidate-existing-provenance\.json$/u,
+      'Coordinated stable candidate workflow must verify existing artifact provenance before publication',
+    );
     requireExactStepBeforePublication(
       errors,
       coordinatedCandidateInspection,
@@ -234,6 +240,21 @@ export function validateReleaseWorkflowSources({
       approvedSourceStatements,
       { RELEASE_COMMIT: releaseCommitInputExpression },
       'Coordinated stable candidate workflow must re-verify the approved clean source immediately before publication',
+    );
+    requireStepOrder(
+      errors,
+      coordinatedCandidateInspection,
+      'Re-verify approved source immediately before publication',
+      'Verify existing cohort provenance before publication',
+      'Coordinated stable candidate workflow must verify existing artifact provenance after the approved source recheck',
+    );
+    requireExactStepBeforePublication(
+      errors,
+      coordinatedCandidateInspection,
+      'Verify existing cohort provenance before publication',
+      ['node scripts/verify-existing-cohort-provenance.mjs --commit "$RELEASE_COMMIT" --output reports/npm-coordinated-stable-candidate-existing-provenance.json'],
+      { RELEASE_COMMIT: releaseCommitInputExpression },
+      'Coordinated stable candidate workflow must verify existing artifact provenance immediately before publication',
       { adjacent: true },
     );
 

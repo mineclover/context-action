@@ -112,6 +112,13 @@ jobs:
           git diff --exit-code
           git diff --cached --exit-code
 
+      - name: Verify existing cohort provenance before publication
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          node scripts/verify-existing-cohort-provenance.mjs --commit "$RELEASE_COMMIT" \
+            --output reports/npm-coordinated-stable-candidate-existing-provenance.json
+
       - name: Publish coordinated stable candidate to next
         env:
           NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}

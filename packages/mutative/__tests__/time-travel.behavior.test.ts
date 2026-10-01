@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createTimeTravel, produceWithPatches } from '../src';
 
 describe('@context-action/mutative time-travel behavior matrix', () => {
@@ -43,6 +43,52 @@ describe('@context-action/mutative time-travel behavior matrix', () => {
     expect(travel.getState()).toEqual({ count: 1 });
     travel.endBatch();
 
+    expect(travel.getHistory()).toEqual([{ count: 0 }, { count: 1 }]);
+  });
+
+  it('rolls back a rejected synchronous batch', () => {
+    const travel = createTimeTravel({ count: 0 });
+    const listener = vi.fn();
+    travel.subscribe(listener);
+
+    expect(() => travel.batch(() => {
+      travel.setState((draft) => { draft.count = 1; });
+      throw new Error('sync rejection');
+    })).toThrow('sync rejection');
+
+    expect(travel.getState()).toEqual({ count: 0 });
+    expect(travel.getPosition()).toBe(0);
+    expect(travel.getHistory()).toEqual([{ count: 0 }]);
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('rolls back a rejected asynchronous batch', async () => {
+    const travel = createTimeTravel({ count: 0 });
+
+    await expect(travel.batch(async () => {
+      travel.setState((draft) => { draft.count = 1; });
+      await Promise.resolve();
+      throw new Error('async rejection');
+    })).rejects.toThrow('async rejection');
+
+    expect(travel.getState()).toEqual({ count: 0 });
+    expect(travel.getPosition()).toBe(0);
+    expect(travel.getHistory()).toEqual([{ count: 0 }]);
+  });
+
+  it('allows a caught nested rejection without committing its changes', () => {
+    const travel = createTimeTravel({ count: 0 });
+
+    travel.batch(() => {
+      travel.setState((draft) => { draft.count = 1; });
+      expect(() => travel.batch(() => {
+        travel.setState((draft) => { draft.count = 2; });
+        throw new Error('nested rejection');
+      })).toThrow('nested rejection');
+      expect(travel.getState()).toEqual({ count: 1 });
+    });
+
+    expect(travel.getState()).toEqual({ count: 1 });
     expect(travel.getHistory()).toEqual([{ count: 0 }, { count: 1 }]);
   });
 

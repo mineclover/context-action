@@ -49,6 +49,158 @@ describe('BackendStore', () => {
     store.dispose();
   });
 
+  it('pairs regular-first and patch-first backend notifications', async () => {
+    type Patch = { readonly path: readonly string[] };
+    const snapshot = { name: 'ordered', value: 0, version: 0, lastUpdate: 0 };
+    const listeners = new Set<() => void>();
+    const patchListeners = new Set<(patches: readonly Patch[] | null) => void>();
+    const backend: StateBackend<number, Patch> & {
+      publish: (value: number, patches: readonly Patch[] | null, order: 'regular-first' | 'patch-first') => void;
+    } = {
+      name: 'ordered',
+      getSnapshot: () => snapshot,
+      subscribe: listener => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+      subscribeWithPatches: listener => {
+        patchListeners.add(listener);
+        return () => patchListeners.delete(listener);
+      },
+      setValue: value => backend.publish(value, [{ path: ['value'] }], 'regular-first'),
+      update: updater => backend.setValue(updater(snapshot.value) ?? snapshot.value),
+      publish: (value, patches, order) => {
+        snapshot.value = value;
+        snapshot.version += 1;
+        snapshot.lastUpdate += 1;
+        const notifyPatches = () => [...patchListeners].forEach(listener => listener(patches));
+        const notifyRegular = () => [...listeners].forEach(listener => listener());
+        if (order === 'regular-first') {
+          notifyRegular();
+          notifyPatches();
+        } else {
+          notifyPatches();
+          notifyRegular();
+        }
+      },
+    };
+
+    const store = createBackendStore('ordered', backend);
+    const observed: Array<readonly Patch[] | null> = [];
+    store.subscribeWithPatches(patches => observed.push(patches));
+    const patch = [{ path: ['value'] }] as const;
+
+    backend.publish(1, patch, 'regular-first');
+    await Promise.resolve();
+    backend.publish(2, patch, 'patch-first');
+
+    expect(observed).toEqual([patch, patch]);
+    store.dispose();
+  });
+
+  it('keeps nested regular-first patch events attached to the innermost transition', async () => {
+    type Patch = { readonly id: 'outer' | 'nested' };
+    const snapshot = { name: 'reentrant', value: 0, version: 0, lastUpdate: 0 };
+    const listeners = new Set<() => void>();
+    const patchListeners = new Set<(patches: readonly Patch[] | null) => void>();
+    const backend: StateBackend<number, Patch> & {
+      publish: (value: number, patches: readonly Patch[]) => void;
+    } = {
+      name: 'reentrant',
+      getSnapshot: () => snapshot,
+      subscribe: listener => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+      subscribeWithPatches: listener => {
+        patchListeners.add(listener);
+        return () => patchListeners.delete(listener);
+      },
+      setValue: value => backend.publish(value, [{ id: 'outer' }]),
+      update: updater => backend.setValue(updater(snapshot.value) ?? snapshot.value),
+      publish: (value, patches) => {
+        snapshot.value = value;
+        snapshot.version += 1;
+        snapshot.lastUpdate += 1;
+        [...listeners].forEach(listener => listener());
+        [...patchListeners].forEach(listener => listener(patches));
+      },
+    };
+
+    const store = createBackendStore('reentrant', backend);
+    const observed: Array<readonly Patch[] | null> = [];
+    let nested = false;
+    store.subscribeWithPatches(patches => observed.push(patches));
+    store.subscribe(() => {
+      if (!nested && store.getValue() === 1) {
+        nested = true;
+        backend.publish(2, [{ id: 'nested' }]);
+      }
+    });
+
+    backend.publish(1, [{ id: 'outer' }]);
+    await Promise.resolve();
+
+    // Delivery remains transition ordered even though the nested patch
+    // callback arrives before the outer regular-first callback's patch.
+    expect(observed).toEqual([[{ id: 'outer' }], [{ id: 'nested' }]]);
+    store.dispose();
+  });
+
+  it('delivers explicit null and patchless updates without reusing stale patches', async () => {
+    const snapshot = { name: 'null-patches', value: 0, version: 0, lastUpdate: 0 };
+    const listeners = new Set<() => void>();
+    const patchListeners = new Set<(patches: readonly StatePatch[] | null) => void>();
+    const backend: StateBackend<number> & {
+      publish: (value: number, patches?: readonly StatePatch[] | null) => void;
+    } = {
+      name: 'null-patches',
+      getSnapshot: () => snapshot,
+      subscribe: listener => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+      subscribeWithPatches: listener => {
+        patchListeners.add(listener);
+        return () => patchListeners.delete(listener);
+      },
+      setValue: value => backend.publish(value),
+      update: updater => backend.setValue(updater(snapshot.value) ?? snapshot.value),
+      publish: (value, patches = undefined) => {
+        snapshot.value = value;
+        snapshot.version += 1;
+        snapshot.lastUpdate += 1;
+        if (patches !== undefined) {
+          [...patchListeners].forEach(listener => listener(patches));
+        }
+        [...listeners].forEach(listener => listener());
+      },
+    };
+
+    const store = createBackendStore('null-patches', backend);
+    const observed: Array<readonly StatePatch[] | null> = [];
+    store.subscribeWithPatches(patches => observed.push(patches));
+    const patch = [{ op: 'replace', path: ['value'], value: 1 }] as const;
+
+    backend.publish(1, patch);
+    backend.publish(2, null);
+    backend.publish(3);
+    await Promise.resolve();
+
+    expect(observed).toEqual([patch, null, null]);
+    expect(store.getLastPatches()).toBeNull();
+    store.dispose();
+  });
+
+  it('preserves null returned by a backend safe-read hook', () => {
+    const backend = createReferenceBackend('safe-null', { value: 1 }) as StateBackend<{ value: number }>;
+    backend.getSafeValue = () => null as unknown as { value: number };
+    const store = createBackendStore('safe-null', backend);
+
+    expect(store.getSafeValue()).toBeNull();
+    store.dispose();
+  });
+
   it('binds a user-owned non-immutable backend without Mutative', () => {
     const backend = createReferenceBackend('reference', { count: 0 });
     const store = createBackendStore('reference', backend);
@@ -183,6 +335,37 @@ describe('BackendStore', () => {
     const store = createBackendStore('read-failure', backend);
     expect(() => backend.setValue(1)).not.toThrow();
     expect(store.getSnapshot().value).toBe(0);
+    store.dispose();
+  });
+
+  it('uses a getLastPatches-only backend once without replaying stale patches', () => {
+    const patch = [{ op: 'replace', path: ['value'], value: 1 }] as const;
+    let value = 0;
+    let version = 0;
+    const listeners = new Set<() => void>();
+    const backend: StateBackend<number> = {
+      name: 'fallback-patches',
+      getSnapshot: () => ({ name: 'fallback-patches', value, version, lastUpdate: version }),
+      subscribe: listener => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+      getLastPatches: () => patch,
+      setValue: next => {
+        value = next;
+        version += 1;
+        [...listeners].forEach(listener => listener());
+      },
+      update: updater => backend.setValue(updater(value) ?? value),
+    };
+
+    const store = createBackendStore('fallback-patches', backend);
+    const observed: Array<readonly StatePatch[] | null> = [];
+    store.subscribeWithPatches(patches => observed.push(patches));
+    store.setValue(1);
+    store.setValue(2);
+
+    expect(observed).toEqual([patch, null]);
     store.dispose();
   });
 

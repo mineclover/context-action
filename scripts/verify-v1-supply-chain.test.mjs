@@ -208,6 +208,27 @@ test('requires coordinated candidate plan validation to bind the immutable curre
   });
 });
 
+test('requires existing coordinated artifact provenance before publication', async () => {
+  await withFixture(async root => {
+    const workflowPath = path.join(root, '.github', 'workflows', 'publish-coordinated-stable-candidate.yml');
+    const source = await readFile(workflowPath, 'utf8');
+    const mutated = source
+      .replace(
+        '      - name: Verify existing cohort provenance before publication\n',
+        '      - name: Existing provenance guard disabled\n',
+      )
+      .replace(
+        '          node scripts/verify-existing-cohort-provenance.mjs --commit "$RELEASE_COMMIT" \\\n            --output reports/npm-coordinated-stable-candidate-existing-provenance.json',
+        '          echo "existing provenance guard disabled"',
+      );
+    assert.notEqual(mutated, source);
+    await writeFile(workflowPath, mutated);
+    const result = await runVerifier(root);
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /must verify the provenance of every existing coordinated artifact before publication/u);
+  });
+});
+
 test('requires maintained Mutative upstream verification before coordinated publication', async () => {
   await withFixture(async root => {
     const workflowPath = path.join(root, '.github', 'workflows', 'publish-coordinated-stable-candidate.yml');

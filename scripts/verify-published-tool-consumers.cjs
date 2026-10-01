@@ -14,6 +14,9 @@ const {
 } = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const {
+  retryTransientRegistryVisibilitySync,
+} = require('./registry-visibility-retry.cjs');
 
 const summaryPath = path.resolve('reports/npm-publish-summary.json');
 const summary = existsSync(summaryPath)
@@ -199,39 +202,65 @@ function expectedPublishedVersion({ name, directory }) {
 }
 
 function publishedVersion(name, tag, expectedVersion) {
-  const output = execFileSync(
-    'npm',
-    ['view', tag ? `${name}@${tag}` : name, 'version', '--registry=https://registry.npmjs.org'],
-    { encoding: 'utf8', env: { ...process.env, npm_config_loglevel: 'error' } },
-  ).trim();
-  if (!validVersion(output)) {
-    throw new Error(`npm returned an invalid published version for ${name}: ${output}`);
-  }
-  if (expectedVersion && output !== expectedVersion) {
-    throw new Error(
-      `npm dist-tag ${tag} for ${name} still resolves to ${output}; expected ${expectedVersion}`,
-    );
-  }
-  return output;
+  return retryTransientRegistryVisibilitySync(attempt => {
+    const cacheDirectory = mkdtempSync(path.join(os.tmpdir(), `context-action-registry-view-${process.pid}-${attempt}-`));
+    try {
+      const output = execFileSync(
+        'npm',
+        [
+          'view', tag ? `${name}@${tag}` : name, 'version',
+          '--registry=https://registry.npmjs.org', '--prefer-online',
+          '--cache', cacheDirectory,
+        ],
+        { encoding: 'utf8', env: { ...process.env, npm_config_loglevel: 'error' } },
+      ).trim();
+      if (!validVersion(output)) {
+        throw new Error(`npm returned an invalid published version for ${name}: ${output}`);
+      }
+      if (expectedVersion && output !== expectedVersion) {
+        const visibilityError = new Error(
+          `npm dist-tag ${tag} for ${name} still resolves to ${output}; expected ${expectedVersion}`,
+        );
+        visibilityError.code = 'ECOHORT_VISIBILITY';
+        visibilityError.retryableRegistryVisibility = true;
+        throw visibilityError;
+      }
+      return output;
+    } finally {
+      rmSync(cacheDirectory, { recursive: true, force: true });
+    }
+  }, {
+    delays: Array.from({ length: 29 }, () => 10_000),
+    onRetry: ({ attempt }) => {
+      process.stdout.write(`Waiting for npm metadata (${attempt}/29)...\n`);
+    },
+  });
 }
 
 function waitForPublishedVersion(packageDefinition, tag) {
   const { name } = packageDefinition;
   const expectedVersion = expectedPublishedVersion(packageDefinition);
-  const attempts = 30;
-  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+  return publishedVersion(name, tag, expectedVersion);
+}
+
+function runNpmInstallWithVisibilityRetry(argumentsList, options) {
+  return retryTransientRegistryVisibilitySync(attempt => {
+    const cacheDirectory = mkdtempSync(path.join(options.cwd, `.npm-cache-install-${attempt}-`));
     try {
-      const version = publishedVersion(name, tag, expectedVersion);
-      if (attempt > 1) {
-        process.stdout.write(`npm metadata became visible after ${attempt} attempts.\n`);
-      }
-      return version;
-    } catch (error) {
-      if (attempt === attempts) throw error;
-      process.stdout.write(`Waiting for npm metadata (${attempt}/${attempts - 1})...\n`);
-      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10_000);
+      return execFileSync(
+        'npm',
+        [...argumentsList, '--prefer-online', '--cache', cacheDirectory],
+        options.execOptions,
+      );
+    } finally {
+      rmSync(cacheDirectory, { recursive: true, force: true });
     }
-  }
+  }, {
+    delays: [5_000, 10_000, 20_000, 30_000, 60_000],
+    onRetry: ({ attempt }) => {
+      process.stdout.write(`Waiting for npm install registry visibility (${attempt}/5)...\n`);
+    },
+  });
 }
 
 function createLocalPackageSpecs(consumerRoot, packageDefinitions) {
@@ -758,24 +787,23 @@ function main() {
       ? '//registry.npmjs.org/:_authToken=$' + '{NODE_AUTH_TOKEN}\n'
       : '';
     writeFileSync(npmConfigPath, `${npmAuth}ignore-scripts=true\naudit=false\nfund=false\n`);
-    execFileSync(
-      'npm',
-      [
-        'install',
-        '--no-audit',
-        '--no-fund',
-        '--no-package-lock',
-        '--ignore-scripts',
-        '--userconfig',
-        npmConfigPath,
-        '--registry=https://registry.npmjs.org',
-      ],
-      {
+    runNpmInstallWithVisibilityRetry([
+      'install',
+      '--no-audit',
+      '--no-fund',
+      '--no-package-lock',
+      '--ignore-scripts',
+      '--userconfig',
+      npmConfigPath,
+      '--registry=https://registry.npmjs.org',
+    ], {
+      cwd: consumerRoot,
+      execOptions: {
         cwd: consumerRoot,
         stdio: 'inherit',
         env: isolatedNpmEnvironment(),
       },
-    );
+    });
     runContextActionDependencyResolutionSmoke(consumerRoot, selectedPackages);
     if (cohortOnly) {
       process.stdout.write(

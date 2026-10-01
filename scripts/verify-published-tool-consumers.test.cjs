@@ -16,6 +16,9 @@ const { parse } = require('yaml');
 const {
   runContextActionDependencyResolutionSmoke,
 } = require('./verify-published-tool-consumers.cjs');
+const {
+  retryTransientRegistryVisibilitySync,
+} = require('./registry-visibility-retry.cjs');
 
 const repositoryRoot = path.resolve(__dirname, '..');
 const candidateVersions = {
@@ -74,6 +77,103 @@ function createCoherentFixture() {
 }
 
 const selectedPackages = candidateNames.map(name => ({ name }));
+
+test('retries a fake registry ETARGET until the exact candidate becomes visible', () => {
+  let reads = 0;
+  const retryDelays = [];
+  const value = retryTransientRegistryVisibilitySync(() => {
+    reads += 1;
+    if (reads < 3) {
+      const error = new Error('npm ERR! code ETARGET\\nnpm ERR! No matching version found');
+      error.code = 'ETARGET';
+      throw error;
+    }
+    return '@context-action/react@4.0.5';
+  }, {
+    delays: [25, 50],
+    sleep: delay => retryDelays.push(delay),
+  });
+
+  assert.equal(value, '@context-action/react@4.0.5');
+  assert.equal(reads, 3);
+  assert.deepEqual(retryDelays, [25, 50]);
+});
+
+test('retries transient fake-registry E404 and stale-tag visibility errors', () => {
+  let reads = 0;
+  const retryDelays = [];
+  const value = retryTransientRegistryVisibilitySync(() => {
+    reads += 1;
+    if (reads === 1) {
+      const error = new Error('npm ERR! code E404\\nnpm ERR! 404 Not Found');
+      error.code = 'E404';
+      throw error;
+    }
+    if (reads === 2) {
+      const error = new Error('dist-tag latest still resolves to 4.0.4; expected 4.0.5');
+      error.code = 'ECOHORT_VISIBILITY';
+      error.retryableRegistryVisibility = true;
+      throw error;
+    }
+    return '4.0.5';
+  }, {
+    delays: [0, 0],
+    sleep: delay => retryDelays.push(delay),
+  });
+
+  assert.equal(value, '4.0.5');
+  assert.equal(reads, 3);
+  assert.deepEqual(retryDelays, [0, 0]);
+});
+
+test('uses a bounded 125-second default visibility budget', () => {
+  const retryDelays = [];
+  let reads = 0;
+  const value = retryTransientRegistryVisibilitySync(() => {
+    reads += 1;
+    if (reads === 2) return 'visible';
+    const error = new Error('npm ERR! code ETARGET');
+    error.code = 'ETARGET';
+    throw error;
+  }, { sleep: delay => retryDelays.push(delay) });
+
+  assert.equal(value, 'visible');
+  assert.deepEqual(retryDelays, [5000]);
+});
+
+test('fails closed when a fake registry keeps returning ETARGET after the retry budget', () => {
+  let reads = 0;
+  assert.throws(
+    () => retryTransientRegistryVisibilitySync(() => {
+      reads += 1;
+      const error = new Error('npm ERR! code ETARGET');
+      error.code = 'ETARGET';
+      throw error;
+    }, { delays: [0, 0], sleep: () => {} }),
+    error => {
+      assert.equal(error.code, 'ETARGET');
+      return true;
+    },
+  );
+  assert.equal(reads, 3, 'initial read plus exactly two bounded retries');
+});
+
+test('does not retry fake registry authentication failures', () => {
+  let reads = 0;
+  assert.throws(
+    () => retryTransientRegistryVisibilitySync(() => {
+      reads += 1;
+      const error = new Error('npm ERR! code E401');
+      error.code = 'E401';
+      throw error;
+    }, { delays: [0, 0], sleep: () => {} }),
+    error => {
+      assert.equal(error.code, 'E401');
+      return true;
+    },
+  );
+  assert.equal(reads, 1);
+});
 
 test('accepts one coherent packed prerelease dependency graph', () => {
   const root = createCoherentFixture();

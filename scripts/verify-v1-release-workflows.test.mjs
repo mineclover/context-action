@@ -52,6 +52,18 @@ test('requires the coordinated candidate closure before publication', () => {
   ));
 });
 
+test('requires existing coordinated artifact provenance before publication', () => {
+  const sources = releaseSources();
+  sources.coordinatedCandidate = sources.coordinatedCandidate.replace(
+    '      - name: Verify existing cohort provenance before publication\n',
+    '      - name: Existing provenance guard disabled\n',
+  );
+  const { errors } = validateReleaseWorkflowSources(sources);
+  assert.ok(errors.some(error => error.includes(
+    'Coordinated stable candidate workflow must verify existing artifact provenance',
+  )));
+});
+
 test('requires coordinated candidate plan validation to bind the immutable current source', () => {
   const sources = releaseSources();
   sources.coordinatedCandidate = sources.coordinatedCandidate.replace(

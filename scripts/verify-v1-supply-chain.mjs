@@ -660,6 +660,7 @@ const publishWorkflowPolicies = new Map([
       [/^pnpm\s+(?:run\s+)?publish:packages\b.*--dist-tag next(?:\s|$)/u, 'must publish the coordinated stable candidate to next'],
       [/^pnpm\s+(?:run\s+)?publish:packages\b.*--require-all-unpublished(?:\s|$)/u, 'must require every coordinated candidate version to be unpublished before mutation'],
       [/^pnpm\s+(?:run\s+)?publish:packages\b.*--resume-matching-existing(?:\s|$)/u, 'must bind coordinated candidate recovery to matching registry artifacts'],
+      [/^node\s+scripts\/verify-existing-cohort-provenance\.mjs\s+--commit "\$RELEASE_COMMIT"\s+--output reports\/npm-coordinated-stable-candidate-existing-provenance\.json$/u, 'must verify the provenance of every existing coordinated artifact before publication'],
       [/^node\s+scripts\/verify-coordinated-stable-provenance\.mjs\s+--tag next\s+--commit "\$RELEASE_COMMIT"\s+--output reports\/npm-coordinated-stable-candidate-provenance\.json$/u, 'must verify next provenance before candidate evidence'],
     ],
     requiredPrepublicationSteps: [
@@ -679,11 +680,19 @@ const publishWorkflowPolicies = new Map([
         ['node scripts/verify-published-tool-consumers.cjs --local --cohort-only --packages "@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react"'],
         'must verify the exact packed coordinated cohort dependency closure before publication',
       ],
+      [
+        ['node scripts/verify-existing-cohort-provenance.mjs --commit "$RELEASE_COMMIT" --output reports/npm-coordinated-stable-candidate-existing-provenance.json'],
+        'must verify the provenance of existing coordinated artifacts before publication',
+      ],
+      [
+        approvedSourceStatements,
+        'must re-verify the approved clean source before existing artifact provenance verification',
+      ],
     ],
     requiredAdjacentPrepublicationStep: [
-      approvedSourceStatements,
+      ['node scripts/verify-existing-cohort-provenance.mjs --commit "$RELEASE_COMMIT" --output reports/npm-coordinated-stable-candidate-existing-provenance.json'],
       { RELEASE_COMMIT: releaseCommitExpression },
-      'must re-verify the approved clean source immediately before publication',
+      'must verify existing coordinated artifact provenance immediately before publication',
     ],
   }],
   ['publish-maintenance-patch.yml', {
