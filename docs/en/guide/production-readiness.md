@@ -27,10 +27,10 @@ The current stable release is the state-management surface:
 
 | Package | Version | Why it matters |
 | --- | --- | --- |
-| `@context-action/core` | `1.2.2` | Stable action lifecycle, dispatch trace, and observer semantics. |
-| `@context-action/mutative-core` | `0.8.10` | Upstream `mutative@1.3.0` compatibility baseline and maintained fork fixes. |
-| `@context-action/mutative` | `0.8.10` | Immutable update, timeline batches, and transition metadata. |
-| `@context-action/react` | `4.0.2` | React lifecycle and SSR contract for the Store and Action APIs. |
+| `@context-action/core` | `1.2.3` | Stable action lifecycle, dispatch trace, and observer semantics. |
+| `@context-action/mutative-core` | `0.8.11` | Upstream `mutative@1.3.0` compatibility baseline and maintained fork fixes. |
+| `@context-action/mutative` | `0.8.11` | Immutable update, timeline batches, and transition metadata. |
+| `@context-action/react` | `4.0.3` | React lifecycle and SSR contract for the Store and Action APIs. |
 
 The upstream baseline and scoped package versions are independent contracts.
 `mutative@1.3.0` identifies the acquired source baseline; it is not a runtime
@@ -87,7 +87,7 @@ See the [durable operations runbook](/en/context-layered/architecture/durable-op
 
 ## Production rollout checklist
 
-- Pin and test Core `1.2.2`, Mutative Core and adapter `0.8.10`, and React `4.0.2` together.
+- Pin and test Core `1.2.3`, Mutative Core and adapter `0.8.11`, and React `4.0.3` together.
 - Run `pnpm release:check` from the exact candidate commit.
 - Use the packed-consumer and React compatibility checks as release gates, not only workspace tests.
 - Roll out this cohort behind normal application canary and rollback controls.

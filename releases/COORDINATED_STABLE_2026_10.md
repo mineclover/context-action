@@ -4,10 +4,10 @@ This candidate promotes the state-management contract as one protected cohort:
 
 | Package | Candidate | Contract boundary |
 | --- | --- | --- |
-| `@context-action/core` | `1.2.2` | Dispatch trace terminal-outcome reliability |
-| `@context-action/mutative-core` | `0.8.10` | Upstream 1.3.0 baseline and maintained core inventory |
-| `@context-action/mutative` | `0.8.10` | Cancellable timeline batches and replay metadata |
-| `@context-action/react` | `4.0.2` | Transaction participant safety and array-path invalidation |
+| `@context-action/core` | `1.2.3` | Dispatch trace terminal-outcome reliability |
+| `@context-action/mutative-core` | `0.8.11` | Upstream 1.3.0 baseline and maintained core inventory |
+| `@context-action/mutative` | `0.8.11` | Cancellable timeline batches and replay metadata |
+| `@context-action/react` | `4.0.3` | Transaction participant safety and array-path invalidation |
 
 The August 2026 Core/React plan remains historical. This plan uses the exact
 immutable `release_commit` supplied to the candidate workflow for provenance;

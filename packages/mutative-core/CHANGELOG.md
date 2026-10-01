@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.8.11] (2026-10-01)
+
+- Reissue the maintained upstream `mutative@1.3.0` core baseline for the history-entry identity cohort.
+
 ## [0.8.10] (2026-10-01)
 
 - Reissue the maintained upstream `mutative@1.3.0` baseline in the coordinated patch cohort without replacing the reviewed fork source.

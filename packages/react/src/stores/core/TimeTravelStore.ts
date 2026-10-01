@@ -418,6 +418,21 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     return this.timeTravel.getPosition();
   }
 
+  /** Stable retained timeline identity for transaction coordination. */
+  getHistoryEntryId(): number {
+    if (this.isDisposed) return -1;
+    return this.timeTravel.getHistoryEntryId();
+  }
+
+  hasHistoryEntry(entryId: number): boolean {
+    return !this.isDisposed && this.timeTravel.hasHistoryEntry(entryId);
+  }
+
+  goToHistoryEntry(entryId: number, metadata?: TimeTravelTransitionMeta): void {
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    this.timeTravel.goToHistoryEntry(entryId, metadata);
+  }
+
   /**
    * Get time travel controls object
    */

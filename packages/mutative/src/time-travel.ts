@@ -125,6 +125,8 @@ export class TimeTravel<
   private pendingState: S | null = null;
   private historyCache: { version: number; history: S[] } | null = null;
   private historyVersion = 0;
+  private entrySequence = 0;
+  private historyEntryIds: number[] = [];
   private mutableFallbackWarned = false;
   private batchDepth = 0;
   private batchFrames: Array<{
@@ -132,6 +134,7 @@ export class TimeTravel<
     position: number;
     allPatches: TravelPatches<P>;
     tempPatches: TravelPatches<P>;
+    entryIds: number[];
     changed: boolean;
     metadata?: TimeTravelTransitionMeta;
   }> = [];
@@ -180,6 +183,7 @@ export class TimeTravel<
     this.position = normalizedPosition;
     this.initialPosition = normalizedPosition;
     this.tempPatches = cloneTravelPatches();
+    this.historyEntryIds = Array.from({ length: normalizedPatches.patches.length + 1 }, () => ++this.entrySequence);
   }
 
   private normalizeInitialHistory(
@@ -378,6 +382,7 @@ export class TimeTravel<
       position: this.position,
       allPatches: cloneTravelPatches(this.allPatches),
       tempPatches: cloneTravelPatches(this.tempPatches),
+      entryIds: [...this.historyEntryIds],
       changed: this.batchChanged,
       metadata: this.batchMeta,
     });
@@ -421,6 +426,7 @@ export class TimeTravel<
     this.position = frame.position;
     this.allPatches = frame.allPatches;
     this.tempPatches = frame.tempPatches;
+    this.historyEntryIds = frame.entryIds;
     this.pendingState = null;
     this.invalidateHistoryCache();
     this.batchChanged = frame.changed;
@@ -483,6 +489,8 @@ export class TimeTravel<
   }
 
   private archivePatches(patches: Patches<P>, inversePatches: Patches<P>): void {
+    this.historyEntryIds = this.historyEntryIds.slice(0, this.position + 1);
+    this.historyEntryIds.push(++this.entrySequence);
     if (this.position < this.allPatches.patches.length) {
       this.allPatches.patches.splice(this.position);
       this.allPatches.inversePatches.splice(this.position);
@@ -497,6 +505,7 @@ export class TimeTravel<
         : this.position + 1;
 
     if (this.maxHistory < this.allPatches.patches.length) {
+      this.historyEntryIds = this.historyEntryIds.slice(-(this.maxHistory + 1));
       if (this.maxHistory === 0) {
         this.allPatches.patches = [];
         this.allPatches.inversePatches = [];
@@ -520,10 +529,14 @@ export class TimeTravel<
     }
 
     if (!this.tempPatches.patches.length || notLast) {
+      this.historyEntryIds = this.historyEntryIds.slice(0, this.position + 1);
+      this.historyEntryIds.push(++this.entrySequence);
       this.position =
         this.maxHistory < this.allPatches.patches.length + 1
           ? this.maxHistory
           : this.position + 1;
+    } else {
+      this.historyEntryIds[this.historyEntryIds.length - 1] = ++this.entrySequence;
     }
 
     this.tempPatches.patches.push(patches);
@@ -552,6 +565,7 @@ export class TimeTravel<
     this.allPatches.inversePatches.push(patches);
 
     if (this.maxHistory < this.allPatches.patches.length) {
+      this.historyEntryIds = this.historyEntryIds.slice(-(this.maxHistory + 1));
       if (this.maxHistory === 0) {
         this.allPatches.patches = [];
         this.allPatches.inversePatches = [];
@@ -730,6 +744,10 @@ export class TimeTravel<
     this.allPatches = cloneTravelPatches(this.initialPatches);
     this.tempPatches = cloneTravelPatches();
 
+    // Reset creates a new timeline generation, including when its values
+    // happen to match a previous entry. Old transaction identities expire.
+    this.historyEntryIds = Array.from({ length: this.allPatches.patches.length + 1 }, () => ++this.entrySequence);
+
     this.invalidateHistoryCache();
     const rootPath =
       typeof this.options.enablePatches === 'object' &&
@@ -771,6 +789,23 @@ export class TimeTravel<
    */
   getPosition(): number {
     return this.position;
+  }
+
+  /** Stable identity of the current entry, independent of a bounded cursor. */
+  getHistoryEntryId(): number {
+    return this.historyEntryIds[this.position]!;
+  }
+
+  /** Whether an entry remains available in the retained timeline. */
+  hasHistoryEntry(entryId: number): boolean {
+    return this.historyEntryIds.includes(entryId);
+  }
+
+  /** Replay an exact retained entry; reject trimmed or replaced branches. */
+  goToHistoryEntry(entryId: number, metadata?: TimeTravelTransitionMeta): void {
+    const position = this.historyEntryIds.indexOf(entryId);
+    if (position < 0) throw new Error(`History entry ${entryId} is no longer retained`);
+    this.go(position, metadata);
   }
 
   /**
