@@ -12,7 +12,10 @@ export interface OrderSubmitEventDetail {
 const registeredOrderElements = new Map<string, CustomElementConstructor>();
 
 function cloneDraft(draft: ReturnType<OrderModel['source']['getSnapshot']>['draft']) {
-  return { ...draft, items: draft.items.map((item) => ({ ...item })) };
+  return {
+    ...draft,
+    items: Object.freeze(draft.items.map((item) => Object.freeze({ ...item }))),
+  };
 }
 
 /**
@@ -170,7 +173,7 @@ export function defineOrderWorkspaceElement(tagName = 'order-workspace') {
     }
 
     get items(): readonly OrderItem[] {
-      return this.#model.source.getSnapshot().draft.items.map((item) => ({ ...item }));
+      return Object.freeze(this.#model.source.getSnapshot().draft.items.map((item) => Object.freeze({ ...item })));
     }
 
     // Imperative Semantic Methods
