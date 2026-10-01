@@ -1,6 +1,13 @@
-# Changelog
+# Change Log
 
-## 0.8.8 (2026-10-01)
+## [0.8.9] (2026-10-01)
+
+- Verify the acquired upstream `mutative@1.3.0` source baseline against its npm tarball integrity and file hashes.
+- Ship upstream provenance, the reviewed patch inventory, and synchronization instructions with the core artifact.
+- Preserve the maintained lazy-array, nested-draft isolation, Set replay order, Map/Symbol path, and strict/unsafe regression fixes.
+- Keep scoped versions independent from upstream versions; no runtime source replacement occurs in this patch.
+
+## [0.8.8] (2026-07-19)
 
 - Vendored the maintained `mineclover/mutative` core into a standalone
   `@context-action/mutative-core` package.

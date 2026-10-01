@@ -8,11 +8,13 @@ const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url))
 const planPath = path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-10.json');
 const packagePaths = {
   '@context-action/core': 'packages/core/package.json',
+  '@context-action/mutative-core': 'packages/mutative-core/package.json',
   '@context-action/mutative': 'packages/mutative/package.json',
   '@context-action/react': 'packages/react/package.json',
 };
 const changelogPaths = {
   '@context-action/core': 'packages/core/CHANGELOG.md',
+  '@context-action/mutative-core': 'packages/mutative-core/CHANGELOG.md',
   '@context-action/mutative': 'packages/mutative/CHANGELOG.md',
   '@context-action/react': 'packages/react/CHANGELOG.md',
 };
@@ -58,7 +60,9 @@ for (const [name, version] of Object.entries(plan.packages ?? {})) {
     if (manifest.name !== name || manifest.version !== version) errors.push(`${name} must be ${version} in its package manifest`);
     if (typeof changelogDate === 'string'
       && /^\d{4}-\d{2}-\d{2}$/u.test(changelogDate)
-      && (!changelog.startsWith(`# Change Log\n`) || !changelog.includes(`## [${version}] (${changelogDate})`))) {
+      && (!(/^# Change (?:Log|log)\n|^# Changelog\n/u.test(changelog))
+        || !changelog.includes(`## [${version}] (${changelogDate})`)
+        && !changelog.includes(`## ${version} (${changelogDate})`))) {
       errors.push(`${name} must have a dated ${version} changelog entry`);
     }
   }
@@ -76,7 +80,9 @@ if (requireCurrentSource) {
     errors.push('React state-management release must not require Durable Operations at install time');
   }
 }
-if (Object.keys(plan.packages ?? {}).length !== Object.keys(packagePaths).length) errors.push('Release plan must define the exact coordinated package cohort');
+if (JSON.stringify(Object.keys(plan.packages ?? {})) !== JSON.stringify(Object.keys(packagePaths))) {
+  errors.push('Release plan must define the exact coordinated package cohort in core, mutative-core, mutative, react order');
+}
 if (Object.keys(plan.changelogDates ?? {}).length !== Object.keys(packagePaths).length) errors.push('Release plan must define changelog dates for the exact coordinated package cohort');
 if (plan.provenanceBinding !== 'workflow-release-commit') {
   errors.push('Release plan must bind provenance to the workflow release_commit for the exact coordinated package cohort');

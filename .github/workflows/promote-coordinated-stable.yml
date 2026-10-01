@@ -92,7 +92,7 @@ jobs:
       - name: Verify reviewed candidate consumer matrix
         run: |
           pnpm verify:published-tool-consumers -- --tag next \
-            --packages "@context-action/core,@context-action/mutative,@context-action/react"
+            --packages "@context-action/core,@context-action/mutative-core,@context-action/mutative,@context-action/react"
 
       - name: Promote reviewed candidate to latest
         env:
@@ -104,14 +104,14 @@ jobs:
           RELEASE_COMMIT: ${{ inputs.release_commit }}
         run: |
           pnpm verify:published-tool-consumers -- --tag latest \
-            --packages "@context-action/core,@context-action/mutative,@context-action/react"
+            --packages "@context-action/core,@context-action/mutative-core,@context-action/mutative,@context-action/react"
           node scripts/verify-coordinated-stable-provenance.mjs --tag latest --commit "$RELEASE_COMMIT" \
             --output reports/npm-coordinated-stable-promotion-provenance.json
 
       - name: Capture promoted registry evidence
         run: |
           pnpm capture:published-release -- --tag latest \
-            --packages "@context-action/core,@context-action/mutative,@context-action/react" \
+            --packages "@context-action/core,@context-action/mutative-core,@context-action/mutative,@context-action/react" \
             --consumer-status passed --output reports/npm-coordinated-stable-promotion-registry-evidence.json
 
       - name: Upload coordinated stable promotion evidence

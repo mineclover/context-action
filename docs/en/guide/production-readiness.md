@@ -28,7 +28,7 @@ The immediate release target is the state-management surface:
 | Package | Version | Why it matters |
 | --- | --- | --- |
 | `@context-action/core` | `1.1.0` | Stable action lifecycle and observer semantics. |
-| `@context-action/react` | `4.0.0` | React lifecycle and SSR contract for the Store and Action APIs. |
+| `@context-action/react` | `4.0.1` | React lifecycle and SSR contract for the Store and Action APIs. |
 
 Durable Operations 0.2 and its companion tool protocol work remain in active development. They are not a prerequisite for ordinary Store, Action, React 19.2, or SSR use.
 

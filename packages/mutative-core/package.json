@@ -1,6 +1,6 @@
 {
   "name": "@context-action/mutative-core",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "type": "module",
   "description": "Context-Action maintained Mutative core for efficient immutable updates",
   "main": "dist/index.cjs",
@@ -24,7 +24,9 @@
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
-    "UPSTREAM.md"
+    "UPSTREAM.md",
+    "upstream-lock.json",
+    "upstream-sync.json"
   ],
   "scripts": {
     "build": "tsdown",

@@ -208,6 +208,22 @@ test('requires coordinated candidate plan validation to bind the immutable curre
   });
 });
 
+test('requires maintained Mutative upstream verification before coordinated publication', async () => {
+  await withFixture(async root => {
+    const workflowPath = path.join(root, '.github', 'workflows', 'publish-coordinated-stable-candidate.yml');
+    const source = await readFile(workflowPath, 'utf8');
+    const mutated = source.replace(
+      '      - name: Verify maintained Mutative upstream baseline\n        run: pnpm verify:mutative-upstream\n\n',
+      '',
+    );
+    assert.notEqual(mutated, source);
+    await writeFile(workflowPath, mutated);
+    const result = await runVerifier(root);
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /must verify the maintained Mutative upstream baseline before publication/u);
+  });
+});
+
 test('requires maintenance rollback journal preparation before latest promotion', async () => {
   await withFixture(async root => {
     const workflowPath = path.join(root, '.github', 'workflows', 'publish-maintenance-patch.yml');
