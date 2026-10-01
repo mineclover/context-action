@@ -218,9 +218,12 @@ function publishedVersion(name, tag, expectedVersion) {
         throw new Error(`npm returned an invalid published version for ${name}: ${output}`);
       }
       if (expectedVersion && output !== expectedVersion) {
-        throw new Error(
+        const visibilityError = new Error(
           `npm dist-tag ${tag} for ${name} still resolves to ${output}; expected ${expectedVersion}`,
         );
+        visibilityError.code = 'ECOHORT_VISIBILITY';
+        visibilityError.retryableRegistryVisibility = true;
+        throw visibilityError;
       }
       return output;
     } finally {

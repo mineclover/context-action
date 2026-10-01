@@ -17,12 +17,13 @@ function errorText(error) {
 }
 
 function isTransientRegistryVisibilityError(error) {
+  if (error?.retryableRegistryVisibility === true) return true;
   const text = errorText(error);
-  return /\bETARGET\b|No matching version found/iu.test(text);
+  return /\bETARGET\b|No matching version found|\bE404\b|404\s+Not Found/iu.test(text);
 }
 
 function retryTransientRegistryVisibilitySync(operation, options = {}) {
-  const delays = Array.isArray(options.delays) ? options.delays : [1000, 2000, 4000, 8000, 12000];
+  const delays = Array.isArray(options.delays) ? options.delays : [5000, 10000, 20000, 30000, 60000];
   const sleep = options.sleep ?? (delay => {
     if (delay > 0) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, delay);
   });
@@ -41,7 +42,7 @@ function retryTransientRegistryVisibilitySync(operation, options = {}) {
 }
 
 async function retryTransientRegistryVisibility(operation, options = {}) {
-  const delays = Array.isArray(options.delays) ? options.delays : [1000, 2000, 4000, 8000, 12000];
+  const delays = Array.isArray(options.delays) ? options.delays : [5000, 10000, 20000, 30000, 60000];
   const sleep = options.sleep ?? (delay => new Promise(resolve => setTimeout(resolve, delay)));
   const onRetry = options.onRetry ?? (() => {});
 
