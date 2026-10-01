@@ -108,6 +108,34 @@ describe('BackendStore', () => {
     store.dispose();
   });
 
+  it('delivers patch-only notifications without attaching them to a future transition', async () => {
+    type Patch = { readonly path: readonly string[] };
+    const snapshot = { name: 'patch-only', value: 0, version: 0, lastUpdate: 0 };
+    const patchListeners = new Set<(patches: readonly Patch[] | null) => void>();
+    const backend: StateBackend<number, Patch> = {
+      name: 'patch-only',
+      getSnapshot: () => snapshot,
+      subscribe: () => () => {},
+      subscribeWithPatches: listener => {
+        patchListeners.add(listener);
+        return () => patchListeners.delete(listener);
+      },
+      setValue: () => {},
+      update: () => {},
+    };
+    const store = createBackendStore('patch-only', backend);
+    const observed: Array<readonly Patch[] | null> = [];
+    store.subscribeWithPatches(patches => observed.push(patches));
+    const patch = [{ path: ['value'] }] as const;
+
+    [...patchListeners].forEach(listener => listener(patch));
+    expect(observed).toEqual([]);
+    await Promise.resolve();
+    expect(observed).toEqual([patch]);
+
+    store.dispose();
+  });
+
   it('keeps nested regular-first patch events attached to the innermost transition', async () => {
     type Patch = { readonly id: 'outer' | 'nested' };
     const snapshot = { name: 'reentrant', value: 0, version: 0, lastUpdate: 0 };

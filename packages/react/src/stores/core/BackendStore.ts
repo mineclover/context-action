@@ -48,6 +48,7 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
   private lastFallbackPatches: readonly Patch[] | null = null;
   private readonly pendingPatchNotifications: PendingPatchNotification<Patch>[] = [];
   private readonly orphanPatchNotifications: Array<readonly Patch[] | null> = [];
+  private orphanPatchFlushScheduled = false;
   private listenerDispatchDepth = 0;
   private patchFlushScheduled = false;
 
@@ -256,8 +257,26 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
     }
     // The regular subscription may be invoked after this callback. Keep the
     // event until that transition arrives so patch-first and regular-first
-    // backends have identical observable semantics.
+    // backends have identical observable semantics. If no regular transition
+    // arrives, flush the patch-only event at the microtask boundary instead of
+    // retaining it indefinitely and attaching it to a future transition.
     this.orphanPatchNotifications.push(patches);
+    this.scheduleOrphanPatchFlush();
+  }
+
+  private scheduleOrphanPatchFlush(): void {
+    if (this.orphanPatchFlushScheduled) return;
+    this.orphanPatchFlushScheduled = true;
+    queueMicrotask(() => {
+      this.orphanPatchFlushScheduled = false;
+      if (this.disposed) {
+        this.orphanPatchNotifications.length = 0;
+        return;
+      }
+      while (this.orphanPatchNotifications.length > 0) {
+        this.deliverPatchNotification(this.orphanPatchNotifications.shift() ?? null);
+      }
+    });
   }
 
   private schedulePatchFlush(): void {
@@ -268,6 +287,7 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
       if (this.disposed) {
         this.pendingPatchNotifications.length = 0;
         this.orphanPatchNotifications.length = 0;
+        this.orphanPatchFlushScheduled = false;
         this.listenerDispatchDepth = 0;
         return;
       }
