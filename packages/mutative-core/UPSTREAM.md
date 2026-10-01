@@ -6,6 +6,8 @@ This package is vendored from the maintained fork:
 - Imported branch: `codex/array-perf`
 - Imported commit: [`5fd7d56`](https://github.com/mineclover/mutative/commit/5fd7d56b3f88185ef26908df055a9a27be9a2b88)
 - Original project: [unadlib/mutative](https://github.com/unadlib/mutative)
+- Upstream compatibility baseline: `mutative@1.3.0`
+- Upstream registry gitHead: [`01945e3274e9730706799e4d432c22248a6bdeb1`](https://github.com/unadlib/mutative/commit/01945e3274e9730706799e4d432c22248a6bdeb1)
 
 Carried upstream references:
 
@@ -27,3 +29,9 @@ provenance of the vendored core.
   core contract.
 - Keep the two package versions aligned unless a release note explicitly
   explains why the adapter and core diverge.
+- Track the baseline and every Context-Action patch contract in
+  [`upstream-sync.json`](./upstream-sync.json). Run
+  `pnpm verify:mutative-upstream` before synchronizing or publishing.
+- The upstream baseline version and the scoped adapter version are separate
+  contracts. The adapter stays on the maintained `0.8.x` patch line unless a
+  separate breaking release plan promotes both packages.
