@@ -158,4 +158,48 @@ describe('<order-workspace> Web Component contract', () => {
     document.body.append(element);
     expect(element.shadowRoot?.querySelector('[data-testid="summary-count"]')?.textContent).toBe('2');
   });
+
+  it('replays properties assigned before definition through the semantic owner', async () => {
+    const tag = 'test-order-workspace-preupgrade';
+    const element = document.createElement(tag) as unknown as HTMLElement & {
+      customerName: string;
+      shippingAddress: string;
+      dispose(): void;
+    };
+    // These are ordinary own properties until customElements.define upgrades
+    // the element. definePreactElement must replay them through the setup
+    // accessors instead of losing them during the first connection.
+    element.customerName = 'Pre-upgrade User';
+    element.shippingAddress = 'Pre-upgrade Address';
+    defineOrderWorkspaceElement(tag);
+    document.body.append(element as unknown as HTMLElement);
+    cleanups.push(() => element.dispose());
+
+    expect(element.customerName).toBe('Pre-upgrade User');
+    expect(element.shippingAddress).toBe('Pre-upgrade Address');
+    expect(element.shadowRoot?.querySelector<HTMLInputElement>('[data-testid="input-customer-name"]')?.value)
+      .toBe('Pre-upgrade User');
+  });
+
+  it('emits the semantic success event after a valid imperative submission', async () => {
+    const Tag = defineOrderWorkspaceElement('test-order-workspace-success-event');
+    const element = new Tag();
+    document.body.append(element);
+    cleanups.push(() => element.dispose());
+
+    const orderIds: string[] = [];
+    element.addEventListener('order-submit-success', (event) => {
+      orderIds.push((event as CustomEvent<{ orderId: string }>).detail.orderId);
+    });
+
+    await act(async () => {
+      element.customerName = 'Successful User';
+      element.shippingAddress = 'Successful Address';
+      await element.addItem({ id: 'success-item', name: 'Success Item', unitPrice: 12, quantity: 1 });
+      await element.submit();
+    });
+
+    expect(orderIds).toHaveLength(1);
+    expect(orderIds[0]).toMatch(/^ORD-/);
+  });
 });
