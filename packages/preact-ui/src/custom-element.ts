@@ -1,6 +1,8 @@
 import type { ComponentType } from 'preact';
+import { hydratePreact } from './hydrate.js';
 import { mountPreact } from './mount.js';
 import type { MountInstance } from './mount.js';
+import type { HydrationInstance } from './hydrate.js';
 
 /**
  * Context supplied to a `definePreactElement` setup callback.
@@ -65,6 +67,12 @@ export interface PreactElementConfig<Input> {
   upgradeProperties?: readonly string[];
   /** When true, marks the custom element as Form-Associated (FACE) and enables ElementInternals */
   formAssociated?: boolean;
+  /**
+   * Hydrates a declarative Shadow DOM containing exactly one
+   * `[data-preact-root]`. This is opt-in; arbitrary existing ShadowRoot
+   * children are never adopted by the default mount path.
+   */
+  hydrateShadowRoot?: boolean;
   /** Factory invoked on element construction to set up signals, views, and handlers */
   setup(element: HTMLElement, context: PreactElementContext): PreactElementLifecycle<Input>;
 }
@@ -106,12 +114,13 @@ export function definePreactElement<Input>(
     static observedAttributes = config.observedAttributes ? [...config.observedAttributes] : [];
 
     #root: HTMLElement;
-    #mount: MountInstance<Input> | undefined;
+    #mount: MountInstance<Input> | HydrationInstance<Input> | undefined;
     #lifecycle: PreactElementLifecycle<Input>;
     #internals: ElementInternals | undefined;
     #disposed = false;
     #sessionActive = false;
     #pendingUpgradeValues = new Map<string, unknown>();
+    #hydrationPending = config.hydrateShadowRoot ?? false;
 
     constructor() {
       super();
@@ -135,16 +144,29 @@ export function definePreactElement<Input>(
         }
       }
 
-      const shadow = this.attachShadow({ mode: 'open' });
+      const existingShadow = this.shadowRoot;
+      if (config.hydrateShadowRoot && !existingShadow) {
+        throw new Error(`${config.tagName} requires a declarative ShadowRoot for hydration`);
+      }
+      if (!config.hydrateShadowRoot && existingShadow) {
+        throw new Error(`${config.tagName} has an existing ShadowRoot; opt into hydrateShadowRoot explicitly`);
+      }
+      const shadow = existingShadow ?? this.attachShadow({ mode: 'open' });
 
-      if (config.style) {
+      if (config.style && !config.hydrateShadowRoot) {
         const styleEl = this.ownerDocument.createElement('style');
         styleEl.textContent = config.style;
         shadow.append(styleEl);
       }
 
-      this.#root = this.ownerDocument.createElement('div');
-      shadow.append(this.#root);
+      const hydratedRoot = config.hydrateShadowRoot
+        ? shadow.querySelector<HTMLElement>('[data-preact-root]')
+        : null;
+      if (config.hydrateShadowRoot && !hydratedRoot) {
+        throw new Error(`${config.tagName} hydration requires a [data-preact-root]`);
+      }
+      this.#root = hydratedRoot ?? this.ownerDocument.createElement('div');
+      if (!hydratedRoot) shadow.append(this.#root);
 
       const context: PreactElementContext = {
         internals: this.#internals,
@@ -241,11 +263,10 @@ export function definePreactElement<Input>(
         if (this.#disposed || !this.#sessionActive || this.#mount || !this.isConnected) return;
         const input = this.#lifecycle.getInput();
         if (this.#disposed || !this.#sessionActive || this.#mount || !this.isConnected) return;
-        this.#mount = mountPreact(
-          this.#root,
-          this.#lifecycle.view,
-          input,
-        );
+        this.#mount = this.#hydrationPending
+          ? hydratePreact(this.#root, this.#lifecycle.view, input)
+          : mountPreact(this.#root, this.#lifecycle.view, input);
+        this.#hydrationPending = false;
       } catch (error) {
         const needsDisconnect = this.#sessionActive;
         this.#mount = undefined;

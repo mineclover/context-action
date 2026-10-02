@@ -39,10 +39,9 @@ log 토글의 `aria-expanded`/`aria-controls`와 로그 이름도 확인한다. 
 - hydration mismatch는 Preact의 일반 reconciliation 결과를 따른다. 현재
   계약은 mismatch를 오류로 승격하거나 특정 경고 문구를 보장하지 않으며,
   서버와 클라이언트 입력을 애플리케이션이 맞추는 것을 요구한다.
-- `definePreactElement`는 현재 Declarative Shadow DOM(DSD) children을 hydrate하지
-  않는다. Custom Element 생성 시 새 ShadowRoot와 전용 빈 root를 만들기 때문에
-  DSD 서버 children을 보존해야 하는 제품은 plain `hydratePreact` root 또는 별도
-  DSD adapter를 사용해야 한다.
+- `definePreactElement`의 DSD hydration은 `hydrateShadowRoot: true`와 기존
+  ShadowRoot 내부의 단일 `[data-preact-root]`를 함께 지정한 경우에만 동작한다.
+  기본 mount 경로는 기존 ShadowRoot를 자동 채택하지 않고 fail-closed한다.
 - Layer Panel의 `suffix` named slot은 Chromium에서 assigned node 교체,
   `slotchange`, assigned node identity, fallback 표시까지 검증한다. 이 증거는
   해당 component contract에 한정되며 임의의 다중 slot/portal 조합을 보장하지 않는다.

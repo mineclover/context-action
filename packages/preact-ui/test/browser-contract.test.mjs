@@ -393,6 +393,11 @@ try {
   assert.equal(await page.locator('#ssr-host').textContent(), 'Client label');
   await page.locator('#ssr-host').getByRole('button', { name: 'Client label' }).click();
   assert.equal(await page.locator('#ssr-status').getAttribute('data-clicks'), '1');
+  const dsdHost = page.locator('#dsd-host');
+  const dsdButton = dsdHost.getByRole('button', { name: 'DSD client label' });
+  assert.equal(await dsdButton.textContent(), 'DSD client label');
+  await dsdButton.click();
+  assert.equal(await page.locator('#ssr-status').getAttribute('data-dsd-clicks'), '1');
   await page.evaluate(() => window.ssrBrowserContract?.destroy());
   assert.equal(await page.locator('#ssr-status[data-destroyed="true"]').count(), 1);
   assert.equal(await page.locator('#ssr-host').textContent(), '');
