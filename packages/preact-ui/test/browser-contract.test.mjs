@@ -383,6 +383,15 @@ try {
   );
   await quantityAxSession.detach();
 
+  await page.goto(`${new URL(url).origin}/ssr-browser.html`, { waitUntil: 'networkidle' });
+  await page.locator('#ssr-status[data-ready="true"]').waitFor({ state: 'attached' });
+  assert.equal(await page.locator('#ssr-host').textContent(), 'Client label');
+  await page.locator('#ssr-host').getByRole('button', { name: 'Client label' }).click();
+  assert.equal(await page.locator('#ssr-status').getAttribute('data-clicks'), '1');
+  await page.evaluate(() => window.ssrBrowserContract?.destroy());
+  assert.equal(await page.locator('#ssr-status[data-destroyed="true"]').count(), 1);
+  assert.equal(await page.locator('#ssr-host').textContent(), '');
+
   console.log('Layer Panel browser contract passed');
 } finally {
   await browser.close();
