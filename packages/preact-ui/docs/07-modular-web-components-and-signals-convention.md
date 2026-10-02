@@ -141,6 +141,13 @@ export function defineCartBadgeElement(tagName = 'cart-badge') {
   → 탭 전환, BFCache 복원, 가상 스크롤 등으로 요소가 잠시 DOM에서 떨어졌다가 다시 붙을 때 사용자의 작성 상태가 소실됩니다.
 * ✅ **Good**: `disconnectedCallback()`에서는 **Preact 렌더러(`mount.destroy()`)만 언마운트**하고, 도메인 Signal/상태는 그대로 유지합니다. 영구적인 정리가 필요할 때만 명시적 `element.dispose()`를 호출합니다.
 
+`cart-badge`와 `cart-drawer`처럼 전역 read-only Signal만 읽고 별도의 DOM listener,
+timer, source subscription을 직접 만들지 않는 signal-only adapter는 이 규칙의
+간소화된 예외다. Preact mount가 Signal 구독을 소유하고 `mount.destroy()`가 이를
+정리하므로 별도 owner-session 객체를 만들지 않는다. 외부 listener·observer·비동기
+작업을 추가하는 순간에는 명시적인 `onConnect`/`onDisconnect` owner-session으로
+승격한다.
+
 ### 룰 3: Signal DOM 직결 바인딩 (Virtual DOM Bypass)
 * ❌ **Bad**: 매 렌더링마다 `const count = countSignal.value; return <span>{count}</span>;`  
   → 값이 바뀔 때마다 컴포넌트 렌더 함수 전체가 재실행됩니다.
