@@ -570,7 +570,7 @@ importers:
   packages/preact:
     dependencies:
       '@context-action/core':
-        specifier: workspace:*
+        specifier: ^1.2.6
         version: link:../core
     devDependencies:
       '@preact/signals':
@@ -592,7 +592,7 @@ importers:
   packages/preact-ui:
     dependencies:
       '@context-action/preact':
-        specifier: workspace:*
+        specifier: ^0.1.0
         version: link:../preact
     devDependencies:
       '@context-action/core':

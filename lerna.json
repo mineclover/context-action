@@ -4,6 +4,8 @@
   "npmClient": "pnpm",
   "packages": [
     "packages/core",
+    "packages/preact",
+    "packages/preact-ui",
     "packages/tool-protocol",
     "packages/ai-sdk",
     "packages/webmcp",

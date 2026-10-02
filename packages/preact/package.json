@@ -1,7 +1,7 @@
 {
   "name": "@context-action/preact",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "private": false,
   "type": "module",
   "license": "Apache-2.0",
   "description": "Preact dispatch and read-only Signals adapters",
@@ -23,15 +23,18 @@
   "files": [
     "dist",
     "README.md",
-    "docs"
+    "docs",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsdown",
+    "prepublishOnly": "pnpm run build",
     "type-check": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@context-action/core": "workspace:*"
+    "@context-action/core": "^1.2.6"
   },
   "peerDependencies": {
     "preact": "^10.27.3",
@@ -46,5 +49,8 @@
   },
   "engines": {
     "node": ">=24.11.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
