@@ -1,5 +1,9 @@
 import * as React from 'react';
 
+const useIsomorphicLayoutEffect = typeof window === 'undefined'
+  ? React.useEffect
+  : React.useLayoutEffect;
+
 export interface CustomElementBridgeOptions<Props extends Record<string, any>> {
   /** The registered custom element HTML tag name, e.g. 'cart-badge' */
   tagName: string;
@@ -34,8 +38,11 @@ export function createCustomElementBridge<
 
       React.useImperativeHandle(forwardedRef, () => elementRef.current as Element, []);
 
-      // Synchronize properties and bind custom events
-      React.useEffect(() => {
+      // Synchronize properties before paint so the custom element does not
+      // display a stale snapshot between React commits. The element's own
+      // connected lifecycle may still run before this hook; bridge consumers
+      // should therefore make their default connected input safe.
+      useIsomorphicLayoutEffect(() => {
         const el = elementRef.current;
         if (!el) return;
 
@@ -43,6 +50,15 @@ export function createCustomElementBridge<
         for (const propKey of properties) {
           if (propKey in props) {
             (el as any)[propKey] = (props as any)[propKey];
+          } else if (propKey in el) {
+            // React can remove a property on a later render. Clear the
+            // previous value instead of leaving a stale object on the host.
+            try {
+              (el as any)[propKey] = undefined;
+            } catch {
+              // A readonly custom-element property may reject assignment;
+              // its adapter remains responsible for interpreting omission.
+            }
           }
         }
 

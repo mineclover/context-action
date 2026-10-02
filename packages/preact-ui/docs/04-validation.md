@@ -11,7 +11,7 @@
 |---|---|---|
 | Preact adapter | `pnpm --filter @context-action/preact test` | 4 tests passed |
 | Preact adapter types | `pnpm --filter @context-action/preact type-check` | passed |
-| Preact UI runtime | `pnpm --filter @context-action/preact-ui test` | 58 tests passed |
+| Preact UI runtime | `pnpm --filter @context-action/preact-ui test` | 64 tests passed |
 | Preact UI types | `pnpm --filter @context-action/preact-ui type-check` | passed |
 | DOM-only ownership logic | `pnpm --filter @context-action/preact-ui test:native` | 13 tests passed |
 | Chromium contract | `pnpm --filter @context-action/preact-ui test:browser` | passed |
@@ -24,7 +24,7 @@ standalone vanilla embed의 `customerName = '이순신 (조선 수군)'` propert
 `label`/`id` 연결, 상품 없음 오류의 `role="alert"`와 목록
 `aria-describedby` 연결, 수량 변경의 `role="status"`/`aria-live`, activity
 log 토글의 `aria-expanded`/`aria-controls`와 로그 이름도 확인한다. 브라우저
-검증은 DOM 접근성 트리와 키보드 동작을 확인하지만 NVDA, VoiceOver 같은 실제
+검증은 Chromium 접근성 스냅샷, DOM 접근성 속성, 실제 키보드 동작을 함께 확인하지만 NVDA, VoiceOver 같은 실제
 보조기술 조합의 음성 출력을 보증하지 않는다.
 
 ## 현재 계약
@@ -47,12 +47,20 @@ log 토글의 `aria-expanded`/`aria-controls`와 로그 이름도 확인한다. 
 
 - 실제 NVDA/VoiceOver 등 보조기술 조합 검증은 CI에 포함하지 않는다. 제품
   배포 전에 지원 브라우저·보조기술 조합을 정하고 별도 수동 검증을 기록한다.
+- 수동 보조기술 matrix의 기본 행은 Windows + Chrome stable + NVDA와 macOS +
+  Safari + VoiceOver이며, Firefox + NVDA와 Chrome + VoiceOver를 보조 행으로
+  둔다. 각 행에는 컴포넌트, 시작 focus, 키 입력, 기대 role/name/state/value/
+  description, 실제 발화, 브라우저·AT 버전, 날짜와 증거 링크를 기록한다. 현재
+  이 matrix는 `NOT RUN`이며 Chromium AX 증거가 그 sign-off를 대신하지 않는다.
 - 다른 컴포넌트의 복합 projection은 각 component contract와 브라우저 테스트를
   함께 추가해야 한다. Layer Panel suffix slot 외의 다중 slot/portal 조합은
   여전히 소비자 환경에서 별도 검증한다.
-- SSR 문자열 생성과 hydration API의 통합 fixture는 기본 경로에 포함되어
-  있으며, 실제 애플리케이션의 서버 데이터·라우팅·streaming 조합은 소비자
-  환경에서 검증한다.
+- SSR 문자열 생성과 `hydratePreact`의 기본 fixture는 Vitest/jsdom 경로에
+  포함되어 있다. 실제 Chromium 서버 응답·이벤트 hydration과 애플리케이션의
+  라우팅·streaming 조합은 아직 소비자 환경에서 별도 검증한다.
+- Projected Order의 light-DOM adapter는 mount마다 고유한 `idPrefix`를 주입한다.
+  직접 SSR/hydration으로 `OrderWorkspaceView`를 사용할 때는 서버와 클라이언트가
+  같은 deterministic prefix를 전달해야 label·description·controls ID가 일치한다.
 - 예제의 semantic public API는 component owner가 정의한다. 공통 factory가
   `customerName`, commands, events 같은 업무 의미를 추론하지 않는다.
 

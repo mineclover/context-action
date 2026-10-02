@@ -27,7 +27,18 @@ export function createLayerPanelController(initial: LayerPanelInput = {}) {
   const listeners = new Set<() => void>();
   function commit(next: LayerPanelSnapshot) {
     snapshot = Object.freeze(next);
-    for (const notify of [...listeners]) notify();
+    const errors: unknown[] = [];
+    for (const notify of [...listeners]) {
+      try {
+        notify();
+      } catch (error) {
+        // One renderer must not prevent sibling owners from observing the
+        // committed snapshot. Surface all failures after notification.
+        errors.push(error);
+      }
+    }
+    if (errors.length === 1) throw errors[0];
+    if (errors.length > 1) throw new AggregateError(errors, 'Layer panel notification failed');
   }
   const controller = {
     getSnapshot: () => snapshot,

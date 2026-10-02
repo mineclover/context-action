@@ -90,7 +90,7 @@ adapter는 이 패턴을 사용해 `customerName`, `shippingAddress`, `items`,
 
 #### 상태 동기화 계약 (Standard DOM API)
 - **Attribute (`observedAttributes`)**: `customer-name`, `shipping-address` 등 원시 문자열 속성을 감지하여 내부 ActionRegister로 디스패치합니다.
-- **Property (Getter/Setter)**: `element.customerName = '...'` 처럼 스크립트에서 직접 조작할 수 있으며, programmatic 입력 시에는 불필요한 이벤트 에코(`order-change`)를 발행하지 않습니다.
+- **Property (Getter/Setter)**: `element.customerName = '...'` 처럼 스크립트에서 직접 조작할 수 있으며, 변경은 일반 상태 동기화와 동일하게 `order-change`를 한 번 발행합니다. 소비자는 이 이벤트를 source-of-truth 변경 알림으로 처리하고, 필요하면 자신의 명령 origin을 별도로 추적합니다.
 - **CustomEvent**: 주문 성공 시 `order-submit-success`, 변경 시 `order-change`를 `bubbles: true, composed: true`로 발행하여 Shadow DOM 경계를 넘어 호스트의 일반 `addEventListener`로 수신할 수 있습니다.
 
 ---
@@ -101,9 +101,9 @@ Vite의 Terser Minification을 적용한 실제 독립 번들 빌드 결과:
 
 ```text
 dist-standalone/
-├── order-workspace.umd.js   약 111.4 kB (gzip: 약 32.0 kB)
-├── order-workspace.iife.js  약 111.3 kB (gzip: 약 31.9 kB)
-└── order-workspace.es.js    약 113.2 kB (gzip: 약 32.0 kB)
+├── order-workspace.umd.js   약 112.3 kB (gzip: 약 32.2 kB)
+├── order-workspace.iife.js  약 112.2 kB (gzip: 약 32.2 kB)
+└── order-workspace.es.js    약 114.1 kB (gzip: 약 32.3 kB)
 ```
 
 ### 포함된 의존성 및 컴포넌트 목록:
@@ -115,7 +115,7 @@ dist-standalone/
 - **Projected Order 도메인 & Custom Element**: `<order-workspace>`
 - **Modular Signals 도메인 & Custom Elements**: `<cart-badge>` 및 `<cart-drawer>`
 
-각 포맷은 약 31.9~32.0KB gzip으로 반응형 런타임과 전체 업무 로직 및 3종의 Web Components를 자체 포함(Self-contained)합니다. 따라서 React/ReactDOM을 외부에서 로드하지 않고도 독립 실행형 위젯으로 동작합니다. 정확한 크기는 `pnpm --filter @context-action/preact-ui build:standalone` 출력으로 릴리즈마다 다시 기록합니다.
+각 포맷은 약 32.2~32.3KB gzip으로 반응형 런타임과 전체 업무 로직 및 3종의 Web Components를 자체 포함(Self-contained)합니다. 따라서 React/ReactDOM을 외부에서 로드하지 않고도 독립 실행형 위젯으로 동작합니다. 정확한 크기는 `pnpm --filter @context-action/preact-ui build:standalone` 출력으로 릴리즈마다 다시 기록합니다.
 
 ---
 
