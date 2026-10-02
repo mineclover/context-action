@@ -1,0 +1,195 @@
+name: Publish Preact Public Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_auth:
+        description: 'npm authentication mode for this public-preview candidate'
+        required: true
+        default: oidc
+        type: choice
+        options:
+          - oidc
+          - token
+      release_commit:
+        description: 'Approved immutable main commit to publish'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  publish-preact-public-candidate:
+    runs-on: ubuntu-latest
+    environment:
+      name: npm-stable
+    timeout-minutes: 50
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.release_commit }}
+
+      - name: Verify approved main release commit
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$RELEASE_COMMIT" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
+
+      - name: Clear npm config before registry setup
+        run: |
+          unset NPM_CONFIG_USERCONFIG
+          rm -f ~/.npmrc
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d15e628ca66d93ee5f352c71671a7bc6a97af5c9 # v6.0.8
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Get pnpm store directory
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_ENV"
+
+      - name: Setup pnpm cache
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Verify OIDC candidate publishing eligibility
+        if: inputs.publish_auth == 'oidc'
+        run: |
+          for PACKAGE_NAME in "@context-action/preact" "@context-action/preact-ui"; do
+            if ! npm view "$PACKAGE_NAME" name --registry=https://registry.npmjs.org/ >/dev/null 2>&1; then
+              echo "::error title=OIDC bootstrap requires an existing npm package::$PACKAGE_NAME does not exist on npm. Publish this initial public-preview version with publish_auth=token after setting the protected NPM_TOKEN secret."
+              exit 1
+            fi
+          done
+
+      - name: Verify npm token auth
+        if: inputs.publish_auth == 'token'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate public Preact release plan
+        run: pnpm verify:preact-public-release -- --require-current-source
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml', 'packages/style-testing/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright browsers for release and Preact contracts
+        run: pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium firefox webkit
+
+      - name: Run release gate
+        run: pnpm release:check
+
+      - name: Build and type-check public Preact packages
+        run: |
+          pnpm --filter @context-action/core build
+          pnpm --filter @context-action/preact build
+          pnpm --filter @context-action/preact-ui build
+          pnpm --filter @context-action/preact type-check
+          pnpm --filter @context-action/preact-ui type-check
+
+      - name: Test public Preact packages
+        run: |
+          pnpm --filter @context-action/preact test
+          pnpm --filter @context-action/preact-ui test
+          pnpm --filter @context-action/preact-ui test:native
+
+      - name: Run Preact browser contract
+        run: pnpm --filter @context-action/preact-ui test:browser
+
+      - name: Run Preact cross-browser smoke
+        run: pnpm --filter @context-action/preact-ui test:browser:cross
+
+      - name: Verify public Preact artifacts
+        run: |
+          pnpm verify:package-exports
+          pnpm verify:package-tarballs
+          pnpm package-boundary:check
+
+      - name: Verify packed Preact consumer closure
+        run: |
+          node scripts/verify-published-tool-consumers.cjs --local --cohort-only \
+            --packages "@context-action/preact,@context-action/preact-ui"
+
+      - name: Re-verify approved source immediately before publication
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git diff --exit-code
+          git diff --cached --exit-code
+
+      - name: Publish public Preact candidate to next
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: |
+          pnpm publish:packages -- --summary-file reports/npm-preact-public-candidate-summary.json --dist-tag next \
+            --require-all-unpublished \
+            --resume-matching-existing \
+            --scope @context-action/preact \
+            --scope @context-action/preact-ui
+
+      - name: Verify published Preact candidate provenance
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          node scripts/verify-preact-public-provenance.mjs --tag next --commit "$RELEASE_COMMIT" \
+            --output reports/npm-preact-public-candidate-provenance.json
+
+      - name: Verify published Preact consumer matrix
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: |
+          pnpm verify:published-tool-consumers -- --tag next \
+            --packages "@context-action/preact,@context-action/preact-ui"
+
+      - name: Capture public Preact registry evidence
+        run: |
+          pnpm capture:published-release -- --tag next \
+            --packages "@context-action/preact,@context-action/preact-ui" \
+            --consumer-status passed --output reports/npm-preact-public-candidate-registry-evidence.json
+
+      - name: Upload public Preact candidate evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: npm-preact-public-candidate-evidence
+          path: reports/npm-preact-public-candidate-*.json
+          if-no-files-found: error
+          retention-days: 30

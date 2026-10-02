@@ -1,9 +1,9 @@
 # 검증 기록
 
-기준일: 2026-10-02. 이 기록은 현재 `main` 작업 트리에서 실행한 결과를
-기록한다. `@context-action/preact`와 `@context-action/preact-ui`는 아직
-`private: true`, `0.0.0`인 workspace 전용 패키지이며 stable npm cohort에는
-포함하지 않는다.
+기준일: 2026-10-02. 이 기록은 공개 preview 후보 작업 트리에서 실행한 결과를
+기록한다. `@context-action/preact@0.1.0`과 `@context-action/preact-ui@0.1.0`은
+`private: false`, `publishConfig.access: public`인 별도 공개 cohort이며 Core/React
+stable cohort에는 포함하지 않는다.
 
 ## 현재 수행한 검증
 
@@ -76,5 +76,16 @@ pnpm --filter @context-action/preact-ui test:native
 pnpm --filter @context-action/preact-ui test:browser
 ```
 
-예제 산출물은 `packages/preact-ui/example-dist`에 생성되며 npm stable
-artifact나 release cohort를 변경하지 않는다.
+예제 산출물은 `packages/preact-ui/example-dist`에 생성되며 npm artifact에
+포함하지 않는다. 공개 후보의 package export와 tarball 검증은 다음 명령으로
+재현한다.
+
+```sh
+pnpm verify:package-exports
+pnpm verify:package-tarballs
+pnpm package-boundary:check
+```
+
+공개 후보는 [`PREACT_PUBLIC_0.1.0.md`](../../../releases/PREACT_PUBLIC_0.1.0.md)의
+보호된 publication workflow에서 `@context-action/preact` 다음
+`@context-action/preact-ui` 순서로 게시한다.

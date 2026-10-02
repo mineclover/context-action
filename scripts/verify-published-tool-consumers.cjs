@@ -124,6 +124,37 @@ const packages = [
     ],
   },
   {
+    name: '@context-action/preact',
+    directory: 'packages/preact',
+    imports: [{
+      specifier: '@context-action/preact',
+      exports: [
+        'createDispatchContext',
+        'connectSourceSignal',
+        'createSourceContext',
+        'useProjection',
+      ],
+    }],
+  },
+  {
+    name: '@context-action/preact-ui',
+    directory: 'packages/preact-ui',
+    imports: [
+      {
+        specifier: '@context-action/preact-ui',
+        exports: [
+          'createDisposalScope',
+          'mountPreact',
+          'hydratePreact',
+          'mountTemplate',
+          'definePreactElement',
+        ],
+      },
+      { specifier: '@context-action/preact-ui/react-bridge', exports: ['createCustomElementBridge'] },
+      { specifier: '@context-action/preact-ui/ssr', exports: ['createSSR'] },
+    ],
+  },
+  {
     name: '@context-action/ai-sdk',
     directory: 'packages/ai-sdk',
     imports: [{
@@ -172,6 +203,14 @@ const consumerRuntimeDependencies = [
   { name: '@types/json-schema', spec: '@types/json-schema@7.0.15' },
   { name: '@types/react', spec: '@types/react@19.2.17' },
   { name: 'typescript', spec: 'typescript@6.0.3' },
+];
+
+const preactRuntimeDependencies = [
+  { name: '@preact/signals', spec: '@preact/signals@2.11.3' },
+  { name: 'preact', spec: 'preact@10.27.3' },
+  { name: 'preact-render-to-string', spec: 'preact-render-to-string@6.7.0' },
+  { name: 'react', spec: 'react@19.2.8' },
+  { name: 'react-dom', spec: 'react-dom@19.2.8' },
 ];
 
 const reactMatrix = [
@@ -435,6 +474,33 @@ void backendOptions;
 void StoreRegistry;
 void deepClone;
 void useWebMCPToolScope;
+`);
+  }
+  if (names.has('@context-action/preact')) {
+    statements.push(`
+import { createDispatchContext, connectSourceSignal, createSourceContext, useProjection } from '@context-action/preact';
+import type { ReadableSource, SourceContext } from '@context-action/preact';
+const source: ReadableSource<number> = { getSnapshot: () => 1, subscribe: () => () => {} };
+const connection = connectSourceSignal(source);
+const sourceContext: SourceContext<number> = createSourceContext('consumer-check');
+void createDispatchContext;
+void connection;
+void sourceContext;
+void useProjection;
+`);
+  }
+  if (names.has('@context-action/preact-ui')) {
+    statements.push(`
+import { createDisposalScope, mountPreact, hydratePreact, mountTemplate, definePreactElement } from '@context-action/preact-ui';
+import { createCustomElementBridge } from '@context-action/preact-ui/react-bridge';
+import { createSSR } from '@context-action/preact-ui/ssr';
+void createDisposalScope;
+void mountPreact;
+void hydratePreact;
+void mountTemplate;
+void definePreactElement;
+void createCustomElementBridge;
+void createSSR;
 `);
   }
   if (names.has('@context-action/tool-protocol')) {
@@ -764,7 +830,13 @@ function main() {
       const version = waitForPublishedVersion(packageDefinition, packageTags.get(name) ?? tag);
       return { name, spec: `${name}@${version}` };
     });
-    if (!cohortOnly) packageSpecs.push(...consumerRuntimeDependencies);
+    if (!cohortOnly) {
+      packageSpecs.push(...consumerRuntimeDependencies);
+      if (selectedPackages.some(({ name }) =>
+        name === '@context-action/preact' || name === '@context-action/preact-ui')) {
+        packageSpecs.push(...preactRuntimeDependencies);
+      }
+    }
 
     writeFileSync(
       path.join(consumerRoot, 'package.json'),

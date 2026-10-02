@@ -27,7 +27,7 @@ const protectedWorkflowNames = [
   'publish-v1-stable-candidate.yml',
 ];
 const reactCompatibilityMatrixCommand = 'node scripts/verify-react-compatibility.mjs --react-version 19.2.0 --react-types 19.2.0 --react-dom-types 19.2.0 && node scripts/verify-react-compatibility.mjs --react-version 19.2.8 --react-types 19.2.17 --react-dom-types 19.2.3';
-const verifyAllCommand = 'pnpm build:live-code-editor && pnpm build && pnpm verify:react-compatibility && pnpm test:ai-sdk-integration && pnpm verify:ai-sdk-tool-protocol-contract && pnpm verify:react-aria-reference-hydration && pnpm verify:doc-snippets && pnpm verify:core-artifact-parity && pnpm verify:react-artifact-boundary && pnpm verify:react-webmcp-isolation && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm verify:tool-protocol-changelog && pnpm verify:webmcp-changelog && pnpm package-boundary:check && pnpm package-boundary:test && pnpm verify:local-tool-consumers && pnpm verify:v1-lifecycle && pnpm verify:v1-release-manifest && pnpm verify:v1-release-state-alignment && pnpm verify:coordinated-stable-release-plan && pnpm test:release-safety && pnpm verify:v1-release-workflows && pnpm verify:v1-supply-chain && pnpm tool-durable:test:evidence && pnpm lint && pnpm convention:check && pnpm docs:management && pnpm llms:check && pnpm type-check && pnpm test && node --test scripts/example-route-impact.test.mjs && pnpm --filter example check && pnpm --filter example test && pnpm --filter example build && pnpm web-coding:build && pnpm docs:build && pnpm verify:private-tools';
+const verifyAllCommand = 'pnpm build:live-code-editor && pnpm build && pnpm verify:react-compatibility && pnpm test:ai-sdk-integration && pnpm verify:ai-sdk-tool-protocol-contract && pnpm verify:react-aria-reference-hydration && pnpm verify:doc-snippets && pnpm verify:core-artifact-parity && pnpm verify:react-artifact-boundary && pnpm verify:react-webmcp-isolation && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm verify:preact-public-release -- --require-current-source && pnpm verify:preact-public-workflows && pnpm verify:tool-protocol-changelog && pnpm verify:webmcp-changelog && pnpm package-boundary:check && pnpm package-boundary:test && pnpm verify:local-tool-consumers && pnpm verify:v1-lifecycle && pnpm verify:v1-release-manifest && pnpm verify:v1-release-state-alignment && pnpm verify:coordinated-stable-release-plan && pnpm test:release-safety && pnpm verify:v1-release-workflows && pnpm verify:v1-supply-chain && pnpm tool-durable:test:evidence && pnpm lint && pnpm convention:check && pnpm docs:management && pnpm llms:check && pnpm type-check && pnpm test && node --test scripts/example-route-impact.test.mjs && pnpm --filter example check && pnpm --filter example test && pnpm --filter example build && pnpm web-coding:build && pnpm docs:build && pnpm verify:private-tools';
 const prereleasePackageCohort = '@context-action/core,@context-action/react,@context-action/tool-durable-operations,@context-action/tool-protocol,@context-action/webmcp';
 
 test('preserves brace expansion while normalizing executable shell groups', () => {
@@ -97,6 +97,8 @@ async function createFixture() {
         'verify:react-webmcp-isolation': 'node scripts/verify-react-webmcp-isolation.mjs',
         'verify:package-exports': 'node scripts/verify-package-exports.mjs',
         'verify:package-tarballs': 'node scripts/verify-package-tarballs.mjs',
+        'verify:preact-public-release': 'node scripts/verify-preact-public-release.mjs',
+        'verify:preact-public-workflows': 'node scripts/verify-preact-public-workflows.mjs',
         'verify:tool-protocol-changelog': 'node scripts/verify-tool-protocol-changelog.mjs',
         'verify:webmcp-changelog': 'node scripts/verify-tool-protocol-changelog.mjs --package webmcp',
         'package-boundary:check': 'node scripts/verify-package-boundaries.mjs',
@@ -106,7 +108,7 @@ async function createFixture() {
         'verify:v1-release-state-alignment': 'node scripts/verify-v1-release-state-alignment.mjs',
         'verify:coordinated-stable-release-plan': 'node scripts/verify-coordinated-stable-release-plan.mjs',
         'web-coding:build': 'pnpm --filter @context-action/web-coding-demo build',
-        'test:release-safety': 'node --test --test-concurrency=1 scripts/maintenance-release-safety.test.mjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.test.cjs scripts/coordinated-stable-release.test.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-v1-supply-chain.test.mjs',
+        'test:release-safety': 'node --test --test-concurrency=1 scripts/maintenance-release-safety.test.mjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.test.cjs scripts/coordinated-stable-release.test.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-v1-supply-chain.test.mjs scripts/verify-preact-public-release.test.mjs',
         'verify:v1-release-workflows': 'node scripts/verify-v1-release-workflows.mjs',
         'verify:v1-supply-chain': 'node scripts/verify-v1-supply-chain.mjs',
       'tool-durable:test:evidence': 'node --test scripts/verify-durable-operation-evidence-schema.test.mjs',

@@ -6,7 +6,7 @@
 index.html + main.tsx
 ├─ shared/counter-model.ts                 Core Action + Native domain state
 ├─ template-island/mount-counter.tsx        Template clone + two shared-state islands
-├─ web-component/counter-element.tsx        Standard component API + private Preact renderer
+├─ web-component/counter-element.tsx        Standard component API + encapsulated Preact renderer
 ├─ projected-order/                         Context-Layered Signals 프로젝션 & 비즈니스 훅 표준 레퍼런스
 │  ├─ business/                             순수 비즈니스 로직 (FSM, 검증, 계산 공식)
 │  ├─ contexts/                             Preact Dispatch & Source Context 주입
