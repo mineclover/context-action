@@ -15,6 +15,7 @@
 | Preact UI types | `pnpm --filter @context-action/preact-ui type-check` | passed |
 | DOM-only ownership logic | `pnpm --filter @context-action/preact-ui test:native` | 13 tests passed |
 | Chromium contract | `pnpm --filter @context-action/preact-ui test:browser` | passed |
+| Firefox/WebKit smoke | `pnpm --filter @context-action/preact-ui test:browser:cross` | Firefox 155 / WebKit 26.6 passed locally (2026-10-02) |
 | Standalone output | `build:standalone` + `sync:standalone` | ESM/IIFE/UMD built |
 
 Chromium 검증에는 Layer Panel의 template island와 Custom Element 소유권,
@@ -54,7 +55,8 @@ log 토글의 `aria-expanded`/`aria-controls`와 로그 이름도 확인한다. 
   Safari + VoiceOver이며, Firefox + NVDA와 Chrome + VoiceOver를 보조 행으로
   둔다. 각 행에는 컴포넌트, 시작 focus, 키 입력, 기대 role/name/state/value/
   description, 실제 발화, 브라우저·AT 버전, 날짜와 증거 링크를 기록한다. 현재
-  이 matrix는 `NOT RUN`이며 Chromium AX 증거가 그 sign-off를 대신하지 않는다.
+  이 matrix는 `NOT RUN`이며 Chromium/Firefox/WebKit browser smoke나 AX 증거가 그
+  sign-off를 대신하지 않는다.
 - 다른 컴포넌트의 복합 projection은 각 component contract와 브라우저 테스트를
   함께 추가해야 한다. Layer Panel suffix slot 외의 다중 slot/portal 조합은
   여전히 소비자 환경에서 별도 검증한다.
