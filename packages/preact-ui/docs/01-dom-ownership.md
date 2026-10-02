@@ -18,6 +18,14 @@ Host는 Mount Root 자체의 배치와 외부 레이아웃을 관리하고, Rend
 
 Component 소비자에게는 업무 값과 명령을 노출합니다. 내부 Signal, VNode, CSS selector를 제어 계약으로 사용하지 않습니다. 라이브러리/Component **작성자용** adapter에는 Preact 타입과 `ReadonlySignal`이 등장할 수 있습니다. 이를 Component **소비자용** API와 혼동하지 않습니다.
 
+`definePreactElement`의 `setup(element, context)`에서 받는 context도 작성자 전용
+어댑터 입력입니다. 패키지 루트는 `PreactElementContext` 타입을 재-export하지 않으므로
+소비자가 이 내부 객체를 컴포넌트 계약으로 저장하거나 전달하지 않도록 합니다. setup
+콜백은 contextual typing을 계속 제공하므로 별도 타입 import 없이
+`context.setFormValue()`, `context.setValidity()`, `context.requestUpdate()`를 사용할 수
+있습니다. `context.root`는 focus/ref처럼 렌더러 경계 안에서만 필요한 author escape hatch이며,
+최종 소비자에게 공개하는 DOM/property/event API로 취급하지 않습니다.
+
 property 입력과 사용자 이벤트의 관계를 정합니다. 이 템플릿의 Web Component는 프로그램의 `element.value = ...`에 변경 이벤트를 재발행하지 않습니다. 사용자 조작 후에만 `value-change`를 내보내므로 반영 루프가 생기지 않습니다.
 
 공통 구현은 의미를 자동 추론하지 않는 저수준 runtime으로 제한합니다. `mountPreact`, `mountTemplate`, `createDisposalScope`는 root 소유권과 자원 해제만 담당하며, property 이름·명령·이벤트·상태 변경 권한은 컴포넌트 계약과 Host adapter가 정합니다. 같은 View를 여러 제공 경로에서 사용하더라도 소비자에게는 각 경로의 `MountInstance`나 Preact 타입을 그대로 노출하지 않습니다.

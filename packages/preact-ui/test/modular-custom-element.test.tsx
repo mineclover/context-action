@@ -105,4 +105,45 @@ describe('Modular Signals & Multi-Web-Component Integration', () => {
     stepper.setAttribute('value', '7');
     expect(changes).toBe(1);
   });
+
+  it('exposes a labelable spinbutton contract and announces invalid FACE values', async () => {
+    const StepperTag = defineQuantityStepperElement('test-accessible-stepper');
+    const label = document.createElement('label');
+    label.htmlFor = 'accessible-quantity';
+    label.textContent = '수량';
+    const stepper = new StepperTag();
+    stepper.id = 'accessible-quantity';
+    stepper.setAttribute('value', '0');
+    stepper.setAttribute('min', '1');
+    stepper.setAttribute('max', '5');
+    document.body.append(label, stepper);
+
+    expect(label.htmlFor).toBe(stepper.id);
+    expect(stepper.getAttribute('role')).toBe('spinbutton');
+    expect(stepper.tabIndex).toBe(0);
+    expect(stepper.getAttribute('aria-valuenow')).toBe('0');
+    expect(stepper.getAttribute('aria-valuemin')).toBe('1');
+    expect(stepper.getAttribute('aria-valuemax')).toBe('5');
+    expect(stepper.getAttribute('aria-valuetext')).toBe('0개');
+    expect(stepper.getAttribute('aria-invalid')).toBe('true');
+
+    const describedBy = stepper.getAttribute('aria-describedby')?.split(/\s+/) ?? [];
+    expect(describedBy).toHaveLength(2);
+    const errorId = describedBy[1];
+    expect(errorId).toBeDefined();
+    const errorHint = stepper.shadowRoot?.getElementById(errorId ?? '');
+    expect(errorHint?.getAttribute('role')).toBe('alert');
+    expect(errorHint?.textContent).toContain('최소 수량은 1개입니다.');
+
+    expect(stepper.shadowRoot?.querySelector<HTMLButtonElement>('[data-testid="decrease-quantity"]')?.ariaLabel)
+      .toBe('Decrease quantity');
+    expect(stepper.shadowRoot?.querySelector<HTMLButtonElement>('[data-testid="increase-quantity"]')?.ariaLabel)
+      .toBe('Increase quantity');
+
+    await act(() => {
+      stepper.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    });
+    expect(stepper.getAttribute('aria-valuenow')).toBe('1');
+    expect(stepper.getAttribute('aria-invalid')).toBe('false');
+  });
 });

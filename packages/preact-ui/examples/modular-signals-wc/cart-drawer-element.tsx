@@ -145,6 +145,7 @@ export function defineCartDrawerElement(tagName = 'cart-drawer'): CustomElementC
                       <button
                         type="button"
                         class="btn-del"
+                        aria-label={`삭제 ${item.name}`}
                         onClick={() => removeProductFromCart(item.id)}
                       >
                         삭제

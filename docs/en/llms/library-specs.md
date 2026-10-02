@@ -44,7 +44,7 @@
 - **Mutative lineage**: Mutative Core `0.8.14` and the scoped adapter `0.8.15` track the acquired upstream `mutative@1.3.0` compatibility baseline; verify the committed source inventory with `pnpm verify:mutative-upstream` before synchronization or release.
 - **Runtime baseline**: Node.js `>=24.11.0`, pnpm `>=10.30.0`, and TypeScript `6.0.3`.
 - **Dependency security**: `pnpm security:audit` is the required OSV check and currently reports no actionable vulnerability matches. Fixed dependency floors are enforced by the root `pnpm.overrides` configuration.
-- **Temporary exception**: `react-router@7.18.1` remains a time-bounded exception for `GHSA-qwww-vcr4-c8h2`; the example uses browser routing only, and `react-router-dom` 8.3.0 is not published. Re-evaluate before 2026-09-30.
+- **Dependency floor**: `react-router` and `react-router-dom` are pinned to `7.18.4` to address `GHSA-qwww-vcr4-c8h2`; the example uses browser routing only.
 - **Verification baseline**: dependency changes must pass `pnpm security:audit`, `pnpm type-check`, `pnpm test`, `pnpm docs:build`, and the example `check`/`build` gates.
 
 ### API Surface

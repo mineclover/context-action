@@ -3,7 +3,7 @@ document_id: guide--production-readiness
 category: guide
 source_path: ko/guide/production-readiness.md
 character_limit: 200
-last_update: '2026-08-11T05:13:12.283Z'
+last_update: '2026-10-02T01:34:57.624Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high

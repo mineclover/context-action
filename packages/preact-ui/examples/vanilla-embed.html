@@ -67,7 +67,7 @@
     }
   </style>
 
-  <!-- [1] Standalone UMD 번들 로드 (Preact + Signals + Core 내장: 27KB gzip) -->
+  <!-- [1] Standalone UMD 번들 로드 (Preact + Signals + Core 내장: 약 32.0KB gzip) -->
   <script src="../dist-standalone/order-workspace.umd.js"></script>
 </head>
 <body>
@@ -170,9 +170,9 @@
       </div>
 
       <div>
-        <label style="display: block; font-weight: 600; margin-bottom: 4px;">수량 선택 (FACE 커스텀 엘리먼트):</label>
+        <label id="order-quantity-label" for="order-quantity" style="display: block; font-weight: 600; margin-bottom: 4px;">수량 선택 (FACE 커스텀 엘리먼트):</label>
         <!-- Form-Associated Custom Element -->
-        <quantity-stepper name="orderQuantity" value="2" min="1" max="10"></quantity-stepper>
+        <quantity-stepper id="order-quantity" aria-labelledby="order-quantity-label" name="orderQuantity" value="2" min="1" max="10"></quantity-stepper>
       </div>
 
       <div class="controls" style="margin-bottom: 0;">

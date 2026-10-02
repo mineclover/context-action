@@ -11,7 +11,7 @@
 |---|---|---|
 | Preact adapter | `pnpm --filter @context-action/preact test` | 4 tests passed |
 | Preact adapter types | `pnpm --filter @context-action/preact type-check` | passed |
-| Preact UI runtime | `pnpm --filter @context-action/preact-ui test` | must pass; record the current test count in release evidence |
+| Preact UI runtime | `pnpm --filter @context-action/preact-ui test` | 58 tests passed |
 | Preact UI types | `pnpm --filter @context-action/preact-ui type-check` | passed |
 | DOM-only ownership logic | `pnpm --filter @context-action/preact-ui test:native` | 13 tests passed |
 | Chromium contract | `pnpm --filter @context-action/preact-ui test:browser` | passed |
@@ -20,8 +20,12 @@
 Chromium 검증에는 Layer Panel의 template island와 Custom Element 소유권,
 slot 보존, disconnect/reconnect, keyboard/focus, accessible button name,
 standalone vanilla embed의 `customerName = '이순신 (조선 수군)'` property 반영을
-포함한다. 브라우저 검증은 DOM 접근성 트리와 키보드 동작을 확인하지만 NVDA,
-VoiceOver 같은 실제 보조기술 조합의 음성 출력을 보증하지 않는다.
+포함한다. Projected Order Workspace에서는 Shadow DOM 내부의 새 상품 입력
+`label`/`id` 연결, 상품 없음 오류의 `role="alert"`와 목록
+`aria-describedby` 연결, 수량 변경의 `role="status"`/`aria-live`, activity
+log 토글의 `aria-expanded`/`aria-controls`와 로그 이름도 확인한다. 브라우저
+검증은 DOM 접근성 트리와 키보드 동작을 확인하지만 NVDA, VoiceOver 같은 실제
+보조기술 조합의 음성 출력을 보증하지 않는다.
 
 ## 현재 계약
 
