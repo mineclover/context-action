@@ -49,14 +49,10 @@ log 토글의 `aria-expanded`/`aria-controls`와 로그 이름도 확인한다. 
 
 ## 남은 검증 범위
 
-- 실제 NVDA/VoiceOver 등 보조기술 조합 검증은 CI에 포함하지 않는다. 제품
-  배포 전에 지원 브라우저·보조기술 조합을 정하고 별도 수동 검증을 기록한다.
-- 수동 보조기술 matrix의 기본 행은 Windows + Chrome stable + NVDA와 macOS +
-  Safari + VoiceOver이며, Firefox + NVDA와 Chrome + VoiceOver를 보조 행으로
-  둔다. 각 행에는 컴포넌트, 시작 focus, 키 입력, 기대 role/name/state/value/
-  description, 실제 발화, 브라우저·AT 버전, 날짜와 증거 링크를 기록한다. 현재
-  이 matrix는 `NOT RUN`이며 Chromium/Firefox/WebKit browser smoke나 AX 증거가 그
-  sign-off를 대신하지 않는다.
+- NVDA/VoiceOver 음성 검증은 라이브러리 runtime 기능이나 release gate가 아니다.
+  라이브러리는 Chromium AX, Firefox/WebKit smoke, DOM semantics, keyboard 계약을
+  검증하며, 소비자 제품이 특정 OS·보조기술 조합을 지원하기로 선택한 경우에만
+  별도 QA 절차로 추가한다.
 - 다른 컴포넌트의 복합 projection은 각 component contract와 브라우저 테스트를
   함께 추가해야 한다. Layer Panel suffix slot 외의 다중 slot/portal 조합은
   여전히 소비자 환경에서 별도 검증한다.
