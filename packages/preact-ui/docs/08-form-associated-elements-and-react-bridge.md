@@ -175,6 +175,12 @@ React 18 및 React 19 환경에서 Custom Element를 직접 JSX로 작성할 때
 
 `@context-action/preact-ui`는 React 상호운용성을 위한 경량 브릿지 팩토리를 제공합니다:
 
+`properties`는 React commit 뒤 isomorphic layout effect에서 DOM property로 동기화된다.
+따라서 Custom Element의 `connectedCallback`/초기 mount는 기본 입력으로도 안전하고
+멱등적이어야 한다. 복합 property를 최초 연결 side effect에서 반드시 읽어야 한다면,
+컴포넌트가 별도 connection gate/ready 명령을 제공해야 한다. React 18과 SSR hydration은
+연결 전에 객체 property를 보장하지 않으며, bridge는 연결 후 최종 snapshot을 맞춘다.
+
 ```typescript
 import { createCustomElementBridge } from '@context-action/preact-ui/react-bridge';
 

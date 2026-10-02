@@ -8,12 +8,16 @@ import { createCustomElementBridge } from '../src/react-bridge.js';
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 
 class MockBridgeElement extends HTMLElement {
+  static connectedItems: readonly any[] | undefined;
   #items: readonly any[] = [];
   get items() {
     return this.#items;
   }
   set items(val: readonly any[]) {
     this.#items = val;
+  }
+  connectedCallback() {
+    MockBridgeElement.connectedItems = this.#items;
   }
 }
 
@@ -32,6 +36,7 @@ describe('React Custom Element Bridge (createCustomElementBridge)', () => {
   let root: Root;
 
   beforeEach(() => {
+    MockBridgeElement.connectedItems = undefined;
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
@@ -73,6 +78,9 @@ describe('React Custom Element Bridge (createCustomElementBridge)', () => {
     const domEl = container.querySelector('mock-bridge-el') as MockBridgeElement;
     expect(domEl).not.toBeNull();
     expect(forwardedEl).toBe(domEl);
+    // React 18/SSR-safe bridge semantics: the Custom Element connects with
+    // its default input, then the layout effect assigns complex properties.
+    expect(MockBridgeElement.connectedItems).not.toBe(itemsData);
 
     // Verify attribute was set
     expect(domEl.getAttribute('customerName')).toBe('홍길동');
