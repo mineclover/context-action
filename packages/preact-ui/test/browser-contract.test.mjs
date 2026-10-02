@@ -72,6 +72,10 @@ try {
   assert.deepEqual(initial, { selected: 'one', count: 2, pressed: 'One' });
   assert.equal(await page.locator('pre-layer-panel [data-slot-label]').textContent(), 'External suffix');
   assert.equal(await page.locator('pre-layer-panel').getByRole('button', { name: 'Two' }).count(), 1);
+  const layerPanelA11y = await page.locator('pre-layer-panel').ariaSnapshot();
+  assert.match(layerPanelA11y, /list/);
+  assert.match(layerPanelA11y, /button "One"/);
+  assert.match(layerPanelA11y, /button "Two"/);
 
   await page.locator('pre-layer-panel').locator('button').nth(1).click();
   assert.equal(await page.evaluate(() => window.layerPanelContract.requestIds.join(',')), 'two');
@@ -156,6 +160,12 @@ try {
   assert.equal(await page.locator('#wc-change-name').count(), 1);
   const orderWorkspace = page.locator('order-workspace');
   await orderWorkspace.waitFor({ state: 'attached' });
+  await orderWorkspace.evaluate(element => {
+    element.dataset.changeEvents = '0';
+    element.addEventListener('order-change', () => {
+      element.dataset.changeEvents = String(Number(element.dataset.changeEvents ?? '0') + 1);
+    });
+  });
   await page.locator('#wc-change-name').click();
   await page.waitForTimeout(50);
   const customerName = await orderWorkspace.evaluate(element => ({
@@ -168,6 +178,7 @@ try {
     attribute: '이순신 (조선 수군)',
     input: '이순신 (조선 수군)',
   });
+  assert.equal(await orderWorkspace.getAttribute('data-change-events'), '1');
 
   // The projected order view exposes its form and live updates through the
   // browser accessibility tree. Keep these checks in the real Chromium
@@ -248,8 +259,36 @@ try {
   const quantityStepper = page.locator('#order-quantity');
   assert.equal(await page.getByRole('spinbutton', { name: '수량 선택 (FACE 커스텀 엘리먼트):' }).count(), 1);
   assert.equal(await page.locator('label[for="order-quantity"]').count(), 1);
+  const quantityAxSession = await page.context().newCDPSession(page);
+  const axDocument = await quantityAxSession.send('DOM.getDocument');
+  const axQuantityNode = await quantityAxSession.send('DOM.querySelector', {
+    nodeId: axDocument.root.nodeId,
+    selector: '#order-quantity',
+  });
+  async function readQuantityAx() {
+    const tree = await quantityAxSession.send('Accessibility.getPartialAXTree', {
+      nodeId: axQuantityNode.nodeId,
+      fetchRelatives: true,
+    });
+    const node = tree.nodes.find(candidate => candidate.role?.value === 'spinbutton');
+    if (!node) throw new Error('quantity spinbutton is missing from Chromium AX tree');
+    const property = name => node.properties?.find(candidate => candidate.name === name)?.value?.value;
+    return {
+      role: node.role?.value,
+      name: node.name?.value,
+      description: node.description?.value,
+      value: node.value?.value,
+      invalid: property('invalid'),
+    };
+  }
+  assert.deepEqual(await readQuantityAx(), {
+    role: 'spinbutton',
+    name: '수량 선택 (FACE 커스텀 엘리먼트):',
+    description: '수량을 선택하세요. 위쪽 또는 아래쪽 화살표 키로 변경할 수 있습니다.',
+    value: 2,
+    invalid: 'false',
+  });
   const quantitySemantics = await quantityStepper.evaluate(element => {
-    const describedBy = (element.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean);
     return {
       role: element.getAttribute('role'),
       labelledBy: element.getAttribute('aria-labelledby'),
@@ -258,8 +297,7 @@ try {
       min: element.getAttribute('aria-valuemin'),
       max: element.getAttribute('aria-valuemax'),
       invalid: element.getAttribute('aria-invalid'),
-      describedBy,
-      descriptionText: describedBy.map(id => element.shadowRoot?.getElementById(id)?.textContent?.trim() ?? ''),
+      description: element.getAttribute('aria-description'),
       decreaseName: element.shadowRoot?.querySelector('[data-testid="decrease-quantity"]')?.getAttribute('aria-label'),
       increaseName: element.shadowRoot?.querySelector('[data-testid="increase-quantity"]')?.getAttribute('aria-label'),
     };
@@ -272,27 +310,41 @@ try {
     min: '1',
     max: '10',
     invalid: 'false',
-    describedBy: quantitySemantics.describedBy,
-    descriptionText: ['수량을 선택하세요. 위쪽 또는 아래쪽 화살표 키로 변경할 수 있습니다.', ''],
+    description: '수량을 선택하세요. 위쪽 또는 아래쪽 화살표 키로 변경할 수 있습니다.',
     decreaseName: 'Decrease quantity',
     increaseName: 'Increase quantity',
   });
-  assert.equal(quantitySemantics.describedBy.length, 2);
+  const quantitySpinbuttonA11y = await quantityStepper.ariaSnapshot();
+  assert.match(quantitySpinbuttonA11y, /spinbutton/);
+  assert.match(quantitySpinbuttonA11y, /button "Decrease quantity"/);
+  assert.match(quantitySpinbuttonA11y, /button "Increase quantity"/);
+  assert.match(quantitySpinbuttonA11y, /alert/);
 
   await quantityStepper.evaluate(element => element.setAttribute('value', '0'));
   await page.waitForTimeout(20);
   const invalidQuantity = await quantityStepper.evaluate(element => {
-    const errorId = (element.getAttribute('aria-describedby') ?? '').split(/\s+/).at(-1) ?? '';
     return {
       value: element.getAttribute('aria-valuenow'),
       invalid: element.getAttribute('aria-invalid'),
-      error: element.shadowRoot?.getElementById(errorId)?.textContent?.trim(),
+      description: element.getAttribute('aria-description'),
+      error: element.shadowRoot?.querySelector('[role="alert"]')?.textContent?.trim(),
     };
   });
   assert.deepEqual(invalidQuantity, {
     value: '0',
     invalid: 'true',
+    description: '최소 수량은 1개입니다.',
     error: '최소 수량은 1개입니다.',
+  });
+  const invalidQuantityA11y = await quantityStepper.ariaSnapshot();
+  assert.match(invalidQuantityA11y, /alert/);
+  assert.match(invalidQuantityA11y, /최소 수량은 1개입니다\./);
+  assert.deepEqual(await readQuantityAx(), {
+    role: 'spinbutton',
+    name: '수량 선택 (FACE 커스텀 엘리먼트):',
+    description: '수량을 선택하세요. 위쪽 또는 아래쪽 화살표 키로 변경할 수 있습니다. 최소 수량은 1개입니다.',
+    value: 1,
+    invalid: 'true',
   });
   await quantityStepper.evaluate(element => {
     const button = element.shadowRoot?.querySelector('[data-testid="increase-quantity"]');
@@ -304,6 +356,32 @@ try {
   await quantityStepper.focus();
   await page.keyboard.press('ArrowUp');
   assert.equal(await quantityStepper.getAttribute('aria-valuenow'), '2');
+  await quantityStepper.evaluate(element => element.setAttribute('value', '2'));
+  await page.waitForTimeout(20);
+
+  const checkoutForm = page.locator('#native-checkout-form');
+  assert.deepEqual(
+    await checkoutForm.evaluate(form => Object.fromEntries(new FormData(form).entries())),
+    { productName: 'Preact Signals 아키텍처 가이드북', orderQuantity: '2' },
+  );
+  await quantityStepper.evaluate(element => {
+    const button = element.shadowRoot?.querySelector('[data-testid="increase-quantity"]');
+    if (!(button instanceof HTMLElement)) throw new Error('increase button is missing');
+    button.click();
+  });
+  assert.equal(await quantityStepper.getAttribute('aria-valuenow'), '3');
+  assert.equal(
+    await checkoutForm.evaluate(form => new FormData(form).get('orderQuantity')),
+    '3',
+  );
+  await checkoutForm.evaluate(form => form.reset());
+  await page.waitForTimeout(20);
+  assert.equal(await quantityStepper.getAttribute('aria-valuenow'), '2');
+  assert.equal(
+    await checkoutForm.evaluate(form => new FormData(form).get('orderQuantity')),
+    '2',
+  );
+  await quantityAxSession.detach();
 
   console.log('Layer Panel browser contract passed');
 } finally {

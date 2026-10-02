@@ -67,11 +67,30 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
     setup(element, context) {
       const parsedInitialValue = Number.parseInt(element.getAttribute('value') ?? '1', 10);
       const initialValue = Number.isFinite(parsedInitialValue) ? parsedInitialValue : 1;
+      let resetValue = initialValue;
       const countSignal = signal(initialValue);
       const disabledSignal = signal(false);
-      const descriptionId = `${tagName}-${++quantityStepperSequence}-description`;
-      const errorId = `${tagName}-${quantityStepperSequence}-error`;
+      const sequence = ++quantityStepperSequence;
+      const descriptionId = `${tagName}-${sequence}-description`;
+      const errorId = `${tagName}-${sequence}-error`;
+      const helpText = '수량을 선택하세요. 위쪽 또는 아래쪽 화살표 키로 변경할 수 있습니다.';
       const validationMessageSignal = signal('');
+      let generatedLabelId: string | undefined;
+      const semanticAttributes = [
+        'role',
+        'tabindex',
+        'aria-labelledby',
+        'aria-description',
+        'aria-valuenow',
+        'aria-valuemin',
+        'aria-valuemax',
+        'aria-valuetext',
+        'aria-invalid',
+        'aria-disabled',
+      ] as const;
+      const initialSemanticAttributes = new Map(
+        semanticAttributes.map(attribute => [attribute, element.getAttribute(attribute)]),
+      );
 
       function getBounds() {
         const parsedMin = Number.parseInt(element.getAttribute('min') ?? '', 10);
@@ -89,17 +108,47 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
         element.setAttribute('aria-valuetext', `${val}개`);
         element.setAttribute('aria-invalid', message ? 'true' : 'false');
         element.setAttribute('aria-disabled', disabledSignal.value ? 'true' : 'false');
+        // ID references into a shadow root are not resolved as the host's
+        // AX description in Chromium. Use the direct ARIA description for
+        // assistive technology, while the live alert below announces errors.
+        element.setAttribute('aria-description', message || helpText);
         validationMessageSignal.value = message;
+        queueMicrotask(connectDescriptionElements);
+      }
+
+      function connectDescriptionElements() {
+        const description = context.root.querySelector(`#${descriptionId}`);
+        const error = context.root.querySelector(`#${errorId}`);
+        const internals = context.internals as (ElementInternals & {
+          ariaDescribedByElements?: Element[];
+        }) | undefined;
+        if (!internals || !('ariaDescribedByElements' in internals)) return;
+        try {
+          internals.ariaDescribedByElements = [description, error].filter(
+            (node): node is Element => node instanceof Element,
+          );
+        } catch {
+          // Older ElementInternals implementations may expose no setter.
+        }
       }
 
       function connectHostLabel() {
         const id = element.id;
+        const root = element.getRootNode() as Document | ShadowRoot;
         const label = id
-          ? Array.from(element.ownerDocument.querySelectorAll('label[for]'))
+          ? Array.from(root.querySelectorAll('label[for]'))
             .find(candidate => candidate.getAttribute('for') === id)
           : element.closest('label');
-        if (!label) return;
-        if (!label.id) label.id = `${tagName}-${quantityStepperSequence}-label`;
+        if (!label) {
+          if (generatedLabelId && element.getAttribute('aria-labelledby') === generatedLabelId) {
+            element.removeAttribute('aria-labelledby');
+          }
+          return;
+        }
+        if (!label.id) {
+          label.id = `${tagName}-${quantityStepperSequence}-label`;
+          generatedLabelId = label.id;
+        }
         element.setAttribute('aria-labelledby', label.id);
       }
 
@@ -159,7 +208,6 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
         event.preventDefault();
         setCount(nextValue, true);
       };
-      element.addEventListener('keydown', onHostKeyDown);
 
       function QuantityStepperView() {
         const { min, max } = getBounds();
@@ -194,7 +242,7 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
             </button>
             </div>
             <span id={descriptionId} class="sr-only">
-              수량을 선택하세요. 위쪽 또는 아래쪽 화살표 키로 변경할 수 있습니다.
+              {helpText}
             </span>
             <span id={errorId} class="error-hint" role="alert" aria-live="assertive">
               {validationMessageSignal.value}
@@ -212,15 +260,20 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
           // while a form-associated custom element is being constructed.
           element.setAttribute('role', 'spinbutton');
           if (!element.hasAttribute('tabindex')) element.tabIndex = 0;
-          element.setAttribute('aria-describedby', `${descriptionId} ${errorId}`);
           connectHostLabel();
+          element.addEventListener('keydown', onHostKeyDown);
           updateValidationAndFormValue(countSignal.value);
+          queueMicrotask(connectDescriptionElements);
+        },
+        onDisconnect() {
+          element.removeEventListener('keydown', onHostKeyDown);
         },
         onAttributeChange(name, _oldVal, newVal) {
           if (name === 'value' && newVal !== null) {
             const parsed = parseInt(newVal, 10);
             if (!Number.isNaN(parsed)) {
               countSignal.value = parsed;
+              resetValue = parsed;
               if (element.isConnected) updateValidationAndFormValue(parsed);
             }
           }
@@ -229,8 +282,8 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
           }
         },
         onFormReset() {
-          countSignal.value = initialValue;
-          updateValidationAndFormValue(initialValue);
+          countSignal.value = resetValue;
+          updateValidationAndFormValue(resetValue);
         },
         onFormDisabled(disabled) {
           disabledSignal.value = disabled;
@@ -238,6 +291,11 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
         },
         onDestroy() {
           element.removeEventListener('keydown', onHostKeyDown);
+          for (const attribute of semanticAttributes) {
+            const initialValue = initialSemanticAttributes.get(attribute);
+            if (initialValue === null || initialValue === undefined) element.removeAttribute(attribute);
+            else element.setAttribute(attribute, initialValue);
+          }
         },
       };
     },

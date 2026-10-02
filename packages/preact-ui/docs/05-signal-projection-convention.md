@@ -160,7 +160,9 @@ export function useOrderActions(): OrderActionsHook {
 View 컴포넌트는 오직 **프로젝션 훅의 Signals**와 **비즈니스 로직 훅의 액션 함수**를 소비하여 화면을 구성합니다.
 
 ```tsx
-export function OrderWorkspaceView() {
+export function OrderWorkspaceView({ idPrefix }: { idPrefix: string }) {
+  // The adapter supplies a stable, mount-unique prefix. Do not derive public
+  // light-DOM ids from a root-local useId() value.
   // [1] 프로젝션 훅: 읽기 전용 Signals
   const { summarySignal, canSubmitSignal, isSubmittingSignal } = useOrderProjection();
 

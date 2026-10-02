@@ -1,4 +1,4 @@
-import { useId, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import { useOrderActions } from '../actions/use-order-actions.js';
 import { useOrderProjection } from '../projections/use-order-projection.js';
 import { OrderSummaryView } from './OrderSummaryView.js';
@@ -23,8 +23,7 @@ const visuallyHiddenStyle = {
  * 2. Invokes NO raw dispatch; executes semantic actions via useOrderActions()
  * 3. Keeps volatile UI state (active tab, log accordion, local input drafts) in local useState
  */
-export function OrderWorkspaceView() {
-  const idPrefix = `order-${useId().replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+export function OrderWorkspaceView({ idPrefix }: { idPrefix: string }) {
   const customerNameId = `${idPrefix}-customer-name`;
   const shippingAddressId = `${idPrefix}-shipping-address`;
   const customerNameErrorId = `${customerNameId}-error`;

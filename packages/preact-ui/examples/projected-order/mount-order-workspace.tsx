@@ -5,6 +5,8 @@ import { OrderContextProvider } from './contexts/order-contexts.js';
 import type { OrderModel } from './handlers/order-handlers.js';
 import { OrderWorkspaceView } from './views/OrderWorkspaceView.js';
 
+let mountSequence = 0;
+
 export interface OrderWorkspaceMount {
   readonly instance: MountInstance<void>;
   destroy(): void;
@@ -19,6 +21,7 @@ export function mountOrderWorkspace(
   model: OrderModel,
 ): OrderWorkspaceMount {
   const scope = createDisposalScope();
+  const idPrefix = `order-mount-${++mountSequence}`;
   const connection = connectSourceSignal(model.source);
   scope.add(() => connection.dispose());
 
@@ -27,7 +30,7 @@ export function mountOrderWorkspace(
       host,
       () => (
         <OrderContextProvider dispatch={model.dispatch} sourceSignal={connection.signal}>
-          <OrderWorkspaceView />
+          <OrderWorkspaceView idPrefix={idPrefix} />
         </OrderContextProvider>
       ),
       undefined,

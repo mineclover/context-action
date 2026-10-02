@@ -80,6 +80,11 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
   let snapshot = freezeOrderState(state);
 
   let destroyed = false;
+  let draftRevision = 0;
+  let nextSubmissionToken = 0;
+  let activeSubmissionToken = 0;
+  let activeSubmissionRevision: number | undefined;
+  let lastCompletedSubmissionRevision: number | undefined;
   const listeners = new Set<() => void>();
   const actions = new ActionRegister<OrderActions>({ name: 'ProjectedOrderModel' });
 
@@ -98,24 +103,36 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
     ...state.activityLog.slice(0, 19), // Keep latest 20
   ];
 
+  const markDraftChanged = () => {
+    draftRevision += 1;
+  };
+
+  const submissionAfterDraftChange = (): OrderState['submission'] => (
+    state.submission.phase === 'submitting' ? { phase: 'idle' } : state.submission
+  );
+
   actions.register('updateCustomerName', ({ name }) => {
     if (typeof name !== 'string') throw new TypeError('name must be a string');
+    markDraftChanged();
     const updatedDraft = { ...state.draft, customerName: name };
     const issues = validateOrderDraft(updatedDraft);
     commit({
       ...state,
       draft: updatedDraft,
+      submission: submissionAfterDraftChange(),
       validationIssues: issues,
     });
   });
 
   actions.register('updateShippingAddress', ({ address }) => {
     if (typeof address !== 'string') throw new TypeError('address must be a string');
+    markDraftChanged();
     const updatedDraft = { ...state.draft, shippingAddress: address };
     const issues = validateOrderDraft(updatedDraft);
     commit({
       ...state,
       draft: updatedDraft,
+      submission: submissionAfterDraftChange(),
       validationIssues: issues,
     });
   });
@@ -125,14 +142,18 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
       typeof item.id !== 'string' ||
       typeof item.name !== 'string' ||
       !Number.isFinite(item.unitPrice) ||
+      item.unitPrice < 0 ||
       !Number.isSafeInteger(item.quantity) ||
-      item.quantity <= 0
+      item.quantity <= 0 ||
+      !item.id.trim() ||
+      !item.name.trim()
     ) {
       throw new TypeError('item must have valid id, name, unitPrice, and positive integer quantity');
     }
     // Copy caller-owned payloads before they enter the domain state. A caller
     // may reuse or mutate its input object after dispatch resolves.
     const incomingItem = { ...item };
+    markDraftChanged();
     const existingIndex = state.draft.items.findIndex((i) => i.id === incomingItem.id);
     let items = [...state.draft.items];
     if (existingIndex >= 0) {
@@ -146,12 +167,17 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
     commit({
       ...state,
       draft: updatedDraft,
+      submission: submissionAfterDraftChange(),
       validationIssues: issues,
       activityLog: addActivity(state, `Added item "${item.name}" (qty: ${item.quantity})`),
     });
   });
 
   actions.register('removeItem', ({ itemId }) => {
+    if (typeof itemId !== 'string' || !itemId.trim()) {
+      throw new TypeError('itemId must be a nonempty string');
+    }
+    markDraftChanged();
     const target = state.draft.items.find((i) => i.id === itemId);
     const items = state.draft.items.filter((i) => i.id !== itemId);
     const updatedDraft = { ...state.draft, items };
@@ -159,6 +185,7 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
     commit({
       ...state,
       draft: updatedDraft,
+      submission: submissionAfterDraftChange(),
       validationIssues: issues,
       activityLog: addActivity(state, `Removed item "${target?.name ?? itemId}"`),
     });
@@ -168,66 +195,92 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
     if (typeof itemId !== 'string' || !Number.isSafeInteger(quantity) || quantity <= 0) {
       throw new TypeError('itemId must be a string and quantity must be a positive integer');
     }
+    markDraftChanged();
     const items = state.draft.items.map((i) => (i.id === itemId ? { ...i, quantity } : i));
     const updatedDraft = { ...state.draft, items };
     const issues = validateOrderDraft(updatedDraft);
     commit({
       ...state,
       draft: updatedDraft,
+      submission: submissionAfterDraftChange(),
       validationIssues: issues,
     });
   });
 
   actions.register('submitOrder', async () => {
-    // 1. Validation phase
-    const validatingSubmission = transitionOrderSubmission(state.submission, {
-      type: 'START_VALIDATION',
-    });
-    const issues = validateOrderDraft(state.draft);
-
-    if (issues.length > 0) {
-      const failedSubmission = transitionOrderSubmission(validatingSubmission, {
-        type: 'VALIDATION_FAILED',
-        message: issues[0]?.message ?? 'Validation failed',
+    if (activeSubmissionRevision === draftRevision || lastCompletedSubmissionRevision === draftRevision) return;
+    const requestRevision = draftRevision;
+    const requestToken = ++nextSubmissionToken;
+    activeSubmissionToken = requestToken;
+    activeSubmissionRevision = requestRevision;
+    try {
+      // 1. Validation phase
+      const validatingSubmission = transitionOrderSubmission(state.submission, {
+        type: 'START_VALIDATION',
       });
+      const issues = validateOrderDraft(state.draft);
+
+      if (issues.length > 0) {
+        const failedSubmission = transitionOrderSubmission(validatingSubmission, {
+          type: 'VALIDATION_FAILED',
+          message: issues[0]?.message ?? 'Validation failed',
+        });
+        commit({
+          ...state,
+          submission: failedSubmission,
+          validationIssues: issues,
+          activityLog: addActivity(state, 'Order submission blocked by validation errors'),
+        });
+        return;
+      }
+
+      // 2. Submitting phase
+      const submitting = transitionOrderSubmission(validatingSubmission, { type: 'START_SUBMIT' });
       commit({
         ...state,
-        submission: failedSubmission,
-        validationIssues: issues,
-        activityLog: addActivity(state, 'Order submission blocked by validation errors'),
+        submission: submitting,
+        validationIssues: [],
+        activityLog: addActivity(state, 'Submitting order to server...'),
       });
-      return;
+
+      // 3. Simulated async remote call
+      if (submitDelayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, submitDelayMs));
+      }
+
+      // A reset or a newer draft mutation cancels the in-flight submission.
+      // Do not let a stale remote result turn the replacement draft into a
+      // success state or emit a success event for the wrong order.
+      const currentSubmissionPhase = state.submission.phase as OrderState['submission']['phase'];
+      if (
+        requestRevision !== draftRevision ||
+        activeSubmissionToken !== requestToken ||
+        currentSubmissionPhase !== 'submitting'
+      ) return;
+
+      // 4. Success phase
+      const orderId = `ORD-${Date.now().toString(36).toUpperCase()}`;
+      const successSubmission = transitionOrderSubmission(submitting, {
+        type: 'SUBMIT_SUCCESS',
+        orderId,
+      });
+
+      commit({
+        ...state,
+        submission: successSubmission,
+        activityLog: addActivity(state, `Order successfully placed: ${orderId}`),
+      });
+      lastCompletedSubmissionRevision = requestRevision;
+    } finally {
+      if (activeSubmissionToken === requestToken) {
+        activeSubmissionToken = 0;
+        activeSubmissionRevision = undefined;
+      }
     }
-
-    // 2. Submitting phase
-    const submitting = transitionOrderSubmission(validatingSubmission, { type: 'START_SUBMIT' });
-    commit({
-      ...state,
-      submission: submitting,
-      validationIssues: [],
-      activityLog: addActivity(state, 'Submitting order to server...'),
-    });
-
-    // 3. Simulated async remote call
-    if (submitDelayMs > 0) {
-      await new Promise((resolve) => setTimeout(resolve, submitDelayMs));
-    }
-
-    // 4. Success phase
-    const orderId = `ORD-${Date.now().toString(36).toUpperCase()}`;
-    const successSubmission = transitionOrderSubmission(submitting, {
-      type: 'SUBMIT_SUCCESS',
-      orderId,
-    });
-
-    commit({
-      ...state,
-      submission: successSubmission,
-      activityLog: addActivity(state, `Order successfully placed: ${orderId}`),
-    });
   });
 
   actions.register('resetDraft', () => {
+    markDraftChanged();
     commit({
       draft: { ...DEFAULT_DRAFT },
       submission: { phase: 'idle' },

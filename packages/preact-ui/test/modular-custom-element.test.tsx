@@ -126,12 +126,9 @@ describe('Modular Signals & Multi-Web-Component Integration', () => {
     expect(stepper.getAttribute('aria-valuemax')).toBe('5');
     expect(stepper.getAttribute('aria-valuetext')).toBe('0개');
     expect(stepper.getAttribute('aria-invalid')).toBe('true');
+    expect(stepper.getAttribute('aria-description')).toBe('최소 수량은 1개입니다.');
 
-    const describedBy = stepper.getAttribute('aria-describedby')?.split(/\s+/) ?? [];
-    expect(describedBy).toHaveLength(2);
-    const errorId = describedBy[1];
-    expect(errorId).toBeDefined();
-    const errorHint = stepper.shadowRoot?.getElementById(errorId ?? '');
+    const errorHint = stepper.shadowRoot?.querySelector('[role="alert"]');
     expect(errorHint?.getAttribute('role')).toBe('alert');
     expect(errorHint?.textContent).toContain('최소 수량은 1개입니다.');
 
@@ -145,5 +142,12 @@ describe('Modular Signals & Multi-Web-Component Integration', () => {
     });
     expect(stepper.getAttribute('aria-valuenow')).toBe('1');
     expect(stepper.getAttribute('aria-invalid')).toBe('false');
+
+    stepper.remove();
+    stepper.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    expect(stepper.getAttribute('aria-valuenow')).toBe('1');
+    (stepper as HTMLElement & { dispose(): void }).dispose();
+    expect(stepper.getAttribute('role')).toBeNull();
+    expect(stepper.tabIndex).toBe(-1);
   });
 });

@@ -26,6 +26,7 @@ export interface OrderWorkspaceElement extends HTMLElement {
 interface OrderWorkspaceInput {
   readonly dispatch: OrderModel['dispatch'];
   readonly sourceSignal: ReadonlySignal<OrderState>;
+  readonly idPrefix: string;
 }
 
 interface OrderWorkspaceOwnerSession {
@@ -35,6 +36,7 @@ interface OrderWorkspaceOwnerSession {
 }
 
 const registeredOrderElements = new Map<string, CustomElementConstructor>();
+let elementSequence = 0;
 
 function cloneDraft(draft: ReturnType<OrderModel['source']['getSnapshot']>['draft']) {
   return {
@@ -46,7 +48,7 @@ function cloneDraft(draft: ReturnType<OrderModel['source']['getSnapshot']>['draf
 function OrderWorkspaceElementView({ input }: { input: OrderWorkspaceInput }) {
   return (
     <OrderContextProvider dispatch={input.dispatch} sourceSignal={input.sourceSignal}>
-      <OrderWorkspaceView />
+      <OrderWorkspaceView idPrefix={input.idPrefix} />
     </OrderContextProvider>
   );
 }
@@ -61,6 +63,7 @@ function OrderWorkspaceElementView({ input }: { input: OrderWorkspaceInput }) {
 function createOrderWorkspaceOwnerSession(
   model: OrderModel,
   element: HTMLElement,
+  idPrefix: string,
 ): OrderWorkspaceOwnerSession {
   const scope = createDisposalScope();
   const connection = connectSourceSignal(model.source);
@@ -100,7 +103,7 @@ function createOrderWorkspaceOwnerSession(
     },
     getInput() {
       if (scope.disposed) throw new Error('Order workspace connection session is not active');
-      return { dispatch: model.dispatch, sourceSignal: connection.signal };
+      return { dispatch: model.dispatch, sourceSignal: connection.signal, idPrefix };
     },
     destroy() {
       scope.dispose();
@@ -144,6 +147,7 @@ export function defineOrderWorkspaceElement(
       // reconnect and is destroyed only by the explicit dispose() terminal
       // operation.
       const model = createOrderModel();
+      const idPrefix = `order-element-${++elementSequence}`;
       let ownerSession: OrderWorkspaceOwnerSession | undefined;
 
       // Install the semantic API on the host, keeping it valid while the
@@ -214,7 +218,7 @@ export function defineOrderWorkspaceElement(
           return ownerSession.getInput();
         },
         onConnect() {
-          ownerSession = createOrderWorkspaceOwnerSession(model, element);
+          ownerSession = createOrderWorkspaceOwnerSession(model, element, idPrefix);
           // `connectSourceSignal` drives fine-grained updates. Requesting an
           // input update here also closes the adapter boundary for renderers
           // that do not observe borrowed signals directly.

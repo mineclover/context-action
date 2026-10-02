@@ -54,6 +54,27 @@ describe('Projected Order Reference Implementation (Preact Signals & Context-Lay
     expect(grandTotal?.textContent).toBe('$55.00');
   });
 
+  it('keeps generated field ids unique across light-DOM mounts', () => {
+    const firstModel = createOrderModel({ customerName: 'First' });
+    const secondModel = createOrderModel({ customerName: 'Second' });
+    cleanups.push(() => firstModel.destroy(), () => secondModel.destroy());
+
+    const firstHost = createHost();
+    const secondHost = createHost();
+    const firstMount = mountOrderWorkspace(firstHost, firstModel);
+    const secondMount = mountOrderWorkspace(secondHost, secondModel);
+    cleanups.push(() => firstMount.destroy(), () => secondMount.destroy());
+
+    const ids = Array.from(document.querySelectorAll('[id]'), node => node.id).filter(Boolean);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const host of [firstHost, secondHost]) {
+      const input = host.querySelector<HTMLInputElement>('[data-testid="input-customer-name"]');
+      const label = input ? host.querySelector(`label[for="${input.id}"]`) : null;
+      expect(input?.id).toBeTruthy();
+      expect(label).not.toBeNull();
+    }
+  });
+
   it('validates order draft and drives submission FSM transitions', async () => {
     // Model starting with missing shipping address
     const model = createOrderModel({
@@ -150,5 +171,57 @@ describe('Projected Order Reference Implementation (Preact Signals & Context-Lay
     model.destroy();
     await expect(pending).resolves.toBeUndefined();
     expect(model.source.getSnapshot()).toBe(afterStart);
+  });
+
+  it('cancels a delayed submission when the draft is reset', async () => {
+    const model = createOrderModel({
+      submitDelayMs: 20,
+      customerName: 'Reset me',
+      shippingAddress: 'Address',
+      items: [{ id: 'reset-late', name: 'Reset late', unitPrice: 1, quantity: 1 }],
+    });
+    const pending = model.dispatch('submitOrder');
+    await model.dispatch('resetDraft');
+    await expect(pending).resolves.toBeUndefined();
+
+    const snapshot = model.source.getSnapshot();
+    expect(snapshot.submission.phase).toBe('idle');
+    expect(snapshot.draft.customerName).toBe('');
+    expect(snapshot.draft.items).toHaveLength(0);
+    model.destroy();
+  });
+
+  it('does not start two remote submissions for concurrent dispatches', async () => {
+    for (const submitDelayMs of [0, 20]) {
+      const model = createOrderModel({
+        submitDelayMs,
+        customerName: 'Once',
+        shippingAddress: 'Address',
+        items: [{ id: 'once', name: 'Once', unitPrice: 1, quantity: 1 }],
+      });
+      await Promise.all([model.dispatch('submitOrder'), model.dispatch('submitOrder')]);
+
+      const successEntries = model.source.getSnapshot().activityLog
+        .filter(entry => entry.message.startsWith('Order successfully placed:'));
+      expect(successEntries).toHaveLength(1);
+      model.destroy();
+    }
+  });
+
+  it('allows a new submission after a draft change cancels an older request', async () => {
+    const model = createOrderModel({
+      submitDelayMs: 20,
+      customerName: 'First',
+      shippingAddress: 'Address',
+      items: [{ id: 'replace', name: 'Replace', unitPrice: 1, quantity: 1 }],
+    });
+    const oldRequest = model.dispatch('submitOrder');
+    await model.dispatch('updateCustomerName', { name: 'Second' });
+    const newRequest = model.dispatch('submitOrder');
+    await Promise.all([oldRequest, newRequest]);
+
+    expect(model.source.getSnapshot().submission.phase).toBe('success');
+    expect(model.source.getSnapshot().draft.customerName).toBe('Second');
+    model.destroy();
   });
 });

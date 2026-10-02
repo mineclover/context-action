@@ -133,4 +133,23 @@ describe('React Custom Element Bridge (createCustomElementBridge)', () => {
     // Listener was cleaned up, should not be called
     expect(handleChange).not.toHaveBeenCalled();
   });
+
+  it('clears a removed property on a later React render', async () => {
+    const ReactMockBridge = createCustomElementBridge<MockBridgeProps, MockBridgeElement>({
+      tagName: 'mock-bridge-el',
+      properties: ['items'],
+    });
+    const itemsData = [{ id: '1', name: 'MacBook Pro' }];
+
+    await act(async () => {
+      root.render(React.createElement(ReactMockBridge, { items: itemsData }));
+    });
+    const domEl = container.querySelector('mock-bridge-el') as MockBridgeElement;
+    expect(domEl.items).toBe(itemsData);
+
+    await act(async () => {
+      root.render(React.createElement(ReactMockBridge, {}));
+    });
+    expect(domEl.items).toBeUndefined();
+  });
 });
