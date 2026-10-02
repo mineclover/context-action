@@ -8,6 +8,7 @@ interface BrowserInput {
 const host = document.querySelector<HTMLElement>('#ssr-host');
 const status = document.querySelector<HTMLOutputElement>('#ssr-status');
 if (!host || !status) throw new Error('SSR browser fixture is incomplete');
+const statusElement = status;
 
 let clicks = 0;
 function View({ input }: { input: BrowserInput }) {
@@ -15,22 +16,22 @@ function View({ input }: { input: BrowserInput }) {
     type: 'button',
     onClick: () => {
       clicks += 1;
-      status.dataset.clicks = String(clicks);
+      statusElement.dataset.clicks = String(clicks);
     },
   }, input.label);
 }
 
 const instance = hydratePreact(host, View, { label: 'Server label' });
 instance.update({ label: 'Client label' });
-status.dataset.ready = 'true';
-status.textContent = host.textContent ?? '';
+statusElement.dataset.ready = 'true';
+statusElement.textContent = host.textContent ?? '';
 
 (window as typeof window & {
   ssrBrowserContract?: { destroy(): void };
 }).ssrBrowserContract = {
   destroy() {
     instance.destroy();
-    status.dataset.destroyed = 'true';
-    status.textContent = host.textContent ?? '';
+    statusElement.dataset.destroyed = 'true';
+    statusElement.textContent = host.textContent ?? '';
   },
 };

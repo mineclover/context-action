@@ -63,6 +63,7 @@ function OrderWorkspaceElementView({ input }: { input: OrderWorkspaceInput }) {
 function createOrderWorkspaceOwnerSession(
   model: OrderModel,
   element: HTMLElement,
+  consumeSuppressedChange: () => boolean,
   idPrefix: string,
 ): OrderWorkspaceOwnerSession {
   const scope = createDisposalScope();
@@ -73,6 +74,10 @@ function createOrderWorkspaceOwnerSession(
   const unsubscribe = model.source.subscribe(() => {
     if (scope.disposed || !element.isConnected) return;
     const state = model.source.getSnapshot();
+    if (consumeSuppressedChange()) {
+      lastSubmissionPhase = state.submission.phase;
+      return;
+    }
     element.dispatchEvent(
       new CustomEvent('order-change', {
         detail: {
@@ -148,6 +153,7 @@ export function defineOrderWorkspaceElement(
       // operation.
       const model = createOrderModel();
       const idPrefix = `order-element-${++elementSequence}`;
+      let suppressedChangeEvents = 0;
       let ownerSession: OrderWorkspaceOwnerSession | undefined;
 
       // Install the semantic API on the host, keeping it valid while the
@@ -160,6 +166,8 @@ export function defineOrderWorkspaceElement(
           get: () => model.source.getSnapshot().draft.customerName,
           set: (value: string) => {
             if (typeof value !== 'string') throw new TypeError('customerName must be a string');
+            if (element.getAttribute('customer-name') === value) return;
+            if (ownerSession) suppressedChangeEvents += 1;
             element.setAttribute('customer-name', value);
           },
         },
@@ -169,6 +177,8 @@ export function defineOrderWorkspaceElement(
           get: () => model.source.getSnapshot().draft.shippingAddress,
           set: (value: string) => {
             if (typeof value !== 'string') throw new TypeError('shippingAddress must be a string');
+            if (element.getAttribute('shipping-address') === value) return;
+            if (ownerSession) suppressedChangeEvents += 1;
             element.setAttribute('shipping-address', value);
           },
         },
@@ -218,7 +228,16 @@ export function defineOrderWorkspaceElement(
           return ownerSession.getInput();
         },
         onConnect() {
-          ownerSession = createOrderWorkspaceOwnerSession(model, element, idPrefix);
+          ownerSession = createOrderWorkspaceOwnerSession(
+            model,
+            element,
+            () => {
+              if (suppressedChangeEvents === 0) return false;
+              suppressedChangeEvents -= 1;
+              return true;
+            },
+            idPrefix,
+          );
           // `connectSourceSignal` drives fine-grained updates. Requesting an
           // input update here also closes the adapter boundary for renderers
           // that do not observe borrowed signals directly.
