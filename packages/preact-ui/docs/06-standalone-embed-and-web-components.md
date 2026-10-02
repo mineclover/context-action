@@ -90,7 +90,7 @@ adapter는 이 패턴을 사용해 `customerName`, `shippingAddress`, `items`,
 
 #### 상태 동기화 계약 (Standard DOM API)
 - **Attribute (`observedAttributes`)**: `customer-name`, `shipping-address` 등 원시 문자열 속성을 감지하여 내부 ActionRegister로 디스패치합니다.
-- **Property (Getter/Setter)**: `element.customerName = '...'` 처럼 스크립트에서 직접 조작할 수 있으며, 변경은 일반 상태 동기화와 동일하게 `order-change`를 한 번 발행합니다. 소비자는 이 이벤트를 source-of-truth 변경 알림으로 처리하고, 필요하면 자신의 명령 origin을 별도로 추적합니다.
+- **Property (Getter/Setter)**: `element.customerName = '...'` 처럼 스크립트에서 직접 조작할 수 있으며, programmatic 입력은 사용자 변경 이벤트 에코(`order-change`)를 발행하지 않습니다.
 - **CustomEvent**: 주문 성공 시 `order-submit-success`, 변경 시 `order-change`를 `bubbles: true, composed: true`로 발행하여 Shadow DOM 경계를 넘어 호스트의 일반 `addEventListener`로 수신할 수 있습니다.
 
 ---

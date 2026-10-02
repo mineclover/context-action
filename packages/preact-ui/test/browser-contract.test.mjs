@@ -178,7 +178,7 @@ try {
     attribute: '이순신 (조선 수군)',
     input: '이순신 (조선 수군)',
   });
-  assert.equal(await orderWorkspace.getAttribute('data-change-events'), '1');
+  assert.equal(await orderWorkspace.getAttribute('data-change-events'), '0');
 
   // The projected order view exposes its form and live updates through the
   // browser accessibility tree. Keep these checks in the real Chromium
