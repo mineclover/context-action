@@ -68,6 +68,17 @@ jobs:
           version: 10.30.3
           run_install: false
 
+      - name: Get pnpm store directory
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_ENV"
+
+      - name: Setup pnpm cache
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
       - name: Verify OIDC candidate publishing eligibility
         if: inputs.publish_auth == 'oidc'
         run: |
@@ -89,6 +100,15 @@ jobs:
 
       - name: Validate public Preact release plan
         run: pnpm verify:preact-public-release -- --require-current-source
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml', 'packages/style-testing/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
 
       - name: Install Playwright browsers for release and Preact contracts
         run: pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium firefox webkit
