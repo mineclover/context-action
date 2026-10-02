@@ -11,7 +11,7 @@
 |---|---|---|
 | Preact adapter | `pnpm --filter @context-action/preact test` | 4 tests passed |
 | Preact adapter types | `pnpm --filter @context-action/preact type-check` | passed |
-| Preact UI runtime | `pnpm --filter @context-action/preact-ui test` | 50 tests passed |
+| Preact UI runtime | `pnpm --filter @context-action/preact-ui test` | must pass; record the current test count in release evidence |
 | Preact UI types | `pnpm --filter @context-action/preact-ui type-check` | passed |
 | DOM-only ownership logic | `pnpm --filter @context-action/preact-ui test:native` | 13 tests passed |
 | Chromium contract | `pnpm --filter @context-action/preact-ui test:browser` | passed |

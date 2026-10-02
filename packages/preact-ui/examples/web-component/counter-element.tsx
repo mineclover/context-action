@@ -1,12 +1,17 @@
 import { signal } from '@preact/signals';
 import type { ReadonlySignal } from '@preact/signals';
-import { mountPreact } from '../../src/index.js';
-import type { MountInstance } from '../../src/index.js';
+import { definePreactElement } from '../../src/custom-element.js';
 
 interface Input {
   count: ReadonlySignal<number>;
   disabled: ReadonlySignal<boolean>;
   increment(): void;
+}
+
+export interface CounterElement extends HTMLElement {
+  value: number;
+  disabled: boolean;
+  focusIncrement(): boolean;
 }
 
 function CounterView({ input }: { input: Input }) {
@@ -18,83 +23,64 @@ function CounterView({ input }: { input: Input }) {
 }
 
 /** Explicit registration; importing this module does not access HTMLElement. */
-export function defineCounterElement(tagName = 'ca-counter') {
-  if (typeof globalThis.customElements === 'undefined') {
-    throw new Error('Custom elements require a browser environment');
-  }
-  if (customElements.get(tagName)) throw new Error(`${tagName} is already registered`);
+export function defineCounterElement(tagName = 'ca-counter'): { new(): CounterElement } {
+  return definePreactElement({
+    tagName,
+    style: ':host{display:block}button{margin-inline-start:1rem}',
+    observedAttributes: ['disabled'],
+    upgradeProperties: ['value', 'disabled'],
+    setup(element, context) {
+      const count = signal(0);
+      const disabled = signal(element.hasAttribute('disabled'));
 
-  class CounterElement extends HTMLElement {
-    static observedAttributes = ['disabled'];
-    #count = signal(0);
-    #disabled = signal(false);
-    #root: HTMLElement;
-    #mount: MountInstance<Input> | undefined;
-    #upgraded = false;
-
-    constructor() {
-      super();
-      const shadow = this.attachShadow({ mode: 'open' });
-      const style = this.ownerDocument.createElement('style');
-      style.textContent = ':host{display:block}button{margin-inline-start:1rem}';
-      this.#root = this.ownerDocument.createElement('div');
-      shadow.append(style, this.#root);
-    }
-
-    connectedCallback() {
-      if (this.#mount) return;
-      if (!this.#upgraded) {
-        this.#upgraded = true;
-        // Preserve properties assigned before customElements.define().
-        for (const key of ['value', 'disabled'] as const) {
-          if (Object.prototype.hasOwnProperty.call(this, key)) {
-            const value = this[key];
-            Reflect.deleteProperty(this, key);
-            if (key === 'value') this.value = value as number;
-            else this.disabled = value as boolean;
-          }
-        }
-      }
-      this.#mount = mountPreact(this.#root, CounterView, {
-        count: this.#count,
-        disabled: this.#disabled,
-        increment: () => {
-          if (this.disabled) return;
-          this.value += 1;
-          this.dispatchEvent(new CustomEvent('value-change', {
-            detail: { value: this.value }, bubbles: true, composed: true,
-          }));
+      Object.defineProperties(element, {
+        value: {
+          configurable: true,
+          enumerable: true,
+          get: () => count.peek(),
+          set: (value: number) => {
+            if (!Number.isFinite(value)) throw new RangeError('value must be finite');
+            count.value = value; // Programmatic input does not echo value-change.
+          },
+        },
+        disabled: {
+          configurable: true,
+          enumerable: true,
+          get: () => element.hasAttribute('disabled'),
+          set: (value: boolean) => {
+            if (typeof value !== 'boolean') throw new TypeError('disabled must be boolean');
+            element.toggleAttribute('disabled', value);
+          },
+        },
+        focusIncrement: {
+          configurable: true,
+          enumerable: true,
+          value() {
+            const button = context.root.querySelector<HTMLButtonElement>('button');
+            if (!button || button.disabled) return false;
+            button.focus();
+            return true;
+          },
         },
       });
-    }
 
-    disconnectedCallback() {
-      const mount = this.#mount;
-      this.#mount = undefined;
-      mount?.destroy();
-    }
-
-    attributeChangedCallback(name: string, _old: string | null, value: string | null) {
-      if (name === 'disabled') this.#disabled.value = value !== null;
-    }
-
-    get value() { return this.#count.peek(); }
-    set value(value: number) {
-      if (!Number.isFinite(value)) throw new RangeError('value must be finite');
-      this.#count.value = value; // Programmatic input does not echo value-change.
-    }
-    get disabled() { return this.hasAttribute('disabled'); }
-    set disabled(value: boolean) { this.toggleAttribute('disabled', Boolean(value)); }
-
-    focusIncrement(): boolean {
-      if (!this.#mount) return false;
-      const button = this.#root.querySelector('button');
-      if (!button || button.disabled) return false;
-      button.focus();
-      return true;
-    }
-  }
-
-  customElements.define(tagName, CounterElement);
-  return CounterElement;
+      return {
+        view: CounterView,
+        getInput: () => ({
+          count,
+          disabled,
+          increment: () => {
+            if (element.hasAttribute('disabled')) return;
+            count.value += 1;
+            element.dispatchEvent(new CustomEvent('value-change', {
+              detail: { value: count.peek() }, bubbles: true, composed: true,
+            }));
+          },
+        }),
+        onAttributeChange(name) {
+          if (name === 'disabled') disabled.value = element.hasAttribute('disabled');
+        },
+      };
+    },
+  }) as unknown as { new(): CounterElement };
 }

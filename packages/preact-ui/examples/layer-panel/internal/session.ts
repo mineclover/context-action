@@ -3,17 +3,29 @@ import type { MountInstance } from '../../../src/mount.js';
 import type { LayerPanelController } from './controller.js';
 import type { LayerPanelViewInput } from './View.js';
 
-/** Component-specific session; it owns subscriptions and refs, never the model. */
-export function createLayerPanelSession(
+export interface LayerPanelOwnerSession {
+  readonly destroyed: boolean;
+  /** Current author-only View input; never expose this to consumers. */
+  getInput(): LayerPanelViewInput;
+  focusItem(id: string): boolean;
+  destroy(): void;
+}
+
+/**
+ * Creates the component-owned connection session without choosing a renderer.
+ * The Custom Element adapter and template adapter both use this same owner;
+ * only their mount function differs.
+ */
+export function createLayerPanelOwnerSession(
   controller: LayerPanelController,
-  mount: (input: LayerPanelViewInput) => MountInstance<LayerPanelViewInput>,
   request: (id: string) => void,
-) {
+  update: (input: LayerPanelViewInput) => void,
+): LayerPanelOwnerSession {
   const scope = createDisposalScope();
   const buttons = new Map<string, HTMLButtonElement>();
-  let instance: MountInstance<LayerPanelViewInput> | undefined;
   const session = {
     get destroyed() { return scope.disposed; },
+    getInput(): LayerPanelViewInput { return input(); },
     focusItem(id: string): boolean {
       if (typeof id !== 'string') throw new TypeError('id must be a string');
       const button = buttons.get(id);
@@ -29,7 +41,7 @@ export function createLayerPanelSession(
   const callbacks = {
     onRequestSelect(id: string) {
       // Read the current authority, not the View's possibly old props.
-      if (!scope.disposed && instance && controller.canRequest(id)) request(id);
+      if (!scope.disposed && controller.canRequest(id)) request(id);
     },
     itemRef(id: string, button: HTMLButtonElement | null) {
       if (button) buttons.set(id, button);
@@ -39,24 +51,34 @@ export function createLayerPanelSession(
   const input = (): LayerPanelViewInput => ({ ...controller.getSnapshot(), ...callbacks });
   scope.add(() => buttons.clear());
   scope.add(controller.subscribe(() => {
-    if (!instance || scope.disposed) return;
-    try { instance.update(input()); } catch (error) {
+    if (scope.disposed) return;
+    try { update(input()); } catch (error) {
       try { scope.dispose(); } catch (cleanupError) {
         throw new AggregateError([error, cleanupError], 'Layer panel update failed');
       }
       throw error;
     }
   }));
+  return session;
+}
+
+/** Template/DOM adapter that mounts the shared owner session. */
+export function createLayerPanelSession(
+  controller: LayerPanelController,
+  mount: (input: LayerPanelViewInput) => MountInstance<LayerPanelViewInput>,
+  request: (id: string) => void,
+) {
+  let instance: MountInstance<LayerPanelViewInput> | undefined;
+  const owner = createLayerPanelOwnerSession(controller, request, input => instance?.update(input));
   try {
-    instance = mount(input());
-    scope.add(() => instance?.destroy());
+    instance = mount(owner.getInput());
+    return owner;
   } catch (error) {
-    try { scope.dispose(); } catch (cleanupError) {
+    try { owner.destroy(); } catch (cleanupError) {
       throw new AggregateError([error, cleanupError], 'Layer panel mount failed');
     }
     throw error;
   }
-  return session;
 }
 
 export type LayerPanelSession = ReturnType<typeof createLayerPanelSession>;

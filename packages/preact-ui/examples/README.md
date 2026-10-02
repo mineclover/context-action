@@ -14,7 +14,7 @@ index.html + main.tsx
 │  ├─ projections/                          useOrderProjection (Signal computed 파생 뷰모델)
 │  ├─ actions/                              useOrderActions (Semantic Action Intent 훅)
 │  ├─ views/                                OrderSummaryView + OrderWorkspaceView
-│  ├─ order-element.tsx                     <order-workspace> Custom Element 래퍼
+│  ├─ order-element.tsx                     <order-workspace> definePreactElement owner-session adapter
 │  └─ mount-order-workspace.tsx             mountPreact 기반 호스트 마운트 컨트롤러
 ├─ modular-signals-wc/                      모듈식 Signal 공유 & 멀티 Web Component 표준
 │  ├─ shared-cart-signal.ts                 [Level 1] 순수 도메인 시그널 모듈
@@ -36,7 +36,11 @@ Template의 두 패널은 하나의 모델을 공유합니다. 한쪽의 Increme
 Projected Order의 `order-workspace`는 `customerName`/`shippingAddress`를
 문자열 property로 검증하고, `items` getter와 `order-change` event detail에
 동결된 방어 복사본을 제공합니다. 지연된 submit 결과는 element가 dispose된
-뒤 domain snapshot을 변경하지 않습니다. FACE quantity stepper는 잘못된
+뒤 domain snapshot을 변경하지 않습니다. Custom Element는 setup에서 모델을
+element owner lifetime으로 만들고, `onConnect`/`onDisconnect`에서 source
+signal과 DOM 이벤트 구독을 connection session으로 열고 닫습니다. 따라서
+renderer를 교체하거나 요소를 재연결해도 public property/method 계약과
+domain snapshot이 유지됩니다. FACE quantity stepper는 잘못된
 `min`/`max`를 기본 범위로 정규화하고 연결 session에서만 ElementInternals를
 갱신합니다.
 
