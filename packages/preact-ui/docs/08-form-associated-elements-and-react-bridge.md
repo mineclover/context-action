@@ -55,6 +55,11 @@ escape hatch다. `root`는 renderer가 소유하므로 adapter가 그 자식 노
 renderer를 mount해서는 안 된다. `requestUpdate()`는 현재 connection session이 살아 있을
 때만 renderer를 갱신하며, `dispose()` 이후에는 아무 작업도 하지 않는다.
 
+Declarative Shadow DOM을 사용하는 Custom Element는 `hydrateShadowRoot: true`를 명시하고
+서버 ShadowRoot 안에 `[data-preact-root]`를 하나만 제공해야 한다. 이 모드는 그 root만
+hydrate하며 재연결 시에는 일반 mount로 전환한다. 옵션 없이 기존 ShadowRoot를 자동 채택하지
+않으므로 임의의 서버 children을 조용히 소유하지 않는다.
+
 ```mermaid
 flowchart LR
     subgraph Preact Shadow DOM

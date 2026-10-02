@@ -1,4 +1,5 @@
 import { h } from 'preact';
+import { definePreactElement } from '../src/custom-element.js';
 import { hydratePreact } from '../src/hydrate.js';
 
 interface BrowserInput {
@@ -23,6 +24,23 @@ function View({ input }: { input: BrowserInput }) {
 
 const instance = hydratePreact(host, View, { label: 'Server label' });
 instance.update({ label: 'Client label' });
+
+const DsdTag = definePreactElement({
+  tagName: 'x-ssr-widget',
+  hydrateShadowRoot: true,
+  setup() {
+    return {
+      view: ({ input }: { input: BrowserInput }) => h('button', {
+        type: 'button',
+        onClick: () => { statusElement.dataset.dsdClicks = '1'; },
+      }, input.label),
+      getInput: () => ({ label: 'DSD client label' }),
+    };
+  },
+});
+const dsdHost = document.querySelector('x-ssr-widget');
+if (!(dsdHost instanceof DsdTag)) throw new Error('DSD custom element did not upgrade');
+
 statusElement.dataset.ready = 'true';
 statusElement.textContent = host.textContent ?? '';
 

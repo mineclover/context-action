@@ -7,6 +7,11 @@
   <body>
     <main>
       <div id="ssr-host"><button type="button">Server label</button></div>
+      <x-ssr-widget id="dsd-host">
+        <template shadowrootmode="open">
+          <div data-preact-root><button type="button">DSD server label</button></div>
+        </template>
+      </x-ssr-widget>
       <output id="ssr-status" data-ready="false">starting</output>
     </main>
     <script type="module" src="./ssr-browser.ts"></script>
