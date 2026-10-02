@@ -90,6 +90,9 @@ jobs:
       - name: Validate public Preact release plan
         run: pnpm verify:preact-public-release -- --require-current-source
 
+      - name: Install Playwright browsers for release and Preact contracts
+        run: pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium firefox webkit
+
       - name: Run release gate
         run: pnpm release:check
 
@@ -106,9 +109,6 @@ jobs:
           pnpm --filter @context-action/preact test
           pnpm --filter @context-action/preact-ui test
           pnpm --filter @context-action/preact-ui test:native
-
-      - name: Install Chromium for Preact browser contract
-        run: pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium firefox webkit
 
       - name: Run Preact browser contract
         run: pnpm --filter @context-action/preact-ui test:browser
