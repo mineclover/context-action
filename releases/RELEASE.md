@@ -11,6 +11,7 @@
 - [`docs/releases/v1.0.0/scope.md`](../docs/releases/v1.0.0/scope.md)
 - [`docs/releases/v1.0.0/publish-runbook.md`](../docs/releases/v1.0.0/publish-runbook.md)
 - [`COORDINATED_STABLE_2026_10.md`](COORDINATED_STABLE_2026_10.md)
+- [`PREACT_PUBLIC_0.1.0.md`](PREACT_PUBLIC_0.1.0.md)
 
 ## 1. 변경 분류와 버전 결정
 
@@ -51,6 +52,7 @@ pnpm release:check
 | 일반 도구 패키지 cohort | `publish-packages.yml` | 고정 cohort를 `next`에 게시하고 consumer/evidence를 검증 |
 | Mutative cohort | `publish-mutative.yml` | 두 패키지를 `next`에 게시하고 consumer/evidence를 검증 |
 | Core 1.2.6 / Store Core 0.1.3 / Mutative Core 0.8.14 / Mutative 0.8.15 / React 4.0.7 time-travel and hydration stability patch | `publish-coordinated-stable-candidate.yml` → `promote-coordinated-stable.yml` | 후보를 `next`에 고정·검증한 뒤 검토된 five-package cohort를 `latest`로 승격. Durable·ToolContext는 별도 개발 트랙 |
+| Preact public preview 0.1.0 | `publish-preact-public-preview.yml` → `promote-preact-public-preview.yml` | `@context-action/preact` 다음 `@context-action/preact-ui`를 `next`에 게시하고 packed/browser evidence를 확인한 뒤 별도 검토로 `latest` 승격 |
 
 모든 워크플로는 승인된 immutable main commit, 정확한 버전, provenance,
 consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 합니다.
@@ -91,6 +93,24 @@ React dependency boundary를 plan과 정확히 결속합니다.
 
 이 경로가 없는 상태에서 수동 `npm publish`, `npm dist-tag`, 개인 토큰 또는
 기존 workflow의 임의 수정으로 우회하지 않습니다.
+
+## 4-1. Preact 공개 preview 경로
+
+`@context-action/preact`와 `@context-action/preact-ui`는 0.1.0 공개 preview로
+승격되었지만 Core/React 안정 cohort와 release cadence를 공유하지 않습니다.
+두 package는 [`PREACT_PUBLIC_0.1.0.md`](PREACT_PUBLIC_0.1.0.md)의 별도 plan과
+`preact-public-2026-10.json`에 결속합니다.
+
+Publication은 반드시 `@context-action/preact` → `@context-action/preact-ui`
+순서를 지킵니다. 첫 package가 Core `^1.2.6`을 요구하고 두 번째 package가
+첫 번째 package `^0.1.0`을 요구하므로 의존성 순서를 바꾸면 workflow가
+실패해야 합니다. 후보는 `next`에서 packed export/tarball과 Preact browser
+matrix를 검증한 뒤에만 `latest`로 승격합니다.
+
+두 package 모두 pre-1.0 공개 preview이므로 1.0 안정성 결정 전에는 API와
+지원 범위가 바뀔 수 있습니다. NVDA/VoiceOver 음성 출력은 runtime 기능이
+아니며 release gate도 아닙니다. 특정 제품이 해당 OS·보조기술 조합을
+지원하기로 한 경우에만 제품 host에서 별도 QA를 수행합니다.
 
 ## 5. 실패와 재개
 

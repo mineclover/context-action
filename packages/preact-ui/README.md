@@ -1,6 +1,6 @@
 # @context-action/preact-ui
 
-특정 DOM subtree의 렌더링을 Preact에 위임하고, 외부에서는 공개 인터페이스로만 제어하는 **workspace 전용 UI runtime**입니다.
+특정 DOM subtree의 렌더링을 Preact에 위임하고, 외부에서는 공개 인터페이스로만 제어하는 **공개 preview UI runtime**입니다.
 
 ```text
 Host / <template>       : 배치와 정적 shell
@@ -35,4 +35,19 @@ Domain                 : 원본 상태와 업무 규칙
 
 템플릿 마운트, 독립 Preact Root, 공유 Source 구독, Core dispatcher 주입, Web Component reference shell을 제공합니다. `definePreactElement`와 React bridge는 기존 선택 기능으로 유지하지만, 범용 컨벤션의 정본이나 필수 경로로 취급하지 않습니다. 공통 runtime은 ownership·mount·disposal처럼 의미를 추론하지 않는 저수준 기능만 제공합니다. Web Component의 업무별 property/event 계약은 예제처럼 작성자가 명시합니다.
 
-두 패키지는 현재 `private: true`, `0.0.0`인 workspace 전용 패키지입니다. Core/React stable cohort와 별도이며 npm stable release에 포함되지 않습니다. 현재 소스는 ownership, hydration, connection-session, slot, FACE, standalone browser contract를 검증한 reference runtime으로 유지합니다. 실제 보조기술 조합과 소비자 애플리케이션의 SSR 데이터 경계는 별도 제품 검증 범위입니다.
+`@context-action/preact-ui@0.1.0`은 `@context-action/preact@0.1.0`과 함께
+배포하는 공개 preview 패키지입니다. 두 패키지는 `private: false`와
+`publishConfig.access: public`을 사용하지만 Core/React 안정 cohort와는 별도의
+Preact 공개 cohort로 관리합니다. 0.x 계약이므로 1.0 승격 전 API와 지원 범위가
+변경될 수 있습니다.
+
+```sh
+pnpm add @context-action/preact-ui preact @preact/signals
+```
+
+현재 소스는 ownership, hydration, connection-session, slot, FACE, standalone
+browser contract를 검증한 reference runtime으로 공개합니다. 실제 보조기술
+조합과 소비자 애플리케이션의 SSR 데이터 경계는 별도 제품 검증 범위입니다.
+후보의 검증 명령과 공개 순서는 [검증 기록](docs/04-validation.md) 및
+[Preact 공개 preview 릴리즈 계획](../../releases/PREACT_PUBLIC_0.1.0.md)을
+따릅니다.

@@ -37,6 +37,8 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 | `@context-action/mutative-core` | immutable runtime foundation | 유지보수되는 Mutative 호환 draft·patch·array engine | Context-Action adapter, React, time-travel policy |
 | `@context-action/mutative` | runtime adapter | React가 사용하는 immutable update/patch utility | action orchestration, React context |
 | `@context-action/react` | framework adapter | React context, store, hook, ref, tool integration | core policy, 문서 생성, Git 분석 |
+| `@context-action/preact` | public preview framework adapter | Core 계약 위의 Preact dispatch context와 읽기 전용 Signals projection | DOM root ownership, SSR 렌더링, 업무 상태, React 통합 |
+| `@context-action/preact-ui` | public preview UI runtime | 소유한 Preact root, template mount, SSR/hydration helper, disposal, Custom Element shell | 업무 상태 정책, action orchestration, React store 구현 |
 | `@context-action/llms-generator` | documentation generator | LLMS summary, priority, derived artifact | runtime behavior, architecture policy |
 | `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress 동기화 | handwritten guide, runtime code |
 | `@context-action/style-testing` | UI verification tool | style/browser 분석과 CLI | core state contract |
@@ -60,6 +62,7 @@ LLMS summary는 canonical `docs/`에서 파생하며 별도의 API SSOT가 아�
 @context-action/tool-protocol ──→ @context-action/ai-sdk ──→ application provider setup
 @context-action/tool-durable-operations ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
+@context-action/core          ──→ @context-action/preact ──→ @context-action/preact-ui
 
 ```
 
@@ -68,6 +71,8 @@ LLMS summary는 canonical `docs/`에서 파생하며 별도의 API SSOT가 아�
 - `ai-sdk`는 얇은 선택적 provider adapter다. `tool-protocol`에 의존하고 `ai`를 필수 peer로 요구하지만 React, core 실행, provider credential, application model client에는 의존하지 않는다.
 - `tool-durable-operations`도 framework-neutral이며 `core`, `react`, `tool-protocol`에 의존하지 않는다. durable mutation recovery와 provider side-effect adapter를 소유한다.
 - `react`는 `core`, `mutative`를 사용하며 `mutative`는 하위 `mutative-core` runtime만 사용하고 React type을 import하지 않는다.
+- `preact`는 framework-neutral `core` action 계약을 사용하고 Preact Context와 읽기 전용 Signals adapter만 제공한다. `preact-ui`는 `preact`를 사용하며 DOM root, template, SSR/hydration, disposal을 소유한다. 두 package 모두 0.1.x 공개 preview이며 React adapter와 독립된 release 계약을 가진다.
+- `preact-ui`는 별도 export로 선택적 React bridge를 제공할 수 있지만 runtime 계약에서 React를 필수 dependency로 만들지 않는다.
 - `mutative-core`는 upstream 호환성을 유지하며 Context-Action adapter나 React에 의존하지 않는다.
 - 문서 generator는 소스·문서를 읽을 수 있지만 runtime package가 generator에 의존하지 않는다.
 - example과 demo는 그래프의 leaf다. 패키지가 example/demo를 import하지 않는다.

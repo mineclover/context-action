@@ -1,6 +1,6 @@
 # @context-action/preact
 
-Context-Action의 Action 계약과 외부 상태를 Preact View에 연결하는 **workspace 전용 초기 템플릿**입니다. React API 전체를 이식하거나 Core의 Store를 새로 정의하지 않습니다. 현재 Core 공개 API에는 Store 구현이 없습니다.
+Context-Action의 Action 계약과 외부 상태를 Preact View에 연결하는 **공개 preview adapter**입니다. React API 전체를 이식하거나 Core의 Store를 새로 정의하지 않습니다. 현재 Core 공개 API에는 Store 구현이 없습니다.
 
 ## 책임
 
@@ -21,6 +21,19 @@ Host-owned ReadableSource → connectSourceSignal  → use<Domain>Projection →
 
 마운트와 DOM 관리는 [`@context-action/preact-ui`](../preact-ui/README.md)가 담당합니다. 이 패키지는 DOM Root를 생성하거나 소유하지 않습니다.
 
-## 현재 상태
+## 공개 preview 상태
 
-`private: true`, `0.0.0`이며 배포 대상에 추가하지 않았습니다. 의존성/lockfile/빌드 검증 상태와 진행 명령은 [검증 기록](../preact-ui/docs/04-validation.md)에 있습니다. 라이브러리와 배포 호환성이 검증되었다는 의미는 아닙니다.
+`@context-action/preact@0.1.0`은 공개 preview 후보입니다. `private: false`와
+`publishConfig.access: public`을 사용하며, Core/React 안정 cohort와 분리된
+Preact 공개 cohort에서 보호된 workflow로 배포합니다. 0.x 계약이므로 API와
+지원 범위는 1.0 승격 전 변경될 수 있습니다.
+
+```sh
+pnpm add @context-action/preact preact @preact/signals
+```
+
+의존성·lockfile·빌드·packed consumer 검증 상태와 재현 명령은
+[검증 기록](../preact-ui/docs/04-validation.md)과 [Preact 공개 preview 릴리즈 계획](../../releases/PREACT_PUBLIC_0.1.0.md)을
+참조합니다. 이 패키지는 DOM root를 소유하지 않으므로 렌더링·hydration이
+필요한 소비자는 [`@context-action/preact-ui`](../preact-ui/README.md)를 함께
+설치해야 합니다.

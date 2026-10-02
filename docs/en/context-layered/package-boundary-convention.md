@@ -38,6 +38,8 @@ when an existing package cannot own the responsibility without violating depende
 | `@context-action/mutative-core` | immutable runtime foundation | maintained Mutative-compatible draft, patch, and array engine | Context-Action adapters, React, time-travel policy |
 | `@context-action/mutative` | runtime adapter | immutable update and patch utilities used by React | action orchestration or React contexts |
 | `@context-action/react` | framework adapter | React contexts, stores, hooks, refs, tool integration | core policy, documentation generation, Git analysis |
+| `@context-action/preact` | public preview framework adapter | Preact dispatch contexts and read-only Signals projections over Core contracts | DOM root ownership, SSR rendering, business-domain state, React integration |
+| `@context-action/preact-ui` | public preview UI runtime | owned Preact roots, template mounting, SSR/hydration helpers, disposal, and Custom Element shells | domain state policy, action orchestration, or React store implementation |
 | `@context-action/llms-generator` | documentation generator | LLMS summaries, priorities, derived documentation artifacts | runtime package behavior or architecture policy |
 | `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress synchronization | handwritten guide content or runtime code |
 | `@context-action/style-testing` | UI verification tool | style/browser analysis and its CLI | core state management contracts |
@@ -62,6 +64,7 @@ The default direction is:
 @context-action/tool-protocol ──→ @context-action/ai-sdk ──→ application provider setup
 @context-action/tool-durable-operations ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
+@context-action/core          ──→ @context-action/preact ──→ @context-action/preact-ui
 
 ```
 
@@ -72,6 +75,8 @@ The diagram describes ownership, not import syntax. In particular:
 - `ai-sdk` is a thin optional provider adapter. It depends on `tool-protocol` and has `ai` as a required peer, but it never depends on React, core execution, provider credentials, or an application model client.
 - `tool-durable-operations` is framework-neutral and does not depend on `core`, `react`, or `tool-protocol`; it owns durable mutation recovery and provider side-effect adapters.
 - `react` consumes `core` and `mutative`; `mutative` consumes only the lower-level `mutative-core` runtime and does not import React types.
+- `preact` consumes the framework-neutral `core` action contracts and exposes only Preact Context and read-only Signals adapters. `preact-ui` consumes `preact` and owns DOM roots, templates, SSR/hydration, and disposal. Both packages are public preview packages on the 0.1.x line and remain independent from the React adapter.
+- `preact-ui` may expose an optional React bridge as a separate export, but its runtime contract does not make React a required dependency.
 - `mutative-core` remains upstream-compatible and must not depend on Context-Action adapters or React.
 - documentation generators may inspect source and docs, but runtime packages must not depend on generators.
 - examples and demos are leaves in the dependency graph. A package must not import an example or demo.

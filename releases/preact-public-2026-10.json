@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "context-action-preact-public-release.v1",
+  "release": "context-action-preact-public-2026-10",
+  "status": "approved-for-candidate",
+  "candidateDistTag": "next",
+  "promotionDistTag": "latest",
+  "packages": {
+    "@context-action/preact": "0.1.0",
+    "@context-action/preact-ui": "0.1.0"
+  },
+  "dependencies": {
+    "@context-action/preact": {
+      "@context-action/core": "^1.2.6"
+    },
+    "@context-action/preact-ui": {
+      "@context-action/preact": "^0.1.0"
+    }
+  },
+  "publicationOrder": [
+    "@context-action/preact",
+    "@context-action/preact-ui"
+  ],
+  "provenanceBinding": "workflow-release-commit",
+  "changelogDates": {
+    "@context-action/preact": "2026-10-02",
+    "@context-action/preact-ui": "2026-10-02"
+  },
+  "requiredChecks": [
+    "pnpm --filter @context-action/preact type-check",
+    "pnpm --filter @context-action/preact test",
+    "pnpm --filter @context-action/preact-ui type-check",
+    "pnpm --filter @context-action/preact-ui test",
+    "pnpm --filter @context-action/preact-ui test:native",
+    "pnpm --filter @context-action/preact-ui test:browser",
+    "pnpm --filter @context-action/preact-ui test:browser:cross",
+    "pnpm verify:package-exports",
+    "pnpm verify:package-tarballs",
+    "pnpm package-boundary:check"
+  ],
+  "notes": [
+    "This is a separate public-preview cohort and is not part of the five-package state-management cohort.",
+    "Both packages are pre-1.0 public previews; API and support changes require a later 1.0 stability decision.",
+    "The publication workflow must publish preact before preact-ui and bind every artifact to workflow release_commit.",
+    "NVDA/VoiceOver speech output is optional consumer QA and is not a runtime or release gate."
+  ]
+}
