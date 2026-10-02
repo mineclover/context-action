@@ -50,6 +50,7 @@
   "scripts": {
     "build": "tsdown",
     "prepublishOnly": "pnpm run build",
+    "pretest": "pnpm build:standalone && pnpm sync:standalone",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "examples:dev": "pnpm build:standalone && pnpm sync:standalone && vite --config examples/vite.config.ts",
