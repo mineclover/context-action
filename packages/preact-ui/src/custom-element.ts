@@ -340,6 +340,10 @@ export function definePreactElement<Input>(
       if (this.#disposed) return;
       this.#disposed = true;
       const errors: unknown[] = [];
+      try {
+        this.#internals?.setFormValue?.(null);
+        this.#internals?.setValidity?.({});
+      } catch (error) { errors.push(error); }
       try { this.disconnectedCallback(); } catch (error) { errors.push(error); }
       try { this.#lifecycle.onDestroy?.(); } catch (error) { errors.push(error); }
       if (errors.length === 1) throw errors[0];

@@ -72,7 +72,18 @@ export function createLayerPanelSession(
   const owner = createLayerPanelOwnerSession(controller, request, input => instance?.update(input));
   try {
     instance = mount(owner.getInput());
-    return owner;
+    return {
+      get destroyed() { return owner.destroyed; },
+      getInput: owner.getInput,
+      focusItem: owner.focusItem,
+      destroy() {
+        const errors: unknown[] = [];
+        try { instance?.destroy(); } catch (error) { errors.push(error); }
+        try { owner.destroy(); } catch (error) { errors.push(error); }
+        if (errors.length === 1) throw errors[0];
+        if (errors.length > 1) throw new AggregateError(errors, 'Layer panel session disposal failed');
+      },
+    };
   } catch (error) {
     try { owner.destroy(); } catch (cleanupError) {
       throw new AggregateError([error, cleanupError], 'Layer panel mount failed');
