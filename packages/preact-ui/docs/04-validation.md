@@ -35,13 +35,17 @@ VoiceOver 같은 실제 보조기술 조합의 음성 출력을 보증하지 않
 - hydration mismatch는 Preact의 일반 reconciliation 결과를 따른다. 현재
   계약은 mismatch를 오류로 승격하거나 특정 경고 문구를 보장하지 않으며,
   서버와 클라이언트 입력을 애플리케이션이 맞추는 것을 요구한다.
+- Layer Panel의 `suffix` named slot은 Chromium에서 assigned node 교체,
+  `slotchange`, assigned node identity, fallback 표시까지 검증한다. 이 증거는
+  해당 component contract에 한정되며 임의의 다중 slot/portal 조합을 보장하지 않는다.
 
 ## 남은 검증 범위
 
 - 실제 NVDA/VoiceOver 등 보조기술 조합 검증은 CI에 포함하지 않는다. 제품
   배포 전에 지원 브라우저·보조기술 조합을 정하고 별도 수동 검증을 기록한다.
-- slotchange, fallback slot, 노드 identity를 포함한 복합 projection은 각
-  컴포넌트 contract와 브라우저 테스트를 함께 추가해야 한다.
+- 다른 컴포넌트의 복합 projection은 각 component contract와 브라우저 테스트를
+  함께 추가해야 한다. Layer Panel suffix slot 외의 다중 slot/portal 조합은
+  여전히 소비자 환경에서 별도 검증한다.
 - SSR 문자열 생성과 hydration API의 통합 fixture는 기본 경로에 포함되어
   있으며, 실제 애플리케이션의 서버 데이터·라우팅·streaming 조합은 소비자
   환경에서 검증한다.

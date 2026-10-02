@@ -92,6 +92,66 @@ try {
   assert.equal(await page.evaluate(() => window.layerPanelContract.templateRequestIds.join(',')), 'two');
   assert.equal(await page.locator('#template-host button[aria-pressed="true"]').textContent(), 'One');
 
+  const replacementSlot = await page.locator('pre-layer-panel').evaluate(async element => {
+    const slot = element.shadowRoot?.querySelector('slot[name="suffix"]');
+    const existing = element.querySelector('[data-slot-label]');
+    if (!(slot instanceof HTMLSlotElement) || !existing) throw new Error('suffix slot fixture is incomplete');
+
+    const slotChanged = new Promise(resolve => {
+      const timeout = setTimeout(() => resolve(false), 1000);
+      slot.addEventListener('slotchange', () => {
+        clearTimeout(timeout);
+        resolve(true);
+      }, { once: true });
+    });
+    const replacement = document.createElement('span');
+    replacement.slot = 'suffix';
+    replacement.dataset.slotLabel = 'Replacement suffix';
+    replacement.textContent = 'Replacement suffix';
+    existing.replaceWith(replacement);
+    const changed = await slotChanged;
+    const assigned = slot.assignedNodes({ flatten: true });
+    return {
+      changed,
+      assignedCount: assigned.length,
+      assignedLabel: assigned[0]?.dataset?.slotLabel,
+      preservesNodeIdentity: assigned[0] === replacement,
+    };
+  });
+  assert.deepEqual(replacementSlot, {
+    changed: true,
+    assignedCount: 1,
+    assignedLabel: 'Replacement suffix',
+    preservesNodeIdentity: true,
+  });
+
+  const fallbackSlot = await page.locator('pre-layer-panel').evaluate(async element => {
+    const slot = element.shadowRoot?.querySelector('slot[name="suffix"]');
+    const replacement = element.querySelector('[data-slot-label]');
+    if (!(slot instanceof HTMLSlotElement) || !replacement) throw new Error('replacement slot fixture is incomplete');
+
+    const slotChanged = new Promise(resolve => {
+      const timeout = setTimeout(() => resolve(false), 1000);
+      slot.addEventListener('slotchange', () => {
+        clearTimeout(timeout);
+        resolve(true);
+      }, { once: true });
+    });
+    replacement.remove();
+    const changed = await slotChanged;
+    const assigned = slot.assignedNodes({ flatten: true });
+    return {
+      changed,
+      assignedHostCount: assigned.filter(node => node.parentNode !== slot).length,
+      fallbackText: slot.querySelector('[data-slot-fallback]')?.textContent,
+    };
+  });
+  assert.deepEqual(fallbackSlot, {
+    changed: true,
+    assignedHostCount: 0,
+    fallbackText: 'No additional content',
+  });
+
   await page.goto(`${new URL(url).origin}/vanilla-embed.html`, { waitUntil: 'networkidle' });
   assert.equal(await page.locator('#wc-change-name').count(), 1);
   const orderWorkspace = page.locator('order-workspace');
