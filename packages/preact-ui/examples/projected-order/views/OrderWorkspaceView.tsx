@@ -3,6 +3,18 @@ import { useOrderActions } from '../actions/use-order-actions.js';
 import { useOrderProjection } from '../projections/use-order-projection.js';
 import { OrderSummaryView } from './OrderSummaryView.js';
 
+const visuallyHiddenStyle = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
+
 /**
  * Tier 3 Presentation View for Projected Order Workspace.
  * 
@@ -17,6 +29,10 @@ export function OrderWorkspaceView() {
   const shippingAddressId = `${idPrefix}-shipping-address`;
   const customerNameErrorId = `${customerNameId}-error`;
   const shippingAddressErrorId = `${shippingAddressId}-error`;
+  const newItemNameId = `${idPrefix}-new-item-name`;
+  const newItemPriceId = `${idPrefix}-new-item-price`;
+  const itemsErrorId = `${idPrefix}-items-error`;
+  const activityLogId = `${idPrefix}-activity-log`;
   // 1. Projection Hook: Read-only derived signals
   const {
     customerNameSignal,
@@ -178,15 +194,19 @@ export function OrderWorkspaceView() {
 
       {/* Item List & Add Form */}
       <section style={{ marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>Order Items</h3>
+        <h3 id={`${idPrefix}-items-heading`} style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>Order Items</h3>
         
         {itemsError.value ? (
-          <p data-testid="error-items" style={{ color: '#ef4444', fontSize: '12px', margin: '0 0 8px 0' }}>
+          <p id={itemsErrorId} role="alert" data-testid="error-items" style={{ color: '#ef4444', fontSize: '12px', margin: '0 0 8px 0' }}>
             {itemsError.value}
           </p>
         ) : null}
 
-        <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px 0' }}>
+        <ul
+          aria-labelledby={`${idPrefix}-items-heading`}
+          aria-describedby={itemsError.value ? itemsErrorId : undefined}
+          style={{ listStyle: 'none', padding: 0, margin: '0 0 16px 0' }}
+        >
           {itemsSignal.value.map((item) => (
             <li
               key={item.id}
@@ -217,9 +237,16 @@ export function OrderWorkspaceView() {
                 >
                   -
                 </button>
-                <span data-testid={`item-qty-${item.id}`} style={{ minWidth: '20px', textAlign: 'center' }}>
+                <output
+                  data-testid={`item-qty-${item.id}`}
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                  aria-label={`Quantity for ${item.name}`}
+                  style={{ minWidth: '20px', textAlign: 'center' }}
+                >
                   {item.quantity}
-                </span>
+                </output>
                 <button
                   type="button"
                   aria-label={`Increase quantity for ${item.name}`}
@@ -251,7 +278,9 @@ export function OrderWorkspaceView() {
 
         {/* Add Item Local Form (Tier 3 Local State) */}
         <form onSubmit={handleAddItem} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <label htmlFor={newItemNameId} style={visuallyHiddenStyle}>Item name</label>
           <input
+            id={newItemNameId}
             type="text"
             placeholder="Item name (e.g. Widget)"
             data-testid="input-new-item-name"
@@ -260,7 +289,9 @@ export function OrderWorkspaceView() {
             disabled={isSubmittingSignal.value}
             style={{ flex: 2, padding: '6px 10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
           />
+          <label htmlFor={newItemPriceId} style={visuallyHiddenStyle}>Price</label>
           <input
+            id={newItemPriceId}
             type="number"
             min="1"
             placeholder="Price"
@@ -332,9 +363,12 @@ export function OrderWorkspaceView() {
       </div>
 
       {/* Tier 3 Presentation Accordion: Activity Log */}
-      <section style={{ marginTop: '32px', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+      <section aria-labelledby={`${idPrefix}-activity-heading`} style={{ marginTop: '32px', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+        <h3 id={`${idPrefix}-activity-heading`} style={visuallyHiddenStyle}>Activity log</h3>
         <button
           type="button"
+          aria-expanded={isLogOpen}
+          aria-controls={activityLogId}
           onClick={() => setIsLogOpen(!isLogOpen)}
           style={{
             background: 'none',
@@ -350,6 +384,8 @@ export function OrderWorkspaceView() {
 
         {isLogOpen ? (
           <ul
+            id={activityLogId}
+            aria-label="Activity log entries"
             data-testid="activity-log-list"
             style={{
               margin: '8px 0 0 0',

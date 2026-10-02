@@ -2,7 +2,15 @@ import type { ComponentType } from 'preact';
 import { mountPreact } from './mount.js';
 import type { MountInstance } from './mount.js';
 
-export interface PreactElementContext {
+/**
+ * Context supplied to a `definePreactElement` setup callback.
+ *
+ * This is intentionally kept module-private. It is an author adapter detail,
+ * not a consumer-facing component contract. The `setup` callback still gets
+ * full contextual typing, so authors can use `context.root` and the FACE
+ * helpers without importing or naming this type.
+ */
+interface PreactElementContext {
   /** The native ElementInternals associated with this element if formAssociated is true */
   internals?: ElementInternals | undefined;
   /**
@@ -200,34 +208,52 @@ export function definePreactElement<Input>(
 
     // Form lifecycle callbacks
     formResetCallback() {
+      if (this.#disposed) return;
       this.#lifecycle.onFormReset?.();
     }
 
     formDisabledCallback(disabled: boolean) {
+      if (this.#disposed) return;
       this.#lifecycle.onFormDisabled?.(disabled);
     }
 
     formStateRestoreCallback(state: unknown, mode: 'restore' | 'autocomplete') {
+      if (this.#disposed) return;
       this.#lifecycle.onFormStateRestore?.(state, mode);
     }
 
     connectedCallback() {
-      if (this.#disposed) return;
-      if (this.#mount) return;
+      // A connection callback may be re-entered by setup code (for example
+      // when an adapter moves the element while it is connecting). A live
+      // session is already responsible for the root in that case.
+      if (this.#disposed || this.#mount || this.#sessionActive) return;
       this.#upgradeProperties();
+      // Property setters can synchronously dispose or disconnect the element
+      // during the upgrade pass. Do not create a session after that happens.
+      if (this.#disposed || this.#mount || this.#sessionActive || !this.isConnected) return;
       this.#sessionActive = true;
       try {
         this.#lifecycle.onConnect?.();
+        // onConnect may dispose/disconnect/reconnect the element. A nested
+        // connection owns the root if it already mounted one; the outer
+        // callback must not create a second renderer or resurrect a terminal
+        // element.
+        if (this.#disposed || !this.#sessionActive || this.#mount || !this.isConnected) return;
+        const input = this.#lifecycle.getInput();
+        if (this.#disposed || !this.#sessionActive || this.#mount || !this.isConnected) return;
         this.#mount = mountPreact(
           this.#root,
           this.#lifecycle.view,
-          this.#lifecycle.getInput(),
+          input,
         );
       } catch (error) {
+        const needsDisconnect = this.#sessionActive;
         this.#mount = undefined;
         this.#sessionActive = false;
-        try { this.#lifecycle.onDisconnect?.(); } catch (cleanupError) {
-          throw new AggregateError([error, cleanupError], 'Custom element connection failed');
+        if (needsDisconnect) {
+          try { this.#lifecycle.onDisconnect?.(); } catch (cleanupError) {
+            throw new AggregateError([error, cleanupError], 'Custom element connection failed');
+          }
         }
         throw error;
       }
@@ -270,6 +296,7 @@ export function definePreactElement<Input>(
     }
 
     #updateMount() {
+      if (this.#disposed) return;
       const mount = this.#mount;
       if (!mount) return;
 
@@ -299,8 +326,9 @@ export function definePreactElement<Input>(
     }
 
     attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
-      if (oldValue === newValue) return;
+      if (this.#disposed || oldValue === newValue) return;
       this.#lifecycle.onAttributeChange?.(name, oldValue, newValue);
+      if (this.#disposed) return;
       this.#updateMount();
     }
 

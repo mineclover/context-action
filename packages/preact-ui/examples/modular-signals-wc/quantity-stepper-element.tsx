@@ -1,6 +1,8 @@
 import { signal } from '@preact/signals';
 import { definePreactElement } from '../../src/custom-element.js';
 
+let quantityStepperSequence = 0;
+
 export function defineQuantityStepperElement(tagName = 'quantity-stepper'): CustomElementConstructor {
   return definePreactElement({
     tagName,
@@ -50,11 +52,26 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
         font-size: 12px;
         margin-left: 8px;
       }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
     `,
     setup(element, context) {
-      const initialValue = parseInt(element.getAttribute('value') ?? '1', 10) || 1;
+      const parsedInitialValue = Number.parseInt(element.getAttribute('value') ?? '1', 10);
+      const initialValue = Number.isFinite(parsedInitialValue) ? parsedInitialValue : 1;
       const countSignal = signal(initialValue);
       const disabledSignal = signal(false);
+      const descriptionId = `${tagName}-${++quantityStepperSequence}-description`;
+      const errorId = `${tagName}-${quantityStepperSequence}-error`;
+      const validationMessageSignal = signal('');
 
       function getBounds() {
         const parsedMin = Number.parseInt(element.getAttribute('min') ?? '', 10);
@@ -64,17 +81,43 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
         return { min, max };
       }
 
+      function setHostSemantics(val: number, message: string) {
+        const { min, max } = getBounds();
+        element.setAttribute('aria-valuenow', String(val));
+        element.setAttribute('aria-valuemin', String(min));
+        element.setAttribute('aria-valuemax', String(max));
+        element.setAttribute('aria-valuetext', `${val}개`);
+        element.setAttribute('aria-invalid', message ? 'true' : 'false');
+        element.setAttribute('aria-disabled', disabledSignal.value ? 'true' : 'false');
+        validationMessageSignal.value = message;
+      }
+
+      function connectHostLabel() {
+        const id = element.id;
+        const label = id
+          ? Array.from(element.ownerDocument.querySelectorAll('label[for]'))
+            .find(candidate => candidate.getAttribute('for') === id)
+          : element.closest('label');
+        if (!label) return;
+        if (!label.id) label.id = `${tagName}-${quantityStepperSequence}-label`;
+        element.setAttribute('aria-labelledby', label.id);
+      }
+
       function updateValidationAndFormValue(val: number, emitChange = false) {
         const { min, max } = getBounds();
         context.setFormValue(String(val));
 
+        let validationMessage = '';
         if (val < min) {
-          context.setValidity({ rangeUnderflow: true }, `최소 수량은 ${min}개입니다.`);
+          validationMessage = `최소 수량은 ${min}개입니다.`;
+          context.setValidity({ rangeUnderflow: true }, validationMessage);
         } else if (val > max) {
-          context.setValidity({ rangeOverflow: true }, `최대 수량은 ${max}개입니다.`);
+          validationMessage = `최대 수량은 ${max}개입니다.`;
+          context.setValidity({ rangeOverflow: true }, validationMessage);
         } else {
           context.setValidity({});
         }
+        setHostSemantics(val, validationMessage);
 
         if (emitChange) {
           element.dispatchEvent(
@@ -87,43 +130,76 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
         }
       }
 
+      function setCount(nextValue: number, emitChange = false) {
+        if (nextValue === countSignal.value) return;
+        countSignal.value = nextValue;
+        updateValidationAndFormValue(nextValue, emitChange);
+      }
+
+      const onHostKeyDown = (event: KeyboardEvent) => {
+        if (disabledSignal.value) return;
+        const { min, max } = getBounds();
+        let nextValue: number | undefined;
+        switch (event.key) {
+          case 'ArrowDown':
+            nextValue = Math.max(min, countSignal.value - 1);
+            break;
+          case 'ArrowUp':
+            nextValue = Math.min(max, countSignal.value + 1);
+            break;
+          case 'Home':
+            nextValue = min;
+            break;
+          case 'End':
+            nextValue = max;
+            break;
+          default:
+            return;
+        }
+        event.preventDefault();
+        setCount(nextValue, true);
+      };
+      element.addEventListener('keydown', onHostKeyDown);
+
       function QuantityStepperView() {
         const { min, max } = getBounds();
         const count = countSignal.value;
         const isDisabled = disabledSignal.value;
 
         return (
-          <div class="stepper">
+          <>
+            <div class="stepper" data-testid="quantity-stepper-controls">
             <button
               type="button"
               aria-label="Decrease quantity"
+              title="Decrease quantity"
+              data-testid="decrease-quantity"
               disabled={isDisabled || count <= min}
-              onClick={() => {
-                if (countSignal.value > min) {
-                  countSignal.value -= 1;
-                  updateValidationAndFormValue(countSignal.value, true);
-                }
-              }}
+              onClick={() => setCount(Math.max(min, countSignal.value - 1), true)}
             >
               −
             </button>
-            <span class="value-display" role="status" aria-live="polite" data-testid="stepper-count">
+            <span class="value-display" aria-hidden="true" data-testid="stepper-count">
               {count}
             </span>
             <button
               type="button"
               aria-label="Increase quantity"
+              title="Increase quantity"
+              data-testid="increase-quantity"
               disabled={isDisabled || count >= max}
-              onClick={() => {
-                if (countSignal.value < max) {
-                  countSignal.value += 1;
-                  updateValidationAndFormValue(countSignal.value, true);
-                }
-              }}
+              onClick={() => setCount(Math.min(max, countSignal.value + 1), true)}
             >
               +
             </button>
-          </div>
+            </div>
+            <span id={descriptionId} class="sr-only">
+              수량을 선택하세요. 위쪽 또는 아래쪽 화살표 키로 변경할 수 있습니다.
+            </span>
+            <span id={errorId} class="error-hint" role="alert" aria-live="assertive">
+              {validationMessageSignal.value}
+            </span>
+          </>
         );
       }
 
@@ -131,6 +207,13 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
         view: QuantityStepperView,
         getInput: () => countSignal.value,
         onConnect() {
+          // FACE elements are labelable hosts. Apply host semantics after the
+          // constructor has returned; browsers reject attribute mutations made
+          // while a form-associated custom element is being constructed.
+          element.setAttribute('role', 'spinbutton');
+          if (!element.hasAttribute('tabindex')) element.tabIndex = 0;
+          element.setAttribute('aria-describedby', `${descriptionId} ${errorId}`);
+          connectHostLabel();
           updateValidationAndFormValue(countSignal.value);
         },
         onAttributeChange(name, _oldVal, newVal) {
@@ -138,11 +221,11 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
             const parsed = parseInt(newVal, 10);
             if (!Number.isNaN(parsed)) {
               countSignal.value = parsed;
-              updateValidationAndFormValue(parsed);
+              if (element.isConnected) updateValidationAndFormValue(parsed);
             }
           }
           if (name === 'min' || name === 'max') {
-            updateValidationAndFormValue(countSignal.value);
+            if (element.isConnected) updateValidationAndFormValue(countSignal.value);
           }
         },
         onFormReset() {
@@ -151,6 +234,10 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
         },
         onFormDisabled(disabled) {
           disabledSignal.value = disabled;
+          element.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+        },
+        onDestroy() {
+          element.removeEventListener('keydown', onHostKeyDown);
         },
       };
     },

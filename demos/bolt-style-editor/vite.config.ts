@@ -39,7 +39,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // This private demo deliberately exercises the unreleased Durable-backed
-      // integration from the workspace source. React 2's published artifact
+      // integration from the workspace source. React 4's published artifact
       // does not expose this experimental entrypoint.
       '@context-action/react/tools': path.resolve(
         __dirname,

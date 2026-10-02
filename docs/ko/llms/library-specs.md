@@ -44,7 +44,7 @@
 - **Mutative 계보**: Mutative Core `0.8.14`과 scoped adapter `0.8.15`는 인수한 upstream `mutative@1.3.0` 호환성 기준을 추적하며, 동기화나 release 전 `pnpm verify:mutative-upstream`으로 committed source inventory를 검증합니다.
 - **런타임 기준**: Node.js `>=24.11.0`, pnpm `>=10.30.0`, TypeScript `6.0.3`
 - **의존성 보안**: `pnpm security:audit`를 필수 OSV 검사로 사용하며 현재 actionable 취약점은 0건이다. 해결된 의존성 최소 버전은 루트 `pnpm.overrides`에서 강제한다.
-- **임시 예외**: `GHSA-qwww-vcr4-c8h2`에 대해 `react-router@7.18.1`을 기간 한정 예외로 유지한다. 예제는 browser routing만 사용하고 `react-router-dom` 8.3.0은 아직 공개되지 않았으므로 2026-09-30 전에 재검토한다.
+- **의존성 기준**: `GHSA-qwww-vcr4-c8h2` 대응을 위해 `react-router`와 `react-router-dom`을 `7.18.4`로 고정한다. 예제는 browser routing만 사용한다.
 - **검증 기준**: 의존성 변경은 `pnpm security:audit`, `pnpm type-check`, `pnpm test`, `pnpm docs:build`, 예제 `check`/`build`를 통과해야 한다.
 
 ### API 인터페이스

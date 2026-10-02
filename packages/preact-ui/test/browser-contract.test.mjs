@@ -169,6 +169,142 @@ try {
     input: '이순신 (조선 수군)',
   });
 
+  // The projected order view exposes its form and live updates through the
+  // browser accessibility tree. Keep these checks in the real Chromium
+  // contract so the Shadow DOM boundary and Preact renderer are exercised
+  // together rather than only through jsdom snapshots.
+  const formLabels = await orderWorkspace.evaluate(element => {
+    const root = element.shadowRoot;
+    const nameInput = root?.querySelector('[data-testid="input-new-item-name"]');
+    const priceInput = root?.querySelector('[data-testid="input-new-item-price"]');
+    if (!(nameInput instanceof HTMLInputElement) || !(priceInput instanceof HTMLInputElement)) {
+      throw new Error('projected order item inputs are missing');
+    }
+    const nameLabel = root?.querySelector(`label[for="${nameInput.id}"]`);
+    const priceLabel = root?.querySelector(`label[for="${priceInput.id}"]`);
+    return {
+      name: { id: nameInput.id, label: nameLabel?.textContent?.trim() },
+      price: { id: priceInput.id, label: priceLabel?.textContent?.trim() },
+    };
+  });
+  assert.equal(formLabels.name.id.length > 0, true);
+  assert.equal(formLabels.name.label, 'Item name');
+  assert.equal(formLabels.price.id.length > 0, true);
+  assert.equal(formLabels.price.label, 'Price');
+
+  // A submit with no items surfaces a domain validation error and associates
+  // it with the labelled list for screen-reader users.
+  await orderWorkspace.evaluate(async element => {
+    await element.submit();
+  });
+  const itemsError = orderWorkspace.locator('[data-testid="error-items"]');
+  await itemsError.waitFor({ state: 'attached' });
+  const itemsA11y = await orderWorkspace.evaluate(element => {
+    const root = element.shadowRoot;
+    const error = root?.querySelector('[data-testid="error-items"]');
+    const list = root?.querySelector('ul[aria-labelledby]');
+    return {
+      role: error?.getAttribute('role'),
+      errorId: error?.id,
+      describedBy: list?.getAttribute('aria-describedby'),
+    };
+  });
+  assert.equal(itemsA11y.role, 'alert');
+  assert.equal(itemsA11y.errorId, itemsA11y.describedBy);
+
+  await page.locator('#wc-add-item').click();
+  const quantity = orderWorkspace.locator('[data-testid^="item-qty-"]');
+  await quantity.waitFor({ state: 'attached' });
+  const quantityA11y = await quantity.evaluate(element => ({
+    role: element.getAttribute('role'),
+    live: element.getAttribute('aria-live'),
+    atomic: element.getAttribute('aria-atomic'),
+    label: element.getAttribute('aria-label'),
+    value: element.textContent?.trim(),
+  }));
+  assert.deepEqual(quantityA11y, {
+    role: 'status',
+    live: 'polite',
+    atomic: 'true',
+    label: 'Quantity for 거북선 피규어',
+    value: '1',
+  });
+  await orderWorkspace.getByRole('button', { name: 'Increase quantity for 거북선 피규어' }).click();
+  await quantity.getByText('2').waitFor({ state: 'attached' });
+  assert.equal(await quantity.textContent(), '2');
+
+  const activityToggle = orderWorkspace.locator('button[aria-controls]').first();
+  const activityLogId = await activityToggle.getAttribute('aria-controls');
+  assert.equal(await activityToggle.getAttribute('aria-expanded'), 'false');
+  assert.ok(activityLogId);
+  await activityToggle.click();
+  assert.equal(await activityToggle.getAttribute('aria-expanded'), 'true');
+  const activityLog = orderWorkspace.locator(`#${activityLogId}`);
+  await activityLog.waitFor({ state: 'attached' });
+  assert.equal(await activityLog.getAttribute('aria-label'), 'Activity log entries');
+  await activityToggle.click();
+  assert.equal(await activityToggle.getAttribute('aria-expanded'), 'false');
+
+  const quantityStepper = page.locator('#order-quantity');
+  assert.equal(await page.getByRole('spinbutton', { name: '수량 선택 (FACE 커스텀 엘리먼트):' }).count(), 1);
+  assert.equal(await page.locator('label[for="order-quantity"]').count(), 1);
+  const quantitySemantics = await quantityStepper.evaluate(element => {
+    const describedBy = (element.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean);
+    return {
+      role: element.getAttribute('role'),
+      labelledBy: element.getAttribute('aria-labelledby'),
+      tabIndex: element.tabIndex,
+      value: element.getAttribute('aria-valuenow'),
+      min: element.getAttribute('aria-valuemin'),
+      max: element.getAttribute('aria-valuemax'),
+      invalid: element.getAttribute('aria-invalid'),
+      describedBy,
+      descriptionText: describedBy.map(id => element.shadowRoot?.getElementById(id)?.textContent?.trim() ?? ''),
+      decreaseName: element.shadowRoot?.querySelector('[data-testid="decrease-quantity"]')?.getAttribute('aria-label'),
+      increaseName: element.shadowRoot?.querySelector('[data-testid="increase-quantity"]')?.getAttribute('aria-label'),
+    };
+  });
+  assert.deepEqual(quantitySemantics, {
+    role: 'spinbutton',
+    labelledBy: 'order-quantity-label',
+    tabIndex: 0,
+    value: '2',
+    min: '1',
+    max: '10',
+    invalid: 'false',
+    describedBy: quantitySemantics.describedBy,
+    descriptionText: ['수량을 선택하세요. 위쪽 또는 아래쪽 화살표 키로 변경할 수 있습니다.', ''],
+    decreaseName: 'Decrease quantity',
+    increaseName: 'Increase quantity',
+  });
+  assert.equal(quantitySemantics.describedBy.length, 2);
+
+  await quantityStepper.evaluate(element => element.setAttribute('value', '0'));
+  await page.waitForTimeout(20);
+  const invalidQuantity = await quantityStepper.evaluate(element => {
+    const errorId = (element.getAttribute('aria-describedby') ?? '').split(/\s+/).at(-1) ?? '';
+    return {
+      value: element.getAttribute('aria-valuenow'),
+      invalid: element.getAttribute('aria-invalid'),
+      error: element.shadowRoot?.getElementById(errorId)?.textContent?.trim(),
+    };
+  });
+  assert.deepEqual(invalidQuantity, {
+    value: '0',
+    invalid: 'true',
+    error: '최소 수량은 1개입니다.',
+  });
+  await quantityStepper.evaluate(element => {
+    const button = element.shadowRoot?.querySelector('[data-testid="increase-quantity"]');
+    if (!(button instanceof HTMLElement)) throw new Error('increase button is missing');
+    button.click();
+  });
+  assert.equal(await quantityStepper.getAttribute('aria-valuenow'), '1');
+  assert.equal(await quantityStepper.getAttribute('aria-invalid'), 'false');
+  await quantityStepper.focus();
+  await page.keyboard.press('ArrowUp');
+  assert.equal(await quantityStepper.getAttribute('aria-valuenow'), '2');
+
   console.log('Layer Panel browser contract passed');
 } finally {
   await browser.close();

@@ -22,16 +22,38 @@
 
 `definePreactElement`는 `formAssociated: true` 옵션을 제공하며, `ElementInternals` 인터페이스를 안전하게 캡슐화합니다:
 
+`setup(element, context)`의 `context`는 작성자용 어댑터 입력으로 contextual typing된다.
+패키지 루트에서는 `PreactElementContext`를 타입으로 재-export하지 않으므로 이 객체를
+소비자 계약으로 직접 참조하거나 저장하지 않는다. 작성자는 별도 타입 import 없이
+`context.setFormValue()`와 `context.setValidity()`를 호출할 수 있고, 렌더러 내부 focus/ref
+같은 경우에 한해 `context.root`를 사용할 수 있다. 최종 컴포넌트 소비자에게는 업무 값,
+명령, 이벤트와 같은 명시적 계약만 노출한다.
+
+현재 어댑터 context의 형태는 다음과 같다.
+
 ```typescript
-export interface PreactElementContext {
+interface PreactElementContext {
   /** 브라우저 네이티브 ElementInternals 인스턴스 */
-  internals?: ElementInternals;
+  internals?: ElementInternals | undefined;
+  /**
+   * renderer가 소유한 내부 mount root.
+   * author가 focus/selection 같은 의미 있는 명령을 연결할 때만 사용한다.
+   * 공개 컴포넌트 계약을 대체하는 임의의 DOM query 용도로 사용하지 않는다.
+   */
+  readonly root: HTMLElement;
+  /** 현재 connection session의 전체 input snapshot 갱신을 요청한다. */
+  readonly requestUpdate: () => void;
   /** 폼 제출 값 및 복원 상태 설정 */
-  setFormValue(value: File | string | FormData | null, state?: unknown): void;
+  setFormValue(value: File | string | FormData | null, state?: File | string | FormData | null): void;
   /** 유효성 플래그 및 커스텀 오류 메시지 설정 */
   setValidity(flags: ValidityStateFlags, message?: string, anchor?: HTMLElement): void;
 }
 ```
+
+`root`와 `requestUpdate`는 `definePreactElement`가 owner adapter에 제공하는 author 전용
+escape hatch다. `root`는 renderer가 소유하므로 adapter가 그 자식 노드를 제거하거나 다른
+renderer를 mount해서는 안 된다. `requestUpdate()`는 현재 connection session이 살아 있을
+때만 renderer를 갱신하며, `dispose()` 이후에는 아무 작업도 하지 않는다.
 
 ```mermaid
 flowchart LR
@@ -104,6 +126,28 @@ export const QuantityStepperElement = definePreactElement({
   },
 });
 ```
+
+---
+
+### 1.4 수량 스테퍼 접근성 계약
+
+FACE가 폼에 참여하는 것만으로 내부 Shadow DOM 컨트롤의 의미가 외부에 전달되지는 않는다. 참조 구현은 연결 세션이 시작된 뒤 host에 `role="spinbutton"`, `aria-valuenow`, `aria-valuemin`, `aria-valuemax`, `aria-valuetext`, `aria-invalid`를 동기화한다. `ArrowUp`/`ArrowDown` 및 `Home`/`End` 키와 이름이 있는 `Decrease quantity`/`Increase quantity` 버튼을 함께 제공하므로 키보드 사용자와 보조기술이 같은 명령 경로를 사용한다.
+
+호스트 라벨은 일반 labelable 컨트롤과 동일하게 `for`/`id`로 연결하고, Shadow DOM 경계를 넘어 이름이 안정적으로 계산되도록 `aria-labelledby`도 명시한다.
+
+```html
+<label id="order-quantity-label" for="order-quantity">수량 선택</label>
+<quantity-stepper
+  id="order-quantity"
+  aria-labelledby="order-quantity-label"
+  name="orderQuantity"
+  value="2"
+  min="1"
+  max="10"
+></quantity-stepper>
+```
+
+범위를 벗어나면 `ElementInternals.setValidity()`와 함께 host의 `aria-invalid="true"`가 설정되고, `aria-describedby`로 연결된 오류 노드가 `role="alert"`/`aria-live="assertive"`로 메시지를 알린다. 실제 제품에서는 이 계약을 유지한 상태로 사용하는 보조기술과 브라우저 조합을 별도 수동 검증한다.
 
 ---
 

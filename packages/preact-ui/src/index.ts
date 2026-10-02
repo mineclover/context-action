@@ -7,4 +7,4 @@ export { hydratePreact } from './hydrate.js';
 export type { HydrationInstance, HydratedView } from './hydrate.js';
 export { mountTemplate } from './template.js';
 export { definePreactElement } from './custom-element.js';
-export type { PreactElementConfig, PreactElementLifecycle, ManagedPreactElement, PreactElementContext } from './custom-element.js';
+export type { PreactElementConfig, PreactElementLifecycle, ManagedPreactElement } from './custom-element.js';
