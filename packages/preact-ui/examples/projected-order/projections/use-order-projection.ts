@@ -1,5 +1,4 @@
 import { useProjection } from '@context-action/preact';
-import { useComputed } from '@preact/signals';
 import type { ReadonlySignal } from '@preact/signals';
 import { calculateOrderSummary } from '../business/order-calculations.js';
 import type {
@@ -25,7 +24,7 @@ export interface OrderProjection {
   isSuccessSignal: ReadonlySignal<boolean>;
   canSubmitSignal: ReadonlySignal<boolean>;
   hasErrorsSignal: ReadonlySignal<boolean>;
-  getFieldError: (field: string) => ReadonlySignal<string | undefined>;
+  getFieldError: (field: string) => string | undefined;
 }
 
 /**
@@ -75,7 +74,7 @@ export function useOrderProjection(): OrderProjection {
   );
 
   const getFieldError = (field: string) =>
-    useComputed(() => sourceSignal.value.validationIssues.find((i) => i.field === field)?.message);
+    validationIssuesSignal.value.find((issue) => issue.field === field)?.message;
 
   return {
     draftSignal,

@@ -1,4 +1,4 @@
-import type { OrderSubmission, OrderSubmissionPhase } from './order-types.js';
+import type { OrderSubmission } from './order-types.js';
 
 export type OrderSubmissionEvent =
   | { type: 'START_VALIDATION' }

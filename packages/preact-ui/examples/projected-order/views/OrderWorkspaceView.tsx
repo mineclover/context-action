@@ -39,7 +39,6 @@ export function OrderWorkspaceView({ idPrefix }: { idPrefix: string }) {
     itemsSignal,
     summarySignal,
     submissionSignal,
-    validationIssuesSignal,
     activityLogSignal,
     isSubmittingSignal,
     isSuccessSignal,
@@ -142,22 +141,22 @@ export function OrderWorkspaceView({ idPrefix }: { idPrefix: string }) {
             id={customerNameId}
             type="text"
             data-testid="input-customer-name"
-            aria-invalid={customerNameError.value ? 'true' : 'false'}
-            aria-describedby={customerNameError.value ? customerNameErrorId : undefined}
+            aria-invalid={customerNameError ? 'true' : 'false'}
+            aria-describedby={customerNameError ? customerNameErrorId : undefined}
             value={customerNameSignal.value}
             onInput={(e) => void setCustomerName((e.target as HTMLInputElement).value)}
             disabled={isSubmittingSignal.value}
             style={{
               width: '100%',
               padding: '8px 12px',
-              border: customerNameError.value ? '1px solid #ef4444' : '1px solid #cbd5e1',
+              border: customerNameError ? '1px solid #ef4444' : '1px solid #cbd5e1',
               borderRadius: '6px',
               fontSize: '14px',
             }}
           />
-          {customerNameError.value ? (
+          {customerNameError ? (
             <p id={customerNameErrorId} role="alert" data-testid="error-customer-name" style={{ color: '#ef4444', fontSize: '12px', margin: '4px 0 0 0' }}>
-              {customerNameError.value}
+              {customerNameError}
             </p>
           ) : null}
         </div>
@@ -170,22 +169,22 @@ export function OrderWorkspaceView({ idPrefix }: { idPrefix: string }) {
             id={shippingAddressId}
             type="text"
             data-testid="input-shipping-address"
-            aria-invalid={shippingAddressError.value ? 'true' : 'false'}
-            aria-describedby={shippingAddressError.value ? shippingAddressErrorId : undefined}
+            aria-invalid={shippingAddressError ? 'true' : 'false'}
+            aria-describedby={shippingAddressError ? shippingAddressErrorId : undefined}
             value={shippingAddressSignal.value}
             onInput={(e) => void setShippingAddress((e.target as HTMLInputElement).value)}
             disabled={isSubmittingSignal.value}
             style={{
               width: '100%',
               padding: '8px 12px',
-              border: shippingAddressError.value ? '1px solid #ef4444' : '1px solid #cbd5e1',
+              border: shippingAddressError ? '1px solid #ef4444' : '1px solid #cbd5e1',
               borderRadius: '6px',
               fontSize: '14px',
             }}
           />
-          {shippingAddressError.value ? (
+          {shippingAddressError ? (
             <p id={shippingAddressErrorId} role="alert" data-testid="error-shipping-address" style={{ color: '#ef4444', fontSize: '12px', margin: '4px 0 0 0' }}>
-              {shippingAddressError.value}
+              {shippingAddressError}
             </p>
           ) : null}
         </div>
@@ -195,15 +194,15 @@ export function OrderWorkspaceView({ idPrefix }: { idPrefix: string }) {
       <section style={{ marginBottom: '24px' }}>
         <h3 id={`${idPrefix}-items-heading`} style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>Order Items</h3>
         
-        {itemsError.value ? (
+        {itemsError ? (
           <p id={itemsErrorId} role="alert" data-testid="error-items" style={{ color: '#ef4444', fontSize: '12px', margin: '0 0 8px 0' }}>
-            {itemsError.value}
+            {itemsError}
           </p>
         ) : null}
 
         <ul
           aria-labelledby={`${idPrefix}-items-heading`}
-          aria-describedby={itemsError.value ? itemsErrorId : undefined}
+          aria-describedby={itemsError ? itemsErrorId : undefined}
           style={{ listStyle: 'none', padding: 0, margin: '0 0 16px 0' }}
         >
           {itemsSignal.value.map((item) => (

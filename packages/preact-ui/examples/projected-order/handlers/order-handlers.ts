@@ -155,7 +155,7 @@ export function createOrderModel(options?: OrderModelOptions | Partial<OrderDraf
     const incomingItem = { ...item };
     markDraftChanged();
     const existingIndex = state.draft.items.findIndex((i) => i.id === incomingItem.id);
-    let items = [...state.draft.items];
+    const items = [...state.draft.items];
     if (existingIndex >= 0) {
       const existing = items[existingIndex]!;
       items[existingIndex] = { ...existing, quantity: existing.quantity + incomingItem.quantity };
