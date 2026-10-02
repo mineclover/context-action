@@ -5,6 +5,16 @@ import type { MountInstance } from './mount.js';
 export interface PreactElementContext {
   /** The native ElementInternals associated with this element if formAssociated is true */
   internals?: ElementInternals | undefined;
+  /**
+   * The renderer-owned mount root exposed to the component adapter.
+   *
+   * This is an author-facing escape hatch for semantic commands such as
+   * focus management. Consumers should use the element's public contract
+   * instead of querying this root.
+   */
+  readonly root: HTMLElement;
+  /** Requests a complete input snapshot update for the active connection session. */
+  readonly requestUpdate: () => void;
   /** Sets the form value for submission and state restoration */
   setFormValue(value: File | string | FormData | null, state?: File | string | FormData | null): void;
   /** Sets the validity flags and validation message */
@@ -39,6 +49,12 @@ export interface PreactElementConfig<Input> {
   style?: string;
   /** List of HTML attributes to observe via attributeChangedCallback */
   observedAttributes?: readonly string[];
+  /**
+   * Public properties that may have been assigned before custom-element
+   * definition. They are replayed through their prototype setters exactly
+   * once before the first connection session mounts.
+   */
+  upgradeProperties?: readonly string[];
   /** When true, marks the custom element as Form-Associated (FACE) and enables ElementInternals */
   formAssociated?: boolean;
   /** Factory invoked on element construction to set up signals, views, and handlers */
@@ -87,9 +103,21 @@ export function definePreactElement<Input>(
     #internals: ElementInternals | undefined;
     #disposed = false;
     #sessionActive = false;
+    #pendingUpgradeValues = new Map<string, unknown>();
 
     constructor() {
       super();
+
+      // Capture definition-time own data properties before the component
+      // adapter has a chance to install its public accessors on this instance.
+      // This keeps pre-upgrade assignments intact even when setup() exposes
+      // per-instance getters/setters.
+      for (const property of config.upgradeProperties ?? []) {
+        const descriptor = Object.getOwnPropertyDescriptor(this, property);
+        if (descriptor && !descriptor.get && !descriptor.set) {
+          this.#pendingUpgradeValues.set(property, descriptor.value);
+        }
+      }
 
       if (config.formAssociated && typeof this.attachInternals === 'function') {
         try {
@@ -112,6 +140,8 @@ export function definePreactElement<Input>(
 
       const context: PreactElementContext = {
         internals: this.#internals,
+        root: this.#root,
+        requestUpdate: () => this.#updateMount(),
         setFormValue: (value, state) => {
           this.#internals?.setFormValue?.(value, state);
         },
@@ -184,6 +214,7 @@ export function definePreactElement<Input>(
     connectedCallback() {
       if (this.#disposed) return;
       if (this.#mount) return;
+      this.#upgradeProperties();
       this.#sessionActive = true;
       try {
         this.#lifecycle.onConnect?.();
@@ -199,6 +230,26 @@ export function definePreactElement<Input>(
           throw new AggregateError([error, cleanupError], 'Custom element connection failed');
         }
         throw error;
+      }
+    }
+
+    #upgradeProperties() {
+      for (const property of config.upgradeProperties ?? []) {
+        let value: unknown;
+        if (this.#pendingUpgradeValues.has(property)) {
+          value = this.#pendingUpgradeValues.get(property);
+          this.#pendingUpgradeValues.delete(property);
+        } else {
+          const descriptor = Object.getOwnPropertyDescriptor(this, property);
+          // setup() may expose a per-instance accessor. It is already the
+          // live property and must not be deleted during the upgrade pass.
+          if (!descriptor || descriptor.get || descriptor.set) continue;
+          value = descriptor.value;
+          if (!Reflect.deleteProperty(this, property)) {
+            throw new TypeError(`Cannot upgrade ${property}`);
+          }
+        }
+        (this as unknown as Record<string, unknown>)[property] = value;
       }
     }
 
