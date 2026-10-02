@@ -13,7 +13,11 @@
       "packages/llms-generator/src/**/*.ts",
       "packages/typedoc-vitepress-sync/src/**/*.ts",
       "scripts/**/*.cjs",
-      "scripts/**/*.mjs"
+      "scripts/**/*.mjs",
+      "packages/preact/src/**/*.ts",
+      "packages/preact-ui/src/**/*.ts",
+      "packages/preact-ui/examples/**/*.ts",
+      "packages/preact-ui/examples/**/*.tsx"
     ]
   },
   "formatter": {
@@ -21,7 +25,34 @@
   },
   "overrides": [
     {
-      "includes": ["packages/mutative-core/src/**/*.ts"],
+      "includes": [
+        "packages/preact-ui/src/react-bridge.ts"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "packages/preact-ui/examples/projected-order/business/order-types.ts",
+        "packages/preact-ui/examples/shared/counter-model.ts"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConfusingVoidType": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "packages/mutative-core/src/**/*.ts"
+      ],
       "linter": {
         "rules": {
           "complexity": {

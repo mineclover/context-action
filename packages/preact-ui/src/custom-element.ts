@@ -69,7 +69,7 @@ export interface PreactElementConfig<Input> {
   setup(element: HTMLElement, context: PreactElementContext): PreactElementLifecycle<Input>;
 }
 
-export interface ManagedPreactElement<Input> extends HTMLElement {
+export interface ManagedPreactElement<_Input> extends HTMLElement {
   readonly form: HTMLFormElement | null;
   name: string;
   readonly type: string;
