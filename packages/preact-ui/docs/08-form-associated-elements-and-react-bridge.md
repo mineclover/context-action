@@ -154,7 +154,7 @@ FACE가 폼에 참여하는 것만으로 내부 Shadow DOM 컨트롤의 의미�
 ></quantity-stepper>
 ```
 
-범위를 벗어나면 `ElementInternals.setValidity()`와 함께 host의 `aria-invalid="true"`와 직접적인 `aria-description`이 설정된다. 지원하는 브라우저에서는 `ElementInternals.ariaDescribedByElements`에 Shadow DOM의 도움말·오류 노드도 연결하고, 그렇지 않은 경우에도 직접 설명 문자열과 `role="alert"`/`aria-live="assertive"` 오류 알림을 유지한다. Shadow DOM 내부 ID를 host의 문자열 `aria-describedby`로만 연결하면 Chromium 접근성 트리에서 설명 관계가 해석되지 않는다. 실제 제품에서는 이 계약을 유지한 상태로 사용하는 보조기술과 브라우저 조합을 별도 수동 검증한다.
+범위를 벗어나면 `ElementInternals.setValidity()`와 함께 host의 `aria-invalid="true"`와 직접적인 `aria-description`이 설정된다. 지원하는 브라우저에서는 `ElementInternals.ariaDescribedByElements`에 Shadow DOM의 도움말·오류 노드도 연결하고, 그렇지 않은 경우에도 직접 설명 문자열과 `role="alert"`/`aria-live="assertive"` 오류 알림을 유지한다. Shadow DOM 내부 ID를 host의 문자열 `aria-describedby`로만 연결하면 Chromium 접근성 트리에서 설명 관계가 해석되지 않는다. 실제 스크린리더 음성은 소비자 제품이 선택한 지원 조합에서 별도 QA로 검증한다.
 
 브라우저가 범위를 벗어난 `aria-valuenow`를 접근성 트리에서 최소·최대 경계로 정규화할 수 있으므로, DOM의 원본 값·`aria-invalid`·검증 메시지와 실제 음성 값이 항상 같다고 가정하지 않는다.
 
