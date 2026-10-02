@@ -46,27 +46,45 @@
 #### 동작 원리
 1. 번들 로드 시 `customElements.define('order-workspace', OrderWorkspaceElement)`가 브라우저에 등록됩니다.
 2. HTML 마크업에 `<order-workspace>` 태그를 선언하는 즉시 브라우저 엔진이 엘리먼트를 인스턴스화합니다.
-3. 생성자에서 `attachShadow({ mode: 'open' })`를 호출하여 완벽히 격리된 DOM과 전용 스타일 시트를 생성합니다.
-4. `connectedCallback`에서 내부 `#root`에 Preact를 마운트하고, `disconnectedCallback`에서 렌더러를 언마운트합니다.
+3. `definePreactElement`가 생성 시 `attachShadow({ mode: 'open' })`와 renderer root를 준비하고, `setup(element, context)`가 업무별 owner adapter를 구성합니다.
+4. factory가 관리하는 `connectedCallback`/`disconnectedCallback`에서 connection session을 만들고 닫습니다. `setup`의 `onConnect`/`onDisconnect`에는 source 연결·구독·DOM listener 같은 연결 자원만 둡니다.
 
 #### 핵심 구현 패턴: DOM 재연결 탄력성 (Reconnection Resilience)
 일반적인 실수 중 하나는 `disconnectedCallback`에서 도메인 모델까지 완전히 파괴해버리는 것입니다. 탭 UI 전환, 가상 리스트 스크롤, DOM 트리 재정렬(sort) 시 엘리먼트가 잠시 DOM에서 빠졌다가 다시 들어올 수 있습니다:
 
 ```ts
-connectedCallback() {
-  if (this.#mount) return;
-  // 1. 커스텀 엘리먼트 등록 전에 대입된 property 보존 (Property-before-upgrade)
-  // 2. 내부 #root에 렌더러만 마운트 (기존 #model 재사용)
-  this.#mount = mountOrderWorkspace(this.#root, this.#model);
-}
-
-disconnectedCallback() {
-  // DOM에서 분리될 때는 렌더러만 정리하고, 모델 인스턴스는 보존!
-  const mount = this.#mount;
-  this.#mount = undefined;
-  mount?.destroy();
-}
+definePreactElement({
+  tagName: 'order-workspace',
+  observedAttributes: ['customer-name', 'shipping-address'],
+  upgradeProperties: ['customerName', 'shippingAddress'],
+  setup(element, context) {
+    // Domain model belongs to this element instance, not to a renderer mount.
+    const model = createOrderModel();
+    let session;
+    installOrderProperties(element, model);
+    return {
+      view: OrderWorkspaceElementView,
+      getInput: () => session?.getInput() ?? failDisconnected(),
+      onConnect() {
+        session = createOrderWorkspaceOwnerSession(model, element, context);
+      },
+      onDisconnect() {
+        session?.destroy();
+        session = undefined;
+      },
+      onDestroy: () => model.destroy(),
+    };
+  },
+});
 ```
+
+`definePreactElement`가 property-before-upgrade 재생과 Shadow DOM mount를
+담당하고, 업무 adapter는 의미 있는 property/method/event만 정의합니다. 모델은
+element를 명시적으로 `dispose()`할 때까지 보존하고, source signal·DOM event
+구독·renderer는 연결 session이 끝날 때만 정리합니다. Projected Order의 실제
+adapter는 이 패턴을 사용해 `customerName`, `shippingAddress`, `items`,
+`addItem`, `removeItem`, `submit`, `reset`, `order-change`,
+`order-submit-success` 계약을 유지합니다.
 
 이 패턴 덕분에 **DOM에서 요소를 제거했다가 다시 추가해도 입력 중이던 장바구니나 폼 데이터가 날아가지 않고 유지**됩니다. 영구적인 정리가 필요할 때만 명시적 `element.dispose()`를 호출합니다.
 
@@ -83,15 +101,15 @@ Vite의 Terser Minification을 적용한 실제 독립 번들 빌드 결과:
 
 ```text
 dist-standalone/
-├── order-workspace.umd.js   99.32 kB (gzip: 28.62 kB)
-├── order-workspace.iife.js  99.13 kB (gzip: 28.55 kB)
-└── order-workspace.es.js   100.85 kB (gzip: 28.57 kB)
+├── order-workspace.umd.js   108.51 kB (gzip: 31.05 kB)
+├── order-workspace.iife.js  108.32 kB (gzip: 30.98 kB)
+└── order-workspace.es.js   110.21 kB (gzip: 31.05 kB)
 ```
 
 ### 포함된 의존성 및 컴포넌트 목록:
 - **Preact 10.27.3**: 초경량 Virtual DOM 엔진
 - **@preact/signals 2.11.2**: Fine-grained 반응형 시그널 런타임
-- **@context-action/core 1.2.3**: 우선순위 기반 ActionRegister 파이프라인
+- **@context-action/core 1.2.6**: 우선순위 기반 ActionRegister 파이프라인
 - **@context-action/preact**: Dispatch & Source Context 어댑터
 - **@context-action/preact-ui**: DOM 소유권 & 마운트 프리미티브 및 `definePreactElement`
 - **Projected Order 도메인 & Custom Element**: `<order-workspace>`
