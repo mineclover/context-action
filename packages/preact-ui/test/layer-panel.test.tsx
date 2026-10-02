@@ -92,7 +92,11 @@ describe('layer-panel public contract', () => {
     panel.selectedId = 'two';
     expect(host.querySelectorAll('button')[1]?.getAttribute('aria-pressed')).toBe('true');
     panel.destroy();
-    expect(host.textContent).toContain('');
+    expect(host.childNodes).toHaveLength(0);
     expect(() => { panel.items = []; }).toThrow('destroyed');
+
+    const remounted = mountLayerPanel(host, template, { items, selectedId: 'one' });
+    expect(host.querySelectorAll('button')).toHaveLength(2);
+    remounted.destroy();
   });
 });

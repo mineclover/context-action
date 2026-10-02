@@ -381,6 +381,11 @@ try {
     await checkoutForm.evaluate(form => new FormData(form).get('orderQuantity')),
     '2',
   );
+  await quantityStepper.evaluate(element => element.dispose());
+  assert.equal(
+    await checkoutForm.evaluate(form => new FormData(form).get('orderQuantity')),
+    null,
+  );
   await quantityAxSession.detach();
 
   await page.goto(`${new URL(url).origin}/ssr-browser.html`, { waitUntil: 'networkidle' });

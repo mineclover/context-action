@@ -76,6 +76,8 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
       const helpText = '수량을 선택하세요. 위쪽 또는 아래쪽 화살표 키로 변경할 수 있습니다.';
       const validationMessageSignal = signal('');
       let generatedLabelId: string | undefined;
+      let generatedLabelElement: HTMLLabelElement | undefined;
+      let generatedLabelOriginalId: string | null | undefined;
       const semanticAttributes = [
         'role',
         'tabindex',
@@ -146,7 +148,13 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
           return;
         }
         if (!label.id) {
-          label.id = `${tagName}-${quantityStepperSequence}-label`;
+          let candidate = `${tagName}-${quantityStepperSequence}-label`;
+          while (Array.from(root.querySelectorAll('[id]')).some(node => node.id === candidate)) {
+            candidate = `${candidate}-next`;
+          }
+          generatedLabelElement = label as HTMLLabelElement;
+          generatedLabelOriginalId = null;
+          label.id = candidate;
           generatedLabelId = label.id;
         }
         element.setAttribute('aria-labelledby', label.id);
@@ -295,6 +303,10 @@ export function defineQuantityStepperElement(tagName = 'quantity-stepper'): Cust
             const initialValue = initialSemanticAttributes.get(attribute);
             if (initialValue === null || initialValue === undefined) element.removeAttribute(attribute);
             else element.setAttribute(attribute, initialValue);
+          }
+          if (generatedLabelElement && generatedLabelElement.id === generatedLabelId) {
+            if (generatedLabelOriginalId) generatedLabelElement.id = generatedLabelOriginalId;
+            else generatedLabelElement.removeAttribute('id');
           }
         },
       };
