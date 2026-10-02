@@ -103,6 +103,10 @@ async function main() {
       `${definition.name} must explicitly set private=false for publication`);
     expect(errors, manifest.publishConfig?.access === 'public',
       `${definition.name} must set publishConfig.access=public`);
+    expect(errors, manifest.repository?.type === 'git'
+      && manifest.repository?.url === 'git+https://github.com/mineclover/context-action.git'
+      && manifest.repository?.directory === definition.directory,
+    `${definition.name} must bind repository metadata for npm provenance`);
     expect(errors, manifest.license === 'Apache-2.0',
       `${definition.name} must declare the Apache-2.0 license`);
     expect(errors, isStableVersion(manifest.version),

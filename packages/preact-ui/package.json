@@ -99,5 +99,10 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mineclover/context-action.git",
+    "directory": "packages/preact-ui"
   }
 }
