@@ -36,8 +36,8 @@ focusItem(id): boolean은 현재 커밋된 DOM에 해당 활성 버튼이 있고
 
 미연결 중에도 유효 입력을 보존한다. 재연결 시 복원하되 View-local focus는 자동 보존하지 않는다. disconnect는 UI 자원만 종료한다.
 
-스타일은 `part="list"`, `part="item"`, `part="suffix"`를 공개한다. 내부 class/DOM 깊이는 비공개다. 항목은 native button이고 선택 상태를 aria-pressed로 표현한다. `suffix` slot 콘텐츠의 accessible name과 상호작용은 제공한 Host가 책임진다. 이 예시에 ARIA tree/listbox role을 붙이지 않는다.
+스타일은 `part="list"`, `part="item"`, `part="suffix"`, `part="suffix-fallback"`를 공개한다. 내부 class/DOM 깊이는 비공개다. 항목은 native button이고 선택 상태를 aria-pressed로 표현한다. `suffix` named slot에 Host 노드가 있으면 그 노드를 그대로 projection하고, 없으면 `No additional content` fallback을 표시한다. Host가 assigned node를 교체하면 브라우저의 `slotchange`와 node identity를 따른다. slot 콘텐츠의 accessible name과 상호작용은 제공한 Host가 책임진다. 이 예시에 ARIA tree/listbox role을 붙이지 않는다.
 
 ## 검증할 조건
 
-요청 이전/이후 selectedId 불변, Host 확정 입력 후 표시, 이벤트 1회, 동일 선택 억제, programmatic echo 없음, items 복사/불변, input 오류 보존, 연결 반복·focus 실패, keyboard button activation을 검증한다. 단위/통합 검증은 `packages/preact-ui/test/layer-panel.test.tsx`, 실제 Chromium 검증은 `packages/preact-ui/test/browser-contract.test.mjs`에서 수행한다.
+요청 이전/이후 selectedId 불변, Host 확정 입력 후 표시, 이벤트 1회, 동일 선택 억제, programmatic echo 없음, items 복사/불변, input 오류 보존, 연결 반복·focus 실패, keyboard button activation, suffix slot의 replacement/slotchange/assigned node identity/fallback을 검증한다. 단위/통합 검증은 `packages/preact-ui/test/layer-panel.test.tsx`, 실제 Chromium 검증은 `packages/preact-ui/test/browser-contract.test.mjs`에서 수행한다.

@@ -25,7 +25,9 @@ export function LayerPanelView({ input }: { input: LayerPanelViewInput }) {
           </li>
         ))}
       </ul>
-      <slot name="suffix" part="suffix" />
+      <slot name="suffix" part="suffix">
+        <span data-slot-fallback part="suffix-fallback">No additional content</span>
+      </slot>
     </>
   );
 }
