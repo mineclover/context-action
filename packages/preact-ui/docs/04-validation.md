@@ -55,9 +55,9 @@ log 토글의 `aria-expanded`/`aria-controls`와 로그 이름도 확인한다. 
 - 다른 컴포넌트의 복합 projection은 각 component contract와 브라우저 테스트를
   함께 추가해야 한다. Layer Panel suffix slot 외의 다중 slot/portal 조합은
   여전히 소비자 환경에서 별도 검증한다.
-- SSR 문자열 생성과 `hydratePreact`의 기본 fixture는 Vitest/jsdom 경로에
-  포함되어 있다. 실제 Chromium 서버 응답·이벤트 hydration과 애플리케이션의
-  라우팅·streaming 조합은 아직 소비자 환경에서 별도 검증한다.
+- SSR 문자열 생성과 `hydratePreact`의 기본 fixture는 Vitest/jsdom과 Chromium
+  `ssr-browser.html` 경로에 포함되어 있다. 애플리케이션의 서버 데이터·라우팅·
+  streaming 조합은 아직 소비자 환경에서 별도 검증한다.
 - Projected Order의 light-DOM adapter는 mount마다 고유한 `idPrefix`를 주입한다.
   직접 SSR/hydration으로 `OrderWorkspaceView`를 사용할 때는 서버와 클라이언트가
   같은 deterministic prefix를 전달해야 label·description·controls ID가 일치한다.

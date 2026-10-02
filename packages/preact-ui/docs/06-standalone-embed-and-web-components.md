@@ -101,9 +101,9 @@ Vite의 Terser Minification을 적용한 실제 독립 번들 빌드 결과:
 
 ```text
 dist-standalone/
-├── order-workspace.umd.js   약 112.3 kB (gzip: 약 32.2 kB)
-├── order-workspace.iife.js  약 112.2 kB (gzip: 약 32.2 kB)
-└── order-workspace.es.js    약 114.1 kB (gzip: 약 32.3 kB)
+├── order-workspace.umd.js   약 112.5 kB (gzip: 약 32.3 kB)
+├── order-workspace.iife.js  약 112.4 kB (gzip: 약 32.3 kB)
+└── order-workspace.es.js    약 114.3 kB (gzip: 약 32.3 kB)
 ```
 
 ### 포함된 의존성 및 컴포넌트 목록:
@@ -115,7 +115,7 @@ dist-standalone/
 - **Projected Order 도메인 & Custom Element**: `<order-workspace>`
 - **Modular Signals 도메인 & Custom Elements**: `<cart-badge>` 및 `<cart-drawer>`
 
-각 포맷은 약 32.2~32.3KB gzip으로 반응형 런타임과 전체 업무 로직 및 3종의 Web Components를 자체 포함(Self-contained)합니다. 따라서 React/ReactDOM을 외부에서 로드하지 않고도 독립 실행형 위젯으로 동작합니다. 정확한 크기는 `pnpm --filter @context-action/preact-ui build:standalone` 출력으로 릴리즈마다 다시 기록합니다.
+각 포맷은 약 32.3KB gzip으로 반응형 런타임과 전체 업무 로직 및 3종의 Web Components를 자체 포함(Self-contained)합니다. 따라서 React/ReactDOM을 외부에서 로드하지 않고도 독립 실행형 위젯으로 동작합니다. 정확한 크기는 `pnpm --filter @context-action/preact-ui build:standalone` 출력으로 릴리즈마다 다시 기록합니다.
 
 ---
 

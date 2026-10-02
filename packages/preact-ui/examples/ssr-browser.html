@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Preact SSR hydration contract</title>
+  </head>
+  <body>
+    <main>
+      <div id="ssr-host"><button type="button">Server label</button></div>
+      <output id="ssr-status" data-ready="false">starting</output>
+    </main>
+    <script type="module" src="./ssr-browser.ts"></script>
+  </body>
+</html>
