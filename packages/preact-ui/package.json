@@ -54,7 +54,8 @@
     "build:standalone": "vite build --config vite.standalone.config.ts",
     "sync:standalone": "node scripts/sync-standalone.mjs",
     "test:native": "tsc --ignoreConfig src/ownership.ts src/disposal-scope.ts --target ES2022 --module ES2022 --moduleResolution Bundler --lib ES2022,DOM,DOM.Iterable --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --outDir .native-check && node --test test/native-contract.test.mjs",
-    "test:browser": "pnpm build && pnpm build:standalone && pnpm sync:standalone && node test/browser-contract.test.mjs"
+    "test:browser": "pnpm build && pnpm build:standalone && pnpm sync:standalone && node test/browser-contract.test.mjs",
+    "test:browser:cross": "node test/browser-cross-contract.test.mjs"
   },
   "dependencies": {
     "@context-action/preact": "workspace:*"
