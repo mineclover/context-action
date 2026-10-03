@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.1.1] (2026-10-04)
+
+### Documentation & Verification
+
+- Comprehensive README hardening detailing DOM root boundaries, subtree lifecycle rules, and integration guides.
+- Explicit documentation of conditional peer dependencies (`react` for `./react-bridge`, `preact-render-to-string` for `./ssr`).
+- Depend on `@context-action/preact@^0.1.1` and publish after that package in the protected Preact release cohort.
+
 ## [0.1.0] (2026-10-02)
 
 ### Public preview

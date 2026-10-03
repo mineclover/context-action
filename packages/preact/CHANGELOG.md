@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.1.1] (2026-10-04)
+
+### Documentation & Verification
+
+- Comprehensive README hardening with explicit architectural contracts, fine-grained signal projections, and Context-Layered examples.
+- Clarified zero runtime dependency on React or SSR for pure Preact applications.
+
 ## [0.1.0] (2026-10-02)
 
 ### Public preview

@@ -5,15 +5,15 @@
   "candidateDistTag": "next",
   "promotionDistTag": "latest",
   "packages": {
-    "@context-action/preact": "0.1.0",
-    "@context-action/preact-ui": "0.1.0"
+    "@context-action/preact": "0.1.1",
+    "@context-action/preact-ui": "0.1.1"
   },
   "dependencies": {
     "@context-action/preact": {
       "@context-action/core": "^1.2.6"
     },
     "@context-action/preact-ui": {
-      "@context-action/preact": "^0.1.0"
+      "@context-action/preact": "^0.1.1"
     }
   },
   "publicationOrder": [
@@ -22,8 +22,8 @@
   ],
   "provenanceBinding": "workflow-release-commit",
   "changelogDates": {
-    "@context-action/preact": "2026-10-02",
-    "@context-action/preact-ui": "2026-10-02"
+    "@context-action/preact": "2026-10-04",
+    "@context-action/preact-ui": "2026-10-04"
   },
   "requiredChecks": [
     "pnpm --filter @context-action/preact type-check",
