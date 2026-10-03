@@ -6,11 +6,11 @@ on:
       publish_auth:
         description: 'npm authentication mode for this public-preview candidate'
         required: true
-        default: oidc
+        default: token
         type: choice
         options:
-          - oidc
           - token
+          - oidc
       release_commit:
         description: 'Approved immutable main commit to publish'
         required: true

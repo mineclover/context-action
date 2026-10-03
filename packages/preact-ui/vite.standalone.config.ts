@@ -6,7 +6,7 @@ export default defineConfig({
     outDir: 'dist-standalone',
     emptyOutDir: true,
     lib: {
-      entry: path.resolve(__dirname, 'examples/projected-order/standalone-entry.ts'),
+      entry: path.resolve(import.meta.dirname, 'examples/projected-order/standalone-entry.ts'),
       name: 'ContextActionOrderWorkspace',
       fileName: (format) => `order-workspace.${format}.js`,
       formats: ['umd', 'iife', 'es'],

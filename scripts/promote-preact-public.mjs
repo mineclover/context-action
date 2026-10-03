@@ -38,13 +38,44 @@ function npmJson(args) {
   }));
 }
 
-function tagValue(name, tag) {
-  const tags = npmJson(['view', name, 'dist-tags', '--json']);
+const registryOrigin = 'https://registry.npmjs.org';
+
+async function tagsFor(name) {
+  // `npm view` reads the package document, whose CDN propagation can lag a
+  // successful dist-tag mutation. Read the dedicated tag document directly
+  // and cache-bust the request so promotion dist-tags are observed from their
+  // authoritative registry route.
+  try {
+    const response = await fetch(
+      `${registryOrigin}/-/package/${encodeURIComponent(name)}/dist-tags?cacheBust=${Date.now()}`,
+      { headers: { accept: 'application/json', 'cache-control': 'no-cache', pragma: 'no-cache' } },
+    );
+    if (response.ok) {
+      const value = await response.json();
+      if (value && typeof value === 'object' && !Array.isArray(value)) return value;
+    }
+  } catch {
+    // fallback to npm view if authoritative fetch fails
+  }
+  return npmJson(['view', name, 'dist-tags', '--json']);
+}
+
+async function tagValue(name, tag) {
+  const tags = await tagsFor(name);
   const value = tags?.[tag];
   if (value !== undefined && typeof value !== 'string') {
     throw new Error(`${name} ${tag} tag is not a string`);
   }
   return value;
+}
+
+async function waitForTagValue(name, tag, expected, attempts = 5, delayMs = 500) {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const value = await tagValue(name, tag);
+    if (value === expected) return value;
+    if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+  return tagValue(name, tag);
 }
 
 function mutateTag(name, version, tag) {
@@ -66,16 +97,16 @@ function removeTag(name, tag) {
 const previous = new Map();
 const changed = [];
 for (const [name, version] of packages) {
-  const candidate = tagValue(name, 'next');
+  const candidate = await tagValue(name, 'next');
   if (candidate !== version) {
     throw new Error(`${name} next tag must resolve to ${version}; received ${candidate ?? 'absent'}`);
   }
-  previous.set(name, tagValue(name, 'latest'));
+  previous.set(name, await tagValue(name, 'latest'));
 }
 
 try {
   for (const [name, version] of packages) {
-    const observedLatest = tagValue(name, 'latest');
+    const observedLatest = await tagValue(name, 'latest');
     if (observedLatest !== previous.get(name)) {
       throw new Error(
         `${name} latest changed after preflight; expected ${previous.get(name) ?? 'absent'}, `
@@ -84,7 +115,8 @@ try {
     }
     mutateTag(name, version, 'latest');
     changed.push(name);
-    if (tagValue(name, 'latest') !== version) {
+    const verifiedLatest = await waitForTagValue(name, 'latest', version);
+    if (verifiedLatest !== version) {
       throw new Error(`${name} latest tag did not resolve to ${version} after mutation`);
     }
   }
@@ -93,12 +125,12 @@ try {
     status: 'promoted',
     releaseCommit,
     workflowEventSha: process.env.GITHUB_SHA ?? null,
-    packages: Object.fromEntries(packages.map(([name, version]) => [name, {
+    packages: Object.fromEntries(await Promise.all(packages.map(async ([name, version]) => [name, {
       version,
       previousLatest: previous.get(name) ?? null,
-      latest: tagValue(name, 'latest'),
-      next: tagValue(name, 'next'),
-    }])),
+      latest: await tagValue(name, 'latest'),
+      next: await tagValue(name, 'next'),
+    }]))),
     promotedAt: new Date().toISOString(),
   };
   await mkdir(path.dirname(path.resolve(repositoryRoot, output)), { recursive: true });
@@ -108,7 +140,7 @@ try {
   for (const name of changed.reverse()) {
     const prior = previous.get(name);
     try {
-      const current = tagValue(name, 'latest');
+      const current = await waitForTagValue(name, 'latest', plan.packages[name], 3, 1000);
       if (current !== plan.packages[name]) {
         console.error(
           `Refusing rollback for ${name}: latest changed to ${current ?? 'absent'} `
