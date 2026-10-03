@@ -9,13 +9,13 @@ const packageDefinitions = [
   {
     name: '@context-action/preact',
     directory: 'packages/preact',
-    expectedVersion: '0.1.0',
+    expectedVersion: '0.1.1',
     dependency: '@context-action/core',
   },
   {
     name: '@context-action/preact-ui',
     directory: 'packages/preact-ui',
-    expectedVersion: '0.1.0',
+    expectedVersion: '0.1.1',
     dependency: '@context-action/preact',
   },
 ];
@@ -134,8 +134,8 @@ async function main() {
       `@context-action/preact must depend on @context-action/core@^${core.version}`);
   }
   if (preactUi) {
-    expect(errors, preactUi.dependencies?.['@context-action/preact'] === '^0.1.0',
-      '@context-action/preact-ui must depend on @context-action/preact@^0.1.0');
+    expect(errors, preactUi.dependencies?.['@context-action/preact'] === '^0.1.1',
+      '@context-action/preact-ui must depend on @context-action/preact@^0.1.1');
   }
 
   let plan = null;

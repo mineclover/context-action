@@ -36,9 +36,21 @@ const REGISTRY = registryIndex !== -1 && args[registryIndex + 1] && !args[regist
   ? args[registryIndex + 1]
   : 'https://registry.npmjs.org';
 
+const versionIndex = args.indexOf('--version');
+const TARGET_VERSION = versionIndex !== -1 && args[versionIndex + 1] && !args[versionIndex + 1].startsWith('--')
+  ? args[versionIndex + 1]
+  : null;
+
+const tagIndex = args.indexOf('--tag');
+const TARGET_TAG = tagIndex !== -1 && args[tagIndex + 1] && !args[tagIndex + 1].startsWith('--')
+  ? args[tagIndex + 1]
+  : null;
+
+const specifier = TARGET_VERSION ? `@${TARGET_VERSION}` : TARGET_TAG ? `@${TARGET_TAG}` : '';
+
 const PACKAGES = [
-  '@context-action/preact@0.1.0',
-  '@context-action/preact-ui@0.1.0',
+  `@context-action/preact${specifier}`,
+  `@context-action/preact-ui${specifier}`,
 ];
 
 const JSDOM_VERSION = 'jsdom@26.1.0';
@@ -154,8 +166,17 @@ async function main() {
     const preactInstalled = run('node', ['-e', 'const fs = require("node:fs"); console.log(JSON.parse(fs.readFileSync("node_modules/@context-action/preact/package.json", "utf8")).version);'], { cwd: sandbox }).trim();
     const preactUiInstalled = run('node', ['-e', 'const fs = require("node:fs"); console.log(JSON.parse(fs.readFileSync("node_modules/@context-action/preact-ui/package.json", "utf8")).version);'], { cwd: sandbox }).trim();
 
-    if (preactInstalled !== '0.1.0') throw new Error(`Expected @context-action/preact 0.1.0, got: ${preactInstalled}`);
-    if (preactUiInstalled !== '0.1.0') throw new Error(`Expected @context-action/preact-ui 0.1.0, got: ${preactUiInstalled}`);
+    if (TARGET_VERSION) {
+      if (preactInstalled !== TARGET_VERSION) throw new Error(`Expected @context-action/preact ${TARGET_VERSION}, got: ${preactInstalled}`);
+      if (preactUiInstalled !== TARGET_VERSION) throw new Error(`Expected @context-action/preact-ui ${TARGET_VERSION}, got: ${preactUiInstalled}`);
+    } else {
+      if (!preactInstalled || !/^\d+\.\d+\.\d+$/u.test(preactInstalled)) {
+        throw new Error(`Invalid installed @context-action/preact version: ${preactInstalled}`);
+      }
+      if (!preactUiInstalled || !/^\d+\.\d+\.\d+$/u.test(preactUiInstalled)) {
+        throw new Error(`Invalid installed @context-action/preact-ui version: ${preactUiInstalled}`);
+      }
+    }
     totalAssertions += 2;
     console.log(`  [PASS] Verified installed package versions: preact@${preactInstalled}, preact-ui@${preactUiInstalled}`);
 
@@ -659,8 +680,8 @@ async function main() {
     console.log(`Total Assertions Passed: ${totalAssertions}`);
     console.log(`Total Execution Time: ${duration}s`);
     console.log(`Verified Packages:`);
-    console.log(`  - @context-action/preact@0.1.0`);
-    console.log(`  - @context-action/preact-ui@0.1.0`);
+    console.log(`  - @context-action/preact@${preactInstalled}`);
+    console.log(`  - @context-action/preact-ui@${preactUiInstalled}`);
     console.log(`Verified Environments:`);
     console.log(`  - Pure Preact client (Node.js + JSDOM)`);
     console.log(`  - Node.js CJS & ESM dual module resolution`);

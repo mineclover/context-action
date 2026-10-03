@@ -1,6 +1,6 @@
 {
   "name": "@context-action/preact-ui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "type": "module",
   "license": "Apache-2.0",
@@ -62,7 +62,7 @@
     "test:browser:cross": "node test/browser-cross-contract.test.mjs"
   },
   "dependencies": {
-    "@context-action/preact": "^0.1.0"
+    "@context-action/preact": "^0.1.1"
   },
   "peerDependencies": {
     "@preact/signals": "^2.11.3",
