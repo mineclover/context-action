@@ -1,2 +1,14 @@
 # OSV Scanner configuration
-# All dependencies have been updated to fixed versions; no active vulnerability exceptions configured.
+#
+# Scoped exceptions for upstream transitive toolchain/build dependencies without fixed releases.
+# Re-evaluate when fixed releases are published upstream.
+
+[[IgnoredVulns]]
+id = "GHSA-vfj7-8cjw-p6xm"
+ignoreUntil = 2026-10-31
+reason = "braces 3.0.3 stack-exhaustion DoS has no upstream fixed version; transitive dev dependency via chokidar/fast-glob/tailwindcss. Re-evaluate when upstream releases a fix."
+
+[[IgnoredVulns]]
+id = "GHSA-ch52-4w7c-c8xp"
+ignoreUntil = 2026-10-31
+reason = "http-cache-semantics 4.2.0 max-stale handling has no upstream fixed version; transitive toolchain dependency via lerna/make-fetch-happen. Re-evaluate when upstream releases a fix."
