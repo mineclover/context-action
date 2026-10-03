@@ -363,15 +363,22 @@ function publishScopedPackages() {
 
   function ensureDistTag(manifest, packageDirectory) {
     let tags;
-    const attempts = 12;
+    const attempts = 18;
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
       const tagsResult = commandSucceeded(
         'npm',
         ['view', manifest.name, 'dist-tags', '--json', '--registry=https://registry.npmjs.org'],
       );
-      if (tagsResult) {
-        tags = JSON.parse(tagsResult.stdout);
-        break;
+      if (tagsResult?.stdout) {
+        try {
+          const parsed = JSON.parse(tagsResult.stdout);
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            tags = parsed;
+            break;
+          }
+        } catch {
+          // Ignore parsing failure due to registry response buffering/replication lag
+        }
       }
       if (attempt < attempts) {
         process.stdout.write(`Waiting for npm dist-tags (${attempt}/${attempts - 1})...\n`);
