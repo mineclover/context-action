@@ -88,7 +88,13 @@ try {
     dependencies: Object.fromEntries(packages),
   }, null, 2)}\n`);
   await npmInstall(temporaryDirectory);
-  const audit = JSON.parse(run('npm', ['audit', 'signatures', '--json', '--include-attestations'], temporaryDirectory));
+  const audit = JSON.parse(await retryTransientRegistryVisibility(async () => {
+    return run('npm', ['audit', 'signatures', '--json', '--include-attestations'], temporaryDirectory);
+  }, {
+    onRetry: ({ attempt, nextAttempt, delay }) => {
+      console.warn(`npm audit signatures propagation returned ETARGET; retrying in ${delay}ms (attempt ${nextAttempt})`);
+    },
+  }));
   if ((audit.invalid?.length ?? 0) > 0 || (audit.missing?.length ?? 0) > 0) {
     throw new Error('npm audit signatures reported invalid or missing attestations');
   }
