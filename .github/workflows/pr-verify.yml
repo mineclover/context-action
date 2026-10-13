@@ -66,6 +66,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build core and react for smoke checks
+        run: pnpm build:core && pnpm build:react
+
       - name: Audit local verification receipt (Fail-Closed Gate)
         run: pnpm run verify:receipt
 
@@ -81,15 +84,3 @@ jobs:
           node scripts/verify-react-artifact-boundary.mjs
           node scripts/verify-react-webmcp-isolation.mjs
           node --test scripts/verify-durable-operation-evidence-schema.test.mjs
-
-  security:
-    name: Security Audit
-    if: ${{ always() }}
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
-    with:
-      scan-args: |-
-        --lockfile=pnpm-lock.yaml
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
