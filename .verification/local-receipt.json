@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "local-verification-receipt/v1",
+  "timestamp": "2026-10-13T06:20:27.478Z",
+  "commitSha": "5237df1e6c67fc5964596d0abcda631b98f580b5",
+  "branch": "feat/issue-50-local-first-verification-gate",
+  "toolchain": {
+    "node": "v24.20.0",
+    "pnpm": "10.30.3",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "inputDigest": "sha256:5c1588fd6ab3efb97f34b19b3750317422cad0182703b5e3497352d016361991",
+  "suites": [
+    {
+      "name": "1. Monorepo Typecheck (13 projects)",
+      "durationSec": 10.37,
+      "status": "passed"
+    },
+    {
+      "name": "2. Workspace Package Boundaries Check",
+      "durationSec": 0.86,
+      "status": "passed"
+    },
+    {
+      "name": "3. Context-Action Conventions & Catalog Check",
+      "durationSec": 1.98,
+      "status": "passed"
+    },
+    {
+      "name": "4. Core & React Artifact Parity / Isolation",
+      "durationSec": 0.07,
+      "status": "passed"
+    },
+    {
+      "name": "5. React Production Artifact Boundary",
+      "durationSec": 0.04,
+      "status": "passed"
+    },
+    {
+      "name": "6. React WebMCP Isolation",
+      "durationSec": 0.03,
+      "status": "passed"
+    },
+    {
+      "name": "7. Durable Operations Evidence Schema Test",
+      "durationSec": 0.28,
+      "status": "passed"
+    }
+  ],
+  "status": "passed",
+  "receiptDigest": "sha256:6ae982df05d059105dac9f659353c2c3d77d78da46a6deceacc1b8a2ff04d3f9"
+}
