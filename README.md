@@ -840,6 +840,7 @@ pnpm dev  # Start example app
 ```
 
 ### Project Resources
+- **[📋 Local-First Verification Policy](./docs/LOCAL_FIRST_VERIFICATION_POLICY.md)** - Local-first verification & receipt contract (`pnpm verify:quick`)
 - **[🤝 Contributing Guide](./CONTRIBUTING.md)** - How to contribute
 - **[🌐 Ecosystem](./ECOSYSTEM.md)** - Tools and generators  
 - **[🛠️ Development Guide](./DEVELOPMENT.md)** - Detailed development setup

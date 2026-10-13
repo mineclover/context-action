@@ -75,8 +75,9 @@ pnpm install
 # 4. Build all packages
 pnpm build
 
-# 5. Run tests to verify setup
-pnpm test
+# 5. Run tests and local verification to verify setup
+pnpm verify:quick  # Fast local smoke verification and receipt check (~15s)
+pnpm test          # Run package test suites
 
 # 6. Start development server
 pnpm dev  # Opens example app at http://localhost:5173
@@ -199,6 +200,11 @@ pnpm test ActionRegister.test.ts
 
 ### Quality Commands
 ```bash
+# Local-First verification (Issue #50, #53)
+pnpm verify:quick      # Fast smoke verification (~15s) & receipt generation
+pnpm verify            # Full 13-suite repository verification (~80s)
+pnpm verify:receipt    # Audit local verification receipt (<0.1s, fail-closed)
+
 # Run linting
 pnpm lint
 

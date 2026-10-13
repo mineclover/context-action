@@ -209,6 +209,11 @@ function App() {
 
 ### Root Level Commands
 ```bash
+# Local-First Verification System (Issue #50, #53)
+pnpm verify            # Full repository verification suite (~80s)
+pnpm verify:quick      # Fast smoke verification suite (~15s)
+pnpm verify:receipt    # Cryptographic receipt audit (<0.1s, fail-closed)
+
 # Install dependencies
 pnpm install
 
@@ -502,6 +507,13 @@ pnpm type-check    # TypeScript check
 
 ## Testing Strategy
 
+- **Local-First Verification**: Centralized single local entrypoints (`pnpm verify`,
+  `pnpm verify:quick`, `pnpm verify:receipt`) backed by cryptographic RFC 8785
+  local execution receipts (`.verification/local-receipt.json`).
+  PRs run lightweight contract and security smoke in ~1m with zero service container
+  overhead (`.github/workflows/pr-verify.yml`), while full Redis/PostgreSQL durable
+  backends and release suites are preserved on `main` merge pushes and release gates.
+  See [`docs/LOCAL_FIRST_VERIFICATION_POLICY.md`](docs/LOCAL_FIRST_VERIFICATION_POLICY.md).
 - **Unit and integration tests**: Jest, Vitest, and Node test suites according
   to each package contract
 - **Type checking**: strict source and test TypeScript projects
