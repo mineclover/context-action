@@ -1,6 +1,10 @@
 import { signal } from '@preact/signals';
 import type { ReadonlySignal } from '@preact/signals';
-import { definePreactElement } from '../../src/custom-element.js';
+import {
+  definePreactElement,
+  type ManagedPreactElement,
+  type PreactCustomElementConstructor,
+} from '../../src/custom-element.js';
 
 interface Input {
   count: ReadonlySignal<number>;
@@ -8,11 +12,13 @@ interface Input {
   increment(): void;
 }
 
-export interface CounterElement extends HTMLElement {
+export interface CounterContract {
   value: number;
   disabled: boolean;
   focusIncrement(): boolean;
 }
+
+export type CounterElement = ManagedPreactElement<Input> & CounterContract;
 
 function CounterView({ input }: { input: Input }) {
   return <div>
@@ -23,8 +29,10 @@ function CounterView({ input }: { input: Input }) {
 }
 
 /** Explicit registration; importing this module does not access HTMLElement. */
-export function defineCounterElement(tagName = 'ca-counter'): { new(): CounterElement } {
-  return definePreactElement({
+export function defineCounterElement(
+  tagName = 'ca-counter',
+): PreactCustomElementConstructor<Input, CounterContract> {
+  return definePreactElement<Input, CounterContract>({
     tagName,
     style: ':host{display:block}button{margin-inline-start:1rem}',
     observedAttributes: ['disabled'],
@@ -33,39 +41,30 @@ export function defineCounterElement(tagName = 'ca-counter'): { new(): CounterEl
       const count = signal(0);
       const disabled = signal(element.hasAttribute('disabled'));
 
-      Object.defineProperties(element, {
-        value: {
-          configurable: true,
-          enumerable: true,
-          get: () => count.peek(),
-          set: (value: number) => {
+      return {
+        view: CounterView,
+        expose: {
+          get value() {
+            return count.peek();
+          },
+          set value(value: number) {
             if (!Number.isFinite(value)) throw new RangeError('value must be finite');
             count.value = value; // Programmatic input does not echo value-change.
           },
-        },
-        disabled: {
-          configurable: true,
-          enumerable: true,
-          get: () => element.hasAttribute('disabled'),
-          set: (value: boolean) => {
+          get disabled() {
+            return element.hasAttribute('disabled');
+          },
+          set disabled(value: boolean) {
             if (typeof value !== 'boolean') throw new TypeError('disabled must be boolean');
             element.toggleAttribute('disabled', value);
           },
-        },
-        focusIncrement: {
-          configurable: true,
-          enumerable: true,
-          value() {
+          focusIncrement() {
             const button = context.root.querySelector<HTMLButtonElement>('button');
             if (!button || button.disabled) return false;
             button.focus();
             return true;
           },
         },
-      });
-
-      return {
-        view: CounterView,
         getInput: () => ({
           count,
           disabled,
@@ -82,5 +81,5 @@ export function defineCounterElement(tagName = 'ca-counter'): { new(): CounterEl
         },
       };
     },
-  }) as unknown as { new(): CounterElement };
+  });
 }

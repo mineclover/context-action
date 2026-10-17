@@ -146,7 +146,7 @@ describe('Modular Signals & Multi-Web-Component Integration', () => {
     stepper.remove();
     stepper.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
     expect(stepper.getAttribute('aria-valuenow')).toBe('1');
-    (stepper as HTMLElement & { dispose(): void }).dispose();
+    stepper.dispose();
     expect(stepper.getAttribute('role')).toBeNull();
     expect(stepper.tabIndex).toBe(-1);
   });

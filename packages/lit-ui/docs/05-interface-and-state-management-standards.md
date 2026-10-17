@@ -89,7 +89,7 @@ private emitQuantityChange(nextVal: number): void {
 
 1. **명시적 가시성 (Public Exposure)**:
    - 클래스 기반(Lit)의 경우 `public` 메서드로 선언합니다.
-   - Preact의 경우 `setup()` 시점에 `element.methodName = ...` 형태로 인스턴스에 명시적으로 바인딩합니다.
+   - Preact(`@context-action/preact-ui`)의 경우 `definePreactElement<Input, Expose>`의 `setup()` 반환 객체에서 `expose: { ... }` 프로퍼티 디스크립터로 선언적으로 노출합니다 (`Object.defineProperties` 수동 호출이나 `as unknown as` 캐스팅 불필요, 예약된 `HTMLElement`/FACE 키 충돌 자동 차단).
 2. **부수 효과 제어 옵션 (Options Pattern)**:
    - 프로그래밍 방식으로 값을 변경할 때 이벤트 발생 여부를 호출자가 제어할 수 있도록 옵션 파라미터를 제공합니다.
 3. **표준 폼 유효성 메서드**:
@@ -110,9 +110,9 @@ public setValue(nextValue: number, options?: { dispatchEvents?: boolean }): void
 
 ---
 
-### 2.4 React 18/19 호스트 연동 브리지 (`createLitElementBridge`)
+### 2.4 React 18/19 호스트 연동 브리지 (`createLitElementBridge` / `createCustomElementBridge`)
 
-React 호스트 환경에서 웹 컴포넌트를 소비할 때는 리액트의 속성 직렬화 한계(`[object Object]`)를 우회하는 브리지를 제공해야 합니다.
+React 호스트 환경에서 웹 컴포넌트를 소비할 때는 리액트의 속성 직렬화 한계(`[object Object]`)를 우회하는 브리지를 제공해야 합니다. 특히 부모 컴포넌트가 `ref`를 사용할 때 원시 `HTMLElement`나 `shadowRoot`가 노출되지 않도록 `createHandle` / `createElementFacade`를 통해 OOP 도메인 핸들만 캡슐화하여 노출할 수 있습니다.
 
 ```tsx
 // 컴포넌트 브리지 정의 표준

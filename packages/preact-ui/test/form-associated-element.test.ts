@@ -212,17 +212,20 @@ describe('Form-Associated Custom Elements (FACE)', () => {
     element.value = 'pre-upgrade';
 
     let reads = 0;
-    const FaceTag = definePreactElement({
+    const FaceTag = definePreactElement<undefined, { value: string }>({
       tagName: tag,
       upgradeProperties: ['value'],
       setup(owner) {
-        Object.defineProperty(owner, 'value', {
-          configurable: true,
-          get: () => 'live',
-          set: () => (owner as HTMLElement & { dispose(): void }).dispose(),
-        });
         return {
           view: () => h('span', null, 'should-not-mount'),
+          expose: {
+            get value() {
+              return 'live';
+            },
+            set value(_next: string) {
+              (owner as HTMLElement & { dispose(): void }).dispose();
+            },
+          },
           getInput: () => {
             reads += 1;
             return undefined;

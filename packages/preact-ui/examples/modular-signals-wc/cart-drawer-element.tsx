@@ -1,4 +1,18 @@
+/**
+ * @module cart-drawer-element
+ *
+ * Purpose:
+ *   Defines `<cart-drawer>`, an independent Shadow DOM Custom Element that
+ *   projects the shared Tier-3 cart signals (`cartItemsSignal`, `cartItemCountSignal`,
+ *   `cartGrandTotalSignal`) and dispatches pure domain intents (`removeProductFromCart`,
+ *   `clearCart`) and composed `cart-checkout` events.
+ *
+ * Invariants:
+ *   - Never duplicates domain state into local component state (SSOT).
+ *   - Emits `cart-checkout` with `{ bubbles: true, composed: true }` only on user checkout click.
+ */
 import { definePreactElement } from '../../src/custom-element.js';
+import type { ManagedPreactElement, PreactCustomElementConstructor } from '../../src/custom-element.js';
 import {
   cartGrandTotalSignal,
   cartItemCountSignal,
@@ -6,9 +20,19 @@ import {
   clearCart,
   removeProductFromCart,
 } from './shared-cart-signal.js';
+import type { CartProduct } from './shared-cart-signal.js';
 
-export function defineCartDrawerElement(tagName = 'cart-drawer'): CustomElementConstructor {
-  return definePreactElement({
+export interface CartCheckoutEventDetail {
+  readonly items: readonly CartProduct[];
+  readonly total: string;
+}
+
+export type CartDrawerElement = ManagedPreactElement<undefined>;
+
+export function defineCartDrawerElement(
+  tagName = 'cart-drawer',
+): PreactCustomElementConstructor<undefined> {
+  return definePreactElement<undefined>({
     tagName,
     style: `
       :host {

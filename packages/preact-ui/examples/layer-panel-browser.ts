@@ -12,7 +12,9 @@ const pending = document.querySelector('pre-layer-panel') as HTMLElement & {
 pending.items = items;
 pending.selectedId = 'one';
 const Panel = defineLayerPanel('pre-layer-panel');
-const customPanel = pending as unknown as InstanceType<typeof Panel>;
+// customElements.define() upgrades connected instances synchronously.
+if (!(pending instanceof Panel)) throw new Error('pre-layer-panel was not upgraded on define');
+const customPanel = pending;
 const requestIds: string[] = [];
 customPanel.addEventListener('selection-request', event => {
   requestIds.push((event as CustomEvent<{ id: string }>).detail.id);
