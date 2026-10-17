@@ -43,22 +43,28 @@ export interface DebugConfig {
   };
 }
 
+// Published artifacts inline NODE_ENV at build time (see tsdown.config.ts `env`),
+// so this guard only matters for source-level consumers (tests, workspace
+// aliases, unbundled ESM) that evaluate this module without a `process` global.
+const isDevEnvironment =
+  typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
+
 /**
  * Default debug configuration
  * In production, all debug output is disabled by default
  */
 const defaultConfig: DebugConfig = {
-  enabled: process.env.NODE_ENV === 'development',
+  enabled: isDevEnvironment,
   features: {
-    actions: process.env.NODE_ENV === 'development',
+    actions: isDevEnvironment,
     stores: false,
     computed: false,
     performance: false,
-    errors: process.env.NODE_ENV === 'development',
+    errors: isDevEnvironment,
     refs: false,
     immutability: false
   },
-  logLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'error',
+  logLevel: isDevEnvironment ? 'debug' : 'error',
   logger: undefined
 };
 
@@ -206,14 +212,19 @@ export const debugLog = {
  * Automatically configures debug settings based on environment variables
  */
 export function configureDebugForEnvironment(): void {
+  const env = typeof process !== 'undefined' ? process.env : undefined;
+  if (!env) {
+    return;
+  }
+
   // Check for environment variables
-  const debugEnabled = process.env.REACT_APP_DEBUG === 'true' || 
-                       process.env.NEXT_PUBLIC_DEBUG === 'true' ||
-                       process.env.VITE_DEBUG === 'true';
+  const debugEnabled = env.REACT_APP_DEBUG === 'true' || 
+                       env.NEXT_PUBLIC_DEBUG === 'true' ||
+                       env.VITE_DEBUG === 'true';
   
-  const debugFeatures = process.env.REACT_APP_DEBUG_FEATURES || 
-                        process.env.NEXT_PUBLIC_DEBUG_FEATURES ||
-                        process.env.VITE_DEBUG_FEATURES;
+  const debugFeatures = env.REACT_APP_DEBUG_FEATURES || 
+                        env.NEXT_PUBLIC_DEBUG_FEATURES ||
+                        env.VITE_DEBUG_FEATURES;
   
   if (debugEnabled !== undefined) {
     setDebugConfig({ enabled: debugEnabled });

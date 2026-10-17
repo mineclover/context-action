@@ -49,6 +49,7 @@ scenario/
 - define Action, Store, and Ref boundaries
 - define initial state
 - compose the state types used across the scenario
+- **Action Intent Domain Separation (`No Mixed Payloads`)**: keep `BusinessActionIntent` (server/storage persistence mutations, core business state machine transitions, MCP tool dispatches) physically separated from `LayoutActionIntent` (split dock toggles, panel resizing, canvas zoom/pan, active tab switching, and local viewport chrome) ([Unified Triad Self-Serve Sync Guide](./triad-evidence-sync-guide.md))
 
 ### `business/`
 
@@ -61,8 +62,8 @@ scenario/
 
 Do not put UI wording, DOM focus, or analytics calls here.
 
-> **TypeSpec Evidence Integration (Policy Hopping)**:  
-> Pure validation and state transition functions in `business/` qualify as TypeSpec SSOT runtime policy targets ([CA-SPEC-EVIDENCE-001](./decisions/CA-SPEC-EVIDENCE-001.md)). Core domain functions lock their AST contracts using `@evidenceReview specs/*.tsp#Policy #hash`.
+> **TypeSpec Evidence Integration (Policy Hopping — `ttsc@0.33.1` / `@wrtnlabs/evidence@0.8.0`)**:  
+> Pure validation and state transition functions in `business/` qualify as TypeSpec SSOT runtime policy targets ([CA-SPEC-EVIDENCE-001](./decisions/CA-SPEC-EVIDENCE-001.md), [Unified Triad Self-Serve Sync Guide](./triad-evidence-sync-guide.md)). Core domain functions lock their AST contracts against generated declarations using `@evidenceReview ./generated/dto.ts#Policy #hash`, multi-line Heading-Form annotations (`## @evidence`, `## @evidenceReview`), or detached `evidenceFiles` (`evidence/**/*.md`).
 
 ### `handlers/`
 
@@ -70,6 +71,7 @@ Do not put UI wording, DOM focus, or analytics calls here.
 - call pure `business` functions
 - apply state-machine transitions
 - orchestrate side effects such as ref focus, scroll, and logging
+- when hydrating decoupled storage aspects (`@entityRoot` + `@aspectOf`), use `Promise.allSettled` in parallel so optional aspect failures degrade gracefully (`degraded: true` / `null`) without blocking the core view
 
 Split handlers by concern:
 
@@ -94,9 +96,10 @@ Every handler, including a single-handler feature, is registered through the dom
 
 - render state and forward user intent only
 - do not embed validation rules, result calculation, or workflow transitions
+- complex workspace surfaces follow the **6-Level layout hierarchy** (`L1 app-shell` $\to$ parallel siblings `L2 page-canvas` & `L3 dock-panel` $\to$ `L4 slot-panel` $\to$ `L5 section-card` $\to$ `L6 floating-overlay`), **Two Golden Rules** (Component Slot Decomposition and Viewport Geometry Isolation), and **4-Tier Semantic Z-Index** tokens (`--z-base: 1` through `--z-toast: 1100`, no magic numbers)
 
-> **Tier 3 Presentation State Waiver**:  
-> View-internal presentation flags (modal open/close `isOpen`, dropdown focus, tab index, etc.) are explicitly excluded from TypeSpec modeling and Evidence tracking. Keep them inside component-local `useState` or `ref` Contexts.
+> **Tier 3 Presentation State Waiver & File-Header `@evidenceExclude`**:  
+> View-internal presentation flags (modal open/close `isOpen`, dropdown focus, tab index, etc.) are explicitly excluded from TypeSpec modeling and Evidence tracking. Keep them inside component-local `useState` or `ref` Contexts, and place `@evidenceExclude` in the top-of-file comment of `views/` modules to exempt all declarations in the file.
 
 ## Structural Convention Gate
 
@@ -219,4 +222,6 @@ When you add a new scenario, update at least:
 - [Canonical Order Form Example](/en/examples/canonical-order-form)
 - [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
 - [Stability Test Cycle](/en/context-layered/stability-test-cycle)
-- repo-local skill: `skills/context-action-implementation-playbook/SKILL.md`
+- [Unified Triad (`ttsc-ex` · `oa-sdk`) Responsibility Split and Self-Serve Sync Guide](/en/context-layered/triad-evidence-sync-guide)
+- [CA-SPEC-EVIDENCE-001: TypeSpec Evidence Integration and Frontend State Tiering Governance](/en/context-layered/decisions/CA-SPEC-EVIDENCE-001)
+- repo-local skills: `.agents/skills/context-action-implementation-playbook/SKILL.md`, `skills/context-action-implementation-playbook/SKILL.md`

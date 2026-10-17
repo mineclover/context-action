@@ -13,6 +13,7 @@
 | 공개 가이드, API 참조, README 경로, 생성 문서 | [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions) | `pnpm docs:check` |
 | 지속되는 아키텍처 경계 또는 compatibility 예외 | [아키텍처 결정 기록](/ko/context-layered/decisions/) | 연결된 package/guide와 집중 증거 |
 | 기능, 버그, workflow 계약 | [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention) | 변경 분류에 맞는 gate |
+| `ttsc-ex` · `oa-sdk` 계약 잠금, 인텐트 분리, 레이아웃 위계 동기화 | [통합 트라이어드 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide) | `pnpm docs:management && pnpm llms:check && pnpm convention:check` |
 | canonical example/usecase | [Implementation Convention](/ko/context-layered/implementation-convention) | `pnpm convention:check`와 example check |
 
 릴리스 후보에는 `pnpm verify:all`을 사용합니다. 이 명령은 저장소 검사를
@@ -37,7 +38,9 @@
 - [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
   - 이슈 lifecycle, 계약 추적, decision record, handoff 증거
 - [아키텍처 결정 기록](/ko/context-layered/decisions/)
-  - package, protocol, persistence, compatibility 결정을 위한 지속 위치와 형식
+  - package, protocol, persistence, compatibility 결정을 위한 지속 위치와 형식 ([CA-SPEC-EVIDENCE-001](/ko/context-layered/decisions/CA-SPEC-EVIDENCE-001) 포함)
+- [통합 트라이어드(`ttsc-ex` · `oa-sdk`) 책임 분리 및 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide)
+  - 3대 워크스페이스 책임 경계, 생성 계약 `@evidenceReview` 잠금, 인텐트 분리 및 자율 Pull 절차
 - [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
   - tool registry, policy, workspace mutation, observable subscription, live preview 경계
 - [패널 레이아웃 Preference 컨벤션](/ko/context-layered/usecase-panel-layout)
@@ -104,8 +107,9 @@ build·filesystem·provider·preview·browser release 검사는
 
 1. [Implementation Convention](/ko/context-layered/implementation-convention)
 2. [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
-3. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
-4. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
+3. [통합 트라이어드(`ttsc-ex` · `oa-sdk`) 책임 분리 및 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide)
+4. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
+5. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 
 여러 Store를 변경하는 stateful action은 [Core Action
 Contracts](../../../packages/core/docs/action-contracts.md)와 [React State
@@ -124,7 +128,8 @@ participant를 가진 transaction을 시작합니다.
 
 1. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
 2. [Implementation Convention](/ko/context-layered/implementation-convention)
-3. repo-local skill: `skills/context-action-implementation-playbook/SKILL.md`
+3. [통합 트라이어드 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide)
+4. repo-local skills: `.agents/skills/context-action-implementation-playbook/SKILL.md`, `skills/context-action-implementation-playbook/SKILL.md`
 
 ### Tool-calling web studio 설계용
 

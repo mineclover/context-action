@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { act } from 'preact/test-utils';
-import { defineOrderWorkspaceElement } from '../examples/projected-order/order-element.js';
+import {
+  createOrderWorkspaceHandle,
+  defineOrderWorkspaceElement,
+} from '../examples/projected-order/order-element.js';
 
 describe('<order-workspace> Web Component contract', () => {
   let cleanups: Array<() => void> = [];
@@ -13,11 +16,7 @@ describe('<order-workspace> Web Component contract', () => {
 
   it('mounts into Shadow DOM and binds attributes to inputs', async () => {
     const Tag = defineOrderWorkspaceElement('test-order-workspace-1');
-    const element = new Tag() as HTMLElement & {
-      customerName: string;
-      shippingAddress: string;
-      dispose(): void;
-    };
+    const element = new Tag();
     cleanups.push(() => element.dispose());
 
     element.setAttribute('customer-name', 'Lee Soon Shin');
@@ -38,11 +37,7 @@ describe('<order-workspace> Web Component contract', () => {
 
   it('dispatches order-change events when items are added imperatively', async () => {
     const Tag = defineOrderWorkspaceElement('test-order-workspace-2');
-    const element = new Tag() as HTMLElement & {
-      addItem: (item: { id: string; name: string; unitPrice: number; quantity: number }) => Promise<void>;
-      items: ReadonlyArray<{ id: string; quantity: number }>;
-      dispose(): void;
-    };
+    const element = new Tag();
     cleanups.push(() => element.dispose());
     document.body.append(element);
 
@@ -78,19 +73,14 @@ describe('<order-workspace> Web Component contract', () => {
 
   it('validates public string properties and returns defensive item snapshots', async () => {
     const Tag = defineOrderWorkspaceElement('test-order-workspace-public-contract');
-    const element = new Tag() as HTMLElement & {
-      customerName: string;
-      items: ReadonlyArray<{ id: string; quantity: number }>;
-      addItem: (item: { id: string; name: string; unitPrice: number; quantity: number }) => Promise<void>;
-      dispose(): void;
-    };
+    const element = new Tag();
     cleanups.push(() => element.dispose());
     document.body.append(element);
 
     await act(async () => {
       await element.addItem({ id: 'defensive', name: 'Defensive', unitPrice: 10, quantity: 2 });
     });
-    const items = element.items as Array<{ id: string; quantity: number }>;
+    const items = element.items as unknown as Array<{ id: string; quantity: number }>;
     expect(() => { items[0]!.quantity = 77; }).toThrow(TypeError);
     expect(element.items[0]?.quantity).toBe(2);
 
@@ -100,11 +90,7 @@ describe('<order-workspace> Web Component contract', () => {
 
   it('preserves model state across DOM disconnection and reconnection', async () => {
     const Tag = defineOrderWorkspaceElement('test-order-workspace-3');
-    const element = new Tag() as HTMLElement & {
-      customerName: string;
-      addItem: (item: { id: string; name: string; unitPrice: number; quantity: number }) => Promise<void>;
-      dispose(): void;
-    };
+    const element = new Tag();
     cleanups.push(() => element.dispose());
     document.body.append(element);
 
@@ -138,10 +124,7 @@ describe('<order-workspace> Web Component contract', () => {
 
   it('stops connection events while disconnected and resumes from the latest snapshot', async () => {
     const Tag = defineOrderWorkspaceElement('test-order-workspace-4');
-    const element = new Tag() as HTMLElement & {
-      addItem: (item: { id: string; name: string; unitPrice: number; quantity: number }) => Promise<void>;
-      dispose(): void;
-    };
+    const element = new Tag();
     cleanups.push(() => element.dispose());
     let changes = 0;
     element.addEventListener('order-change', () => { changes += 1; });
@@ -201,5 +184,66 @@ describe('<order-workspace> Web Component contract', () => {
 
     expect(orderIds).toHaveLength(1);
     expect(orderIds[0]).toMatch(/^ORD-/);
+  });
+
+  it('exposes an encapsulated OOP handle with snapshot queries and command methods', async () => {
+    const Tag = defineOrderWorkspaceElement('test-order-workspace-oop-handle');
+    const element = new Tag();
+    document.body.append(element);
+    cleanups.push(() => element.dispose());
+
+    const handle = createOrderWorkspaceHandle(() => element);
+
+    expect(handle instanceof HTMLElement).toBe(false);
+    expect('shadowRoot' in handle).toBe(false);
+    expect(Object.isFrozen(handle)).toBe(true);
+    expect(handle.submit).toBe(handle.submit);
+    expect(() => {
+      (handle as unknown as { items: unknown }).items = [];
+    }).toThrow(TypeError);
+
+    expect(handle.canSubmit()).toBe(false);
+    expect(element.canSubmit()).toBe(false);
+
+    await act(async () => {
+      handle.customerName = 'Admiral Yi';
+      handle.shippingAddress = 'Hansando';
+      await handle.addItem({
+        id: 'turtle-ship',
+        name: 'Turtle Ship Blueprint',
+        unitPrice: 120,
+        quantity: 1,
+      });
+    });
+
+    expect(handle.canSubmit()).toBe(true);
+    expect(element.canSubmit()).toBe(true);
+
+    const beforeSubmit = handle.getSnapshot();
+    expect(Object.isFrozen(beforeSubmit)).toBe(true);
+    expect(Object.isFrozen(beforeSubmit.items)).toBe(true);
+    expect(beforeSubmit).toEqual({
+      customerName: 'Admiral Yi',
+      shippingAddress: 'Hansando',
+      items: [
+        {
+          id: 'turtle-ship',
+          name: 'Turtle Ship Blueprint',
+          unitPrice: 120,
+          quantity: 1,
+        },
+      ],
+      phase: 'idle',
+      canSubmit: true,
+    });
+
+    await act(async () => {
+      await handle.submit();
+    });
+
+    const afterSubmit = handle.getSnapshot();
+    expect(afterSubmit.phase).toBe('success');
+    expect(afterSubmit.orderId).toMatch(/^ORD-/);
+    expect(element.getSnapshot().phase).toBe('success');
   });
 });

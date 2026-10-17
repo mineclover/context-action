@@ -1,3 +1,19 @@
+/**
+ * @module disposal-scope
+ *
+ * Purpose:
+ *   Provides a deterministic LIFO resource cleanup container (`DisposalScope`)
+ *   for tying signal connections, event listeners, and DOM mounts to a single
+ *   connection session or controller lifetime (`test:native` standalone).
+ *
+ * Invariants:
+ *   - Disposes registered callbacks in reverse registration order (LIFO) so
+ *     dependent consumers are torn down before their upstream providers.
+ *   - Calling `add(cleanup)` on an already-disposed scope executes `cleanup()`
+ *     immediately so late registrations never leak.
+ *   - Continues executing all remaining cleanups even if one throws, aggregating
+ *     any failures into an `AggregateError`.
+ */
 export interface DisposalScope {
   readonly disposed: boolean;
   add(cleanup: () => void): void;

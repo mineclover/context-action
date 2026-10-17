@@ -49,6 +49,7 @@ scenario/
 - Action, Store, Ref 경계를 정의한다
 - 초기 상태를 둔다
 - 상태 타입은 여기서 import해서 조립한다
+- **액션 인텐트 도메인 이원화 (`No Mixed Payloads`)**: 서버/스토리지 영속성 변이·비즈니스 상태 머신 전이·MCP 도구 호출을 담당하는 `BusinessActionIntent`와 스플릿 독 개폐·패널 리사이즈·캔버스 줌/팬·탭 전환 등 로컬 뷰포트 크롬만 제어하는 `LayoutActionIntent`의 페이로드를 혼합하지 않고 분리한다 ([통합 트라이어드 자율 동기화 가이드](./triad-evidence-sync-guide.md))
 
 ### `business/`
 
@@ -61,8 +62,8 @@ scenario/
 
 문자열 문구, DOM focus, analytics 호출은 넣지 않습니다.
 
-> **TypeSpec Evidence 연동 (Policy Hopping)**:  
-> `business/`의 순수 검증 및 상태 전이 함수는 TypeSpec SSOT의 런타임 정책 타깃([CA-SPEC-EVIDENCE-001](./decisions/CA-SPEC-EVIDENCE-001.md))이 될 수 있습니다. 핵심 비즈니스 로직 함수는 `@evidenceReview specs/*.tsp#Policy #hash` 주석으로 AST 계약을 고정합니다.
+> **TypeSpec Evidence 연동 (Policy Hopping — `ttsc@0.33.1` / `@wrtnlabs/evidence@0.8.0`)**:  
+> `business/`의 순수 검증 및 상태 전이 함수는 TypeSpec SSOT의 런타임 정책 타깃([CA-SPEC-EVIDENCE-001](./decisions/CA-SPEC-EVIDENCE-001.md), [통합 트라이어드 자율 동기화 가이드](./triad-evidence-sync-guide.md))이 될 수 있습니다. 핵심 비즈니스 로직 함수는 생성된 계약 선언(`@evidenceReview ./generated/dto.ts#Policy #hash`), 멀티라인 Heading-Form 주석(`## @evidence`, `## @evidenceReview`), 또는 분리형 증명 문서(`evidenceFiles: ["evidence/**/*.md"]`)로 AST 계약을 고정합니다.
 
 ### `handlers/`
 
@@ -70,6 +71,7 @@ scenario/
 - `business` 순수 함수를 호출한다
 - state machine 전이를 적용한다
 - ref focus, scroll, logging 같은 side effect를 조율한다
+- 분리 저장 관점(`@entityRoot` + `@aspectOf`)을 복원할 때는 `Promise.allSettled`로 병렬 조회하여 일부 부가 애스펙트 실패 시에도 `degraded: true` / `null` 처리와 함께 코어 화면을 블로킹 없이 복원한다
 
 핸들러는 관심사별로 쪼갭니다.
 
@@ -94,9 +96,10 @@ scenario/
 
 - 렌더링과 입력 전달만 담당한다
 - validation 규칙, quote 계산, 상태 전이 로직을 직접 품지 않는다
+- 복합 워크스페이스 화면은 **6-Level 레이아웃 위계**(`L1 app-shell` $\to$ 병렬 형제 `L2 page-canvas` & `L3 dock-panel` $\to$ `L4 slot-panel` $\to$ `L5 section-card` $\to$ `L6 floating-overlay`), **2대 황금률**(컴포넌트 슬롯 분리 및 뷰포트 기하 변환 격리), **4-Tier 시맨틱 Z-Index**(`--z-base: 1` ~ `--z-toast: 1100`, 매직 넘버 금지)를 준수한다
 
-> **프레젠테이션 상태 면제 (Tier 3 Presentation Waiver)**:  
-> 모달 열림/닫힘(`isOpen`), 드롭다운 포커스, 탭 인덱스 등 화면 표출 전용 상태는 TypeSpec 모델링 및 Evidence 추적 대상에서 공식 제외됩니다. 컴포넌트 로컬 상태(`useState`)나 ref를 사용합니다.
+> **프레젠테이션 상태 면제 (Tier 3 Presentation Waiver & 파일 상단 `@evidenceExclude`)**:  
+> 모달 열림/닫힘(`isOpen`), 드롭다운 포커스, 탭 인덱스 등 화면 표출 전용 상태는 TypeSpec 모델링 및 Evidence 추적 대상에서 공식 제외됩니다. 컴포넌트 로컬 상태(`useState`)나 `ref` Context를 사용하며, `views/` 파일 상단에 `@evidenceExclude`를 선언하여 파일 내 모든 선언을 일괄 면제합니다.
 
 ## 구조 컨벤션 게이트
 
@@ -219,4 +222,6 @@ activity log는 화면용 문자열을 바로 push하지 않습니다.
 - [Canonical Order Form 예제](/ko/examples/canonical-order-form)
 - [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
 - [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
-- repo-local skill: `skills/context-action-implementation-playbook/SKILL.md`
+- [통합 트라이어드(`ttsc-ex` · `oa-sdk`) 책임 분리 및 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide)
+- [CA-SPEC-EVIDENCE-001: TypeSpec Evidence 결합 및 프론트엔드 상태 계층화 거버넌스](/ko/context-layered/decisions/CA-SPEC-EVIDENCE-001)
+- repo-local skills: `.agents/skills/context-action-implementation-playbook/SKILL.md`, `skills/context-action-implementation-playbook/SKILL.md`

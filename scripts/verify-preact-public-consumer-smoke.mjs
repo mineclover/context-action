@@ -3,9 +3,15 @@
 /**
  * verify-preact-public-consumer-smoke.mjs
  *
- * Isolated programmatic verification test runner for published Preact cohort:
- *   - @context-action/preact@0.1.0
- *   - @context-action/preact-ui@0.1.0
+ * Isolated programmatic verification test runner for the published Preact cohort
+ * (`@context-action/preact` + `@context-action/preact-ui`).
+ *
+ * Version selection (packages may carry different cohort versions):
+ *   --cohort                     pin both to releases/preact-public-2026-10.json
+ *   --version <v>                shared version for both packages
+ *   --preact-version <v>         override @context-action/preact
+ *   --preact-ui-version <v>      override @context-action/preact-ui
+ *   --tag <dist-tag>             fallback dist-tag when no version is selected
  *
  * Executes completely outside the monorepo workspace in a fresh temporary directory.
  * Connects directly to the public npm registry (https://registry.npmjs.org) to verify:
@@ -18,6 +24,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -36,21 +43,35 @@ const REGISTRY = registryIndex !== -1 && args[registryIndex + 1] && !args[regist
   ? args[registryIndex + 1]
   : 'https://registry.npmjs.org';
 
-const versionIndex = args.indexOf('--version');
-const TARGET_VERSION = versionIndex !== -1 && args[versionIndex + 1] && !args[versionIndex + 1].startsWith('--')
-  ? args[versionIndex + 1]
-  : null;
+const optionValue = (name) => {
+  const index = args.indexOf(name);
+  return index !== -1 && args[index + 1] && !args[index + 1].startsWith('--')
+    ? args[index + 1]
+    : null;
+};
 
-const tagIndex = args.indexOf('--tag');
-const TARGET_TAG = tagIndex !== -1 && args[tagIndex + 1] && !args[tagIndex + 1].startsWith('--')
-  ? args[tagIndex + 1]
+// Cohort packages may carry different versions (e.g. preact 0.1.2 + preact-ui 0.2.0).
+// `--cohort` pins both to the approved release plan; `--version` remains a shared
+// shorthand; per-package flags override either.
+const cohortPlan = args.includes('--cohort')
+  ? JSON.parse(readFileSync(path.join(__dirname, '..', 'releases', 'preact-public-2026-10.json'), 'utf8'))
   : null;
+const SHARED_VERSION = optionValue('--version');
+const TARGET_VERSIONS = {
+  preact: optionValue('--preact-version')
+    ?? cohortPlan?.packages?.['@context-action/preact']
+    ?? SHARED_VERSION,
+  preactUi: optionValue('--preact-ui-version')
+    ?? cohortPlan?.packages?.['@context-action/preact-ui']
+    ?? SHARED_VERSION,
+};
+const TARGET_TAG = optionValue('--tag');
 
-const specifier = TARGET_VERSION ? `@${TARGET_VERSION}` : TARGET_TAG ? `@${TARGET_TAG}` : '';
+const specifierFor = (version) => (version ? `@${version}` : TARGET_TAG ? `@${TARGET_TAG}` : '');
 
 const PACKAGES = [
-  `@context-action/preact${specifier}`,
-  `@context-action/preact-ui${specifier}`,
+  `@context-action/preact${specifierFor(TARGET_VERSIONS.preact)}`,
+  `@context-action/preact-ui${specifierFor(TARGET_VERSIONS.preactUi)}`,
 ];
 
 const JSDOM_VERSION = 'jsdom@26.1.0';
@@ -166,17 +187,15 @@ async function main() {
     const preactInstalled = run('node', ['-e', 'const fs = require("node:fs"); console.log(JSON.parse(fs.readFileSync("node_modules/@context-action/preact/package.json", "utf8")).version);'], { cwd: sandbox }).trim();
     const preactUiInstalled = run('node', ['-e', 'const fs = require("node:fs"); console.log(JSON.parse(fs.readFileSync("node_modules/@context-action/preact-ui/package.json", "utf8")).version);'], { cwd: sandbox }).trim();
 
-    if (TARGET_VERSION) {
-      if (preactInstalled !== TARGET_VERSION) throw new Error(`Expected @context-action/preact ${TARGET_VERSION}, got: ${preactInstalled}`);
-      if (preactUiInstalled !== TARGET_VERSION) throw new Error(`Expected @context-action/preact-ui ${TARGET_VERSION}, got: ${preactUiInstalled}`);
-    } else {
-      if (!preactInstalled || !/^\d+\.\d+\.\d+$/u.test(preactInstalled)) {
-        throw new Error(`Invalid installed @context-action/preact version: ${preactInstalled}`);
+    const assertInstalled = (packageName, installed, expected) => {
+      if (expected) {
+        if (installed !== expected) throw new Error(`Expected ${packageName} ${expected}, got: ${installed}`);
+      } else if (!installed || !/^\d+\.\d+\.\d+$/u.test(installed)) {
+        throw new Error(`Invalid installed ${packageName} version: ${installed}`);
       }
-      if (!preactUiInstalled || !/^\d+\.\d+\.\d+$/u.test(preactUiInstalled)) {
-        throw new Error(`Invalid installed @context-action/preact-ui version: ${preactUiInstalled}`);
-      }
-    }
+    };
+    assertInstalled('@context-action/preact', preactInstalled, TARGET_VERSIONS.preact);
+    assertInstalled('@context-action/preact-ui', preactUiInstalled, TARGET_VERSIONS.preactUi);
     totalAssertions += 2;
     console.log(`  [PASS] Verified installed package versions: preact@${preactInstalled}, preact-ui@${preactUiInstalled}`);
 

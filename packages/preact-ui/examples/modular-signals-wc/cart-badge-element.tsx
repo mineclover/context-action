@@ -1,8 +1,29 @@
+/**
+ * @module cart-badge-element
+ *
+ * Purpose:
+ *   Defines `<cart-badge>`, an independent Shadow DOM Custom Element that binds
+ *   directly to the shared Tier-3 `cartItemCountSignal` text node without
+ *   component-level VDOM re-rendering.
+ *
+ * Invariants:
+ *   - Subscribes to `cartItemCountSignal` via direct JSX signal child binding.
+ *   - Emits `cart-badge-click` with `{ bubbles: true, composed: true }` on user click.
+ */
 import { definePreactElement } from '../../src/custom-element.js';
+import type { ManagedPreactElement, PreactCustomElementConstructor } from '../../src/custom-element.js';
 import { cartItemCountSignal } from './shared-cart-signal.js';
 
-export function defineCartBadgeElement(tagName = 'cart-badge'): CustomElementConstructor {
-  return definePreactElement({
+export interface CartBadgeClickEventDetail {
+  readonly count: number;
+}
+
+export type CartBadgeElement = ManagedPreactElement<undefined>;
+
+export function defineCartBadgeElement(
+  tagName = 'cart-badge',
+): PreactCustomElementConstructor<undefined> {
+  return definePreactElement<undefined>({
     tagName,
     style: `
       :host {

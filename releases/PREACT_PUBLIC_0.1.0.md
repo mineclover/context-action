@@ -1,5 +1,7 @@
 # Preact Public Preview 0.1.0 Release Plan
 
+> Historical plan. New candidates follow [`PREACT_PUBLIC_0.2.0.md`](PREACT_PUBLIC_0.2.0.md).
+
 This plan promotes the Preact adapters from private workspace packages to a
 public 0.1.0 preview cohort. It is independent from the five-package
 state-management cohort in `COORDINATED_STABLE_2026_10.md`.

@@ -1,3 +1,14 @@
+/**
+ * @module ssr
+ *
+ * Purpose:
+ *   Provides a pure server-side HTML string renderer (`createSSR`) for Preact
+ *   views that share the `{ input: Input }` contract with `hydratePreact`.
+ *
+ * Invariants:
+ *   - Never accesses `window`, `document`, or `customElements` so it can run
+ *     in Node/Edge/Worker environments without DOM globals.
+ */
 import { createElement } from 'preact';
 import type { ComponentType } from 'preact';
 import { renderToString } from 'preact-render-to-string';

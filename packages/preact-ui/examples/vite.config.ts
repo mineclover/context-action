@@ -5,6 +5,9 @@ const packageRoot = path.resolve(import.meta.dirname, '..');
 
 export default defineConfig({
   root: import.meta.dirname,
+  build: {
+    emptyOutDir: true,
+  },
   server: {
     fs: {
       allow: [packageRoot],

@@ -1,3 +1,17 @@
+/**
+ * @module source-signal
+ *
+ * Purpose:
+ *   Bridges any snapshot-based `ReadableSource<T>` into a Preact `ReadonlySignal<T>`
+ *   managed by an explicit, deterministic `SignalConnection<T>` lifecycle.
+ *
+ * Invariants:
+ *   - Reads `source.getSnapshot()` inside `untracked()` so external getter logic
+ *     cannot accidentally capture ambient Preact signal tracking contexts.
+ *   - Closes the read-to-subscribe race window by re-reading immediately after
+ *     `source.subscribe(refresh)` and rolling back subscription on error.
+ *   - `dispose()` is idempotent and permanently silences subsequent notifications.
+ */
 import { computed, signal, untracked } from '@preact/signals';
 import type { ReadonlySignal } from '@preact/signals';
 
