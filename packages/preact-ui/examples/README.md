@@ -1,6 +1,6 @@
 # 실행 예제
 
-규칙은 [컨벤션](../docs/01-dom-ownership.md), API 의미는 [API 문서](../docs/03-api.md)가 정본입니다. 이 폴더는 실행 가능한 소비/구현 사례만 관리합니다.
+규칙은 [소유권·생명주기 컨벤션](../docs/01-dom-ownership-and-lifecycle.md), API 의미는 [API 문서](../docs/03-api.md)가 정본입니다. 이 폴더는 실행 가능한 소비/구현 사례만 관리합니다.
 
 ```text
 index.html + main.tsx
@@ -14,7 +14,9 @@ index.html + main.tsx
 │  ├─ projections/                          useOrderProjection (Signal computed 파생 뷰모델)
 │  ├─ actions/                              useOrderActions (Semantic Action Intent 훅)
 │  ├─ views/                                OrderSummaryView + OrderWorkspaceView
-│  ├─ order-element.tsx                     <order-workspace> definePreactElement owner-session adapter
+│  ├─ order-contract.ts                     OrderWorkspaceHandle & createElementFacade OOP 핸들 계약
+│  ├─ order-session.ts                      connection-session 생명주기 및 이벤트 발행 어댑터
+│  ├─ order-element.tsx                     <order-workspace> definePreactElement 등록 쉘
 │  └─ mount-order-workspace.tsx             mountPreact 기반 호스트 마운트 컨트롤러
 ├─ modular-signals-wc/                      모듈식 Signal 공유 & 멀티 Web Component 표준
 │  ├─ shared-cart-signal.ts                 [Level 1] 순수 도메인 시그널 모듈
@@ -46,7 +48,7 @@ domain snapshot이 유지됩니다. FACE quantity stepper는 잘못된
 
 ## 실행
 
-Node 24.11 이상, pnpm 10.30.3 기준입니다. 현재 실행 결과와 남은 검증 범위는 [검증 기록](../docs/04-validation.md)을 확인합니다.
+Node 24.11 이상, pnpm 10.30.3 기준입니다. 검증 보장 범위는 [검증 규약](../docs/06-validation-and-governance.md)을, 릴리즈별 실행 결과는 [검증 이력](../docs/history/validation-history.md)을 확인합니다.
 
 ```sh
 # workspace 검증

@@ -50,11 +50,11 @@ Domain                 : 원본 상태와 업무 규칙 (단일 진실 공급원
 
 `@context-action/preact-ui`는 필요한 환경에 맞게 번들 크기와 의존성을 최소화할 수 있도록 서브패스(Subpath) 진입점별로 선택적(Optional) Peer 의존성을 엄격히 분리하여 제공합니다.
 
-| 진입점 (Entry Point) | 하위 모듈 식별자 | 빌드 산출물 (ESM / CJS) | 필수 의존성 (Required Peers) | 선택적 의존성 (Optional Peers) | 주 사용 목적 및 런타임 특성 |
+| 진입점 (Entry Point) | 하위 모듈 식별자 | 빌드 산출물 (ESM / CJS) | 이 진입점 사용 시 필요한 패키지 | `package.json` 선언 | 주 사용 목적 및 런타임 특성 |
 |---|---|---|---|---|---|
-| **Base** (기본) | `@context-action/preact-ui` | `.`<br>(`./dist/index.js`, `./dist/index.cjs`) | `preact@^10.27.3`<br>`@preact/signals@^2.11.3`<br>`@context-action/preact@^0.1.0` | 없음 | 순수 Preact DOM 마운트, 템플릿 복제, 독립 웹 컴포넌트(FACE), LIFO 자원 정리. **React나 SSR 의존성 없음.** |
-| **React Bridge** | `@context-action/preact-ui/react-bridge` | `./react-bridge`<br>(`./dist/react-bridge.js`, `./dist/react-bridge.cjs`) | Base 의존성 일체 +<br>`react@^18.0.0 \|\| ^19.0.0` | `react` | React 18/19 호스트 애플리케이션에서 커스텀 엘리먼트를 사용하기 위한 브릿지 래퍼 (`createCustomElementBridge`). |
-| **SSR** | `@context-action/preact-ui/ssr` | `./ssr`<br>(`./dist/ssr.js`, `./dist/ssr.cjs`) | Base 의존성 일체 +<br>`preact-render-to-string@^6.7.0` | `preact-render-to-string` | 서버 사이드 문자열 HTML 렌더러 (`createSSR`). **브라우저 전역(`window`, `document`) 접근 없음.** |
+| **Base** (기본) | `@context-action/preact-ui` | `.`<br>(`./dist/index.js`, `./dist/index.cjs`) | `preact@^10.27.3`<br>`@preact/signals@^2.11.3`<br>`@context-action/preact@^0.1.2` | `preact`·`@preact/signals`: 필수 peer<br>`@context-action/preact`: `dependencies` (자동 설치) | 순수 Preact DOM 마운트, 템플릿 복제, 독립 웹 컴포넌트(FACE), OOP Facade(`createElementFacade`), LIFO 자원 정리. **React나 SSR 의존성 없음.** |
+| **React Bridge** | `@context-action/preact-ui/react-bridge` | `./react-bridge`<br>(`./dist/react-bridge.js`, `./dist/react-bridge.cjs`) | `react@^18.0.0 \|\| ^19.0.0` | `react`: optional peer (`peerDependenciesMeta`) | React 18/19 호스트에서 커스텀 엘리먼트 및 OOP Facade(`createCustomElementBridge`, `createElementFacade`)를 사용하기 위한 경량 브릿지. **Preact 런타임 청크 무의존.** |
+| **SSR** | `@context-action/preact-ui/ssr` | `./ssr`<br>(`./dist/ssr.js`, `./dist/ssr.cjs`) | Base 의존성 일체 +<br>`preact-render-to-string@^6.7.0` | `preact-render-to-string`: optional peer (`peerDependenciesMeta`) | 서버 사이드 문자열 HTML 렌더러 (`createSSR`). **브라우저 전역(`window`, `document`) 접근 없음.** |
 
 ### 2.1 설치 안내 (용도별 패키지 관리자 명령어)
 
@@ -111,9 +111,10 @@ npm install @context-action/preact-ui @context-action/preact preact @preact/sign
   - `dispose(): void`: 등록된 정리 콜백들을 역순으로 실행합니다. 실패한 콜백이 있더라도 나머지를 모두 실행한 후 `AggregateError`로 묶어서 보고합니다.
   - `readonly disposed: boolean`: 스코프 해제 상태.
 
-### 3.5 `definePreactElement<Input>(config): CustomElementConstructor`
+### 3.5 `definePreactElement<Input, Expose>(config): PreactCustomElementConstructor<Input, Expose>`
 - **계약**: 표준 웹 컴포넌트(Custom Elements v1) 및 폼 연동 커스텀 엘리먼트(FACE, Form-Associated Custom Elements)를 선언합니다.
 - **주요 기능**:
+  - `expose`: `setup()` 반환 객체의 `expose` 필드에 getter/setter 및 명령 메서드를 선언하면, 수동 `Object.defineProperties`나 타입 단언 없이 인스턴스에 자동 바인딩되며 반환 생성자가 `PreactCustomElementConstructor<Input, Expose>`로 추론됩니다. (`PublicActionMethods`로 내부 `ActionPayloadMap` 중 공개 명령만 추출 가능)
   - `formAssociated: true`: `ElementInternals`를 활성화하여 표준 `<form>`의 유효성 검증(`checkValidity`, `reportValidity`, `setCustomValidity`) 및 제출 값(`setFormValue`)과 연동됩니다.
   - `upgradeProperties`: 커스텀 엘리먼트 등록 이전에 인스턴스에 할당된 초기 프로퍼티 값을 유실 없이 재생합니다.
   - 연결 세션 격리: `connectedCallback`에서 마운트하고 `disconnectedCallback`에서 언마운트하되, 엘리먼트의 필드 값과 도메인 시그널 상태는 인스턴스에 안전하게 유지합니다.
@@ -197,7 +198,11 @@ interface StepperInput {
   disabled: boolean;
 }
 
-export const QuantityStepper = definePreactElement<StepperInput>({
+export interface StepperHandle {
+  value: number;
+}
+
+export const QuantityStepper = definePreactElement<StepperInput, StepperHandle>({
   tagName: 'quantity-stepper',
   formAssociated: true,
   observedAttributes: ['value', 'disabled', 'name'],
@@ -211,7 +216,6 @@ export const QuantityStepper = definePreactElement<StepperInput>({
     const count = signal(1);
     const disabled = signal(false);
 
-    // 폼 값 및 유효성 동기화 헬퍼
     const syncForm = (val: number) => {
       context.setFormValue(String(val));
       if (val < 1) {
@@ -221,9 +225,6 @@ export const QuantityStepper = definePreactElement<StepperInput>({
       }
     };
 
-    syncForm(count.value);
-
-    // Preact 내부 뷰 정의
     const view = ({ input }: { input: StepperInput }) => (
       <div>
         <button
@@ -236,6 +237,7 @@ export const QuantityStepper = definePreactElement<StepperInput>({
             element.dispatchEvent(new CustomEvent('quantity-change', {
               detail: { value: count.value },
               bubbles: true,
+              composed: true,
             }));
           }}
         >
@@ -252,6 +254,7 @@ export const QuantityStepper = definePreactElement<StepperInput>({
             element.dispatchEvent(new CustomEvent('quantity-change', {
               detail: { value: count.value },
               bubbles: true,
+              composed: true,
             }));
           }}
         >
@@ -262,7 +265,21 @@ export const QuantityStepper = definePreactElement<StepperInput>({
 
     return {
       view,
+      expose: {
+        get value() {
+          return count.peek();
+        },
+        set value(next: number) {
+          if (!Number.isFinite(next)) throw new RangeError('value must be finite');
+          count.value = next;
+          if (element.isConnected) syncForm(next);
+          context.requestUpdate();
+        },
+      },
       getInput: () => ({ count: count.value, disabled: disabled.value }),
+      onConnect() {
+        syncForm(count.value);
+      },
       onFormReset() {
         count.value = 1;
         syncForm(1);
@@ -275,7 +292,7 @@ export const QuantityStepper = definePreactElement<StepperInput>({
       onAttributeChange(name, _oldVal, newVal) {
         if (name === 'value' && newVal !== null) {
           count.value = Number.parseInt(newVal, 10) || 1;
-          syncForm(count.value);
+          if (element.isConnected) syncForm(count.value);
           context.requestUpdate();
         }
         if (name === 'disabled') {
@@ -300,26 +317,49 @@ export const QuantityStepper = definePreactElement<StepperInput>({
 
 ---
 
-### 4.3 React 18 / 19 호스트 연동 (`createCustomElementBridge`)
+### 4.3 React 18 / 19 호스트 연동 (`createCustomElementBridge` & `createElementFacade`)
 
-React 호스트 애플리케이션에서 커스텀 엘리먼트를 사용할 때 발생하는 두 가지 고질적 문제(객체/배열 프로퍼티가 문자열 `[object Object]`로 변환되는 문제, 커스텀 이벤트 바인딩 누락)를 해결합니다.
+React 호스트 애플리케이션에서 커스텀 엘리먼트를 사용할 때 발생하는 고질적 문제(객체/배열 프로퍼티가 문자열 `[object Object]`로 변환되는 문제, 커스텀 이벤트 바인딩 누락, 원시 `HTMLElement` 노출로 인한 내부 DOM 캡슐화 파괴)를 해결합니다.
 
 > **주의**: 이 서브패스를 사용하려면 호스트 프로젝트에 `react`가 설치되어 있어야 합니다.
 
 ```tsx
 // ReactOrderBridge.tsx
 import * as React from 'react';
-import { createCustomElementBridge } from '@context-action/preact-ui/react-bridge';
+import {
+  createCustomElementBridge,
+  createElementFacade,
+} from '@context-action/preact-ui/react-bridge';
 
-// 1. 커스텀 엘리먼트 프로퍼티 및 커스텀 이벤트 타입 정의
+// 1. 커스텀 엘리먼트 프로퍼티, 이벤트 및 공개 OOP 핸들(Facade) 타입 정의
+interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+}
+
+interface OrderWorkspaceHandle {
+  customerName: string;
+  readonly items: readonly OrderItem[];
+  addItem(item: OrderItem): Promise<void>;
+  submit(): Promise<void>;
+  reset(): Promise<void>;
+}
+
+type OrderWorkspaceElement = HTMLElement & OrderWorkspaceHandle;
+
 interface OrderBridgeProps {
   customerName?: string;
-  items?: readonly { id: string; name: string; price: number }[];
+  items?: readonly OrderItem[];
   onOrderChange?: (e: CustomEvent<{ total: number }>) => void;
 }
 
-// 2. React 18/19 전용 타입 세이프 브릿지 컴포넌트 생성
-export const ReactOrderBridge = createCustomElementBridge<OrderBridgeProps, HTMLElement>({
+// 2. React 18/19 전용 타입 세이프 브릿지 컴포넌트 생성 (OOP Handle 캡슐화)
+export const ReactOrderBridge = createCustomElementBridge<
+  OrderBridgeProps,
+  OrderWorkspaceElement,
+  OrderWorkspaceHandle
+>({
   tagName: 'order-workspace',
   // DOM 프로퍼티로 직접 할당할 복합 객체 키 목록 (HTML attribute로 변환되지 않음)
   properties: ['items'],
@@ -327,14 +367,19 @@ export const ReactOrderBridge = createCustomElementBridge<OrderBridgeProps, HTML
   events: {
     onOrderChange: 'order-change',
   },
+  // useImperativeHandle을 통해 원시 HTMLElement를 숨기고 도메인 OOP 핸들만 노출
+  createHandle: createElementFacade<
+    OrderWorkspaceElement,
+    readonly (keyof OrderWorkspaceHandle)[]
+  >(['customerName', 'items', 'addItem', 'submit', 'reset']),
 });
 
-// 3. React 부모 컴포넌트에서 일반 React 컴포넌트처럼 사용
+// 3. React 부모 컴포넌트에서 캡슐화된 OOP 핸들과 함께 사용
 export function HostApp() {
-  const [items, setItems] = React.useState([
+  const [items, setItems] = React.useState<readonly OrderItem[]>([
     { id: '1', name: 'Widget A', price: 100 },
   ]);
-  const elementRef = React.useRef<HTMLElement>(null);
+  const orderRef = React.useRef<OrderWorkspaceHandle>(null);
 
   const handleOrderChange = (e: CustomEvent<{ total: number }>) => {
     console.log('총 주문 금액 변경됨:', e.detail.total);
@@ -344,13 +389,16 @@ export function HostApp() {
     <div>
       <h1>React 19 Host Application</h1>
       <ReactOrderBridge
-        ref={elementRef}
+        ref={orderRef}
         customerName="홍길동"
         items={items}
         onOrderChange={handleOrderChange}
       />
       <button onClick={() => setItems(prev => [...prev, { id: '2', name: 'Widget B', price: 200 }])}>
         품목 추가
+      </button>
+      <button onClick={() => void orderRef.current?.submit()}>
+        주문 제출 (OOP Handle)
       </button>
     </div>
   );
@@ -437,47 +485,46 @@ const instance = hydratePreact(rootElement, CounterView, {
 
 | 오류 메시지 / 진단 코드 | 발생 조건 및 상황 | 소스 코드 상의 근본 원인 | 해결 방법 (Actionable Fix) |
 |---|---|---|---|
-| `ERR_MODULE_NOT_FOUND`<br>`Cannot find package 'react'` 또는<br>`Cannot find module 'react'` | `react`가 설치되지 않은 환경에서 `@context-action/preact-ui/react-bridge`를 import한 경우 | `src/react-bridge.ts:1`에서 `react`를 직접 import함 | React 브릿지를 사용할 프로젝트에 React를 설치합니다:<br>`npm install react` 또는 `pnpm add react`.<br>순수 Preact 애플리케이션이라면 `@context-action/preact-ui`(Base)만 import하세요. |
-| `ERR_MODULE_NOT_FOUND`<br>`Cannot find package 'preact-render-to-string'` | `preact-render-to-string`이 없는 환경에서 `@context-action/preact-ui/ssr`을 import한 경우 | `src/ssr.ts:3`에서 `preact-render-to-string`을 직접 import함 | 서버 렌더링 모듈에 의존성을 설치합니다:<br>`npm install preact-render-to-string`.<br>클라이언트 전용 번들에서는 `./ssr`을 import하지 마세요. |
-| `Error: Mount root must be empty; existing DOM is not adopted or hydrated` | 자식 노드(`childNodes`)가 이미 존재하는 엘리먼트에 `mountPreact`를 호출한 경우 | `src/ownership.ts:42-44`<br>`root.hasChildNodes()` 검사 실패 | 마운트 전 컨테이너를 비웁니다 (`container.replaceChildren()`).<br>만약 서버 사이드 렌더링 마크업을 연결하려는 목적이라면 `hydratePreact`를 호출하세요. |
-| `Error: Hydration root must contain server-rendered children` | 자식 노드가 없는 빈 엘리먼트에 `hydratePreact`를 호출한 경우 | `src/ownership.ts:65-67`<br>`!root.hasChildNodes()` 검사 실패 | 하이드레이션 대상 엘리먼트에 서버 렌더링된 HTML이 삽입되었는지 확인하세요. 클라이언트 전용 마운트라면 `mountPreact`를 사용해야 합니다. |
-| `Error: A managed DOM root already owns this light-DOM region` | 이미 다른 `mountPreact`/`hydratePreact`에 의해 관리 중인 Light-DOM 영역의 조상 또는 자손 엘리먼트에 중첩 마운트를 시도한 경우 | `src/ownership.ts:22-31`<br>`assertUnmanagedAncestors` 검사 실패 | 동일한 Light-DOM 트리 내에서 관리 루트를 중첩하지 마세요. 하위 컴포넌트 분리가 필요하다면 Custom Element의 `ShadowRoot` 내부로 격리하세요. |
-| `Error: Template requires exactly one empty [data-preact-root]` | `<template>` 내부에 `[data-preact-root]` 속성을 가진 엘리먼트가 0개이거나 2개 이상인 경우, 또는 해당 루트 엘리먼트에 이미 자식 노드가 존재하는 경우 | `src/template.ts:17-19`<br>루트 엘리먼트 개수 및 빈 상태 검증 실패 | 템플릿 마크업 내부에 내용이 비어 있는 엘리먼트 하나에만 `data-preact-root` 속성을 부여하세요. (예: `<div data-preact-root></div>`). |
-| `Error: Cannot update a destroyed UI boundary` 또는<br>`Cannot update a destroyed hydrated UI boundary` | 이미 `destroy()`가 호출된 인스턴스에 `update(nextInput)`를 호출한 경우 | `src/mount.ts:40`,<br>`src/hydrate.ts:46`<br>`destroyed` 플래그 검사 실패 | `instance.destroyed` 플래그를 확인하여 이미 해제된 뷰에는 업데이트를 호출하지 않도록 방어 로직을 작성하거나, 새 루트에 새로 마운트하세요. |
-| `AggregateError: UI cleanup failed` | `createDisposalScope`의 `dispose()` 호출 중 하나 이상의 정리 콜백 함수가 예외를 발생시킨 경우 | `src/disposal-scope.ts:24`<br>수집된 에러 집계 | `error.errors` 배열을 검사하여 어떤 리소스(구독 해제, 모델 정리 등)에서 예외가 발생했는지 확인하고 해당 정리 콜백 내부의 오류를 수정하세요. |
-| `Error: <tag-name> is already registered` | 브라우저 런타임에 이미 등록된 동일한 태그 이름으로 `definePreactElement`를 다시 실행한 경우 | `src/custom-element.ts:108-110`<br>`customElements.get(tagName)` 중복 검사 | `customElements.get(tagName)`으로 사전 등록 여부를 확인하거나, 고유한 컴포넌트 태그 이름을 지정하세요. |
-| `Error: Custom elements require a browser environment` | 브라우저 전역(`customElements`)이 없는 Node.js/서버 환경에서 `definePreactElement`를 호출한 경우 | `src/custom-element.ts:104-106`<br>환경 검증 실패 | 웹 컴포넌트 선언 및 등록 코드는 브라우저 클라이언트 환경에서만 실행되도록 분리하거나 동적 import를 사용하세요. |
+| `ERR_MODULE_NOT_FOUND`<br>`Cannot find package 'react'` 또는<br>`Cannot find module 'react'` | `react`가 설치되지 않은 환경에서 `@context-action/preact-ui/react-bridge`를 import한 경우 | `src/react-bridge.ts`<br>필수 peer `react` import | React 브릿지를 사용할 프로젝트에 React를 설치합니다 (`pnpm add react`). 순수 Preact/Web Component 환경이라면 `@context-action/preact-ui`(Base)에서 `createElementFacade`를 import하세요. |
+| `ERR_MODULE_NOT_FOUND`<br>`Cannot find package 'preact-render-to-string'` | `preact-render-to-string`이 없는 환경에서 `@context-action/preact-ui/ssr`을 import한 경우 | `src/ssr.ts`<br>필수 peer `preact-render-to-string` import | 서버 렌더링 모듈에 의존성을 설치합니다 (`pnpm add preact-render-to-string`). 클라이언트 전용 번들에서는 `./ssr`을 import하지 마세요. |
+| `Error: Mount root must be empty; existing DOM is not adopted or hydrated` | 자식 노드(`childNodes`)가 이미 존재하는 엘리먼트에 `mountPreact`를 호출한 경우 | `src/ownership.ts` (`claimMountRoot`)<br>`root.hasChildNodes()` 검사 실패 | 마운트 전 컨테이너를 비웁니다 (`container.replaceChildren()`). 서버 사이드 렌더링 마크업을 채택하려면 `hydratePreact`를 호출하세요. |
+| `Error: Hydration root must contain server-rendered children` | 자식 노드가 없는 빈 엘리먼트에 `hydratePreact`를 호출한 경우 | `src/ownership.ts` (`claimHydrationRoot`)<br>`!root.hasChildNodes()` 검사 실패 | 하이드레이션 대상 엘리먼트에 서버 렌더링된 HTML이 삽입되었는지 확인하세요. 클라이언트 전용 마운트라면 `mountPreact`를 사용해야 합니다. |
+| `Error: A managed DOM root already owns this light-DOM region` | 이미 다른 `mountPreact`/`hydratePreact`에 의해 관리 중인 Light-DOM 영역의 조상 또는 자손 엘리먼트에 중첩 마운트를 시도한 경우 | `src/ownership.ts` (`assertUnmanagedAncestors`) | 동일한 Light-DOM 트리 내에서 관리 루트를 중첩하지 마세요. 하위 컴포넌트 분리가 필요하다면 Custom Element의 `ShadowRoot` 내부로 격리하세요. |
+| `Error: Template requires exactly one empty [data-preact-root]` | `<template>` 내부에 `[data-preact-root]` 엘리먼트가 0개이거나 2개 이상인 경우, 또는 이미 자식 노드가 존재하는 경우 | `src/template.ts` (`mountTemplate`) | 템플릿 마크업 내부에 내용이 비어 있는 엘리먼트 하나에만 `data-preact-root` 속성을 부여하세요 (`<div data-preact-root></div>`). |
+| `Error: Cannot update a destroyed UI boundary` 또는<br>`Cannot update a destroyed hydrated UI boundary` | 이미 `destroy()`가 호출된 인스턴스에 `update(nextInput)`를 호출한 경우 | `src/mount.ts`, `src/hydrate.ts`<br>`destroyed` 플래그 검사 | `instance.destroyed` 플래그를 확인하여 이미 해제된 뷰에는 업데이트를 호출하지 않도록 방어 로직을 작성하거나, 새 루트에 새로 마운트하세요. |
+| `TypeError: expose cannot redefine reserved element member '<key>'` | `definePreactElement`의 `expose`에 `HTMLElement` 플랫폼 멤버(`focus`, `id`, `hidden` 등) 또는 관리형 API(`dispose`, `updateInput`, `name`, `form` 등)를 선언한 경우 | `src/custom-element.ts` (`installExposedMembers`) | 예약된 플랫폼·관리 멤버 대신 `focusItem()`, `focusIncrement()`, `resetDraft()`처럼 도메인 의미가 드러나는 명령 이름을 사용하세요. |
+| `Error: Custom element handle is not mounted` | 엘리먼트가 마운트되기 전(또는 언마운트된 후) `createElementFacade` 핸들의 프로퍼티나 메서드를 호출한 경우 | `src/facade.ts` (`createElementFacade`) | React `useEffect`/이벤트 핸들러 등 마운트 완료 이후에 핸들을 호출하거나 `@context-action/react`의 `withTarget`을 사용하세요. |
+| `AggregateError: UI cleanup failed` | `createDisposalScope`의 `dispose()` 또는 `definePreactElement` 정리 중 하나 이상의 콜백이 예외를 던진 경우 | `src/disposal-scope.ts`, `src/custom-element.ts` | `error.errors` 배열을 검사하여 어떤 리소스 정리 콜백에서 예외가 발생했는지 확인하고 수정하세요. |
+| `Error: <tag-name> is already registered` | 브라우저 런타임에 이미 등록된 동일한 태그 이름으로 `definePreactElement`를 다시 실행한 경우 | `src/custom-element.ts` (`definePreactElement`) | `customElements.get(tagName)`으로 사전 등록 여부를 확인하거나 고유한 컴포넌트 태그 이름을 지정하세요. |
+| `Error: Custom elements require a browser environment` | 브라우저 전역(`customElements`)이 없는 Node.js/서버 환경에서 `definePreactElement`를 호출한 경우 | `src/custom-element.ts` (`definePreactElement`) | 웹 컴포넌트 등록 함수(`defineXElement`)는 브라우저 클라이언트 환경에서만 호출되도록 분리하세요. |
 
 ---
 
 ## 6. 상세 문서 및 권장 학습 경로
 
-1. [DOM 소유권 컨벤션](docs/01-dom-ownership.md): 반드시 지켜야 할 경계와 수명 규칙.
-2. [적용 가이드](docs/02-integration-guide.md): 패키지 책임과 상태 연결 방법.
-3. [공개 API 사양서](docs/03-api.md): 입력·출력·실패·해제 계약 전체 명세.
-4. [Signals 프로젝션 & 비즈니스 훅 컨벤션](docs/05-signal-projection-convention.md): Context-Layered 관심사 분리와 프로젝션 훅 / 비즈니스 로직 훅 표준.
-5. [순수 HTML 이식 & Web Component 아키텍처 리뷰](docs/06-standalone-embed-and-web-components.md): UMD 마운트 vs Web Component 이식 방식 비교 및 실증.
-6. [모듈식 Web Component & Signals 통합 컨벤션](docs/07-modular-web-components-and-signals-convention.md): 가상 DOM 격리, 3계층 모듈화, 크로스 시그널 공유 표준.
-7. [FACE 및 React 상호운용성 브릿지 가이드](docs/08-form-associated-elements-and-react-bridge.md): 표준 HTML 폼 연동 및 선택적 `@context-action/preact-ui/react-bridge` 컴포넌트.
-8. [웹 컴포넌트 인터페이스 설계 및 상태 관리 표준 규약](../lit-ui/docs/05-interface-and-state-management-standards.md): Lit & Preact 공통 인터페이스 작성 규칙, 상태 3계층 모델, 4대 대원칙.
-9. [범용 공개 계약](docs/09-public-component-contract.md): 컴포넌트 입력·명령·이벤트의 의미와 소비자 경계.
-10. [작성 가이드](docs/10-component-authoring-guide.md): Controller·View·Host adapter의 책임과 Custom Element 작성 순서.
-11. [생명주기와 자원](docs/11-lifecycle-and-resources.md): 인스턴스와 connection session, 정리·재연결·비동기 결과 규칙.
-12. [계약 검증](docs/12-contract-verification.md): 정적·통합·실제 브라우저 검증 범위와 변경 영향.
-13. [Layer Panel 참조 구현](examples/layer-panel/README.md): 하나의 공개 계약을 두 host adapter에 적용한 예제.
-14. [SSR 진입점 가이드](docs/03-api.md): `@context-action/preact-ui/ssr`의 server-only render와 `hydratePreact` 계약.
+전체 문서 체계와 독자 역할(Persona)별 학습 경로는 **[공식 문서 인덱스 (`docs/README.md`)](docs/README.md)**에서 확인할 수 있습니다.
 
-구현 예제 코드는 [examples/](examples/README.md)에 위치하며, 실제 검증 결과와 남은 범위는 [검증 기록](docs/04-validation.md)에 기록되어 있습니다.
+### 정예 6대 정본 문서 (`01` ~ `06`)
+1. **[01. DOM 소유권 경계와 생명주기 규약](docs/01-dom-ownership-and-lifecycle.md)**: Subtree(`root.children`) 소유권 경계, Element 인스턴스 수명 vs Connection Session 수명, LIFO 정리(`createDisposalScope`), 비동기 취소 및 실패 복구.
+2. **[02. 공개 컴포넌트 계약](docs/02-public-component-contract.md)**: 입력(Attribute/Property/Method)·검증·반영 규칙, 외부 제어형(`selection-request`) vs 내부 상태형(`value-change`) 권한 분리, 의미 중심 명령, CustomEvent·스타일·슬롯·접근성 규약.
+3. **[03. 공개 API 레퍼런스](docs/03-api.md)**: `mountPreact`, `hydratePreact`, `mountTemplate`, `createDisposalScope`, `definePreactElement<Input, Expose>`, `ExposeContract`, `ReservedElementKey`, `PublicActionMethods`, `createElementFacade`, `createCustomElementBridge`, `createSSR` 전체 명세.
+4. **[04. Signals 프로젝션 및 컴포넌트 작성 가이드](docs/04-signals-and-component-authoring.md)**: Context-Layered 6계층 구조, 프로젝션 훅(`use<Domain>Projection`)과 액션 훅(`use<Domain>Actions`) 분리, 3계층 모듈식 Web Component, 선언적 `expose` 작성법, Shell 콜백·등록 규칙과 완료 기준.
+5. **[05. 임베드 아키텍처, FACE 폼 연동 및 React 호스트 브릿지](docs/05-embed-and-host-interop.md)**: Standalone UMD vs Web Component 비교, 표준 `<form>`(FACE) 연동, `useImperativeHandle` 기반 OOP Facade(`createHandle`/`createElementFacade`), `@context-action/react` `createRefContext` + `withTarget` 결합.
+6. **[06. 계약 검증 규약 및 변경 관리](docs/06-validation-and-governance.md)**: 정본 스펙과 이력 분리 원칙, 7대 검증 게이트, 6대 런타임 불변 조건, 9대 계약 검증 범주, 소비자 QA 경계 및 변경 영향 관리.
+
+### 표준 부록 및 이력 아카이브
+- [컴포넌트 계약 작성 템플릿 (`docs/templates/component.contract.md`)](docs/templates/component.contract.md) 및 [플랫폼 표준 레퍼런스 (`docs/references.md`)](docs/references.md)
+- [릴리즈 코호트 검증 및 변경 이력 (`docs/history/validation-history.md`)](docs/history/validation-history.md)
 
 ---
 
 ## 7. 릴리즈 현황 및 계약 검증 (Release Status & Verification)
 
-`@context-action/preact-ui@0.1.0`은 `@context-action/preact@0.1.0`과 함께 배포되는 공개 preview 패키지입니다. Core/React 안정 cohort와는 별도의 Preact 공개 cohort로 관리되며, 0.x 계약이므로 1.0 승격 전 API와 지원 범위가 변경될 수 있습니다.
+`@context-action/preact-ui@0.2.0`은 `@context-action/preact@0.1.2`와 함께 배포되는 공개 preview 패키지입니다. Core/React 안정 cohort와는 별도의 Preact 공개 cohort로 관리되며, 0.x 계약이므로 1.0 승격 전 API와 지원 범위가 변경될 수 있습니다.
 
 ### 패키지 검증 명령
 ```sh
-# 1. 단위 및 통합 테스트 실행 (64 tests across 11 suites)
+# 1. 단위 및 통합 테스트 실행
 pnpm --filter @context-action/preact-ui test
 
 # 2. 브라우저/네이티브 DOM 소유권 계약 테스트 (13 tests)
