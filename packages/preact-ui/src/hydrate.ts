@@ -1,5 +1,19 @@
+/**
+ * @module hydrate
+ *
+ * Purpose:
+ *   Hydrates server-rendered HTML inside an exclusively leased `MountRoot`
+ *   using Preact `hydrate()` and transitions subsequent updates to `render()`.
+ *
+ * Invariants:
+ *   - Claims ownership via `claimHydrationRoot(root)`, requiring non-empty
+ *     server markup and rejecting any already-managed descendant roots.
+ *   - Self-cleans via `teardownOwnedRoot` if initial hydration or a later
+ *     `update(input)` fails, leaving the root empty and released.
+ */
 import { createElement, hydrate, render } from 'preact';
 import type { ComponentType } from 'preact';
+import { teardownOwnedRoot } from './mount.js';
 import { claimHydrationRoot } from './ownership.js';
 import type { MountRoot } from './ownership.js';
 
@@ -22,22 +36,14 @@ export function hydratePreact<Input>(
   const destroy = () => {
     if (destroyed) return;
     destroyed = true;
-    const errors: unknown[] = [];
-    try { render(null, root); } catch (error) { errors.push(error); }
-    try {
-      // A component that throws during diffing can leave a partially created
-      // node behind. The hydration boundary owns the complete root, so clear
-      // any such residue after asking Preact to run its unmount lifecycle.
-      while (root.firstChild) root.removeChild(root.firstChild);
-    } catch (error) { errors.push(error); }
-    try { release(); } catch (error) { errors.push(error); }
-    if (errors.length === 1) throw errors[0];
-    if (errors.length > 1) throw new AggregateError(errors, 'Hydration cleanup failed');
+    teardownOwnedRoot(root, release, 'Hydration cleanup failed');
   };
   try {
     hydrate(createElement(View, { input: initialInput }), root);
   } catch (error) {
-    try { destroy(); } catch (cleanupError) {
+    try {
+      destroy();
+    } catch (cleanupError) {
       throw new AggregateError([error, cleanupError], 'Hydration and cleanup failed');
     }
     throw error;
@@ -47,7 +53,9 @@ export function hydratePreact<Input>(
     try {
       render(createElement(View, { input }), root);
     } catch (error) {
-      try { destroy(); } catch (cleanupError) {
+      try {
+        destroy();
+      } catch (cleanupError) {
         throw new AggregateError([error, cleanupError], 'Render and cleanup failed');
       }
       throw error;

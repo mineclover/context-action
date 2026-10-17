@@ -1,5 +1,15 @@
 # Change Log
 
+## [0.1.2] (2026-10-18)
+
+### Cohort alignment
+
+- No runtime or API changes. Released with `@context-action/preact-ui@0.2.0`
+  because the protected Preact cohort workflow publishes both packages and
+  refuses already-published versions.
+- README preview status updated; the root entry is now verified to load without
+  a `process` global (ESM and CJS) by `pnpm verify:package-exports`.
+
 ## [0.1.1] (2026-10-04)
 
 ### Documentation & Verification

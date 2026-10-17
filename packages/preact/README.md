@@ -364,7 +364,7 @@ export function useProjection<State, Projected>(
 
 ## 6. 공개 preview 상태 및 검증 (Preview Status & Verification)
 
-`@context-action/preact@0.1.0`은 공개 배포된 공식 프리뷰 패키지입니다. `private: false` 및 `publishConfig.access: public`으로 설정되어 있으며, Core 및 React 패키지와는 독립된 Preact 공개 코호트 관리 하에 보호된 워크플로로 릴리즈됩니다.
+`@context-action/preact@0.1.2`는 공개 배포된 공식 프리뷰 패키지입니다. `private: false` 및 `publishConfig.access: public`으로 설정되어 있으며, Core 및 React 패키지와는 독립된 Preact 공개 코호트 관리 하에 보호된 워크플로로 릴리즈됩니다.
 
 ### 패키지 검증 명령어
 

@@ -1,3 +1,16 @@
+/**
+ * @module template
+ *
+ * Purpose:
+ *   Clones a static `HTMLTemplateElement` shell into a host container and mounts
+ *   a Preact island inside its single designated `[data-preact-root]` slot.
+ *
+ * Invariants:
+ *   - Verifies that `host` has no managed light-DOM ancestors before cloning.
+ *   - Requires the template fragment to contain exactly one empty
+ *     `[data-preact-root]` element.
+ *   - Removes the cloned template shell nodes on mount failure or `destroy()`.
+ */
 import { mountPreact } from './mount.js';
 import type { MountInstance, OwnedView } from './mount.js';
 import { assertUnmanagedAncestors } from './ownership.js';

@@ -10,7 +10,23 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, '..');
 const execFileAsync = promisify(execFile);
-const processlessRuntimePackages = new Set(['@context-action/mutative']);
+const processlessRuntimePackages = new Set([
+  '@context-action/core',
+  '@context-action/mutative',
+  '@context-action/mutative-core',
+  '@context-action/preact',
+  '@context-action/preact-ui',
+  '@context-action/store-core',
+  '@context-action/tool-protocol',
+  '@context-action/webmcp',
+]);
+const processlessExportSkips = new Map([
+  [
+    '@context-action/preact-ui',
+    // React's own CJS entrypoint reads process.env.NODE_ENV when loaded via Node require().
+    new Set(['./react-bridge']),
+  ],
+]);
 const runtimeExportSkips = new Map([
   [
     'packages/typedoc-vitepress-sync',
@@ -168,24 +184,28 @@ async function verifyPackage({ directory: relativePackageDirectory, skipRuntimeE
       continue;
     }
 
+    const shouldVerifyProcessless =
+      processlessRuntimePackages.has(packageName) &&
+      !processlessExportSkips.get(packageName)?.has(exportName);
+
     try {
       if (conditions.includes('import')) {
         await import(pathToFileURL(targetPath).href);
-        if (processlessRuntimePackages.has(packageName)) {
+        if (shouldVerifyProcessless) {
           await verifyProcesslessRuntime(targetPath, 'import');
         }
         runtimeLoadCount += 1;
-        const runtimeLabel = processlessRuntimePackages.has(packageName)
+        const runtimeLabel = shouldVerifyProcessless
           ? 'ESM loaded without process'
           : 'ESM loaded';
         console.log(`  ✓ ${exportName} ${conditionLabel} -> ${target} [${runtimeLabel}]`);
       } else if (conditions.includes('require')) {
         packageRequire(targetPath);
-        if (processlessRuntimePackages.has(packageName)) {
+        if (shouldVerifyProcessless) {
           await verifyProcesslessRuntime(targetPath, 'require');
         }
         runtimeLoadCount += 1;
-        const runtimeLabel = processlessRuntimePackages.has(packageName)
+        const runtimeLabel = shouldVerifyProcessless
           ? 'CJS loaded without process'
           : 'CJS loaded';
         console.log(`  ✓ ${exportName} ${conditionLabel} -> ${target} [${runtimeLabel}]`);

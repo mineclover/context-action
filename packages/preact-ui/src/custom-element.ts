@@ -1,8 +1,30 @@
+/**
+ * @module custom-element
+ *
+ * Purpose:
+ *   Defines standards-compliant Preact Custom Elements (`definePreactElement<Input, Expose>`)
+ *   with Shadow DOM isolation, Form-Associated Custom Element (FACE) integration,
+ *   pre-upgrade property replay, and declarative public API installation (`expose`).
+ *
+ * Invariants:
+ *   - Strictly separates **Instance Lifetime** (`setup` → `onDestroy` via `dispose()`)
+ *     from **Connection Session Lifetime** (`onConnect` → `onDisconnect` on DOM
+ *     attach/detach), preserving instance state across DOM moves.
+ *   - Validates `expose` descriptors against `ManagedElement.prototype` at
+ *     construction time (`ExposeContract<Expose>`), failing closed and running
+ *     `onDestroy()` before any member is installed if a reserved key collides.
+ *   - Reentrancy-safe connection lifecycle: if `upgradeProperties`, `onConnect`,
+ *     or `getInput` synchronously disconnects or disposes the element, no ghost
+ *     renderer mount is created.
+ */
 import type { ComponentType } from 'preact';
 import { hydratePreact } from './hydrate.js';
+import type { HydrationInstance } from './hydrate.js';
 import { mountPreact } from './mount.js';
 import type { MountInstance } from './mount.js';
-import type { HydrationInstance } from './hydrate.js';
+
+export { createElementFacade } from './facade.js';
+export type { ImperativeHandleFactory, PublicActionMethods } from './facade.js';
 
 /**
  * Context supplied to a `definePreactElement` setup callback.
@@ -31,11 +53,16 @@ interface PreactElementContext {
   setValidity(flags: ValidityStateFlags, message?: string, anchor?: HTMLElement): void;
 }
 
-export interface PreactElementLifecycle<Input> {
+export interface PreactElementLifecycle<
+  Input,
+  Expose extends object = Record<never, never>,
+> {
   /** The Preact view component to mount inside Shadow DOM */
   view: ComponentType<{ input: Input }>;
   /** Returns the current input snapshot for mount and update */
   getInput(): Input;
+  /** Optional public properties and methods installed onto the custom element instance */
+  expose?: Expose & ThisType<HTMLElement & Expose>;
   /** Starts connection-session resources immediately before the renderer mounts. */
   onConnect?(): void;
   /** Releases connection-session resources immediately after the renderer unmounts. */
@@ -52,7 +79,10 @@ export interface PreactElementLifecycle<Input> {
   onFormStateRestore?(state: unknown, mode: 'restore' | 'autocomplete'): void;
 }
 
-export interface PreactElementConfig<Input> {
+export interface PreactElementConfig<
+  Input,
+  Expose extends object = Record<never, never>,
+> {
   /** Custom Element tag name (must contain a hyphen, e.g. 'my-widget') */
   tagName: string;
   /** Scoped CSS string injected into the ShadowRoot */
@@ -74,7 +104,7 @@ export interface PreactElementConfig<Input> {
    */
   hydrateShadowRoot?: boolean;
   /** Factory invoked on element construction to set up signals, views, and handlers */
-  setup(element: HTMLElement, context: PreactElementContext): PreactElementLifecycle<Input>;
+  setup(element: HTMLElement, context: PreactElementContext): PreactElementLifecycle<Input, Expose>;
 }
 
 export interface ManagedPreactElement<_Input> extends HTMLElement {
@@ -91,16 +121,157 @@ export interface ManagedPreactElement<_Input> extends HTMLElement {
   dispose(): void;
 }
 
+export type PreactCustomElementConstructor<
+  Input,
+  Expose extends object = Record<never, never>,
+> = CustomElementConstructor & {
+  // biome-ignore lint/suspicious/noExplicitAny: standard constructor signature compatibility.
+  new (...args: any[]): ManagedPreactElement<Input> & Expose;
+};
+
+/**
+ * Members that `expose` must never redefine: the `HTMLElement` platform
+ * surface plus the managed FACE/lifecycle API (`dispose`, `updateInput`,
+ * `name`, `form`, `checkValidity`, ...). Shadowing them would silently break
+ * teardown, form participation, or platform semantics.
+ */
+export type ReservedElementKey = keyof ManagedPreactElement<unknown>;
+
+/**
+ * Self-referential constraint that rejects `expose` contracts declaring a
+ * {@link ReservedElementKey}. Non-reserved members keep their declared type.
+ */
+export type ExposeContract<Expose> = {
+  [K in keyof Expose]: K extends ReservedElementKey ? never : Expose[K];
+};
+
+function capturePendingUpgradeProperties(
+  instance: HTMLElement,
+  upgradeProperties: readonly string[] | undefined,
+): Map<string, unknown> {
+  const pendingValues = new Map<string, unknown>();
+  for (const property of upgradeProperties ?? []) {
+    const descriptor = Object.getOwnPropertyDescriptor(instance, property);
+    if (descriptor && !descriptor.get && !descriptor.set) {
+      pendingValues.set(property, descriptor.value);
+    }
+  }
+  return pendingValues;
+}
+
+function replayUpgradeProperties(
+  instance: HTMLElement,
+  upgradeProperties: readonly string[] | undefined,
+  pendingValues: Map<string, unknown>,
+): void {
+  for (const property of upgradeProperties ?? []) {
+    let value: unknown;
+    const descriptor = Object.getOwnPropertyDescriptor(instance, property);
+    if (pendingValues.has(property)) {
+      value = pendingValues.get(property);
+      pendingValues.delete(property);
+      if (descriptor && !descriptor.get && !descriptor.set) {
+        if (!Reflect.deleteProperty(instance, property)) {
+          throw new TypeError(`Cannot upgrade ${property}`);
+        }
+      }
+    } else {
+      // setup() may expose a per-instance accessor. It is already the
+      // live property and must not be deleted during the upgrade pass.
+      if (!descriptor || descriptor.get || descriptor.set) continue;
+      value = descriptor.value;
+      if (!Reflect.deleteProperty(instance, property)) {
+        throw new TypeError(`Cannot upgrade ${property}`);
+      }
+    }
+    (instance as unknown as Record<string, unknown>)[property] = value;
+  }
+}
+
+function resolveShadowMountRoot<Input, Expose extends object>(
+  instance: HTMLElement,
+  config: PreactElementConfig<Input, Expose>,
+): HTMLElement {
+  const existingShadow = instance.shadowRoot;
+  if (config.hydrateShadowRoot && !existingShadow) {
+    throw new Error(`${config.tagName} requires a declarative ShadowRoot for hydration`);
+  }
+  if (!config.hydrateShadowRoot && existingShadow) {
+    throw new Error(`${config.tagName} has an existing ShadowRoot; opt into hydrateShadowRoot explicitly`);
+  }
+  const shadow = existingShadow ?? instance.attachShadow({ mode: 'open' });
+
+  if (config.style && !config.hydrateShadowRoot) {
+    const styleEl = instance.ownerDocument.createElement('style');
+    styleEl.textContent = config.style;
+    shadow.append(styleEl);
+  }
+
+  const hydratedRoot = config.hydrateShadowRoot
+    ? shadow.querySelector<HTMLElement>('[data-preact-root]')
+    : null;
+  if (config.hydrateShadowRoot && !hydratedRoot) {
+    throw new Error(`${config.tagName} hydration requires a [data-preact-root]`);
+  }
+  const root = hydratedRoot ?? instance.ownerDocument.createElement('div');
+  if (!hydratedRoot) shadow.append(root);
+  return root;
+}
+
+function installExposedMembers<Input, Expose extends object>(
+  instance: HTMLElement,
+  tagName: string,
+  lifecycle: PreactElementLifecycle<Input, Expose>,
+  prototype: object,
+): void {
+  const exposed = lifecycle.expose;
+  if (!exposed) return;
+
+  const descriptors = Object.getOwnPropertyDescriptors(exposed);
+  const keys = Reflect.ownKeys(descriptors);
+  // Validate the complete contract first so a rejected element never
+  // ends up with a partially installed public surface.
+  const reserved = keys.filter((key) => key in prototype);
+  if (reserved.length > 0) {
+    const error = new TypeError(
+      `${tagName} expose cannot redefine reserved element member(s): ${reserved.map(String).join(', ')}`,
+    );
+    try {
+      lifecycle.onDestroy?.();
+    } catch (cleanupError) {
+      throw new AggregateError([error, cleanupError], 'Custom element construction failed');
+    }
+    throw error;
+  }
+  for (const key of keys) {
+    const descriptor = descriptors[key as keyof typeof descriptors];
+    if (!descriptor) continue;
+    Object.defineProperty(instance, key, {
+      ...descriptor,
+      configurable: descriptor.configurable ?? true,
+      enumerable: descriptor.enumerable ?? true,
+    });
+  }
+}
+
 /**
  * Optional convenience factory for a Preact Custom Element shell.
  *
  * This helper owns a ShadowRoot renderer and FACE forwarding. It does not
  * infer a component's public input/event semantics or connection-session
  * resources; component-specific adapters must define those contracts.
+ *
+ * `expose` members are validated against the element prototype chain at
+ * construction time. A reserved member throws a `TypeError` before any public
+ * member is installed, and `onDestroy` is invoked so setup-owned resources are
+ * released.
  */
-export function definePreactElement<Input>(
-  config: PreactElementConfig<Input>,
-): CustomElementConstructor {
+export function definePreactElement<
+  Input,
+  Expose extends object & ExposeContract<Expose> = Record<never, never>,
+>(
+  config: PreactElementConfig<Input, Expose>,
+): PreactCustomElementConstructor<Input, Expose> {
   if (typeof globalThis.customElements === 'undefined') {
     throw new Error('Custom elements require a browser environment');
   }
@@ -115,11 +286,11 @@ export function definePreactElement<Input>(
 
     #root: HTMLElement;
     #mount: MountInstance<Input> | HydrationInstance<Input> | undefined;
-    #lifecycle: PreactElementLifecycle<Input>;
+    #lifecycle: PreactElementLifecycle<Input, Expose>;
     #internals: ElementInternals | undefined;
     #disposed = false;
     #sessionActive = false;
-    #pendingUpgradeValues = new Map<string, unknown>();
+    #pendingUpgradeValues: Map<string, unknown>;
     #hydrationPending = config.hydrateShadowRoot ?? false;
 
     constructor() {
@@ -127,14 +298,10 @@ export function definePreactElement<Input>(
 
       // Capture definition-time own data properties before the component
       // adapter has a chance to install its public accessors on this instance.
-      // This keeps pre-upgrade assignments intact even when setup() exposes
-      // per-instance getters/setters.
-      for (const property of config.upgradeProperties ?? []) {
-        const descriptor = Object.getOwnPropertyDescriptor(this, property);
-        if (descriptor && !descriptor.get && !descriptor.set) {
-          this.#pendingUpgradeValues.set(property, descriptor.value);
-        }
-      }
+      this.#pendingUpgradeValues = capturePendingUpgradeProperties(
+        this,
+        config.upgradeProperties,
+      );
 
       if (config.formAssociated && typeof this.attachInternals === 'function') {
         try {
@@ -144,29 +311,7 @@ export function definePreactElement<Input>(
         }
       }
 
-      const existingShadow = this.shadowRoot;
-      if (config.hydrateShadowRoot && !existingShadow) {
-        throw new Error(`${config.tagName} requires a declarative ShadowRoot for hydration`);
-      }
-      if (!config.hydrateShadowRoot && existingShadow) {
-        throw new Error(`${config.tagName} has an existing ShadowRoot; opt into hydrateShadowRoot explicitly`);
-      }
-      const shadow = existingShadow ?? this.attachShadow({ mode: 'open' });
-
-      if (config.style && !config.hydrateShadowRoot) {
-        const styleEl = this.ownerDocument.createElement('style');
-        styleEl.textContent = config.style;
-        shadow.append(styleEl);
-      }
-
-      const hydratedRoot = config.hydrateShadowRoot
-        ? shadow.querySelector<HTMLElement>('[data-preact-root]')
-        : null;
-      if (config.hydrateShadowRoot && !hydratedRoot) {
-        throw new Error(`${config.tagName} hydration requires a [data-preact-root]`);
-      }
-      this.#root = hydratedRoot ?? this.ownerDocument.createElement('div');
-      if (!hydratedRoot) shadow.append(this.#root);
+      this.#root = resolveShadowMountRoot(this, config);
 
       const context: PreactElementContext = {
         internals: this.#internals,
@@ -181,6 +326,7 @@ export function definePreactElement<Input>(
       };
 
       this.#lifecycle = config.setup(this, context);
+      installExposedMembers(this, config.tagName, this.#lifecycle, ManagedElement.prototype);
     }
 
     // Standard Form-Associated Custom Elements API
@@ -244,12 +390,36 @@ export function definePreactElement<Input>(
       this.#lifecycle.onFormStateRestore?.(state, mode);
     }
 
+    /**
+     * Tears down the active connection session (`#mount` + `onDisconnect`)
+     * while preserving instance-level state for future reconnections.
+     */
+    #teardownSession(): unknown[] {
+      const errors: unknown[] = [];
+      const mount = this.#mount;
+      this.#mount = undefined;
+      try {
+        mount?.destroy();
+      } catch (error) {
+        errors.push(error);
+      }
+      if (this.#sessionActive) {
+        this.#sessionActive = false;
+        try {
+          this.#lifecycle.onDisconnect?.();
+        } catch (error) {
+          errors.push(error);
+        }
+      }
+      return errors;
+    }
+
     connectedCallback() {
       // A connection callback may be re-entered by setup code (for example
       // when an adapter moves the element while it is connecting). A live
       // session is already responsible for the root in that case.
       if (this.#disposed || this.#mount || this.#sessionActive) return;
-      this.#upgradeProperties();
+      replayUpgradeProperties(this, config.upgradeProperties, this.#pendingUpgradeValues);
       // Property setters can synchronously dispose or disconnect the element
       // during the upgrade pass. Do not create a session after that happens.
       if (this.#disposed || this.#mount || this.#sessionActive || !this.isConnected) return;
@@ -268,52 +438,21 @@ export function definePreactElement<Input>(
           : mountPreact(this.#root, this.#lifecycle.view, input);
         this.#hydrationPending = false;
       } catch (error) {
-        const needsDisconnect = this.#sessionActive;
-        this.#mount = undefined;
-        this.#sessionActive = false;
-        if (needsDisconnect) {
-          try { this.#lifecycle.onDisconnect?.(); } catch (cleanupError) {
-            throw new AggregateError([error, cleanupError], 'Custom element connection failed');
-          }
+        const cleanupErrors = this.#teardownSession();
+        if (cleanupErrors.length > 0) {
+          throw new AggregateError([error, ...cleanupErrors], 'Custom element connection failed');
         }
         throw error;
       }
     }
 
-    #upgradeProperties() {
-      for (const property of config.upgradeProperties ?? []) {
-        let value: unknown;
-        if (this.#pendingUpgradeValues.has(property)) {
-          value = this.#pendingUpgradeValues.get(property);
-          this.#pendingUpgradeValues.delete(property);
-        } else {
-          const descriptor = Object.getOwnPropertyDescriptor(this, property);
-          // setup() may expose a per-instance accessor. It is already the
-          // live property and must not be deleted during the upgrade pass.
-          if (!descriptor || descriptor.get || descriptor.set) continue;
-          value = descriptor.value;
-          if (!Reflect.deleteProperty(this, property)) {
-            throw new TypeError(`Cannot upgrade ${property}`);
-          }
-        }
-        (this as unknown as Record<string, unknown>)[property] = value;
-      }
-    }
-
     disconnectedCallback() {
       // Unmount renderer only; preserve domain signals and state for reconnection
-      const mount = this.#mount;
-      this.#mount = undefined;
-      let firstError: unknown;
-      try { mount?.destroy(); } catch (error) { firstError = error; }
-      if (this.#sessionActive) {
-        this.#sessionActive = false;
-        try { this.#lifecycle.onDisconnect?.(); } catch (error) {
-          if (firstError) throw new AggregateError([firstError, error], 'Custom element disconnection failed');
-          firstError = error;
-        }
+      const errors = this.#teardownSession();
+      if (errors.length === 1) throw errors[0];
+      if (errors.length > 1) {
+        throw new AggregateError(errors, 'Custom element disconnection failed');
       }
-      if (firstError) throw firstError;
     }
 
     #updateMount() {
@@ -328,19 +467,9 @@ export function definePreactElement<Input>(
         // mount implementation normally performs this cleanup itself, but
         // retrying destroy here keeps the element safe if a custom backend
         // fails before it can release its root.
-        this.#mount = undefined;
-        const errors: unknown[] = [error];
-        try { mount.destroy(); } catch (cleanupError) { errors.push(cleanupError); }
-
-        if (this.#sessionActive) {
-          this.#sessionActive = false;
-          try { this.#lifecycle.onDisconnect?.(); } catch (disconnectError) {
-            errors.push(disconnectError);
-          }
-        }
-
-        if (errors.length > 1) {
-          throw new AggregateError(errors, 'Custom element update failed');
+        const cleanupErrors = this.#teardownSession();
+        if (cleanupErrors.length > 0) {
+          throw new AggregateError([error, ...cleanupErrors], 'Custom element update failed');
         }
         throw error;
       }
@@ -364,9 +493,15 @@ export function definePreactElement<Input>(
       try {
         this.#internals?.setFormValue?.(null);
         this.#internals?.setValidity?.({});
-      } catch (error) { errors.push(error); }
-      try { this.disconnectedCallback(); } catch (error) { errors.push(error); }
-      try { this.#lifecycle.onDestroy?.(); } catch (error) { errors.push(error); }
+      } catch (error) {
+        errors.push(error);
+      }
+      errors.push(...this.#teardownSession());
+      try {
+        this.#lifecycle.onDestroy?.();
+      } catch (error) {
+        errors.push(error);
+      }
       if (errors.length === 1) throw errors[0];
       if (errors.length > 1) {
         throw new AggregateError(errors, 'Custom element disposal failed');
@@ -375,5 +510,5 @@ export function definePreactElement<Input>(
   }
 
   customElements.define(config.tagName, ManagedElement);
-  return ManagedElement;
+  return ManagedElement as unknown as PreactCustomElementConstructor<Input, Expose>;
 }

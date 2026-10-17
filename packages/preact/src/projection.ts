@@ -1,3 +1,15 @@
+/**
+ * @module projection
+ *
+ * Purpose:
+ *   Projects a derived slice of state from a `ReadonlySignal<State>` into a
+ *   memoized, fine-grained `ReadonlySignal<Projected>` within a Preact view.
+ *
+ * Invariants:
+ *   - Re-evaluates `selector` only when `sourceSignal.value` changes.
+ *   - Downstream consumers subscribed to the projected signal only update when
+ *     the projected value changes (`Object.is` equality in `@preact/signals`).
+ */
 import { useComputed } from '@preact/signals';
 import type { ReadonlySignal } from '@preact/signals';
 

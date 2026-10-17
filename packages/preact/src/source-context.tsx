@@ -1,3 +1,15 @@
+/**
+ * @module source-context
+ *
+ * Purpose:
+ *   Provides a read-only `ReadonlySignal<T>` context boundary so Preact views
+ *   can project domain state slices without owning subscription lifecycles.
+ *
+ * Invariants:
+ *   - The provided `sourceSignal` is borrowed from an external connection session
+ *     (`connectSourceSignal`) and remains read-only across all consumers.
+ *   - `useSourceSignal()` fails closed when called outside its matching `<Provider>`.
+ */
 import { createContext } from 'preact';
 import type { ComponentChildren } from 'preact';
 import { useContext } from 'preact/hooks';
