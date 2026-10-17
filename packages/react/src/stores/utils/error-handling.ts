@@ -74,12 +74,17 @@ export interface ErrorHandlingConfig {
   logErrors: boolean;
 }
 
+// Published artifacts inline NODE_ENV at build time (see tsdown.config.ts `env`),
+// so this guard only matters for source-level consumers without a `process` global.
+const isDevEnvironment =
+  typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
+
 /**
  * 기본 에러 핸들링 설정
  */
 const defaultErrorConfig: ErrorHandlingConfig = {
-  logLevel: process.env.NODE_ENV === 'development' ? ErrorLogLevel.DEBUG : ErrorLogLevel.ERROR,
-  throwOnError: process.env.NODE_ENV === 'development',
+  logLevel: isDevEnvironment ? ErrorLogLevel.DEBUG : ErrorLogLevel.ERROR,
+  throwOnError: isDevEnvironment,
   enableStackTrace: true,
   maxLogEntries: 100,
   suppressRepeatedErrors: true,
