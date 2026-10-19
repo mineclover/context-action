@@ -48,7 +48,7 @@ domain snapshot이 유지됩니다. FACE quantity stepper는 잘못된
 
 ## 실행
 
-Node 24.11 이상, pnpm 10.30.3 기준입니다. 검증 보장 범위는 [검증 규약](../docs/06-validation-and-governance.md)을, 릴리즈별 실행 결과는 [검증 이력](../docs/history/validation-history.md)을 확인합니다.
+Node 24.11 이상, pnpm 11.28.6 기준입니다. 검증 보장 범위는 [검증 규약](../docs/06-validation-and-governance.md)을, 릴리즈별 실행 결과는 [검증 이력](../docs/history/validation-history.md)을 확인합니다.
 
 ```sh
 # workspace 검증

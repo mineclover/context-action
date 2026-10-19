@@ -9,7 +9,7 @@ on:
 
 env:
   NODE_VERSION: '24'
-  PNPM_VERSION: '10.30.3'
+  PNPM_VERSION: '11.28.6'
 
 jobs:
   # 의존성 설치 및 캐싱

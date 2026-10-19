@@ -143,7 +143,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10.30.3
+          version: 11.28.6
 
       - uses: actions/setup-node@v4
         with:

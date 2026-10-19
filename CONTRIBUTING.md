@@ -6,7 +6,7 @@ Thank you for your interest in contributing to the Context-Action framework! Thi
 
 ### Prerequisites
 - Node.js >= 24.11.0
-- pnpm >= 10.30.0
+- pnpm >= 11.28.6
 - TypeScript 6.0.3 (provided by the workspace)
 
 ### Development Setup

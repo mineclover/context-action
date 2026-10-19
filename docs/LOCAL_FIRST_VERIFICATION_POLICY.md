@@ -42,7 +42,7 @@
   "branch": "main",
   "toolchain": {
     "node": "v24.20.0",
-    "pnpm": "10.30.3",
+    "pnpm": "11.28.6",
     "platform": "darwin",
     "arch": "arm64"
   },
