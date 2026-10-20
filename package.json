@@ -143,7 +143,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
     "@tailwindcss/typography": "0.5.20",
-    "@types/node": "24.13.3",
+    "@types/node": "24.19.2",
     "@types/react": "19.2.17",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
