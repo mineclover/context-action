@@ -300,7 +300,6 @@ test('a dist-free workspace build produces every React workspace dependency decl
 }, () => {
   const fixtureRoot = mkdtempSync(path.join(tmpdir(), 'maintenance-clean-checkout-'));
   const rootFiles = [
-    '.npmrc',
     'package.json',
     'pnpm-lock.yaml',
     'pnpm-workspace.yaml',

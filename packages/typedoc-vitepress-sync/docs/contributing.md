@@ -19,7 +19,7 @@ Thank you for your interest in contributing to TypeDoc VitePress Sync! This guid
 ### Prerequisites
 
 - Node.js 24.11.0 or newer
-- pnpm 10.30.0 or newer
+- pnpm 11.28.6 or newer
 - TypeScript 6.0.3 (provided by the workspace)
 - Git
 - TypeScript knowledge

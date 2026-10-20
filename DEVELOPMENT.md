@@ -56,7 +56,7 @@ context-action/
 
 ### Prerequisites
 - **Node.js**: >= 24.11.0
-- **pnpm**: >= 10.30.0 (Package manager)
+- **pnpm**: >= 11.28.6 (Package manager)
 - **TypeScript**: 6.0.3 (workspace toolchain)
 - **Git**: Latest version
 

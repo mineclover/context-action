@@ -101,7 +101,7 @@ environment, `npm publish` 허용을 등록합니다. 이후 후보 배포부터
    - `registry-url: 'https://registry.npmjs.org'`가 설정되어 있는지 확인
 
 4. **pnpm 버전 확인**
-   - pnpm 10을 사용하고 있는지 확인
+   - pnpm 11을 사용하고 있는지 확인
 
 5. **401 Unauthorized 또는 ENEEDAUTH**
    - `Publish Packages`의 `publish_auth=token` 또는 `Publish Mutative Packages`에서
