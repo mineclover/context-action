@@ -37,6 +37,26 @@ if (JSON.stringify(packages.map(([name]) => name))
   throw new Error('Lit public release plan must contain the exact package order');
 }
 
+const candidateCommits = plan.candidateCommits ?? {};
+for (const [name, value] of Object.entries(candidateCommits)) {
+  if (!packages.some(([packageName]) => packageName === name)) {
+    throw new Error(`candidateCommits contains an unknown package: ${name}`);
+  }
+  if (typeof value !== 'string' || !/^[a-f0-9]{40}$/u.test(value)) {
+    throw new Error(`candidateCommits.${name} must be a 40-character commit SHA`);
+  }
+}
+
+function assertAncestor(ancestor, descendant) {
+  const result = spawnSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+    cwd: repositoryRoot,
+    encoding: 'utf8',
+  });
+  if (result.status !== 0) {
+    throw new Error(`Candidate commit ${ancestor} is not an ancestor of release commit ${descendant}`);
+  }
+}
+
 function run(command, args, cwd) {
   const env = Object.fromEntries(Object.entries(process.env)
     .filter(([name]) => !name.toLowerCase().startsWith('npm_config_')));
@@ -111,13 +131,15 @@ try {
     if (!bundle) throw new Error(`No SLSA provenance attestation was returned for ${name}@${version}`);
     const statement = decodeStatement(bundle.bundle);
     const workflow = statement?.predicate?.buildDefinition?.externalParameters?.workflow;
-    if (attestedCommit(statement) !== commit
+    const expectedCommit = candidateCommits[name] ?? commit;
+    if (expectedCommit !== commit) assertAncestor(expectedCommit, commit);
+    if (attestedCommit(statement) !== expectedCommit
       || workflow?.repository !== expectedRepository
       || workflow?.path !== expectedWorkflowPath
       || workflow?.ref !== 'refs/heads/main') {
       throw new Error(`Attested source does not match the public Lit release contract for ${name}@${version}`);
     }
-    results.push({ name, version, sourceCommit: commit, workflow });
+    results.push({ name, version, sourceCommit: expectedCommit, releaseCommit: commit, workflow });
   }
   const report = {
     schemaVersion: 'context-action-lit-public-provenance.v1',

@@ -81,10 +81,19 @@ runtime exports, ESM/CJS entries, types, SSR rendering, and hydration export.
 The candidate workflow automatically verifies:
 
 - SLSA provenance bound to `release_commit` and the Lit candidate workflow path
+- per-package attested commits when a candidate is resumed after registry/dist-tag propagation
 - registry consumer install of both package versions
 - ESM/CJS exports, SSR rendering, and TypeScript consumer contracts
 - registry evidence for the exact `@context-action/lit,@context-action/lit-ui`
   cohort
+
+### Resumed candidate binding
+
+`candidateCommits` records the attested source commit for each package when a
+candidate is resumed after a partial publication. Every recorded commit must be
+an ancestor of the current candidate `release_commit`; the provenance verifier
+uses the package-specific commit and records both `sourceCommit` and
+`releaseCommit` in evidence. A commit outside the approved ancestry fails closed.
 
 Then dispatch the promotion workflow with the same `release_commit` and
 `PROMOTE_LIT_PUBLIC`. Promotion verifies the candidate provenance and consumer
