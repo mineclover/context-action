@@ -11,7 +11,8 @@
  */
 
 import { LitElement, html, css, nothing, type PropertyValues } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
+import { defineCustomElement } from '../define-once.js';
 import type { Context } from '@lit/context';
 import type { ActionRegister } from '@context-action/core';
 import {
@@ -87,7 +88,6 @@ export function defaultCartCountSelector(state: unknown): number {
  * 2. W3C Context Protocol: automatically injects `cartStoreContext` and `actionRegisterContext`
  *    from ancestor providers across Shadow DOM boundaries.
  */
-@customElement('lit-cart-badge')
 export class LitCartBadge extends LitElement {
   static override styles = css`
     :host {
@@ -265,7 +265,7 @@ export class LitCartBadge extends LitElement {
    * Static numerical count override. If defined, overrides both store and context values.
    */
   @property({ type: Number })
-  value?: number;
+  value: number | undefined = undefined;
 
   /**
    * Maximum count displayed before truncating with a '+' suffix (e.g. 99 -> '99+').
@@ -514,3 +514,5 @@ declare global {
     'lit-cart-badge': LitCartBadge;
   }
 }
+
+defineCustomElement('lit-cart-badge', LitCartBadge);

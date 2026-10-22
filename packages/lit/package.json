@@ -1,10 +1,10 @@
 {
   "name": "@context-action/lit",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "private": false,
   "type": "module",
   "license": "Apache-2.0",
-  "description": "Lit ReactiveController adapters for Context-Action stores and action pipelines",
+  "description": "Lit ReactiveController adapters for Context-Action stores, action pipelines, and LIFO lifecycle scopes",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -23,26 +23,37 @@
   "files": [
     "dist",
     "README.md",
-    "docs"
+    "docs",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsdown",
+    "prepublishOnly": "pnpm run build",
     "type-check": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@context-action/core": "workspace:*"
+    "@context-action/core": "^1.2.6"
   },
   "peerDependencies": {
     "lit": "^3.2.0"
   },
   "devDependencies": {
     "lit": "3.3.3",
-    "tsdown": "0.23.0",
+    "tsdown": "0.23.1",
     "typescript": "6.0.3",
-    "vitest": "4.1.12"
+    "vitest": "5.0.5"
   },
   "engines": {
     "node": ">=24.11.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mineclover/context-action.git",
+    "directory": "packages/lit"
   }
 }

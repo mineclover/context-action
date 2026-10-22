@@ -124,6 +124,12 @@ jobs:
       - name: Verify full repository
         run: pnpm verify:all
 
+      - name: Install Chromium for Lit hydration contract
+        run: pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium
+
+      - name: Run Lit DSD hydration browser contract
+        run: pnpm --filter @context-action/lit-ui test:browser
+
       - name: Verify impacted public example routes
         if: github.event_name == 'pull_request'
         env:
