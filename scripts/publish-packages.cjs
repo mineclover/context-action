@@ -361,25 +361,40 @@ function publishScopedPackages() {
     }
   }
 
+  function readDistTags(packageName) {
+    const viewResult = commandSucceeded(
+      'npm',
+      ['view', packageName, 'dist-tags', '--json', '--registry=https://registry.npmjs.org'],
+    );
+    if (viewResult?.stdout) {
+      try {
+        const parsed = JSON.parse(viewResult.stdout);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return parsed;
+        }
+      } catch {
+        // Ignore parsing failure due to registry response buffering/replication lag
+      }
+    }
+    const listResult = commandSucceeded(
+      'npm',
+      ['dist-tag', 'ls', packageName, '--registry=https://registry.npmjs.org'],
+    );
+    if (!listResult?.stdout) return null;
+    const tags = {};
+    for (const line of listResult.stdout.split('\n')) {
+      const match = /^([^:]+):\s*(.+)$/u.exec(line.trim());
+      if (match) tags[match[1]] = match[2];
+    }
+    return Object.keys(tags).length > 0 ? tags : null;
+  }
+
   function ensureDistTag(manifest, packageDirectory) {
     let tags;
-    const attempts = 18;
+    const attempts = 36;
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
-      const tagsResult = commandSucceeded(
-        'npm',
-        ['view', manifest.name, 'dist-tags', '--json', '--registry=https://registry.npmjs.org'],
-      );
-      if (tagsResult?.stdout) {
-        try {
-          const parsed = JSON.parse(tagsResult.stdout);
-          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-            tags = parsed;
-            break;
-          }
-        } catch {
-          // Ignore parsing failure due to registry response buffering/replication lag
-        }
-      }
+      tags = readDistTags(manifest.name);
+      if (tags) break;
       if (attempt < attempts) {
         process.stdout.write(`Waiting for npm dist-tags (${attempt}/${attempts - 1})...\n`);
         Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 10_000);
