@@ -599,6 +599,26 @@ npm install @context-action/react
 - 🪝 Advanced React hooks
 - 🏗️ HOC support
 
+### [@context-action/lit](./packages/lit)
+**Lit ReactiveController adapters** - Headless store/action integration
+```bash
+npm install @context-action/lit lit
+```
+- 🧩 `StoreController` and `ActionController`
+- 🧹 `ControllerScope` LIFO lifecycle disposal
+- 🎯 Selector projections and equality suppression
+- 🚫 No React dependency
+
+### [@context-action/lit-ui](./packages/lit-ui)
+**Lit web component primitives and integrations**
+```bash
+npm install @context-action/lit-ui @context-action/lit lit @lit/context
+```
+- 🧱 Form-Associated Custom Elements (FACE)
+- 🌐 W3C `@lit/context` tokens, providers, and controllers
+- ⚛️ React 18/19 custom element bridge with facade handles
+- 🖥️ SSR (`./ssr`) and client hydration (`./hydrate`) entries
+
 ---
 
 ## 🛠️ Development

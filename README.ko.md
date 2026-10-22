@@ -758,6 +758,26 @@ npm install @context-action/react
 - 🪝 고급 React 훅
 - 🏗️ HOC 지원
 
+### [@context-action/lit](./packages/lit)
+**Lit ReactiveController 어댑터** - 헤드리스 스토어/액션 통합
+```bash
+npm install @context-action/lit lit
+```
+- 🧩 `StoreController`, `ActionController`
+- 🧹 `ControllerScope` LIFO 수명 정리
+- 🎯 selector projection과 equality 억제
+- 🚫 React 의존성 없음
+
+### [@context-action/lit-ui](./packages/lit-ui)
+**Lit 웹 컴포넌트 프리미티브 및 통합**
+```bash
+npm install @context-action/lit-ui @context-action/lit lit @lit/context
+```
+- 🧱 Form-Associated Custom Elements (FACE)
+- 🌐 W3C `@lit/context` token, provider, controller
+- ⚛️ facade handle을 지원하는 React 18/19 custom element bridge
+- 🖥️ SSR(`./ssr`) 및 client hydration(`./hydrate`) entry
+
 ### [@context-action/tool-protocol](./packages/tool-protocol)
 **MCP, OpenAI 호환 provider, Anthropic 호환 provider, local adapter를 위한
 framework-neutral tool/action 계약**

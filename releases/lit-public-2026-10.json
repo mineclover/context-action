@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "context-action-lit-public-release.v1",
+  "release": "context-action-lit-public-2026-10",
+  "status": "approved-for-candidate",
+  "candidateDistTag": "next",
+  "promotionDistTag": "latest",
+  "candidateWorkflow": "publish-lit-public-candidate.yml",
+  "promotionWorkflow": "promote-lit-public.yml",
+  "promotionConfirmation": "PROMOTE_LIT_PUBLIC",
+  "packages": {
+    "@context-action/lit": "0.1.0",
+    "@context-action/lit-ui": "0.1.0"
+  },
+  "dependencies": {
+    "@context-action/lit": {
+      "@context-action/core": "^1.2.6"
+    },
+    "@context-action/lit-ui": {
+      "@context-action/core": "^1.2.6",
+      "@context-action/lit": "^0.1.0"
+    }
+  },
+  "publicationOrder": [
+    "@context-action/lit",
+    "@context-action/lit-ui"
+  ],
+  "provenanceBinding": "workflow-release-commit",
+  "changelogDates": {
+    "@context-action/lit": "2026-10-23",
+    "@context-action/lit-ui": "2026-10-23"
+  },
+  "requiredChecks": [
+    "pnpm verify:lit-public-release -- --require-current-source",
+    "pnpm verify:lit-public-workflows",
+    "pnpm check:lit",
+    "pnpm verify:lit-react-compatibility",
+    "pnpm --filter @context-action/lit-ui test:browser",
+    "pnpm verify:package-exports",
+    "pnpm verify:package-tarballs",
+    "pnpm verify:lit-packed-consumer",
+    "pnpm package-boundary:check",
+    "pnpm release:check"
+  ],
+  "notes": [
+    "This is an independent Lit public-preview cohort and is not part of the Core/React, Mutative, tool, or Preact cohorts.",
+    "Both packages are initial 0.1.0 public previews; API and support changes require a later stability decision.",
+    "Publication must run lit before lit-ui and bind every artifact to an approved immutable main commit.",
+    "A protected Lit candidate/promotion workflow must be reviewed and added before registry dispatch; direct npm publish and dist-tag mutation are not release paths.",
+    "lit and @lit/context are peer dependencies; React is an optional peer used only by the bridge, and @lit-labs/ssr peers are optional for ./ssr."
+  ]
+}

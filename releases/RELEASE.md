@@ -13,6 +13,7 @@
 - [`COORDINATED_STABLE_2026_10.md`](COORDINATED_STABLE_2026_10.md)
 - [`PREACT_PUBLIC_0.2.0.md`](PREACT_PUBLIC_0.2.0.md) (현재 Preact cohort 후보)
 - [`PREACT_PUBLIC_0.1.0.md`](PREACT_PUBLIC_0.1.0.md)
+- [`LIT_PUBLIC_0.1.0.md`](LIT_PUBLIC_0.1.0.md) (Lit 공개 preview 후보, 워크플로 편입 전)
 
 ## 1. 변경 분류와 버전 결정
 
@@ -54,6 +55,7 @@ pnpm release:check
 | Mutative cohort | `publish-mutative.yml` | 두 패키지를 `next`에 게시하고 consumer/evidence를 검증 |
 | Core 1.2.6 / Store Core 0.1.3 / Mutative Core 0.8.14 / Mutative 0.8.15 / React 4.0.7 time-travel and hydration stability patch | `publish-coordinated-stable-candidate.yml` → `promote-coordinated-stable.yml` | 후보를 `next`에 고정·검증한 뒤 검토된 five-package cohort를 `latest`로 승격. Durable·ToolContext는 별도 개발 트랙 |
 | Preact public preview cohort (Preact 0.1.2 / Preact UI 0.2.0) | `publish-preact-public-candidate.yml` → `promote-preact-public.yml` | `@context-action/preact` 다음 `@context-action/preact-ui`를 `next`에 게시하고 packed/browser evidence를 확인한 뒤 별도 검토로 `latest` 승격 |
+| Lit public preview cohort (Lit 0.1.0 / Lit UI 0.1.0) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | `@context-action/lit` 다음 `@context-action/lit-ui`를 `next`에 게시하고 SSR/hydration/React evidence를 확인한 뒤 `PROMOTE_LIT_PUBLIC` 확인으로 `latest` 승격 |
 
 모든 워크플로는 승인된 immutable main commit, 정확한 버전, provenance,
 consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 합니다.
@@ -114,6 +116,24 @@ matrix를 검증한 뒤에만 `latest`로 승격합니다.
 지원 범위가 바뀔 수 있습니다. NVDA/VoiceOver 음성 출력은 runtime 기능이
 아니며 release gate도 아닙니다. 특정 제품이 해당 OS·보조기술 조합을
 지원하기로 한 경우에만 제품 host에서 별도 QA를 수행합니다.
+
+## 4-2. Lit 공개 preview 후보
+
+`@context-action/lit@0.1.0`과 `@context-action/lit-ui@0.1.0`은 첫 공개
+preview 후보입니다. Core/React, Mutative, tool, Preact cohort와 독립적으로
+버전을 관리하며 [`LIT_PUBLIC_0.1.0.md`](LIT_PUBLIC_0.1.0.md)와
+`lit-public-2026-10.json`에 후보 계약을 기록합니다.
+
+Publication order는 `@context-action/lit` → `@context-action/lit-ui`입니다.
+두 번째 package가 첫 번째 package `^0.1.0`과 Core `^1.2.6`을 요구합니다.
+`check:lit`, React 18 matrix, Chromium DSD hydration contract, package
+export/tarball, packed consumer 검증이 release evidence의 기준입니다.
+
+Registry 경로는 `publish-lit-public-candidate.yml` → `promote-lit-public.yml`
+입니다. 첫 배포는 npm에 package가 없으므로 `publish_auth=token`을 사용하고,
+이후 OIDC/trusted publishing은 bootstrap 이후 별도 검토합니다. Candidate는
+`next`에 게시한 뒤 provenance와 published consumer matrix를 검증하고,
+`PROMOTE_LIT_PUBLIC` 확인을 받은 promotion workflow만 `latest`를 변경합니다.
 
 ## 5. 실패와 재개
 

@@ -9,7 +9,8 @@
  */
 
 import { html, css, type PropertyValues } from 'lit';
-import { customElement, property, state, query } from 'lit/decorators.js';
+import { property, state, query } from 'lit/decorators.js';
+import { defineCustomElement } from '../define-once.js';
 import { FormAssociatedLitElement } from '../form-associated-element.js';
 
 /**
@@ -31,7 +32,6 @@ export interface QuantityChangeEventDetail {
  * - Standard CustomEvent dispatching (`change`, `input`, `quantity-change`) with `{ bubbles: true, composed: true }`.
  * - Fully encapsulated Shadow DOM styling with `::part(button)` and `::part(input)` styling hooks.
  */
-@customElement('lit-quantity-stepper')
 export class LitQuantityStepper extends FormAssociatedLitElement {
   static override styles = css`
     :host {
@@ -499,3 +499,5 @@ declare global {
     'lit-quantity-stepper': LitQuantityStepper;
   }
 }
+
+defineCustomElement('lit-quantity-stepper', LitQuantityStepper);

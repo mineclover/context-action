@@ -10,6 +10,8 @@ const defaultOutput = 'reports/release/v1.0.0/package-inventory.json';
 const candidates = new Map([
   ['@context-action/core', 'stable-1x'],
   ['@context-action/react', 'stable-1x'],
+  ['@context-action/lit', 'public-preview'],
+  ['@context-action/lit-ui', 'public-preview'],
   ['@context-action/tool-protocol', 'supporting-stable'],
   ['@context-action/ai-sdk', 'experimental-or-supporting-stable'],
   ['@context-action/webmcp', 'experimental'],

@@ -1,0 +1,182 @@
+name: Publish Lit Public Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_auth:
+        description: 'npm authentication mode for this public-preview candidate'
+        required: true
+        default: token
+        type: choice
+        options:
+          - token
+          - oidc
+      release_commit:
+        description: 'Approved immutable main commit to publish'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  publish-lit-public-candidate:
+    runs-on: ubuntu-latest
+    environment:
+      name: npm-stable
+    timeout-minutes: 50
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.release_commit }}
+
+      - name: Verify approved main release commit
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$RELEASE_COMMIT" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
+
+      - name: Clear npm config before registry setup
+        run: |
+          unset NPM_CONFIG_USERCONFIG
+          rm -f ~/.npmrc
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d15e628ca66d93ee5f352c71671a7bc6a97af5c9 # v6.0.8
+        with:
+          version: 11.28.6
+          run_install: false
+
+      - name: Get pnpm store directory
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_ENV"
+
+      - name: Setup pnpm cache
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Verify OIDC candidate publishing eligibility
+        if: inputs.publish_auth == 'oidc'
+        run: |
+          for PACKAGE_NAME in "@context-action/lit" "@context-action/lit-ui"; do
+            if ! npm view "$PACKAGE_NAME" name --registry=https://registry.npmjs.org/ >/dev/null 2>&1; then
+              echo "::error title=OIDC bootstrap requires an existing npm package::$PACKAGE_NAME does not exist on npm. Publish this initial public-preview version with publish_auth=token after setting the protected NPM_TOKEN secret."
+              exit 1
+            fi
+          done
+
+      - name: Verify npm token auth
+        if: inputs.publish_auth == 'token'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate public Lit release plan
+        run: pnpm verify:lit-public-release -- --require-current-source
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml', 'packages/style-testing/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Chromium for the Lit hydration contract
+        run: pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium
+
+      - name: Run release gate
+        run: pnpm release:check
+
+      - name: Build and type-check public Lit packages
+        run: |
+          pnpm build:lit
+          pnpm type-check:lit
+
+      - name: Test public Lit packages
+        run: |
+          pnpm test:lit
+          pnpm --filter @context-action/lit-ui test:edge
+
+      - name: Run Lit DSD hydration browser contract
+        run: pnpm --filter @context-action/lit-ui test:browser
+
+      - name: Verify public Lit artifacts
+        run: |
+          pnpm verify:package-exports
+          pnpm verify:package-tarballs
+          pnpm verify:lit-packed-consumer
+          pnpm package-boundary:check
+
+      - name: Re-verify approved source immediately before publication
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git diff --exit-code
+          git diff --cached --exit-code
+
+      - name: Publish public Lit candidate to next
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: |
+          pnpm publish:packages -- --summary-file reports/npm-lit-public-candidate-summary.json --dist-tag next \
+            --require-all-unpublished \
+            --resume-matching-existing \
+            --scope @context-action/lit \
+            --scope @context-action/lit-ui
+
+      - name: Verify published Lit candidate provenance
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          node scripts/verify-lit-public-provenance.mjs --tag next --commit "$RELEASE_COMMIT" \
+            --output reports/npm-lit-public-candidate-provenance.json
+
+      - name: Verify published Lit consumer matrix
+        env:
+          NODE_AUTH_TOKEN: ${{ inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
+        run: node scripts/verify-lit-public-consumer-smoke.mjs --tag next --cohort
+
+      - name: Capture public Lit registry evidence
+        run: |
+          pnpm capture:published-release -- --tag next \
+            --packages "@context-action/lit,@context-action/lit-ui" \
+            --consumer-status passed --output reports/npm-lit-public-candidate-registry-evidence.json
+
+      - name: Upload public Lit candidate evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: npm-lit-public-candidate-evidence
+          path: reports/npm-lit-public-candidate-*.json
+          if-no-files-found: error
+          retention-days: 30

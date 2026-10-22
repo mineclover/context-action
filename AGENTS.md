@@ -290,6 +290,14 @@ release plan. Direct local publishing is disabled; `pnpm release` and
 `pnpm release:patch` intentionally fail closed. Follow
 [`releases/RELEASE.md`](releases/RELEASE.md) and the protected workflows.
 
+`packages/lit` and `packages/lit-ui` are public packages and participate in
+Lerna's independent versioning and public package verification. Their full gate
+is `pnpm check:lit` (build, type-check, unit, edge runtime); it is wired into
+`verify:all`, lint, the PR verification workflow, and the main CI browser
+hydration contract (`@context-action/lit-ui test:browser`). Public registry
+publication uses `releases/LIT_PUBLIC_0.1.0.md`,
+`publish-lit-public-candidate.yml`, and `promote-lit-public.yml`.
+
 ### Documentation
 ```bash
 # Documentation development

@@ -24,9 +24,7 @@ import type { ActionRegister } from '@context-action/core';
  * @implements action-controller
  * @memberof api-terms
  */
-export interface ActionControllerOptions {
-  /** Optional placeholder for controller-level configuration */
-}
+export type ActionControllerOptions = Record<never, never>;
 
 /**
  * Combines an internal lifecycle AbortSignal with an optional caller-provided AbortSignal.

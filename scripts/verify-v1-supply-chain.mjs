@@ -17,6 +17,7 @@ const prereleasePackageCohort = '@context-action/core,@context-action/react,@con
 const stableCandidatePackageCohort = '@context-action/core,@context-action/react,@context-action/tool-protocol';
 const coordinatedStablePackageCohort = '@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react';
 const preactPublicPackageCohort = '@context-action/preact,@context-action/preact-ui';
+const litPublicPackageCohort = '@context-action/lit,@context-action/lit-ui';
 const mutativePackageCohort = '@context-action/mutative-core,@context-action/mutative';
 const maintenanceJournalMarkerStatements = [
   'journal_previous_tag="maintenance-previous-$PACKAGE_VERSION"',
@@ -51,7 +52,7 @@ const approvedSourceStatements = [
   'git diff --cached --exit-code',
 ];
 const reactCompatibilityMatrixCommand = 'node scripts/verify-react-compatibility.mjs --react-version 19.2.0 --react-types 19.2.0 --react-dom-types 19.2.0 && node scripts/verify-react-compatibility.mjs --react-version 19.2.8 --react-types 19.2.17 --react-dom-types 19.2.3';
-const verifyAllCommand = 'pnpm build:live-code-editor && pnpm build && pnpm verify:react-compatibility && pnpm test:ai-sdk-integration && pnpm verify:ai-sdk-tool-protocol-contract && pnpm verify:react-aria-reference-hydration && pnpm verify:doc-snippets && pnpm verify:core-artifact-parity && pnpm verify:react-artifact-boundary && pnpm verify:react-webmcp-isolation && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm verify:preact-public-release -- --require-current-source && pnpm verify:preact-public-workflows && pnpm verify:tool-protocol-changelog && pnpm verify:webmcp-changelog && pnpm package-boundary:check && pnpm package-boundary:test && pnpm verify:local-tool-consumers && pnpm verify:v1-lifecycle && pnpm verify:v1-release-manifest && pnpm verify:v1-release-state-alignment && pnpm verify:coordinated-stable-release-plan && pnpm test:release-safety && pnpm verify:v1-release-workflows && pnpm verify:v1-supply-chain && pnpm tool-durable:test:evidence && pnpm lint && pnpm convention:check && pnpm docs:management && pnpm llms:check && pnpm type-check && pnpm test && node --test scripts/example-route-impact.test.mjs && pnpm --filter example check && pnpm --filter example test && pnpm --filter example build && pnpm web-coding:build && pnpm docs:build && pnpm verify:private-tools';
+const verifyAllCommand = 'pnpm build:live-code-editor && pnpm build && pnpm verify:react-compatibility && pnpm verify:lit-react-compatibility && pnpm check:lit && pnpm test:ai-sdk-integration && pnpm verify:ai-sdk-tool-protocol-contract && pnpm verify:react-aria-reference-hydration && pnpm verify:doc-snippets && pnpm verify:core-artifact-parity && pnpm verify:react-artifact-boundary && pnpm verify:react-webmcp-isolation && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm verify:lit-packed-consumer && pnpm verify:preact-public-release -- --require-current-source && pnpm verify:preact-public-workflows && pnpm verify:lit-public-release -- --require-current-source && pnpm verify:lit-public-workflows && pnpm verify:tool-protocol-changelog && pnpm verify:webmcp-changelog && pnpm package-boundary:check && pnpm package-boundary:test && pnpm verify:local-tool-consumers && pnpm verify:v1-lifecycle && pnpm verify:v1-release-manifest && pnpm verify:v1-release-state-alignment && pnpm verify:coordinated-stable-release-plan && pnpm test:release-safety && pnpm verify:v1-release-workflows && pnpm verify:v1-supply-chain && pnpm tool-durable:test:evidence && pnpm lint && pnpm convention:check && pnpm docs:management && pnpm llms:check && pnpm type-check && pnpm test && node --test scripts/example-route-impact.test.mjs && pnpm --filter example check && pnpm --filter example test && pnpm --filter example build && pnpm web-coding:build && pnpm docs:build && pnpm verify:private-tools';
 const requiredRootScripts = {
   'build:live-code-editor': 'pnpm --filter @context-action/live-code-editor build',
   'web-coding:build': 'pnpm --filter @context-action/web-coding-demo build',
@@ -71,6 +72,8 @@ const requiredRootScripts = {
   'verify:package-tarballs': 'node scripts/verify-package-tarballs.mjs',
   'verify:preact-public-release': 'node scripts/verify-preact-public-release.mjs',
   'verify:preact-public-workflows': 'node scripts/verify-preact-public-workflows.mjs',
+  'verify:lit-public-release': 'node scripts/verify-lit-public-release.mjs',
+  'verify:lit-public-workflows': 'node scripts/verify-lit-public-workflows.mjs',
   'verify:tool-protocol-changelog': 'node scripts/verify-tool-protocol-changelog.mjs',
   'verify:webmcp-changelog': 'node scripts/verify-tool-protocol-changelog.mjs --package webmcp',
   'package-boundary:check': 'node scripts/verify-package-boundaries.mjs',
@@ -79,11 +82,11 @@ const requiredRootScripts = {
   'verify:v1-release-manifest': 'node scripts/verify-v1-release-manifest.mjs',
   'verify:v1-release-state-alignment': 'node scripts/verify-v1-release-state-alignment.mjs',
   'verify:coordinated-stable-release-plan': 'node scripts/verify-coordinated-stable-release-plan.mjs',
-  'test:release-safety': 'node --test --test-concurrency=1 scripts/maintenance-release-safety.test.mjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.test.cjs scripts/coordinated-stable-release.test.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-v1-supply-chain.test.mjs scripts/verify-preact-public-release.test.mjs',
+  'test:release-safety': 'node --test --test-concurrency=1 scripts/maintenance-release-safety.test.mjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.test.cjs scripts/coordinated-stable-release.test.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-v1-supply-chain.test.mjs scripts/verify-preact-public-release.test.mjs scripts/verify-lit-public-release.test.mjs',
   'verify:v1-release-workflows': 'node scripts/verify-v1-release-workflows.mjs',
   'verify:v1-supply-chain': 'node scripts/verify-v1-supply-chain.mjs',
   'tool-durable:test:evidence': 'node --test scripts/verify-durable-operation-evidence-schema.test.mjs',
-  lint: 'biome lint packages/core/src packages/tool-protocol/src packages/ai-sdk/src packages/webmcp/src packages/tool-durable-operations/src packages/react/src packages/mutative-core/src packages/mutative/src packages/llms-generator/src packages/typedoc-vitepress-sync/src packages/preact/src packages/preact-ui/src packages/preact-ui/examples scripts/security-audit.mjs scripts/verify-private-tools.mjs scripts/verify-package-boundaries.mjs scripts/verify-package-boundaries.test.mjs scripts/verify-durable-operation-evidence-schema.mjs scripts/verify-durable-operation-evidence-schema.test.mjs scripts/verify-ai-sdk-runtime.mjs scripts/verify-ai-sdk-tool-protocol-contract.mjs scripts/verify-react-aria-reference-hydration.mjs scripts/verify-doc-snippets.mjs scripts/verify-react-compatibility.mjs scripts/verify-core-artifact-parity.mjs scripts/verify-tool-protocol-changelog.mjs scripts/verify-maintenance-patch-version.mjs scripts/verify-maintenance-patch-provenance.mjs scripts/refuse-direct-release.mjs scripts/publish-packages.cjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.cjs scripts/verify-published-tool-consumers.test.cjs scripts/maintenance-release-safety.test.mjs scripts/coordinated-stable-release.test.mjs scripts/verify-coordinated-stable-release-plan.mjs scripts/verify-coordinated-stable-provenance.mjs scripts/promote-coordinated-stable.mjs scripts/verify-preact-public-provenance.mjs scripts/promote-preact-public.mjs scripts/verify-preact-public-release.mjs scripts/verify-preact-public-release.test.mjs scripts/verify-preact-public-workflows.mjs scripts/write-release-evidence.mjs scripts/verify-release-evidence.mjs scripts/release-evidence.test.mjs scripts/generate-release-inventory.mjs scripts/verify-v1-release-roadmap-alignment.mjs scripts/verify-v1-release-state-alignment.mjs scripts/verify-react-webmcp-isolation.mjs scripts/verify-v1-core-migration-fixture.mjs scripts/verify-v1-lifecycle-contract.mjs scripts/verify-v1-release-manifest.mjs scripts/verify-v1-release-workflows.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-stable-publish-authorization.mjs scripts/verify-v1-published-provenance.mjs scripts/verify-v1-promotion-authorization.mjs scripts/verify-v1-promotion-governance.mjs scripts/verify-v1-supply-chain.mjs scripts/verify-v1-supply-chain.test.mjs scripts/capture-published-release.mjs scripts/verify-prerelease-dist-tags.cjs',
+  lint: 'biome lint packages/core/src packages/tool-protocol/src packages/ai-sdk/src packages/webmcp/src packages/tool-durable-operations/src packages/react/src packages/mutative-core/src packages/mutative/src packages/llms-generator/src packages/typedoc-vitepress-sync/src packages/preact/src packages/preact-ui/src packages/preact-ui/examples packages/lit/src packages/lit-ui/src packages/lit-ui/examples scripts/security-audit.mjs scripts/verify-private-tools.mjs scripts/verify-package-boundaries.mjs scripts/verify-package-boundaries.test.mjs scripts/verify-durable-operation-evidence-schema.mjs scripts/verify-durable-operation-evidence-schema.test.mjs scripts/verify-ai-sdk-runtime.mjs scripts/verify-ai-sdk-tool-protocol-contract.mjs scripts/verify-react-aria-reference-hydration.mjs scripts/verify-doc-snippets.mjs scripts/verify-react-compatibility.mjs scripts/verify-lit-react-compatibility.mjs scripts/verify-lit-packed-consumer.mjs scripts/verify-lit-public-release.mjs scripts/verify-lit-public-release.test.mjs scripts/verify-lit-public-workflows.mjs scripts/verify-lit-public-provenance.mjs scripts/verify-lit-public-consumer-smoke.mjs scripts/promote-lit-public.mjs scripts/verify-core-artifact-parity.mjs scripts/verify-tool-protocol-changelog.mjs scripts/verify-maintenance-patch-version.mjs scripts/verify-maintenance-patch-provenance.mjs scripts/refuse-direct-release.mjs scripts/publish-packages.cjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.cjs scripts/verify-published-tool-consumers.test.cjs scripts/maintenance-release-safety.test.mjs scripts/coordinated-stable-release.test.mjs scripts/verify-coordinated-stable-release-plan.mjs scripts/verify-coordinated-stable-provenance.mjs scripts/promote-coordinated-stable.mjs scripts/verify-preact-public-provenance.mjs scripts/promote-preact-public.mjs scripts/verify-preact-public-release.mjs scripts/verify-preact-public-release.test.mjs scripts/verify-preact-public-workflows.mjs scripts/write-release-evidence.mjs scripts/verify-release-evidence.mjs scripts/release-evidence.test.mjs scripts/generate-release-inventory.mjs scripts/verify-v1-release-roadmap-alignment.mjs scripts/verify-v1-release-state-alignment.mjs scripts/verify-react-webmcp-isolation.mjs scripts/verify-v1-core-migration-fixture.mjs scripts/verify-v1-lifecycle-contract.mjs scripts/verify-v1-release-manifest.mjs scripts/verify-v1-release-workflows.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-stable-publish-authorization.mjs scripts/verify-v1-published-provenance.mjs scripts/verify-v1-promotion-authorization.mjs scripts/verify-v1-promotion-governance.mjs scripts/verify-v1-supply-chain.mjs scripts/verify-v1-supply-chain.test.mjs scripts/capture-published-release.mjs scripts/verify-prerelease-dist-tags.cjs',
   'convention:check': 'node scripts/verify-context-action-conventions.mjs',
   'docs:management': 'node scripts/verify-documentation-management.mjs',
   'llms:check': 'node packages/llms-generator/dist/cli/index.js detect-mismatches --check-only --fail-on-mismatch',
@@ -130,6 +133,8 @@ const requiredPublicationBuildScripts = new Map([
   ['@context-action/react', 'pnpm run build:prod'],
   ['@context-action/preact', 'pnpm run build'],
   ['@context-action/preact-ui', 'pnpm run build'],
+  ['@context-action/lit', 'pnpm run build'],
+  ['@context-action/lit-ui', 'pnpm run build'],
   ['@context-action/tool-protocol', 'pnpm run build'],
   ['@context-action/webmcp', 'pnpm run build'],
 ]);
@@ -742,6 +747,69 @@ const publishWorkflowPolicies = new Map([
       approvedSourceStatements,
       { RELEASE_COMMIT: releaseCommitExpression },
       'must re-verify the approved clean source immediately before public Preact publication',
+    ],
+  }],
+  ['publish-lit-public-candidate.yml', {
+    protected: true,
+    allowLatest: false,
+    publishDistTag: 'next',
+    requireAllUnpublished: true,
+    requireMatchingResume: true,
+    uploadPath: 'reports/npm-lit-public-candidate-*.json',
+    uploadMissingPolicy: 'error',
+    publishScopes: ['@context-action/lit', '@context-action/lit-ui'],
+    allowedPublicationCommandPatterns: [
+      /^pnpm\s+(?:run\s+)?publish:packages\b/u,
+    ],
+    captureArguments: [
+      'next',
+      litPublicPackageCohort,
+      'reports/npm-lit-public-candidate-registry-evidence.json',
+    ],
+    requiredBeforeCaptureSteps: [
+      [
+        ['node scripts/verify-lit-public-provenance.mjs --tag next --commit "$RELEASE_COMMIT" --output reports/npm-lit-public-candidate-provenance.json'],
+        'must verify Lit candidate provenance before recording passing evidence',
+      ],
+      [
+        ['node scripts/verify-lit-public-consumer-smoke.mjs --tag next --cohort'],
+        'must fail closed on the complete published Lit consumer cohort before recording passing evidence',
+      ],
+    ],
+    requiredCommandPatterns: [
+      [/^pnpm\s+(?:run\s+)?publish:packages\b.*--dist-tag next(?:\s|$)/u, 'must publish the Lit public candidate to next'],
+      [/^pnpm\s+(?:run\s+)?publish:packages\b.*--require-all-unpublished(?:\s|$)/u, 'must require every Lit public candidate version to be unpublished before mutation'],
+      [/^pnpm\s+(?:run\s+)?publish:packages\b.*--resume-matching-existing(?:\s|$)/u, 'must bind Lit public candidate recovery to matching registry artifacts'],
+      [/^node\s+scripts\/verify-lit-public-provenance\.mjs\s+--tag next\s+--commit "\$RELEASE_COMMIT"\s+--output reports\/npm-lit-public-candidate-provenance\.json$/u, 'must verify Lit candidate provenance before recording evidence'],
+      [/^node\s+scripts\/verify-lit-public-consumer-smoke\.mjs\s+--tag next\s+--cohort$/u, 'must verify the published Lit candidate consumer matrix'],
+    ],
+    requiredPrepublicationSteps: [
+      [
+        ['pnpm verify:lit-public-release -- --require-current-source'],
+        'must validate the exact public Lit release plan against the immutable source before publication',
+      ],
+      [
+        ['pnpm release:check'],
+        'must run the root release gate before public Lit publication',
+      ],
+      [
+        ['pnpm --filter @context-action/lit-ui test:browser'],
+        'must run the Chromium DSD hydration contract before public Lit publication',
+      ],
+      [
+        [
+          'pnpm verify:package-exports',
+          'pnpm verify:package-tarballs',
+          'pnpm verify:lit-packed-consumer',
+          'pnpm package-boundary:check',
+        ],
+        'must verify the exact Lit package artifacts and packed consumer before publication',
+      ],
+    ],
+    requiredAdjacentPrepublicationStep: [
+      approvedSourceStatements,
+      { RELEASE_COMMIT: releaseCommitExpression },
+      'must re-verify the approved clean source immediately before public Lit publication',
     ],
   }],
   ['publish-maintenance-patch.yml', {
@@ -1888,6 +1956,18 @@ async function main() {
         || JSON.stringify(policyConsumer.step.statements.map(({ statement }) => statement))
           !== JSON.stringify([policyConsumer.command])) {
         tagPolicyFailures.push(`${name} must fail closed on the complete consumer cohort before recording passing evidence`);
+      }
+    }
+    for (const [expectedCommands, description] of policy.requiredBeforeCaptureSteps ?? []) {
+      const matchingStep = inspection.steps.find(step =>
+        JSON.stringify(step.statements.map(({ statement }) => statement))
+          === JSON.stringify(expectedCommands));
+      if (!matchingStep
+        || !policyCapture
+        || matchingStep.job !== policyCapture.job
+        || matchingStep.index >= policyCapture.step.index
+        || !isUnconditionalFailClosedStep(matchingStep)) {
+        tagPolicyFailures.push(`${name} ${description}`);
       }
     }
     if (policy.postPublicationGateArguments) {

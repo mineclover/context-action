@@ -84,3 +84,6 @@ jobs:
           node scripts/verify-react-artifact-boundary.mjs
           node scripts/verify-react-webmcp-isolation.mjs
           node --test scripts/verify-durable-operation-evidence-schema.test.mjs
+
+      - name: Verify Lit packages (build, type-check, unit, edge runtime)
+        run: pnpm check:lit

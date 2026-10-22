@@ -39,12 +39,19 @@ export {
   createLitElementBridge,
   createLitBridge,
   createCustomElementBridge,
+  createElementFacade,
 } from './react-bridge.js';
 export type {
   LitBridgeConfig,
   LitBridgeOptions,
   LitElementComponent,
+  ImperativeHandleFactory,
+  PublicActionMethods,
 } from './react-bridge.js';
+
+// Shared ReactiveController lifecycle scope (implemented in @context-action/lit)
+export { ControllerScope } from '@context-action/lit';
+export type { ControllerScopeOptions } from '@context-action/lit';
 
 // Reference Custom Elements & Components
 export { LitQuantityStepper } from './components/quantity-stepper.js';

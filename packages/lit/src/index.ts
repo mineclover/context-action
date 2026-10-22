@@ -10,6 +10,7 @@
 // Controllers
 export { StoreController } from './store-controller.js';
 export { ActionController } from './action-controller.js';
+export { ControllerScope } from './controller-scope.js';
 
 // Types
 export type {
@@ -24,3 +25,7 @@ export type {
 export type {
   ActionControllerOptions,
 } from './action-controller.js';
+
+export type {
+  ControllerScopeOptions,
+} from './controller-scope.js';
