@@ -25,6 +25,10 @@
     "@context-action/lit-ui"
   ],
   "provenanceBinding": "workflow-release-commit",
+  "candidateCommits": {
+    "@context-action/lit": "d18c926dc2783f5e44a194dd834c04b0c0d162d0",
+    "@context-action/lit-ui": "e58d9ff51054185a53e59a3876d978607a983e90"
+  },
   "changelogDates": {
     "@context-action/lit": "2026-10-23",
     "@context-action/lit-ui": "2026-10-23"

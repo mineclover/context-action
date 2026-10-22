@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { execFileSync } from 'node:child_process';
 import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -91,6 +92,36 @@ async function validatePlan(errors) {
   expect(errors, JSON.stringify(Object.keys(plannedDependencies).sort())
     === JSON.stringify([...expectedNames].sort()),
   'public Lit release plan must define dependency floors for both packages');
+
+  const candidateCommits = plan.candidateCommits ?? {};
+  for (const [name, value] of Object.entries(candidateCommits)) {
+    expect(errors, expectedNames.includes(name),
+      `public Lit release plan candidateCommits contains an unknown package: ${name}`);
+    expect(errors, typeof value === 'string' && /^[a-f0-9]{40}$/u.test(value),
+      `public Lit release plan candidateCommits.${name} must be a 40-character SHA`);
+  }
+  if (Object.keys(candidateCommits).length > 0) {
+    let head = '';
+    try {
+      head = execFileSync('git', ['rev-parse', 'HEAD'], {
+        cwd: repositoryRoot,
+        encoding: 'utf8',
+      }).trim();
+    } catch (error) {
+      errors.push(`could not resolve HEAD for candidateCommits ancestry: ${error.message}`);
+    }
+    for (const [name, value] of Object.entries(candidateCommits)) {
+      if (typeof value !== 'string' || value === head) continue;
+      try {
+        execFileSync('git', ['merge-base', '--is-ancestor', value, head], {
+          cwd: repositoryRoot,
+          stdio: 'ignore',
+        });
+      } catch {
+        errors.push(`candidateCommits.${name} (${value}) must be an ancestor of HEAD (${head})`);
+      }
+    }
+  }
   return plan;
 }
 
