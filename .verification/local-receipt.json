@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-10-22T19:38:35.390Z",
-  "commitSha": "6d160d2e72cc1b7c7436f698fa950fa2de0fe92d",
-  "branch": "fix/lit-publish-dist-tag-retry",
+  "timestamp": "2026-10-22T20:25:14.128Z",
+  "commitSha": "d2957b1ec310ebd3254bc41f957b7c88c0e0da9a",
+  "branch": "fix/lit-public-provenance-resume",
   "toolchain": {
     "node": "v24.20.0",
     "pnpm": "11.28.6",
@@ -13,27 +13,27 @@
   "suites": [
     {
       "name": "1. Monorepo Typecheck (13 projects)",
-      "durationSec": 11.55,
+      "durationSec": 11.48,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check & Test",
-      "durationSec": 0.77,
+      "durationSec": 0.76,
       "status": "passed"
     },
     {
       "name": "3. Package Boundary Unit Test Suite",
-      "durationSec": 0.97,
+      "durationSec": 1.01,
       "status": "passed"
     },
     {
       "name": "4. Context-Action Conventions & Catalog Check",
-      "durationSec": 1.65,
+      "durationSec": 1.8,
       "status": "passed"
     },
     {
       "name": "5. Core Artifact Parity Check",
-      "durationSec": 0.06,
+      "durationSec": 0.05,
       "status": "passed"
     },
     {
@@ -48,12 +48,12 @@
     },
     {
       "name": "8. AI SDK & Tool Protocol Contract Check",
-      "durationSec": 5.29,
+      "durationSec": 5.11,
       "status": "passed"
     },
     {
       "name": "9. React Aria Hydration Reference Check",
-      "durationSec": 14.85,
+      "durationSec": 17.05,
       "status": "passed"
     },
     {
@@ -63,7 +63,7 @@
     },
     {
       "name": "11. Durable Operations Evidence Schema Test",
-      "durationSec": 0.26,
+      "durationSec": 0.27,
       "status": "passed"
     },
     {
@@ -73,10 +73,10 @@
     },
     {
       "name": "13. Release Safety Regression Suite (194 tests)",
-      "durationSec": 58.71,
+      "durationSec": 58.93,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:ab004576a6091b40c4b59953f73a83626cfa3342475f7abd1c596461bcb3928a"
+  "receiptDigest": "sha256:af668808f02b3cf8c424e475db4e4d6b2aaf8a886c69b61c752d10ebf190b3fa"
 }
