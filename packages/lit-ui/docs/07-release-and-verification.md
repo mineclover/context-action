@@ -18,12 +18,12 @@
 - Promotion: `promote-lit-public.yml` — 성공
 - Registry consumer smoke — 25 assertions 통과
 
-### 0.1.1 patch candidate
+### 0.1.1 patch release
 
 `@context-action/lit-ui@0.1.1`은 static styles DSD hydration과 중복 client tree
-복구 patch입니다. `@context-action/lit@0.1.0`은 재사용하며, candidate/promotion
-workflow는 기존 lit artifact의 attested commit과 새 lit-ui commit을 함께
-검증합니다. 배포 완료 후 이 절의 상태를 갱신합니다.
+복구 patch입니다. `@context-action/lit@0.1.1`은 런타임/API 변경이 없는 cohort
+alignment patch입니다. 두 패키지는 2026-10-23 `latest`/`next` `0.1.1`로
+게시되었고, published consumer smoke 25 assertions를 통과했습니다.
 
 ## 1. 패키지 경계
 

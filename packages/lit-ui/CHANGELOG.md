@@ -2,6 +2,8 @@
 
 ## [0.1.1] (2026-10-23)
 
+Published to npm on 2026-10-23. `latest` and `next` resolve to `0.1.1`.
+
 ### Fixed
 
 - `hydrateLit(host.shadowRoot, host)` now finds `lit-part` markers anywhere
