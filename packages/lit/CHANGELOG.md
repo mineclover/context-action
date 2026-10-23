@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.1.3] (2026-10-23)
+
+Candidate patch for the Lit/Lit UI cohort. No runtime or public API changes;
+this version keeps the public packages aligned for the `hydrateLit()`
+`renderBefore` stabilization in `@context-action/lit-ui`.
+
 ## [0.1.2] (2026-10-23)
 
 Published to npm on 2026-10-23. `latest` and `next` resolve to `0.1.2`.

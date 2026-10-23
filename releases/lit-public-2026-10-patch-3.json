@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "context-action-lit-public-release.v1",
+  "release": "context-action-lit-public-2026-10-patch-3",
+  "status": "approved-for-candidate",
+  "candidateDistTag": "next",
+  "promotionDistTag": "latest",
+  "candidateWorkflow": "publish-lit-public-candidate.yml",
+  "promotionWorkflow": "promote-lit-public.yml",
+  "promotionConfirmation": "PROMOTE_LIT_PUBLIC",
+  "packages": {
+    "@context-action/lit": "0.1.3",
+    "@context-action/lit-ui": "0.1.3"
+  },
+  "dependencies": {
+    "@context-action/lit": {
+      "@context-action/core": "^1.2.6"
+    },
+    "@context-action/lit-ui": {
+      "@context-action/core": "^1.2.6",
+      "@context-action/lit": "^0.1.3"
+    }
+  },
+  "publicationOrder": [
+    "@context-action/lit",
+    "@context-action/lit-ui"
+  ],
+  "provenanceBinding": "workflow-release-commit",
+  "changelogDates": {
+    "@context-action/lit": "2026-10-23",
+    "@context-action/lit-ui": "2026-10-23"
+  },
+  "requiredChecks": [
+    "pnpm verify:lit-public-release -- --require-current-source",
+    "pnpm verify:lit-public-workflows",
+    "pnpm check:lit",
+    "pnpm verify:lit-react-compatibility",
+    "pnpm --filter @context-action/lit-ui test:browser",
+    "pnpm verify:package-exports",
+    "pnpm verify:package-tarballs",
+    "pnpm verify:lit-packed-consumer",
+    "pnpm package-boundary:check",
+    "pnpm release:check"
+  ],
+  "notes": [
+    "This is a Lit public-preview stabilization patch cohort; both packages advance to 0.1.3.",
+    "@context-action/lit 0.1.3 is a cohort-alignment patch with no runtime/API changes.",
+    "@context-action/lit-ui 0.1.3 clears a stale renderOptions.renderBefore after hydration so static-styles DSD roots are not duplicated by the next client render.",
+    "The fix covers hosts that are upgraded after connection, including the reported stratum-lit <ca-timeline> fixture.",
+    "Publication must run lit before lit-ui and bind every artifact to an approved immutable main commit."
+  ]
+}

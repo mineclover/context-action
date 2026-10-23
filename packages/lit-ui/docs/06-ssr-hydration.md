@@ -123,6 +123,15 @@ hydrate 후에도 element를 `this`로 받습니다. render options를 전달하
 Lit이 event listener의 host를 알 수 없어 method handler의 `this`가 깨질 수
 있습니다.
 
+### renderBefore와 static styles
+
+DSD host가 `hydrateLit()` 전에 upgrade되면 `LitElement.createRenderRoot()`가
+shadow root의 첫 자식인 server `<style>`을 `renderOptions.renderBefore`로
+캡처할 수 있습니다. 이 상태에서 다음 client render가 실행되면 Lit은
+`<style>` 앞에 새 client tree를 삽입해 항목이 중복됩니다. `hydrateLit()`은
+hydrate 성공 후 stale `renderBefore`를 제거하므로, 이후 render는 hydrate가
+설정한 server root part를 재사용합니다.
+
 ### 이미 중복된 client tree 복구
 
 `hydrateLit` 호출 전에 LitElement의 첫 update가 실행되어 server tree 옆에

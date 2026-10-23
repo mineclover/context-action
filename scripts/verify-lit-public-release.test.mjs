@@ -76,7 +76,7 @@ test('fails closed when lit-ui drops its lit dependency floor', async () => {
     await writeFile(packagePath, `${JSON.stringify(manifest)}\n`);
     const result = await runVerifier(root);
     assert.equal(result.code, 1);
-    assert.match(result.stderr, /@context-action\/lit-ui must depend on @context-action\/lit@\^0\.1\.2/u);
+    assert.match(result.stderr, /@context-action\/lit-ui must depend on @context-action\/lit@\^0\.1\.3/u);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
