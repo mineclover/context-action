@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-10-23T09:23:43.027Z",
-  "commitSha": "4b501448e60f39b2f022102dd1deaa99d3e0612a",
-  "branch": "release/lit-0.1.2-stabilization",
+  "timestamp": "2026-10-23T09:43:19.934Z",
+  "commitSha": "1c8def9b2e9f59752d5789b94feacf82c4e40cb9",
+  "branch": "main",
   "toolchain": {
     "node": "v24.20.0",
     "pnpm": "11.28.6",
@@ -13,70 +13,40 @@
   "suites": [
     {
       "name": "1. Monorepo Typecheck (13 projects)",
-      "durationSec": 16.85,
+      "durationSec": 17.18,
       "status": "passed"
     },
     {
-      "name": "2. Workspace Package Boundaries Check & Test",
-      "durationSec": 0.96,
+      "name": "2. Workspace Package Boundaries Check",
+      "durationSec": 0.86,
       "status": "passed"
     },
     {
-      "name": "3. Package Boundary Unit Test Suite",
-      "durationSec": 1.19,
+      "name": "3. Context-Action Conventions & Catalog Check",
+      "durationSec": 1.95,
       "status": "passed"
     },
     {
-      "name": "4. Context-Action Conventions & Catalog Check",
-      "durationSec": 1.87,
-      "status": "passed"
-    },
-    {
-      "name": "5. Core Artifact Parity Check",
+      "name": "4. Core & React Artifact Parity / Isolation",
       "durationSec": 0.06,
       "status": "passed"
     },
     {
-      "name": "6. React Production Artifact Boundary Check",
-      "durationSec": 0.04,
-      "status": "passed"
-    },
-    {
-      "name": "7. React WebMCP Isolation Check",
+      "name": "5. React Production Artifact Boundary",
       "durationSec": 0.03,
       "status": "passed"
     },
     {
-      "name": "8. AI SDK & Tool Protocol Contract Check",
-      "durationSec": 9.33,
+      "name": "6. React WebMCP Isolation",
+      "durationSec": 0.03,
       "status": "passed"
     },
     {
-      "name": "9. React Aria Hydration Reference Check",
-      "durationSec": 19.59,
-      "status": "passed"
-    },
-    {
-      "name": "10. Documentation Snippets Check",
-      "durationSec": 1.09,
-      "status": "passed"
-    },
-    {
-      "name": "11. Durable Operations Evidence Schema Test",
-      "durationSec": 0.41,
-      "status": "passed"
-    },
-    {
-      "name": "12. V1 Supply Chain & Pinned Action Policy Audit",
-      "durationSec": 0.12,
-      "status": "passed"
-    },
-    {
-      "name": "13. Release Safety Regression Suite (194 tests)",
-      "durationSec": 62.01,
+      "name": "7. Durable Operations Evidence Schema Test",
+      "durationSec": 0.29,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:a16c83d39f79646a20032a2294a4a77f229e77b97c26c919d2a43d1707184f3b"
+  "receiptDigest": "sha256:72c67c427bcf73d2c771ac51f87e3fab085101f1d7cedd672bf941760271b637"
 }
