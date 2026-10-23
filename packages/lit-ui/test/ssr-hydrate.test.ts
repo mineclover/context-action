@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { LitElement, css, html } from 'lit';
 import { hydrateLit } from '../src/hydrate.js';
-import { renderLitElement, renderLitTemplate } from '../src/ssr.js';
+import {
+  hydrateLit as hydrateLitFromSsr,
+  renderLitElement,
+  renderLitTemplate,
+} from '../src/ssr.js';
 
 const probeTemplate = (label: string) => html`
   <div part="ruler" data-testid="ruler">${label}</div>
@@ -196,6 +200,26 @@ describe('hydrateLit', () => {
     expect(shadow.firstElementChild?.localName).toBe('style');
 
     element.remove();
+  });
+
+  it('adopts the reported static-styles own-shadow fixture through the ssr re-export', async () => {
+    const host = new StyledListElement();
+    const shadow = host.attachShadow({ mode: 'open' });
+    shadow.innerHTML = serverShadowMarkup(new StyledListElement());
+    const serverItems = Array.from(shadow.querySelectorAll('.tl-item'));
+
+    expect(shadow.firstElementChild?.localName).toBe('style');
+    expect(serverItems).toHaveLength(3);
+
+    document.body.append(host);
+    expect(() => hydrateLitFromSsr(shadow, host)).not.toThrow();
+    await host.updateComplete;
+
+    expect(shadow.querySelectorAll('.tl-item')).toHaveLength(3);
+    expect(Array.from(shadow.querySelectorAll('.tl-item'))).toEqual(serverItems);
+    expect(shadow.querySelectorAll('style')).toHaveLength(1);
+
+    host.remove();
   });
 
   it('keeps multiple static style nodes before the Lit root marker', async () => {
