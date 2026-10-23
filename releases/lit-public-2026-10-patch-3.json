@@ -46,6 +46,19 @@
     "@context-action/lit 0.1.3 is a cohort-alignment patch with no runtime/API changes.",
     "@context-action/lit-ui 0.1.3 clears a stale renderOptions.renderBefore after hydration so static-styles DSD roots are not duplicated by the next client render.",
     "The fix covers hosts that are upgraded after connection, including the reported stratum-lit <ca-timeline> fixture.",
-    "Publication must run lit before lit-ui and bind every artifact to an approved immutable main commit."
-  ]
+    "Publication must run lit before lit-ui and bind every artifact to an approved immutable main commit.",
+    "Published through the Lit candidate and promotion workflows on 2026-10-23. Both latest and next resolve to 0.1.3."
+  ],
+  "releaseCommit": "7d8368871799d9b5100173ccf932eb425192e1e9",
+  "publication": {
+    "status": "published",
+    "publishedAt": "2026-10-23",
+    "latest": "0.1.3",
+    "next": "0.1.3",
+    "candidateRun": "39950814727",
+    "candidateRunUrl": "https://github.com/mineclover/context-action/actions/runs/39950814727",
+    "candidateVerification": "Both packages published to next. The in-run provenance check was delayed by registry propagation and the rerun was blocked by a nondeterministic declaration-emit ordering; the published artifacts were verified directly and by the promotion preflight.",
+    "promotionRun": "39955733405",
+    "promotionRunUrl": "https://github.com/mineclover/context-action/actions/runs/39955733405"
+  }
 }
