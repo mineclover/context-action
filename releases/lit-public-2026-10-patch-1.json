@@ -8,7 +8,7 @@
   "promotionWorkflow": "promote-lit-public.yml",
   "promotionConfirmation": "PROMOTE_LIT_PUBLIC",
   "packages": {
-    "@context-action/lit": "0.1.0",
+    "@context-action/lit": "0.1.1",
     "@context-action/lit-ui": "0.1.1"
   },
   "dependencies": {
@@ -17,7 +17,7 @@
     },
     "@context-action/lit-ui": {
       "@context-action/core": "^1.2.6",
-      "@context-action/lit": "^0.1.0"
+      "@context-action/lit": "^0.1.1"
     }
   },
   "publicationOrder": [
@@ -25,9 +25,6 @@
     "@context-action/lit-ui"
   ],
   "provenanceBinding": "workflow-release-commit",
-  "candidateCommits": {
-    "@context-action/lit": "d18c926dc2783f5e44a194dd834c04b0c0d162d0"
-  },
   "changelogDates": {
     "@context-action/lit": "2026-10-23",
     "@context-action/lit-ui": "2026-10-23"
@@ -45,9 +42,9 @@
     "pnpm release:check"
   ],
   "notes": [
-    "This is a Lit public-preview patch cohort: @context-action/lit remains 0.1.0 and is reused; @context-action/lit-ui advances to 0.1.1.",
+    "This is a Lit public-preview patch cohort: both packages advance to 0.1.1 so the cohort remains publishable together.",
     "The patch fixes hydrateLit adoption of declarative shadow roots that begin with static styles and repairs duplicate client trees.",
-    "The existing @context-action/lit 0.1.0 artifact is bound to its original attested commit d18c926d; lit-ui 0.1.1 must be attested at the candidate release commit.",
+    "@context-action/lit 0.1.1 is a cohort-alignment patch with no runtime/API changes; @context-action/lit-ui 0.1.1 contains the hydration fix.",
     "Publication must run lit before lit-ui and bind every artifact to an approved immutable main commit.",
     "lit and @lit/context are peer dependencies; React is an optional peer used only by the bridge, and @lit-labs/ssr peers are optional for ./ssr."
   ]

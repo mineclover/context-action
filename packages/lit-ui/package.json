@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@context-action/core": "^1.2.6",
-    "@context-action/lit": "^0.1.0"
+    "@context-action/lit": "^0.1.1"
   },
   "peerDependencies": {
     "@lit-labs/ssr": "^4.1.0",

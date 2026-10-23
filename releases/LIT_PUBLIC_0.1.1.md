@@ -7,17 +7,20 @@ the case where a client render already appended a duplicate tree before
 
 | Package | Previous | Candidate | Change |
 | --- | --- | --- | --- |
-| `@context-action/lit` | `0.1.0` | `0.1.0` | Reused; no artifact change |
+| `@context-action/lit` | `0.1.0` | `0.1.1` | Cohort alignment patch; no runtime/API change |
 | `@context-action/lit-ui` | `0.1.0` | `0.1.1` | Patch: hydrate static-styles DSD and duplicate-tree repair |
 
-## Why `lit` stays at 0.1.0
+## Why both packages move to 0.1.1
 
-Only `@context-action/lit-ui` changed. The candidate workflow still scopes both
-packages because the published cohort order is lit → lit-ui, but the existing
-`@context-action/lit@0.1.0` artifact is integrity-checked and reused. Its
-attested commit remains `d18c926dc2783f5e44a194dd834c04b0c0d162d0`.
+Only `@context-action/lit-ui` contains the hydration fix. The published
+`@context-action/lit@0.1.0` tarball cannot be reused after its documentation
+changed, and the protected helper requires an exact artifact integrity match for
+existing versions. The cohort is therefore aligned at `0.1.1`: `lit` has no
+runtime or API changes, and `lit-ui` carries the hydration fix. This matches the
+repository's cohort-alignment patch rule.
 
-`@context-action/lit-ui@0.1.1` must be attested at the candidate release commit.
+`@context-action/lit-ui@0.1.1` depends on `@context-action/lit@^0.1.1`; publication
+order remains lit → lit-ui.
 
 ## Fixed behavior
 
@@ -34,9 +37,9 @@ attested commit remains `d18c926dc2783f5e44a194dd834c04b0c0d162d0`.
 
 Dependencies remain:
 
-1. `@context-action/lit@0.1.0` (`@context-action/core@^1.2.6`)
+1. `@context-action/lit@0.1.1` (`@context-action/core@^1.2.6`)
 2. `@context-action/lit-ui@0.1.1` (`@context-action/core@^1.2.6`,
-   `@context-action/lit@^0.1.0`)
+   `@context-action/lit@^0.1.1`)
 
 Registry path:
 
