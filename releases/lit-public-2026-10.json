@@ -25,6 +25,17 @@
     "@context-action/lit-ui"
   ],
   "provenanceBinding": "workflow-release-commit",
+  "releaseCommit": "e9fad81ab48a85e7bd54f6690e1fb2916183ccdb",
+  "publication": {
+    "status": "published",
+    "publishedAt": "2026-10-23",
+    "latest": "0.1.0",
+    "next": "0.1.0",
+    "candidateRun": "39850291717",
+    "candidateRunUrl": "https://github.com/mineclover/context-action/actions/runs/39850291717",
+    "promotionRun": "39853507002",
+    "promotionRunUrl": "https://github.com/mineclover/context-action/actions/runs/39853507002"
+  },
   "candidateCommits": {
     "@context-action/lit": "d18c926dc2783f5e44a194dd834c04b0c0d162d0",
     "@context-action/lit-ui": "e58d9ff51054185a53e59a3876d978607a983e90"
@@ -49,7 +60,7 @@
     "This is an independent Lit public-preview cohort and is not part of the Core/React, Mutative, tool, or Preact cohorts.",
     "Both packages are initial 0.1.0 public previews; API and support changes require a later stability decision.",
     "Publication must run lit before lit-ui and bind every artifact to an approved immutable main commit.",
-    "A protected Lit candidate/promotion workflow must be reviewed and added before registry dispatch; direct npm publish and dist-tag mutation are not release paths.",
+    "Published through publish-lit-public-candidate.yml and promote-lit-public.yml on 2026-10-23. The initial bootstrap used publish_auth=token; both latest and next resolve to 0.1.0.",
     "lit and @lit/context are peer dependencies; React is an optional peer used only by the bridge, and @lit-labs/ssr peers are optional for ./ssr."
   ]
 }

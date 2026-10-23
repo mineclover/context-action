@@ -5,6 +5,19 @@
 [`releases/LIT_PUBLIC_0.1.0.md`](../../../releases/LIT_PUBLIC_0.1.0.md)와
 [`releases/lit-public-2026-10.json`](../../../releases/lit-public-2026-10.json)입니다.
 
+## 0. 게시 상태
+
+두 패키지는 2026-10-23 npm에 게시되었습니다.
+
+| 패키지 | 버전 | latest | next |
+| --- | --- | --- | --- |
+| `@context-action/lit` | `0.1.0` | `0.1.0` | `0.1.0` |
+| `@context-action/lit-ui` | `0.1.0` | `0.1.0` | `0.1.0` |
+
+- Candidate: `publish-lit-public-candidate.yml` — 성공
+- Promotion: `promote-lit-public.yml` — 성공
+- Registry consumer smoke — 25 assertions 통과
+
 ## 1. 패키지 경계
 
 ```text
@@ -78,17 +91,15 @@ Candidate는 다음을 fail-closed로 수행합니다.
 6. `@context-action/lit` → `@context-action/lit-ui` 순서로 `next` 게시
 7. provenance, published consumer smoke, registry evidence
 
-### 첫 배포 bootstrap
+### 첫 배포 bootstrap (완료)
 
-두 패키지는 아직 npm에 없으므로 첫 배포는 반드시:
+0.1.0은 두 패키지가 npm에 없던 상태였으므로 `publish_auth=token`과 `npm-stable`의
+`NPM_TOKEN`으로 bootstrap했습니다.
 
-```text
-publish_auth = token
-NPM_TOKEN in npm-stable environment
-```
-
-OIDC/trusted publishing은 초기 package version이 npm에 존재한 후 별도로 검토합니다.
-Candidate workflow는 OIDC 선택 시 package 존재 여부를 확인하고 없으면 fail-closed로 중단합니다.
+이제 두 package version이 registry에 존재합니다. npm trusted publisher가 이
+workflow/environment에 구성된 경우 후속 릴리스는 `publish_auth=oidc`를 사용할 수
+있습니다. Candidate workflow는 OIDC 선택 시 package 존재 여부를 확인하고 없으면
+fail-closed로 중단합니다. `NPM_TOKEN`은 bootstrap/recovery 경로로 유지합니다.
 
 ### Promotion
 
