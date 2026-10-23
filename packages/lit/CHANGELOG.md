@@ -2,6 +2,8 @@
 
 ## [0.1.0] (2026-10-23)
 
+Published to npm on 2026-10-23. `latest` and `next` resolve to `0.1.0`.
+
 ### Added
 
 - Initial public release of the Lit ReactiveController adapters.

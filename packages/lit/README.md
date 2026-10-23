@@ -56,4 +56,9 @@ runtime copy.
 
 ## Status
 
-Public package, initial version `0.1.0`. Requires Node.js `>=24.11.0`.
+Public package, version `0.1.0`, published to npm on 2026-10-23.
+
+- https://www.npmjs.com/package/@context-action/lit
+- `latest` / `next`: `0.1.0`
+
+Requires Node.js `>=24.11.0`.
