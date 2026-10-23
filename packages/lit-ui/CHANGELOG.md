@@ -2,6 +2,8 @@
 
 ## [0.1.3] (2026-10-23)
 
+Published to npm on 2026-10-23. `latest` and `next` resolve to `0.1.3`.
+
 ### Fixed
 
 - Clear a stale `renderOptions.renderBefore` after hydration. When a
