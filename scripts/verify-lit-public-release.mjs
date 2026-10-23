@@ -10,7 +10,7 @@ const packageDefinitions = [
   {
     name: '@context-action/lit',
     directory: 'packages/lit',
-    expectedVersion: '0.1.0',
+    expectedVersion: '0.1.1',
     dependencies: {
       '@context-action/core': (coreVersion) => `^${coreVersion}`,
     },
@@ -21,7 +21,7 @@ const packageDefinitions = [
     expectedVersion: '0.1.1',
     dependencies: {
       '@context-action/core': (coreVersion) => `^${coreVersion}`,
-      '@context-action/lit': () => '^0.1.0',
+      '@context-action/lit': () => '^0.1.1',
     },
   },
 ];

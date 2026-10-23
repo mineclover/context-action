@@ -57,7 +57,7 @@ pnpm release:check
 | Core 1.2.6 / Store Core 0.1.3 / Mutative Core 0.8.14 / Mutative 0.8.15 / React 4.0.7 time-travel and hydration stability patch | `publish-coordinated-stable-candidate.yml` → `promote-coordinated-stable.yml` | 후보를 `next`에 고정·검증한 뒤 검토된 five-package cohort를 `latest`로 승격. Durable·ToolContext는 별도 개발 트랙 |
 | Preact public preview cohort (Preact 0.1.2 / Preact UI 0.2.0) | `publish-preact-public-candidate.yml` → `promote-preact-public.yml` | `@context-action/preact` 다음 `@context-action/preact-ui`를 `next`에 게시하고 packed/browser evidence를 확인한 뒤 별도 검토로 `latest` 승격 |
 | Lit public preview cohort (Lit 0.1.0 / Lit UI 0.1.0) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.0` 게시 완료. `PROMOTE_LIT_PUBLIC` 확인 후 승격 |
-| Lit public preview patch (Lit 0.1.0 / Lit UI 0.1.1) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | Lit은 기존 0.1.0 artifact를 재사용하고 Lit UI 0.1.1 hydrate patch를 `next` 검증 후 `latest` 승격 |
+| Lit public preview patch (Lit 0.1.1 / Lit UI 0.1.1) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | Lit은 cohort alignment patch, Lit UI 0.1.1은 hydrate patch. 두 패키지를 `next` 검증 후 `latest` 승격 |
 
 모든 워크플로는 승인된 immutable main commit, 정확한 버전, provenance,
 consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 합니다.
@@ -140,14 +140,14 @@ trusted publisher가 구성된 경우 `publish_auth=oidc`를 사용할 수 있�
 
 ## 4-3. Lit 공개 preview 0.1.1 patch 후보
 
-`@context-action/lit-ui@0.1.1`은 `hydrateLit()`의 static styles DSD 채택과
-중복 client tree 복구를 포함하는 patch입니다. `@context-action/lit@0.1.0`은
-변경 없이 기존 artifact를 재사용하며, provenance는 기존 attested commit
-`d18c926d`에 결속합니다.
+`@context-action/lit@0.1.1`과 `@context-action/lit-ui@0.1.1`은 Lit UI의
+`hydrateLit()` static styles DSD 채택/중복 복구 patch를 포함하는 cohort입니다.
+Lit 0.1.1은 런타임/API 변경이 없는 cohort alignment patch이며, Lit UI 0.1.1은
+기존 `@context-action/lit ^0.1.1`에 의존합니다.
 
 Source of truth는 [`LIT_PUBLIC_0.1.1.md`](LIT_PUBLIC_0.1.1.md)와
-`lit-public-2026-10-patch-1.json`입니다. Candidate는 Lit UI 0.1.1을 `next`에
-게시하고, provenance/consumer/browser evidence를 확인한 뒤
+`lit-public-2026-10-patch-1.json`입니다. Candidate는 두 패키지를 `next`에
+게시하고 provenance/consumer/browser evidence를 확인한 뒤
 `PROMOTE_LIT_PUBLIC` 확인으로 `latest`를 승격합니다.
 
 ## 5. 실패와 재개

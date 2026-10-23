@@ -414,7 +414,7 @@ importers:
         specifier: ^1.2.6
         version: link:../core
       '@context-action/lit':
-        specifier: ^0.1.0
+        specifier: ^0.1.1
         version: link:../lit
     devDependencies:
       '@lit-labs/ssr':

@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.1.1] (2026-10-23)
+
+Cohort alignment patch for the Lit UI 0.1.1 static-styles hydration fix. The
+runtime, exports, and public API are unchanged; this version updates package
+documentation and keeps the Lit/Lit UI cohort publishable together.
+
 ## [0.1.0] (2026-10-23)
 
 Published to npm on 2026-10-23. `latest` and `next` resolve to `0.1.0`.
