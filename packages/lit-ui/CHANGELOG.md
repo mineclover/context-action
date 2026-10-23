@@ -1,5 +1,22 @@
 # Change Log
 
+## [0.1.3] (2026-10-23)
+
+### Fixed
+
+- Clear a stale `renderOptions.renderBefore` after hydration. When a
+  static-styles DSD host is upgraded before `hydrateLit()` runs,
+  `LitElement.createRenderRoot()` captures the server `<style>` as
+  `renderBefore`; the next client render would insert a second tree before it.
+  Hydration now makes subsequent renders reuse the adopted server root part.
+
+### Tests
+
+- Cover a host that is upgraded after connection and a `renderBefore` value
+  already captured from the server style node.
+- Cover the reported `stratum-lit` `<ca-timeline>` shape through the `./ssr`
+  compatibility entry.
+
 ## [0.1.2] (2026-10-23)
 
 Published to npm on 2026-10-23. `latest` and `next` resolve to `0.1.2`.

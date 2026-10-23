@@ -16,6 +16,7 @@
 - [`LIT_PUBLIC_0.1.0.md`](LIT_PUBLIC_0.1.0.md) (Lit 공개 preview, 2026-10-23 게시 완료)
 - [`LIT_PUBLIC_0.1.1.md`](LIT_PUBLIC_0.1.1.md) (Lit UI 0.1.1 hydrate patch, 2026-10-23 게시 완료)
 - [`LIT_PUBLIC_0.1.2.md`](LIT_PUBLIC_0.1.2.md) (Lit UI 0.1.2 hydration stabilization, 2026-10-23 게시 완료)
+- [`LIT_PUBLIC_0.1.3.md`](LIT_PUBLIC_0.1.3.md) (Lit UI 0.1.3 renderBefore stabilization 후보)
 
 ## 1. 변경 분류와 버전 결정
 
@@ -60,6 +61,7 @@ pnpm release:check
 | Lit public preview cohort (Lit 0.1.0 / Lit UI 0.1.0) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.0` 게시 완료. `PROMOTE_LIT_PUBLIC` 확인 후 승격 |
 | Lit public preview patch (Lit 0.1.1 / Lit UI 0.1.1) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.1` 게시 완료. Lit은 cohort alignment, Lit UI는 hydrate patch |
 | Lit public preview patch (Lit 0.1.2 / Lit UI 0.1.2) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.2` 게시 완료. Lit은 cohort alignment, Lit UI는 hydration stabilization |
+| Lit public preview patch (Lit 0.1.3 / Lit UI 0.1.3) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | Lit은 cohort alignment, Lit UI 0.1.3은 stale renderBefore 수정. `next` 검증 후 `latest` 승격 |
 
 모든 워크플로는 승인된 immutable main commit, 정확한 버전, provenance,
 consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 합니다.
@@ -165,6 +167,21 @@ handler 보존을 강화합니다.
 Source of truth는 [`LIT_PUBLIC_0.1.2.md`](LIT_PUBLIC_0.1.2.md)와
 `lit-public-2026-10-patch-2.json`입니다. Candidate provenance/consumer/browser
 evidence와 `PROMOTE_LIT_PUBLIC` 승격 evidence가 기록되어 있습니다.
+
+## 4-5. Lit 공개 preview 0.1.3 renderBefore stabilization 후보
+
+`@context-action/lit@0.1.3`과 `@context-action/lit-ui@0.1.3`은 static-styles
+DSD host가 hydration 전에 upgrade되며 `renderOptions.renderBefore`가 server
+`<style>`을 가리키는 경우를 수정하는 cohort입니다. Lit 0.1.3은 런타임/API
+변경이 없는 cohort alignment patch이고, Lit UI 0.1.3은 hydrate 후 stale
+`renderBefore`를 제거해 다음 client render가 server root part를 재사용하도록
+합니다.
+
+Source of truth는 [`LIT_PUBLIC_0.1.3.md`](LIT_PUBLIC_0.1.3.md)와
+`lit-public-2026-10-patch-3.json`입니다. Candidate는
+`publish-lit-public-candidate.yml`로 `next`에 게시하고,
+`PROMOTE_LIT_PUBLIC` 확인 후 `promote-lit-public.yml`로 `latest`에
+승격합니다.
 
 ## 5. 실패와 재개
 

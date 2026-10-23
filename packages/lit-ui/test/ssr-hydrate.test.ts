@@ -222,6 +222,56 @@ describe('hydrateLit', () => {
     host.remove();
   });
 
+  it('adopts a static-styles DSD host upgraded after connection', async () => {
+    const tagName = 'late-defined-list-element';
+    class LateDefinedListElement extends StyledListElement {}
+
+    const host = document.createElement(tagName) as StyledListElement;
+    const shadow = host.attachShadow({ mode: 'open' });
+    shadow.innerHTML = serverShadowMarkup(new StyledListElement());
+    const serverItems = Array.from(shadow.querySelectorAll('.tl-item'));
+
+    document.body.append(host);
+    if (!customElements.get(tagName)) {
+      customElements.define(tagName, LateDefinedListElement);
+    }
+
+    host.items = ['one', 'two', 'three'];
+    hydrateLit(shadow, host);
+    await host.updateComplete;
+
+    expect(shadow.querySelectorAll('.tl-item')).toHaveLength(3);
+    expect(Array.from(shadow.querySelectorAll('.tl-item'))).toEqual(serverItems);
+    expect(shadow.querySelectorAll('style')).toHaveLength(1);
+
+    host.remove();
+  });
+
+  it('clears a stale renderBefore captured from the server style node', async () => {
+    const serverElement = new StyledListElement();
+    const element = new StyledListElement();
+    const shadow = element.attachShadow({ mode: 'open' });
+    shadow.innerHTML = serverShadowMarkup(serverElement);
+    const serverItems = Array.from(shadow.querySelectorAll('.tl-item'));
+
+    // LitElement.createRenderRoot() records the first child as renderBefore.
+    // With a static-styles DSD tree that child is the server <style>, so a
+    // later client render would insert a second tree before it.
+    (element as unknown as {
+      renderOptions: { renderBefore?: Node | null };
+    }).renderOptions.renderBefore = shadow.firstChild;
+
+    document.body.append(element);
+    hydrateLit(shadow, element);
+    await element.updateComplete;
+
+    expect(shadow.querySelectorAll('.tl-item')).toHaveLength(3);
+    expect(Array.from(shadow.querySelectorAll('.tl-item'))).toEqual(serverItems);
+    expect(shadow.querySelectorAll('style')).toHaveLength(1);
+
+    element.remove();
+  });
+
   it('keeps multiple static style nodes before the Lit root marker', async () => {
     const serverElement = new StyledListElement();
     const element = new StyledListElement();

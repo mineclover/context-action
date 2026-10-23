@@ -110,6 +110,22 @@ function renderOptionsFor(
   }).renderOptions;
 }
 
+/**
+ * LitElement.createRenderRoot() records the first shadow child as
+ * `renderOptions.renderBefore`. With a static-styles DSD tree that child is the
+ * server `<style>`, so the next `render()` inserts a second client tree before
+ * it. Hydration sets `shadowRoot._$litPart$`, so clearing the stale anchor makes
+ * subsequent renders adopt the existing server root part instead.
+ */
+function clearRenderBefore(element: LitElement): void {
+  const renderOptions = (element as unknown as {
+    renderOptions?: { renderBefore?: unknown };
+  }).renderOptions;
+  if (renderOptions && 'renderBefore' in renderOptions) {
+    delete renderOptions.renderBefore;
+  }
+}
+
 function isServerRootPart(part: LitPartLike | undefined): boolean {
   const start = partStartNode(part);
   return (
@@ -181,6 +197,7 @@ function adoptServerShadow(host: LitElement, shadow: ShadowRoot): void {
     try {
       const rendered = (host as unknown as { render(): unknown }).render();
       hydrate(rendered, shadow, renderOptionsFor(host));
+      clearRenderBefore(host);
       host.requestUpdate();
       return;
     } catch {
@@ -191,6 +208,7 @@ function adoptServerShadow(host: LitElement, shadow: ShadowRoot): void {
 
   shadow.replaceChildren();
   delete (shadow as ShadowRoot & { _$litPart$?: unknown })._$litPart$;
+  clearRenderBefore(host);
   host.requestUpdate();
 }
 
@@ -224,6 +242,7 @@ function hydrateHost(host: LitElement): void {
     // force the first client render into this shadow root without asking Lit's
     // hydration support to adopt a non-lit tree.
     shadow.replaceChildren();
+    clearRenderBefore(host);
     host.requestUpdate();
     return;
   }
@@ -232,12 +251,14 @@ function hydrateHost(host: LitElement): void {
   // adopts the declarative shadow root on the first update. Running hydrate()
   // ourselves would make support hydrate the same container twice.
   if (hydrationSupportInstalled) {
+    clearRenderBefore(host);
     host.requestUpdate();
     return;
   }
 
   const rendered = (host as unknown as { render(): unknown }).render();
-  hydrate(rendered, shadow);
+  hydrate(rendered, shadow, renderOptionsFor(host));
+  clearRenderBefore(host);
   host.requestUpdate();
 }
 
@@ -322,13 +343,16 @@ export function hydrateLit(root: Element | ShadowRoot, element: LitElement): voi
       if (hasLitPartMarker(shadow)) {
         const rendered = (element as unknown as { render(): unknown }).render();
         hydrate(rendered, shadow, renderOptionsFor(element));
+        clearRenderBefore(element);
       } else {
         shadow.replaceChildren();
+        clearRenderBefore(element);
       }
     } else if (hasLitPartMarker(shadow) && !isServerRootPart(livePart)) {
       adoptServerShadow(element, shadow);
       return;
     }
+    clearRenderBefore(element);
     // Support uses `_$needsHydration` in development and a minified field in
     // production. Clearing both is harmless when support is absent.
     (element as unknown as { _$needsHydration?: boolean })._$needsHydration = false;
@@ -345,6 +369,7 @@ export function hydrateLit(root: Element | ShadowRoot, element: LitElement): voi
     }
     const rendered = (element as unknown as { render(): unknown }).render();
     hydrate(rendered, root, renderOptionsFor(element));
+    clearRenderBefore(element);
     return;
   }
 

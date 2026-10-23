@@ -34,6 +34,16 @@ alignment patch입니다. 두 패키지는 2026-10-23 `latest`/`next` `0.1.1`로
 `latest`/`next` `0.1.2`로 게시되었고, published consumer smoke 25 assertions를
 통과했습니다.
 
+### 0.1.3 renderBefore stabilization candidate
+
+`@context-action/lit-ui@0.1.3`은 static-styles DSD host가 hydration 전에
+upgrade되며 `renderOptions.renderBefore`가 server `<style>`을 가리키는 경우를
+수정합니다. hydrate 후 stale anchor를 제거해 다음 client render가 server root
+part를 재사용하도록 합니다. `@context-action/lit@0.1.3`은 cohort alignment
+patch입니다. Candidate는 `publish-lit-public-candidate.yml`로 `next`에
+게시하고, `PROMOTE_LIT_PUBLIC` 확인 후 `promote-lit-public.yml`로 `latest`에
+승격합니다.
+
 ## 1. 패키지 경계
 
 ```text
