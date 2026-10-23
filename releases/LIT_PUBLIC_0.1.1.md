@@ -10,6 +10,21 @@ the case where a client render already appended a duplicate tree before
 | `@context-action/lit` | `0.1.0` | `0.1.1` | Cohort alignment patch; no runtime/API change |
 | `@context-action/lit-ui` | `0.1.0` | `0.1.1` | Patch: hydrate static-styles DSD and duplicate-tree repair |
 
+## Publication status
+
+| Evidence | Value |
+| --- | --- |
+| Release commit | `95295389be032994b7dd784aea8209b011d2c626` |
+| Candidate run | [`39891872194`](https://github.com/mineclover/context-action/actions/runs/39891872194) — success |
+| Promotion run | [`39895302665`](https://github.com/mineclover/context-action/actions/runs/39895302665) — success |
+| `latest` / `next` | `0.1.1` / `0.1.1` |
+| Published consumer smoke | 25 assertions passed from the public registry |
+
+Both packages moved to 0.1.1 as a cohort because the published lit 0.1.0
+tarball no longer matched current documentation. The strict publisher therefore
+could not reuse it; lit 0.1.1 is a runtime/API-neutral alignment patch and
+lit-ui 0.1.1 contains the hydration fix.
+
 ## Why both packages move to 0.1.1
 
 Only `@context-action/lit-ui` contains the hydration fix. The published
@@ -71,5 +86,4 @@ The source of truth is
 
 ## Status
 
-Candidate preparation. Publication status and evidence are recorded after the
-candidate/promotion workflows complete.
+Published on 2026-10-23. Both `latest` and `next` resolve to `0.1.1`.

@@ -56,10 +56,9 @@ runtime copy.
 
 ## Status
 
-Public package. `0.1.1` is a cohort-alignment patch for the Lit UI 0.1.1
-static-styles hydration fix; runtime and public API are unchanged.
+Public package, version `0.1.1`, published to npm on 2026-10-23.
 
 - https://www.npmjs.com/package/@context-action/lit
-- Release plan: [`releases/LIT_PUBLIC_0.1.1.md`](../../releases/LIT_PUBLIC_0.1.1.md)
+- `latest` / `next`: `0.1.1`
 
 Requires Node.js `>=24.11.0`.

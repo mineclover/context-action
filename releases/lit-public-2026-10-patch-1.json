@@ -46,6 +46,18 @@
     "The patch fixes hydrateLit adoption of declarative shadow roots that begin with static styles and repairs duplicate client trees.",
     "@context-action/lit 0.1.1 is a cohort-alignment patch with no runtime/API changes; @context-action/lit-ui 0.1.1 contains the hydration fix.",
     "Publication must run lit before lit-ui and bind every artifact to an approved immutable main commit.",
-    "lit and @lit/context are peer dependencies; React is an optional peer used only by the bridge, and @lit-labs/ssr peers are optional for ./ssr."
-  ]
+    "lit and @lit/context are peer dependencies; React is an optional peer used only by the bridge, and @lit-labs/ssr peers are optional for ./ssr.",
+    "Published through publish-lit-public-candidate.yml and promote-lit-public.yml on 2026-10-23. Both latest and next resolve to 0.1.1."
+  ],
+  "releaseCommit": "95295389be032994b7dd784aea8209b011d2c626",
+  "publication": {
+    "status": "published",
+    "publishedAt": "2026-10-23",
+    "latest": "0.1.1",
+    "next": "0.1.1",
+    "candidateRun": "39891872194",
+    "candidateRunUrl": "https://github.com/mineclover/context-action/actions/runs/39891872194",
+    "promotionRun": "39895302665",
+    "promotionRunUrl": "https://github.com/mineclover/context-action/actions/runs/39895302665"
+  }
 }
