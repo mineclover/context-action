@@ -18,7 +18,7 @@ const packageDefinitions = [
   {
     name: '@context-action/lit-ui',
     directory: 'packages/lit-ui',
-    expectedVersion: '0.1.0',
+    expectedVersion: '0.1.1',
     dependencies: {
       '@context-action/core': (coreVersion) => `^${coreVersion}`,
       '@context-action/lit': () => '^0.1.0',
@@ -35,7 +35,7 @@ if (rootIndex !== -1 && (!args[rootIndex + 1] || args[rootIndex + 1].startsWith(
 const repositoryRoot = rootIndex === -1
   ? defaultRepositoryRoot
   : path.resolve(args[rootIndex + 1] ?? '');
-const planPath = path.join(repositoryRoot, 'releases', 'lit-public-2026-10.json');
+const planPath = path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-1.json');
 const unknownArguments = args.filter((argument, index) => argument !== '--require-current-source'
   && argument !== '--root'
   && index !== rootIndex + 1);
@@ -217,7 +217,7 @@ async function main() {
 
   console.log(JSON.stringify({
     status: 'ok',
-    release: plan?.release ?? 'lit-public-2026-10',
+    release: plan?.release ?? 'lit-public-2026-10-patch-1',
     packages: Object.fromEntries(packageDefinitions.map(definition => [definition.name, definition.expectedVersion])),
     currentSource: requireCurrentSource ? 'required' : 'not-required',
   }));

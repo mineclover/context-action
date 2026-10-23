@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-10-23T01:58:35.171Z",
-  "commitSha": "6c0bf276b8579ce40cee273017cd0af9df9c2af2",
-  "branch": "fix/hydrate-static-styles",
+  "timestamp": "2026-10-23T02:17:27.342Z",
+  "commitSha": "7bbdecaff2c26023fa23325a00ef0eaa87d18db5",
+  "branch": "release/lit-ui-0.1.1",
   "toolchain": {
     "node": "v24.20.0",
     "pnpm": "11.28.6",
@@ -13,22 +13,22 @@
   "suites": [
     {
       "name": "1. Monorepo Typecheck (13 projects)",
-      "durationSec": 12.12,
+      "durationSec": 15.76,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check & Test",
-      "durationSec": 0.8,
+      "durationSec": 0.91,
       "status": "passed"
     },
     {
       "name": "3. Package Boundary Unit Test Suite",
-      "durationSec": 1.04,
+      "durationSec": 1.17,
       "status": "passed"
     },
     {
       "name": "4. Context-Action Conventions & Catalog Check",
-      "durationSec": 2.1,
+      "durationSec": 1.85,
       "status": "passed"
     },
     {
@@ -43,40 +43,40 @@
     },
     {
       "name": "7. React WebMCP Isolation Check",
-      "durationSec": 0.03,
+      "durationSec": 0.04,
       "status": "passed"
     },
     {
       "name": "8. AI SDK & Tool Protocol Contract Check",
-      "durationSec": 5.65,
+      "durationSec": 2.31,
       "status": "passed"
     },
     {
       "name": "9. React Aria Hydration Reference Check",
-      "durationSec": 15.59,
+      "durationSec": 17.72,
       "status": "passed"
     },
     {
       "name": "10. Documentation Snippets Check",
-      "durationSec": 0.67,
+      "durationSec": 0.79,
       "status": "passed"
     },
     {
       "name": "11. Durable Operations Evidence Schema Test",
-      "durationSec": 0.27,
+      "durationSec": 0.48,
       "status": "passed"
     },
     {
       "name": "12. V1 Supply Chain & Pinned Action Policy Audit",
-      "durationSec": 0.12,
+      "durationSec": 0.14,
       "status": "passed"
     },
     {
       "name": "13. Release Safety Regression Suite (194 tests)",
-      "durationSec": 66.44,
+      "durationSec": 67.17,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:bbcc1385593b757988b33ef7d3ae090f8c5f9b079d6546352ae70ad24c332129"
+  "receiptDigest": "sha256:3e6b329dbd09ba1178df395b4dc561e53be23a60a419e960f4d98a0c0e0ae34d"
 }

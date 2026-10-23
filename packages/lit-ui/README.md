@@ -80,10 +80,12 @@ pnpm --filter @context-action/lit-ui test:browser # Chromium DSD hydration contr
 
 ## Status
 
-Public package, version `0.1.0`, published to npm on 2026-10-23.
+Public package. `0.1.1` is the current patch release candidate for the
+static-styles hydration fix; `0.1.0` remains the last published version until
+the candidate/promotion workflows complete.
 
 - https://www.npmjs.com/package/@context-action/lit-ui
-- `latest` / `next`: `0.1.0`
+- Release plan: [`releases/LIT_PUBLIC_0.1.1.md`](../../releases/LIT_PUBLIC_0.1.1.md)
 
 Requires Node.js `>=24.11.0`.
 
