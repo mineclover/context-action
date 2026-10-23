@@ -56,10 +56,9 @@ runtime copy.
 
 ## Status
 
-Public package, version `0.1.2`, prepared as the next Lit/Lit UI cohort patch
-on 2026-10-23.
+Public package, version `0.1.2`, published to npm on 2026-10-23.
 
 - https://www.npmjs.com/package/@context-action/lit
-- `latest` / `next`: `0.1.1` until the protected `0.1.2` candidate is promoted
+- `latest` / `next`: `0.1.2`
 
 Requires Node.js `>=24.11.0`.

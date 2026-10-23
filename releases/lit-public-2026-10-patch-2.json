@@ -45,6 +45,18 @@
     "This is a Lit public-preview stabilization patch cohort; both packages advance to 0.1.2.",
     "@context-action/lit 0.1.2 is a cohort-alignment patch with no runtime/API changes.",
     "@context-action/lit-ui 0.1.2 stabilizes static-styles hydration, duplicate-tree recovery, repeated hydration, and manual event binding.",
-    "Publication must run lit before lit-ui and bind every artifact to an approved immutable main commit."
-  ]
+    "Publication must run lit before lit-ui and bind every artifact to an approved immutable main commit.",
+    "Published through publish-lit-public-candidate.yml and promote-lit-public.yml on 2026-10-23. Both latest and next resolve to 0.1.2."
+  ],
+  "releaseCommit": "945513b715bf43c55c9c789f36c8305b64679b2c",
+  "publication": {
+    "status": "published",
+    "publishedAt": "2026-10-23",
+    "latest": "0.1.2",
+    "next": "0.1.2",
+    "candidateRun": "39934091052",
+    "candidateRunUrl": "https://github.com/mineclover/context-action/actions/runs/39934091052",
+    "promotionRun": "39938079857",
+    "promotionRunUrl": "https://github.com/mineclover/context-action/actions/runs/39938079857"
+  }
 }

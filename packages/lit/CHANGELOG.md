@@ -2,7 +2,9 @@
 
 ## [0.1.2] (2026-10-23)
 
-Candidate patch for the Lit/Lit UI cohort. No runtime or public API changes;
+Published to npm on 2026-10-23. `latest` and `next` resolve to `0.1.2`.
+
+Cohort alignment patch for the Lit/Lit UI cohort. No runtime or public API changes;
 the version keeps the public packages aligned for the hydration stabilization
 release in `@context-action/lit-ui`.
 

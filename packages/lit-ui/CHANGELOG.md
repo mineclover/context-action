@@ -2,6 +2,8 @@
 
 ## [0.1.2] (2026-10-23)
 
+Published to npm on 2026-10-23. `latest` and `next` resolve to `0.1.2`.
+
 ### Fixed
 
 - Stabilized static-styles declarative shadow-root hydration across fallback,
