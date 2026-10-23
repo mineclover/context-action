@@ -520,7 +520,7 @@ const instance = hydratePreact(rootElement, CounterView, {
 
 ## 7. 릴리즈 현황 및 계약 검증 (Release Status & Verification)
 
-`@context-action/preact-ui@0.2.0`은 `@context-action/preact@0.1.2`와 함께 배포되는 공개 preview 패키지입니다. Core/React 안정 cohort와는 별도의 Preact 공개 cohort로 관리되며, 0.x 계약이므로 1.0 승격 전 API와 지원 범위가 변경될 수 있습니다.
+`@context-action/preact-ui@0.2.0`은 `@context-action/preact@0.1.2`와 함께 2026-10-23 공개 배포된 preview 패키지입니다. `latest`와 `next` 모두 `0.2.0`입니다. Core/React 안정 cohort와는 별도의 Preact 공개 cohort로 관리되며, 0.x 계약이므로 1.0 승격 전 API와 지원 범위가 변경될 수 있습니다.
 
 ### 패키지 검증 명령
 ```sh

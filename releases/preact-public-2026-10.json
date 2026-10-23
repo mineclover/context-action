@@ -41,6 +41,18 @@
     "This is a separate public-preview cohort and is not part of the five-package state-management cohort.",
     "Both packages are pre-1.0 public previews; API and support changes require a later 1.0 stability decision.",
     "The publication workflow must publish preact before preact-ui and bind every artifact to workflow release_commit.",
-    "NVDA/VoiceOver speech output is optional consumer QA and is not a runtime or release gate."
-  ]
+    "NVDA/VoiceOver speech output is optional consumer QA and is not a runtime or release gate.",
+    "Published through publish-preact-public-candidate.yml and promote-preact-public.yml on 2026-10-23. Both latest and next resolve to the planned versions."
+  ],
+  "releaseCommit": "b7dc6d694dace59d97370da5e275dc87acd70b73",
+  "publication": {
+    "status": "published",
+    "publishedAt": "2026-10-23",
+    "latest": "0.1.2",
+    "next": "0.1.2",
+    "candidateRun": "39897580951",
+    "candidateRunUrl": "https://github.com/mineclover/context-action/actions/runs/39897580951",
+    "promotionRun": "39903568673",
+    "promotionRunUrl": "https://github.com/mineclover/context-action/actions/runs/39903568673"
+  }
 }

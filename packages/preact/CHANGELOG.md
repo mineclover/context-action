@@ -2,6 +2,8 @@
 
 ## [0.1.2] (2026-10-18)
 
+Published to npm on 2026-10-23. `latest` and `next` resolve to `0.1.2`.
+
 ### Cohort alignment
 
 - No runtime or API changes. Released with `@context-action/preact-ui@0.2.0`
