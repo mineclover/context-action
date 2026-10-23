@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-10-23T11:36:33.368Z",
-  "commitSha": "b4f82ebe58fefc5ba43b1369dabef50878803eda",
-  "branch": "docs/lit-0.1.2-hydration-details",
+  "timestamp": "2026-10-23T11:41:08.729Z",
+  "commitSha": "06ee8d61229a7117b5312f9847e088eddb74a08a",
+  "branch": "tests/lit-0.1.2-reported-fixture",
   "toolchain": {
     "node": "v24.20.0",
     "pnpm": "11.28.6",
@@ -13,17 +13,17 @@
   "suites": [
     {
       "name": "1. Monorepo Typecheck (13 projects)",
-      "durationSec": 25.52,
+      "durationSec": 14.81,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 1.39,
+      "durationSec": 0.9,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 2.25,
+      "durationSec": 1.82,
       "status": "passed"
     },
     {
@@ -43,10 +43,10 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.42,
+      "durationSec": 0.31,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:f6cc1fd10f2a6c1e6e075ab2a5f57cc98217f37eb27e9cf317f6dc30932a602a"
+  "receiptDigest": "sha256:78a5cf3491d97f57c2cc9b9494eb5b37c2173b5bb725be8a88a1ffdf681f04db"
 }
