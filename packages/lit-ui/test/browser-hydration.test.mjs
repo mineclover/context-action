@@ -130,6 +130,9 @@ try {
       slotted: value.target
         .querySelector('[slot="suffix"]')
         ?.getAttribute('data-slot'),
+      serverItemCount: value.serverItemCount,
+      itemCount: value.itemCount,
+      preservedItems: value.preservedItems,
       hostCount: document.querySelectorAll('lit-hydration-probe').length,
       shadowButtons: value.shadowAfter?.querySelectorAll('[data-testid="increment"]').length,
       documentButtons: document.querySelectorAll('[data-testid="increment"]').length,
@@ -146,6 +149,9 @@ try {
     label: 'server',
     count: 0,
     slotted: 'suffix',
+    serverItemCount: 3,
+    itemCount: 3,
+    preservedItems: true,
     hostCount: 1,
     shadowButtons: 1,
     documentButtons: 0,

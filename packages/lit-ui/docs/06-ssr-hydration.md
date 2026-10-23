@@ -84,9 +84,36 @@ hydrateLit(root: Element | ShadowRoot, element: LitElement): void
    - support가 없으면 수동으로 기존 shadow root를 hydrate합니다.
    - 기존 `_$litPart$`가 있으면 재hydrate하지 않습니다.
 3. element 자신의 shadow root를 직접 넘기는 경우
-   - 기존 server tree를 manual hydrate하고 hydration support flag를 해제해 double hydration을 막습니다.
+   - shadow root 전체에서 `lit-part` comment marker를 찾습니다. `static styles`로
+     첫 자식이 `<style>`이어도 그 뒤/하위의 marker를 인식합니다.
+   - 기존 server tree를 manual hydrate하고 hydration support flag를 해제해
+     double hydration을 막습니다.
+   - 첫 client update가 이미 별도 tree를 append한 경우 server root part만
+     분리하고 client tree를 제거한 뒤 server tree를 다시 채택합니다.
 4. `root`가 비어 있는 경우
    - element를 mount하고 일반 client render를 수행합니다.
+
+### Static styles와 marker 탐색
+
+`hasLitPartMarker`는 direct sibling만 보지 않고 `TreeWalker`로 root 아래의
+comment node를 순회합니다. 따라서 다음 markup에서도 hydration 경로를 탑니다.
+
+```html
+<template shadowrootmode="open">
+  <style>...</style>
+  <!--lit-part ...-->
+  <div class="tl-item">...</div>
+  <!--/lit-part-->
+</template>
+```
+
+### 이미 중복된 client tree 복구
+
+`hydrateLit` 호출 전에 LitElement의 첫 update가 실행되어 server tree 옆에
+client tree가 append된 경우, `_$litPart$`가 server root part인지 확인합니다.
+별도 client render라면 server root marker 범위만 남기고 client anchor/children을
+제거한 뒤 `hydrate()`로 다시 채택합니다. 서버 tree를 분리할 수 없으면 shadow
+root를 비우고 client render로 fallback합니다.
 
 ### Import 순서
 

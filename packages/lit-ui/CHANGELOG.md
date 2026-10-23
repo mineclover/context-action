@@ -1,5 +1,22 @@
 # Change Log
 
+## [Unreleased]
+
+### Fixed
+
+- `hydrateLit(host.shadowRoot, host)` now finds `lit-part` markers anywhere
+  under the shadow root instead of assuming they are direct siblings of the
+  first node. Declarative shadow roots with `static styles` are adopted instead
+  of appending a second client render.
+- If a client render already appended a duplicate tree before `hydrateLit` runs,
+  the server root part is isolated, the client tree is removed, and the server
+  tree is re-adopted. Final item counts and server node identity are preserved.
+
+### Tests
+
+- Added static-styles + three-item DSD hydration regression coverage in jsdom
+  and Chromium, including the late `hydrateLit` after first-update scenario.
+
 ## [0.1.0] (2026-10-23)
 
 Published to npm on 2026-10-23. `latest` and `next` resolve to `0.1.0`.

@@ -39,11 +39,13 @@ export class HydrationProbeElement extends LitElement {
     label: { type: String, reflect: true },
     input: { attribute: false },
     count: { type: Number, state: true },
+    items: { attribute: false },
   };
 
   label = 'default';
   input: Record<string, unknown> = {};
   count = 0;
+  items: readonly string[] = ['one', 'two', 'three'];
 
   readonly connectionMarker = new ConnectionMarker(this);
 
@@ -53,6 +55,9 @@ export class HydrationProbeElement extends LitElement {
       <div part="data" data-testid="data" data-input=${JSON.stringify(this.input)}>
         ${this.count}
       </div>
+      ${this.items.map(
+        item => html`<div class="tl-item" part="item" data-item=${item}>${item}</div>`,
+      )}
       <button part="button" data-testid="increment" @click=${this.#increment}>+</button>
       <slot name="suffix"></slot>
     `;
