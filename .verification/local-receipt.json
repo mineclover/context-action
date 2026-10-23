@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-10-23T03:40:16.669Z",
-  "commitSha": "5ea7167e0d54922fbb1f9b1d8d54ef906940f91b",
-  "branch": "docs/lit-0.1.1-publication",
+  "timestamp": "2026-10-23T05:08:45.670Z",
+  "commitSha": "61b87fa7e919765e8dc09b31f8fffab960419123",
+  "branch": "docs/preact-0.2.0-publication",
   "toolchain": {
     "node": "v24.20.0",
     "pnpm": "11.28.6",
@@ -13,22 +13,22 @@
   "suites": [
     {
       "name": "1. Monorepo Typecheck (13 projects)",
-      "durationSec": 11.2,
+      "durationSec": 19.14,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.76,
+      "durationSec": 0.92,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 1.49,
+      "durationSec": 1.84,
       "status": "passed"
     },
     {
       "name": "4. Core & React Artifact Parity / Isolation",
-      "durationSec": 0.05,
+      "durationSec": 0.06,
       "status": "passed"
     },
     {
@@ -43,10 +43,10 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.26,
+      "durationSec": 0.31,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:27ed588bd6e9cea0d2acf11743ee3d9bf7dca86bf6d9ee965814c100be60202b"
+  "receiptDigest": "sha256:a62160785b920cc290807e11bfe5e766a40ec505eb257b13ac78bae2cdab9281"
 }
