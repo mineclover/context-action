@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "context-action-lit-public-release.v1",
+  "release": "context-action-lit-public-2026-10-patch-1",
+  "status": "approved-for-candidate",
+  "candidateDistTag": "next",
+  "promotionDistTag": "latest",
+  "candidateWorkflow": "publish-lit-public-candidate.yml",
+  "promotionWorkflow": "promote-lit-public.yml",
+  "promotionConfirmation": "PROMOTE_LIT_PUBLIC",
+  "packages": {
+    "@context-action/lit": "0.1.0",
+    "@context-action/lit-ui": "0.1.1"
+  },
+  "dependencies": {
+    "@context-action/lit": {
+      "@context-action/core": "^1.2.6"
+    },
+    "@context-action/lit-ui": {
+      "@context-action/core": "^1.2.6",
+      "@context-action/lit": "^0.1.0"
+    }
+  },
+  "publicationOrder": [
+    "@context-action/lit",
+    "@context-action/lit-ui"
+  ],
+  "provenanceBinding": "workflow-release-commit",
+  "candidateCommits": {
+    "@context-action/lit": "d18c926dc2783f5e44a194dd834c04b0c0d162d0"
+  },
+  "changelogDates": {
+    "@context-action/lit": "2026-10-23",
+    "@context-action/lit-ui": "2026-10-23"
+  },
+  "requiredChecks": [
+    "pnpm verify:lit-public-release -- --require-current-source",
+    "pnpm verify:lit-public-workflows",
+    "pnpm check:lit",
+    "pnpm verify:lit-react-compatibility",
+    "pnpm --filter @context-action/lit-ui test:browser",
+    "pnpm verify:package-exports",
+    "pnpm verify:package-tarballs",
+    "pnpm verify:lit-packed-consumer",
+    "pnpm package-boundary:check",
+    "pnpm release:check"
+  ],
+  "notes": [
+    "This is a Lit public-preview patch cohort: @context-action/lit remains 0.1.0 and is reused; @context-action/lit-ui advances to 0.1.1.",
+    "The patch fixes hydrateLit adoption of declarative shadow roots that begin with static styles and repairs duplicate client trees.",
+    "The existing @context-action/lit 0.1.0 artifact is bound to its original attested commit d18c926d; lit-ui 0.1.1 must be attested at the candidate release commit.",
+    "Publication must run lit before lit-ui and bind every artifact to an approved immutable main commit.",
+    "lit and @lit/context are peer dependencies; React is an optional peer used only by the bridge, and @lit-labs/ssr peers are optional for ./ssr."
+  ]
+}
