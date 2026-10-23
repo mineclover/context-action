@@ -90,6 +90,8 @@ hydrateLit(root: Element | ShadowRoot, element: LitElement): void
      double hydration을 막습니다.
    - 첫 client update가 이미 별도 tree를 append한 경우 server root part만
      분리하고 client tree를 제거한 뒤 server tree를 다시 채택합니다.
+   - server root marker 앞의 여러 `<style>`과 whitespace text node를 보존합니다.
+   - 같은 root에 반복 호출해도 live part를 감지해 중복 채택하지 않습니다.
 4. `root`가 비어 있는 경우
    - element를 mount하고 일반 client render를 수행합니다.
 
@@ -97,23 +99,39 @@ hydrateLit(root: Element | ShadowRoot, element: LitElement): void
 
 `hasLitPartMarker`는 direct sibling만 보지 않고 `TreeWalker`로 root 아래의
 comment node를 순회합니다. 따라서 다음 markup에서도 hydration 경로를 탑니다.
+`TreeWalker`가 없는 환경에서는 동일한 descendant 순회를 stack 기반 fallback으로
+수행하므로, 첫 자식만 확인하던 이전 동작으로 되돌아가지 않습니다.
 
 ```html
 <template shadowrootmode="open">
   <style>...</style>
+  <style data-theme>...</style>
   <!--lit-part ...-->
   <div class="tl-item">...</div>
   <!--/lit-part-->
 </template>
 ```
 
+multiple `static styles`와 그 사이의 whitespace text node는 server-owned
+node로 취급되어 hydration 후에도 그대로 남습니다.
+
+### Render options와 method event handler
+
+manual hydration 경로는 `element.renderOptions`를 `hydrate()`에 전달합니다.
+따라서 `@click=${this.increment}`처럼 method를 직접 바인딩한 handler가
+hydrate 후에도 element를 `this`로 받습니다. render options를 전달하지 않으면
+Lit이 event listener의 host를 알 수 없어 method handler의 `this`가 깨질 수
+있습니다.
+
 ### 이미 중복된 client tree 복구
 
 `hydrateLit` 호출 전에 LitElement의 첫 update가 실행되어 server tree 옆에
 client tree가 append된 경우, `_$litPart$`가 server root part인지 확인합니다.
-별도 client render라면 server root marker 범위만 남기고 client anchor/children을
-제거한 뒤 `hydrate()`로 다시 채택합니다. 서버 tree를 분리할 수 없으면 shadow
-root를 비우고 client render로 fallback합니다.
+별도 client render라면 server root marker 범위와 그 앞의 style/whitespace
+node만 남기고 client anchor/children을 제거한 뒤 `hydrate()`로 다시 채택합니다.
+서버 tree를 분리할 수 없으면 shadow root를 비우고 client render로 fallback합니다.
+복구 후 server item node identity가 유지되고, reactive update는 새 items를
+정상적으로 반영합니다.
 
 ### Import 순서
 
@@ -143,15 +161,19 @@ LitElement가 이미 로드된 뒤 `hydrate` entry를 import하면 hydration sup
 검증 명령:
 
 ```sh
-pnpm --filter @context-action/lit-ui test
-pnpm --filter @context-action/lit-ui test:edge
+pnpm check:lit
+pnpm verify:lit-react-compatibility
 pnpm --filter @context-action/lit-ui test:browser
 pnpm verify:package-exports
 pnpm verify:package-tarballs
 pnpm verify:lit-packed-consumer
 ```
 
-`test:browser`는 Chromium에서 실제 DSD markup을 hydrate하고 controller/event/slot/part/data 계약을 확인합니다.
+`check:lit`은 build, type-check, unit test, edge runtime을 묶고, unit suite는
+multiple static styles, duplicate render 복구, 반복 hydration, method event
+handler, reactive update 회귀를 포함합니다. `test:browser`는 Chromium에서 실제
+DSD markup을 hydrate하고 controller/event/slot/part/data 계약과 style 보존을
+확인합니다.
 
 ## 5. 제약
 

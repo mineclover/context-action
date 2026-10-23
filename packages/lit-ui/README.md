@@ -53,6 +53,7 @@ The `./ssr` entry requires `@lit-labs/ssr` and `@lit-labs/ssr-client` (optional 
 `renderLitElement` requires the element to be registered with `customElements.define()` first.
 Reflected reactive properties are serialized as host attributes, and light DOM children are included by default so `<slot>` projection survives SSR (`includeLightDom: false` opts out).
 `hydrateLit` re-exports from `./ssr` for compatibility, but `./hydrate` keeps the server renderer out of client bundles.
+Hydration preserves multiple `static styles` and whitespace nodes before the root marker, repairs a duplicate client tree, is idempotent on repeated calls, and passes Lit render options so method event handlers keep the element as `this`.
 
 ## Install
 
