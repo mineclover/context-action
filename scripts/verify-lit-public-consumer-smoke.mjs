@@ -7,7 +7,7 @@
  * (`@context-action/lit` + `@context-action/lit-ui`).
  *
  * Version selection:
- *   --cohort                     pin both packages to releases/lit-public-2026-10.json
+ *   --cohort                     pin both packages to the current Lit patch plan
  *   --version <v>                shared version
  *   --lit-version <v>            override @context-action/lit
  *   --lit-ui-version <v>         override @context-action/lit-ui
@@ -46,7 +46,7 @@ function optionValue(name) {
 }
 
 const cohortPlan = args.includes('--cohort')
-  ? JSON.parse(readFileSync(path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-1.json'), 'utf8'))
+  ? JSON.parse(readFileSync(path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-2.json'), 'utf8'))
   : null;
 const sharedVersion = optionValue('--version');
 const targetVersions = {

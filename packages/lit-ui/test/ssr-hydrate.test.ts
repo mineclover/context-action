@@ -57,6 +57,26 @@ if (!customElements.get('styled-list-element')) {
   customElements.define('styled-list-element', StyledListElement);
 }
 
+class MethodEventElement extends LitElement {
+  static properties = {
+    count: { type: Number },
+  };
+
+  count = 0;
+
+  increment(): void {
+    this.count += 1;
+  }
+
+  override render() {
+    return html`<button data-testid="method-increment" @click=${this.increment}>${this.count}</button>`;
+  }
+}
+
+if (!customElements.get('method-event-element')) {
+  customElements.define('method-event-element', MethodEventElement);
+}
+
 const serverShadowMarkup = (element: LitElement): string => {
   const parsed = document.createElement('div');
   parsed.innerHTML = renderLitElement(element);
@@ -178,29 +198,90 @@ describe('hydrateLit', () => {
     element.remove();
   });
 
-  it('repairs duplicate client render appended after static-styles SSR markup', async () => {
+  it('keeps multiple static style nodes before the Lit root marker', async () => {
+    const serverElement = new StyledListElement();
     const element = new StyledListElement();
     const shadow = element.attachShadow({ mode: 'open' });
-    shadow.innerHTML = serverShadowMarkup(new StyledListElement());
+    shadow.innerHTML = `<style data-extra-style>.tl-item { display: block; }</style>${serverShadowMarkup(serverElement)}`;
+
     const serverItems = Array.from(shadow.querySelectorAll('.tl-item'));
+    expect(shadow.querySelectorAll('style')).toHaveLength(2);
     expect(serverItems).toHaveLength(3);
 
     document.body.append(element);
-    // Simulate a consumer that defines/connects the element before hydrateLit:
-    // the first Lit update may append a client tree beside the server tree.
-    await element.updateComplete;
-    expect(shadow.querySelectorAll('.tl-item').length).toBeGreaterThanOrEqual(3);
-
     hydrateLit(shadow, element);
     await element.updateComplete;
 
-    const hydratedItems = Array.from(shadow.querySelectorAll('.tl-item'));
-    expect(hydratedItems).toHaveLength(3);
-    expect(hydratedItems).toEqual(serverItems);
-    expect(shadow.firstElementChild?.localName).toBe('style');
+    expect(shadow.querySelectorAll('.tl-item')).toHaveLength(3);
+    expect(shadow.querySelectorAll('style')).toHaveLength(2);
+    expect(shadow.querySelector('[data-extra-style]')).not.toBeNull();
+    expect(Array.from(shadow.querySelectorAll('.tl-item'))).toEqual(serverItems);
 
     element.remove();
   });
+
+  it('preserves Lit render options for method event handlers', async () => {
+    const serverElement = new MethodEventElement();
+    const element = new MethodEventElement();
+    const shadow = element.attachShadow({ mode: 'open' });
+    shadow.innerHTML = serverShadowMarkup(serverElement);
+
+    document.body.append(element);
+    hydrateLit(shadow, element);
+    await element.updateComplete;
+
+    shadow.querySelector<HTMLButtonElement>('[data-testid="method-increment"]')?.click();
+    await element.updateComplete;
+
+    expect(element.count).toBe(1);
+    expect(shadow.querySelector('[data-testid="method-increment"]')?.textContent).toBe('1');
+
+    element.remove();
+  });
+
+  it.each(['own-shadow', 'host-container'] as const)(
+    'repairs an actual duplicate client render via %s and remains reactive', async mode => {
+      const element = new StyledListElement();
+      const shadow = element.attachShadow({ mode: 'open' });
+      shadow.innerHTML = `<style data-extra-style>.tl-item { display: block; }</style>\n${serverShadowMarkup(new StyledListElement())}`;
+      const serverItems = Array.from(shadow.querySelectorAll('.tl-item'));
+      const serverStyles = Array.from(shadow.querySelectorAll('style'));
+      expect(serverItems).toHaveLength(3);
+
+      // Bypass automatic hydration to deterministically exercise recovery from
+      // a client render already appended beside the server tree.
+      Object.defineProperty(element, 'createRenderRoot', {
+        configurable: true,
+        value: () => shadow,
+      });
+      container.append(element);
+      await element.updateComplete;
+      expect(shadow.querySelectorAll('.tl-item')).toHaveLength(6);
+
+      const hydrateRoot = mode === 'own-shadow' ? shadow : container;
+      const hydrateElement = mode === 'own-shadow' ? element : new StyledListElement();
+      hydrateLit(hydrateRoot, hydrateElement);
+      await element.updateComplete;
+
+      const hydratedItems = Array.from(shadow.querySelectorAll('.tl-item'));
+      expect(hydratedItems).toHaveLength(3);
+      hydratedItems.forEach((item, index) => expect(item).toBe(serverItems[index]));
+      expect(Array.from(shadow.querySelectorAll('style'))).toEqual(serverStyles);
+
+      // Repeated hydration must not re-adopt the already live server part.
+      expect(() => hydrateLit(hydrateRoot, hydrateElement)).not.toThrow();
+      await element.updateComplete;
+      expect(shadow.querySelectorAll('.tl-item')).toHaveLength(3);
+
+      element.items = ['updated', 'two', 'three', 'four'];
+      await element.updateComplete;
+      expect(Array.from(shadow.querySelectorAll('.tl-item'), item => item.textContent))
+        .toEqual(['updated', 'two', 'three', 'four']);
+      expect(shadow.querySelector('.tl-item')).toBe(serverItems[0]);
+
+      element.remove();
+    },
+  );
 
   it('rejects invalid inputs', () => {
     expect(() => hydrateLit(null as never, new HydrateProbeElement())).toThrow(TypeError);

@@ -25,6 +25,14 @@
 alignment patch입니다. 두 패키지는 2026-10-23 `latest`/`next` `0.1.1`로
 게시되었고, published consumer smoke 25 assertions를 통과했습니다.
 
+### 0.1.2 stabilization candidate
+
+`@context-action/lit-ui@0.1.2`는 fallback marker 탐색, multiple static style
+보존, duplicate render 복구, 반복 hydration, Lit method event handler 보존을
+강화합니다. `@context-action/lit@0.1.2`는 cohort alignment patch입니다.
+Candidate는 `publish-lit-public-candidate.yml`로 `next`에 게시하고,
+`PROMOTE_LIT_PUBLIC` 확인 후 `promote-lit-public.yml`로 `latest`에 승격합니다.
+
 ## 1. 패키지 경계
 
 ```text
