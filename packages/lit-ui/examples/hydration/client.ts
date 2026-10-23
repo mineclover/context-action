@@ -7,6 +7,9 @@ interface HydrationContract {
   readonly shadowAfter: ShadowRoot | null;
   readonly serverPart: string | null;
   readonly serverData: string | null;
+  readonly serverItemCount: number;
+  readonly itemCount: number;
+  readonly preservedItems: boolean;
   readonly clicks: number[];
 }
 
@@ -30,35 +33,36 @@ if (!(target instanceof HydrationProbeElement)) {
 
 // Capture the declarative shadow root before hydration.
 const shadowBefore = target.shadowRoot;
-const serverPart = shadowBefore?.querySelector('[part="ruler"]')?.getAttribute('data-testid') ?? null;
-const serverData = shadowBefore?.querySelector('[data-testid="data"]')?.getAttribute('data-input') ?? null;
+if (!shadowBefore) {
+  throw new Error('Server-rendered shadow root was not adopted');
+}
+const serverPart = shadowBefore.querySelector('[part="ruler"]')?.getAttribute('data-testid') ?? null;
+const serverData = shadowBefore.querySelector('[data-testid="data"]')?.getAttribute('data-input') ?? null;
+const serverItems = Array.from(shadowBefore.querySelectorAll('.tl-item'));
 
 const clicks: number[] = [];
 target.addEventListener('count-change', (event) => {
   clicks.push((event as CustomEvent<{ count: number }>).detail.count);
 });
 
-const clientElement = new HydrationProbeElement();
-clientElement.label = 'client';
-clientElement.input = { from: 'client' };
-
-hydrateLit(host, clientElement);
+// Exercise the own-shadow-root hydration contract, including static styles.
+hydrateLit(shadowBefore, target);
 await target.updateComplete;
 
+const hydratedItems = Array.from(shadowBefore.querySelectorAll('.tl-item'));
 window.__litHydrationContract = {
   target,
   shadowBefore,
   shadowAfter: target.shadowRoot,
   serverPart,
   serverData,
+  serverItemCount: serverItems.length,
+  itemCount: hydratedItems.length,
+  preservedItems:
+    hydratedItems.length === serverItems.length &&
+    hydratedItems.every((item, index) => item === serverItems[index]),
   clicks,
 };
 
-const countNode = target.shadowRoot?.querySelector('[data-testid="data"]');
-if (countNode) {
-  target.addEventListener('count-change', () => {
-    status.dataset.count = String(target.count);
-  });
-}
-
+status.dataset.count = String(target.count);
 status.dataset.ready = 'true';

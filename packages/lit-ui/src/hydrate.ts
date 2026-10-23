@@ -18,11 +18,28 @@ const COMMENT_NODE = 8;
 const DOCUMENT_FRAGMENT_NODE = 11;
 
 function hasLitPartMarker(root: Element | ShadowRoot): boolean {
+  const document = root.ownerDocument
+    ?? (root as ShadowRoot).host?.ownerDocument
+    ?? null;
+  if (document && typeof document.createTreeWalker === 'function') {
+    const walker = document.createTreeWalker(root, 128 /* NodeFilter.SHOW_COMMENT */);
+    while (walker.nextNode()) {
+      if ((walker.currentNode as Comment).data.startsWith('lit-part')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Defensive fallback for environments without TreeWalker.
   for (let node = root.firstChild; node; node = node.nextSibling) {
     if (
       node.nodeType === COMMENT_NODE &&
       (node as Comment).data.startsWith('lit-part')
     ) {
+      return true;
+    }
+    if (node.nodeType === 1 && hasLitPartMarker(node as Element)) {
       return true;
     }
   }
@@ -67,6 +84,102 @@ function isHydrationSupportInstalled(): boolean {
   }
 }
 
+interface LitPartLike {
+  _$startNode?: Node | null;
+  _$endNode?: Node | null;
+  _$AA?: Node | null;
+  _$AB?: Node | null;
+}
+
+function partStartNode(part: LitPartLike | undefined): Node | null {
+  return part?._$startNode ?? part?._$AA ?? null;
+}
+
+function partEndNode(part: LitPartLike | undefined): Node | null {
+  return part?._$endNode ?? part?._$AB ?? null;
+}
+
+function isServerRootPart(part: LitPartLike | undefined): boolean {
+  const start = partStartNode(part);
+  return (
+    start?.nodeType === COMMENT_NODE &&
+    (start as Comment).data.startsWith('lit-part')
+  );
+}
+
+/**
+ * When a client render appended a separate tree beside the server DSD tree,
+ * keep only the server root part (plus preceding static style tags), remove the
+ * client anchors/children, and re-adopt the surviving server tree.
+ */
+function isolateServerTree(shadow: ShadowRoot): boolean {
+  const children = Array.from(shadow.childNodes);
+  const rootIndex = children.findIndex(
+    node => node.nodeType === COMMENT_NODE && (node as Comment).data.startsWith('lit-part'),
+  );
+  if (rootIndex < 0) return false;
+
+  let beginIndex = rootIndex;
+  while (beginIndex > 0) {
+    const previous = children[beginIndex - 1]!;
+    if (previous.nodeType === 1 && (previous as Element).localName === 'style') {
+      beginIndex -= 1;
+      continue;
+    }
+    break;
+  }
+
+  let depth = 0;
+  let endIndex = -1;
+  for (let index = rootIndex; index < children.length; index += 1) {
+    const node = children[index]!;
+    if (node.nodeType !== COMMENT_NODE) continue;
+    const data = (node as Comment).data;
+    if (data.startsWith('lit-part')) {
+      depth += 1;
+    } else if (data.startsWith('/lit-part')) {
+      depth -= 1;
+      if (depth === 0) {
+        endIndex = index;
+        break;
+      }
+    }
+  }
+  if (endIndex < 0) return false;
+
+  for (let index = children.length - 1; index > endIndex; index -= 1) {
+    children[index]!.parentNode?.removeChild(children[index]!);
+  }
+  for (let index = 0; index < beginIndex; index += 1) {
+    children[index]!.parentNode?.removeChild(children[index]!);
+  }
+  return true;
+}
+
+function adoptServerShadow(host: LitElement, shadow: ShadowRoot): void {
+  // Clear Lit hydration support flags so the following requestUpdate does not
+  // adopt the same tree a second time.
+  (host as unknown as { _$needsHydration?: boolean })._$needsHydration = false;
+  (host as unknown as { _$AG?: boolean })._$AG = false;
+
+  if (isolateServerTree(shadow)) {
+    delete (shadow as ShadowRoot & { _$litPart$?: unknown })._$litPart$;
+    try {
+      const rendered = (host as unknown as { render(): unknown }).render();
+      hydrate(rendered, shadow);
+      host.requestUpdate();
+      return;
+    } catch {
+      // Fall through to a clean client render when the server tree cannot be
+      // adopted (for example after an incompatible template change).
+    }
+  }
+
+  shadow.replaceChildren();
+  delete (shadow as ShadowRoot & { _$litPart$?: unknown })._$litPart$;
+  host.requestUpdate();
+}
+
 function hydrateHost(host: LitElement): void {
   const shadow = host.shadowRoot;
   if (!shadow) {
@@ -82,8 +195,12 @@ function hydrateHost(host: LitElement): void {
     });
   }
 
-  const livePart = (shadow as ShadowRoot & { _$litPart$?: unknown })._$litPart$;
+  const livePart = (shadow as ShadowRoot & { _$litPart$?: LitPartLike })._$litPart$;
   if (livePart !== undefined) {
+    if (hasLitPartMarker(shadow) && !isServerRootPart(livePart)) {
+      adoptServerShadow(host, shadow);
+      return;
+    }
     host.requestUpdate();
     return;
   }
@@ -182,7 +299,7 @@ export function hydrateLit(root: Element | ShadowRoot, element: LitElement): voi
     root.host === element
   ) {
     const shadow = root as ShadowRoot;
-    const livePart = (shadow as ShadowRoot & { _$litPart$?: unknown })._$litPart$;
+    const livePart = (shadow as ShadowRoot & { _$litPart$?: LitPartLike })._$litPart$;
     if (livePart === undefined) {
       Object.defineProperty(element, 'createRenderRoot', {
         configurable: true,
@@ -194,6 +311,9 @@ export function hydrateLit(root: Element | ShadowRoot, element: LitElement): voi
       } else {
         shadow.replaceChildren();
       }
+    } else if (hasLitPartMarker(shadow) && !isServerRootPart(livePart)) {
+      adoptServerShadow(element, shadow);
+      return;
     }
     // Support uses `_$needsHydration` in development and a minified field in
     // production. Clearing both is harmless when support is absent.
