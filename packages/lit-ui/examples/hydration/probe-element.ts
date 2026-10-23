@@ -1,5 +1,5 @@
-import { LitElement, css, html } from 'lit';
 import type { ReactiveController } from 'lit';
+import { css, html, LitElement } from 'lit';
 
 class ConnectionMarker implements ReactiveController {
   readonly #host: LitElement;

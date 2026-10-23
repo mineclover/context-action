@@ -14,7 +14,8 @@
 - [`PREACT_PUBLIC_0.2.0.md`](PREACT_PUBLIC_0.2.0.md) (Preact 공개 preview, 2026-10-23 게시 완료)
 - [`PREACT_PUBLIC_0.1.0.md`](PREACT_PUBLIC_0.1.0.md)
 - [`LIT_PUBLIC_0.1.0.md`](LIT_PUBLIC_0.1.0.md) (Lit 공개 preview, 2026-10-23 게시 완료)
-- [`LIT_PUBLIC_0.1.1.md`](LIT_PUBLIC_0.1.1.md) (Lit UI 0.1.1 hydrate patch 후보)
+- [`LIT_PUBLIC_0.1.1.md`](LIT_PUBLIC_0.1.1.md) (Lit UI 0.1.1 hydrate patch, 2026-10-23 게시 완료)
+- [`LIT_PUBLIC_0.1.2.md`](LIT_PUBLIC_0.1.2.md) (Lit UI 0.1.2 hydration stabilization 후보)
 
 ## 1. 변경 분류와 버전 결정
 
@@ -58,6 +59,7 @@ pnpm release:check
 | Preact public preview cohort (Preact 0.1.2 / Preact UI 0.2.0) | `publish-preact-public-candidate.yml` → `promote-preact-public.yml` | 2026-10-23 `latest`/`next` `preact 0.1.2` / `preact-ui 0.2.0` 게시 완료. `PROMOTE_PREACT_PUBLIC` 확인 후 승격 |
 | Lit public preview cohort (Lit 0.1.0 / Lit UI 0.1.0) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.0` 게시 완료. `PROMOTE_LIT_PUBLIC` 확인 후 승격 |
 | Lit public preview patch (Lit 0.1.1 / Lit UI 0.1.1) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.1` 게시 완료. Lit은 cohort alignment, Lit UI는 hydrate patch |
+| Lit public preview patch (Lit 0.1.2 / Lit UI 0.1.2) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | Lit은 cohort alignment, Lit UI 0.1.2는 hydration stabilization. `next` 검증 후 `latest` 승격 |
 
 모든 워크플로는 승인된 immutable main commit, 정확한 버전, provenance,
 consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 합니다.
@@ -151,6 +153,20 @@ cohort alignment patch이고, Lit UI 0.1.1은 `hydrateLit()` static styles DSD
 Source of truth는 [`LIT_PUBLIC_0.1.1.md`](LIT_PUBLIC_0.1.1.md)와
 `lit-public-2026-10-patch-1.json`입니다. Candidate provenance/consumer/browser
 evidence와 `PROMOTE_LIT_PUBLIC` 승격 evidence가 기록되어 있습니다.
+
+## 4-4. Lit 공개 preview 0.1.2 hydration stabilization 후보
+
+`@context-action/lit@0.1.2`과 `@context-action/lit-ui@0.1.2`은 0.1.1 이후의
+hydration 안정화 cohort입니다. Lit 0.1.2는 런타임/API 변경이 없는 cohort
+alignment patch이고, Lit UI 0.1.2는 fallback marker 탐색, multiple static
+style 보존, duplicate render 복구, 반복 hydration, Lit method event handler
+보존을 강화합니다.
+
+Source of truth는 [`LIT_PUBLIC_0.1.2.md`](LIT_PUBLIC_0.1.2.md)와
+`lit-public-2026-10-patch-2.json`입니다. Candidate는
+`publish-lit-public-candidate.yml`로 `next`에 게시하고,
+`PROMOTE_LIT_PUBLIC` 확인 후 `promote-lit-public.yml`로 `latest`에
+승격합니다.
 
 ## 5. 실패와 재개
 

@@ -1,5 +1,19 @@
 # Change Log
 
+## [0.1.2] (2026-10-23)
+
+### Fixed
+
+- Stabilized static-styles declarative shadow-root hydration across fallback,
+  duplicate-render recovery, multiple style nodes, and repeated hydration.
+- Preserved Lit render options during manual hydration so method event handlers
+  retain the element as their `this` value.
+
+### Tests
+
+- Added regression coverage for duplicate recovery, multiple static styles,
+  method event handlers, reactive updates, and Chromium DSD hydration.
+
 ## [0.1.1] (2026-10-23)
 
 Published to npm on 2026-10-23. `latest` and `next` resolve to `0.1.1`.

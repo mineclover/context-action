@@ -11,18 +11,21 @@
  */
 
 import '@lit-labs/ssr-client/lit-element-hydrate-support.js';
-import { LitElement } from 'lit';
 import { hydrate } from '@lit-labs/ssr-client';
+import { LitElement } from 'lit';
 
 const COMMENT_NODE = 8;
 const DOCUMENT_FRAGMENT_NODE = 11;
+const SHOW_COMMENT_NODE = 128;
 
 function hasLitPartMarker(root: Element | ShadowRoot): boolean {
   const document = root.ownerDocument
     ?? (root as ShadowRoot).host?.ownerDocument
     ?? null;
   if (document && typeof document.createTreeWalker === 'function') {
-    const walker = document.createTreeWalker(root, 128 /* NodeFilter.SHOW_COMMENT */);
+    // Static styles are emitted before Lit's root marker. Walk every comment
+    // below the root instead of assuming the marker is its first child.
+    const walker = document.createTreeWalker(root, SHOW_COMMENT_NODE);
     while (walker.nextNode()) {
       if ((walker.currentNode as Comment).data.startsWith('lit-part')) {
         return true;
@@ -31,16 +34,20 @@ function hasLitPartMarker(root: Element | ShadowRoot): boolean {
     return false;
   }
 
-  // Defensive fallback for environments without TreeWalker.
-  for (let node = root.firstChild; node; node = node.nextSibling) {
-    if (
-      node.nodeType === COMMENT_NODE &&
-      (node as Comment).data.startsWith('lit-part')
-    ) {
-      return true;
-    }
-    if (node.nodeType === 1 && hasLitPartMarker(node as Element)) {
-      return true;
+  // Defensive fallback for environments without TreeWalker. Keep the same
+  // descendant-wide semantics; a first-child check would regress when styles
+  // or other server-owned nodes precede the Lit marker.
+  const pending: Node[] = [root];
+  while (pending.length > 0) {
+    const current = pending.pop()!;
+    for (let node = current.firstChild; node; node = node.nextSibling) {
+      if (
+        node.nodeType === COMMENT_NODE &&
+        (node as Comment).data.startsWith('lit-part')
+      ) {
+        return true;
+      }
+      if (node.firstChild) pending.push(node);
     }
   }
   return false;
@@ -95,8 +102,12 @@ function partStartNode(part: LitPartLike | undefined): Node | null {
   return part?._$startNode ?? part?._$AA ?? null;
 }
 
-function partEndNode(part: LitPartLike | undefined): Node | null {
-  return part?._$endNode ?? part?._$AB ?? null;
+function renderOptionsFor(
+  element: LitElement,
+): Parameters<typeof hydrate>[2] {
+  return (element as unknown as {
+    renderOptions?: Parameters<typeof hydrate>[2];
+  }).renderOptions;
 }
 
 function isServerRootPart(part: LitPartLike | undefined): boolean {
@@ -122,7 +133,10 @@ function isolateServerTree(shadow: ShadowRoot): boolean {
   let beginIndex = rootIndex;
   while (beginIndex > 0) {
     const previous = children[beginIndex - 1]!;
-    if (previous.nodeType === 1 && (previous as Element).localName === 'style') {
+    if (
+      (previous.nodeType === 1 && (previous as Element).localName === 'style') ||
+      (previous.nodeType === 3 && previous.textContent?.trim() === '')
+    ) {
       beginIndex -= 1;
       continue;
     }
@@ -166,7 +180,7 @@ function adoptServerShadow(host: LitElement, shadow: ShadowRoot): void {
     delete (shadow as ShadowRoot & { _$litPart$?: unknown })._$litPart$;
     try {
       const rendered = (host as unknown as { render(): unknown }).render();
-      hydrate(rendered, shadow);
+      hydrate(rendered, shadow, renderOptionsFor(host));
       host.requestUpdate();
       return;
     } catch {
@@ -307,7 +321,7 @@ export function hydrateLit(root: Element | ShadowRoot, element: LitElement): voi
       });
       if (hasLitPartMarker(shadow)) {
         const rendered = (element as unknown as { render(): unknown }).render();
-        hydrate(rendered, shadow);
+        hydrate(rendered, shadow, renderOptionsFor(element));
       } else {
         shadow.replaceChildren();
       }
@@ -330,7 +344,7 @@ export function hydrateLit(root: Element | ShadowRoot, element: LitElement): voi
       return;
     }
     const rendered = (element as unknown as { render(): unknown }).render();
-    hydrate(rendered, root);
+    hydrate(rendered, root, renderOptionsFor(element));
     return;
   }
 
