@@ -2,6 +2,8 @@
 
 ## [0.2.0] (2026-10-18)
 
+Published to npm on 2026-10-23. `latest` and `next` resolve to `0.2.0`.
+
 ### Added
 
 - `definePreactElement<Input, Expose>` accepts a declarative `expose` object on

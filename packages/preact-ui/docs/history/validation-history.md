@@ -11,6 +11,13 @@
 - **대상 패키지**: `@context-action/preact@0.1.2` + `@context-action/preact-ui@0.2.0`
 - **릴리즈 계획서**: `releases/PREACT_PUBLIC_0.2.0.md` (`preact-public-2026-10.json`)
 
+### 1.0 게시 결과 (2026-10-23)
+
+- **Candidate**: `publish-preact-public-candidate.yml` run `39897580951` — success
+- **Promotion**: `promote-preact-public.yml` run `39903568673` — success
+- **Registry**: `latest` / `next` = `preact@0.1.2`, `preact-ui@0.2.0`
+- **Published consumer smoke**: `pnpm verify:preact-consumer-smoke -- --cohort` — 82 assertions passed
+
 ### 1.1 필수 검증 게이트 실행 결과
 
 | 범주 | 실행 명령 | 결과 |

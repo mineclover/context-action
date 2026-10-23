@@ -11,7 +11,7 @@
 - [`docs/releases/v1.0.0/scope.md`](../docs/releases/v1.0.0/scope.md)
 - [`docs/releases/v1.0.0/publish-runbook.md`](../docs/releases/v1.0.0/publish-runbook.md)
 - [`COORDINATED_STABLE_2026_10.md`](COORDINATED_STABLE_2026_10.md)
-- [`PREACT_PUBLIC_0.2.0.md`](PREACT_PUBLIC_0.2.0.md) (현재 Preact cohort 후보)
+- [`PREACT_PUBLIC_0.2.0.md`](PREACT_PUBLIC_0.2.0.md) (Preact 공개 preview, 2026-10-23 게시 완료)
 - [`PREACT_PUBLIC_0.1.0.md`](PREACT_PUBLIC_0.1.0.md)
 - [`LIT_PUBLIC_0.1.0.md`](LIT_PUBLIC_0.1.0.md) (Lit 공개 preview, 2026-10-23 게시 완료)
 - [`LIT_PUBLIC_0.1.1.md`](LIT_PUBLIC_0.1.1.md) (Lit UI 0.1.1 hydrate patch 후보)
@@ -55,7 +55,7 @@ pnpm release:check
 | 일반 도구 패키지 cohort | `publish-packages.yml` | 고정 cohort를 `next`에 게시하고 consumer/evidence를 검증 |
 | Mutative cohort | `publish-mutative.yml` | 두 패키지를 `next`에 게시하고 consumer/evidence를 검증 |
 | Core 1.2.6 / Store Core 0.1.3 / Mutative Core 0.8.14 / Mutative 0.8.15 / React 4.0.7 time-travel and hydration stability patch | `publish-coordinated-stable-candidate.yml` → `promote-coordinated-stable.yml` | 후보를 `next`에 고정·검증한 뒤 검토된 five-package cohort를 `latest`로 승격. Durable·ToolContext는 별도 개발 트랙 |
-| Preact public preview cohort (Preact 0.1.2 / Preact UI 0.2.0) | `publish-preact-public-candidate.yml` → `promote-preact-public.yml` | `@context-action/preact` 다음 `@context-action/preact-ui`를 `next`에 게시하고 packed/browser evidence를 확인한 뒤 별도 검토로 `latest` 승격 |
+| Preact public preview cohort (Preact 0.1.2 / Preact UI 0.2.0) | `publish-preact-public-candidate.yml` → `promote-preact-public.yml` | 2026-10-23 `latest`/`next` `preact 0.1.2` / `preact-ui 0.2.0` 게시 완료. `PROMOTE_PREACT_PUBLIC` 확인 후 승격 |
 | Lit public preview cohort (Lit 0.1.0 / Lit UI 0.1.0) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.0` 게시 완료. `PROMOTE_LIT_PUBLIC` 확인 후 승격 |
 | Lit public preview patch (Lit 0.1.1 / Lit UI 0.1.1) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.1` 게시 완료. Lit은 cohort alignment, Lit UI는 hydrate patch |
 
@@ -103,7 +103,8 @@ React dependency boundary를 plan과 정확히 결속합니다.
 
 `@context-action/preact`와 `@context-action/preact-ui`는 공개 preview로
 승격되었지만 Core/React 안정 cohort와 release cadence를 공유하지 않습니다.
-현재 후보는 `@context-action/preact@0.1.2`와 `@context-action/preact-ui@0.2.0`이며
+현재 게시 버전은 `@context-action/preact@0.1.2`와
+`@context-action/preact-ui@0.2.0`이며
 [`PREACT_PUBLIC_0.2.0.md`](PREACT_PUBLIC_0.2.0.md)의 별도 plan과
 `preact-public-2026-10.json`에 결속합니다. 두 package의 버전은 서로 다를 수 있지만
 candidate workflow가 cohort 전체를 미게시 버전으로 요구하므로 함께 올립니다.
@@ -112,7 +113,9 @@ Publication은 반드시 `@context-action/preact` → `@context-action/preact-ui
 순서를 지킵니다. 첫 package가 Core `^1.2.6`을 요구하고 두 번째 package가
 첫 번째 package `^0.1.2`를 요구하므로 의존성 순서를 바꾸면 workflow가
 실패해야 합니다. 후보는 `next`에서 packed export/tarball과 Preact browser
-matrix를 검증한 뒤에만 `latest`로 승격합니다.
+matrix를 검증한 뒤에만 `latest`로 승격합니다. 2026-10-23 candidate
+`39897580951`과 promotion `39903568673`이 성공했고, published consumer smoke
+82 assertions를 통과했습니다.
 
 두 package 모두 pre-1.0 공개 preview이므로 1.0 안정성 결정 전에는 API와
 지원 범위가 바뀔 수 있습니다. NVDA/VoiceOver 음성 출력은 runtime 기능이

@@ -11,6 +11,16 @@ candidates. The machine-readable source of truth remains
 | `@context-action/preact` | `0.1.1` | `0.1.2` | Cohort alignment patch. No runtime or API changes |
 | `@context-action/preact-ui` | `0.1.1` | `0.2.0` | Pre-1.0 minor: new public API plus one breaking `expose` rule |
 
+## Publication status
+
+| Evidence | Value |
+| --- | --- |
+| Release commit | `b7dc6d694dace59d97370da5e275dc87acd70b73` |
+| Candidate run | [`39897580951`](https://github.com/mineclover/context-action/actions/runs/39897580951) — success |
+| Promotion run | [`39903568673`](https://github.com/mineclover/context-action/actions/runs/39903568673) — success |
+| `latest` / `next` | `preact 0.1.2` / `preact-ui 0.2.0` |
+| Published consumer smoke | 82 assertions passed from the public registry |
+
 ## Why both packages move
 
 The protected candidate workflow publishes the whole cohort with
@@ -75,3 +85,8 @@ pnpm verify:preact-consumer-smoke -- --cohort
 
 Both packages stay 0.x public previews. API and support changes still require a
 later 1.0 stability decision.
+
+## Status
+
+Published on 2026-10-23. `latest` and `next` resolve to `preact@0.1.2` and
+`preact-ui@0.2.0`.
