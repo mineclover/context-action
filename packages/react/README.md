@@ -133,6 +133,70 @@ stores for owned application state and `useStoreValue()` for reactive reads.
 This keeps rendering, state transitions, and infrastructure concerns
 independently testable.
 
+### Optional tool integration boundary
+
+The default `@context-action/react` entry owns Action, Store, Context, and Ref
+integration. It does not require AI, MCP, or durable-operation packages to be
+installed. `createActionContext(name, { schema })` uses core's structural validator
+contract (`safeParse`); a concrete schema library is optional.
+
+The existing experimental `@context-action/react/webmcp` subpath remains an
+explicit opt-in. Install its optional peers only when using that subpath:
+
+```bash
+npm install @context-action/webmcp @context-action/tool-protocol
+```
+
+Importing `/webmcp` without those peers is not supported. The root entry must
+remain usable, including its TypeScript declarations, when those peers are absent.
+The repository-only ToolContext track is not part of the public root API.
+
+### Store subscription behavior
+
+The basic value, selector, and path hooks compare selections within the current
+Store instance. `undefined` is a valid selected value, including for custom
+equality functions. Replacing the Store starts a fresh selection history and
+releases the old subscription; equality never carries a value across Stores.
+
+The root `Store` batches notifications by frame. Patch-aware listeners receive
+all known transition patches, or `null` (full invalidation) if any transition
+in that frame has no reliable patches. A later known patch cannot narrow that
+full invalidation. Updates made inside a batched listener notify in a subsequent
+frame. Path dependency hints must include every path read by the selector.
+
+### Provider instance isolation
+
+Each mounted Provider owns its resources. Sibling Providers remain independent
+even when Context names, registry labels, store keys, or handler IDs match.
+Nested consumers use the nearest Provider of each Context; clearing or removing
+one scope does not clear a sibling or parent scope. A registry label is not a
+shared-state key. Share a single ancestor Provider when consumers need one scope.
+
+Ref Providers follow the same logical lifetime as Action and Store Providers:
+StrictMode effect replay and Activity hiding do not dispose their state or
+reject pending mount waits. Actual unmount rejects that Provider's waits and
+clears its refs. Callback refs retain stable `setRef` functions, and `isMounted`
+reflects ref attachment even when it happens before passive effects subscribe.
+
+### Cancellation and disposal
+
+Actual Ref Provider unmount rejects pending mount waits and polling, clears
+their timers, and prevents saved setters from recreating disposed state.
+Mount deadlines belong to individual callers: one timeout does not reject
+another caller's wait. `useWaitForRefs` releases its own remaining waits when
+the group settles. Polling cancellation settles immediately without another tick.
+
+`withTarget` returns a failed `RefOperationResult` on cancellation or timeout.
+Its operation receives a signal combining external cancellation and Provider
+disposal. Operation timeouts start when the operation runs, not while queued or
+waiting for a target. Cancellation releases the caller, but cannot force-stop
+non-cooperative JavaScript; the serialization slot remains occupied until the
+actual work settles. Library-owned timers and listeners are cleaned up, while
+external I/O and resources remain application-owned.
+
+Disposed Stores keep their final snapshot. Late `setValue`/`update` calls are
+ignored, including queued updates whose updater has not started yet.
+
 ### React 19.2+ imports
 
 Use the main entry point with React 19.2 or later:
@@ -408,6 +472,20 @@ static test count:
 pnpm --filter @context-action/react test
 pnpm --filter @context-action/react type-check
 ```
+
+From the workspace root, verify both the source and installed production package:
+
+```bash
+pnpm verify:react-compatibility
+```
+
+This builds and packs the workspace candidates, checks ESM/CJS consumer types
+with `skipLibCheck: false`, and runs the public Action, Store, Provider, and Ref
+contracts against the installed CJS bundle without integration peers. Those
+tests do not alias Context-Action packages back to workspace source. It then
+installs the explicit WebMCP peers, checks that adapter, and runs the full source
+suite against the configured React versions. This is focused compatibility
+validation, not the complete release preflight.
 
 ## Bundle Size
 
