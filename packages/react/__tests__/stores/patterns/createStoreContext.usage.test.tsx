@@ -422,6 +422,14 @@ describe('createStoreContext usage examples', () => {
   });
 
   describe('Integration with React patterns', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('should work seamlessly with React state and side effects', async () => {
       const {
         Provider: IntegrationStoreProvider,
@@ -503,14 +511,15 @@ describe('createStoreContext usage examples', () => {
       fireEvent.click(getByTestId('sync-data'));
 
       await act(async () => {
-        await new Promise(resolve => requestAnimationFrame(resolve));
+        await jest.advanceTimersByTimeAsync(16);
       });
 
       expect(getByTestId('ui-loading')).toHaveTextContent('Loading...');
 
-      // Wait for async operation
+      // Advance the simulated API timer and its subsequent RAF notification.
+      // Wall-clock sleeps can finish before that frame under concurrent builds.
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await jest.advanceTimersByTimeAsync(100);
       });
 
       expect(getByTestId('server-data')).toHaveTextContent('synced 1 times');

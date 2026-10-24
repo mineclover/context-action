@@ -308,6 +308,7 @@ export class Store<T = unknown> implements IStore<T> {
    * 성능 강화: 다층 비교 시스템으로 정확한 변경 감지 및 렌더링 최적화
    */
   setValue(value: T, options?: StoreSetValueOptions<T>): void {
+    if (this.isDisposed) return;
     // 향상된 이벤트 객체 처리 시스템
     if (TypeGuards.isObject(value)) {
       // RefState 객체는 제외 (DOM 요소를 위한 정당한 target 속성 보유)
@@ -373,7 +374,7 @@ export class Store<T = unknown> implements IStore<T> {
       hasChanged = this._compareValues(this._value, safeValue);
     }
 
-    if (hasChanged) {
+    if (hasChanged && !this.isDisposed) {
       // Generate patches if we have patch-aware listeners and values are objects
       if (this.patchAwareListeners.size > 0 &&
           TypeGuards.isObject(this._value) &&
@@ -410,6 +411,7 @@ export class Store<T = unknown> implements IStore<T> {
         this._lastPatches = null;
       }
 
+      if (this.isDisposed) return;
       this._value = safeValue;
       // Increment version for Copy-on-Write cache invalidation
       this._version++;
@@ -431,6 +433,7 @@ export class Store<T = unknown> implements IStore<T> {
    * 보안 강화: Mutative draft를 통한 안전한 상태 수정
    */
   update(updater: (current: T) => T | undefined): void {
+    if (this.isDisposed) return;
     // 동시성 보호: update 진행 중이면 큐에 추가
     if (this.isUpdating) {
       this.updateQueue.push(() => this.update(updater));
@@ -504,6 +507,7 @@ export class Store<T = unknown> implements IStore<T> {
         }
       }
 
+      if (this.isDisposed) return;
       // 이벤트 객체 감지 및 기본 처리 (update 메소드는 block 모드만 지원)
       if (TypeGuards.isObject(updatedValue)) {
         if (!TypeGuards.isRefState(updatedValue) && TypeGuards.isSuspiciousEventObject(updatedValue)) {
@@ -529,7 +533,7 @@ export class Store<T = unknown> implements IStore<T> {
       }
 
       // 직접 상태 업데이트 (setValue 대신) - 패치 정보 유지
-      if (this._compareValues(this._value, updatedValue)) {
+      if (this._compareValues(this._value, updatedValue) && !this.isDisposed) {
         this._lastPatches = patches;
         this._value = updatedValue;
         this._version++;
@@ -859,6 +863,7 @@ export class Store<T = unknown> implements IStore<T> {
    * 브라우저의 다음 프레임에서 리스너 알림 실행
    */
   protected _scheduleNotification(): void {
+    if (this.isDisposed) return;
     if (this.notificationMode === 'immediate') {
       // 즉시 모드: 동기적으로 모든 리스너에게 알림
       this._notifyListeners();
@@ -879,11 +884,13 @@ export class Store<T = unknown> implements IStore<T> {
     // Preserve all transition patches until the batched notification runs.
     // `_lastPatches` is updated by each state change, so forwarding it directly
     // would drop every patch except the final update in the frame.
-    if (this._lastPatches) {
-      this.pendingPatches = this.pendingPatches
+    // null means an unknown/full transition, not an empty patch list. Once
+    // present, it must invalidate every path for the entire pending frame.
+    this.pendingPatches = this.pendingUpdatesCount === 1
+      ? this._lastPatches
+      : this.pendingPatches && this._lastPatches
         ? this.pendingPatches.concat(this._lastPatches)
-        : this._lastPatches;
-    }
+        : null;
     
     // 스케줄된 알림이 없을 때만 새로운 프레임 요청
     if (!this.pendingNotification) {
@@ -905,10 +912,8 @@ export class Store<T = unknown> implements IStore<T> {
     this.pendingNotification = false;
     this.animationFrameId = null;
 
-    if (this.pendingPatches) {
-      this._lastPatches = this.pendingPatches;
-      this.pendingPatches = null;
-    }
+    this._lastPatches = this.pendingPatches;
+    this.pendingPatches = null;
     
     // 누적된 업데이트 수 리셋하고 로깅 (디버깅용)
     const batchedUpdates = this.pendingUpdatesCount;

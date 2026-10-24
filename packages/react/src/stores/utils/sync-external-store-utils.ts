@@ -66,20 +66,24 @@ export function useSafeStoreSubscription<T, R = T>(
   }, [store, selector, initialValue]);
 
   // Cached snapshots keep external-store reads referentially stable.
-  const cachedSnapshotRef = useRef<R | T | undefined>(undefined);
+  const cachedSnapshotRef = useRef<{
+    store: IStore<T> | undefined | null;
+    value: R | T | undefined;
+  } | undefined>(undefined);
   const stableGetSnapshot = useCallback((): R | T | undefined => {
     const currentSnapshot = getSnapshot();
     
     // 이전 값과 비교하여 실제로 변경된 경우에만 새 값 반환
-    if (equalityFn && cachedSnapshotRef.current !== undefined) {
-      if (equalityFn(cachedSnapshotRef.current as R, currentSnapshot as R)) {
-        return cachedSnapshotRef.current;
+    const cached = cachedSnapshotRef.current;
+    if (store && equalityFn && cached?.store === store) {
+      if (equalityFn(cached.value as R, currentSnapshot as R)) {
+        return cached.value;
       }
     }
     
-    cachedSnapshotRef.current = currentSnapshot;
+    cachedSnapshotRef.current = { store, value: currentSnapshot };
     return currentSnapshot;
-  }, [getSnapshot, equalityFn]);
+  }, [getSnapshot, equalityFn, store]);
 
   // Server snapshots must be referentially stable while the underlying store
   // snapshot is unchanged. React calls getServerSnapshot more than once during

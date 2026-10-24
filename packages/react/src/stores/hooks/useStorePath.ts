@@ -98,15 +98,16 @@ export function useStorePath<T, R = unknown>(
   const stablePath = stablePathRef.current.path;
 
   // Cache for value comparison with path tracking for invalidation
-  const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string }>({
+  const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string; store: PatchAwareStore<T> }>({
     value: undefined as R,
     initialized: false,
     pathSignature: '',
+    store,
   });
 
   // Invalidate cache when path changes
-  if (cacheRef.current.pathSignature !== pathSignature) {
-    cacheRef.current = { value: undefined as R, initialized: false, pathSignature };
+  if (cacheRef.current.pathSignature !== pathSignature || cacheRef.current.store !== store) {
+    cacheRef.current = { value: undefined as R, initialized: false, pathSignature, store };
   }
 
   // Subscribe with patch awareness
@@ -129,7 +130,7 @@ export function useStorePath<T, R = unknown>(
 
     // First access - initialize cache
     if (!cacheRef.current.initialized) {
-      cacheRef.current = { value: currentValue, initialized: true, pathSignature };
+      cacheRef.current = { value: currentValue, initialized: true, pathSignature, store };
       return currentValue;
     }
 
@@ -204,14 +205,15 @@ export function useStoreSelectorWithPaths<T, R>(
   const stablePaths = stablePathsRef.current.paths;
 
   // Cache for value comparison with dependency tracking
-  const cacheRef = useRef<{ value: R | undefined; depsKey: string | null }>({
-    value: undefined,
-    depsKey: null,
-  });
+  const cacheRef = useRef<{
+    value: R;
+    depsKey: string | null;
+    store: PatchAwareStore<T>;
+  } | undefined>(undefined);
 
   // Invalidate cache when dependencies change
-  if (cacheRef.current.depsKey !== depsKey) {
-    cacheRef.current = { value: undefined, depsKey };
+  if (cacheRef.current && (cacheRef.current.depsKey !== depsKey || cacheRef.current.store !== store)) {
+    cacheRef.current = undefined;
   }
 
   // Subscribe with patch awareness
@@ -239,8 +241,9 @@ export function useStoreSelectorWithPaths<T, R>(
     const currentValue = selector(storeValue);
 
     // Compare with cached value
-    if (cacheRef.current.value !== undefined) {
-      const prevValue = cacheRef.current.value;
+    const cached = cacheRef.current;
+    if (cached?.store === store && cached.depsKey === depsKey) {
+      const prevValue = cached.value;
 
       if (equalityFn) {
         if (equalityFn(prevValue, currentValue)) {
@@ -251,9 +254,9 @@ export function useStoreSelectorWithPaths<T, R>(
       }
     }
 
-    cacheRef.current.value = currentValue;
+    cacheRef.current = { value: currentValue, depsKey, store };
     return currentValue;
-  }, [store, selector, equalityFn]);
+  }, [store, selector, equalityFn, depsKey]);
 
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
