@@ -465,6 +465,19 @@ await actions.dispatch('processFiles', files, {
 });
 ```
 
+### One-time handler lifecycle
+
+`once: true` means at most one invocation per registration, including concurrent
+dispatches and retries. A skipped condition does not consume the registration.
+In parallel/race mode, all handler conditions are evaluated before execution;
+if a condition throws, no result handler starts and uninvoked once handlers
+remain available. Sequential mode evaluates conditions as it reaches each handler,
+so previously executed handlers are not rolled back.
+
+Once observers also run at most once, even when concurrent dispatches wait for
+an earlier observer. Cleanup runs once after started work settles. This is an
+in-memory registration guarantee, not persistent or cross-process deduplication.
+
 ### Error Handling & Recovery
 
 ```typescript
