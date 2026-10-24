@@ -5,7 +5,7 @@
  */
 
 import { useCallback } from 'react';
-import type { InternalRefState } from './useRefMount';
+import { type InternalRefState, onRefDisposed } from '../ref-state';
 
 export interface RefPollingOptions {
   interval?: number;
@@ -38,88 +38,58 @@ export function useRefPolling() {
       onSuccess
     } = options;
 
-    let cancelled = false;
+    let settled = false;
     let intervalId: ReturnType<typeof setInterval> | null = null;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    
+    let removeDisposal = () => {};
     const startTime = Date.now();
-
-    const promise = new Promise<T>((resolve, reject) => {
-      const cleanup = () => {
-        if (intervalId) {
-          clearInterval(intervalId);
-          intervalId = null;
-        }
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-          timeoutId = null;
-        }
-      };
-
-      const check = () => {
-        if (cancelled) {
-          cleanup();
-          reject(new Error('Polling cancelled'));
-          return;
-        }
-
-        const elapsed = Date.now() - startTime;
-        const isMounted = refState.isMounted && refState.target !== null;
-
-        // onTick 콜백 실행
-        if (onTick) {
-          try {
-            onTick(elapsed, isMounted);
-          } catch (error) {
-            console.error('Error in polling onTick callback:', error);
-          }
-        }
-
-        if (isMounted && refState.target) {
-          cleanup();
-          // onSuccess 콜백 실행
-          if (onSuccess) {
-            try {
-              onSuccess(elapsed, refState.target);
-            } catch (error) {
-              console.error('Error in polling onSuccess callback:', error);
-            }
-          }
-          resolve(refState.target);
-          return;
-        }
-      };
-
-      // 타임아웃 설정
-      if (timeout && timeout > 0) {
-        timeoutId = setTimeout(() => {
-          cleanup();
-          const elapsed = Date.now() - startTime;
-          // onTimeout 콜백 실행
-          if (onTimeout) {
-            try {
-              onTimeout(elapsed);
-            } catch (error) {
-              console.error('Error in polling onTimeout callback:', error);
-            }
-          }
-          reject(new Error(`Polling timeout after ${timeout}ms for ref '${refName}'`));
-        }, timeout);
-      }
-
-      // 초기 체크
-      check();
-
-      // 주기적 체크
-      intervalId = setInterval(check, interval);
-    });
-
-    const cancel = () => {
-      cancelled = true;
+    let resolve!: (target: T) => void;
+    let reject!: (error: Error) => void;
+    const promise = new Promise<T>((onResolve, onReject) => { resolve = onResolve; reject = onReject; });
+    const cleanup = () => {
+      if (intervalId !== null) clearInterval(intervalId);
+      if (timeoutId !== null) clearTimeout(timeoutId);
+      intervalId = null;
+      timeoutId = null;
+      removeDisposal();
     };
-
+    const fail = (error: Error) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(error);
+    };
+    const check = () => {
+      if (settled) return;
+      const elapsed = Date.now() - startTime;
+      try { onTick?.(elapsed, refState.isMounted && refState.target !== null); }
+      catch (error) { console.error('Error in polling onTick callback:', error); }
+      // A user callback may cancel polling or unmount its Provider.
+      if (settled) return;
+      if (refState.isMounted && refState.target !== null) {
+        const target = refState.target;
+        settled = true;
+        cleanup();
+        try { onSuccess?.(elapsed, target); }
+        catch (error) { console.error('Error in polling onSuccess callback:', error); }
+        resolve(target);
+      }
+    };
+    removeDisposal = onRefDisposed(refState, fail);
+    if (!settled && timeout !== undefined && timeout > 0) {
+      timeoutId = setTimeout(() => {
+        if (settled) return;
+        fail(new Error(`Polling timeout after ${timeout}ms for ref '${refName}'`));
+        try { onTimeout?.(Date.now() - startTime); }
+        catch (error) { console.error('Error in polling onTimeout callback:', error); }
+      }, timeout);
+    }
+    check();
+    if (!settled) intervalId = setInterval(check, interval);
+    void promise.catch(() => {});
+    const cancel = () => { fail(new Error('Polling cancelled')); };
     const isMounted = () => {
-      return refState.isMounted && refState.target !== null;
+      return !refState.disposed && refState.isMounted && refState.target !== null;
     };
 
     return {

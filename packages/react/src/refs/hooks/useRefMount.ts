@@ -7,17 +7,8 @@
 import { useCallback } from 'react';
 import type { RefDefinitions, RefInitConfig } from '../types';
 import type { CreateRefContextOptions } from '../createRefContext';
-
-export interface InternalRefState<T> {
-  target: T | null;
-  isMounted: boolean;
-  mountPromise: Promise<T> | null;
-  mountResolvers: Set<(target: T) => void>;
-  mountRejectors: Set<(error: Error) => void>;
-  operationInProgress: boolean;
-  listeners: Set<() => void>;
-  mountCallbacks: Set<(target: T) => void>;
-}
+import { type InternalRefState, waitForRefMount } from '../ref-state';
+export type { InternalRefState } from '../ref-state';
 
 /**
  * Hook for handling ref mounting logic
@@ -29,16 +20,6 @@ export function useRefMount<T>(
   definitionsRef: React.MutableRefObject<RefDefinitions | undefined>
 ) {
   const waitForMount = useCallback(async (): Promise<T> => {
-    // 이미 마운트된 경우
-    if (refState.target && refState.isMounted) {
-      return refState.target;
-    }
-    
-    // 기존 Promise가 있으면 재사용
-    if (refState.mountPromise) {
-      return refState.mountPromise;
-    }
-    
     // 타임아웃 설정 계산
     const globalOptions = optionsRef.current;
     const refConfig = definitionsRef.current?.[refNameStr] as RefInitConfig | undefined;
@@ -52,47 +33,11 @@ export function useRefMount<T>(
       timeoutMs = globalOptions.defaultMountTimeout;
     }
     
-    // 새로운 Promise 생성
-    refState.mountPromise = new Promise<T>((resolve, reject) => {
-      refState.mountResolvers.add(resolve);
-      refState.mountRejectors.add(reject);
-      
-      // 타임아웃 설정
-      if (timeoutMs !== undefined && timeoutMs > 0) {
-        const timeoutId = setTimeout(() => {
-          const error = new Error(`Mount timeout after ${timeoutMs}ms for ref '${refNameStr}'`);
-          refState.mountRejectors.forEach(rejector => rejector(error));
-          refState.mountRejectors.clear();
-          refState.mountResolvers.clear();
-          refState.mountPromise = null;
-        }, timeoutMs);
-        
-        // resolve/reject 시 타임아웃 정리
-        const originalResolve = resolve;
-        const originalReject = reject;
-        
-        const cleanupResolve = (value: T) => {
-          clearTimeout(timeoutId);
-          originalResolve(value);
-        };
-        
-        const cleanupReject = (error: Error) => {
-          clearTimeout(timeoutId);
-          originalReject(error);
-        };
-        
-        // resolver/rejector 교체
-        refState.mountResolvers.delete(resolve);
-        refState.mountRejectors.delete(reject);
-        refState.mountResolvers.add(cleanupResolve);
-        refState.mountRejectors.add(cleanupReject);
-      }
-    });
-    
-    return refState.mountPromise;
+    return waitForRefMount(refState, refNameStr, timeoutMs !== undefined && timeoutMs > 0 ? timeoutMs : undefined);
   }, [refState, refNameStr, optionsRef, definitionsRef]);
 
   const onMount = useCallback((callback: (target: T) => void) => {
+    if (refState.disposed) return () => {};
     refState.mountCallbacks.add(callback);
     
     // 이미 마운트된 상태라면 즉시 실행
