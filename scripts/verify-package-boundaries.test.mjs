@@ -157,3 +157,55 @@ test('excludes only the explicitly separated ToolContext development track', () 
     assert.match(releasedResult.stderr, /runtime import @context-action\/tool-durable-operations is missing/);
   });
 });
+
+test('basic packages reject integration dependencies even when correctly declared', () => {
+  for (const name of ['core', 'store-core', 'react']) {
+    for (const field of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
+      withFixture((root) => {
+        createPackage(root, `packages/${name}`, {
+          name: `@context-action/${name}`,
+          [field]: { '@context-action/tool-protocol': '^1.0.0' },
+          exports: { '.': './dist/index.js' },
+        }, {});
+        const result = runVerifier(root);
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /must not install integration dependency @context-action\/tool-protocol/);
+      });
+    }
+  }
+});
+
+test('React allows basic state dependencies and explicit optional integration peers', () => {
+  withFixture((root) => {
+    createPackage(root, 'packages/react', {
+      name: '@context-action/react',
+      dependencies: { '@context-action/core': '^1.2.6', '@context-action/store-core': '^0.1.3', '@context-action/mutative': '^0.8.15' },
+      peerDependencies: { '@context-action/webmcp': '^0.1.2', '@context-action/tool-protocol': '^1.0.0' },
+      peerDependenciesMeta: { '@context-action/webmcp': { optional: true }, '@context-action/tool-protocol': { optional: true } },
+      devDependencies: { '@context-action/tool-durable-operations': 'workspace:*' },
+      exports: { '.': './dist/index.js', './webmcp': './dist/webmcp.js' },
+    }, {});
+    const result = runVerifier(root);
+    assert.equal(result.status, 0, result.stderr);
+  });
+});
+
+test('optional peers do not grant basic packages arbitrary integration dependencies', () => {
+  for (const [name, dependency] of [
+    ['core', '@context-action/tool-protocol'],
+    ['store-core', '@context-action/webmcp'],
+    ['react', '@context-action/ai-sdk'],
+    ['react', '@context-action/tool-durable-operations'],
+  ]) {
+    withFixture((root) => {
+      createPackage(root, `packages/${name}`, {
+        name: `@context-action/${name}`,
+        peerDependencies: { [dependency]: '^1.0.0' },
+        peerDependenciesMeta: { [dependency]: { optional: true } },
+      }, {});
+      const result = runVerifier(root);
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /must not install integration dependency/);
+    });
+  }
+});
