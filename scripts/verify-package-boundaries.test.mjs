@@ -5,6 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+// Keep artifact regression coverage in the existing, supply-chain-pinned entrypoint.
+import './verify-react-artifact-boundary.test.mjs';
 
 const scriptPath = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
