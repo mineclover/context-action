@@ -104,9 +104,13 @@ describe('Ref Provider instance isolation', () => {
       </>
     );
     const view = render(tree(true));
-    const firstWait = handles.get('first')!.waitForMount();
+    let firstWait!: Promise<HTMLDivElement>;
     const secondSettled = jest.fn();
-    const secondWait = handles.get('second')!.waitForMount();
+    let secondWait!: Promise<HTMLDivElement>;
+    act(() => {
+      firstWait = handles.get('first')!.waitForMount();
+      secondWait = handles.get('second')!.waitForMount();
+    });
     void secondWait.then(secondSettled, secondSettled);
     const firstRejected = expect(firstWait).rejects.toThrow('Context provider unmounted');
     try {
@@ -137,7 +141,8 @@ describe('Ref Provider instance isolation', () => {
     const view = render(<React.StrictMode><Refs.Provider><Consumer /></Refs.Provider></React.StrictMode>);
     const resolved = jest.fn();
     const rejected = jest.fn();
-    const wait = handle.waitForMount().then(resolved, rejected);
+    let wait!: Promise<void>;
+    act(() => { wait = handle.waitForMount().then(resolved, rejected); });
     try {
       const target = document.createElement('div');
       await act(async () => {
@@ -167,7 +172,8 @@ describe('Ref Provider instance isolation', () => {
     const view = render(tree('visible'));
     const resolved = jest.fn();
     const rejected = jest.fn();
-    const wait = handle.waitForMount().then(resolved, rejected);
+    let wait!: Promise<void>;
+    act(() => { wait = handle.waitForMount().then(resolved, rejected); });
     try {
       await act(async () => { view.rerender(tree('hidden')); });
       expect(rejected).not.toHaveBeenCalled();

@@ -241,6 +241,7 @@ module.exports = {
       '__tests__/stores/hooks/store-subscription.contract.test.tsx',
       '__tests__/stores/hooks/time-travel-api.contract.test.tsx',
       '__tests__/refs/ref-provider-isolation.test.tsx',
+      '__tests__/refs/ref-public-api.contract.test.tsx',
       '__tests__/refs/ref-cleanup.contract.test.tsx',
       '__tests__/refs/ref-operation-cleanup.contract.test.tsx',
     ].map(file => join(root, 'packages/react', file)),

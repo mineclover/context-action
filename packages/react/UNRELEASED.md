@@ -7,6 +7,7 @@ They do not authorize a version change or publication.
 
 - Reset Time Travel path/selector equality history when replacing Store instances, and apply selector equality when the previous selection is `undefined`.
 - Read Time Travel control history length through constant-time metadata rather than materializing historical states.
+- Publish Ref waiting-state changes when mount waits start and when the last independent waiter settles; cover mount callbacks, live checkers, and saved callbacks after disposal through the public API.
 - Add public Action guard/observer/result/reset-scope contracts, Time Travel controls and selection contracts, and functional `/advanced`, `/utils`, and `/backend` contracts to installed-production-CJS consumer verification.
 - Record the API validation scope and remaining limits in [api-functional-validation.md](./docs/api-functional-validation.md).
 

@@ -70,6 +70,7 @@ export function waitForRefMount<T>(
   let timer: ReturnType<typeof setTimeout> | undefined;
   let removeDisposal = () => {};
   const cleanup = () => {
+    const wasWaiting = !state.isMounted && state.mountPromise !== null;
     if (timer !== undefined) clearTimeout(timer);
     signal?.removeEventListener('abort', onAbort);
     removeDisposal();
@@ -77,6 +78,9 @@ export function waitForRefMount<T>(
     state.mountRejectors.delete(onError);
     state.pendingMounts?.delete(promise);
     state.mountPromise = state.pendingMounts?.values().next().value ?? null;
+    if (wasWaiting && state.mountPromise === null && !state.disposed) {
+      for (const listener of [...state.listeners]) listener();
+    }
   };
   const onMount = (target: T) => {
     if (settled) return;
@@ -92,6 +96,7 @@ export function waitForRefMount<T>(
   };
   const onAbort = () => { onError(refAbortError(signal!)); };
 
+  const wasWaiting = state.mountPromise !== null;
   (state.pendingMounts ??= new Set()).add(promise);
   state.mountPromise ??= promise;
   state.mountResolvers.add(onMount);
@@ -102,5 +107,8 @@ export function waitForRefMount<T>(
   signal?.addEventListener('abort', onAbort, { once: true });
   removeDisposal = onRefDisposed(state, onError);
   void promise.catch(() => {});
+  if (!wasWaiting && !settled) {
+    for (const listener of [...state.listeners]) listener();
+  }
   return promise;
 }
