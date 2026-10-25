@@ -186,6 +186,11 @@ Mount deadlines belong to individual callers: one timeout does not reject
 another caller's wait. `useWaitForRefs` releases its own remaining waits when
 the group settles. Polling cancellation settles immediately without another tick.
 
+`isWaitingForMount` updates reactively when waiting starts and when the last
+pending waiter settles. Ref setters, `waitForMount`, and `onMount` retain stable
+function identities across those state updates. Effects that start waits should
+depend on the needed methods rather than the entire reactive handler object.
+
 `withTarget` returns a failed `RefOperationResult` on cancellation or timeout.
 Its operation receives a signal combining external cancellation and Provider
 disposal. Operation timeouts start when the operation runs, not while queued or
@@ -464,6 +469,9 @@ const UserComponent = UserStores.withProvider(() => {
 - **Manually manage providers** - Use factory patterns and HOCs
 
 ## Testing
+
+See the [public API functional validation map](./docs/api-functional-validation.md)
+for behavioral coverage, installed-package checks, and explicit limitations.
 
 Run the package lifecycle tests through the workspace instead of relying on a
 static test count:

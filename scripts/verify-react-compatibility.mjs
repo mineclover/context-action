@@ -219,6 +219,7 @@ module.exports = {
   moduleNameMapper: {
     ...ordinaryAliases,
     '^@context-action/react$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/react/dist/index.cjs'))},
+    '^@context-action/react/(advanced|utils|backend|webmcp)$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/react/dist/$1.cjs'))},
     '^@context-action/core$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/core/dist/index.cjs'))},
     '^react$': ${JSON.stringify(join(consumer, 'node_modules/react'))},
     '^react/jsx-runtime$': ${JSON.stringify(join(consumer, 'node_modules/react/jsx-runtime.js'))},
@@ -234,9 +235,13 @@ module.exports = {
     '--config', packedJestConfig, '--runInBand', '--runTestsByPath',
     ...[
       '__tests__/actions/structural-schema.test.tsx',
+      '__tests__/actions/action-role-api.contract.test.tsx',
       '__tests__/provider-isolation.contract.test.tsx',
+      '__tests__/public-subpaths.contract.test.tsx',
       '__tests__/stores/hooks/store-subscription.contract.test.tsx',
+      '__tests__/stores/hooks/time-travel-api.contract.test.tsx',
       '__tests__/refs/ref-provider-isolation.test.tsx',
+      '__tests__/refs/ref-public-api.contract.test.tsx',
       '__tests__/refs/ref-cleanup.contract.test.tsx',
       '__tests__/refs/ref-operation-cleanup.contract.test.tsx',
     ].map(file => join(root, 'packages/react', file)),

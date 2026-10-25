@@ -14,8 +14,8 @@ describe('Timeout Options', () => {
     jest.useFakeTimers();
   });
 
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
+  afterEach(async () => {
+    await act(async () => { await jest.runOnlyPendingTimersAsync(); });
     jest.useRealTimers();
   });
   describe('disableTimeout Option', () => {
@@ -57,7 +57,7 @@ describe('Timeout Options', () => {
           };
           
           testTimeout();
-        }, [handler]);
+        }, [handler.setRef, handler.waitForMount]);
         
         return <div>Test Component</div>;
       };
@@ -114,7 +114,7 @@ describe('Timeout Options', () => {
           };
           
           testTimeout();
-        }, [handler]);
+        }, [handler.waitForMount]);
         
         return <div>Test Component</div>;
       };

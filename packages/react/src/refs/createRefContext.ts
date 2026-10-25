@@ -284,14 +284,14 @@ export function createRefContext<T extends object | RefDefinitions>(
       get target(): T[K] | null {
         return refState.target as T[K] | null;
       },
-      waitForMount: () => waitForMount() as Promise<T[K]>,
+      waitForMount: waitForMount as () => Promise<T[K]>,
       withTarget: withTarget as <Result>(
         operation: RefOperation<T[K] & RefTarget, Result>,
         options?: RefOperationOptions
       ) => Promise<RefOperationResult<Result>>,
       isMounted,
       isWaitingForMount,
-      onMount: (callback: (target: T[K]) => void) => onMount(callback as (target: RefTarget) => void),
+      onMount: onMount as (callback: (target: T[K]) => void) => () => void,
       executeIfMounted: executeIfMounted as <Result>(
         operation: (target: T[K] & RefTarget) => Result
       ) => Result | null

@@ -590,7 +590,7 @@ export class MutativeTimelineBackend<T = unknown>
 
   getPosition = (): number => this.timeTravel.getPosition();
 
-  getHistoryLength = (): number => this.timeTravel.getHistory().length;
+  getHistoryLength = (): number => this.timeTravel.getHistoryLength();
 
   getHistory = (): readonly T[] => this.timeTravel.getHistory();
 

@@ -419,7 +419,8 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   }
 
   getHistoryLength(): number {
-    return this.getHistory().length;
+    if (this.isDisposed) return 0;
+    return this.timeTravel.getHistoryLength();
   }
 
   /** Stable retained timeline identity for transaction coordination. */

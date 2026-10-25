@@ -2,6 +2,45 @@ import { describe, expect, it, vi } from 'vitest';
 import { createTimeTravel, produceWithPatches } from '../src';
 
 describe('@context-action/mutative time-travel behavior matrix', () => {
+  it.each([true, false])('queries retained history length without replay (autoArchive: %s)', autoArchive => {
+    for (const maxHistory of [0, 1, 3]) {
+      const travel = createTimeTravel({ count: 0 }, { autoArchive, maxHistory });
+      const checkLength = () => {
+        const history = vi.spyOn(travel, 'getHistory');
+        const patches = vi.spyOn(travel, 'getPatches');
+        const length = travel.getHistoryLength();
+        expect(history).not.toHaveBeenCalled();
+        expect(patches).not.toHaveBeenCalled();
+        history.mockRestore();
+        patches.mockRestore();
+        expect(length).toBe(travel.getHistory().length);
+      };
+      checkLength();
+      for (let count = 1; count <= 5; count += 1) {
+        travel.setState({ count });
+        checkLength();
+        const controls = travel.getControls();
+        if ('archive' in controls && count % 2 === 0) {
+          controls.archive();
+          checkLength();
+        }
+      }
+      if (travel.canBack()) {
+        travel.back();
+        checkLength();
+        travel.setState({ count: 6 });
+        checkLength();
+      }
+      travel.beginBatch();
+      travel.setState({ count: 7 });
+      checkLength();
+      travel.cancelBatch();
+      checkLength();
+      travel.reset();
+      checkLength();
+    }
+  });
+
   it('groups synchronous updates into one history entry', () => {
     const travel = createTimeTravel({ count: 0 });
     let notifications = 0;

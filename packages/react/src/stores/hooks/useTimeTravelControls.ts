@@ -81,7 +81,7 @@ export function useTimeTravelControls<T>(
     const canUndo = store.canUndo();
     const canRedo = store.canRedo();
     const position = store.getPosition();
-    const historyLength = store.getHistory().length;
+    const historyLength = store.getHistoryLength();
 
     // Return cached value if nothing changed
     const cached = cacheRef.current;

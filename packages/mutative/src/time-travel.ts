@@ -958,6 +958,15 @@ export class TimeTravel<
     return this.position;
   }
 
+  /** Query retained history size without replaying states or cloning patches. */
+  getHistoryLength(): number {
+    if (!this.autoArchive) {
+      const pendingEntry = this.tempPatches.patches.length > 0 ? 1 : 0;
+      return Math.min(this.maxHistory, this.allPatches.patches.length + pendingEntry) + 1;
+    }
+    return this.allPatches.patches.length + 1;
+  }
+
   /** Stable identity of the current entry, independent of a bounded cursor. */
   getHistoryEntryId(): number {
     return this.historyEntryIds[this.position]!;
