@@ -1,5 +1,7 @@
 # Change Log
 
+Pending changes that are not part of a published version are recorded in the repository's [UNRELEASED.md](https://github.com/mineclover/context-action/blob/main/packages/react/UNRELEASED.md).
+
 ## [4.0.7] (2026-10-02)
 
 ### Backend lifecycle reliability

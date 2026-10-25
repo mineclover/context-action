@@ -54,6 +54,29 @@ function createSkippedOutcome<T, R>(
   };
 }
 
+/** Concurrent-mode conditions are preconditions for the entire attempt.
+ * Do not consume once registrations until every condition has been evaluated
+ * without throwing. A false condition skips only its own registration. */
+function selectConcurrentHandlers<T, R>(
+  context: PipelineContext<T, R>,
+): HandlerRegistration<T, R>[] {
+  const eligibleHandlers: HandlerRegistration<T, R>[] = [];
+  for (const registration of context.handlers) {
+    if (registration.config.condition && !registration.config.condition(context.payload)) {
+      (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
+      continue;
+    }
+    eligibleHandlers.push(registration);
+  }
+  return eligibleHandlers.filter(registration => {
+    if (context.claimOnce && !context.claimOnce(registration)) {
+      (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
+      return false;
+    }
+    return true;
+  });
+}
+
 function finishOutcome<R>(
   outcome: HandlerExecutionOutcome<R>,
   startedAt: number,
@@ -359,18 +382,7 @@ export async function executeParallel<T, R = void>(
    * before any handler starts so a predicate error rejects the dispatch rather
    * than being mistaken for a non-blocking handler failure.
    */
-  const runnableHandlers: HandlerRegistration<T, R>[] = [];
-  for (const registration of context.handlers) {
-    if (registration.config.condition && !registration.config.condition(context.payload)) {
-      (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
-      continue;
-    }
-    if (context.claimOnce && !context.claimOnce(registration)) {
-      (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
-      continue;
-    }
-    runnableHandlers.push(registration);
-  }
+  const runnableHandlers = selectConcurrentHandlers(context);
 
   const terminationSlots: Array<{
     requested: boolean;
@@ -513,18 +525,7 @@ export async function executeRace<T, R = void>(
 ): Promise<void> {
 
   /** See executeParallel: condition errors are dispatch errors in concurrent modes. */
-  const runnableHandlers: HandlerRegistration<T, R>[] = [];
-  for (const registration of context.handlers) {
-    if (registration.config.condition && !registration.config.condition(context.payload)) {
-      (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
-      continue;
-    }
-    if (context.claimOnce && !context.claimOnce(registration)) {
-      (context.handlerOutcomes ??= []).push(createSkippedOutcome(registration));
-      continue;
-    }
-    runnableHandlers.push(registration);
-  }
+  const runnableHandlers = selectConcurrentHandlers(context);
 
   if (runnableHandlers.length === 0) {
     return;

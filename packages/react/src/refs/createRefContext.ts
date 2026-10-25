@@ -5,7 +5,7 @@
  * RefStore 클래스 없이 직접 상태 관리
  */
 
-import React, { createContext, useContext, useMemo, useRef, useCallback, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, useContext, useMemo, useRef, useCallback, ReactNode, useInsertionEffect } from 'react';
 import type { 
   RefTarget, 
   RefOperation, 
@@ -16,6 +16,7 @@ import type {
 } from './types';
 import { useRefMount, useRefOperation, useRefPolling as useRefPollingHook, useRefMountState, useOnMountStateChange, useRefMountChecker, type InternalRefState, type RefPollingOptions } from './hooks';
 import { ErrorHandlers } from '../stores/utils/error-handling';
+import { disposeRefState, refDisposedError, waitForRefMount } from './ref-state';
 
 // InternalRefState is now imported from ./hooks
 
@@ -125,7 +126,6 @@ export function createRefContext<T extends object | RefDefinitions>(
     refsMapRef: React.MutableRefObject<Map<string, InternalRefState<RefTarget>>>;
     definitionsRef: React.MutableRefObject<T extends RefDefinitions ? T : undefined>;
     optionsRef: React.MutableRefObject<CreateRefContextOptions | undefined>;
-    subscribeToRef: (refName: string, listener: () => void) => () => void;
     getRefState: (refName: string) => InternalRefState<RefTarget>;
     setRefTarget: (refName: string, target: RefTarget) => void;
   }
@@ -157,59 +157,36 @@ export function createRefContext<T extends object | RefDefinitions>(
     );
     
     const optionsRef = useRef<CreateRefContextOptions | undefined>(options);
+    const disposedRef = useRef(false);
     
-    // Provider 언마운트 시 모든 리소스 정리
-    useEffect(() => {
+    // Ref state belongs to the logical Provider lifetime, like Action/Store
+    // resources. StrictMode replay and Activity hiding are not actual unmounts.
+    useInsertionEffect(() => {
       return () => {
+        disposedRef.current = true;
         // 모든 ref 상태 정리
         if (refsMapRef.current) {
-          refsMapRef.current.forEach((refState) => {
-            // 진행 중인 Promise들 정리
-            refState.mountRejectors.forEach(reject => {
-              reject(new Error('Context provider unmounted'));
-            });
-            refState.mountResolvers.clear();
-            refState.mountRejectors.clear();
-            refState.mountPromise = null;
-            
-            // 콜백과 리스너 정리
-            refState.mountCallbacks.clear();
-            refState.listeners.clear();
-            
-            // 상태 초기화
-            refState.target = null;
-            refState.isMounted = false;
-            refState.operationInProgress = false;
-          });
+          refsMapRef.current.forEach(disposeRefState);
           refsMapRef.current.clear();
         }
       };
     }, []);
     
-    // ref 상태 구독 함수
-    const subscribeToRef = useCallback((refName: string, listener: () => void) => {
-      const refState = getOrCreateRefState(refsMapRef.current, refName);
-      refState.listeners.add(listener);
-      
-      return () => {
-        refState.listeners.delete(listener);
-      };
-    }, []);
-    
     // ref 상태 가져오기
     const getRefState = useCallback((refName: string) => {
+      if (disposedRef.current) throw refDisposedError();
       return getOrCreateRefState(refsMapRef.current, refName);
     }, []);
     
     // ref target 설정
     const setRefTarget = useCallback((refName: string, target: RefTarget) => {
+      if (disposedRef.current) return;
       const refState = getOrCreateRefState(refsMapRef.current, refName);
       
       if (target === null) {
         // Unmount
         refState.target = null;
         refState.isMounted = false;
-        refState.mountPromise = null;
         
         // 알림
         refState.listeners.forEach(listener => listener());
@@ -250,10 +227,9 @@ export function createRefContext<T extends object | RefDefinitions>(
       refsMapRef,
       definitionsRef,
       optionsRef,
-      subscribeToRef,
       getRefState,
       setRefTarget
-    }), [subscribeToRef, getRefState, setRefTarget]);
+    }), [getRefState, setRefTarget]);
     
     return React.createElement(
       RefContext.Provider,
@@ -281,24 +257,17 @@ export function createRefContext<T extends object | RefDefinitions>(
   
   // 개별 ref 사용 hook - 리팩터링된 버전 (분리된 hooks 사용)
   const useRefHandler = <K extends keyof T>(refName: K) => {
-    const { subscribeToRef, getRefState, setRefTarget, definitionsRef, optionsRef } = useRefContext();
+    const { getRefState, setRefTarget, definitionsRef, optionsRef } = useRefContext();
     const refNameStr = String(refName);
-    
-    // 상태 변경 구독
-    const [, forceUpdate] = useState({});
-    
-    useEffect(() => {
-      const unsubscribe = subscribeToRef(refNameStr, () => {
-        forceUpdate({});
-      });
-      return unsubscribe;
-    }, [refNameStr, subscribeToRef]);
     
     // 현재 상태
     const refState = getRefState(refNameStr);
+    // A callback ref can attach before passive subscriptions are installed.
+    // useSyncExternalStore checks again at commit so the initial mount is not lost.
+    const { isMounted, isWaitingForMount } = useRefMountState(refState);
     
     // 분리된 hooks 사용
-    const { waitForMount, onMount, isMounted, isWaitingForMount } = useRefMount(
+    const { waitForMount, onMount } = useRefMount(
       refState, 
       refNameStr, 
       optionsRef, 
@@ -306,11 +275,12 @@ export function createRefContext<T extends object | RefDefinitions>(
     );
     
     const { withTarget, executeIfMounted } = useRefOperation(refState);
+    const setRef = useCallback((target: T[K] | null) => {
+      setRefTarget(refNameStr, target);
+    }, [refNameStr, setRefTarget]);
     
     return useMemo(() => ({
-      setRef: (target: T[K] | null) => {
-        setRefTarget(refNameStr, target);
-      },
+      setRef,
       get target(): T[K] | null {
         return refState.target as T[K] | null;
       },
@@ -325,7 +295,7 @@ export function createRefContext<T extends object | RefDefinitions>(
       executeIfMounted: executeIfMounted as <Result>(
         operation: (target: T[K] & RefTarget) => Result
       ) => Result | null
-    }), [refState, setRefTarget, refNameStr, waitForMount, withTarget, executeIfMounted, onMount, isMounted, isWaitingForMount]);
+    }), [refState, setRef, waitForMount, withTarget, executeIfMounted, onMount, isMounted, isWaitingForMount]);
   };
   
   // 여러 ref 동시 대기 hook
@@ -344,35 +314,19 @@ export function createRefContext<T extends object | RefDefinitions>(
         timeout = 1000; // 기본 1초 타임아웃
         refNames = args as K[];
       }
-      const promises = refNames.map(async (refName) => {
-        const refNameStr = String(refName);
-        const refState = getRefState(refNameStr);
-        
-        // 마운트 대기
-        if (refState.target && refState.isMounted) {
-          return [refName, refState.target] as const;
-        }
-        
-        if (!refState.mountPromise) {
-          refState.mountPromise = new Promise<RefTarget>((resolve, reject) => {
-            refState.mountResolvers.add(resolve);
-            refState.mountRejectors.add(reject);
-          });
-        }
-        
-        // 타임아웃 처리 (항상 적용됨)
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => {
-            reject(new Error(`Mount timeout after ${timeout}ms for ref '${refNameStr}'`));
-          }, timeout);
-        });
-        
-        const target = await Promise.race([refState.mountPromise, timeoutPromise]);
-        return [refName, target] as const;
-      });
-      
-      const results = await Promise.all(promises);
-      return Object.fromEntries(results) as Pick<T, K>;
+      const group = new AbortController();
+      try {
+        const results = await Promise.all(refNames.map(async refName => {
+          const name = String(refName);
+          const target = await waitForRefMount(getRefState(name), name, timeout, group.signal);
+          return [refName, target] as const;
+        }));
+        return Object.fromEntries(results) as Pick<T, K>;
+      } finally {
+        // A failed group releases its other waits without cancelling callers
+        // outside this useWaitForRefs invocation.
+        group.abort();
+      }
     }, [getRefState]);
   };
   

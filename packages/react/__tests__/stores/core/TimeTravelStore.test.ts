@@ -379,7 +379,8 @@ describe('TimeTravelStore', () => {
       expect(Array.isArray(patches)).toBe(true);
     });
 
-    it('should merge patches from multiple updates in one batched notification', (done) => {
+    it('should merge patches from multiple updates in one batched notification', () => {
+      jest.useFakeTimers();
       const batchedStore = createTimeTravelStore(
         'batched-patches',
         { count: 0, name: 'initial' },
@@ -391,7 +392,9 @@ describe('TimeTravelStore', () => {
       batchedStore.setValue({ count: 1, name: 'initial' });
       batchedStore.setValue({ count: 1, name: 'changed' });
 
-      setTimeout(() => {
+      try {
+        expect(patchListener).not.toHaveBeenCalled();
+        jest.advanceTimersToNextFrame();
         expect(patchListener).toHaveBeenCalledTimes(1);
         expect(patchListener).toHaveBeenCalledWith([
           { op: 'replace', path: ['count'], value: 1 },
@@ -401,12 +404,14 @@ describe('TimeTravelStore', () => {
           { op: 'replace', path: ['count'], value: 1 },
           { op: 'replace', path: ['name'], value: 'changed' },
         ]);
+      } finally {
         batchedStore.dispose();
-        done();
-      }, 25);
+        jest.useRealTimers();
+      }
     });
 
-    it('should schedule reentrant batched updates for a subsequent frame', (done) => {
+    it('should schedule reentrant batched updates for a subsequent frame', () => {
+      jest.useFakeTimers();
       const batchedStore = createTimeTravelStore(
         'batched-reentrant',
         { count: 0 },
@@ -423,7 +428,13 @@ describe('TimeTravelStore', () => {
 
       batchedStore.setValue({ count: 1 });
 
-      setTimeout(() => {
+      try {
+        expect(listener).not.toHaveBeenCalled();
+        jest.advanceTimersToNextFrame();
+        expect(listener).toHaveBeenCalledTimes(1);
+        expect(batchedStore.getValue()).toEqual({ count: 2 });
+        expect(patchListener).toHaveBeenCalledTimes(1);
+        jest.advanceTimersToNextFrame();
         expect(listener).toHaveBeenCalledTimes(2);
         expect(batchedStore.getValue()).toEqual({ count: 2 });
         expect(patchListener).toHaveBeenCalledTimes(2);
@@ -433,9 +444,10 @@ describe('TimeTravelStore', () => {
         expect(patchListener.mock.calls[1][0]).toEqual([
           { op: 'replace', path: ['count'], value: 2 }
         ]);
+      } finally {
         batchedStore.dispose();
-        done();
-      }, 50);
+        jest.useRealTimers();
+      }
     });
 
     it('should unsubscribe patch-aware listeners', (done) => {

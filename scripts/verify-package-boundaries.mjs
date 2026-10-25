@@ -19,6 +19,18 @@ const sourceExtensions = new Set([
   '.cjs',
 ]);
 const packageSourceDirectories = ['src', 'test', '__tests__', 'scripts', 'examples'];
+// Basic packages must not install optional integration runtimes transitively.
+// Development dependencies can exercise adapters without making them mandatory.
+const basicPackageDependencies = new Map([
+  ['@context-action/core', new Set()],
+  ['@context-action/store-core', new Set()],
+  ['@context-action/react', new Set([
+    '@context-action/core', '@context-action/store-core', '@context-action/mutative',
+  ])],
+]);
+const basicPackageOptionalPeers = new Map([
+  ['@context-action/react', new Set(['@context-action/webmcp', '@context-action/tool-protocol'])],
+]);
 // ToolContext/Durable source is retained for its separate development track. It is
 // intentionally absent from the React 3 public artifact and standard example, so
 // it must not be validated as a release dependency path.
@@ -206,6 +218,18 @@ function verify(repositoryRoot) {
   let excludedDevelopmentTrackFileCount = 0;
 
   for (const owner of owners) {
+    const basicDependencies = basicPackageDependencies.get(owner.manifest.name);
+    if (basicDependencies) {
+      for (const field of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
+        for (const dependency of Object.keys(owner.manifest[field] ?? {})) {
+          if (!dependency.startsWith('@context-action/') || basicDependencies.has(dependency)) continue;
+          if (field === 'peerDependencies'
+            && basicPackageOptionalPeers.get(owner.manifest.name)?.has(dependency)
+            && owner.manifest.peerDependenciesMeta?.[dependency]?.optional === true) continue;
+          failures.push(`${relativePath(repositoryRoot, path.join(owner.directory, 'package.json'))}: basic package ${owner.manifest.name} must not install integration dependency ${dependency} through ${field}; use an explicit adapter with optional peers`);
+        }
+      }
+    }
     const runtimeDependencies = dependencyNames(owner.manifest, false);
     const developmentDependencies = dependencyNames(owner.manifest, true);
     for (const filePath of collectOwnerFiles(owner)) {

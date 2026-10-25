@@ -1610,6 +1610,9 @@ export class ActionRegister<
       // invoke the same once observer. Cleanup remains tied to settlement.
       const detachedOnce = registration.config.once
         && this.removeRegistration(action, registration, false);
+      // An earlier awaited observer lets other dispatches consume this same
+      // snapshot entry. Only the dispatch that detached it may invoke it.
+      if (registration.config.once && !detachedOnce) continue;
       const cleanupOnce = () => {
         if (detachedOnce) this.runRegistrationCleanup(action, registration);
       };

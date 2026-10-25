@@ -22,7 +22,6 @@ import {
   GuardConfig,
   PipelineController,
 } from '@context-action/core';
-import type { ActionSchemaMap } from '@context-action/tool-protocol';
 import { ReactNode } from 'react';
 
 /**
@@ -38,7 +37,7 @@ export type ActionContextHandler<T, R = void> = (
 /**
  * Configuration options for createActionContext
  *
- * Extends ActionRegisterConfig with optional Zod schema validation.
+ * Extends ActionRegisterConfig with optional structural payload validation.
  * When schema is provided, payload validation is enabled on dispatch.
  *
  * @example
@@ -54,10 +53,10 @@ export type ActionContextHandler<T, R = void> = (
 export interface ActionContextConfig extends Omit<ActionRegisterConfig, 'name'> {
   /**
    * Action schema map for runtime payload validation
-   * When provided, enables Zod-based validation on dispatch
+   * Uses the core validator contract; no tool protocol or schema library is required.
    * Shorthand for config.registry.schema
    */
-  schema?: ActionSchemaMap;
+  schema?: NonNullable<ActionRegisterConfig['registry']>['schema'];
 }
 
 /**

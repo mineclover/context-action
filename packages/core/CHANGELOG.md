@@ -1,5 +1,7 @@
 # Change Log
 
+Pending changes that are not part of a published version are recorded in the repository's [UNRELEASED.md](https://github.com/mineclover/context-action/blob/main/packages/core/UNRELEASED.md).
+
 ## [1.2.6] (2026-10-02)
 
 - Reissue the coordinated state-management cohort with fresh provenance for the time-travel and hydration stability release.

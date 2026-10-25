@@ -65,7 +65,7 @@ export function useStoreSelector<T, R>(
   }
   
   // 동등성 비교를 위한 이전 값 추적
-  const previousValueRef = useRef<R | undefined>(undefined);
+  const previousValueRef = useRef<{ store: Store<T>; value: R } | undefined>(undefined);
   
   // useSyncExternalStore를 사용한 구독
   const subscribe = useCallback((callback: () => void) => {
@@ -78,11 +78,12 @@ export function useStoreSelector<T, R>(
       const selectedValue = stableSelector(storeValue);
       
       // 동등성 비교를 위한 최적화
-      if (previousValueRef.current !== undefined && stableEqualityFn(previousValueRef.current, selectedValue)) {
-        return previousValueRef.current;
+      const previous = previousValueRef.current;
+      if (previous?.store === store && stableEqualityFn(previous.value, selectedValue)) {
+        return previous.value;
       }
       
-      previousValueRef.current = selectedValue;
+      previousValueRef.current = { store, value: selectedValue };
       return selectedValue;
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
@@ -94,4 +95,3 @@ export function useStoreSelector<T, R>(
   
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
-

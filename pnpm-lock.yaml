@@ -658,12 +658,6 @@ importers:
       '@context-action/store-core':
         specifier: ^0.1.3
         version: link:../store-core
-      '@context-action/tool-protocol':
-        specifier: ^1.0.0
-        version: link:../tool-protocol
-      '@context-action/webmcp':
-        specifier: ^0.1.2
-        version: link:../webmcp
     devDependencies:
       '@babel/core':
         specifier: 7.29.7
@@ -671,6 +665,12 @@ importers:
       '@context-action/tool-durable-operations':
         specifier: workspace:*
         version: link:../tool-durable-operations
+      '@context-action/tool-protocol':
+        specifier: workspace:*
+        version: link:../tool-protocol
+      '@context-action/webmcp':
+        specifier: workspace:*
+        version: link:../webmcp
       '@rolldown/plugin-babel':
         specifier: 0.2.4
         version: 0.2.4(@babel/core@7.29.7(supports-color@8.1.1))(@babel/runtime@7.29.7)(rolldown@1.2.11)(vite@8.3.5(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.6.1)(terser@5.43.1)(yaml@2.9.1))

@@ -564,7 +564,8 @@ export interface HandlerConfig<T = unknown> {
   /** Error behavior for this handler. Default: `collect`. */
   errorPolicy?: HandlerErrorPolicy;
   
-  /** Whether this handler should run once and then be removed. Default: false */
+  /** At most one invocation per registration, across dispatches/retries.
+   * Skipped handlers are not consumed. Default: false. */
   once?: boolean;
   
   /** Debounce delay in milliseconds */
