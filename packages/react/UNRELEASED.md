@@ -3,6 +3,13 @@
 These changes are not included in the published versions listed in [CHANGELOG.md](./CHANGELOG.md).
 They do not authorize a version change or publication.
 
+## Public API functional validation
+
+- Reset Time Travel path/selector equality history when replacing Store instances, and apply selector equality when the previous selection is `undefined`.
+- Read Time Travel control history length through constant-time metadata rather than materializing historical states.
+- Add public Action guard/observer/result/reset-scope contracts, Time Travel controls and selection contracts, and functional `/advanced`, `/utils`, and `/backend` contracts to installed-production-CJS consumer verification.
+- Record the API validation scope and remaining limits in [api-functional-validation.md](./docs/api-functional-validation.md).
+
 ## Cancellation and disposal reliability
 
 - Give each Ref mount waiter its own deadline and abort cleanup; release grouped waits after settlement without affecting independent callers.

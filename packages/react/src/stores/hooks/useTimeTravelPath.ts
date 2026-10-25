@@ -92,14 +92,15 @@ export function useTimeTravelPath<T, R = unknown>(
   const stablePath = stablePathRef.current.path;
 
   // Cache for value comparison
-  const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string }>({
+  const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string; store: TimeTravelStore<T> }>({
     value: undefined as R,
     initialized: false,
     pathSignature,
+    store,
   });
 
-  if (cacheRef.current.pathSignature !== pathSignature) {
-    cacheRef.current = { value: undefined as R, initialized: false, pathSignature };
+  if (cacheRef.current.pathSignature !== pathSignature || cacheRef.current.store !== store) {
+    cacheRef.current = { value: undefined as R, initialized: false, pathSignature, store };
   }
 
   // Subscribe with patch awareness
@@ -122,7 +123,7 @@ export function useTimeTravelPath<T, R = unknown>(
 
     // First access - initialize cache
     if (!cacheRef.current.initialized) {
-      cacheRef.current = { value: currentValue, initialized: true, pathSignature };
+      cacheRef.current = { value: currentValue, initialized: true, pathSignature, store };
       return currentValue;
     }
 
@@ -179,7 +180,7 @@ export function useTimeTravelSelector<T, R>(
   const { dependsOn, equalityFn } = options;
 
   // Cache for value comparison
-  const cacheRef = useRef<R | undefined>(undefined);
+  const cacheRef = useRef<{ store: TimeTravelStore<T>; value: R } | undefined>(undefined);
 
   const depsKey = createPathsSignature(dependsOn);
   const stablePathsRef = useRef<{
@@ -224,8 +225,8 @@ export function useTimeTravelSelector<T, R>(
     const currentValue = selector(storeValue);
 
     // Compare with cached value
-    if (cacheRef.current !== undefined) {
-      const prevValue = cacheRef.current;
+    if (cacheRef.current?.store === store) {
+      const prevValue = cacheRef.current.value;
 
       if (equalityFn) {
         if (equalityFn(prevValue, currentValue)) {
@@ -236,7 +237,7 @@ export function useTimeTravelSelector<T, R>(
       }
     }
 
-    cacheRef.current = currentValue;
+    cacheRef.current = { store, value: currentValue };
     return currentValue;
   }, [store, selector, equalityFn]);
 

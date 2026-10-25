@@ -39,6 +39,9 @@ both package test suites after a fork update.
   `immutableSnapshots` does not isolate mutation through those references.
 - Time-travel listeners receive the complete history and an optional
   transition-only patch list, which adapters use for precise path updates.
+- `TimeTravel.getHistoryLength()` queries retained timeline size in constant
+  time, including the current state and any pending manual archive entry.
+  Timeline backends use this metadata instead of replaying `getHistory()`.
 - `createMutativeTimelineBackend()` supports explicit notification holds with
   `beginBatch(..., { deferNotification: true })`; pair each hold with
   `resumeNotifications()` and call `flushNotifications()` to publish it.

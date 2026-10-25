@@ -465,6 +465,9 @@ const UserComponent = UserStores.withProvider(() => {
 
 ## Testing
 
+See the [public API functional validation map](./docs/api-functional-validation.md)
+for behavioral coverage, installed-package checks, and explicit limitations.
+
 Run the package lifecycle tests through the workspace instead of relying on a
 static test count:
 
