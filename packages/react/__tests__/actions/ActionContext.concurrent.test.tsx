@@ -2,6 +2,7 @@ import { act, render, waitFor } from '@testing-library/react';
 import React, { startTransition } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createActionContext } from '@context-action/react';
+import { ProviderDispatchLifecycleImpl } from '../../src/actions/ActionContext';
 
 type ActivityBoundaryComponent = React.ExoticComponent<{
   children?: React.ReactNode;
@@ -14,6 +15,39 @@ const ActivityBoundary = (React as unknown as {
 const activityTest = ActivityBoundary ? it : it.skip;
 
 describe('ActionContext concurrent React lifecycle', () => {
+  it('rejects a dispatch when an external signal aborts a non-cooperative operation', async () => {
+    const lifecycle = new ProviderDispatchLifecycleImpl();
+    const controller = new AbortController();
+    const execution = lifecycle.run(
+      [controller.signal],
+      async () => new Promise<never>(() => {}),
+    );
+
+    controller.abort();
+
+    const outcome = await Promise.race([
+      execution.then(() => 'resolved', () => 'rejected'),
+      new Promise<'timed-out'>(resolve => setTimeout(() => resolve('timed-out'), 100)),
+    ]);
+    expect(outcome).toBe('rejected');
+  });
+
+  it('returns from provider shutdown after aborting non-cooperative dispatches', async () => {
+    const lifecycle = new ProviderDispatchLifecycleImpl();
+    void lifecycle.run([], async () => new Promise<never>(() => {}));
+    const register = {
+      destroyAsync: jest.fn().mockResolvedValue(undefined),
+    } as never;
+
+    const outcome = await Promise.race([
+      lifecycle.shutdown(register).then(() => 'resolved'),
+      new Promise<'timed-out'>(resolve => setTimeout(() => resolve('timed-out'), 100)),
+    ]);
+
+    expect(outcome).toBe('resolved');
+    expect((register as { destroyAsync: jest.Mock }).destroyAsync).toHaveBeenCalledTimes(1);
+  });
+
   activityTest('preserves provider resources while an Activity is hidden', async () => {
     const Actions = createActionContext<{ run: void }>('ActivityActions');
     const Activity = ActivityBoundary!;

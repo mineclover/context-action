@@ -30,7 +30,7 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 
 | 패키지 | 경계 역할 | 소유하는 것 | 소유하지 않는 것 |
 | --- | --- | --- | --- |
-| `@context-action/core` | runtime foundation | action pipeline, handler execution, validation contract, core error | React, tool transport, Zod, browser UI, store |
+| `@context-action/core` | runtime foundation 및 선택적 host transport | 기본: action pipeline, handler execution, validation contract, core error; 선택적 `/element` DOM 전달·`/element/react` host 수명 | 기본 entry의 DOM/React, tool transport, Zod, renderer 소유권, store |
 | `@context-action/tool-protocol` | transport contract foundation | JSON Schema, Zod action schema, MCP/provider adapter, tool call, approval queue, 호출 idempotency/provenance/observability 계약 | React rendering, action registry internals, durable persistence, architecture policy |
 | `@context-action/ai-sdk` | provider adapter | AI SDK ToolSet 변환, turn별 tool scope, model-call correlation, native approval/error adaptation | action 실행, React rendering, provider credential, durable persistence |
 | `@context-action/tool-durable-operations` | mutation safety foundation | durable operation record, side-effect runner, HTTP/queue adapter, IndexedDB/Redis/PostgreSQL reference backend | provider-neutral tool schema, React rendering, domain별 idempotency/outbox 정책 |

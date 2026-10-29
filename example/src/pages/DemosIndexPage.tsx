@@ -704,24 +704,24 @@ export default function DemosIndexPage() {
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
             <h2 className="text-xl font-bold mb-4">🔗 추가 자료</h2>
             <div className="grid md:grid-cols-3 gap-4">
-              <a
-                href="/foundations"
+              <Link
+                to="/catalog/foundations"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 📖 기초 개념
-              </a>
-              <a
-                href="/performance"
+              </Link>
+              <Link
+                to="/catalog/performance"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 ⚡ 성능 최적화
-              </a>
-              <a
-                href="/patterns"
+              </Link>
+              <Link
+                to="/catalog/patterns"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 🎨 패턴 가이드
-              </a>
+              </Link>
             </div>
           </div>
         </div>

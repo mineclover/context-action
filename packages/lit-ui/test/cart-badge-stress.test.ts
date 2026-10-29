@@ -23,9 +23,9 @@ import {
   createStoreContext,
   provideStore,
   provideActionRegister,
-  createLitElementBridge,
   defaultCartCountSelector,
 } from '../src/index.js';
+import { createLitElementBridge } from '../src/react-bridge.js';
 
 // Configure React 18/19 act testing environment
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;

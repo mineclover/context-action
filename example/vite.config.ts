@@ -63,15 +63,15 @@ export default defineConfig({
     // React 중복 방지 - 모든 패키지가 동일한 React 인스턴스 사용
     dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
     alias: {
-      '@context-action/core': path.resolve(__dirname, '../packages/core/src/index.ts'),
-      '@context-action/react/tools': path.resolve(__dirname, '../packages/react/src/tools/index.ts'),
-      '@context-action/react': path.resolve(__dirname, '../packages/react/src/index.ts'),
+      // Core resolves through public package exports, including /element subpaths.
+      '@context-action/react/tools': path.resolve(import.meta.dirname, '../packages/react/src/tools/index.ts'),
+      '@context-action/react': path.resolve(import.meta.dirname, '../packages/react/src/index.ts'),
       // Path mapping for refactored directories
-      '@': path.resolve(__dirname, './src'),
-      '@/lib': path.resolve(__dirname, './src/lib'),
-      '@/pages': path.resolve(__dirname, './src/pages'),
-      '@/components': path.resolve(__dirname, './src/components'),
-      '@/types': path.resolve(__dirname, './src/types')
+      '@': path.resolve(import.meta.dirname, './src'),
+      '@/lib': path.resolve(import.meta.dirname, './src/lib'),
+      '@/pages': path.resolve(import.meta.dirname, './src/pages'),
+      '@/components': path.resolve(import.meta.dirname, './src/components'),
+      '@/types': path.resolve(import.meta.dirname, './src/types')
     }
   },
   // CSS 최적화

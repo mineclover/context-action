@@ -21,7 +21,7 @@ export type { TimeTravelStoreOptions } from './stores/core/TimeTravelStore';
 export { useStoreValue } from './stores/hooks/useStoreValue';
 export { useStoreSelector } from './stores/hooks/useStoreSelector';
 export { useStorePath, useStoreSelectorWithPaths } from './stores/hooks/useStorePath';
-export type { StorePath, UseStorePathOptions, UseStoreSelectorWithPathsOptions } from './stores/hooks/useStorePath';
+export type { PatchAwareStore, StorePathPatch, StorePath, UseStorePathOptions, UseStoreSelectorWithPathsOptions } from './stores/hooks/useStorePath';
 export { useTimeTravelControls } from './stores/hooks/useTimeTravelControls';
 export { useStoreTransactionInspector } from './stores/hooks/useStoreTransactionInspector';
 export type { TimeTravelControlsState } from './stores/hooks/useTimeTravelControls';
@@ -30,7 +30,7 @@ export type { UseTimeTravelPathOptions, UseTimeTravelSelectorOptions } from './s
 export type { IStore, Snapshot } from './stores/core/types';
 export type { StoreReader, StoreWriter, TimelineReader, TimelineWriter } from './stores/core/contracts';
 export { StoreTransactionCoordinator } from './stores/core/StoreTransactionCoordinator';
-export type { StoreTransactionEvent, StoreTransactionEventPhase, StoreTransactionHandle, StoreTransactionInspectorSink, StoreTransactionInspectorSnapshot, StoreTransactionListener, StoreTransactionMeta, StoreTransactionParticipant, StoreTransactionRecord } from './stores/core/StoreTransactionCoordinator';
+export type { StoreTransactionEvent, StoreTransactionEventPhase, StoreTransactionHandle, StoreTransactionInspectorSink, StoreTransactionInspectorSnapshot, StoreTransactionListener, StoreTransactionMeta, StoreTransactionOptions, StoreTransactionParticipant, StoreTransactionRecord } from './stores/core/StoreTransactionCoordinator';
 export { bindActionTransactions } from './stores/core/ActionTransactionBridge';
 export type { ActionTransactionBridgeOptions, DispatchTraceSource } from './stores/core/ActionTransactionBridge';
 

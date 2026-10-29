@@ -40,6 +40,34 @@ test('accepts the reviewed release workflow structures', () => {
   assert.deepEqual(errors, []);
 });
 
+test('rejects automatic tag publication in the general publisher', () => {
+  const sources = releaseSources();
+  sources.generalPublish = sources.generalPublish.replace(
+    'on:\n  workflow_dispatch:',
+    "on:\n  push:\n    tags:\n      - 'v*'\n  workflow_dispatch:",
+  );
+  const { errors } = validateReleaseWorkflowSources(sources);
+  assert.ok(errors.includes(
+    'General publish workflow must not publish from an automatic push or tag trigger',
+  ));
+});
+
+test('requires immutable commit input and protected environment for the general publisher', () => {
+  const sources = releaseSources();
+  sources.generalPublish = sources.generalPublish
+    .replace(
+      "      release_commit:\n        description: 'Approved immutable main commit to publish'\n        required: true\n        type: string\n",
+      '',
+    )
+    .replace(
+      '    environment:\n      name: npm-stable\n',
+      '',
+    );
+  const { errors } = validateReleaseWorkflowSources(sources);
+  assert.ok(errors.includes('General publish workflow must require an explicit release_commit'));
+  assert.ok(errors.includes('General publish workflow must use the protected npm-stable environment'));
+});
+
 test('requires the coordinated candidate closure before publication', () => {
   const sources = releaseSources();
   sources.coordinatedCandidate = sources.coordinatedCandidate.replace(

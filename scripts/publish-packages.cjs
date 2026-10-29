@@ -221,8 +221,17 @@ function publishScopedPackages() {
       const detail = prepublish.stderr?.trim() || `exit code ${String(prepublish.status)}`;
       throw new Error(`Could not run prepublishOnly for ${manifest.name}@${manifest.version}: ${detail}`);
     }
+    const hasWorkspaceProtocol = ['dependencies', 'optionalDependencies', 'peerDependencies']
+      .some(field => Object.values(manifest[field] ?? {})
+        .some(version => typeof version === 'string' && version.startsWith('workspace:')));
+    // npm pack preserves workspace:* and produces an artifact npm cannot
+    // install. Use pnpm pack for those packages so workspace references are
+    // rewritten to concrete versions before the artifact reaches npm. Keep
+    // the npm path for packages with no workspace references for compatibility
+    // with the existing publication fixtures.
+    const packCommand = hasWorkspaceProtocol ? 'pnpm' : 'npm';
     const pack = spawnSync(
-      'npm',
+      packCommand,
       ['pack', '--json', '--pack-destination', packageArtifactDirectory],
       { cwd: packageEntry.location, encoding: 'utf8', env: { ...process.env } },
     );
@@ -234,15 +243,23 @@ function publishScopedPackages() {
     try {
       metadata = JSON.parse(pack.stdout);
     } catch (error) {
-      throw new Error(`npm returned invalid pack metadata for ${manifest.name}: ${error.message}`);
+      throw new Error(`${packCommand} returned invalid pack metadata for ${manifest.name}: ${error.message}`);
     }
-    const packed = Array.isArray(metadata) && metadata.length === 1 ? metadata[0] : undefined;
+    const packed = Array.isArray(metadata)
+      ? (metadata.length === 1 ? metadata[0] : undefined)
+      : metadata;
     const filename = packed?.filename;
-    if (typeof filename !== 'string' || path.basename(filename) !== filename
+    if (typeof filename !== 'string'
       || packed.name !== manifest.name || packed.version !== manifest.version) {
-      throw new Error(`npm returned invalid pack metadata for ${manifest.name}`);
+      throw new Error(`${packCommand} returned invalid pack metadata for ${manifest.name}`);
     }
-    const artifactPath = path.join(packageArtifactDirectory, filename);
+    const artifactPath = path.resolve(
+      path.isAbsolute(filename) ? filename : path.join(packageArtifactDirectory, filename),
+    );
+    const artifactDirectory = path.resolve(packageArtifactDirectory);
+    if (path.dirname(artifactPath) !== artifactDirectory) {
+      throw new Error(`pnpm pack created an archive outside the artifact directory for ${manifest.name}`);
+    }
     const packedManifestResult = spawnSync(
       'tar',
       ['-xOf', artifactPath, 'package/package.json'],
@@ -263,6 +280,15 @@ function publishScopedPackages() {
       throw new Error(
         `Packed package identity changed for ${manifest.name}@${manifest.version}`,
       );
+    }
+    for (const dependencyField of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
+      for (const [dependencyName, version] of Object.entries(packedManifest[dependencyField] ?? {})) {
+        if (typeof version === 'string' && version.startsWith('workspace:')) {
+          throw new Error(
+            `Packed ${manifest.name}@${manifest.version} retains workspace protocol in ${dependencyField}.${dependencyName}: ${version}`,
+          );
+        }
+      }
     }
     const integrity = `sha512-${createHash('sha512').update(readFileSync(artifactPath)).digest('base64')}`;
     return { artifactPath, integrity };

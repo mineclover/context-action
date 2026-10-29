@@ -3,7 +3,7 @@ document_id: context-layered--package-boundary-convention
 category: context-layered
 source_path: en/context-layered/package-boundary-convention.md
 character_limit: 500
-last_update: '2026-07-30T23:07:58.191Z'
+last_update: '2026-10-25T07:23:14.370Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high

@@ -92,10 +92,49 @@ try {
   // First prove that an ordinary install does not need any tool integration.
   installCandidates(['core', 'store-core', 'mutative-core', 'mutative', 'react']);
 
+  // Check both declaration graphs against the same ownership/compatibility rules.
+  const transactionTypeContracts = `
+import type { StoreReader, StoreWriter, StoreTransactionMeta, StoreTransactionOptions, StoreTransactionParticipant, ActionTransactionBridgeOptions } from '@context-action/react';
+import type { ReadonlyStateSnapshot, StateSnapshot, StateReader, StateBackend, TransactionParticipantBackend, TransactionCoordinatorPort, TransactionMeta, TransactionOptions } from '@context-action/react/backend';
+
+interface LegacyMetadata { readonly label?: string; readonly origin?: 'user' }
+function checkTransactionContracts(
+  minimal: TransactionParticipantBackend<number>,
+  legacyWriter: StoreWriter<number>,
+  legacyMeta: LegacyMetadata,
+  port: TransactionCoordinatorPort,
+) {
+  const snapshot: StateSnapshot<number> = { value: 0, name: 'legacy', lastUpdate: 0 };
+  const legacyReader: StoreReader<number> = minimal;
+  const observation: StateReader<number, StateSnapshot<number>> = legacyReader;
+  legacyWriter.setValue(1, legacyMeta);
+  const sharedMeta: TransactionMeta = { id: 'shared', ...legacyMeta };
+  const reactMeta: StoreTransactionMeta = sharedMeta;
+  const options: StoreTransactionOptions = { label: 'minimal' };
+  const sharedOptions: TransactionOptions = options;
+  const bridge: ActionTransactionBridgeOptions = { getParticipants: () => [{ name: 'minimal', store: minimal }] };
+  const handle = port.begin([{ name: 'minimal', store: minimal }], sharedOptions);
+  // @ts-expect-error Backend snapshots still require version.
+  const strictSnapshot: ReadonlyStateSnapshot<number> = snapshot;
+  // @ts-expect-error Default backend readers still require version.
+  const strictReader: StateReader<number> = legacyReader;
+  // @ts-expect-error Participants need not own mutable state.
+  const stateOwner: StateBackend<number> = minimal;
+  // @ts-expect-error The legacy convenience facade retains undo and redo.
+  const legacyParticipant: StoreTransactionParticipant<number> = { name: 'minimal', store: minimal };
+  void [observation, reactMeta, bridge, handle, strictSnapshot, strictReader, stateOwner, legacyParticipant];
+}
+void checkTransactionContracts;
+`;
+  writeFileSync(join(consumer, 'transaction-contracts.mts'), transactionTypeContracts);
+  writeFileSync(join(consumer, 'transaction-contracts.cts'), transactionTypeContracts);
   writeFileSync(join(consumer, 'consumer.tsx'), `
 import React from 'react';
 import type { ExecutionResult } from '@context-action/core';
-import { createActionContext, createStoreContext, createRefContext, useStoreValue } from '@context-action/react';
+import { createActionContext, createStoreContext, createRefContext, useStoreValue, useStorePath, useStoreSelectorWithPaths, StoreTransactionCoordinator } from '@context-action/react';
+import type { PatchAwareStore, StorePathPatch } from '@context-action/react';
+import { createBackendStore } from '@context-action/react/backend';
+import type { StateBackend, TransactionBackend, TransactionBatchControl } from '@context-action/react/backend';
 import { StoreRegistry } from '@context-action/react/advanced';
 import { deepClone } from '@context-action/react/utils';
 
@@ -107,6 +146,27 @@ const Context = createActionContext<Actions, Results>('Compatibility', {
 const Stores = createStoreContext('CompatibilityStores', { count: 0 });
 const Refs = createRefContext<{ input: HTMLInputElement }>('CompatibilityRefs');
 const cloned: { ready: boolean } = deepClone({ ready: true });
+
+type PortableState = { count: number };
+type ReadonlyPatch = { readonly op: 'replace'; readonly path: readonly string[] };
+declare const portableBackend: StateBackend<PortableState, ReadonlyPatch>;
+const portablePaths = [['count']] as const;
+const pointerPatch: StorePathPatch = { op: 'move', from: '/source/0', path: '/dest/0' };
+function PortableConsumer() {
+  const store: PatchAwareStore<PortableState> = createBackendStore('portable', portableBackend);
+  const count: number = useStorePath<PortableState, number>(store, portablePaths[0]);
+  const selected: number = useStoreSelectorWithPaths(store, state => state.count, { dependsOn: portablePaths });
+  return React.createElement('span', null, count + selected);
+}
+void PortableConsumer;
+void pointerPatch;
+declare const transactionBackend: TransactionBackend<PortableState, ReadonlyPatch>;
+declare const batchControl: TransactionBatchControl;
+function ScopedControlConsumer() {
+  const coordinator = new StoreTransactionCoordinator();
+  return coordinator.begin([{ name: 'scoped', store: transactionBackend, batchControl }]);
+}
+void ScopedControlConsumer;
 
 function Consumer() {
   const count: number = useStoreValue(Stores.useStore('count'));
@@ -127,12 +187,24 @@ void cloned;
 `);
   writeFileSync(join(consumer, 'consumer.cts'), `
 import { createActionContext, createStore, createRefContext } from '@context-action/react';
+import type { PatchAwareStore, StorePathPatch } from '@context-action/react';
+import type { TransactionBatchControl } from '@context-action/react/backend';
+declare const scopedControl: TransactionBatchControl;
+type ScopedBegin = Parameters<typeof scopedControl.beginBatch>[0];
+const scopedMeta: ScopedBegin = { label: 'CJS scope' };
+void scopedMeta;
+const portablePatch: StorePathPatch = { op: 'replace', path: ['value'] as const };
+declare const portableStore: PatchAwareStore<{ value: number }>;
 const Context = createActionContext<{ save: string }>('CommonJS', {
   schema: { save: { safeParse(value) { return { success: true, data: value }; } } },
 });
 const store = createStore('CommonJSStore', 0);
 const refs = createRefContext<{ input: HTMLInputElement }>('CommonJSRefs');
 void Context; void store; void refs;
+void portablePatch;
+type PortableValue = ReturnType<typeof portableStore.getValue>;
+const portableValue: PortableValue = { value: 1 };
+void portableValue;
 `);
   writeFileSync(join(consumer, 'tsconfig.json'), JSON.stringify({
     compilerOptions: {
@@ -143,7 +215,7 @@ void Context; void store; void refs;
       module: 'NodeNext',
       moduleResolution: 'NodeNext',
     },
-    include: ['consumer.tsx', 'consumer.cts', 'integration.tsx'],
+    include: ['consumer.tsx', 'consumer.cts', 'transaction-contracts.mts', 'transaction-contracts.cts', 'integration.tsx'],
   }));
   execFileSync(process.execPath, [
     join(consumer, 'node_modules/typescript/bin/tsc'),
@@ -230,21 +302,28 @@ module.exports = {
   },
 };
 `);
+  // React 19-only Activity contracts stay in the 19 lanes; the common public
+  // bundle contracts run on both major lines.
+  const packedContractTests = [
+    '__tests__/actions/structural-schema.test.tsx',
+    '__tests__/actions/action-role-api.contract.test.tsx',
+    '__tests__/provider-isolation.contract.test.tsx',
+    '__tests__/public-subpaths.contract.test.tsx',
+    '__tests__/stores/hooks/store-subscription.contract.test.tsx',
+    '__tests__/stores/hooks/path-subscription-portability.contract.test.tsx',
+    '__tests__/stores/core/action-transaction-metadata.contract.test.ts',
+    '__tests__/stores/core/transaction-batch-control.contract.test.ts',
+    '__tests__/stores/core/transaction-participant.contract.test.ts',
+    '__tests__/stores/hooks/time-travel-api.contract.test.tsx',
+    '__tests__/refs/ref-provider-isolation.test.tsx',
+    '__tests__/refs/ref-public-api.contract.test.tsx',
+    '__tests__/refs/ref-cleanup.contract.test.tsx',
+    '__tests__/refs/ref-operation-cleanup.contract.test.tsx',
+  ].filter(file => !reactVersion.startsWith('18.') || file !== '__tests__/refs/ref-provider-isolation.test.tsx');
   execFileSync('pnpm', [
     '--filter', '@context-action/react', 'exec', 'jest',
     '--config', packedJestConfig, '--runInBand', '--runTestsByPath',
-    ...[
-      '__tests__/actions/structural-schema.test.tsx',
-      '__tests__/actions/action-role-api.contract.test.tsx',
-      '__tests__/provider-isolation.contract.test.tsx',
-      '__tests__/public-subpaths.contract.test.tsx',
-      '__tests__/stores/hooks/store-subscription.contract.test.tsx',
-      '__tests__/stores/hooks/time-travel-api.contract.test.tsx',
-      '__tests__/refs/ref-provider-isolation.test.tsx',
-      '__tests__/refs/ref-public-api.contract.test.tsx',
-      '__tests__/refs/ref-cleanup.contract.test.tsx',
-      '__tests__/refs/ref-operation-cleanup.contract.test.tsx',
-    ].map(file => join(root, 'packages/react', file)),
+    ...packedContractTests.map(file => join(root, 'packages/react', file)),
   ], {
     cwd: root,
     stdio: 'inherit',
@@ -274,6 +353,12 @@ const base = require(${JSON.stringify(join(reactPackageRoot, 'jest.config.cjs'))
 module.exports = {
   ...base,
   rootDir: ${JSON.stringify(reactPackageRoot)},
+  testPathIgnorePatterns: [
+    ...(base.testPathIgnorePatterns ?? []),
+    ...${JSON.stringify(reactVersion.startsWith('18.')
+      ? ['stores/patterns/activity-store-lifecycle.test.tsx', 'refs/ref-provider-isolation.test.tsx']
+      : [])},
+  ],
   moduleNameMapper: {
     ...base.moduleNameMapper,
     '^react$': ${JSON.stringify(join(consumer, 'node_modules/react'))},

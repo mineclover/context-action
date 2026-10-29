@@ -18,8 +18,8 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -48,6 +48,64 @@ function computeCanonicalHash(value) {
   return `sha256:${hex}`;
 }
 
+function gitOutput(args) {
+  const result = spawnSync('git', args, {
+    cwd: repositoryRoot,
+    encoding: 'utf8',
+  });
+  if (result.status !== 0) {
+    throw new Error(`git ${args.join(' ')} failed: ${result.stderr?.trim() || `exit ${result.status}`}`);
+  }
+  return result.stdout ?? '';
+}
+
+function sourceTreeFiles() {
+  return gitOutput(['ls-files', '--cached', '--others', '--exclude-standard', '-z'])
+    .split('\0')
+    .filter(Boolean)
+    .filter(file => !file.startsWith('.verification/'))
+    .sort();
+}
+
+function computeWorkingTreeDigest() {
+  const digest = createHash('sha256');
+  digest.update('context-action-working-tree/v1\0', 'utf8');
+  for (const relativePath of sourceTreeFiles()) {
+    const absolutePath = resolve(repositoryRoot, relativePath);
+    let entry;
+    try {
+      const stat = lstatSync(absolutePath);
+      if (stat.isSymbolicLink()) {
+        entry = `symlink:${readlinkSync(absolutePath)}`;
+      } else if (stat.isFile()) {
+        entry = readFileSync(absolutePath);
+      } else {
+        entry = `mode:${stat.mode.toString(8)}`;
+      }
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw error;
+      entry = 'missing';
+    }
+    digest.update(relativePath, 'utf8');
+    digest.update('\0', 'utf8');
+    digest.update(entry);
+    digest.update('\0', 'utf8');
+  }
+  return `sha256:${digest.digest('hex')}`;
+}
+
+function getWorkingTreeStatus() {
+  const status = gitOutput(['status', '--porcelain=v1', '--untracked-files=all']);
+  const sourceChanges = status
+    .split('\n')
+    .filter(Boolean)
+    .filter(line => {
+      const paths = line.slice(3).trim().split(' -> ');
+      return paths.some(path => !path.replace(/^"|"$/g, '').startsWith('.verification/'));
+    });
+  return sourceChanges.length === 0 ? 'clean' : 'dirty';
+}
+
 console.log('='.repeat(70));
 console.log('  Local-First Verification Runner - context-action (#53)');
 console.log(`  Mode: ${isQuick ? 'QUICK SMOKE' : 'FULL LOCAL VERIFICATION'}`);
@@ -69,7 +127,7 @@ console.log(`✔ Toolchain: Node ${nodeVer}, pnpm ${pnpmVer}, Platform ${process
 
 const quickSteps = [
   {
-    name: '1. Monorepo Typecheck (13 projects)',
+    name: '1. Monorepo Typecheck (all workspace projects)',
     command: 'pnpm',
     args: ['run', 'type-check'],
   },
@@ -103,11 +161,21 @@ const quickSteps = [
     command: 'node',
     args: ['--test', 'scripts/verify-durable-operation-evidence-schema.test.mjs'],
   },
+  {
+    name: '8. Core Element Unit Contract Test',
+    command: 'pnpm',
+    args: ['run', 'verify:element-unit'],
+  },
+  {
+    name: '9. Element Host Browser Evidence Parser Test',
+    command: 'pnpm',
+    args: ['run', 'test:element-host-browser'],
+  },
 ];
 
 const fullSteps = [
   {
-    name: '1. Monorepo Typecheck (13 projects)',
+    name: '1. Monorepo Typecheck (all workspace projects)',
     command: 'pnpm',
     args: ['run', 'type-check'],
   },
@@ -162,12 +230,32 @@ const fullSteps = [
     args: ['--test', 'scripts/verify-durable-operation-evidence-schema.test.mjs'],
   },
   {
-    name: '12. V1 Supply Chain & Pinned Action Policy Audit',
+    name: '12. Core Element Unit Contract Test',
+    command: 'pnpm',
+    args: ['run', 'verify:element-unit'],
+  },
+  {
+    name: '13. Element Interop Packed Consumer Contract',
+    command: 'pnpm',
+    args: ['run', 'verify:element-interop'],
+  },
+  {
+    name: '14. Element Host Lifecycle Contract',
+    command: 'pnpm',
+    args: ['run', 'verify:element-hosts'],
+  },
+  {
+    name: '15. Element Host Browser Contract',
+    command: 'pnpm',
+    args: ['run', 'verify:element-host-browser'],
+  },
+  {
+    name: '16. V1 Supply Chain & Pinned Action Policy Audit',
     command: 'node',
     args: ['scripts/verify-v1-supply-chain.mjs'],
   },
   {
-    name: '13. Release Safety Regression Suite (194 tests)',
+    name: '17. Release Safety Regression Suite (current test set)',
     command: 'node',
     args: [
       '--test',
@@ -222,6 +310,9 @@ if (existsSync(lockfilePath)) {
   lockfileDigest = `sha256:${createHash('sha256').update(readFileSync(lockfilePath)).digest('hex')}`;
 }
 
+const workingTree = getWorkingTreeStatus();
+const treeDigest = computeWorkingTreeDigest();
+
 const unsignedReceipt = {
   schemaVersion: 'local-verification-receipt/v1',
   timestamp: new Date().toISOString(),
@@ -234,6 +325,8 @@ const unsignedReceipt = {
     arch: process.arch,
   },
   inputDigest: lockfileDigest,
+  workingTree,
+  treeDigest,
   suites: suiteResults,
   status: 'passed',
 };

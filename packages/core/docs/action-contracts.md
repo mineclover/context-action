@@ -1,7 +1,9 @@
 # Core action contracts
 
-`@context-action/core` is the action control plane. It does not own Store state,
-React subscriptions, DOM, or time-travel history.
+The default `@context-action/core` entry is the action control plane. It does not
+own Store state, React subscriptions, DOM, or time-travel history. The package also
+contains opt-in [Element transport and React host entries](element-interop.md),
+which are not reachable from the default runtime or declaration graph.
 
 ## Responsibilities by category
 
@@ -37,6 +39,25 @@ observers, and scheduling. Adapters should depend on the smallest role they
 need. State metadata such as `transactionId`, `origin`, and `label` should be
 introduced at the commit boundary and passed through explicitly rather than
 being inferred from handler names.
+
+### Queue re-entry
+
+`registry: { useConcurrencyQueue: true }` uses a single execution slot. A
+handler that awaits another dispatch on the same register must bypass that
+slot explicitly:
+
+```ts
+register.register('outer', async () => {
+  await register.dispatch('inner', undefined, { immediate: true });
+});
+```
+
+Without `immediate: true`, the nested dispatch waits behind the outer handler
+while the outer handler waits for the nested promise, so the two operations
+cannot settle. `queuePriority` only orders work that is already waiting; it
+does not make an awaited nested dispatch re-entrant. Use an explicit immediate
+dispatch for nested orchestration, or dispatch the follow-up after the outer
+action has settled.
 
 ## Maintenance rule
 

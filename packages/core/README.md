@@ -4,6 +4,10 @@ Type-safe action pipeline management library for **vanilla JavaScript/TypeScript
 
 > **✨ Framework-Agnostic**: Works with vanilla JavaScript, React, Vue, Svelte, or any JavaScript environment. No framework dependencies required!
 
+> Local candidate: optional `/element` DOM bindings and `/element/react` host bridge.
+> The default Action entry stays DOM/React-free. See [ownership, lifecycle and release limits](docs/element-interop.md).
+> These exports are not in the current registry release.
+
 ## Installation
 
 ```bash

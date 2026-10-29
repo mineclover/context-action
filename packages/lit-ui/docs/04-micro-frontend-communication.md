@@ -299,7 +299,7 @@ customElements.define('add-to-cart-btn', AddToCartButtonElement);
 ```tsx
 // islands/react-stepper-bridge.tsx
 import * as React from 'react';
-import { createLitElementBridge } from '@context-action/lit-ui';
+import { createLitElementBridge } from '@context-action/lit-ui/react-bridge';
 import type { LitQuantityStepper } from './lit-quantity-stepper.js';
 
 export interface StepperProps {
@@ -552,7 +552,7 @@ export class LitCartBadge extends LitElement {
 
 ```tsx
 import * as React from 'react';
-import { createLitElementBridge } from '@context-action/lit-ui';
+import { createLitElementBridge } from '@context-action/lit-ui/react-bridge';
 import type { CartActionMap } from './shared-cart-domain.js';
 
 // 수량 선택 Lit 커스텀 엘리먼트를 React 컴포넌트로 브릿지

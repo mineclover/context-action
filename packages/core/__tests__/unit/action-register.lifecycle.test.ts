@@ -90,6 +90,52 @@ describe('ActionRegister handler lifecycle', () => {
     register.destroy();
   });
 
+  it('keeps re-entrant replacement cleanup from corrupting the pipeline', async () => {
+    const register = new ActionRegister<LifecycleActions>();
+    const executed: string[] = [];
+
+    register.register('first', () => { executed.push('old'); }, {
+      id: 'replace-me',
+      cleanup: () => {
+        register.register('first', () => { executed.push('nested'); }, {
+          id: 'nested',
+          priority: 200,
+        });
+      },
+    });
+    register.register('first', () => { executed.push('other'); }, {
+      id: 'other',
+      priority: -1,
+    });
+
+    register.register('first', () => { executed.push('new'); }, {
+      id: 'replace-me',
+      replaceExisting: true,
+    });
+
+    expect(register.getHandlerCount('first')).toBe(3);
+    expect(register.hasUnregisterFunction('nested')).toBe(true);
+    await register.dispatch('first');
+    expect(executed).toEqual(['nested', 'new', 'other']);
+    register.destroy();
+  });
+
+  it('clears callable action proxy caches with the registry', () => {
+    const register = new ActionRegister<LifecycleActions>();
+
+    for (let index = 0; index < 100; index += 1) {
+      void register.actions[`dynamic-${index}` as never];
+      void register.actionsWithResult[`result-${index}` as never];
+    }
+    expect((register as any).actionDispatchers.size).toBe(100);
+    expect((register as any).actionResultDispatchers.size).toBe(100);
+
+    register.clearAll();
+    expect((register as any).actionDispatchers.size).toBe(0);
+    expect((register as any).actionResultDispatchers.size).toBe(0);
+    register.destroy();
+  });
+
   it('returns a no-op lease for an ignored legacy registration', async () => {
     const register = new ActionRegister<LifecycleActions>();
     const original = jest.fn();
@@ -578,6 +624,21 @@ describe('ActionRegister handler lifecycle', () => {
       jest.clearAllTimers();
       jest.useRealTimers();
     }
+  });
+
+  it('preserves a caller abort reason during preflight cancellation', async () => {
+    const register = new ActionRegister<LifecycleActions>();
+    register.register('first', jest.fn());
+    const controller = new AbortController();
+    controller.abort('caller cancelled');
+
+    const result = await register.dispatchWithResult('first', undefined, {
+      signal: controller.signal,
+    });
+
+    expect(result.outcome).toBe('cancelled');
+    expect(result.abortReason).toBe('caller cancelled');
+    register.destroy();
   });
 
   it('makes shutdown terminal and returns one stable destroy promise', async () => {

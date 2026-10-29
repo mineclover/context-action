@@ -1,82 +1,64 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-10-25T03:29:14.548Z",
-  "commitSha": "954247a7ec37245b25aeed976cd90cb3f45ad6e3",
-  "branch": "fix/public-api-functional-contracts",
+  "timestamp": "2026-10-29T00:27:56.728Z",
+  "commitSha": "e54623d6ca6ac27789ced8639856e61be7f7990d",
+  "branch": "experiment/travels-v3-backend",
   "toolchain": {
-    "node": "v24.20.0",
+    "node": "v24.22.1",
     "pnpm": "11.28.6",
     "platform": "darwin",
     "arch": "arm64"
   },
-  "inputDigest": "sha256:f9bc548f52fcd8793bc7387d64c677fce31955934f84b3c4c094e06e1a844e48",
+  "inputDigest": "sha256:03185556a944403729d6a1a8454b6227d29b660999d1f324625c226125bc1f77",
+  "workingTree": "dirty",
+  "treeDigest": "sha256:1e866d5b9c8accd61623c46dd2ba56185beb6502029fa9bde763d73a70c9627d",
   "suites": [
     {
-      "name": "1. Monorepo Typecheck (13 projects)",
-      "durationSec": 15.61,
+      "name": "1. Monorepo Typecheck (all workspace projects)",
+      "durationSec": 26.52,
       "status": "passed"
     },
     {
-      "name": "2. Workspace Package Boundaries Check & Test",
-      "durationSec": 0.83,
+      "name": "2. Workspace Package Boundaries Check",
+      "durationSec": 0.92,
       "status": "passed"
     },
     {
-      "name": "3. Package Boundary Unit Test Suite",
-      "durationSec": 3.33,
+      "name": "3. Context-Action Conventions & Catalog Check",
+      "durationSec": 2.13,
       "status": "passed"
     },
     {
-      "name": "4. Context-Action Conventions & Catalog Check",
-      "durationSec": 1.75,
-      "status": "passed"
-    },
-    {
-      "name": "5. Core Artifact Parity Check",
+      "name": "4. Core & React Artifact Parity / Isolation",
       "durationSec": 0.06,
       "status": "passed"
     },
     {
-      "name": "6. React Production Artifact Boundary Check",
-      "durationSec": 0.23,
+      "name": "5. React Production Artifact Boundary",
+      "durationSec": 0.25,
       "status": "passed"
     },
     {
-      "name": "7. React WebMCP Isolation Check",
-      "durationSec": 0.03,
+      "name": "6. React WebMCP Isolation",
+      "durationSec": 0.04,
       "status": "passed"
     },
     {
-      "name": "8. AI SDK & Tool Protocol Contract Check",
-      "durationSec": 3.98,
+      "name": "7. Durable Operations Evidence Schema Test",
+      "durationSec": 0.49,
       "status": "passed"
     },
     {
-      "name": "9. React Aria Hydration Reference Check",
-      "durationSec": 18.83,
+      "name": "8. Core Element Unit Contract Test",
+      "durationSec": 2.08,
       "status": "passed"
     },
     {
-      "name": "10. Documentation Snippets Check",
-      "durationSec": 0.72,
-      "status": "passed"
-    },
-    {
-      "name": "11. Durable Operations Evidence Schema Test",
-      "durationSec": 0.3,
-      "status": "passed"
-    },
-    {
-      "name": "12. V1 Supply Chain & Pinned Action Policy Audit",
-      "durationSec": 0.13,
-      "status": "passed"
-    },
-    {
-      "name": "13. Release Safety Regression Suite (194 tests)",
-      "durationSec": 71.6,
+      "name": "9. Element Host Browser Evidence Parser Test",
+      "durationSec": 0.46,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:cbc0459b5168fc9e2dfc658376598c1ff89a8112ba6b7cc63fed0f7a0048199a"
+  "receiptDigest": "sha256:7db95dbf6b8eee747333d957a8f566dad1b2a9c88b42d66219816ebafd4f68f7"
 }

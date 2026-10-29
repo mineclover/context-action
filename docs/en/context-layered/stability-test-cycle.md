@@ -14,15 +14,17 @@ The recommended message is:
 
 ## Supported Runtime Matrix
 
-The published React package declares React 19.2+ as its peer runtime.
-CI verifies the minimum supported 19.2 version and the current 19.2 version on Node 24, which matches the repository engine
-requirement (`node >=24.11.0`). Node 22 is intentionally outside the support
-contract until the engine requirement is lowered and the package matrix is
-updated together.
+The published React package declares `^18.0.0 || ^19.0.0` as its peer runtime.
+CI verifies React 18.3.1 plus the minimum and current React 19.2 versions on
+Node 24, which matches the repository engine requirement (`node >=24.11.0`).
+React 19-only features such as `<Activity>` are covered by the React 19 lanes;
+the common Store/Action/Context/Ref contract is checked on both major lines.
+Node 22 is intentionally outside the support contract until the engine
+requirement is lowered and the package matrix is updated together.
 
 The compatibility job rebuilds Core and React, then runs React type-checks and
-the full React test suite against both supported 19.2 versions. Package export
-checks also cover both ESM and CommonJS entry points.
+the packed consumer contract against React 18.3.1 and both supported 19.2
+versions. Package export checks also cover both ESM and CommonJS entry points.
 
 ## The Stability-Oriented Test Cycle
 

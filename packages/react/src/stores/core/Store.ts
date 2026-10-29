@@ -132,7 +132,10 @@ export class Store<T = unknown> implements IStore<T> {
 
   constructor(name: string, initialValue: T) {
     this.name = name;
-    this._value = initialValue;
+    // Own the initial value just like values passed through setValue. Keeping
+    // the caller's object here would let external mutation diverge from the
+    // immutable snapshot created below without a store notification.
+    this._value = safeSet(initialValue, true);
     // Create initial snapshot - make immediately subscribable
     this._snapshot = this._createSnapshot();
   }
@@ -845,9 +848,9 @@ export class Store<T = unknown> implements IStore<T> {
     // 최적화된 불변성 보장 with selective cloning and freezing
     const clonedValue = safeGet(this._value, this.cloningEnabled);
 
-    // Freeze the cloned value to guarantee immutability
-    // Prevents external modifications from affecting the snapshot
-    const frozenValue = deepFreeze(clonedValue);
+    // Preserve the direct-reference performance contract when cloning is
+    // disabled. Freezing that reference would mutate caller-owned state.
+    const frozenValue = this.cloningEnabled ? deepFreeze(clonedValue) : clonedValue;
 
     return {
       value: frozenValue,

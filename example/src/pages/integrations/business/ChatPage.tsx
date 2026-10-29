@@ -3,6 +3,7 @@
  * 실시간 메시징과 사용자 관리, 메시지 히스토리를 포함한 채팅 시스템
  */
 
+import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 // import React from 'react';
 import { CodeBlock } from '@/components/ui';
@@ -274,24 +275,24 @@ const sendMessage = useCallback(() => {
               🔗 관련 리소스
             </h2>
             <div className="grid md:grid-cols-3 gap-4">
-              <a
-                href="/demos/store-scenarios"
+              <Link
+                to="/demos/store-scenarios"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 🏪 전체 Store 데모 컬렉션
-              </a>
-              <a
-                href="/refs/canvas"
+              </Link>
+              <Link
+                to="/refs/canvas"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 🎨 Canvas Ref Demo
-              </a>
-              <a
-                href="/actionguard/scroll"
+              </Link>
+              <Link
+                to="/actionguard/scroll"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 📜 Advanced Scroll Demo
-              </a>
+              </Link>
             </div>
           </div>
         </div>

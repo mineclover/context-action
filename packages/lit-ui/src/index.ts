@@ -1,65 +1,51 @@
 /**
  * @fileoverview Main entry point for @context-action/lit-ui.
  * Primitives, Form-Associated Custom Elements (FACE), W3C Context Protocol DI,
- * React 18/19 custom element bridge, and reference Web Components.
+ * and reference Web Components. The optional React bridge lives in the
+ * `@context-action/lit-ui/react-bridge` subpath so Lit-only consumers do not
+ * load React at module evaluation time.
  *
  * @implements view-layer
  * @implements web-component-primitive
  * @memberof core-concepts
  */
 
-// Form-Associated Custom Elements (FACE)
-export { FormAssociatedLitElement } from './form-associated-element.js';
-export type { ValidityStateFlags } from './form-associated-element.js';
-
-// W3C Context Protocol (@lit/context) Dependency Injection
-export {
-  actionRegisterContext,
-  actionDispatcherContext,
-  createStoreContext,
-  createActionRegisterContext,
-  createActionDispatcherContext,
-  provideActionRegister,
-  provideActionDispatcher,
-  provideStore,
-  ContextStoreController,
-  ContextActionController,
-  ContextProvider,
-  ContextConsumer,
-  createContext,
-} from './context.js';
-export type {
-  Context,
-  ContextStoreControllerOptions,
-  ContextActionControllerOptions,
-} from './context.js';
-
-// React 18/19 Custom Element Bridge
-export {
-  createLitElementBridge,
-  createLitBridge,
-  createCustomElementBridge,
-  createElementFacade,
-} from './react-bridge.js';
-export type {
-  LitBridgeConfig,
-  LitBridgeOptions,
-  LitElementComponent,
-  ImperativeHandleFactory,
-  PublicActionMethods,
-} from './react-bridge.js';
-
+export type { ControllerScopeOptions } from '@context-action/lit';
 // Shared ReactiveController lifecycle scope (implemented in @context-action/lit)
 export { ControllerScope } from '@context-action/lit';
-export type { ControllerScopeOptions } from '@context-action/lit';
-
-// Reference Custom Elements & Components
-export { LitQuantityStepper } from './components/quantity-stepper.js';
-export type { QuantityChangeEventDetail } from './components/quantity-stepper.js';
-
+export type { CartBadgeClickEventDetail } from './components/cart-badge.js';
 export {
-  LitCartBadge,
   cartStoreContext,
   defaultCartCountSelector,
+  LitCartBadge,
 } from './components/cart-badge.js';
-export type { CartBadgeClickEventDetail } from './components/cart-badge.js';
+export type { QuantityChangeEventDetail } from './components/quantity-stepper.js';
+// Reference Custom Elements & Components
+export { LitQuantityStepper } from './components/quantity-stepper.js';
+export type {
+  Context,
+  ContextActionControllerOptions,
+  ContextStoreControllerOptions,
+} from './context.js';
+// W3C Context Protocol (@lit/context) Dependency Injection
+export {
+  actionDispatcherContext,
+  actionRegisterContext,
+  ContextActionController,
+  ContextConsumer,
+  ContextProvider,
+  ContextStoreController,
+  createActionDispatcherContext,
+  createActionRegisterContext,
+  createContext,
+  createStoreContext,
+  provideActionDispatcher,
+  provideActionRegister,
+  provideStore,
+} from './context.js';
+export type { ImperativeHandleFactory, PublicActionMethods } from './facade.js';
+// Framework-neutral facade (the optional React bridge is a subpath entry).
+export { createElementFacade } from './facade.js';
+export type { ValidityStateFlags } from './form-associated-element.js';
+// Form-Associated Custom Elements (FACE)
+export { FormAssociatedLitElement } from './form-associated-element.js';

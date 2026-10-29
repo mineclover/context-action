@@ -244,8 +244,12 @@ src/pages/
 ### Quality Assurance
 - **Biome Linting**: Modern, fast linting with auto-fixes
 - **TypeScript Checking**: Strict type validation
+- **Experimental Integration Checking**: Run `pnpm exec tsc -p tsconfig.integrations.json --noEmit` for the AI/live-coding source tree
 - **Build Verification**: Production build testing
 - **Pattern Validation**: Verify patterns work across all catalogs
+
+Route/link ownership and the experimental integration gate are documented in
+[stabilization traceability](docs/stabilization-traceability.md).
 
 ## 📖 Learning Path Recommendations
 

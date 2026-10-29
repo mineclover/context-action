@@ -52,4 +52,13 @@ describe('useLocalStore', () => {
     
     expect(result.current.value).toEqual({ count: 1, name: 'updated' });
   });
+
+  it('should dispose the local store when the hook unmounts', () => {
+    const { result, unmount } = renderHook(() => useLocalStore(0));
+    const dispose = jest.spyOn(result.current.store, 'dispose');
+
+    unmount();
+
+    expect(dispose).toHaveBeenCalledTimes(1);
+  });
 });

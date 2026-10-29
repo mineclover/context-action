@@ -19,6 +19,7 @@ const packageDefinitions = [
     dependency: '@context-action/preact',
   },
 ];
+const ELEMENT_INTEROP_MIN_CORE = '1.3.0';
 
 const args = process.argv.slice(2);
 const requireCurrentSource = args.includes('--require-current-source');
@@ -47,6 +48,16 @@ function expect(errors, condition, message) {
 
 function isStableVersion(value) {
   return typeof value === 'string' && /^\d+\.\d+\.\d+$/u.test(value);
+}
+
+function compareVersions(left, right) {
+  const parse = value => String(value).split('.').map(Number);
+  const a = parse(left);
+  const b = parse(right);
+  for (let index = 0; index < 3; index += 1) {
+    if ((a[index] ?? 0) !== (b[index] ?? 0)) return (a[index] ?? 0) - (b[index] ?? 0);
+  }
+  return 0;
 }
 
 async function validatePlan(errors) {
@@ -80,6 +91,25 @@ async function validatePlan(errors) {
   expect(errors, JSON.stringify(Object.keys(plannedDependencies).sort())
     === JSON.stringify(expectedNames.sort()),
   'public Preact release plan must define dependency floors for both packages');
+
+  const prerequisite = plan.elementInteropPrerequisite;
+  expect(errors, prerequisite?.package === '@context-action/core',
+    'public Preact release plan must declare the Core element interop prerequisite');
+  expect(errors, prerequisite?.minimumVersion === ELEMENT_INTEROP_MIN_CORE,
+    `public Preact release plan Core prerequisite must be ${ELEMENT_INTEROP_MIN_CORE}`);
+  expect(errors, prerequisite?.status === 'blocked-until-approved-core-cohort',
+    'public Preact release plan must keep the element interop cohort blocked until Core approval');
+  expect(errors, JSON.stringify(prerequisite?.publicationOrder ?? [])
+    === JSON.stringify([
+      '@context-action/core', '@context-action/preact', '@context-action/preact-ui',
+    ]),
+  'public Preact release plan must publish Core before Preact adapters');
+  expect(errors, JSON.stringify(prerequisite?.requiredExports ?? [])
+    === JSON.stringify(['./element', './element/react']),
+  'public Preact release plan must pin both Core element exports');
+  expect(errors, prerequisite?.candidateDependencies?.['@context-action/preact-ui']?.['@context-action/core']
+    === `^${ELEMENT_INTEROP_MIN_CORE}`,
+  `public Preact release plan Preact UI candidate must depend on @context-action/core@^${ELEMENT_INTEROP_MIN_CORE}`);
   return plan;
 }
 
@@ -113,7 +143,10 @@ async function main() {
       `${definition.name} must use a stable semantic version`);
     for (const dependencyMap of [manifest.dependencies, manifest.optionalDependencies]) {
       for (const [dependencyName, range] of Object.entries(dependencyMap ?? {})) {
-        expect(errors, typeof range === 'string' && !range.startsWith('workspace:'),
+        const localWorkspaceWiring = !requireCurrentSource
+          && typeof range === 'string'
+          && range.startsWith('workspace:');
+        expect(errors, localWorkspaceWiring || (typeof range === 'string' && !range.startsWith('workspace:')),
           `${definition.name} must not publish workspace dependency ${dependencyName}@${range}`);
       }
     }
@@ -142,6 +175,21 @@ async function main() {
   let plan = null;
   if (requireCurrentSource) plan = await validatePlan(errors);
   if (plan) {
+    const prerequisite = plan.elementInteropPrerequisite;
+    if (prerequisite) {
+      expect(errors, core && compareVersions(core.version, prerequisite.minimumVersion) >= 0,
+        `Core ${prerequisite.minimumVersion} or newer is required before publishing the Preact element interop candidate (found ${core?.version ?? 'missing'})`);
+      for (const exportName of prerequisite.requiredExports ?? []) {
+        expect(errors, Object.hasOwn(core?.exports ?? {}, exportName),
+          `Core prerequisite is missing the required ${exportName} export`);
+      }
+      for (const [packageName, dependencies] of Object.entries(prerequisite.candidateDependencies ?? {})) {
+        for (const [dependencyName, expectedRange] of Object.entries(dependencies)) {
+          expect(errors, manifests.get(packageName)?.dependencies?.[dependencyName] === expectedRange,
+            `${packageName} element interop candidate must depend on ${dependencyName}@${expectedRange}`);
+        }
+      }
+    }
     for (const definition of packageDefinitions) {
       const manifest = manifests.get(definition.name);
       const dependencyFloors = plan.dependencies?.[definition.name] ?? {};

@@ -116,6 +116,8 @@ React 호스트 환경에서 웹 컴포넌트를 소비할 때는 리액트의 �
 
 ```tsx
 // 컴포넌트 브리지 정의 표준
+import { createLitElementBridge } from '@context-action/lit-ui/react-bridge';
+
 export const ReactQuantityStepper = createLitElementBridge<StepperProps, LitQuantityStepper>({
   tagName: 'lit-quantity-stepper',
   // 1. DOM 프로퍼티로 직할 할당할 복합 속성 목록

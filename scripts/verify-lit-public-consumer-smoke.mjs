@@ -14,10 +14,11 @@
  *   --tag <dist-tag>             fallback dist-tag
  *
  * Verifies:
- *   1. Clean npm install from the public registry
- *   2. CJS and ESM export contracts
- *   3. Runtime SSR (part/data/reflected/complex property)
- *   4. TypeScript consumer typing for the bridge and SSR entry
+ *   1. Lit-only ESM/CJS/root type imports without optional React peers
+ *   2. Clean npm install from the public registry
+ *   3. CJS and ESM export contracts, including the React bridge subpath
+ *   4. Runtime SSR (part/data/reflected/complex property)
+ *   5. TypeScript consumer typing for the bridge and SSR entry
  */
 
 import { spawnSync } from 'node:child_process';
@@ -138,9 +139,9 @@ import { LitElement, html } from 'lit';
 import { ActionController, ControllerScope, StoreController } from '@context-action/lit';
 import {
   createElementFacade,
-  createLitElementBridge,
   createStoreContext,
 } from '@context-action/lit-ui';
+import { createLitElementBridge } from '@context-action/lit-ui/react-bridge';
 import { renderLitElement, renderLitTemplate } from '@context-action/lit-ui/ssr';
 import { hydrateLit } from '@context-action/lit-ui/hydrate';
 
@@ -198,10 +199,12 @@ import * as React from 'react';
 import { ControllerScope, StoreController } from '@context-action/lit';
 import {
   createElementFacade,
-  createLitElementBridge,
   type ImperativeHandleFactory,
-  type LitBridgeConfig,
 } from '@context-action/lit-ui';
+import {
+  createLitElementBridge,
+  type LitBridgeConfig,
+} from '@context-action/lit-ui/react-bridge';
 import type { RenderLitElementOptions } from '@context-action/lit-ui/ssr';
 
 interface TimelineProps {
@@ -252,10 +255,50 @@ async function main() {
   console.log('='.repeat(78));
 
   const sandbox = await createSandbox();
+  const pureLitSandbox = await createSandbox();
   console.log(`\n[INIT] Created isolated sandbox at: ${sandbox}`);
 
   try {
-    console.log('\n--- Phase 1: Clean npm install from public registry ---');
+    console.log('\n--- Phase 1: Lit-only install without optional React peers ---');
+    await npmInstallWithRetry(pureLitSandbox, [
+      ...PACKAGES,
+      'lit@3.3.3',
+      '@lit/context@1.1.6',
+      'typescript@6.0.3',
+    ]);
+    const pureEsmOut = run('node', [
+      '--input-type=module',
+      '-e',
+      `const ui=await import('@context-action/lit-ui');if(typeof ui.createStoreContext!=='function')throw new Error('Lit-only root import missing createStoreContext');console.log('PURE_LIT_ESM_OK')`,
+    ], { cwd: pureLitSandbox });
+    if (!pureEsmOut.includes('PURE_LIT_ESM_OK')) throw new Error('Lit-only ESM import failed');
+    const pureCjsOut = run('node', [
+      '-e',
+      `const ui=require('@context-action/lit-ui');if(typeof ui.createStoreContext!=='function')throw new Error('Lit-only CJS root import missing createStoreContext');console.log('PURE_LIT_CJS_OK')`,
+    ], { cwd: pureLitSandbox });
+    if (!pureCjsOut.includes('PURE_LIT_CJS_OK')) throw new Error('Lit-only CJS import failed');
+    await writeFile(path.join(pureLitSandbox, 'pure-consumer.ts'),
+      `import { createStoreContext } from '@context-action/lit-ui';\nconst stores = createStoreContext('PureLit');\nvoid stores;\n`);
+    await writeFile(path.join(pureLitSandbox, 'tsconfig.json'), `${JSON.stringify({
+      compilerOptions: {
+        strict: true,
+        skipLibCheck: false,
+        noEmit: true,
+        module: 'NodeNext',
+        moduleResolution: 'NodeNext',
+        target: 'ES2022',
+        lib: ['ES2022', 'DOM', 'DOM.Iterable'],
+      },
+      include: ['pure-consumer.ts'],
+    }, null, 2)}\n`);
+    run(process.execPath, [
+      path.join(pureLitSandbox, 'node_modules/typescript/bin/tsc'),
+      '--project', path.join(pureLitSandbox, 'tsconfig.json'),
+    ], { cwd: pureLitSandbox });
+    totalAssertions += 3;
+    console.log('  [PASS] Lit-only ESM/CJS and TypeScript imports without React');
+
+    console.log('\n--- Phase 2: Clean npm install from public registry ---');
     await npmInstallWithRetry(sandbox, [...PACKAGES, ...DEPENDENCIES]);
 
     for (const [packageName, expected] of [
@@ -275,18 +318,19 @@ async function main() {
       console.log(`  [PASS] ${packageName}@${installed}`);
     }
 
-    console.log('\n--- Phase 2: CJS and ESM export contracts ---');
+    console.log('\n--- Phase 3: CJS and ESM export contracts ---');
     const cjsScript = `
       const assert = require('node:assert/strict');
       const lit = require('@context-action/lit');
       const litUi = require('@context-action/lit-ui');
+      const litBridge = require('@context-action/lit-ui/react-bridge');
       const ssr = require('@context-action/lit-ui/ssr');
       const hydrate = require('@context-action/lit-ui/hydrate');
       for (const [name, value] of Object.entries({
         ControllerScope: lit.ControllerScope,
         StoreController: lit.StoreController,
         ActionController: lit.ActionController,
-        createLitElementBridge: litUi.createLitElementBridge,
+        createLitElementBridge: litBridge.createLitElementBridge,
         createElementFacade: litUi.createElementFacade,
         renderLitElement: ssr.renderLitElement,
         renderLitTemplate: ssr.renderLitTemplate,
@@ -311,7 +355,7 @@ async function main() {
     totalAssertions += 13;
     console.log('  [PASS] ESM exports, SSR, reflected/complex properties');
 
-    console.log('\n--- Phase 3: TypeScript consumer contract ---');
+    console.log('\n--- Phase 4: TypeScript consumer contract ---');
     await writeFile(path.join(sandbox, 'consumer.ts'), consumerScript);
     await writeFile(path.join(sandbox, 'tsconfig.json'), `${JSON.stringify({
       compilerOptions: {
@@ -337,8 +381,10 @@ async function main() {
   } finally {
     if (keepSandbox) {
       console.log(`[KEEP] Sandbox retained at ${sandbox}`);
+      console.log(`[KEEP] Lit-only sandbox retained at ${pureLitSandbox}`);
     } else {
       await rm(sandbox, { recursive: true, force: true });
+      await rm(pureLitSandbox, { recursive: true, force: true });
     }
   }
 }

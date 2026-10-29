@@ -50,6 +50,71 @@ describe('DispatchOptions runtime contract', () => {
     },
   );
 
+  it.each([
+    ['debounce', Number.NaN],
+    ['debounce', Number.POSITIVE_INFINITY],
+    ['debounce', -1],
+    ['throttle', Number.NaN],
+    ['throttle', Number.POSITIVE_INFINITY],
+    ['throttle', -1],
+  ] as const)('rejects an invalid %s option (%p) before dispatching', (kind, value) => {
+    const handler = jest.fn();
+    register.register('work', handler);
+
+    expect(() => register.dispatch('work', { id: `invalid-${kind}` }, { [kind]: value }))
+      .toThrow(`${kind} must be a non-negative finite number`);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['debounce', Number.NaN],
+    ['throttle', Number.POSITIVE_INFINITY],
+    ['debounce', -1],
+  ] as const)('rejects invalid %s timing during registration', (kind, value) => {
+    expect(() => register.register('work', jest.fn(), {
+      id: `invalid-registration-${kind}`,
+      [kind]: value,
+    })).toThrow(`${kind} must be a non-negative finite number`);
+  });
+
+  it.each([
+    { maxAttempts: 0, delay: 0 },
+    { maxAttempts: 1.5, delay: 0 },
+    { maxAttempts: Number.NaN, delay: 0 },
+    { maxAttempts: Number.POSITIVE_INFINITY, delay: 0 },
+    { maxAttempts: 1, delay: -1 },
+    { maxAttempts: 1, delay: Number.NaN },
+    { maxAttempts: 1, delay: Number.POSITIVE_INFINITY },
+  ])('rejects invalid retry options (%p) before dispatching', retry => {
+    const handler = jest.fn();
+    register.register('work', handler);
+
+    expect(() => register.dispatch('work', { id: 'invalid-retry' }, { retryOnError: retry }))
+      .toThrow(/retryOnError\.(maxAttempts|delay)/);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('cleans timeout resources when a custom filter throws during plan construction', async () => {
+    jest.useFakeTimers();
+    const unhandledRejection = jest.fn();
+    const onUnhandledRejection = (reason: unknown) => { unhandledRejection(reason); };
+    process.on('unhandledRejection', onUnhandledRejection);
+
+    try {
+      register.register('work', jest.fn());
+      expect(() => register.dispatch('work', { id: 'filter-error' }, {
+        timeout: 10,
+        filter: { custom: () => { throw new Error('filter failed'); } },
+      })).toThrow('filter failed');
+
+      await jest.advanceTimersByTimeAsync(20);
+      expect(jest.getTimerCount()).toBe(0);
+      expect(unhandledRejection).not.toHaveBeenCalled();
+    } finally {
+      process.off('unhandledRejection', onUnhandledRejection);
+    }
+  });
+
   it('releases a timed-out caller but drains a non-cooperative handler during shutdown', async () => {
     jest.useFakeTimers();
     let releaseHandler: (() => void) | undefined;
@@ -452,6 +517,40 @@ describe('DispatchOptions runtime contract', () => {
     expect(handled).toEqual(['head']);
   });
 
+  it('cancels a queued dispatch immediately when its caller signal aborts', async () => {
+    const handled: string[] = [];
+    let releaseHead: (() => void) | undefined;
+    let markHeadStarted: (() => void) | undefined;
+    const headGate = new Promise<void>(resolve => { releaseHead = resolve; });
+    const headStarted = new Promise<void>(resolve => { markHeadStarted = resolve; });
+    register.register('work', async payload => {
+      handled.push(payload.id);
+      if (payload.id === 'head') {
+        markHeadStarted?.();
+        await headGate;
+      }
+    }, { blocking: true });
+
+    const head = register.dispatch('work', { id: 'head' });
+    await headStarted;
+    const controller = new AbortController();
+    const queued = register.dispatchWithResult('work', { id: 'queued' }, {
+      signal: controller.signal,
+    });
+
+    controller.abort('caller cancelled');
+    await expect(queued).resolves.toMatchObject({
+      outcome: 'cancelled',
+      aborted: true,
+      abortReason: 'caller cancelled',
+    });
+    expect((register as any).dispatchQueue.getQueueInfo().queueLength).toBe(0);
+    expect(handled).toEqual(['head']);
+
+    releaseHead?.();
+    await head;
+  });
+
   it('serializes result dispatches and honors queue priority', async () => {
     const executionOrder: string[] = [];
     let releaseFirst: (() => void) | undefined;
@@ -778,6 +877,8 @@ describe('DispatchOptions runtime contract', () => {
     const inner = jest.fn(() => 'inner-result');
     register.register('nestedInner', inner, { blocking: true });
     register.register('nestedOuter', async () => {
+      // The outer action owns the queue's only slot. Without immediate:true,
+      // this awaited nested dispatch would wait behind its own parent.
       const result = await register.dispatchWithResult<'nestedInner', string>('nestedInner', undefined, {
         immediate: true,
       });

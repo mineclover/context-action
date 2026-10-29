@@ -14,14 +14,16 @@ Context-Layered Architecture는 단순한 React 구성보다 무겁게 느껴질
 
 ## 지원 런타임 매트릭스
 
-배포되는 React package는 React 19.2+를 peer runtime으로 선언합니다.
-CI는 저장소의 engine 요구사항(`node >=24.11.0`)에 맞춰 Node 24에서 최소 지원
-19.2 버전과 현재 19.2 버전을 검증합니다. Node 22는 engine 요구사항을 먼저 낮추고
-package 매트릭스를 함께 갱신하기 전까지는 지원 계약에 포함하지 않습니다.
+배포되는 React package는 `^18.0.0 || ^19.0.0`을 peer runtime으로 선언합니다.
+CI는 저장소의 engine 요구사항(`node >=24.11.0`)에 맞춰 Node 24에서 React
+18.3.1과 React 19.2 최소·현재 버전을 검증합니다. `<Activity>` 같은 React 19
+전용 기능은 React 19 lane에서 검증하고, 공통 Store/Action/Context/Ref 계약은
+두 major line에서 확인합니다. Node 22는 engine 요구사항을 먼저 낮추고 package
+매트릭스를 함께 갱신하기 전까지는 지원 계약에 포함하지 않습니다.
 
-호환성 job은 두 19.2 version으로 Core와 React를 다시 빌드하고 React type-check와
-전체 React 테스트를 실행합니다. Package export 검사에서는 ESM과 CommonJS entry
-point도 함께 확인합니다.
+호환성 job은 React 18.3.1과 두 19.2 version으로 Core와 React를 다시 빌드하고
+React type-check와 packed consumer 계약을 실행합니다. Package export 검사에서는
+ESM과 CommonJS entry point도 함께 확인합니다.
 
 ## 안정성 중심 테스트 사이클
 

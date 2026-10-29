@@ -8,10 +8,10 @@
  * @module stores/hooks/useComputedStore
  */
 
-import { useRef, useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import type { Store } from '../core/Store';
-import { defaultEqualityFn } from './useStoreSelector';
 import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
+import { defaultEqualityFn } from './useStoreSelector';
 
 /**
  * Configuration options for computed store hooks
@@ -92,6 +92,23 @@ export function useComputedStore<T, R>(
   const cacheRef = useRef<Map<T, R>>(new Map());
   const lastComputedRef = useRef<R | undefined>(undefined);
   const lastInputRef = useRef<T | undefined>(undefined);
+  const lastInputValidRef = useRef(false);
+  const cacheIdentityRef = useRef<{ compute: (value: T) => R; enableCache: boolean }>({
+    compute,
+    enableCache,
+  });
+
+  // Cache entries are tied to the compute function and cache mode that
+  // produced them. Invalidate both the map and the fast path when either
+  // changes so a new computation cannot read a stale result.
+  if (
+    cacheIdentityRef.current.compute !== compute ||
+    cacheIdentityRef.current.enableCache !== enableCache
+  ) {
+    cacheRef.current.clear();
+    lastInputValidRef.current = false;
+    cacheIdentityRef.current = { compute, enableCache };
+  }
 
   // Update compute function ref on every render
   computeRef.current = compute;
@@ -101,7 +118,11 @@ export function useComputedStore<T, R>(
     if (!enableCache) return undefined;
 
     // Check if we have exact same input reference
-    if (lastInputRef.current === input && lastComputedRef.current !== undefined) {
+    if (
+      lastInputValidRef.current &&
+      lastInputRef.current === input &&
+      lastComputedRef.current !== undefined
+    ) {
       return lastComputedRef.current;
     }
 
@@ -123,6 +144,7 @@ export function useComputedStore<T, R>(
 
     // Update last computed values
     lastInputRef.current = input;
+    lastInputValidRef.current = true;
     lastComputedRef.current = output;
 
     // Update cache map

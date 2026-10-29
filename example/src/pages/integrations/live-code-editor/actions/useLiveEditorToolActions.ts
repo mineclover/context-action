@@ -2,11 +2,7 @@ import {
   readWorkspaceSavePlanDetails,
   verifyWorkspaceSavePlan,
 } from '@context-action/live-code-editor';
-import {
-  listAllTools,
-  type ToolCallResult,
-  toToolCallRequest,
-} from '@context-action/tool-protocol';
+import { listAllTools, toToolCallRequest } from '@context-action/tool-protocol';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { WorkspaceFileSystemAdapter } from '../../../../lib/live-code-editor-filesystem';
 import { createToolCallSessionId } from '../../../../lib/tool-call-trace';
@@ -220,7 +216,7 @@ export function useLiveEditorToolActions({
       const record = await registry.recoverOperation(
         operation.toolName,
         operation.idempotencyKey,
-        async (unknown) => {
+        async (record) => {
           if (operation.toolName === 'editor.saveFile') {
             const externalFile = await filesystemAdapter.readFile(
               operation.path
@@ -239,7 +235,7 @@ export function useLiveEditorToolActions({
             recoveredPaths = [operation.path];
           } else {
             const details = readWorkspaceSavePlanDetails(
-              unknown.result?.error?.details
+              record.result?.error?.details
             );
             if (!details) {
               throw new Error(
@@ -278,8 +274,11 @@ export function useLiveEditorToolActions({
           }
 
           const paths = recoveredPaths ?? [];
-          const recoveredResult: ToolCallResult = {
-            toolCallId: unknown.result?.toolCallId,
+          const recoveredPath =
+            paths[0] ??
+            (operation.toolName === 'editor.saveFile' ? operation.path : '');
+          const recoveredResult: typeof record.result = {
+            toolCallId: record.result?.toolCallId,
             content: [
               {
                 type: 'text',
@@ -289,7 +288,7 @@ export function useLiveEditorToolActions({
             structuredContent:
               operation.toolName === 'editor.saveFile'
                 ? {
-                    path: paths[0],
+                    path: recoveredPath,
                     activePath: status.activePath,
                     savedTo: 'filesystem',
                     dirtyPaths: [...status.dirtyPaths],

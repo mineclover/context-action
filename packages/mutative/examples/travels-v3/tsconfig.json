@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "../..",
+    "skipLibCheck": false
+  },
+  "include": ["./**/*.ts", "../../__tests__/travels-v3-*.test.ts"],
+  "exclude": ["../../node_modules", "../../dist"]
+}

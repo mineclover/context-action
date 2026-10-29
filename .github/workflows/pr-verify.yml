@@ -8,9 +8,15 @@ on:
       - 'packages/**'
       - 'scripts/**'
       - 'example/**'
+      - 'demos/**'
+      - 'tools/**'
+      - 'tsconfig*.json'
+      - 'lerna.json'
+      - 'typedoc.json'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
+      - '.verification/**'
       - '.github/workflows/pr-verify.yml'
       - '.github/workflows/ci.yml'
   workflow_dispatch:
@@ -84,6 +90,8 @@ jobs:
           node scripts/verify-react-artifact-boundary.mjs
           node scripts/verify-react-webmcp-isolation.mjs
           node --test scripts/verify-durable-operation-evidence-schema.test.mjs
+          pnpm verify:element-unit
+          pnpm test:element-host-browser
 
       - name: Verify Lit packages (build, type-check, unit, edge runtime)
         run: pnpm check:lit

@@ -5,22 +5,25 @@
  * Uses JSON patches from Store to determine if subscribed paths are affected.
  */
 
-import type { Patches } from '@context-action/mutative';
 import { useCallback, useRef, useSyncExternalStore } from 'react';
 import type { Snapshot, Unsubscribe } from '../core/types';
-import { patchesAffectPath } from '../utils/patch-affects-path';
+import { patchesAffectPath, type StorePathPatch } from '../utils/patch-affects-path';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
+import { defaultEqualityFn } from './useStoreSelector';
+
+export type { StorePathPatch } from '../utils/patch-affects-path';
 
 /**
  * Store interface that supports patch-aware subscriptions
- * Compatible with Store and TimeTravelStore
+ * Compatible with Store, TimeTravelStore and structurally typed backend stores.
+ * Patch payloads are observed, never mutated or copied by this boundary.
  */
 export interface PatchAwareStore<T> {
   getValue(): T;
   /** Stable external-store snapshot; custom legacy stores may omit it. */
   getSnapshot?: () => Snapshot<T>;
   subscribe(listener: () => void): Unsubscribe;
-  subscribeWithPatches(listener: (patches: Patches | null) => void): Unsubscribe;
+  subscribeWithPatches(listener: (patches: readonly StorePathPatch[] | null) => void): Unsubscribe;
 }
 
 /**
@@ -39,7 +42,7 @@ export interface UseStorePathOptions<R> {
 /**
  * Get value at a specific path
  */
-function getValueAtPath<T, R>(obj: T, path: StorePath): R {
+function getValueAtPath<T, R>(obj: T, path: Readonly<StorePath>): R {
   let current: unknown = obj;
 
   for (const key of path) {
@@ -50,6 +53,11 @@ function getValueAtPath<T, R>(obj: T, path: StorePath): R {
   }
 
   return current as R;
+}
+
+function readStoreValue<T>(store: PatchAwareStore<T>): T {
+  // null/undefined can be intentional state, not a missing snapshot capability.
+  return store.getSnapshot ? store.getSnapshot().value : store.getValue();
 }
 
 /**
@@ -80,7 +88,7 @@ function getValueAtPath<T, R>(obj: T, path: StorePath): R {
  */
 export function useStorePath<T, R = unknown>(
   store: PatchAwareStore<T>,
-  path: StorePath,
+  path: Readonly<StorePath>,
   options: UseStorePathOptions<R> = {}
 ): R {
   const { equalityFn } = options;
@@ -125,7 +133,7 @@ export function useStorePath<T, R = unknown>(
 
   // Get snapshot of value at path
   const getSnapshot = useCallback((): R => {
-    const storeValue = store.getSnapshot?.().value ?? store.getValue();
+    const storeValue = readStoreValue(store);
     const currentValue = getValueAtPath<T, R>(storeValue, stablePath);
 
     // First access - initialize cache
@@ -154,7 +162,7 @@ export function useStorePath<T, R = unknown>(
 
   // Server snapshot
   const getServerSnapshot = useCallback((): R => {
-    return getValueAtPath<T, R>(store.getSnapshot?.().value ?? store.getValue(), stablePath);
+    return getValueAtPath<T, R>(readStoreValue(store), stablePath);
   }, [store, stablePath]);
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -174,7 +182,7 @@ export function useStorePath<T, R = unknown>(
  */
 export interface UseStoreSelectorWithPathsOptions<R> {
   /** Paths that the selector depends on */
-  dependsOn?: StorePath[];
+  dependsOn?: readonly Readonly<StorePath>[];
   /** Custom equality function */
   equalityFn?: (a: R, b: R) => boolean;
 }
@@ -184,7 +192,7 @@ export function useStoreSelectorWithPaths<T, R>(
   selector: (value: T) => R,
   options: UseStoreSelectorWithPathsOptions<R> = {}
 ): R {
-  const { dependsOn, equalityFn } = options;
+  const { dependsOn, equalityFn = defaultEqualityFn } = options;
 
   const depsKey = createPathsSignature(dependsOn);
   const stablePathsRef = useRef<{
@@ -237,7 +245,7 @@ export function useStoreSelectorWithPaths<T, R>(
 
   // Get snapshot using selector
   const getSnapshot = useCallback((): R => {
-    const storeValue = store.getSnapshot?.().value ?? store.getValue();
+    const storeValue = readStoreValue(store);
     const currentValue = selector(storeValue);
 
     // Compare with cached value
@@ -245,11 +253,7 @@ export function useStoreSelectorWithPaths<T, R>(
     if (cached?.store === store && cached.depsKey === depsKey) {
       const prevValue = cached.value;
 
-      if (equalityFn) {
-        if (equalityFn(prevValue, currentValue)) {
-          return prevValue;
-        }
-      } else if (Object.is(prevValue, currentValue)) {
+      if (equalityFn(prevValue, currentValue)) {
         return prevValue;
       }
     }

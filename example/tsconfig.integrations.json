@@ -1,0 +1,30 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/pages/*": ["./src/pages/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/types/*": ["./src/types/*"],
+      "@context-action/core": ["../packages/core/src/index.ts"],
+      "@context-action/react": ["../packages/react/src/index.ts"],
+      "@context-action/react/tools": [
+        "../packages/react/src/tools/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/vite-env.d.ts",
+    "src/pages/integrations/ai/**/*",
+    "src/pages/integrations/live-code-editor/**/*",
+    "src/pages/integrations/live-web-coding/**/*",
+    "src/lib/ai-tool-runner.ts",
+    "src/lib/live-editor-tool-approval.ts",
+    "src/lib/local-ui-toolchain.ts",
+    "src/lib/openrouter-ai-sdk.ts"
+  ],
+  "exclude": []
+}

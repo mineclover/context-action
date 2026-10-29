@@ -141,7 +141,7 @@ export default function PerformanceOverview() {
             </li>
             <li>
               <Link
-                to="/performance/mouse-events/enhanced-context-store"
+                to="/performance/mouse-events/reactive"
                 className="text-yellow-600 hover:underline"
               >
                 Enhanced Context Store

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const consumer = mkdtempSync(join(tmpdir(), 'context-action-lit-packed-'));
+const pureConsumer = mkdtempSync(join(tmpdir(), 'context-action-lit-pure-packed-'));
 
 function isolatedNpmEnvironment() {
   return Object.fromEntries(Object.entries(process.env).filter(
@@ -27,20 +28,87 @@ try {
   }
 
   const tarballs = ['core', 'lit', 'lit-ui'].map((directory) => {
-    const output = execFileSync(
-      'npm',
-      [
-        'pack',
-        resolve(root, 'packages', directory),
-        '--pack-destination',
-        consumer,
-        '--silent',
-      ],
-      { cwd: root, encoding: 'utf8' },
-    ).trim().split('\n').at(-1);
-    if (!output) throw new Error(`Failed to pack ${directory}.`);
-    return join(consumer, output);
+    const output = join(consumer, `candidate-${directory}.tgz`);
+    // pnpm pack resolves workspace:* links; npm pack leaves an un-installable
+    // workspace: protocol in the candidate manifest.
+    run('pnpm', ['--dir', resolve(root, 'packages', directory), 'pack', '--out', output]);
+    return output;
   });
+
+  for (const tarball of tarballs) {
+    const manifest = JSON.parse(execFileSync(
+      'tar',
+      ['-xOf', tarball, 'package/package.json'],
+      { cwd: root, encoding: 'utf8' },
+    ));
+    for (const field of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
+      for (const [dependencyName, version] of Object.entries(manifest[field] ?? {})) {
+        if (typeof version === 'string' && version.startsWith('workspace:')) {
+          throw new Error(
+            `${manifest.name} packed manifest retains workspace protocol in ${field}.${dependencyName}: ${version}`,
+          );
+        }
+      }
+    }
+  }
+
+  // The root entry must remain usable for Lit-only hosts when the optional
+  // React peer is absent. Verify both runtime conditions and the declaration
+  // graph against the same packed candidate artifacts.
+  writeFileSync(join(pureConsumer, 'package.json'), JSON.stringify({
+    name: 'context-action-lit-pure-packed-consumer',
+    private: true,
+    type: 'module',
+  }));
+  execFileSync(
+    'npm',
+    [
+      'install',
+      '--no-save',
+      '--ignore-scripts',
+      'lit@3.3.3',
+      '@lit/context@1.1.6',
+      'typescript@6.0.3',
+      ...tarballs,
+    ],
+    {
+      cwd: pureConsumer,
+      env: isolatedNpmEnvironment(),
+      stdio: 'inherit',
+    },
+  );
+  writeFileSync(join(pureConsumer, 'runtime.mjs'), `
+const esm = await import('@context-action/lit-ui');
+if (typeof esm.createStoreContext !== 'function') throw new Error('Lit-only ESM root import missing createStoreContext');
+const { createRequire } = await import('node:module');
+const require = createRequire(import.meta.url);
+const cjs = require('@context-action/lit-ui');
+if (typeof cjs.createStoreContext !== 'function') throw new Error('Lit-only CJS root import missing createStoreContext');
+console.log('packed-lit-only-root-ok');
+`);
+  writeFileSync(join(pureConsumer, 'consumer.ts'),
+    `import { createStoreContext } from '@context-action/lit-ui';\nconst stores = createStoreContext('PureLit');\nvoid stores;\n`);
+  writeFileSync(join(pureConsumer, 'tsconfig.json'), JSON.stringify({
+    compilerOptions: {
+      strict: true,
+      skipLibCheck: false,
+      noEmit: true,
+      module: 'NodeNext',
+      moduleResolution: 'NodeNext',
+      target: 'ES2022',
+      lib: ['ES2022', 'DOM'],
+    },
+    include: ['consumer.ts'],
+  }));
+  execFileSync(process.execPath, [join(pureConsumer, 'runtime.mjs')], {
+    cwd: pureConsumer,
+    stdio: 'inherit',
+  });
+  execFileSync(
+    process.execPath,
+    [join(pureConsumer, 'node_modules/typescript/bin/tsc'), '--project', join(pureConsumer, 'tsconfig.json')],
+    { cwd: pureConsumer, stdio: 'inherit' },
+  );
 
   writeFileSync(join(consumer, 'package.json'), JSON.stringify({
     name: 'context-action-lit-packed-consumer',
@@ -77,9 +145,9 @@ import { LitElement, html } from 'lit';
 import { ControllerScope, StoreController, ActionController } from '@context-action/lit';
 import {
   createElementFacade,
-  createLitElementBridge,
   createStoreContext,
 } from '@context-action/lit-ui';
+import { createLitElementBridge } from '@context-action/lit-ui/react-bridge';
 import { renderLitElement, renderLitTemplate } from '@context-action/lit-ui/ssr';
 import { hydrateLit } from '@context-action/lit-ui/hydrate';
 
@@ -130,10 +198,12 @@ import * as React from 'react';
 import { ControllerScope, StoreController } from '@context-action/lit';
 import {
   createElementFacade,
-  createLitElementBridge,
   type ImperativeHandleFactory,
-  type LitBridgeConfig,
 } from '@context-action/lit-ui';
+import {
+  createLitElementBridge,
+  type LitBridgeConfig,
+} from '@context-action/lit-ui/react-bridge';
 import type { RenderLitElementOptions } from '@context-action/lit-ui/ssr';
 
 interface TimelineProps {
@@ -203,4 +273,5 @@ void StoreController;
   console.log('Lit packed consumer verification passed.');
 } finally {
   rmSync(consumer, { recursive: true, force: true });
+  rmSync(pureConsumer, { recursive: true, force: true });
 }

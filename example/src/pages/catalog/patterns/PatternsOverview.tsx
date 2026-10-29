@@ -330,7 +330,7 @@ export default function PatternsOverview() {
             </li>
             <li>
               <Link
-                to="/patterns/refs/form-builder"
+                to="/integrations/advanced/form-builder"
                 className="text-purple-600 hover:underline"
               >
                 Form Builder

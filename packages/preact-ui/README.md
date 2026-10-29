@@ -1,5 +1,9 @@
 # @context-action/preact-ui
 
+> Workspace 변경: Facade/React bridge는 Core의 선택적 Element 경로로 공통화 중입니다.
+> [요구사항·호환성 검토](../core/docs/interop-review.ko.md)와
+> [배포 전제](UNRELEASED.md)를 확인하세요. 기존 공개 버전에 포함된 변경은 아닙니다.
+
 특정 DOM subtree의 렌더링을 Preact에 위임하고, 외부에서는 공개 인터페이스로만 제어하는 **공개 preview UI runtime**입니다.
 
 ```text

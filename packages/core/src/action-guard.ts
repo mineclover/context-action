@@ -47,6 +47,12 @@ interface GuardState {
   debounceRequestId: number;
 }
 
+function validateDelay(value: number, label: string): void {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    throw new RangeError(`${label} must be a non-negative finite number.`);
+  }
+}
+
 /**
  * Action Guard system for managing action execution timing
  * 
@@ -171,6 +177,7 @@ export class ActionGuard {
     debounceMs: number,
     signal?: AbortSignal,
   ): Promise<boolean> {
+    validateDelay(debounceMs, 'debounce');
     this.ensureAutoCleanup();
 
     if (signal?.aborted) return false;
@@ -262,6 +269,7 @@ export class ActionGuard {
    * @internal
    */
   throttle(actionKey: string, throttleMs: number, signal?: AbortSignal): boolean {
+    validateDelay(throttleMs, 'throttle');
     this.ensureAutoCleanup();
 
     if (signal?.aborted) return false;

@@ -33,6 +33,17 @@ describe('Store Class', () => {
       expect(store.getValue()).toBe('initial-value');
     });
 
+    it('should own object initial values instead of retaining caller aliases', () => {
+      const initialValue = { nested: { count: 1 } };
+      const ownedStore = createStore('owned-initial-value', initialValue);
+
+      initialValue.nested.count = 2;
+
+      expect(ownedStore.getValue()).toEqual({ nested: { count: 1 } });
+      expect(ownedStore.getSnapshot().value).toEqual({ nested: { count: 1 } });
+      ownedStore.dispose();
+    });
+
     it('should set and get values correctly', () => {
       store.setValue('new-value');
       expect(store.getValue()).toBe('new-value');
@@ -655,6 +666,17 @@ describe('Factory Functions', () => {
 });
 
 describe('Store Options and Edge Cases', () => {
+  it('should not freeze caller values when cloning is disabled', () => {
+    const store = createStore('no-clone-freeze', { count: 0 });
+    store.setCloningEnabled(false);
+    const value = { count: 1 };
+
+    store.setValue(value);
+
+    expect(Object.isFrozen(value)).toBe(false);
+    store.dispose();
+  });
+
   it('should handle setValue options correctly', () => {
     const store = createStore('options-test', { count: 0 });
     const listener = jest.fn();

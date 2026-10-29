@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { LiveEditorDocumentManager } from '../../../lib/live-code-editor-bridge';
 import { LiveEditorWorkspaceRepository } from '../../../lib/live-code-editor-storage';
@@ -755,9 +754,6 @@ function LiveWebCodingWorkbench({
               canonical store: Dexie · execution owner: parent registry ·
               runtime: sandbox iframe
             </span>
-            <Link to="/integrations/live-code-editor">
-              기존 Live Code Editor 열기 →
-            </Link>
           </footer>
         </div>
       </main>

@@ -170,8 +170,8 @@ async function main() {
     expectPresent(
       content,
       relativePath,
-      /react\/compiler-runtime/,
-      'the compiler-annotated store hooks must retain the React 19 compiler runtime import',
+      /(?:react\/compiler-runtime|react-compiler-runtime)/,
+      'the compiler-annotated store hooks must retain a compatible compiler runtime import',
     );
   }
 

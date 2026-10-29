@@ -40,4 +40,28 @@ describe('ActionGuard lifecycle', () => {
     expect(guard.getAllGuardStates().size).toBe(1001);
     guard.destroy();
   });
+
+  it.each([
+    ['debounce', Number.NaN],
+    ['debounce', Number.POSITIVE_INFINITY],
+    ['debounce', -1],
+    ['throttle', Number.NaN],
+    ['throttle', Number.POSITIVE_INFINITY],
+    ['throttle', -1],
+  ] as const)('rejects invalid %s delays before allocating guard state', async (kind, delay) => {
+    const guard = new ActionGuard(false);
+
+    if (kind === 'debounce') {
+      await expect(guard.debounce('invalid', delay)).rejects.toThrow(
+        `${kind} must be a non-negative finite number`,
+      );
+    } else {
+      expect(() => guard.throttle('invalid', delay)).toThrow(
+        `${kind} must be a non-negative finite number`,
+      );
+    }
+
+    expect(guard.getAllGuardStates().size).toBe(0);
+    guard.destroy();
+  });
 });

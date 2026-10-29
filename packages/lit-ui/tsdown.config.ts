@@ -2,7 +2,7 @@ import { defineConfig } from 'tsdown';
 
 // Runtime dependencies remain external; the host supplies Lit, @lit/context, and React.
 export default defineConfig({
-  entry: ['src/index.ts', 'src/ssr.ts', 'src/hydrate.ts'],
+  entry: ['src/index.ts', 'src/react-bridge.ts', 'src/ssr.ts', 'src/hydrate.ts'],
   format: ['esm', 'cjs'],
   dts: true,
   hash: false,

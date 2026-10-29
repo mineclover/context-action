@@ -24,6 +24,22 @@
     "@context-action/lit",
     "@context-action/lit-ui"
   ],
+  "elementInteropPrerequisite": {
+    "package": "@context-action/core",
+    "minimumVersion": "1.3.0",
+    "publicationOrder": [
+      "@context-action/core",
+      "@context-action/lit",
+      "@context-action/lit-ui"
+    ],
+    "status": "blocked-until-approved-core-cohort",
+    "requiredExports": ["./element", "./element/react"],
+    "candidateDependencies": {
+      "@context-action/lit-ui": {
+        "@context-action/core": "^1.3.0"
+      }
+    }
+  },
   "provenanceBinding": "workflow-release-commit",
   "changelogDates": {
     "@context-action/lit": "2026-10-23",

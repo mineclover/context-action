@@ -123,8 +123,8 @@ timeline capabilities should leave those capabilities disabled.
 `@context-action/react` 4.0 is the React state-management integration:
 
 - **Owns:** Store and Action context factories, React provider/hook lifecycle,
-  selective store subscriptions, React Compiler optimization, and the verified React 19.2 SSR and
-  hydration contract.
+  selective store subscriptions, React Compiler optimization, and the verified
+  React 18.3.1/19.2 SSR and hydration consumer contracts.
 - **Does not own:** domain rules, authorization, API clients, persistent
   workflows, cross-tab/process recovery, or provider tool execution.
 
@@ -164,6 +164,11 @@ in that frame has no reliable patches. A later known patch cannot narrow that
 full invalidation. Updates made inside a batched listener notify in a subsequent
 frame. Path dependency hints must include every path read by the selector.
 
+`useStoreValue(..., { condition })` is a render gate, not a subscription
+pause. While the condition is false, the hook remains subscribed and keeps the
+last visible value; this preserves the `useSyncExternalStore` snapshot contract
+and lets the latest value appear when the condition becomes true.
+
 ### Provider instance isolation
 
 Each mounted Provider owns its resources. Sibling Providers remain independent
@@ -202,9 +207,9 @@ external I/O and resources remain application-owned.
 Disposed Stores keep their final snapshot. Late `setValue`/`update` calls are
 ignored, including queued updates whose updater has not started yet.
 
-### React 19.2+ imports
+### React 18/19 imports
 
-Use the main entry point with React 19.2 or later:
+Use the main entry point with React 18.3.1 or React 19.2+:
 
 ```ts
 import {
@@ -214,9 +219,11 @@ import {
 } from '@context-action/react';
 ```
 
-The package declares React 19.2+ as its peer dependency. It publishes
-compiler-optimized hooks for this runtime, so consumers do not need to enable
-React Compiler in their own build to receive those optimizations.
+The package declares `^18.0.0 || ^19.0.0` as its peer dependency. The
+compatibility gate verifies React 18.3.1 and the supported React 19.2
+minimum/current pair. React Compiler and `<Activity>` behavior are React 19
+features; React 18 consumers use the same Store/Action/Context/Ref APIs without
+those React 19-only features.
 
 ### Activity boundaries
 

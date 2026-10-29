@@ -24,8 +24,8 @@
 
 | 명령어 | 용도 | 소요 시간 | 산출물 |
 |---|---|---|---|
-| `pnpm verify` | **전체 로컬 검증 정본 실행** (13개 워크스페이스 Typecheck, 패키지 경계 검증 및 테스트, Context-Action 컨벤션/카탈로그, 코어/React 아티팩트 패리티/경계/격리, AI SDK/Tool Protocol 계약, React Aria 수화, 문서 스니펫, Durable Operations 스키마 테스트, V1 공급망 감사, 릴리즈 안전 회귀 스위트 194개) | ~80s | `.verification/local-receipt.json` |
-| `pnpm verify:quick` | **빠른 스모크 검증** (Typecheck 전체 + 패키지 경계 + 컨벤션 + 아티팩트 패리티/경계 + Durable 증적 테스트) | ~11s | `.verification/local-receipt.json` |
+| `pnpm verify` | **전체 로컬 검증 정본 실행** (전체 workspace Typecheck, 패키지 경계 검증 및 테스트, Context-Action 컨벤션/카탈로그, 코어/React 아티팩트 패리티/경계/격리, AI SDK/Tool Protocol 계약, React Aria 수화, 문서 스니펫, Durable Operations 스키마 테스트, V1 공급망 감사, 현재 릴리즈 안전 회귀 테스트 집합) | 실행 환경에 따라 변동 | `.verification/local-receipt.json` |
+| `pnpm verify:quick` | **빠른 스모크 검증** (전체 workspace Typecheck + 패키지 경계 + 컨벤션 + 아티팩트 패리티/경계 + Durable 증적 테스트 + element 계약) | 실행 환경에 따라 변동 | `.verification/local-receipt.json` |
 | `pnpm verify:receipt` | **로컬 영수증 암호 무결성 감사** (CI 및 PR 게이트에서 호출) | <0.1s | 검증 성공 로그 (Exit 0 / 1) |
 
 ---
@@ -47,14 +47,16 @@
     "arch": "arm64"
   },
   "inputDigest": "sha256:d4517b56274f5113084ffc1955675a9f13e2f7ce0a19a7e5a0f5654cc26ec3e2",
+  "workingTree": "clean",
+  "treeDigest": "sha256:<working-tree-digest>",
   "suites": [
     {
-      "name": "1. Monorepo Typecheck (13 projects)",
+      "name": "1. Monorepo Typecheck (all workspace projects)",
       "durationSec": 10.42,
       "status": "passed"
     },
     {
-      "name": "13. Release Safety Regression Suite (194 tests)",
+      "name": "17. Release Safety Regression Suite (current test set)",
       "durationSec": 56.49,
       "status": "passed"
     }

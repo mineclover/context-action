@@ -1,9 +1,13 @@
-import { definePreactElement } from '@context-action/preact-ui';
+import {
+  definePreactElement,
+  type ManagedPreactElement,
+} from '@context-action/preact-ui';
 import { createCustomElementBridge } from '@context-action/preact-ui/react-bridge';
 import { useStoreValue } from '@context-action/react';
 import { signal } from '@preact/signals';
 import { h } from 'preact';
 import { useCallback, useMemo } from 'react';
+import { normalizeIntegerInput } from '../business/elementInputs';
 import { calculateOrderSummary } from '../business/orderCalculation';
 import {
   PreactWebComponentsActionsContext,
@@ -13,11 +17,24 @@ import {
 const STEPPER_TAG = 'preact-wc-stepper';
 const BADGE_TAG = 'preact-wc-badge';
 
+export interface StepperElementInput {
+  value: number;
+  min: number;
+  max: number;
+}
+export interface BadgeElementInput {
+  count: number;
+}
+export type PreactStepperElement = ManagedPreactElement<number> &
+  StepperElementInput;
+export type PreactBadgeElement = ManagedPreactElement<number> &
+  BadgeElementInput;
+
 function ensureCustomElementsRegistered() {
   if (typeof globalThis.customElements === 'undefined') return;
 
   if (!customElements.get(STEPPER_TAG)) {
-    definePreactElement({
+    definePreactElement<number, StepperElementInput>({
       tagName: STEPPER_TAG,
       formAssociated: true,
       observedAttributes: ['value', 'min', 'max', 'name'],
@@ -154,6 +171,40 @@ function ensureCustomElementsRegistered() {
         }
 
         return {
+          // Bridge properties must have real accessors. Attribute observation
+          // alone cannot observe direct DOM property assignment by React.
+          expose: {
+            get value(): number {
+              return countSignal.value;
+            },
+            set value(next: number | undefined) {
+              const value = normalizeIntegerInput(next, initialValue, 'value');
+              countSignal.value = value;
+              updateFormValueAndEvent(value); // programmatic input never echoes intent
+            },
+            get min(): number {
+              return getBounds().min;
+            },
+            set min(next: number | undefined) {
+              element.setAttribute(
+                'min',
+                String(normalizeIntegerInput(next, 1, 'min'))
+              );
+              updateFormValueAndEvent(countSignal.value);
+              context.requestUpdate();
+            },
+            get max(): number {
+              return getBounds().max;
+            },
+            set max(next: number | undefined) {
+              element.setAttribute(
+                'max',
+                String(normalizeIntegerInput(next, 99, 'max'))
+              );
+              updateFormValueAndEvent(countSignal.value);
+              context.requestUpdate();
+            },
+          },
           view: StepperView,
           getInput: () => countSignal.value,
           onConnect() {
@@ -181,7 +232,7 @@ function ensureCustomElementsRegistered() {
   }
 
   if (!customElements.get(BADGE_TAG)) {
-    definePreactElement({
+    definePreactElement<number, BadgeElementInput>({
       tagName: BADGE_TAG,
       observedAttributes: ['count'],
       style: `
@@ -252,6 +303,14 @@ function ensureCustomElementsRegistered() {
         }
 
         return {
+          expose: {
+            get count(): number {
+              return countSignal.value;
+            },
+            set count(next: number | undefined) {
+              countSignal.value = normalizeIntegerInput(next, 0, 'count');
+            },
+          },
           view: BadgeView,
           getInput: () => countSignal.value,
           onAttributeChange(name, _oldVal, newVal) {
@@ -288,7 +347,10 @@ export interface BadgeBridgeProps {
   id?: string;
 }
 
-export const PreactStepper = createCustomElementBridge<StepperBridgeProps>({
+export const PreactStepper = createCustomElementBridge<
+  StepperBridgeProps,
+  PreactStepperElement
+>({
   tagName: STEPPER_TAG,
   properties: ['value', 'min', 'max', 'name'],
   events: {
@@ -296,7 +358,10 @@ export const PreactStepper = createCustomElementBridge<StepperBridgeProps>({
   },
 });
 
-export const PreactBadge = createCustomElementBridge<BadgeBridgeProps>({
+export const PreactBadge = createCustomElementBridge<
+  BadgeBridgeProps,
+  PreactBadgeElement
+>({
   tagName: BADGE_TAG,
   properties: ['count'],
   events: {

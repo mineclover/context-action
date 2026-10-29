@@ -68,6 +68,10 @@ consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 �
 이미 존재하는 버전을 현재 소스의 산출물로 간주하거나 다른 커밋의 패키지에
 새 dist-tag를 붙여 재사용하지 않습니다.
 
+`publish-packages.yml`은 자동 tag push를 publication trigger로 사용하지 않습니다.
+일반 도구 cohort를 게시하려면 보호된 `workflow_dispatch`에서 정확한
+`release_commit`을 입력하고 `npm-stable` environment 승인을 통과해야 합니다.
+
 `publish-v1-stable-candidate.yml`은 이미 완료된 1.0.0 cohort에 고정된 역사적
 경로입니다. 새로운 minor 또는 major 안정 릴리즈에 재사용하지 않습니다.
 
