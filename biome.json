@@ -3,6 +3,8 @@
   "files": {
     "includes": [
       "packages/core/src/**/*.ts",
+      "packages/core/examples/element-hosts/**/*.ts",
+      "packages/store-core/src/**/*.ts",
       "packages/tool-protocol/src/**/*.ts",
       "packages/webmcp/src/**/*.ts",
       "packages/tool-durable-operations/src/**/*.ts",
@@ -10,6 +12,7 @@
       "packages/react/src/**/*.tsx",
       "packages/mutative-core/src/**/*.ts",
       "packages/mutative/src/**/*.ts",
+      "packages/mutative/examples/travels-v3/**/*.ts",
       "packages/llms-generator/src/**/*.ts",
       "packages/typedoc-vitepress-sync/src/**/*.ts",
       "scripts/**/*.cjs",

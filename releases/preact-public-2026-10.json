@@ -20,6 +20,22 @@
     "@context-action/preact",
     "@context-action/preact-ui"
   ],
+  "elementInteropPrerequisite": {
+    "package": "@context-action/core",
+    "minimumVersion": "1.3.0",
+    "publicationOrder": [
+      "@context-action/core",
+      "@context-action/preact",
+      "@context-action/preact-ui"
+    ],
+    "status": "blocked-until-approved-core-cohort",
+    "requiredExports": ["./element", "./element/react"],
+    "candidateDependencies": {
+      "@context-action/preact-ui": {
+        "@context-action/core": "^1.3.0"
+      }
+    }
+  },
   "provenanceBinding": "workflow-release-commit",
   "changelogDates": {
     "@context-action/preact": "2026-10-18",

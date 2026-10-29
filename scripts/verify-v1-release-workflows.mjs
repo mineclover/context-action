@@ -351,6 +351,47 @@ export function validateReleaseWorkflowSources({
   }
 
   const generalPublication = publicationCommandText(generalInspection);
+  if (Object.hasOwn(generalInspection.document.on ?? {}, 'push')) {
+    errors.push('General publish workflow must not publish from an automatic push or tag trigger');
+  }
+  const generalReleaseInput = workflowInput(generalInspection.document, 'release_commit');
+  if (!generalReleaseInput || typeof generalReleaseInput !== 'object' || generalReleaseInput.required !== true) {
+    errors.push('General publish workflow must require an explicit release_commit');
+  }
+  const generalJob = generalInspection.jobs[0];
+  if (environmentName(generalJob) !== 'npm-stable') {
+    errors.push('General publish workflow must use the protected npm-stable environment');
+  }
+  requireText(
+    errors,
+    generalPublish,
+    'ref: ${{ inputs.release_commit }}',
+    'General publish workflow must check out the requested immutable release commit',
+  );
+  requireExecutableCommand(
+    errors,
+    generalInspection,
+    'test "$GITHUB_REF" = "refs/heads/main"',
+    'General publish workflow must reject runs outside main',
+  );
+  requireExecutableCommand(
+    errors,
+    generalInspection,
+    'test "$RELEASE_COMMIT" = "$GITHUB_SHA"',
+    'General publish workflow must bind npm provenance GITHUB_SHA to RELEASE_COMMIT',
+  );
+  requireExecutableCommand(
+    errors,
+    generalInspection,
+    'test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"',
+    'General publish workflow must verify the checked-out commit',
+  );
+  requireExecutableCommand(
+    errors,
+    generalInspection,
+    'git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main',
+    'General publish workflow must verify the release commit is contained in main',
+  );
   for (const name of [
     '@context-action/typedoc-vitepress-sync',
     '@context-action/ai-sdk',

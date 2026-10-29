@@ -5,10 +5,11 @@
  * Uses JSON patches from TimeTravelStore to determine if subscribed paths are affected.
  */
 
-import { useSyncExternalStore, useCallback, useRef } from 'react';
+import { useCallback, useRef, useSyncExternalStore } from 'react';
 import { TimeTravelStore } from '../core/TimeTravelStore';
-import { createPathSignature, createPathsSignature } from '../utils/path-signature';
 import { patchesAffectPath } from '../utils/patch-affects-path';
+import { createPathSignature, createPathsSignature } from '../utils/path-signature';
+import { defaultEqualityFn } from './useStoreSelector';
 
 /**
  * Path type for store subscription
@@ -177,7 +178,7 @@ export function useTimeTravelSelector<T, R>(
   selector: (value: T) => R,
   options: UseTimeTravelSelectorOptions<R> = {}
 ): R {
-  const { dependsOn, equalityFn } = options;
+  const { dependsOn, equalityFn = defaultEqualityFn } = options;
 
   // Cache for value comparison
   const cacheRef = useRef<{ store: TimeTravelStore<T>; value: R } | undefined>(undefined);
@@ -228,11 +229,7 @@ export function useTimeTravelSelector<T, R>(
     if (cacheRef.current?.store === store) {
       const prevValue = cacheRef.current.value;
 
-      if (equalityFn) {
-        if (equalityFn(prevValue, currentValue)) {
-          return prevValue;
-        }
-      } else if (Object.is(prevValue, currentValue)) {
+      if (equalityFn(prevValue, currentValue)) {
         return prevValue;
       }
     }

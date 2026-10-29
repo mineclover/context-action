@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import net from 'node:net';
 import path from 'node:path';
@@ -116,8 +117,8 @@ async function stopServer() {
   serverProcess = undefined;
 }
 
-function selectRoutes(options) {
-  const routes = canonicalRoutes(buildExampleRouteIndex());
+function selectRoutes(options, allRoutes = buildExampleRouteIndex()) {
+  const routes = canonicalRoutes(allRoutes);
   if (options.routes.length) {
     const requested = new Set(options.routes);
     const missing = options.routes.filter((route) => !routes.some((entry) => entry.path === route));
@@ -126,6 +127,50 @@ function selectRoutes(options) {
   }
   if (options.all) return routes;
   return selectAffectedRoutes(options.changedFiles, routes);
+}
+
+function collectExampleSourceFiles(directory) {
+  const files = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const entryPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...collectExampleSourceFiles(entryPath));
+    } else if (/\.(?:ts|tsx|js|jsx)$/.test(entry.name)) {
+      files.push(entryPath);
+    }
+  }
+  return files;
+}
+
+function assertInternalLinksMatchRoutes(routes) {
+  const routePaths = new Set(routes.map((route) => route.path));
+  const missing = [];
+  const internalLinkPattern =
+    /(?<![-\w])(?:to|href)\s*=\s*["'](\/[A-Za-z0-9._/-]+)["']/g;
+
+  for (const sourcePath of collectExampleSourceFiles(path.join(exampleDirectory, 'src'))) {
+    const source = fs.readFileSync(sourcePath, 'utf8');
+    const sourceWithoutComments = source
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/.*$/gm, '');
+    for (const match of sourceWithoutComments.matchAll(internalLinkPattern)) {
+      const routePath = match[1];
+      if (!routePaths.has(routePath)) {
+        missing.push(
+          `${routePath} (${path.relative(rootDirectory, sourcePath)})`
+        );
+      }
+    }
+  }
+
+  if (missing.length) {
+    throw new Error(
+      `Example internal links without a registered route:\n${missing.join('\n')}`
+    );
+  }
+  console.log(
+    `Verified internal example links: ${routePaths.size} routes indexed.`
+  );
 }
 
 async function runSmoke(url, routes) {
@@ -146,7 +191,25 @@ async function runSmoke(url, routes) {
           waitUntil: 'domcontentloaded',
         });
         await page.locator('body').waitFor();
-        await page.waitForTimeout(150);
+        await page.locator('[data-example-route-ready="true"]').waitFor({
+          state: 'attached',
+          timeout: 10_000,
+        });
+        await page.waitForFunction(
+          (expectedRoute) => {
+            const marker = document.querySelector(
+              '[data-example-route-ready="true"]'
+            );
+            const routePath = marker?.getAttribute('data-example-route-path');
+            return Boolean(
+              routePath?.endsWith(expectedRoute) &&
+                !document.querySelector('[data-example-route-loading="true"]') &&
+                !document.querySelector('[data-example-not-found="true"]')
+            );
+          },
+          route.path,
+          { timeout: 10_000 }
+        );
         if (!((await page.locator('body').innerText()).trim())) {
           throw new Error('The route rendered an empty document body.');
         }
@@ -172,13 +235,15 @@ async function runSmoke(url, routes) {
 }
 
 const options = parseArguments(process.argv.slice(2));
+const allRoutes = buildExampleRouteIndex();
+assertInternalLinksMatchRoutes(allRoutes);
 if (Boolean(options.base) !== Boolean(options.head)) {
   throw new Error('--base and --head must be supplied together.');
 }
 if (options.base && options.head) {
   options.changedFiles.push(...collectChangedFiles(options.base, options.head));
 }
-const routes = selectRoutes(options);
+const routes = selectRoutes(options, allRoutes);
 if (!routes.length) {
   console.log('No public example route is affected by the supplied files.');
 } else {

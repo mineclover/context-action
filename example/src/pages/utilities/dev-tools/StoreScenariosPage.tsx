@@ -3,6 +3,7 @@
  * 다양한 상태 관리 시나리오를 보여주는 실용적인 데모들
  */
 
+import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { ChatDemo } from '@/pages/integrations/business/store-scenarios/components';
 import { StoreScenarios } from '@/pages/integrations/business/store-scenarios/stores';
@@ -160,24 +161,24 @@ export function StoreScenariosPage() {
               🔗 관련 리소스
             </h2>
             <div className="grid md:grid-cols-3 gap-4">
-              <a
-                href="/demos/chat"
+              <Link
+                to="/demos/chat"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 💬 Chat Demo 페이지
-              </a>
-              <a
-                href="/refs/canvas"
+              </Link>
+              <Link
+                to="/refs/canvas"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 🎨 Canvas Ref Demo
-              </a>
-              <a
-                href="/actionguard/scroll"
+              </Link>
+              <Link
+                to="/actionguard/scroll"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 📜 Advanced Scroll Demo
-              </a>
+              </Link>
             </div>
           </div>
         </div>

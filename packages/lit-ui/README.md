@@ -1,12 +1,16 @@
 # @context-action/lit-ui
 
+> Workspace change: facade/React interop uses Core's optional Element entries.
+> See the [requirements review](../core/docs/interop-review.en.md)
+> and [release prerequisites](UNRELEASED.md). This is not a change to a published version.
+
 Web Component primitives, Form-Associated Custom Elements (FACE), W3C Context Protocol (`@lit/context`) dependency injection, and React 18/19 custom element bridge for the Context-Action state management framework.
 
 ## Responsibilities
 
 - **`FormAssociatedLitElement`**: Abstract base class extending `LitElement` with full Form-Associated Custom Elements (FACE) support (`ElementInternals`, standard validation constraints, `setFormValue()`, and leak-free `formResetCallback()` coordination).
 - **W3C Context Protocol Integration**: Global context tokens (`actionRegisterContext`, `actionDispatcherContext`, `createStoreContext`), imperative providers (`provideStore`, `provideActionRegister`, `provideActionDispatcher`), and reactive context controllers (`ContextStoreController`, `ContextActionController`) crossing Shadow DOM boundaries.
-- **`createLitElementBridge`**: React 18/19 custom element bridge with direct property assignment (bypassing attribute stringification), property removal, handler-identity event reconciliation, OOP facade handles, and ref forwarding.
+- **`createLitElementBridge` (`@context-action/lit-ui/react-bridge`)**: React 18/19 custom element bridge with direct property assignment (bypassing attribute stringification), property removal, handler-identity event reconciliation, OOP facade handles, and ref forwarding.
 - **`@context-action/lit-ui/ssr`**: Lit SSR renderers (`renderLitElement`, `renderLitTemplate`) and client hydration (`hydrateLit`) that preserve `part`, `data-*`, and declarative shadow roots.
 - **`@context-action/lit-ui/hydrate`**: Client-only hydration entry. It loads Lit hydration support and never imports the server renderer.
 - **`ControllerScope`**: Re-exported from `@context-action/lit` for LIFO ReactiveController and cleanup disposal.
@@ -14,7 +18,8 @@ Web Component primitives, Form-Associated Custom Elements (FACE), W3C Context Pr
 ## React Bridge
 
 ```tsx
-import { createElementFacade, createLitElementBridge } from '@context-action/lit-ui';
+import { createElementFacade } from '@context-action/lit-ui';
+import { createLitElementBridge } from '@context-action/lit-ui/react-bridge';
 
 type TimelineHandle = Pick<TimelineElement, 'focusItem' | 'scrollTo' | 'commitSelection'>;
 
@@ -64,7 +69,8 @@ pnpm add @lit-labs/ssr @lit-labs/ssr-client
 ```
 
 `lit`, `@lit/context`, and `react` are peer dependencies. `react` is optional
-and only needed for `createLitElementBridge`. The SSR peers are optional and
+and only needed for the `@context-action/lit-ui/react-bridge` entry. The root
+entry has no React runtime or type dependency. The SSR peers are optional and
 only needed for `@context-action/lit-ui/ssr`.
 
 The SSR entry does not read `window` or `document` at module evaluation time,

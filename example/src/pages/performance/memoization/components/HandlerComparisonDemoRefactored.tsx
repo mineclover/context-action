@@ -31,11 +31,11 @@ export function HandlerComparisonDemoRefactored() {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">
-          useActionHandler Memoization Comparison (MVVM)
+          useActionHandler memoization comparison (MVVM)
         </h2>
         <p className="text-gray-600">
-          Compare performance between memoized and non-memoized action handlers
-          using MVVM architecture
+          Compare stable and re-created action handler registrations using the
+          Context-Layered architecture.
         </p>
       </div>
 

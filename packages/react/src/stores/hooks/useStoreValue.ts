@@ -1,16 +1,16 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: generic store implementation boundary.
 
 import { useMemo } from 'react';
-import { shallowEqual, defaultEqualityFn } from './useStoreSelector';
 import type { IStore } from '../core/types';
 import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
+import { defaultEqualityFn, shallowEqual } from './useStoreSelector';
 
 /**
  * Performance-optimized store value hook with advanced features
  * 
  * Enhanced version of useStoreValue that prevents unnecessary re-renders through
  * intelligent subscription management, selective updates, debouncing, throttling,
- * and conditional subscription. Follows React best practices and hooks rules.
+ * and conditional rendering. Follows React best practices and hooks rules.
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
@@ -35,7 +35,10 @@ export interface StoreValueOptions<R> {
   /** Custom equality comparison function to determine when to trigger re-renders */
   equalityFn?: (a: R, b: R) => boolean;
 
-  /** Subscription condition - pause subscription when false */
+  /**
+   * Render condition. When false, keep the last visible value while remaining
+   * subscribed so useSyncExternalStore can observe every snapshot.
+   */
   condition?: () => boolean;
 
   /** Debounce delay in milliseconds - groups rapid changes together */

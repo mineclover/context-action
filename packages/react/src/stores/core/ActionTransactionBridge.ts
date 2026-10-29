@@ -1,16 +1,16 @@
 import type { ActionDispatchTrace, ActionDispatchTraceListener } from '@context-action/core';
 import type {
-  StoreTransactionCoordinator,
-  StoreTransactionHandle,
-  StoreTransactionParticipant,
-} from './StoreTransactionCoordinator';
+  TransactionCoordinatorPort,
+  TransactionHandle,
+  TransactionParticipant,
+} from '@context-action/store-core';
 
 export interface DispatchTraceSource {
   subscribeDispatchTrace(listener: ActionDispatchTraceListener): () => void;
 }
 
 export interface ActionTransactionBridgeOptions {
-  getParticipants(event: ActionDispatchTrace): readonly StoreTransactionParticipant<any>[];
+  getParticipants(event: ActionDispatchTrace): readonly TransactionParticipant[];
 }
 
 /**
@@ -19,18 +19,18 @@ export interface ActionTransactionBridgeOptions {
  */
 export function bindActionTransactions(
   source: DispatchTraceSource,
-  coordinator: StoreTransactionCoordinator,
+  coordinator: TransactionCoordinatorPort,
   options: ActionTransactionBridgeOptions,
 ): () => void {
-  const pending = new Map<string, StoreTransactionHandle>();
+  const pending = new Map<string, TransactionHandle>();
   const unsubscribe = source.subscribeDispatchTrace(event => {
     if (event.phase === 'started') {
       const participants = options.getParticipants(event);
       if (participants.length === 0) return;
       const handle = coordinator.begin(participants, {
-        transactionId: event.transactionId,
+        ...(event.transactionId === undefined ? {} : { transactionId: event.transactionId }),
         actionId: event.dispatchId,
-        origin: event.origin,
+        ...(event.origin === undefined ? {} : { origin: event.origin }),
         label: event.label ?? event.action,
       });
       pending.set(event.dispatchId, handle);

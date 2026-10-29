@@ -287,4 +287,24 @@ describe('useComputedStore', () => {
     // When cache is enabled, going back to a cached value may avoid recomputation
     expect(computeCount).toBeGreaterThanOrEqual(initialCount);
   });
+
+  it('should invalidate the cache when the compute function changes', () => {
+    const sourceStore = createStore('computed-cache-invalidation', { value: 1 });
+
+    const { result, rerender } = renderHook(
+      ({ multiplier }) => useComputedStore(
+        sourceStore,
+        (value) => value.value * multiplier,
+        { enableCache: true },
+      ),
+      { initialProps: { multiplier: 1 } },
+    );
+
+    expect(result.current).toBe(1);
+
+    rerender({ multiplier: 2 });
+
+    expect(result.current).toBe(2);
+    sourceStore.dispose();
+  });
 });

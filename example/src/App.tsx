@@ -22,6 +22,11 @@ const WarningDemoPage = lazy(() => import('./pages/WarningDemoPage'));
 
 // Demos Index - Interactive demonstrations hub
 const DemosIndexPage = lazy(() => import('./pages/DemosIndexPage'));
+const StoreScenariosPage = lazy(() =>
+  import('./pages/utilities/dev-tools/StoreScenariosPage').then((module) => ({
+    default: module.StoreScenariosPage,
+  }))
+);
 
 // Foundations - Core concepts (smaller chunks)
 const CoreBasicsPage = lazy(
@@ -137,6 +142,12 @@ const MemoizationPerformancePage = lazy(
 );
 const MemoizationDemoPage = lazy(
   () => import('./pages/performance/memoization/DemoPage')
+);
+const MemoizationAnalysisPage = lazy(
+  () => import('./pages/performance/memoization/AnalysisPage')
+);
+const MemoizationGuidelinesPage = lazy(
+  () => import('./pages/performance/memoization/GuidelinesPage')
 );
 
 // Patterns - Business Logic (separate chunk for business logic patterns)
@@ -330,17 +341,45 @@ function ConsoleClearer() {
   return null;
 }
 
+function NotFoundPage() {
+  const location = useLocation();
+
+  return (
+    <div
+      className="mx-auto flex min-h-[50vh] max-w-2xl flex-col items-center justify-center px-6 text-center"
+      data-example-not-found="true"
+    >
+      <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">
+        404
+      </p>
+      <h1 className="mt-3 text-3xl font-bold text-slate-900">
+        페이지를 찾을 수 없습니다.
+      </h1>
+      <p className="mt-3 text-slate-600">
+        <code>{location.pathname}</code>에 해당하는 예제 경로가 없습니다.
+      </p>
+    </div>
+  );
+}
+
 function AppContent() {
   // VitePress에서 전달된 리디렉션 처리
   useVitePressRedirect();
+  const location = useLocation();
 
   return (
-    <>
+    <div
+      data-example-route-ready="true"
+      data-example-route-path={location.pathname}
+    >
       <ConsoleClearer />
       <Layout>
         <Suspense
           fallback={
-            <div className="flex items-center justify-center min-h-screen">
+            <div
+              className="flex items-center justify-center min-h-screen"
+              data-example-route-loading="true"
+            >
               <div className="text-lg">Loading page...</div>
             </div>
           }
@@ -504,6 +543,14 @@ function AppContent() {
               path="/performance/memoization/demo"
               element={<MemoizationDemoPage />}
             />
+            <Route
+              path="/performance/memoization/analysis"
+              element={<MemoizationAnalysisPage />}
+            />
+            <Route
+              path="/performance/memoization/guidelines"
+              element={<MemoizationGuidelinesPage />}
+            />
 
             {/* 🎛️ PATTERNS - Advanced patterns, conditional execution */}
             <Route
@@ -615,6 +662,10 @@ function AppContent() {
             <Route
               path="/utilities/dev-tools/warning-demo"
               element={<WarningDemoPage />}
+            />
+            <Route
+              path="/utilities/dev-tools/store-scenarios"
+              element={<StoreScenariosPage />}
             />
             <Route
               path="/utilities/source-directory"
@@ -742,6 +793,10 @@ function AppContent() {
             <Route path="/demos" element={<DemosIndexPage />} />
             <Route path="/demos/chat" element={<ChatPage />} />
             <Route
+              path="/demos/store-scenarios"
+              element={<StoreScenariosPage />}
+            />
+            <Route
               path="/demos/action-priority"
               element={<ActionPriorityDemoPage />}
             />
@@ -758,6 +813,7 @@ function AppContent() {
               element={<EnhancedAbortableSearchExample />}
             />
             <Route path="/logger/demo" element={<LoggerDemoPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </Layout>
@@ -765,7 +821,7 @@ function AppContent() {
       {/* 글로벌 토스트 시스템 */}
       <ToastContainer />
       <ToastControlPanel />
-    </>
+    </div>
   );
 }
 

@@ -53,9 +53,10 @@ options cannot be confused:
 await register.actions.reset(undefined, { debounce: 100 });
 ```
 
-`@context-action/react` requires React 19.2 or later. Import Store and Action
-APIs from `@context-action/react`; the former `react18` compatibility entry
-point is no longer exported.
+`@context-action/react` supports React 18.3.1 and React 19.2+. Import Store and
+Action APIs from `@context-action/react`; the former `react18` compatibility
+entry point is no longer exported. React 19.2-only Activity behavior remains
+scoped to React 19 consumers.
 The maintained `@context-action/mutative-core` / `@context-action/mutative`
 fork remains the immutable runtime contract. The current stable cohort uses
 Core `1.2.6`, Store Core `0.1.3`, Mutative Core `0.8.14`, scoped adapter `0.8.15`, and React `4.0.7`.

@@ -196,6 +196,8 @@ test('optional peers do not grant basic packages arbitrary integration dependenc
   for (const [name, dependency] of [
     ['core', '@context-action/tool-protocol'],
     ['store-core', '@context-action/webmcp'],
+    ['core', '@context-action/lit'],
+    ['core', '@context-action/preact'],
     ['react', '@context-action/ai-sdk'],
     ['react', '@context-action/tool-durable-operations'],
   ]) {

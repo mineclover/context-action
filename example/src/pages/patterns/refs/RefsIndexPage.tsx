@@ -3,10 +3,8 @@
  * Context-Action 프레임워크의 ref 관리 시스템 종합 가이드
  */
 
-// TODO: PageLayout component needs to be restored or created
-// import { PageLayout } from '../../components/layout/PageLayout';
+import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
-// import { Card, CardContent, Badge } from '@/components/ui';
 import { CodeBlock } from '@/components/ui';
 
 export function RefsIndexPage() {
@@ -177,8 +175,8 @@ function Component() {
             <h2 className="text-2xl font-bold mb-6">🎮 실시간 데모</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Canvas Demo */}
-              <a
-                href="/refs/canvas"
+              <Link
+                to="/refs/canvas"
                 className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-purple-300"
               >
                 <div className="flex items-start gap-4">
@@ -210,11 +208,11 @@ function Component() {
                     </div>
                   </div>
                 </div>
-              </a>
+              </Link>
 
               {/* Mouse Events Demo */}
-              <a
-                href="/actionguard/mouse-events"
+              <Link
+                to="/actionguard/mouse-events"
                 className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300"
               >
                 <div className="flex items-start gap-4">
@@ -246,11 +244,11 @@ function Component() {
                     </div>
                   </div>
                 </div>
-              </a>
+              </Link>
 
               {/* Form Builder Demo */}
-              <a
-                href="/refs/form-builder"
+              <Link
+                to="/integrations/advanced/form-builder"
                 className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-green-300"
               >
                 <div className="flex items-start gap-4">
@@ -282,11 +280,11 @@ function Component() {
                     </div>
                   </div>
                 </div>
-              </a>
+              </Link>
 
               {/* useWaitForRefs Performance Demo */}
-              <a
-                href="/refs/waitforrefs-performance"
+              <Link
+                to="/refs/waitforrefs-performance"
                 className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-orange-300"
               >
                 <div className="flex items-start gap-4">
@@ -319,11 +317,11 @@ function Component() {
                     </div>
                   </div>
                 </div>
-              </a>
+              </Link>
 
               {/* useRefMountState Test Demo */}
-              <a
-                href="/refs/use-ref-mount-state-test"
+              <Link
+                to="/refs/use-ref-mount-state-test"
                 className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300"
               >
                 <div className="flex items-start gap-4">
@@ -355,7 +353,7 @@ function Component() {
                     </div>
                   </div>
                 </div>
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -507,19 +505,25 @@ function Component() {
             <h2 className="text-xl font-bold mb-4">🔗 추가 자료</h2>
             <div className="grid md:grid-cols-3 gap-4">
               <a
-                href="/docs"
+                href="https://mineclover.github.io/context-action/en/"
+                target="_blank"
+                rel="noreferrer"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 📖 공식 문서
               </a>
               <a
-                href="/examples"
+                href="https://mineclover.github.io/context-action/en/examples/"
+                target="_blank"
+                rel="noreferrer"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 🎮 더 많은 예제
               </a>
               <a
-                href="/api"
+                href="https://mineclover.github.io/context-action/en/api/"
+                target="_blank"
+                rel="noreferrer"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 📚 API 문서

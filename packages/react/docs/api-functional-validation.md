@@ -20,9 +20,12 @@ published-shape exports, strict declarations, module formats, and peer isolation
 | Core public errors and type guards | Real error identity, negative/forged inputs, validation and lifecycle failures | `packages/core/__tests__/unit/public-error-guards.contract.test.ts`, `schema/validation-integration.test.ts`, lifecycle/dispatch contracts |
 | `createActionContext` and returned hooks | Dispatch/results, effect/result/guard/observer registration, observer outcomes, scope reset, registration cleanup, Provider isolation | `__tests__/actions/`, `__tests__/provider-isolation.contract.test.tsx` |
 | `Store`, `createStore`, value/selector/path hooks | Reads/writes, patch/full-invalidation batching, equality including `undefined`, Store replacement, subscriptions, disposal | `__tests__/stores/core/Store.test.ts`, `__tests__/stores/hooks/` |
+| Engine-neutral `PatchAwareStore`, `StorePathPatch` and path hooks | Readonly patches/const paths, array and JSON Pointer paths, move sources, copy destination shifts, escaped keys, conservative fallback, intentional nullish snapshots | `__tests__/stores/hooks/path-subscription-portability.contract.test.tsx`, `__tests__/stores/utils/patch-affects-path.test.ts` |
 | `TimeTravelStore`, factories/type guard, history hooks | Undo/redo/goTo/reset, history limits, selection replacement/equality, stable controls, subscription cleanup | `__tests__/stores/core/TimeTravelStore.test.ts`, `__tests__/stores/hooks/time-travel-api.contract.test.tsx`, `path-subscription-stability.test.tsx` |
 | Store Context factories/managers, `asStoreValue` | Configuration/value discrimination, explicit values, Provider/HOC lifecycle, StrictMode/Activity preservation, context subscriptions | `__tests__/stores/patterns/`, `__tests__/provider-isolation.contract.test.tsx` |
-| `StoreTransactionCoordinator`, `bindActionTransactions`, inspector hook | Commit/rollback, atomic undo, retained-entry conflicts, action trace bridge, serializable metadata and reactive inspection | `__tests__/stores/core/StoreTransaction*.test.*`, `ActionTransactionBridge.test.ts` |
+| `StoreTransactionCoordinator`, `bindActionTransactions`, inspector hook | Commit/rollback, atomic undo, retained-entry conflicts, action trace bridge, omitted optional metadata and reactive inspection | `__tests__/stores/core/StoreTransaction*.test.*`, `ActionTransactionBridge.test.ts`, `action-transaction-metadata.contract.test.ts` |
+| Optional transaction `batchControl` | Scoped lifecycle authority, real participant identity, undo/redo after control expiry, captured participant fields and admission-failure cleanup | `__tests__/stores/core/transaction-batch-control.contract.test.ts` |
+| Shared minimal transaction protocols | Versionless observation, ownership-free participants, retained-entry undo/redo, rollback and begin-only Action bridge | `__tests__/stores/core/transaction-participant.contract.test.ts`, strict packed ESM/CJS type fixtures |
 | `createRefContext` and returned hooks | Ref attachment, mount waits and reactive waiting flags, independent deadlines, mount callbacks/unsubscribe, state-change callbacks/live checkers, polling, conditional/async operations, cancellation/serialization, disposal and Provider lifetime | `__tests__/refs/`, including `ref-public-api.contract.test.tsx` |
 | Error boundaries and React helpers | Fallback/recovery and helper/error behavior | `__tests__/stores/components/StoreErrorBoundary.test.tsx`, `__tests__/actions/react-helpers.test.ts` |
 | `/advanced` | Registry operations, computed/local Store reads and updates, error utilities/boundaries | `__tests__/public-subpaths.contract.test.tsx`, `stores/core/StoreRegistry.test.ts`, `stores/hooks/useComputedStore.test.tsx`, `useLocalStore.test.tsx` |
@@ -31,6 +34,11 @@ published-shape exports, strict declarations, module formats, and peer isolation
 | `/webmcp` (opt-in) | Browser API registration/cleanup, pending-registration cancellation, option freshness, profile selection | `__tests__/tools/useWebMCPToolScope.test.tsx` (browser API doubles, not real browser support certification) |
 
 Paths without a package prefix above are relative to `packages/react`.
+
+The workspace-only `travels-v3-journal.experimental.test.tsx` additionally connects
+the upstream controlled journal prototype to the existing Coordinator, Action
+bridge and React hooks. This is source integration evidence, not publication or
+real-browser certification of the prototype.
 
 ## Installed-package boundary
 

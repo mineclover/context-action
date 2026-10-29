@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.2.1] (2026-10-29)
+
+Core 1.3.0 element interop cohort candidate. The adapter now uses Core
+element/react subpaths through `@context-action/core@^1.3.0`.
+
 ## [0.2.0] (2026-10-18)
 
 Published to npm on 2026-10-23. `latest` and `next` resolve to `0.2.0`.

@@ -28,12 +28,12 @@ const MemoizationPerformancePage: React.FC = () => {
 
         <div className="bg-white shadow rounded-lg p-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            메모이제이션 성능 비교
+            Action handler 메모이제이션 성능 비교
           </h1>
 
           <p className="text-gray-600 mb-6">
-            Context-Action에서 메모이제이션 사용 여부에 따른 성능 차이를
-            비교하고 분석합니다.
+            Context-Action에서 안정적인 handler 등록과 매 렌더링마다 다시
+            만들어지는 handler 등록의 차이를 비교하고 분석합니다.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -45,33 +45,30 @@ const MemoizationPerformancePage: React.FC = () => {
                 실시간 성능 비교 데모
               </h3>
               <p className="text-blue-700">
-                메모이제이션 사용/미사용 시나리오를 실시간으로 비교하고 성능
-                지표를 확인합니다.
+                메모이제이션된 handler와 재생성되는 handler 시나리오를
+                실시간으로 비교하고 성능 지표를 확인합니다.
               </p>
             </Link>
-
             <Link
               to="/performance/memoization/analysis"
-              className="block p-6 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+              className="block rounded-lg bg-indigo-50 p-6 transition-colors hover:bg-indigo-100"
             >
-              <h3 className="text-lg font-semibold text-green-900 mb-2">
+              <h3 className="mb-2 text-lg font-semibold text-indigo-900">
                 성능 분석 리포트
               </h3>
-              <p className="text-green-700">
-                다양한 시나리오에서의 메모이제이션 효과를 상세히 분석합니다.
+              <p className="text-indigo-700">
+                측정값을 해석하고 비교 결과를 읽는 방법을 확인합니다.
               </p>
             </Link>
-
             <Link
               to="/performance/memoization/guidelines"
-              className="block p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+              className="block rounded-lg bg-emerald-50 p-6 transition-colors hover:bg-emerald-100"
             >
-              <h3 className="text-lg font-semibold text-purple-900 mb-2">
-                메모이제이션 가이드라인
+              <h3 className="mb-2 text-lg font-semibold text-emerald-900">
+                메모이제이션 가이드
               </h3>
-              <p className="text-purple-700">
-                언제 메모이제이션을 사용해야 하는지에 대한 실용적인
-                가이드라인입니다.
+              <p className="text-emerald-700">
+                적용 기준과 측정 시 주의할 점을 정리합니다.
               </p>
             </Link>
           </div>

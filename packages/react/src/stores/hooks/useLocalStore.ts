@@ -1,7 +1,7 @@
-import { useRef } from 'react';
-import { Store, createStore } from '../core/Store';
-import { useStoreValue } from './useStoreValue';
+import { useInsertionEffect, useRef } from 'react';
+import { createStore, Store } from '../core/Store';
 import type { Snapshot } from '../core/types';
+import { useStoreValue } from './useStoreValue';
 
 // Counter for generating unique store names (more efficient than Date.now + Math.random)
 let localStoreCounter = 0;
@@ -19,6 +19,16 @@ export function useLocalStore<T>(
   }
 
   const store = storeRef.current;
+
+  useInsertionEffect(() => {
+    return () => {
+      store.dispose();
+      if (storeRef.current === store) {
+        storeRef.current = null;
+      }
+    };
+  }, [store]);
+
   const value = useStoreValue(store);
 
   return {

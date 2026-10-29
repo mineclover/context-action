@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { CodeBlock } from '@/components/ui';
 import { Canvas, type CanvasEvent } from './canvas/Canvas';
 import { CanvasProvider } from './canvas/CanvasContext';
@@ -408,8 +409,8 @@ export function Canvas({ width, height, onFocusChange }) {
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">🔗 관련 데모</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <a
-            href="/refs/form-builder"
+          <Link
+            to="/integrations/advanced/form-builder"
             className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-start gap-3">
@@ -426,9 +427,9 @@ export function Canvas({ width, height, onFocusChange }) {
                 </span>
               </div>
             </div>
-          </a>
-          <a
-            href="/refs"
+          </Link>
+          <Link
+            to="/refs"
             className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-start gap-3">
@@ -445,7 +446,7 @@ export function Canvas({ width, height, onFocusChange }) {
                 </span>
               </div>
             </div>
-          </a>
+          </Link>
         </div>
       </div>
     </div>

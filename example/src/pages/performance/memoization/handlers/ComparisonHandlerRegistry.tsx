@@ -203,7 +203,10 @@ export function ComparisonHandlerRegistry({
     'setUpdateInterval',
     useCallback(
       async (payload) => {
-        updateIntervalStore.setValue(payload.interval);
+        const interval = Number.isFinite(payload.interval)
+          ? Math.min(1000, Math.max(10, payload.interval))
+          : 100;
+        updateIntervalStore.setValue(interval);
       },
       [updateIntervalStore]
     )

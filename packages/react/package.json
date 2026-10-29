@@ -70,7 +70,7 @@
     "build:prod": "pnpm run build",
     "build:dev": "NODE_ENV=development tsdown",
     "build:watch": "tsdown --watch",
-    "test": "jest",
+    "test": "jest --runInBand",
     "test:canonical-example": "jest --runInBand __tests__/patterns/implementation-playbook.integration.test.tsx",
     "test:watch": "jest --watch",
     "lint": "pnpm --workspace-root exec biome lint packages/react/src",
@@ -110,9 +110,9 @@
     "access": "public"
   },
   "peerDependencies": {
-    "react": "^19.2.0",
+    "@context-action/tool-protocol": "^1.0.0",
     "@context-action/webmcp": "^0.1.2",
-    "@context-action/tool-protocol": "^1.0.0"
+    "react": "^18.0.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {
     "@context-action/webmcp": {
@@ -124,11 +124,15 @@
   },
   "dependencies": {
     "@context-action/core": "^1.2.6",
+    "@context-action/mutative": "^0.8.15",
     "@context-action/store-core": "^0.1.3",
-    "@context-action/mutative": "^0.8.15"
+    "react-compiler-runtime": "1.0.0"
   },
   "devDependencies": {
     "@babel/core": "7.29.7",
+    "@context-action/tool-durable-operations": "workspace:*",
+    "@context-action/tool-protocol": "workspace:*",
+    "@context-action/webmcp": "workspace:*",
     "@rolldown/plugin-babel": "0.2.4",
     "@swc/core": "1.16.13",
     "@swc/helpers": "0.5.23",
@@ -142,9 +146,6 @@
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "babel-plugin-react-compiler": "1.0.0",
-    "@context-action/tool-durable-operations": "workspace:*",
-    "@context-action/tool-protocol": "workspace:*",
-    "@context-action/webmcp": "workspace:*",
     "jest": "30.5.2",
     "jest-environment-jsdom": "30.5.2",
     "react": "19.2.8",

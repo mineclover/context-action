@@ -3,6 +3,10 @@ name: Publish Packages
 on:
   workflow_dispatch:
     inputs:
+      release_commit:
+        description: 'Approved immutable main commit to publish'
+        required: true
+        type: string
       publish_auth:
         description: 'npm authentication mode for this publish'
         required: true
@@ -11,10 +15,6 @@ on:
         options:
           - oidc
           - token
-  push:
-    tags:
-      - 'v*'
-
 permissions:
   contents: read
   id-token: write
@@ -29,6 +29,8 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment:
+      name: npm-stable
     services:
       redis:
         image: redis:7-alpine
@@ -58,23 +60,21 @@ jobs:
       DURABLE_OPERATION_ENVIRONMENT: release
     timeout-minutes: 30
     steps:
-      - name: Checkout
+      - name: Checkout approved main commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          ref: ${{ inputs.release_commit }}
 
-      - name: Verify release tag points to main
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Verify approved main release commit
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
         run: |
-          git fetch origin main --no-tags
-          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
-
-      - name: Verify manual publish runs from current main
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          git fetch origin main --no-tags
+          [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
           test "$GITHUB_REF" = "refs/heads/main"
-          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          test "$RELEASE_COMMIT" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
 
       - name: Clear npm config before registry setup
         run: |
@@ -163,8 +163,10 @@ jobs:
           node scripts/verify-tool-protocol-changelog.mjs --package llms-generator --forbid-unreleased --require-release-date
 
       - name: Re-verify approved source immediately before publication
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
         run: |
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
           git diff --exit-code
           git diff --cached --exit-code
 

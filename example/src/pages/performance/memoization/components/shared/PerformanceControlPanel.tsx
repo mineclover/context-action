@@ -15,6 +15,7 @@ export function PerformanceControlPanel({
   onToggleAutoUpdate,
   onIntervalChange,
 }: PerformanceControlPanelProps) {
+  const intervalInputId = 'memoization-update-interval';
   return (
     <div className="p-4 bg-gray-100 rounded-lg">
       <h3 className="font-bold mb-3">🎛️ Performance Test Controls</h3>
@@ -30,11 +31,17 @@ export function PerformanceControlPanel({
         </label>
 
         <div className="flex items-center gap-2">
-          <label>Interval (ms):</label>
+          <label htmlFor={intervalInputId}>Interval (ms):</label>
           <input
+            id={intervalInputId}
             type="number"
             value={updateInterval}
-            onChange={(e) => onIntervalChange(Number(e.target.value))}
+            onChange={(e) => {
+              const parsed = Number(e.target.value);
+              if (Number.isFinite(parsed)) {
+                onIntervalChange(Math.min(1000, Math.max(10, parsed)));
+              }
+            }}
             min={10}
             max={1000}
             step={10}

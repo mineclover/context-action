@@ -1,7 +1,11 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type {
+  PreactBadgeElement,
+  PreactStepperElement,
+} from './hooks/usePreactWebComponentsViewModel';
 import PreactWebComponentsPage from './PreactWebComponentsPage';
 
 async function actUserInteraction(interaction: () => Promise<void>) {
@@ -33,6 +37,62 @@ describe('Preact Web Components Integration showcase', () => {
         name: /Section 2: Form-Associated Custom Elements/,
       })
     ).toBeTruthy();
+  });
+
+  it('synchronizes real property accessors, native shadow events and host reset without input echoes', async () => {
+    const user = userEvent.setup();
+    await actUserInteraction(async () => {
+      render(<PreactWebComponentsPage />);
+    });
+    const steppers =
+      document.querySelectorAll<PreactStepperElement>('preact-wc-stepper');
+    const first = steppers[0]!;
+    const second = steppers[1]!;
+    const badge =
+      document.querySelector<PreactBadgeElement>('preact-wc-badge')!;
+    const display = (element: PreactStepperElement) =>
+      element.shadowRoot?.querySelector('[data-testid="stepper-count"]')
+        ?.textContent;
+    const badgeDisplay = () =>
+      badge.shadowRoot?.querySelector('[data-testid="preact-badge-count"]')
+        ?.textContent;
+    expect([first.value, second.value, badge.count]).toEqual([1, 2, 4]);
+    expect([display(first), display(second), badgeDisplay()]).toEqual([
+      '1',
+      '2',
+      '4',
+    ]);
+    const requests = vi.fn();
+    first.addEventListener('quantity-change', requests);
+    expect(() => {
+      first.value = Number.NaN;
+    }).toThrow(RangeError);
+    expect(first.value).toBe(1);
+    const increment = first.shadowRoot?.querySelector<HTMLButtonElement>(
+      '[aria-label="수량 증가"]'
+    );
+    if (!increment) throw new Error('Expected native Preact stepper button');
+    await actUserInteraction(async () => {
+      await user.click(increment);
+    });
+    expect([first.value, badge.count, display(first), badgeDisplay()]).toEqual([
+      2,
+      5,
+      '2',
+      '5',
+    ]);
+    expect(requests).toHaveBeenCalledTimes(1);
+    await actUserInteraction(async () => {
+      await user.click(screen.getByRole('button', { name: '초기화' }));
+    });
+    expect([first.value, second.value, badge.count]).toEqual([1, 2, 4]);
+    expect([display(first), display(second), badgeDisplay()]).toEqual([
+      '1',
+      '2',
+      '4',
+    ]);
+    expect(requests).toHaveBeenCalledTimes(1);
+    first.removeEventListener('quantity-change', requests);
   });
 
   it('toggles VIP discount and recalculates order summary', async () => {

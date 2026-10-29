@@ -20,13 +20,15 @@ export default defineConfig({
     }
   },
   clean: true,
-  // Publish compiler-optimized hooks. Annotation mode limits compilation to
-  // functions that explicitly opt in with a "use memo" directive.
+  // Publish compiler-optimized hooks through the standalone runtime package so
+  // the bundle remains loadable on both React 18 and React 19. Annotation mode
+  // limits compilation to functions that explicitly opt in with a "use memo"
+  // directive.
   plugins: [
     babel({
       plugins: [[reactCompiler, {
         compilationMode: 'annotation',
-        target: '19',
+        target: '18',
       }]],
     }),
   ],

@@ -45,6 +45,8 @@ export {
   useStorePath,
   useStoreSelectorWithPaths,
   type StorePath,
+  type PatchAwareStore,
+  type StorePathPatch,
   type UseStorePathOptions,
   type UseStoreSelectorWithPathsOptions
 } from './useStorePath';

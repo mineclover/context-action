@@ -7,7 +7,7 @@
  * (`@context-action/preact` + `@context-action/preact-ui`).
  *
  * Version selection (packages may carry different cohort versions):
- *   --cohort                     pin both to releases/preact-public-2026-10.json
+ *   --cohort                     pin both to releases/preact-public-2026-10-patch-1.json
  *   --version <v>                shared version for both packages
  *   --preact-version <v>         override @context-action/preact
  *   --preact-ui-version <v>      override @context-action/preact-ui
@@ -54,7 +54,7 @@ const optionValue = (name) => {
 // `--cohort` pins both to the approved release plan; `--version` remains a shared
 // shorthand; per-package flags override either.
 const cohortPlan = args.includes('--cohort')
-  ? JSON.parse(readFileSync(path.join(__dirname, '..', 'releases', 'preact-public-2026-10.json'), 'utf8'))
+  ? JSON.parse(readFileSync(path.join(__dirname, '..', 'releases', 'preact-public-2026-10-patch-1.json'), 'utf8'))
   : null;
 const SHARED_VERSION = optionValue('--version');
 const TARGET_VERSIONS = {
@@ -212,6 +212,32 @@ async function main() {
     run('node', ['-e', peerAbsenceCheck], { cwd: sandbox });
     totalAssertions += 2;
     console.log('  [PASS] Confirmed pure Preact environment: react and preact-render-to-string are absent.');
+
+    const preactUiManifest = JSON.parse(run('node', [
+      '-e',
+      'process.stdout.write(require("node:fs").readFileSync("node_modules/@context-action/preact-ui/package.json", "utf8"))',
+    ], { cwd: sandbox }));
+    const coreDependencyFloor = preactUiManifest.dependencies?.['@context-action/core'];
+    if (coreDependencyFloor !== undefined) {
+      if (coreDependencyFloor !== '^1.3.0') {
+        throw new Error(`Preact UI element candidate must depend on @context-action/core@^1.3.0, got ${coreDependencyFloor}`);
+      }
+      const coreEntryCheck = `
+        const assert = require('node:assert/strict');
+        const core = require('@context-action/core/element');
+        const bridge = require('@context-action/core/element/react');
+        assert.equal(typeof core.createElementBinding, 'function');
+        assert.equal(typeof core.createElementFacade, 'function');
+        assert.equal(typeof bridge.createReactElementBridge, 'function');
+        console.log('CORE_ELEMENT_ENTRIES_OK');
+      `;
+      const coreOut = run('node', ['-e', coreEntryCheck], { cwd: sandbox });
+      if (!coreOut.includes('CORE_ELEMENT_ENTRIES_OK')) throw new Error('Core element entry verification failed');
+      totalAssertions += 4;
+      console.log('  [PASS] Core element entries resolve from the published Preact UI dependency');
+    } else {
+      console.log('  [INFO] Published Preact UI artifact predates the Core element cohort; prerequisite check deferred.');
+    }
 
     // ------------------------------------------------------------------------
     // Phase 2: Dual CJS and ESM module resolution & export contracts

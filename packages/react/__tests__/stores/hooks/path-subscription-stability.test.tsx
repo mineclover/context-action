@@ -130,6 +130,42 @@ describe('path subscription signatures', () => {
     store.dispose();
   });
 
+  it('stabilizes object selector snapshots without a custom equality function', () => {
+    const store = createStore('object-selector-snapshot', { count: 1 });
+
+    function SelectedValue() {
+      const selected = useStoreSelectorWithPaths(
+        store,
+        (state) => ({ count: state.count }),
+        { dependsOn: [['count']] },
+      );
+      return <span data-testid="object-selector-snapshot">{selected.count}</span>;
+    }
+
+    const { unmount } = render(<SelectedValue />);
+    expect(screen.getByTestId('object-selector-snapshot')).toHaveTextContent('1');
+    unmount();
+    store.dispose();
+  });
+
+  it('stabilizes time-travel object selector snapshots without custom equality', () => {
+    const store = createTimeTravelStore('time-travel-object-selector-snapshot', { count: 1 });
+
+    function SelectedValue() {
+      const selected = useTimeTravelSelector(
+        store,
+        (state) => ({ count: state.count }),
+        { dependsOn: [['count']] },
+      );
+      return <span data-testid="time-travel-object-selector-snapshot">{selected.count}</span>;
+    }
+
+    const { unmount } = render(<SelectedValue />);
+    expect(screen.getByTestId('time-travel-object-selector-snapshot')).toHaveTextContent('1');
+    unmount();
+    store.dispose();
+  });
+
   it('resets the time-travel path cache and refreshes dependency snapshots on signature changes', async () => {
     const store = createTimeTravelStore<CollisionState>('time-travel-path-collision', {
       'a.b': 'flat',

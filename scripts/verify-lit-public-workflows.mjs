@@ -13,7 +13,7 @@ import {
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const candidatePath = path.join(repositoryRoot, '.github', 'workflows', 'publish-lit-public-candidate.yml');
 const promotionPath = path.join(repositoryRoot, '.github', 'workflows', 'promote-lit-public.yml');
-const planPath = path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-3.json');
+const planPath = path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-4.json');
 const cohort = '@context-action/lit,@context-action/lit-ui';
 const commitExpression = '$' + '{{ inputs.release_commit }}';
 

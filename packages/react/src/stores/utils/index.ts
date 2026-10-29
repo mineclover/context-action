@@ -75,4 +75,4 @@ export {
   type JsonPointerPath
 } from './json-pointer';
 
-export { patchesAffectPath, type StorePathSegment } from './patch-affects-path';
+export { patchesAffectPath, type StorePathSegment, type StorePathPatch } from './patch-affects-path';

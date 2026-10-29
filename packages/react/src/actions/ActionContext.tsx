@@ -1,10 +1,9 @@
 import {
-  ActionHandler,
   ActionEffectHandler,
   ActionGuardHandler,
-  ActionObserverHandler,
-  ObserverConfig,
+  ActionHandler,
   ActionNames,
+  ActionObserverHandler,
   ActionPayloadMap,
   ActionRegister,
   ActionRegisterConfig,
@@ -13,10 +12,11 @@ import {
   ActionResultMap,
   DispatchArgs,
   DispatchOptions,
-  ExecutionResult,
-  HandlerConfig,
   EffectConfig,
+  ExecutionResult,
   GuardConfig,
+  HandlerConfig,
+  ObserverConfig,
 } from '@context-action/core';
 import React, {
   createContext,
@@ -42,6 +42,12 @@ function createProviderAbortError(): Error {
   error.name = 'AbortError';
   return error;
 }
+
+// Let caller-owned cancellation publish a normal result before the lifecycle
+// wrapper rejects a non-cooperative operation. Provider teardown is handled
+// immediately so durable operations cannot publish an ambiguous result before
+// the detached execution is reported to the caller.
+const ABORT_GRACE_MS = 25;
 
 function mergeAbortSignals(signals: AbortSignal[]): {
   signal: AbortSignal;
@@ -78,6 +84,7 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
   private accepting = true;
   private finalized = false;
   private activeOperations = new Set<Promise<unknown>>();
+  private activeExposedOperations = new Set<Promise<unknown>>();
   private controllers = new Set<AbortController>();
   private pendingHandlerCleanups: Array<() => void> = [];
   private shutdownPromise: Promise<void> | null = null;
@@ -103,9 +110,12 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
     }
 
     const controller = new AbortController();
+    const callerSignals = externalSignals.filter(
+      (candidate): candidate is AbortSignal => Boolean(candidate),
+    );
     const { signal, cleanup: cleanupSignals } = mergeAbortSignals([
       controller.signal,
-      ...externalSignals.filter((candidate): candidate is AbortSignal => Boolean(candidate)),
+      ...callerSignals,
     ]);
     this.controllers.add(controller);
 
@@ -118,19 +128,60 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
     this.activeOperations.add(operationPromise);
 
     const abortPromise = new Promise<never>((_, reject) => {
-      const rejectOnProviderAbort = () => reject(createProviderAbortError());
+      let abortHandled = false;
+      let immediateAbort = false;
+      let operationSettled = false;
+      let abortTimer: ReturnType<typeof setTimeout> | undefined;
+      const rejectOnAbort = (immediate: boolean) => {
+        if (immediateAbort) return;
+        if (immediate) {
+          immediateAbort = true;
+          abortHandled = true;
+          if (abortTimer !== undefined) clearTimeout(abortTimer);
+          reject(createProviderAbortError());
+          return;
+        }
+        // Give the underlying register a turn to publish its normal
+        // cancellation result. If the operation ignores the signal, reject
+        // the exposed dispatch after a short bounded grace period.
+        if (abortHandled) return;
+        abortHandled = true;
+        abortTimer = setTimeout(() => {
+          if (!operationSettled) reject(createProviderAbortError());
+        }, ABORT_GRACE_MS);
+      };
+      const rejectOnProviderAbort = () => rejectOnAbort(true);
+      const rejectOnCallerAbort = () => rejectOnAbort(false);
       controller.signal.addEventListener('abort', rejectOnProviderAbort, { once: true });
+      callerSignals.forEach((callerSignal) => {
+        callerSignal.addEventListener('abort', rejectOnCallerAbort, { once: true });
+      });
 
       const finish = () => {
+        operationSettled = true;
+        if (abortTimer !== undefined) clearTimeout(abortTimer);
         controller.signal.removeEventListener('abort', rejectOnProviderAbort);
+        callerSignals.forEach((callerSignal) => {
+          callerSignal.removeEventListener('abort', rejectOnCallerAbort);
+        });
         this.controllers.delete(controller);
         this.activeOperations.delete(operationPromise);
         cleanupSignals();
       };
       void operationPromise.then(finish, finish);
+      if (controller.signal.aborted) {
+        rejectOnProviderAbort();
+      } else if (callerSignals.some(callerSignal => callerSignal.aborted)) {
+        rejectOnCallerAbort();
+      }
     });
 
     const exposedPromise = Promise.race([operationPromise, abortPromise]);
+    this.activeExposedOperations.add(exposedPromise);
+    void exposedPromise.then(
+      () => this.activeExposedOperations.delete(exposedPromise),
+      () => this.activeExposedOperations.delete(exposedPromise),
+    );
     void exposedPromise.catch(() => {});
     return exposedPromise;
   }
@@ -159,13 +210,32 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
     });
     const registerShutdown = register.destroyAsync({ deferCleanup: true });
 
-    this.shutdownPromise = Promise.allSettled([...this.activeOperations])
-      .then(() => registerShutdown)
-      .then(() => {
-        const pendingHandlerCleanups = this.pendingHandlerCleanups.splice(0);
-        this.finalized = true;
-        pendingHandlerCleanups.forEach(cleanup => this.runHandlerCleanup(cleanup));
-      });
+    // Provider callers need a prompt completion signal after dispatches have
+    // been aborted. Handler cleanup remains deferred until the register and
+    // non-cooperative operations actually settle, preserving the existing
+    // cleanup ordering contract.
+    this.shutdownPromise = Promise.allSettled([...this.activeExposedOperations])
+      .then(() => undefined);
+
+    const finalizationPromise = (async () => {
+      // Drain until the dynamic operation set is empty. A dispatch can be
+      // constructing its promise while shutdown begins, so one snapshot is
+      // not sufficient to guarantee that all handler work has settled.
+      while (this.activeOperations.size > 0) {
+        await Promise.allSettled([...this.activeOperations]);
+      }
+      await registerShutdown;
+
+      const pendingHandlerCleanups = this.pendingHandlerCleanups.splice(0);
+      this.finalized = true;
+      pendingHandlerCleanups.forEach(cleanup => this.runHandlerCleanup(cleanup));
+    })();
+    void finalizationPromise.catch(() => {
+      // Keep lifecycle cleanup fail-safe if register shutdown itself rejects.
+      const pendingHandlerCleanups = this.pendingHandlerCleanups.splice(0);
+      this.finalized = true;
+      pendingHandlerCleanups.forEach(cleanup => this.runHandlerCleanup(cleanup));
+    });
     return this.shutdownPromise;
   }
 }

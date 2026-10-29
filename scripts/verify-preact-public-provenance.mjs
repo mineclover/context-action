@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { retryTransientRegistryVisibility } from './registry-visibility-retry.cjs';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const planPath = path.join(repositoryRoot, 'releases', 'preact-public-2026-10.json');
+const planPath = path.join(repositoryRoot, 'releases', 'preact-public-2026-10-patch-1.json');
 const expectedRepository = 'https://github.com/mineclover/context-action';
 const expectedWorkflowPath = '.github/workflows/publish-preact-public-candidate.yml';
 

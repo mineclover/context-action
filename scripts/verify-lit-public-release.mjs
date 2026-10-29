@@ -10,7 +10,7 @@ const packageDefinitions = [
   {
     name: '@context-action/lit',
     directory: 'packages/lit',
-    expectedVersion: '0.1.3',
+    expectedVersion: '0.1.4',
     dependencies: {
       '@context-action/core': (coreVersion) => `^${coreVersion}`,
     },
@@ -18,13 +18,14 @@ const packageDefinitions = [
   {
     name: '@context-action/lit-ui',
     directory: 'packages/lit-ui',
-    expectedVersion: '0.1.3',
+    expectedVersion: '0.1.4',
     dependencies: {
       '@context-action/core': (coreVersion) => `^${coreVersion}`,
-      '@context-action/lit': () => '^0.1.3',
+      '@context-action/lit': () => '^0.1.4',
     },
   },
 ];
+const ELEMENT_INTEROP_MIN_CORE = '1.3.0';
 
 const args = process.argv.slice(2);
 const requireCurrentSource = args.includes('--require-current-source');
@@ -35,7 +36,7 @@ if (rootIndex !== -1 && (!args[rootIndex + 1] || args[rootIndex + 1].startsWith(
 const repositoryRoot = rootIndex === -1
   ? defaultRepositoryRoot
   : path.resolve(args[rootIndex + 1] ?? '');
-const planPath = path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-3.json');
+const planPath = path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-4.json');
 const unknownArguments = args.filter((argument, index) => argument !== '--require-current-source'
   && argument !== '--root'
   && index !== rootIndex + 1);
@@ -53,6 +54,16 @@ function expect(errors, condition, message) {
 
 function isStableVersion(value) {
   return typeof value === 'string' && /^\d+\.\d+\.\d+$/u.test(value);
+}
+
+function compareVersions(left, right) {
+  const parse = value => String(value).split('.').map(Number);
+  const a = parse(left);
+  const b = parse(right);
+  for (let index = 0; index < 3; index += 1) {
+    if ((a[index] ?? 0) !== (b[index] ?? 0)) return (a[index] ?? 0) - (b[index] ?? 0);
+  }
+  return 0;
 }
 
 async function validatePlan(errors) {
@@ -92,6 +103,25 @@ async function validatePlan(errors) {
   expect(errors, JSON.stringify(Object.keys(plannedDependencies).sort())
     === JSON.stringify([...expectedNames].sort()),
   'public Lit release plan must define dependency floors for both packages');
+
+  const prerequisite = plan.elementInteropPrerequisite;
+  expect(errors, prerequisite?.package === '@context-action/core',
+    'public Lit release plan must declare the Core element interop prerequisite');
+  expect(errors, prerequisite?.minimumVersion === ELEMENT_INTEROP_MIN_CORE,
+    `public Lit release plan Core prerequisite must be ${ELEMENT_INTEROP_MIN_CORE}`);
+  expect(errors, prerequisite?.status === 'approved-for-core-cohort',
+    'public Lit release plan must mark the Core element interop cohort approved');
+  expect(errors, JSON.stringify(prerequisite?.publicationOrder ?? [])
+    === JSON.stringify([
+      '@context-action/core', '@context-action/lit', '@context-action/lit-ui',
+    ]),
+  'public Lit release plan must publish Core before Lit adapters');
+  expect(errors, JSON.stringify(prerequisite?.requiredExports ?? [])
+    === JSON.stringify(['./element', './element/react']),
+  'public Lit release plan must pin both Core element exports');
+  expect(errors, prerequisite?.candidateDependencies?.['@context-action/lit-ui']?.['@context-action/core']
+    === `^${ELEMENT_INTEROP_MIN_CORE}`,
+  `public Lit release plan Lit UI candidate must depend on @context-action/core@^${ELEMENT_INTEROP_MIN_CORE}`);
 
   const candidateCommits = plan.candidateCommits ?? {};
   for (const [name, value] of Object.entries(candidateCommits)) {
@@ -155,7 +185,10 @@ async function main() {
       `${definition.name} must use a stable semantic version`);
     for (const dependencyMap of [manifest.dependencies, manifest.optionalDependencies]) {
       for (const [dependencyName, range] of Object.entries(dependencyMap ?? {})) {
-        expect(errors, typeof range === 'string' && !range.startsWith('workspace:'),
+        const localWorkspaceWiring = !requireCurrentSource
+          && typeof range === 'string'
+          && range.startsWith('workspace:');
+        expect(errors, localWorkspaceWiring || (typeof range === 'string' && !range.startsWith('workspace:')),
           `${definition.name} must not publish workspace dependency ${dependencyName}@${range}`);
       }
     }
@@ -179,7 +212,9 @@ async function main() {
         errors.push(`${definition.name} cannot resolve ${dependencyName} dependency floor`);
         continue;
       }
-      expect(errors, manifest?.dependencies?.[dependencyName] === expectedRange,
+      const actualRange = manifest?.dependencies?.[dependencyName];
+      const localWorkspaceWiring = !requireCurrentSource && actualRange === 'workspace:*';
+      expect(errors, actualRange === expectedRange || localWorkspaceWiring,
         `${definition.name} must depend on ${dependencyName}@${expectedRange}`);
     }
   }
@@ -187,6 +222,21 @@ async function main() {
   let plan = null;
   if (requireCurrentSource) plan = await validatePlan(errors);
   if (plan) {
+    const prerequisite = plan.elementInteropPrerequisite;
+    if (prerequisite) {
+      expect(errors, core && compareVersions(core.version, prerequisite.minimumVersion) >= 0,
+        `Core ${prerequisite.minimumVersion} or newer is required before publishing the Lit element interop candidate (found ${core?.version ?? 'missing'})`);
+      for (const exportName of prerequisite.requiredExports ?? []) {
+        expect(errors, Object.hasOwn(core?.exports ?? {}, exportName),
+          `Core prerequisite is missing the required ${exportName} export`);
+      }
+      for (const [packageName, dependencies] of Object.entries(prerequisite.candidateDependencies ?? {})) {
+        for (const [dependencyName, expectedRange] of Object.entries(dependencies)) {
+          expect(errors, manifests.get(packageName)?.dependencies?.[dependencyName] === expectedRange,
+            `${packageName} element interop candidate must depend on ${dependencyName}@${expectedRange}`);
+        }
+      }
+    }
     for (const definition of packageDefinitions) {
       const manifest = manifests.get(definition.name);
       const dependencyFloors = plan.dependencies?.[definition.name] ?? {};
@@ -217,7 +267,7 @@ async function main() {
 
   console.log(JSON.stringify({
     status: 'ok',
-    release: plan?.release ?? 'lit-public-2026-10-patch-3',
+    release: plan?.release ?? 'lit-public-2026-10-patch-4',
     packages: Object.fromEntries(packageDefinitions.map(definition => [definition.name, definition.expectedVersion])),
     currentSource: requireCurrentSource ? 'required' : 'not-required',
   }));

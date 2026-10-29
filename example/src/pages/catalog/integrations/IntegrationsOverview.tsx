@@ -19,10 +19,10 @@ export default function IntegrationsOverview() {
             </span>
             <div>
               <Link
-                to="/integrations/business/todo-list"
+                to="/integrations/business/chat"
                 className="text-green-600 hover:text-green-800 font-medium text-lg"
               >
-                Business Applications
+                Chat Application
               </Link>
               <p className="text-gray-600">
                 실제 비즈니스 로직이 적용된 애플리케이션
@@ -68,53 +68,6 @@ export default function IntegrationsOverview() {
           </Link>
         </div>
 
-        <div className="category-card bg-white border border-slate-200 p-6 rounded-lg shadow-sm md:col-span-2">
-          <div className="inline-flex rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-indigo-800">
-            Usecase + Recipe profile
-          </div>
-          <h3 className="text-xl font-semibold mb-3 mt-3">
-            🧭 Usecase Boundary Lab
-          </h3>
-          <p className="text-sm text-slate-700 mb-4">
-            Context-Layered Runtime을 Facade와 Astryx-style Recipe에 연결합니다.
-            코드를 편집하고 validation abort, handler trace, controlled UI
-            상태를 같은 화면에서 확인합니다.
-          </p>
-          <Link
-            to="/integrations/live-code-editor"
-            className="inline-flex items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-          >
-            Lab 열기 →
-          </Link>
-        </div>
-
-        <div className="category-card bg-white border border-cyan-200 p-6 rounded-lg shadow-sm md:col-span-2">
-          <div className="inline-flex rounded-md border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-800">
-            AI chat + web tools
-          </div>
-          <h3 className="text-xl font-semibold text-slate-900 mb-3 mt-3">
-            ⚡ Realtime Web Coding
-          </h3>
-          <p className="text-sm text-slate-700 mb-4">
-            채팅이 web tool을 호출해 HTML/CSS/JS workspace를 수정하고 sandbox
-            iframe에 즉시 반영하는 작은 Bolt.diy-inspired 흐름입니다.
-          </p>
-          <Link
-            to="/integrations/live-web-coding"
-            className="inline-flex items-center rounded-md bg-cyan-700 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-800"
-          >
-            Web coding 열기 →
-          </Link>
-          <a
-            href="https://mineclover.github.io/context-action/web-coding/"
-            target="_blank"
-            rel="noreferrer"
-            className="ml-2 inline-flex items-center rounded-md border border-cyan-300 px-4 py-2 text-sm font-medium text-cyan-800 hover:bg-cyan-50"
-          >
-            Standalone Studio ↗
-          </a>
-        </div>
-
         <div className="category-card bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
           <h3 className="text-xl font-semibold mb-4">
             🏢 Business Applications
@@ -125,28 +78,6 @@ export default function IntegrationsOverview() {
           <ul className="space-y-2">
             <li>
               <Link
-                to="/integrations/business/todo-list"
-                className="text-green-600 hover:underline"
-              >
-                📝 Todo List
-              </Link>
-              <span className="text-xs text-gray-500 ml-2">
-                CRUD, State Management
-              </span>
-            </li>
-            <li>
-              <Link
-                to="/integrations/business/shopping-cart"
-                className="text-green-600 hover:underline"
-              >
-                🛒 Shopping Cart
-              </Link>
-              <span className="text-xs text-gray-500 ml-2">
-                E-commerce Logic
-              </span>
-            </li>
-            <li>
-              <Link
                 to="/integrations/business/chat"
                 className="text-green-600 hover:underline"
               >
@@ -154,17 +85,6 @@ export default function IntegrationsOverview() {
               </Link>
               <span className="text-xs text-gray-500 ml-2">
                 Real-time Communication
-              </span>
-            </li>
-            <li>
-              <Link
-                to="/integrations/business/user-profile"
-                className="text-green-600 hover:underline"
-              >
-                👤 User Profile
-              </Link>
-              <span className="text-xs text-gray-500 ml-2">
-                User Management
               </span>
             </li>
           </ul>

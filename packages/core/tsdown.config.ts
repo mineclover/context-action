@@ -1,10 +1,11 @@
 import { defineConfig } from 'tsdown'
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/element.ts', 'src/element-react.ts'],
   format: ['esm', 'cjs'],
   dts: true,
-  hash: false,
+  // Shared declaration chunks must not collide with public entry basenames.
+  hash: true,
   clean: true,
   nodeProtocol: 'strip', // Strip node: protocol for browser compatibility
   deps: {

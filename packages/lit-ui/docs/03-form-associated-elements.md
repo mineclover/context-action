@@ -511,11 +511,11 @@ flowchart LR
 
 ## 10. React 상호운용성 연동 (`createLitElementBridge`)
 
-외부 React 애플리케이션에서 `FormAssociatedLitElement` 커스텀 엘리먼트를 사용할 때는 `@context-action/lit-ui`의 `createLitElementBridge`를 사용합니다:
+외부 React 애플리케이션에서 `FormAssociatedLitElement` 커스텀 엘리먼트를 사용할 때는 `@context-action/lit-ui/react-bridge`의 `createLitElementBridge`를 사용합니다:
 
 ```tsx
 import React, { useRef } from 'react';
-import { createLitElementBridge } from '@context-action/lit-ui';
+import { createLitElementBridge } from '@context-action/lit-ui/react-bridge';
 import type { LitQuantityStepper } from './lit-quantity-stepper.js';
 
 interface QuantityStepperBridgeProps {

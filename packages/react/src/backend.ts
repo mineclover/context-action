@@ -19,4 +19,12 @@ export type {
   StateWriter,
   TimelineBackend,
   TransactionBackend,
+  TransactionBatchControl,
+  StateSnapshot,
+  TransactionParticipantBackend,
+  TransactionMeta,
+  TransactionOptions,
+  TransactionParticipant,
+  TransactionHandle,
+  TransactionCoordinatorPort,
 } from '@context-action/store-core';

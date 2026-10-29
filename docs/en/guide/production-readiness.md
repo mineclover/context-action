@@ -8,7 +8,7 @@ Context-Action is suitable for production React application state when its packa
 | --- | --- | --- |
 | Local React UI and application state | Ready | Use `createStoreContext`, `useStoreValue`, and narrowly scoped contexts. |
 | Typed action coordination | Ready | Keep domain work in handlers and make cancellation/timeout behavior explicit. |
-| React 19.2 SSR and hydration | Ready for the verified versions | Keep the supported React and type-package versions aligned with the release cohort. |
+| React 18.3.1/19.2 SSR and hydration | Ready for the verified versions | Keep the supported React and type-package versions aligned with the release cohort. |
 | Undo/redo or high-frequency updates | Suitable after application measurement | Choose history and notification settings for the workload; do not rely on universal performance multipliers. |
 | Cross-tab, worker, or server durable tool calls | Development track | Complete the Durable 0.2 fencing migration and validate the real persistence endpoint before a separate release decision. |
 | Exactly-once remote side effects | Not promised by the library alone | Use provider idempotency keys, an inbox/outbox or equivalent, and domain reconciliation. |
@@ -17,7 +17,7 @@ The Store and Action layers are a good fit when state ownership, subscriptions, 
 
 ## Verified stabilization boundary
 
-The protected release preflight covers strict source/test type checks, the React 19.2 minimum/current compatibility matrix, SSR/hydration checks, packed ESM/CJS and NodeNext consumers, package exports, examples, workflow/release safety, and durable adapter verification. Redis and PostgreSQL adapters are also exercised against CI service containers.
+The protected release preflight covers strict source/test type checks, the React 18.3.1 plus React 19.2 minimum/current compatibility matrix, SSR/hydration checks, packed ESM/CJS and NodeNext consumers, package exports, examples, workflow/release safety, and durable adapter verification. Redis and PostgreSQL adapters are also exercised against CI service containers.
 
 That evidence supports the library contract at the candidate commit. Before a production rollout, run the same preflight for the exact release candidate and exercise your staging or production-equivalent Redis/PostgreSQL endpoint, including credentials, TLS, migration, retention, and failover behavior.
 
@@ -45,7 +45,7 @@ semantics can use `@context-action/react/backend` with the framework-neutral
 `@context-action/store-core` contracts; that adapter entry does not execute
 Mutative code.
 
-Durable Operations 0.2 and its companion tool protocol work remain in active development. They are not a prerequisite for ordinary Store, Action, React 19.2, or SSR use.
+Durable Operations 0.2 and its companion tool protocol work remain in active development. They are not a prerequisite for ordinary Store, Action, React 18/19, or SSR use.
 
 ## Responsibility and function contract
 
@@ -56,7 +56,7 @@ take over a responsibility from the next row.
 | Concern | Owner | Function | Explicitly not responsible for |
 | --- | --- | --- | --- |
 | Action execution | `@context-action/core` | Registers handlers, orders execution, exposes cancellation, timeout, results, and observer lifecycle. | React rendering, state persistence, tool schemas, provider calls, authorization. |
-| React state and composition | `@context-action/react` 4.0 | Creates Store/Action contexts, connects subscriptions to React, and preserves the verified React 19.2 and SSR lifecycle contract. | Database-backed work, cross-process recovery, provider/tool runtime. |
+| React state and composition | `@context-action/react` 4.0 | Creates Store/Action contexts, connects subscriptions to React, and preserves the verified React 18/19 and SSR lifecycle contract. | Database-backed work, cross-process recovery, provider/tool runtime. |
 | Application domain | Your application | Defines state shape, business rules, authorization, API clients, and the meaning of success or failure. | Delegating business policy to a generic store or action registry. |
 | Tool protocol — development track | `@context-action/tool-protocol` | Defines provider-neutral tool schemas, serialization, approval, and observable protocol metadata. | React state lifecycle or durable persistence. |
 | Durable mutation recovery — development track | `@context-action/tool-durable-operations` | Coordinates a logical external mutation using records, leases, full fences, and an explicit `unknown` state. | Exactly-once guarantees from an external provider, application authorization, or domain reconciliation policy. |

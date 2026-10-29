@@ -58,5 +58,7 @@ anchors, and a link to the package or guide whose contract it changes.
 
 ## Existing reference decisions
 
+- [CA-ELEMENT-INTEROP-001: Core subpaths and host-neutral Element bindings](./CA-ELEMENT-INTEROP-001.md)
+
 - [CA-SPEC-EVIDENCE-001: TypeSpec Evidence Integration and Frontend State Tiering Governance](./CA-SPEC-EVIDENCE-001.md)
 - [PostgreSQL Durable Operation Adapter](../architecture/postgres-durable-operation-adapter.md)

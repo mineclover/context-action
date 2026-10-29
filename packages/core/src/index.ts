@@ -1,4 +1,5 @@
 export { ActionRegister } from './ActionRegister.js';
+export type { PublicActionMethods } from './contracts/public-action-methods.js';
 export { ActionGuard } from './action-guard.js';
 // Validation Errors
 export {

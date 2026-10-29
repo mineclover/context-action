@@ -17,7 +17,11 @@ export interface EnhancedSubscriptionOptions {
   debounce?: number;
   /** 스로틀 간격 (ms) */
   throttle?: number;
-  /** 조건부 구독 여부 */
+  /**
+   * 렌더 게이트. false이면 마지막 표시 값을 유지하지만 구독은 유지한다.
+   * useSyncExternalStore의 외부 스냅샷 계약을 지키기 위해 알림 자체를
+   * 중단하지 않는다.
+   */
   condition?: () => boolean;
   /** 디버그 모드 */
   debug?: boolean;

@@ -10,7 +10,8 @@
 
 ## React 4.0.7 현재 요약
 
-`@context-action/react`는 React 19.2 이상을 요구합니다. 기본 설계는 렌더링,
+`@context-action/react`는 React 18.3.1과 React 19.2+를 지원합니다. `<Activity>` 같은
+React 19.2 전용 기능은 별도 문서에서 다룹니다. 기본 설계는 렌더링,
 도메인 규칙, 외부 effect를 한 컴포넌트에 섞지 않는 Context-Layered 흐름입니다.
 
 | 관심사 | 둘 위치 | 규칙 |

@@ -62,11 +62,16 @@ pnpm release:check
 | Lit public preview patch (Lit 0.1.1 / Lit UI 0.1.1) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.1` 게시 완료. Lit은 cohort alignment, Lit UI는 hydrate patch |
 | Lit public preview patch (Lit 0.1.2 / Lit UI 0.1.2) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.2` 게시 완료. Lit은 cohort alignment, Lit UI는 hydration stabilization |
 | Lit public preview patch (Lit 0.1.3 / Lit UI 0.1.3) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.3` 게시 완료. Lit은 cohort alignment, Lit UI는 stale renderBefore 수정 |
+| Core 1.3.0 element interop cohort | Core publication prerequisite → `publish-lit-public-candidate.yml` / `publish-preact-public-candidate.yml` | Core 1.3.0을 먼저 후보로 고정한 뒤 Lit 0.1.4 / Lit UI 0.1.4 및 Preact 0.1.3 / Preact UI 0.2.1을 각각 `next`에 게시. 현재 후보 plan은 publish 전 상태 |
 
 모든 워크플로는 승인된 immutable main commit, 정확한 버전, provenance,
 consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 합니다.
 이미 존재하는 버전을 현재 소스의 산출물로 간주하거나 다른 커밋의 패키지에
 새 dist-tag를 붙여 재사용하지 않습니다.
+
+`publish-packages.yml`은 자동 tag push를 publication trigger로 사용하지 않습니다.
+일반 도구 cohort를 게시하려면 보호된 `workflow_dispatch`에서 정확한
+`release_commit`을 입력하고 `npm-stable` environment 승인을 통과해야 합니다.
 
 `publish-v1-stable-candidate.yml`은 이미 완료된 1.0.0 cohort에 고정된 역사적
 경로입니다. 새로운 minor 또는 major 안정 릴리즈에 재사용하지 않습니다.
@@ -108,18 +113,16 @@ React dependency boundary를 plan과 정확히 결속합니다.
 `@context-action/preact`와 `@context-action/preact-ui`는 공개 preview로
 승격되었지만 Core/React 안정 cohort와 release cadence를 공유하지 않습니다.
 현재 게시 버전은 `@context-action/preact@0.1.2`와
-`@context-action/preact-ui@0.2.0`이며
-[`PREACT_PUBLIC_0.2.0.md`](PREACT_PUBLIC_0.2.0.md)의 별도 plan과
-`preact-public-2026-10.json`에 결속합니다. 두 package의 버전은 서로 다를 수 있지만
-candidate workflow가 cohort 전체를 미게시 버전으로 요구하므로 함께 올립니다.
+`@context-action/preact-ui@0.2.0`입니다. 다음 element interop 후보는
+`@context-action/preact@0.1.3` 및 `@context-action/preact-ui@0.2.1`이며
+[`preact-public-2026-10-patch-1.json`](preact-public-2026-10-patch-1.json)에
+결속합니다. 후보는 Core 1.3.0이 먼저 `next`에 고정된 뒤에만 게시할 수 있습니다.
 
-Publication은 반드시 `@context-action/preact` → `@context-action/preact-ui`
-순서를 지킵니다. 첫 package가 Core `^1.2.6`을 요구하고 두 번째 package가
-첫 번째 package `^0.1.2`를 요구하므로 의존성 순서를 바꾸면 workflow가
-실패해야 합니다. 후보는 `next`에서 packed export/tarball과 Preact browser
-matrix를 검증한 뒤에만 `latest`로 승격합니다. 2026-10-23 candidate
-`39897580951`과 promotion `39903568673`이 성공했고, published consumer smoke
-82 assertions를 통과했습니다.
+Publication은 반드시 `@context-action/core` → `@context-action/preact` →
+`@context-action/preact-ui` 순서를 지킵니다. Preact는 Core `^1.3.0`, Preact UI는
+Core `^1.3.0`과 Preact `^0.1.3`을 요구합니다. 후보는 `next`에서 packed
+export/tarball과 Preact browser matrix를 검증한 뒤에만 `latest`로 승격합니다.
+새 후보의 releaseCommit과 registry evidence는 publish 후 plan에 기록합니다.
 
 두 package 모두 pre-1.0 공개 preview이므로 1.0 안정성 결정 전에는 API와
 지원 범위가 바뀔 수 있습니다. NVDA/VoiceOver 음성 출력은 runtime 기능이
@@ -181,6 +184,25 @@ Source of truth는 [`LIT_PUBLIC_0.1.3.md`](LIT_PUBLIC_0.1.3.md)와
 `lit-public-2026-10-patch-3.json`입니다. Candidate는 두 패키지를 `next`에
 게시했고, registry 전파 후 provenance/consumer를 재검증한 뒤
 `PROMOTE_LIT_PUBLIC` 확인으로 `latest`를 승격했습니다.
+
+## 4-6. Core 1.3.0 element interop 후보
+
+이번 안정화 변경은 Core에 `./element` 및 `./element/react` public subpath를
+추가하므로 Core 1.3.0을 먼저 후보로 게시해야 합니다. Lit 후보는
+[`lit-public-2026-10-patch-4.json`](lit-public-2026-10-patch-4.json), Preact 후보는
+[`preact-public-2026-10-patch-1.json`](preact-public-2026-10-patch-1.json)에
+결속합니다.
+
+후보 버전과 순서는 다음과 같습니다.
+
+1. `@context-action/core@1.3.0`
+2. `@context-action/lit@0.1.4` → `@context-action/lit-ui@0.1.4`
+3. `@context-action/preact@0.1.3` → `@context-action/preact-ui@0.2.1`
+
+모든 UI 후보는 Core `^1.3.0`을 요구하며, publish 전에는
+`--require-current-source`, packed consumer, export/tarball, host/browser 계약을
+통과해야 합니다. 현재 plans는 `pending-candidate` 상태이고 registry publication
+evidence는 아직 없습니다.
 
 ## 5. 실패와 재개
 

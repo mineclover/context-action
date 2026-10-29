@@ -11,6 +11,31 @@ interface ExecutionTestActions extends ActionPayloadMap {
   validateInput: { value: any };
 }
 
+function createDeferred() {
+  let resolve!: () => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<void>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
+function createStartBarrier(expected: number) {
+  let started = 0;
+  let resolve!: () => void;
+  const promise = new Promise<void>(resolvePromise => {
+    resolve = resolvePromise;
+  });
+  return {
+    promise,
+    markStarted: () => {
+      started += 1;
+      if (started === expected) resolve();
+    },
+  };
+}
+
 describe('Execution Modes - Comprehensive', () => {
   let actionRegister: ActionRegister<ExecutionTestActions>;
 
@@ -163,34 +188,49 @@ describe('Execution Modes - Comprehensive', () => {
     it('should execute all handlers concurrently', async () => {
       const startOrder: string[] = [];
       const results: string[] = [];
+      const started = createStartBarrier(3);
+      const gates = {
+        slow: createDeferred(),
+        medium: createDeferred(),
+        fast: createDeferred(),
+      };
 
       actionRegister.register('calculateResult', async () => {
         startOrder.push('slow');
-        await new Promise(resolve => setTimeout(resolve, 30));
+        started.markStarted();
+        await gates.slow.promise;
         results.push('slow-calculation');
       }, { priority: 30, id: 'slow' });
 
       actionRegister.register('calculateResult', async () => {
         startOrder.push('medium');
-        await new Promise(resolve => setTimeout(resolve, 20));
+        started.markStarted();
+        await gates.medium.promise;
         results.push('medium-calculation');
       }, { priority: 20, id: 'medium' });
 
       actionRegister.register('calculateResult', async () => {
         startOrder.push('fast');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        started.markStarted();
+        await gates.fast.promise;
         results.push('fast-calculation');
       }, { priority: 10, id: 'fast' });
 
-      await actionRegister.dispatch('calculateResult', { numbers: [1, 2, 3] });
+      const dispatchPromise = actionRegister.dispatch('calculateResult', { numbers: [1, 2, 3] });
+      await started.promise;
 
       // All handlers should start at roughly the same time
-      expect(startOrder).toHaveLength(3);
-      expect(startOrder).toContain('slow');
-      expect(startOrder).toContain('medium');
-      expect(startOrder).toContain('fast');
+      expect(startOrder).toEqual(['slow', 'medium', 'fast']);
 
-      // Results should complete in order of execution time (fast to slow)
+      // Completion order is controlled explicitly so this test does not depend
+      // on host timer scheduling.
+      gates.fast.resolve();
+      await Promise.resolve();
+      gates.medium.resolve();
+      await Promise.resolve();
+      gates.slow.resolve();
+      await dispatchPromise;
+
       expect(results).toEqual(['fast-calculation', 'medium-calculation', 'slow-calculation']);
     });
 
@@ -283,22 +323,38 @@ describe('Execution Modes - Comprehensive', () => {
     });
 
     it('should return result from first completing handler', async () => {
+      const started = createStartBarrier(3);
+      const gates = {
+        slow: createDeferred(),
+        medium: createDeferred(),
+        fast: createDeferred(),
+      };
+
       actionRegister.register('validateInput', async () => {
-        await new Promise(resolve => setTimeout(resolve, 30));
+        started.markStarted();
+        await gates.slow.promise;
         return { validator: 'slow', valid: true, confidence: 0.9 };
       }, { id: 'slow-validator' });
 
       actionRegister.register('validateInput', async () => {
-        await new Promise(resolve => setTimeout(resolve, 20));
+        started.markStarted();
+        await gates.medium.promise;
         return { validator: 'medium', valid: true, confidence: 0.8 };
       }, { id: 'medium-validator' });
 
       actionRegister.register('validateInput', async () => {
-        await new Promise(resolve => setTimeout(resolve, 10));
+        started.markStarted();
+        await gates.fast.promise;
         return { validator: 'fast', valid: false, confidence: 0.7 };
       }, { id: 'fast-validator' });
 
-      const result = await actionRegister.dispatchWithResult('validateInput', { value: 'test-data' });
+      const dispatchPromise = actionRegister.dispatchWithResult('validateInput', { value: 'test-data' });
+      await started.promise;
+      gates.fast.resolve();
+      const result = await dispatchPromise;
+
+      gates.medium.resolve();
+      gates.slow.resolve();
 
       expect(result.success).toBe(true);
       expect(result.result).toEqual({ validator: 'fast', valid: false, confidence: 0.7 });
@@ -313,26 +369,41 @@ describe('Execution Modes - Comprehensive', () => {
       actionRegister.setActionExecutionMode('validateInput', 'race');
 
       let firstCompleted = '';
+      const started = createStartBarrier(3);
+      const gates = {
+        success: createDeferred(),
+        medium: createDeferred(),
+        fast: createDeferred(),
+      };
 
       actionRegister.register('validateInput', async () => {
-        await new Promise(resolve => setTimeout(resolve, 30));
+        started.markStarted();
+        await gates.success.promise;
         firstCompleted = firstCompleted || 'success';
         return { valid: true };
       }, { id: 'success-validator' });
 
       actionRegister.register('validateInput', async () => {
-        await new Promise(resolve => setTimeout(resolve, 20));
+        started.markStarted();
+        await gates.medium.promise;
         firstCompleted = firstCompleted || 'medium-error';
         throw new Error('Medium validator failed');
       }, { id: 'medium-error' });
 
       actionRegister.register('validateInput', async () => {
-        await new Promise(resolve => setTimeout(resolve, 5));
+        started.markStarted();
+        await gates.fast.promise;
         firstCompleted = firstCompleted || 'fast-error';
         throw new Error('Fast validator failed');
       }, { id: 'fast-error' });
 
-      const result = await actionRegister.dispatchWithResult('validateInput', { value: 'invalid-data' });
+      const dispatchPromise = actionRegister.dispatchWithResult('validateInput', { value: 'invalid-data' });
+      await started.promise;
+      gates.fast.resolve();
+      const result = await dispatchPromise;
+
+      gates.medium.resolve();
+      gates.success.resolve();
 
       // Verify that the fastest handler completed first
       expect(firstCompleted).toBe('fast-error');
@@ -343,17 +414,28 @@ describe('Execution Modes - Comprehensive', () => {
     });
 
     it('should handle early abort in race mode', async () => {
+      const started = createStartBarrier(2);
+      const gates = {
+        abort: createDeferred(),
+        slow: createDeferred(),
+      };
       actionRegister.register('validateInput', async (payload, controller) => {
-        await new Promise(resolve => setTimeout(resolve, 5));
+        started.markStarted();
+        await gates.abort.promise;
         controller.abort('Fast abort');
       }, { id: 'abort-handler' });
 
       actionRegister.register('validateInput', async () => {
-        await new Promise(resolve => setTimeout(resolve, 30));
+        started.markStarted();
+        await gates.slow.promise;
         return { valid: true };
       }, { id: 'slow-handler' });
 
-      const result = await actionRegister.dispatchWithResult('validateInput', { value: 'test' });
+      const dispatchPromise = actionRegister.dispatchWithResult('validateInput', { value: 'test' });
+      await started.promise;
+      gates.abort.resolve();
+      const result = await dispatchPromise;
+      gates.slow.resolve();
 
       expect(result.success).toBe(false);
       expect(result.aborted).toBe(true);
@@ -375,21 +457,33 @@ describe('Execution Modes - Comprehensive', () => {
       actionRegister.setActionExecutionMode('processData', 'sequential');
 
       const results: string[] = [];
+      const started = createStartBarrier(2);
+      const gates = {
+        slow: createDeferred(),
+        fast: createDeferred(),
+      };
 
       actionRegister.register('processData', async () => {
-        await new Promise(resolve => setTimeout(resolve, 25));
+        started.markStarted();
+        await gates.slow.promise;
         results.push('slow');
       });
 
       actionRegister.register('processData', async () => {
-        await new Promise(resolve => setTimeout(resolve, 10));
+        started.markStarted();
+        await gates.fast.promise;
         results.push('fast');
       });
 
       // Override to parallel execution
-      await actionRegister.dispatch('processData', { data: 'test' }, {
+      const dispatchPromise = actionRegister.dispatch('processData', { data: 'test' }, {
         executionMode: 'parallel'
       });
+      await started.promise;
+      gates.fast.resolve();
+      await Promise.resolve();
+      gates.slow.resolve();
+      await dispatchPromise;
 
       // In parallel mode, fast handler completes first
       expect(results).toEqual(['fast', 'slow']);

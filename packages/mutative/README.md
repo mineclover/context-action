@@ -50,6 +50,14 @@ both package test suites after a fork update.
   string properties and string `Map` keys; use array paths for numeric or
   object keys and Symbol properties.
 
+## Time Travel design and latest-engine experiment
+
+- [Context-Action specialization and adoption tradeoffs](./docs/time-travel-specialization.md) (Korean)
+- [Travels 3.0.1 / Mutative 2.0.0 workspace prototype](./examples/travels-v3/README.md) (Korean)
+
+These repository-only materials describe an experiment, not a public export or
+default runtime dependency change. The prototype and its docs are not packed.
+
 ## License
 
 Apache-2.0. See [LICENSE](./LICENSE).

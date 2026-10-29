@@ -59,6 +59,11 @@ interface PreactElementContext {
 
 ## 5.3 React 18 / 19 상호운용성 브릿지 (`@context-action/preact-ui/react-bridge`)
 
+공통화 후보는 [Core Element 요구사항 검토](../../core/docs/interop-review.ko.md)에
+정리했습니다. Preact/Lit의 기존 bridge API는 같은 전달 구현과 Facade 계약을 사용하고,
+native renderer·FACE·SSR/hydration은 각 패키지에 남습니다. 새 Core subpath가 포함된
+버전·UI dependency floor 승인 전에는 이 변경을 공개 UI 패키지로 배포할 수 없습니다.
+
 React에서 Custom Element를 직접 렌더링할 때 발생하는 커스텀 이벤트 위임 누락, 복합 객체 프로퍼티의 `[object Object]` 문자열 직렬화, 그리고 원시 `HTMLElement` 노출로 인한 캡슐화 파괴를 해결합니다.
 
 ### 1) 프로퍼티 반영 타이밍 규칙

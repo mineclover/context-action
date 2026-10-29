@@ -3,6 +3,26 @@
 These changes are not included in the published versions listed in [CHANGELOG.md](./CHANGELOG.md).
 They do not authorize a version change or publication.
 
+## React 18/19 peer compatibility
+
+- Restore the public peer range to `^18.0.0 || ^19.0.0` and add an installed
+  React 18.3.1/types smoke to the compatibility matrix. React 19-only features
+  such as Compiler optimization and `<Activity>` remain explicitly scoped to
+  React 19 consumers.
+
+## Backend path-subscription portability
+
+- Derive legacy Store observation/metadata contracts from store-core while preserving optional snapshot versions, fixed-field metadata and convenience undo/redo methods. Keep the strict state-owning backend contract distinct.
+- Accept canonical minimal participants in Coordinator begin/run and Action bridge; accept a begin-only `TransactionCoordinatorPort` in the bridge. Remove heterogeneous `any` participant storage, add `StoreTransactionOptions`, and re-export the canonical type-only protocols through `/backend`.
+- Accept optional `StoreTransactionParticipant.batchControl` for operation-scoped admission/commit/rollback/publication. Capture participant identities and controls at begin; retain only the real Store in history so expired controls are not reused by undo/redo. Continue admission-failure cleanup even if another cleanup reports an error.
+- Publication of the new lifecycle contract requires an approved store-core/React cohort and dependency floor; workspace/packed-candidate checks do not prove compatibility with an older registry store-core declaration.
+- Omit absent optional transaction/origin fields in `bindActionTransactions` metadata rather than emitting explicit `undefined`, so durable JSON backends can participate without silently losing action grouping.
+- Accept engine-neutral readonly `StorePathPatch` arrays and readonly dependency paths in `useStorePath` / `useStoreSelectorWithPaths`; export the structural `PatchAwareStore` and `StorePathPatch` types without removing the existing Mutative `Patches` export.
+- Match array paths and RFC 6901 JSON Pointers, including escaped properties, numeric indexes, move sources and copy destination shifts. Unrecognized paths/operations conservatively invalidate rather than silently missing updates.
+- Preserve intentional `null`/`undefined` snapshot values instead of falling back to `getValue()`.
+- Remove the workspace Travels v3 path-hook conversion wrapper, and verify engine-independent behavior against source and installed production CJS consumers.
+- Record readability/portability findings and remaining limits in [backend-portability-review.md](./docs/backend-portability-review.md).
+
 ## Public API functional validation
 
 - Reset Time Travel path/selector equality history when replacing Store instances, and apply selector equality when the previous selection is `undefined`.

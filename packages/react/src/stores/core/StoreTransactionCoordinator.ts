@@ -1,20 +1,22 @@
-// biome-ignore-all lint/suspicious/noExplicitAny: transaction participants are heterogeneous store types.
 import { ErrorHandlers } from '../utils/error-handling';
+import type {
+  TransactionCoordinatorPort,
+  TransactionHandle,
+  TransactionMeta,
+  TransactionOptions,
+  TransactionParticipant,
+  TransactionParticipantBackend,
+} from '@context-action/store-core';
 import type { HistoryEntryId, StateMutationMeta, TransactionBackend } from './contracts';
 type TimeTravelTransitionMeta = StateMutationMeta;
 
-const activeTransactionStores = new WeakSet<TransactionBackend<any>>();
+const activeTransactionStores = new WeakSet<TransactionParticipantBackend>();
 
-export interface StoreTransactionMeta {
-  readonly id: string;
-  readonly transactionId?: string;
-  readonly label?: string;
-  readonly actionId?: string;
-  readonly origin?: 'user' | 'system' | 'network' | 'undo' | 'redo' | 'reset';
-}
+export interface StoreTransactionMeta extends TransactionMeta {}
+export type StoreTransactionOptions = TransactionOptions;
 
-export interface StoreTransactionParticipant<T = unknown> {
-  readonly name: string;
+export interface StoreTransactionParticipant<T = unknown> extends TransactionParticipant<T> {
+  /** Retain the legacy convenience surface for existing React callers. */
   readonly store: TransactionBackend<T>;
 }
 
@@ -52,7 +54,7 @@ export interface StoreTransactionInspectorSink {
 type StoredStoreTransactionRecord = Omit<StoreTransactionRecord, 'participants'> & {
   readonly participants: readonly {
     readonly name: string;
-    readonly store: TransactionBackend<any>;
+    readonly store: TransactionParticipantBackend;
     readonly before: number;
     readonly after: number;
     readonly beforeEntryId: HistoryEntryId;
@@ -61,10 +63,8 @@ type StoredStoreTransactionRecord = Omit<StoreTransactionRecord, 'participants'>
   }[];
 };
 
-export interface StoreTransactionHandle {
+export interface StoreTransactionHandle extends TransactionHandle {
   readonly meta: StoreTransactionMeta;
-  commit(): void;
-  rollback(): void;
 }
 
 /**
@@ -72,11 +72,11 @@ export interface StoreTransactionHandle {
  * participant. The participant list is explicit so a transaction cannot
  * accidentally capture unrelated global stores.
  */
-export class StoreTransactionCoordinator {
+export class StoreTransactionCoordinator implements TransactionCoordinatorPort {
   private sequence = 0;
   private position = 0;
   private history: StoredStoreTransactionRecord[] = [];
-  private readonly activeStores = new Set<TransactionBackend<any>>();
+  private readonly activeStores = new Set<TransactionParticipantBackend>();
   private readonly listeners = new Set<StoreTransactionListener>();
   private inspectorVersion = 0;
   private inspectorSnapshot: StoreTransactionInspectorSnapshot = {
@@ -153,15 +153,21 @@ export class StoreTransactionCoordinator {
   }
 
   begin(
-    participants: readonly StoreTransactionParticipant<any>[],
-    options: Omit<StoreTransactionMeta, 'id'> = {},
+    participants: readonly TransactionParticipant[],
+    options: StoreTransactionOptions = {},
   ): StoreTransactionHandle {
     const id = `tx_${++this.sequence}`;
-    const meta: StoreTransactionMeta = { ...options, id };
-    const unique = [...participants];
+    const meta = { ...options, id } satisfies StoreTransactionMeta;
+    // Capture identities/controls once; callers cannot redirect an open handle
+    // by replacing fields on their participant objects after begin().
+    const unique = participants.map(({ name, store, batchControl }) => ({
+      name,
+      store,
+      batchControl: batchControl ?? store,
+    }));
     if (unique.length === 0) throw new Error('A transaction requires at least one participant');
     const participantNames = new Set<string>();
-    const participantStores = new Set<TransactionBackend<any>>();
+    const participantStores = new Set<TransactionParticipantBackend>();
     for (const participant of unique) {
       if (participantNames.has(participant.name)) {
         throw new Error(`Duplicate transaction participant name "${participant.name}"`);
@@ -186,14 +192,17 @@ export class StoreTransactionCoordinator {
     const started: typeof unique = [];
     try {
       for (const participant of unique) {
-        participant.store.beginBatch(meta, { deferNotification: true });
+        participant.batchControl.beginBatch(meta, { deferNotification: true });
         started.push(participant);
       }
     } catch (error) {
-      for (const participant of [...started].reverse()) participant.store.cancelBatch();
+      const cleanup = (operation: () => void) => {
+        try { operation(); } catch (cleanupError) { this.reportListenerError(cleanupError); }
+      };
+      for (const participant of [...started].reverse()) cleanup(() => participant.batchControl.cancelBatch());
+      for (const participant of started) cleanup(() => participant.batchControl.resumeNotifications());
       for (const participant of started) {
-        participant.store.resumeNotifications();
-        participant.store.flushNotifications();
+        cleanup(() => participant.batchControl.flushNotifications());
       }
       throw error;
     }
@@ -204,21 +213,21 @@ export class StoreTransactionCoordinator {
     this.emit('started', { meta, participants: before.map(({ name, position }) => ({ name, before: position, after: position })) });
     let closed = false;
     const endBatches = () => {
-      for (const participant of [...unique].reverse()) participant.store.endBatch();
+      for (const participant of [...unique].reverse()) participant.batchControl.endBatch();
     };
     const cancelBatches = () => {
       for (const participant of [...unique].reverse()) {
         if (participant.store.isStoreDisposed()) continue;
         try {
-          participant.store.cancelBatch();
+          participant.batchControl.cancelBatch();
         } catch (error) {
           this.reportListenerError(error);
         }
       }
     };
     const flushBatches = () => {
-      for (const participant of unique) participant.store.resumeNotifications();
-      for (const participant of unique) participant.store.flushNotifications();
+      for (const participant of unique) participant.batchControl.resumeNotifications();
+      for (const participant of unique) participant.batchControl.flushNotifications();
     };
     return {
       meta,
@@ -281,9 +290,9 @@ export class StoreTransactionCoordinator {
   }
 
   async run<R>(
-    participants: readonly StoreTransactionParticipant<any>[],
+    participants: readonly TransactionParticipant[],
     callback: (meta: StoreTransactionMeta) => R | Promise<R>,
-    options: Omit<StoreTransactionMeta, 'id'> = {},
+    options: StoreTransactionOptions = {},
   ): Promise<R> {
     const handle = this.begin(participants, options);
     try {
@@ -328,8 +337,8 @@ export class StoreTransactionCoordinator {
     origin: 'undo' | 'redo',
   ): void {
     const participants = record.participants.map(({ store }) => store);
-    const metadata: TimeTravelTransitionMeta = { ...record.meta, origin };
-    const started: TransactionBackend<any>[] = [];
+    const metadata = { ...record.meta, origin } satisfies TimeTravelTransitionMeta;
+    const started: TransactionParticipantBackend[] = [];
     try {
       for (const store of participants) {
         store.beginBatch(metadata, { deferNotification: true });

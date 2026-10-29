@@ -1,8 +1,5 @@
-import {
-  createLitElementBridge,
-  LitCartBadge,
-  LitQuantityStepper,
-} from '@context-action/lit-ui';
+import { LitCartBadge, LitQuantityStepper } from '@context-action/lit-ui';
+import { createLitElementBridge } from '@context-action/lit-ui/react-bridge';
 import { useStoreValue } from '@context-action/react';
 import { useCallback, useMemo } from 'react';
 import { calculateOrderSummary } from '../business/orderCalculation';

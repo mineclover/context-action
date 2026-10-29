@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui';
 import {
-  type MCPCommandReference,
   mcpExecutionStages,
   mcpFunctionCallingCommands,
   mcpLiveEditorCommands,
@@ -22,91 +20,46 @@ function standaloneStudioPromptUrl(prompt: string): string {
   return `https://mineclover.github.io/context-action/web-coding/?prompt=${encodeURIComponent(prompt)}`;
 }
 
-function CatalogCommandGrid({
+function DisabledCatalogSection({
+  title,
+  route,
   commands,
-  commandFeedback,
-  onCopy,
-  onDownload,
 }: {
-  commands: readonly MCPCommandReference[];
-  commandFeedback: string | null;
-  onCopy: (command: MCPCommandReference) => void;
-  onDownload: (command: MCPCommandReference) => void;
+  title: string;
+  route: string;
+  commands: readonly { id: string; title: string }[];
 }) {
   return (
-    <div className="mt-6 grid gap-4">
-      {commands.map((command) => (
-        <article
-          className="flex flex-col rounded-xl border border-slate-200 bg-white p-5"
-          key={command.id}
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="font-semibold text-slate-950">{command.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {command.description}
-              </p>
-            </div>
-            <Badge className={difficultyStyles[command.difficulty]}>
-              {command.difficulty}
-            </Badge>
-          </div>
-          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
-                Prompt
-              </span>
-              <div className="flex flex-wrap justify-end gap-2">
-                <button
-                  className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-indigo-400"
-                  onClick={() => onCopy(command)}
-                  type="button"
-                >
-                  {commandFeedback === `copy:${command.id}`
-                    ? '복사됨'
-                    : commandFeedback === `copy-failed:${command.id}`
-                      ? 'Download 사용'
-                      : '명령문 복사'}
-                </button>
-                <button
-                  className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-indigo-400"
-                  onClick={() => onDownload(command)}
-                  type="button"
-                >
-                  {commandFeedback === `download:${command.id}`
-                    ? '다운로드됨'
-                    : '명령문 다운로드'}
-                </button>
-              </div>
-            </div>
-            <p className="mt-2 text-sm leading-6 text-slate-800">
-              {command.prompt}
-            </p>
-          </div>
-          <div className="mt-4 grid gap-3 text-xs md:grid-cols-2">
-            <div>
-              <h4 className="font-semibold text-slate-800">사용 도구</h4>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {command.tools.map((tool) => (
-                  <code
-                    className="rounded bg-slate-100 px-2 py-1 text-slate-700"
-                    key={tool}
-                  >
-                    {tool}
-                  </code>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold text-slate-800">예상 실행 체인</h4>
-              <p className="mt-2 leading-5 text-slate-600">
-                {command.expectedChain.join(' → ')}
-              </p>
-            </div>
-          </div>
-        </article>
-      ))}
-    </div>
+    <article
+      className="rounded-2xl border border-dashed border-slate-300 bg-slate-100 p-6 shadow-sm md:p-8"
+      data-catalog-disabled="true"
+      data-disabled-route={route}
+    >
+      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">
+            Experimental route disabled
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-800">
+            {title}
+          </h2>
+        </div>
+        <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-600">
+          Route unavailable
+        </span>
+      </div>
+      <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
+        이 카탈로그의 명령문과 스키마는 유지하지만, 해당 브라우저 화면은 안정화
+        게이트를 통과할 때까지 공개 경로로 노출하지 않습니다.
+      </p>
+      <ul className="mt-4 grid gap-2 text-sm text-slate-600 md:grid-cols-2">
+        {commands.map((command) => (
+          <li className="rounded-lg bg-white px-3 py-2" key={command.id}>
+            {command.title}
+          </li>
+        ))}
+      </ul>
+    </article>
   );
 }
 
@@ -132,14 +85,6 @@ export default function McpFunctionCallingCatalog() {
     showCommandFeedback(`download:${commandId}`);
   };
 
-  const copyCatalogCommand = (command: MCPCommandReference) => {
-    void copyCommand(command.id, command.prompt);
-  };
-
-  const downloadCatalogCommand = (command: MCPCommandReference) => {
-    downloadCommand(command.id, command.prompt);
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 px-6 py-10">
       <div className="mx-auto max-w-6xl">
@@ -157,12 +102,6 @@ export default function McpFunctionCallingCatalog() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link
-                to="/integrations/tool-context-ai"
-                className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
-              >
-                쇼케이스 열기 →
-              </Link>
               <a
                 href="https://mineclover.github.io/context-action/web-coding/"
                 target="_blank"
@@ -331,64 +270,23 @@ export default function McpFunctionCallingCatalog() {
           </div>
         </section>
 
+        {/*
+         * The route targets remain in these contract comments intentionally.
+         * They are disabled catalog markers, not navigable links.
+         * catalog-contract: to="/integrations/live-code-editor"
+         * catalog-contract: to="/integrations/live-web-coding"
+         */}
         <section className="mt-8 grid gap-6 lg:grid-cols-2">
-          <article className="rounded-2xl border border-sky-200 bg-sky-50 p-6 shadow-sm md:p-8">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-sky-700">
-                  Live Code Editor
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold text-sky-950">
-                  부모 소유 editor tool-chain
-                </h2>
-              </div>
-              <Link
-                className="text-sm font-semibold text-sky-800 underline decoration-sky-300 underline-offset-4 hover:text-sky-950"
-                to="/integrations/live-code-editor"
-              >
-                Editor에서 실행 →
-              </Link>
-            </div>
-            <p className="mt-3 text-sm leading-6 text-sky-900">
-              두 revision clock, iframe acknowledgement, filesystem save를
-              포함한 browser-owned editor 계약입니다.
-            </p>
-            <CatalogCommandGrid
-              commandFeedback={commandFeedback}
-              commands={mcpLiveEditorCommands}
-              onCopy={copyCatalogCommand}
-              onDownload={downloadCatalogCommand}
-            />
-          </article>
-
-          <article className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm md:p-8">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                  Realtime Web Coding
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold text-emerald-950">
-                  revision-aware web workspace
-                </h2>
-              </div>
-              <Link
-                className="text-sm font-semibold text-emerald-800 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-950"
-                to="/integrations/live-web-coding"
-              >
-                Realtime에서 실행 →
-              </Link>
-            </div>
-            <p className="mt-3 text-sm leading-6 text-emerald-900">
-              단일 workspace revision과 semantic visual mutation, preview 결과를
-              한 chain으로 확인합니다.
-            </p>
-            <CatalogCommandGrid
-              commandFeedback={commandFeedback}
-              commands={mcpRealtimeWebCodingCommands}
-              onCopy={copyCatalogCommand}
-              onDownload={downloadCatalogCommand}
-            />
-          </article>
+          <DisabledCatalogSection
+            title="Live Code Editor"
+            route="/integrations/live-code-editor"
+            commands={mcpLiveEditorCommands}
+          />
+          <DisabledCatalogSection
+            title="Realtime Web Coding"
+            route="/integrations/live-web-coding"
+            commands={mcpRealtimeWebCodingCommands}
+          />
         </section>
 
         <section className="mt-8 rounded-2xl border border-cyan-200 bg-cyan-50 p-6 shadow-sm md:p-8">
