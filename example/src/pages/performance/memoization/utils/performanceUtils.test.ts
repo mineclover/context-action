@@ -21,6 +21,12 @@ describe('calculateRollingRenderRate', () => {
     expect(calculateRollingRenderRate([0, 500, 1000, 1500], 1500)).toBe(2);
     expect(calculateRollingRenderRate([0, 500, 1000, 1500], 1500, 600)).toBe(2);
   });
+
+  it('does not cap a high-frequency window at the duration sample limit', () => {
+    const timestamps = Array.from({ length: 120 }, (_, index) => 1500 - index);
+
+    expect(calculateRollingRenderRate(timestamps, 1500)).toBe(120);
+  });
 });
 
 describe('PerformanceTracker', () => {
