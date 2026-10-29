@@ -9,7 +9,8 @@ This document defines coding conventions and best practices when using the Conte
 
 ## Current React 4.0.7 summary
 
-`@context-action/react` requires React 19.2 or later. The default design is a
+`@context-action/react` supports React 18.3.1 and React 19.2+. React 19.2-only
+features such as `<Activity>` are documented separately. The default design is a
 context-layered flow, not a component that mixes rendering, domain rules, and
 external effects:
 

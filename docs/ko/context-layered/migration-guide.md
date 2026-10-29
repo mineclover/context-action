@@ -72,9 +72,10 @@ void action의 dispatch option은 payload와 혼동되지 않도록 두 번째 �
 await register.actions.reset(undefined, { debounce: 100 });
 ```
 
-`@context-action/react`는 React 19.2 이상을 요구합니다. Store·Action API는
-`@context-action/react`에서 import하며, 이전의 `react18` 호환 entry point는 더 이상
-export하지 않습니다.
+`@context-action/react`는 React 18.3.1과 React 19.2+를 지원합니다. Store·Action
+API는 `@context-action/react`에서 import하며, 이전의 `react18` 호환 entry point는
+더 이상 export하지 않습니다. React 19.2 전용 Activity 동작은 React 19 소비자 범위로
+한정됩니다.
 `@context-action/mutative-core` / `@context-action/mutative` fork는 계속
 immutable runtime 계약으로 유지합니다. 현재 stable cohort는 Core `1.2.6`, Store Core `0.1.3`,
 Mutative Core `0.8.14`, scoped adapter `0.8.15`, React `4.0.7`입니다. `mutative@1.3.0`은
