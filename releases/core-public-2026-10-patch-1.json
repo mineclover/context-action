@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "context-action-core-public-release.v1",
+  "release": "context-action-core-public-2026-10-patch-1",
+  "status": "approved-for-candidate",
+  "candidateDistTag": "next",
+  "packages": {
+    "@context-action/core": "1.3.0"
+  },
+  "publicationOrder": [
+    "@context-action/core"
+  ],
+  "provenanceBinding": "workflow-release-commit",
+  "candidateWorkflow": "publish-core-public-candidate.yml",
+  "changelogDates": {
+    "@context-action/core": "2026-10-29"
+  },
+  "requiredExports": [
+    "./element",
+    "./element/react"
+  ],
+  "releaseCommit": "pending-pr-merge",
+  "publication": {
+    "status": "pending-candidate",
+    "publishedAt": null,
+    "next": null
+  }
+}

@@ -24,6 +24,7 @@
     "verify:package-exports": "node scripts/verify-package-exports.mjs",
     "verify:package-tarballs": "node scripts/verify-package-tarballs.mjs",
     "verify:preact-public-release": "node scripts/verify-preact-public-release.mjs",
+    "verify:core-public-release": "node scripts/verify-core-public-release.mjs",
     "verify:preact-consumer-smoke": "node scripts/verify-preact-public-consumer-smoke.mjs",
     "verify:tool-protocol-changelog": "node scripts/verify-tool-protocol-changelog.mjs",
     "verify:webmcp-changelog": "node scripts/verify-tool-protocol-changelog.mjs --package webmcp",

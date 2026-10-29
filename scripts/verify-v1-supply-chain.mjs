@@ -18,6 +18,7 @@ const stableCandidatePackageCohort = '@context-action/core,@context-action/react
 const coordinatedStablePackageCohort = '@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react';
 const preactPublicPackageCohort = '@context-action/preact,@context-action/preact-ui';
 const litPublicPackageCohort = '@context-action/lit,@context-action/lit-ui';
+const corePublicPackageCohort = '@context-action/core';
 const mutativePackageCohort = '@context-action/mutative-core,@context-action/mutative';
 const maintenanceJournalMarkerStatements = [
   'journal_previous_tag="maintenance-previous-$PACKAGE_VERSION"',
@@ -751,6 +752,33 @@ const publishWorkflowPolicies = new Map([
       { RELEASE_COMMIT: releaseCommitExpression },
       'must re-verify the approved clean source immediately before public Preact publication',
     ],
+  }],
+  ['publish-core-public-candidate.yml', {
+    protected: true,
+    allowLatest: false,
+    publishDistTag: 'next',
+    requireAllUnpublished: true,
+    requireMatchingResume: true,
+    uploadPath: 'reports/npm-core-public-candidate-*.json',
+    uploadMissingPolicy: 'error',
+    publishScopes: ['@context-action/core'],
+    allowedPublicationCommandPatterns: [/^pnpm\s+(?:run\s+)?publish:packages\b/u],
+    captureArguments: ['next', corePublicPackageCohort, 'reports/npm-core-public-candidate-registry-evidence.json'],
+    requiredBeforeCaptureSteps: [
+      [['node scripts/verify-core-public-provenance.mjs --tag next --commit "$RELEASE_COMMIT" --output reports/npm-core-public-candidate-provenance.json'], 'must verify Core candidate provenance before recording evidence'],
+    ],
+    requiredCommandPatterns: [
+      [/^pnpm\s+(?:run\s+)?publish:packages\b.*--dist-tag next(?:\s|$)/u, 'must publish the Core public candidate to next'],
+      [/^pnpm\s+(?:run\s+)?publish:packages\b.*--require-all-unpublished(?:\s|$)/u, 'must require the Core candidate version to be unpublished before mutation'],
+      [/^pnpm\s+(?:run\s+)?publish:packages\b.*--resume-matching-existing(?:\s|$)/u, 'must bind Core candidate recovery to matching registry artifacts'],
+      [/^node\s+scripts\/verify-core-public-provenance\.mjs\s+--tag next\s+--commit "\$RELEASE_COMMIT"\s+--output reports\/npm-core-public-candidate-provenance\.json$/u, 'must verify Core candidate provenance before evidence'],
+    ],
+    requiredPrepublicationSteps: [
+      [['pnpm verify:core-public-release -- --require-current-source'], 'must validate the exact Core public release plan against immutable source before publication'],
+      [['pnpm release:check'], 'must run the root release gate before Core public publication'],
+      [['pnpm verify:package-exports', 'pnpm verify:package-tarballs', 'node scripts/verify-published-tool-consumers.cjs --local --cohort-only --packages "@context-action/core"', 'pnpm package-boundary:check'], 'must verify the exact Core artifact and packed consumer before publication'],
+    ],
+    requiredAdjacentPrepublicationStep: [approvedSourceStatements, { RELEASE_COMMIT: releaseCommitExpression }, 'must re-verify the approved clean source immediately before Core public publication'],
   }],
   ['publish-lit-public-candidate.yml', {
     protected: true,

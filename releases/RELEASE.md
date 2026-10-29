@@ -62,7 +62,7 @@ pnpm release:check
 | Lit public preview patch (Lit 0.1.1 / Lit UI 0.1.1) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.1` 게시 완료. Lit은 cohort alignment, Lit UI는 hydrate patch |
 | Lit public preview patch (Lit 0.1.2 / Lit UI 0.1.2) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.2` 게시 완료. Lit은 cohort alignment, Lit UI는 hydration stabilization |
 | Lit public preview patch (Lit 0.1.3 / Lit UI 0.1.3) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.3` 게시 완료. Lit은 cohort alignment, Lit UI는 stale renderBefore 수정 |
-| Core 1.3.0 element interop cohort | Core publication prerequisite → `publish-lit-public-candidate.yml` / `publish-preact-public-candidate.yml` | Core 1.3.0을 먼저 후보로 고정한 뒤 Lit 0.1.4 / Lit UI 0.1.4 및 Preact 0.1.3 / Preact UI 0.2.1을 각각 `next`에 게시. 현재 후보 plan은 publish 전 상태 |
+| Core 1.3.0 element interop cohort | `publish-core-public-candidate.yml` → `publish-lit-public-candidate.yml` / `publish-preact-public-candidate.yml` | Core 1.3.0을 먼저 `next`에 고정한 뒤 Lit 0.1.4 / Lit UI 0.1.4 및 Preact 0.1.3 / Preact UI 0.2.1을 각각 `next`에 게시. 현재 후보 plan은 publish 전 상태 |
 
 모든 워크플로는 승인된 immutable main commit, 정확한 버전, provenance,
 consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 합니다.
