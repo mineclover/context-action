@@ -26,7 +26,7 @@ const protectedWorkflowNames = [
   'publish-coordinated-stable-candidate.yml',
   'publish-v1-stable-candidate.yml',
 ];
-const reactCompatibilityMatrixCommand = 'node scripts/verify-react-compatibility.mjs --react-version 19.2.0 --react-types 19.2.0 --react-dom-types 19.2.0 && node scripts/verify-react-compatibility.mjs --react-version 19.2.8 --react-types 19.2.17 --react-dom-types 19.2.3';
+const reactCompatibilityMatrixCommand = 'node scripts/verify-react-compatibility.mjs --react-version 18.3.1 --react-types 18.3.12 --react-dom-types 18.3.1 && node scripts/verify-react-compatibility.mjs --react-version 19.2.0 --react-types 19.2.0 --react-dom-types 19.2.0 && node scripts/verify-react-compatibility.mjs --react-version 19.2.8 --react-types 19.2.17 --react-dom-types 19.2.3';
 const verifyAllCommand = 'pnpm build:live-code-editor && pnpm build && pnpm verify:react-compatibility && pnpm verify:lit-react-compatibility && pnpm check:lit && pnpm test:ai-sdk-integration && pnpm verify:ai-sdk-tool-protocol-contract && pnpm verify:react-aria-reference-hydration && pnpm verify:doc-snippets && pnpm verify:core-artifact-parity && pnpm verify:react-artifact-boundary && pnpm verify:react-webmcp-isolation && pnpm verify:element-unit && pnpm verify:element-interop && pnpm verify:element-hosts && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm verify:lit-packed-consumer && pnpm verify:preact-public-release -- --require-current-source && pnpm verify:preact-public-workflows && pnpm verify:lit-public-release -- --require-current-source && pnpm verify:lit-public-workflows && pnpm verify:tool-protocol-changelog && pnpm verify:webmcp-changelog && pnpm package-boundary:check && pnpm package-boundary:test && pnpm verify:local-tool-consumers && pnpm verify:v1-lifecycle && pnpm verify:v1-release-manifest && pnpm verify:v1-release-state-alignment && pnpm verify:coordinated-stable-release-plan && pnpm test:release-safety && pnpm verify:v1-release-workflows && pnpm verify:v1-supply-chain && pnpm tool-durable:test:evidence && pnpm lint && pnpm convention:check && pnpm docs:management && pnpm llms:check && pnpm type-check && pnpm test && node --test scripts/example-route-impact.test.mjs && pnpm --filter example check && pnpm --filter example test && pnpm --filter example build && pnpm web-coding:build && pnpm docs:build && pnpm verify:private-tools';
 const prereleasePackageCohort = '@context-action/core,@context-action/react,@context-action/tool-durable-operations,@context-action/tool-protocol,@context-action/webmcp';
 
@@ -75,7 +75,7 @@ async function createFixture() {
       private: true,
       scripts: {
         check: 'biome check src && pnpm run verify:catalog && pnpm run verify:approval && pnpm run verify:trace && pnpm run verify:usecase && pnpm run verify:conditional && pnpm run verify:mouse-action && pnpm run verify:mouse-pattern && pnpm run verify:mouse-enhanced',
-        test: 'vitest run',
+        test: 'vitest run --pool=threads --maxWorkers=1 --no-file-parallelism --testTimeout=15000',
         build: 'tsc && vite build',
       },
     }, null, 2)}\n`),
@@ -122,7 +122,7 @@ async function createFixture() {
         'docs:management': 'node scripts/verify-documentation-management.mjs',
         'llms:check': 'node packages/llms-generator/dist/cli/index.js detect-mismatches --check-only --fail-on-mismatch',
         'type-check': 'lerna run type-check',
-        test: 'lerna run test',
+        test: 'pnpm build:core && lerna run test --no-bail',
         'docs:build': 'vitepress build docs',
         'verify:private-tools': 'node scripts/verify-private-tools.mjs',
         'verify:all': verifyAllCommand,
