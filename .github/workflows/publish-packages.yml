@@ -71,10 +71,25 @@ jobs:
           RELEASE_COMMIT: ${{ inputs.release_commit }}
         run: |
           [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          git fetch origin main --no-tags
           test "$GITHUB_REF" = "refs/heads/main"
           test "$RELEASE_COMMIT" = "$GITHUB_SHA"
           test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
           git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - name: Verify tag source ancestry
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          git fetch origin main --no-tags
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - name: Verify manual source binding
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git fetch origin main --no-tags
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
 
       - name: Clear npm config before registry setup
         run: |
@@ -163,10 +178,8 @@ jobs:
           node scripts/verify-tool-protocol-changelog.mjs --package llms-generator --forbid-unreleased --require-release-date
 
       - name: Re-verify approved source immediately before publication
-        env:
-          RELEASE_COMMIT: ${{ inputs.release_commit }}
         run: |
-          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           git diff --exit-code
           git diff --cached --exit-code
 
