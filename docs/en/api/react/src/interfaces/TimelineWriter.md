@@ -6,7 +6,7 @@
 
 # Interface: TimelineWriter
 
-Defined in: [packages/react/src/stores/core/contracts.ts:49](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L49)
+Defined in: [packages/react/src/stores/core/contracts.ts:37](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L37)
 
 ## Methods
 
@@ -14,7 +14,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:49](https://github.com/
 
 > **undo**(`steps?`): `void`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:50](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L50)
+Defined in: [packages/react/src/stores/core/contracts.ts:38](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L38)
 
 #### Parameters
 
@@ -32,7 +32,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:50](https://github.com/
 
 > **redo**(`steps?`): `void`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:51](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L51)
+Defined in: [packages/react/src/stores/core/contracts.ts:39](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L39)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:51](https://github.com/
 
 > **goTo**(`position`): `void`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:52](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L52)
+Defined in: [packages/react/src/stores/core/contracts.ts:40](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L40)
 
 #### Parameters
 
@@ -68,7 +68,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:52](https://github.com/
 
 > **reset**(): `void`
 
-Defined in: [packages/react/src/stores/core/contracts.ts:53](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L53)
+Defined in: [packages/react/src/stores/core/contracts.ts:41](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L41)
 
 #### Returns
 

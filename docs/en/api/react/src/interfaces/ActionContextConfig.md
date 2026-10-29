@@ -6,11 +6,11 @@
 
 # Interface: ActionContextConfig
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:54](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L54)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:53](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L53)
 
 Configuration options for createActionContext
 
-Extends ActionRegisterConfig with optional Zod schema validation.
+Extends ActionRegisterConfig with optional structural payload validation.
 When schema is provided, payload validation is enabled on dispatch.
 
 ## Example
@@ -32,10 +32,10 @@ const { Provider } = createActionContext<UserActions>('User', {
 
 ### schema?
 
-> `optional` **schema?**: `ActionSchemaMap`
+> `optional` **schema?**: `Record`\<`string`, `ActionSchemaLike`\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:60](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L60)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:59](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L59)
 
 Action schema map for runtime payload validation
-When provided, enables Zod-based validation on dispatch
+Uses the core validator contract; no tool protocol or schema library is required.
 Shorthand for config.registry.schema

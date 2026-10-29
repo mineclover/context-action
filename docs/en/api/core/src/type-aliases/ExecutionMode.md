@@ -8,7 +8,7 @@
 
 > **ExecutionMode** = `"sequential"` \| `"parallel"` \| `"race"`
 
-Defined in: [packages/core/src/types.ts:728](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L728)
+Defined in: [packages/core/src/types.ts:729](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L729)
 
 Execution mode for action handler pipeline
 

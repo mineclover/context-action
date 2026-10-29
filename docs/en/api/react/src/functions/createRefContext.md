@@ -10,7 +10,7 @@
 
 > **createRefContext**&lt;`T`&gt;(`contextName`, `options?`): [`RefContextReturn`](../interfaces/RefContextReturn.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/refs/createRefContext.ts:93](https://github.com/mineclover/context-action/blob/main/packages/react/src/refs/createRefContext.ts#L93)
+Defined in: [packages/react/src/refs/createRefContext.ts:94](https://github.com/mineclover/context-action/blob/main/packages/react/src/refs/createRefContext.ts#L94)
 
 간소화된 참조 컨텍스트 생성 함수 - 향상된 타입 추론
 
@@ -38,7 +38,7 @@ Defined in: [packages/react/src/refs/createRefContext.ts:93](https://github.com/
 
 > **createRefContext**&lt;`T`&gt;(`contextName`, `refDefinitions`, `options?`): [`RefContextReturn`](../interfaces/RefContextReturn.md)\<`InferRefTypes`&lt;`T`&gt;\>
 
-Defined in: [packages/react/src/refs/createRefContext.ts:98](https://github.com/mineclover/context-action/blob/main/packages/react/src/refs/createRefContext.ts#L98)
+Defined in: [packages/react/src/refs/createRefContext.ts:99](https://github.com/mineclover/context-action/blob/main/packages/react/src/refs/createRefContext.ts#L99)
 
 간소화된 참조 컨텍스트 생성 함수 - 향상된 타입 추론
 

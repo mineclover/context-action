@@ -8,7 +8,7 @@
 
 > **StoreTransactionListener** = (`event`) => `void`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:37](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L37)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:39](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L39)
 
 ## Parameters
 

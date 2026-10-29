@@ -12,6 +12,10 @@ Groups updates across multiple TimeTravelStores into one history entry per
 participant. The participant list is explicit so a transaction cannot
 accidentally capture unrelated global stores.
 
+## Implements
+
+- `TransactionCoordinatorPort`
+
 ## Constructors
 
 ### Constructor
@@ -96,15 +100,19 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:155](
 
 ##### participants
 
-readonly [`StoreTransactionParticipant`](../interfaces/StoreTransactionParticipant.md)&lt;`any`&gt;[]
+readonly `TransactionParticipant`&lt;`unknown`&gt;[]
 
 ##### options?
 
-`Omit`\<[`StoreTransactionMeta`](../interfaces/StoreTransactionMeta.md), `"id"`\> = `{}`
+[`StoreTransactionOptions`](../type-aliases/StoreTransactionOptions.md) = `{}`
 
 #### Returns
 
 [`StoreTransactionHandle`](../interfaces/StoreTransactionHandle.md)
+
+#### Implementation of
+
+`TransactionCoordinatorPort.begin`
 
 ***
 
@@ -112,7 +120,7 @@ readonly [`StoreTransactionParticipant`](../interfaces/StoreTransactionParticipa
 
 > **run**&lt;`R`&gt;(`participants`, `callback`, `options?`): `Promise`&lt;`R`&gt;
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:283](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L283)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:292](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L292)
 
 #### Type Parameters
 
@@ -124,7 +132,7 @@ Type parameter **R**
 
 ##### participants
 
-readonly [`StoreTransactionParticipant`](../interfaces/StoreTransactionParticipant.md)&lt;`any`&gt;[]
+readonly `TransactionParticipant`&lt;`unknown`&gt;[]
 
 ##### callback
 
@@ -132,7 +140,7 @@ readonly [`StoreTransactionParticipant`](../interfaces/StoreTransactionParticipa
 
 ##### options?
 
-`Omit`\<[`StoreTransactionMeta`](../interfaces/StoreTransactionMeta.md), `"id"`\> = `{}`
+[`StoreTransactionOptions`](../type-aliases/StoreTransactionOptions.md) = `{}`
 
 #### Returns
 
@@ -144,7 +152,7 @@ readonly [`StoreTransactionParticipant`](../interfaces/StoreTransactionParticipa
 
 > **canUndo**(): `boolean`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:299](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L299)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:308](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L308)
 
 #### Returns
 
@@ -156,7 +164,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:299](
 
 > **canRedo**(): `boolean`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:302](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L302)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:311](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L311)
 
 #### Returns
 
@@ -168,7 +176,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:302](
 
 > **getPosition**(): `number`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:305](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L305)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:314](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L314)
 
 #### Returns
 
@@ -180,7 +188,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:305](
 
 > **getHistory**(): readonly [`StoreTransactionRecord`](../interfaces/StoreTransactionRecord.md)[]
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:306](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L306)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:315](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L315)
 
 #### Returns
 
@@ -192,7 +200,7 @@ readonly [`StoreTransactionRecord`](../interfaces/StoreTransactionRecord.md)[]
 
 > **undo**(): `void`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:308](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L308)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:317](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L317)
 
 #### Returns
 
@@ -204,7 +212,7 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:308](
 
 > **redo**(): `void`
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:317](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L317)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:326](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L326)
 
 #### Returns
 

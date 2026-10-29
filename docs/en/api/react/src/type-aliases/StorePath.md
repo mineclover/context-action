@@ -8,6 +8,6 @@
 
 > **StorePath** = (`string` \| `number`)[]
 
-Defined in: [packages/react/src/stores/hooks/useStorePath.ts:29](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L29)
+Defined in: [packages/react/src/stores/hooks/useStorePath.ts:32](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L32)
 
 Path type for store subscription

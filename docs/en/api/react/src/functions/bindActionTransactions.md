@@ -21,7 +21,7 @@ Core remains Store-agnostic; this adapter owns the integration policy.
 
 ### coordinator
 
-[`StoreTransactionCoordinator`](../classes/StoreTransactionCoordinator.md)
+Type parameter **TransactionCoordinatorPort**
 
 ### options
 
