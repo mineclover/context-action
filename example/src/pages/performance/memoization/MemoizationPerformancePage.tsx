@@ -49,6 +49,20 @@ const MemoizationPerformancePage: React.FC = () => {
                 지표를 확인합니다.
               </p>
             </Link>
+            <Link
+              to="/performance/memoization/analysis"
+              className="block rounded-lg bg-indigo-50 p-6 transition-colors hover:bg-indigo-100"
+            >
+              <h3 className="mb-2 text-lg font-semibold text-indigo-900">성능 분석 리포트</h3>
+              <p className="text-indigo-700">측정값을 해석하고 비교 결과를 읽는 방법을 확인합니다.</p>
+            </Link>
+            <Link
+              to="/performance/memoization/guidelines"
+              className="block rounded-lg bg-emerald-50 p-6 transition-colors hover:bg-emerald-100"
+            >
+              <h3 className="mb-2 text-lg font-semibold text-emerald-900">메모이제이션 가이드</h3>
+              <p className="text-emerald-700">적용 기준과 측정 시 주의할 점을 정리합니다.</p>
+            </Link>
           </div>
         </div>
       </div>

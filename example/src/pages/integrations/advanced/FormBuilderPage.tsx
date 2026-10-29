@@ -3,12 +3,9 @@
  * Context-Action framework를 활용한 동적 폼 빌더 데모
  */
 
-// import React from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
-// TODO: These components need to be restored or created
-// import { ElementManagementProvider } from './ReactElementHooks';
-// import { FormBuilderExample } from './FormBuilderIntegrationExample';
 import { Badge, Card, CardContent } from '@/components/ui';
+import { FormBuilderInteractiveDemo } from './form-builder/FormBuilderInteractiveDemo';
 
 export function FormBuilderDemoPage() {
   return (
@@ -94,26 +91,15 @@ export function FormBuilderDemoPage() {
         </Card>
 
         {/* Live Demo */}
-        {/* TODO: Restore when ElementManagementProvider and FormBuilderExample are available */}
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">
                 🚀 실시간 폼 빌더
               </h3>
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className="bg-green-100 text-green-800"
-                >
-                  Demo Coming Soon
-                </Badge>
-              </div>
+              <Badge variant="outline" className="bg-green-100 text-green-800">Live</Badge>
             </div>
-
-            <p className="text-gray-500 text-center py-8">
-              Form Builder demo will be available after component restoration
-            </p>
+            <FormBuilderInteractiveDemo />
           </CardContent>
         </Card>
 

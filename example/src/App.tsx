@@ -143,6 +143,12 @@ const MemoizationPerformancePage = lazy(
 const MemoizationDemoPage = lazy(
   () => import('./pages/performance/memoization/DemoPage')
 );
+const MemoizationAnalysisPage = lazy(
+  () => import('./pages/performance/memoization/AnalysisPage')
+);
+const MemoizationGuidelinesPage = lazy(
+  () => import('./pages/performance/memoization/GuidelinesPage')
+);
 
 // Patterns - Business Logic (separate chunk for business logic patterns)
 const BusinessLogicPage = lazy(
@@ -536,6 +542,14 @@ function AppContent() {
             <Route
               path="/performance/memoization/demo"
               element={<MemoizationDemoPage />}
+            />
+            <Route
+              path="/performance/memoization/analysis"
+              element={<MemoizationAnalysisPage />}
+            />
+            <Route
+              path="/performance/memoization/guidelines"
+              element={<MemoizationGuidelinesPage />}
             />
 
             {/* 🎛️ PATTERNS - Advanced patterns, conditional execution */}

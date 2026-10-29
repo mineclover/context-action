@@ -371,6 +371,18 @@ function Layout({
       category: 'performance',
       description: 'Real-time memoization comparison demo',
     },
+    {
+      path: '/performance/memoization/analysis',
+      label: '📊 Memoization Analysis',
+      category: 'performance',
+      description: 'Interpret memoization measurements and trends',
+    },
+    {
+      path: '/performance/memoization/guidelines',
+      label: '📘 Memoization Guidelines',
+      category: 'performance',
+      description: 'Guidance for choosing memoization boundaries',
+    },
 
     // === Utilities & Tools (유틸리티) ===
     {
