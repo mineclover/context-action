@@ -13,6 +13,10 @@ const measurements = [
     'Render visibility',
     'Both lanes expose render count, rate, and accumulated work in the demo.',
   ],
+  [
+    'Benchmark boundary',
+    'The non-memoized lane includes its registry subtree re-render cost, so compare both lanes with the same layout.',
+  ],
 ];
 
 export default function AnalysisPage() {

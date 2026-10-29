@@ -16,7 +16,7 @@
     "build:strict": "tsc && vite build",
     "preview": "vite preview",
     "pretest": "pnpm run prepare:preact-ui",
-    "test": "vitest run",
+    "test": "vitest run --pool=threads --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
     "lint": "biome lint src",
     "lint:fix": "biome lint --write src",
     "format": "biome format src",

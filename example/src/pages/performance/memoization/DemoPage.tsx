@@ -104,6 +104,10 @@ const DemoPage: React.FC = () => {
                     • <strong>특징:</strong> View는 Store 구독과 semantic
                     command만 사용
                   </li>
+                  <li>
+                    • <strong>측정 범위:</strong> non-memoized lane의 Registry
+                    subtree 재렌더링 비용까지 포함
+                  </li>
                 </ul>
               </div>
             ) : (

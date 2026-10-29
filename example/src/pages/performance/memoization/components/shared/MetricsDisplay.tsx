@@ -51,7 +51,7 @@ export function MetricsDisplay({
           <span className="font-mono font-bold">{metrics.renderCount}</span>
         </div>
         <div className="flex justify-between">
-          <span>Render Rate:</span>
+          <span>Render Rate (at last commit):</span>
           <span
             className={`font-mono font-bold ${getRenderRateColor(metrics.renderRateStatus)}`}
           >
