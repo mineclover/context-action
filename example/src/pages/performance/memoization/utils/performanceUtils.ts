@@ -36,8 +36,14 @@ export class PerformanceTracker {
     return totalTime / this.data.length;
   }
 
+  /**
+   * Returns the latest cumulative render count.
+   *
+   * `PerformanceData.renderCount` is a snapshot from the monitor, so adding
+   * snapshots together counts the same renders repeatedly.
+   */
   getTotalRenderCount(): number {
-    return this.data.reduce((sum, data) => sum + data.renderCount, 0);
+    return this.data[this.data.length - 1]?.renderCount ?? 0;
   }
 
   getMemoryUsage(): number | undefined {
@@ -55,34 +61,58 @@ export class PerformanceTracker {
   }
 }
 
-// 데이터 생성 유틸리티
-export const generateTestData = (count: number) => {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index,
-    value: Math.random() * 1000,
-    name: `Item ${index}`,
-    category: `Category ${Math.floor(index / 10)}`,
-  }));
-};
-
 // 성능 비교 함수
+export interface PerformanceComparison {
+  memoizedAverage: number | null;
+  nonMemoizedAverage: number | null;
+  improvement: number | null;
+  isBetter: boolean | null;
+  available: boolean;
+  reason?: 'no-samples' | 'zero-baseline';
+}
+
 export const comparePerformance = (
   memoizedMetrics: PerformanceData[],
   nonMemoizedMetrics: PerformanceData[]
-) => {
+): PerformanceComparison => {
   const memoizedAvg =
-    memoizedMetrics.reduce((sum, data) => sum + data.renderTime, 0) /
-    memoizedMetrics.length;
+    memoizedMetrics.length > 0
+      ? memoizedMetrics.reduce((sum, data) => sum + data.renderTime, 0) /
+        memoizedMetrics.length
+      : null;
   const nonMemoizedAvg =
-    nonMemoizedMetrics.reduce((sum, data) => sum + data.renderTime, 0) /
-    nonMemoizedMetrics.length;
+    nonMemoizedMetrics.length > 0
+      ? nonMemoizedMetrics.reduce((sum, data) => sum + data.renderTime, 0) /
+        nonMemoizedMetrics.length
+      : null;
 
-  const improvement = ((nonMemoizedAvg - memoizedAvg) / nonMemoizedAvg) * 100;
+  if (memoizedAvg === null || nonMemoizedAvg === null) {
+    return {
+      memoizedAverage: memoizedAvg,
+      nonMemoizedAverage: nonMemoizedAvg,
+      improvement: null,
+      isBetter: null,
+      available: false,
+      reason: 'no-samples',
+    };
+  }
+
+  if (nonMemoizedAvg <= 0) {
+    return {
+      memoizedAverage: memoizedAvg,
+      nonMemoizedAverage: nonMemoizedAvg,
+      improvement: null,
+      isBetter: null,
+      available: false,
+      reason: 'zero-baseline',
+    };
+  }
 
   return {
     memoizedAverage: memoizedAvg,
     nonMemoizedAverage: nonMemoizedAvg,
-    improvement: improvement,
+    improvement: ((nonMemoizedAvg - memoizedAvg) / nonMemoizedAvg) * 100,
     isBetter: memoizedAvg < nonMemoizedAvg,
+    available: true,
   };
 };

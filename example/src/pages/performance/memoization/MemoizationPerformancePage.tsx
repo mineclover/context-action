@@ -28,12 +28,12 @@ const MemoizationPerformancePage: React.FC = () => {
 
         <div className="bg-white shadow rounded-lg p-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            메모이제이션 성능 비교
+            Action handler 메모이제이션 성능 비교
           </h1>
 
           <p className="text-gray-600 mb-6">
-            Context-Action에서 메모이제이션 사용 여부에 따른 성능 차이를
-            비교하고 분석합니다.
+            Context-Action에서 안정적인 handler 등록과 매 렌더링마다 다시
+            만들어지는 handler 등록의 차이를 비교하고 분석합니다.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -45,8 +45,8 @@ const MemoizationPerformancePage: React.FC = () => {
                 실시간 성능 비교 데모
               </h3>
               <p className="text-blue-700">
-                메모이제이션 사용/미사용 시나리오를 실시간으로 비교하고 성능
-                지표를 확인합니다.
+                메모이제이션된 handler와 재생성되는 handler 시나리오를
+                실시간으로 비교하고 성능 지표를 확인합니다.
               </p>
             </Link>
             <Link

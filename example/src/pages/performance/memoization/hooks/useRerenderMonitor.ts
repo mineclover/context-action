@@ -8,6 +8,28 @@ interface RerenderMetrics {
   averageRenderTime: number;
 }
 
+const RENDER_RATE_WINDOW_MS = 1000;
+const MAX_DURATION_SAMPLES = 100;
+
+/**
+ * Counts committed renders in a rolling time window.
+ *
+ * Keeping timestamps (rather than cumulative elapsed durations) makes the
+ * calculation independent of the number of samples that have already been
+ * discarded and gives deterministic results when the clock is advanced in
+ * tests.
+ */
+export function calculateRollingRenderRate(
+  renderTimestamps: readonly number[],
+  now: number,
+  windowMs = RENDER_RATE_WINDOW_MS
+): number {
+  const windowStart = now - windowMs;
+  return renderTimestamps.filter(
+    (timestamp) => timestamp > windowStart && timestamp <= now
+  ).length;
+}
+
 /**
  * Hook to monitor component re-renders and calculate performance metrics
  *
@@ -22,34 +44,35 @@ export function useRerenderMonitor(
   const renderCountRef = useRef(0);
   const firstRenderTimeRef = useRef(Date.now());
   const lastRenderTimeRef = useRef(Date.now());
-  const renderTimesRef = useRef<number[]>([]);
+  const renderTimestampsRef = useRef<number[]>([]);
+  const renderDurationsRef = useRef<number[]>([]);
   const renderRateRef = useRef(0);
-
-  // Increment render count on each render
-  renderCountRef.current++;
 
   useEffect(() => {
     const now = Date.now();
     const timeSinceLastRender = now - lastRenderTimeRef.current;
 
-    // Store render time for averaging
-    if (renderTimesRef.current.length > 100) {
-      renderTimesRef.current.shift(); // Keep only last 100 renders
+    // Count committed renders only. Incrementing during render includes
+    // discarded work and React StrictMode's development-only render pass.
+    renderCountRef.current++;
+
+    // Keep committed render timestamps for the rolling rate calculation.
+    renderTimestampsRef.current.push(now);
+    const oldestTimestamp = now - RENDER_RATE_WINDOW_MS;
+    renderTimestampsRef.current = renderTimestampsRef.current.filter(
+      (timestamp) => timestamp > oldestTimestamp
+    );
+
+    // Store elapsed time separately for the average duration metric.
+    if (renderDurationsRef.current.length >= MAX_DURATION_SAMPLES) {
+      renderDurationsRef.current.shift();
     }
-    renderTimesRef.current.push(timeSinceLastRender);
+    renderDurationsRef.current.push(timeSinceLastRender);
 
-    // Calculate render rate (renders per second over last second)
-    const oneSecondAgo = now - 1000;
-    const recentRenders = renderTimesRef.current.filter((_, index) => {
-      const renderTime =
-        now -
-        renderTimesRef.current
-          .slice(index)
-          .reduce((sum, time) => sum + time, 0);
-      return renderTime >= oneSecondAgo;
-    }).length;
-
-    renderRateRef.current = recentRenders;
+    renderRateRef.current = calculateRollingRenderRate(
+      renderTimestampsRef.current,
+      now
+    );
     lastRenderTimeRef.current = now;
 
     if (logToConsole) {
@@ -64,9 +87,9 @@ export function useRerenderMonitor(
   // Calculate metrics
   const totalTime = Date.now() - firstRenderTimeRef.current;
   const averageRenderTime =
-    renderTimesRef.current.length > 0
-      ? renderTimesRef.current.reduce((sum, time) => sum + time, 0) /
-        renderTimesRef.current.length
+    renderDurationsRef.current.length > 0
+      ? renderDurationsRef.current.reduce((sum, time) => sum + time, 0) /
+        renderDurationsRef.current.length
       : 0;
 
   return {
@@ -91,19 +114,28 @@ export function usePerformanceWarning(
 ): boolean {
   const metrics = useRerenderMonitor('PerformanceCheck', false);
   const hasWarned = useRef(false);
+  const warningCallbackRef = useRef(warningCallback);
+  const metricsRef = useRef(metrics);
+  metricsRef.current = metrics;
 
   useEffect(() => {
-    if (metrics.renderRate > threshold) {
+    warningCallbackRef.current = warningCallback;
+  }, [warningCallback]);
+
+  const { renderCount, renderRate } = metrics;
+
+  useEffect(() => {
+    if (renderRate > threshold) {
       if (!hasWarned.current) {
         console.warn(
           `⚠️ Performance Warning: Excessive re-renders detected!`,
-          `\n  Current rate: ${metrics.renderRate}/sec`,
+          `\n  Current rate: ${renderRate}/sec`,
           `\n  Threshold: ${threshold}/sec`,
-          `\n  Total renders: ${metrics.renderCount}`
+          `\n  Total renders: ${renderCount}`
         );
 
-        if (warningCallback) {
-          warningCallback(metrics);
+        if (warningCallbackRef.current) {
+          warningCallbackRef.current(metricsRef.current);
         }
 
         hasWarned.current = true;
@@ -111,9 +143,9 @@ export function usePerformanceWarning(
     } else {
       hasWarned.current = false;
     }
-  }, [metrics, threshold, warningCallback]);
+  }, [renderCount, renderRate, threshold]);
 
-  return metrics.renderRate <= threshold;
+  return renderRate <= threshold;
 }
 
 /**

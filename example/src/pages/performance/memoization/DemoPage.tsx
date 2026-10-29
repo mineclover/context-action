@@ -44,11 +44,11 @@ const DemoPage: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                실시간 성능 비교 데모
+                실시간 handler 성능 비교 데모
               </h1>
               <p className="text-gray-600">
-                메모이제이션 사용 여부에 따른 성능 차이를 실시간으로 확인할 수
-                있습니다.
+                안정적인 handler와 재생성되는 handler의 등록·렌더링 차이를
+                실시간으로 확인할 수 있습니다.
               </p>
             </div>
 

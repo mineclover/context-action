@@ -1,16 +1,16 @@
-import { type ReactNode, useCallback } from 'react';
+import { type ReactNode, useCallback, useId, useRef } from 'react';
+import { validateForm } from './business/formValidation';
 import {
   type FieldType,
   type FormBuilderActions as FormBuilderActionMap,
   FormBuilderActions,
   FormBuilderStores,
   type FormField,
-  type FormState,
   initialFormState,
 } from './FormBuilderContexts';
 
-function makeField(type: FieldType, index: number): FormField {
-  const id = `${type}-${Date.now()}-${index}`;
+function makeField(type: FieldType, nextId: () => string): FormField {
+  const id = `${type}-${nextId()}`;
   const defaults: Record<
     FieldType,
     Pick<FormField, 'label' | 'placeholder'>
@@ -24,36 +24,21 @@ function makeField(type: FieldType, index: number): FormField {
   return { id, type, ...defaults[type], required: false };
 }
 
-function validate(form: FormState): Record<string, string> {
-  const errors: Record<string, string> = {};
-  for (const field of form.fields) {
-    const value = form.values[field.id];
-    if (
-      field.required &&
-      (value === undefined || value === '' || value === false)
-    )
-      errors[field.id] = '필수 입력 항목입니다.';
-    else if (
-      field.type === 'email' &&
-      typeof value === 'string' &&
-      value &&
-      !/^\S+@\S+\.\S+$/u.test(value)
-    )
-      errors[field.id] = '올바른 이메일 형식을 입력하세요.';
-  }
-  return errors;
-}
-
 export function FormBuilderHandlerRegistry({
   children,
 }: {
   children?: ReactNode;
 }) {
   const formStore = FormBuilderStores.useStore('form');
+  const nextFieldIdRef = useRef(0);
+  const instanceId = useId().replace(/:/gu, '');
   const addField = useCallback(
     ({ type }: FormBuilderActionMap['addField']) => {
       const current = formStore.getValue();
-      const field = makeField(type, current.fields.length);
+      const field = makeField(
+        type,
+        () => `${instanceId}-${++nextFieldIdRef.current}`
+      );
       formStore.setValue({
         ...current,
         fields: [...current.fields, field],
@@ -65,7 +50,7 @@ export function FormBuilderHandlerRegistry({
         submitted: false,
       });
     },
-    [formStore]
+    [formStore, instanceId]
   );
   const updateField = useCallback(
     ({ id, patch }: FormBuilderActionMap['updateField']) => {
@@ -110,7 +95,7 @@ export function FormBuilderHandlerRegistry({
   );
   const submit = useCallback(() => {
     const current = formStore.getValue();
-    const errors = validate(current);
+    const errors = validateForm(current);
     formStore.setValue({
       ...current,
       errors,

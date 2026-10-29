@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { act } from 'react';
 import { describe, expect, it } from 'vitest';
@@ -6,10 +6,7 @@ import { isSortColumn } from './hooks/useReactAriaReferenceViewModel';
 import ReactAriaReferencePage from './ReactAriaReferencePage';
 
 async function actUserInteraction(interaction: () => Promise<void>) {
-  await act(async () => {
-    await interaction();
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  });
+  await act(interaction);
 }
 
 describe('React Aria integration reference', () => {
@@ -43,13 +40,17 @@ describe('React Aria integration reference', () => {
       await user.keyboard('[Space]');
     });
     expect(table.contains(document.activeElement)).toBe(true);
-    expect(screen.getByText('1개 행 선택됨')).toBeTruthy();
-    expect(screen.getByText(/Table selection committed: 1 row/)).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText('1개 행 선택됨')).toBeTruthy();
+      expect(screen.getByText(/Table selection committed: 1 row/)).toBeTruthy();
+    });
 
     await actUserInteraction(async () => {
       await user.click(screen.getByRole('columnheader', { name: 'Owner' }));
     });
-    expect(screen.getByText(/Table sort committed: owner/)).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByText(/Table sort committed: owner/)).toBeTruthy()
+    );
 
     const calendar = screen.getByRole('grid', { name: /Review schedule date/ });
     const selectedCalendarGridCell = calendar.querySelector(
@@ -65,13 +66,17 @@ describe('React Aria integration reference', () => {
       await user.keyboard('[ArrowRight][Enter]');
     });
     expect(calendar.contains(document.activeElement)).toBe(true);
-    expect(screen.getByText(/Calendar date committed/)).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByText(/Calendar date committed/)).toBeTruthy()
+    );
 
     await actUserInteraction(async () => {
       await user.click(
         screen.getByRole('button', { name: '선택한 행에 리뷰 일정 적용' })
       );
     });
-    expect(screen.getByText(/Scheduled 1 selected review/)).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByText(/Scheduled 1 selected review/)).toBeTruthy()
+    );
   });
 });

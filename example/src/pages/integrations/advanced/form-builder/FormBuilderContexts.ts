@@ -18,7 +18,7 @@ export interface FormState {
 
 export interface FormBuilderActions extends ActionPayloadMap {
   addField: { type: FieldType };
-  updateField: { id: string; patch: Partial<FormField> };
+  updateField: { id: string; patch: Omit<Partial<FormField>, 'id'> };
   removeField: { id: string };
   updateValue: { id: string; value: string | boolean };
   submit: void;
@@ -43,7 +43,7 @@ export const initialFields: FormField[] = [
 ];
 
 export const initialFormState = (): FormState => ({
-  fields: initialFields,
+  fields: initialFields.map((field) => ({ ...field })),
   values: { name: '', email: '' },
   errors: {},
   submitted: false,

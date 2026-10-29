@@ -95,3 +95,9 @@ jobs:
 
       - name: Verify Lit packages (build, type-check, unit, edge runtime)
         run: pnpm check:lit
+
+      - name: Verify example application contracts
+        run: |
+          pnpm --filter example check
+          pnpm --filter example test
+          pnpm --filter example build
