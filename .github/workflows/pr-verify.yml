@@ -78,7 +78,8 @@ jobs:
           pnpm build:react &&
           pnpm build:tool-protocol &&
           pnpm build:mutative-core &&
-          pnpm build:mutative
+          pnpm build:mutative &&
+          pnpm build:live-code-editor
 
       - name: Audit local verification receipt (Fail-Closed Gate)
         run: pnpm run verify:receipt
