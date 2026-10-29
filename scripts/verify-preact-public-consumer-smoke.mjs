@@ -7,7 +7,7 @@
  * (`@context-action/preact` + `@context-action/preact-ui`).
  *
  * Version selection (packages may carry different cohort versions):
- *   --cohort                     pin both to releases/preact-public-2026-10.json
+ *   --cohort                     pin both to releases/preact-public-2026-10-patch-1.json
  *   --version <v>                shared version for both packages
  *   --preact-version <v>         override @context-action/preact
  *   --preact-ui-version <v>      override @context-action/preact-ui
@@ -54,7 +54,7 @@ const optionValue = (name) => {
 // `--cohort` pins both to the approved release plan; `--version` remains a shared
 // shorthand; per-package flags override either.
 const cohortPlan = args.includes('--cohort')
-  ? JSON.parse(readFileSync(path.join(__dirname, '..', 'releases', 'preact-public-2026-10.json'), 'utf8'))
+  ? JSON.parse(readFileSync(path.join(__dirname, '..', 'releases', 'preact-public-2026-10-patch-1.json'), 'utf8'))
   : null;
 const SHARED_VERSION = optionValue('--version');
 const TARGET_VERSIONS = {

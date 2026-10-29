@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const planPath = path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-3.json');
+const planPath = path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-4.json');
 
 function option(name, { required = false } = {}) {
   const index = process.argv.indexOf(name);

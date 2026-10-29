@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.1.4] (2026-10-29)
+
+Core 1.3.0 element interop cohort candidate. The package now resolves its
+framework-neutral Core dependency through `@context-action/core@^1.3.0`.
+
 ## [0.1.3] (2026-10-23)
 
 Published to npm on 2026-10-23. `latest` and `next` resolve to `0.1.3`.

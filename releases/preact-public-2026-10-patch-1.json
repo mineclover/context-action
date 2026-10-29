@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "context-action-preact-public-release.v1",
+  "release": "context-action-preact-public-2026-10-patch-1",
+  "status": "approved-for-candidate",
+  "candidateDistTag": "next",
+  "promotionDistTag": "latest",
+  "packages": {
+    "@context-action/preact": "0.1.3",
+    "@context-action/preact-ui": "0.2.1"
+  },
+  "dependencies": {
+    "@context-action/preact": {
+      "@context-action/core": "^1.3.0"
+    },
+    "@context-action/preact-ui": {
+      "@context-action/core": "^1.3.0",
+      "@context-action/preact": "^0.1.3"
+    }
+  },
+  "publicationOrder": [
+    "@context-action/core",
+    "@context-action/preact",
+    "@context-action/preact-ui"
+  ],
+  "elementInteropPrerequisite": {
+    "package": "@context-action/core",
+    "minimumVersion": "1.3.0",
+    "publicationOrder": [
+      "@context-action/core",
+      "@context-action/preact",
+      "@context-action/preact-ui"
+    ],
+    "status": "approved-for-core-cohort",
+    "requiredExports": [
+      "./element",
+      "./element/react"
+    ],
+    "candidateDependencies": {
+      "@context-action/preact": {
+        "@context-action/core": "^1.3.0"
+      },
+      "@context-action/preact-ui": {
+        "@context-action/core": "^1.3.0"
+      }
+    }
+  },
+  "provenanceBinding": "workflow-release-commit",
+  "changelogDates": {
+    "@context-action/preact": "2026-10-29",
+    "@context-action/preact-ui": "2026-10-29"
+  },
+  "requiredChecks": [
+    "pnpm --filter @context-action/preact type-check",
+    "pnpm --filter @context-action/preact test",
+    "pnpm --filter @context-action/preact-ui type-check",
+    "pnpm --filter @context-action/preact-ui test",
+    "pnpm --filter @context-action/preact-ui test:native",
+    "pnpm --filter @context-action/preact-ui test:browser",
+    "pnpm --filter @context-action/preact-ui test:browser:cross",
+    "pnpm verify:package-exports",
+    "pnpm verify:package-tarballs",
+    "pnpm package-boundary:check"
+  ],
+  "notes": [
+    "Core 1.3.0 element interop cohort; publish Core before Preact adapters.",
+    "Preact and Preact UI advance to 0.1.3/0.2.1 with Core ^1.3.0 dependency floors.",
+    "Candidate publication requires an approved immutable main release commit and protected workflow."
+  ],
+  "releaseCommit": "pending-pr-merge",
+  "publication": {
+    "status": "pending-candidate",
+    "publishedAt": null,
+    "latest": null,
+    "next": null
+  }
+}

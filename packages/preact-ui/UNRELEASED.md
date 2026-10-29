@@ -6,7 +6,7 @@
   stable listeners, object listeners and HTML aliases with the Lit bridge.
 - Preserve fail-fast property assignments (distinct from Lit's best-effort
   policy), best-effort omission cleanup, and direct facade setter/command errors.
-- Public publication is **blocked** until the Core/UI cohort and minimum Core
-  dependency version containing these subpaths are approved. Versions are unchanged.
+- Public candidate publication targets `@context-action/preact@0.1.3` and
+  `@context-action/preact-ui@0.2.1` after Core `1.3.0` is published first.
 
 [Shared requirements review](../core/docs/interop-review.en.md)

@@ -1,16 +1,15 @@
 # Unreleased changes
 
-These changes are not included in the published versions listed in [CHANGELOG.md](./CHANGELOG.md).
-They do not authorize a version change or publication.
+These changes target the approved Core 1.3.0 element interop cohort and remain
+unpublished until the protected candidate workflow binds them to an immutable
+release commit.
 
 ## Element host interop candidate
 
 - Add the framework-neutral `./element` and injected-runtime `./element/react`
   public entries for DOM bindings, facades, and React host bridges.
-- The current published Core version remains `1.2.6`; these entries are not
-  present in that registry artifact. Publication is blocked until an approved
-  Core/UI cohort publishes the new entry contract and the adapters move from
-  local `workspace:*` wiring to a semver dependency floor.
+- Core advances to `1.3.0` for the approved element interop cohort. The adapters
+  depend on `@context-action/core@^1.3.0` and publish only after Core.
 
 ## Action execution reliability
 

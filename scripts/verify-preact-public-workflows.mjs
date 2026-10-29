@@ -13,7 +13,7 @@ import {
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const candidatePath = path.join(repositoryRoot, '.github', 'workflows', 'publish-preact-public-candidate.yml');
 const promotionPath = path.join(repositoryRoot, '.github', 'workflows', 'promote-preact-public.yml');
-const planPath = path.join(repositoryRoot, 'releases', 'preact-public-2026-10.json');
+const planPath = path.join(repositoryRoot, 'releases', 'preact-public-2026-10-patch-1.json');
 const cohort = '@context-action/preact,@context-action/preact-ui';
 const commitExpression = '$' + '{{ inputs.release_commit }}';
 

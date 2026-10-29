@@ -9,13 +9,13 @@ const packageDefinitions = [
   {
     name: '@context-action/preact',
     directory: 'packages/preact',
-    expectedVersion: '0.1.2',
+    expectedVersion: '0.1.3',
     dependency: '@context-action/core',
   },
   {
     name: '@context-action/preact-ui',
     directory: 'packages/preact-ui',
-    expectedVersion: '0.2.0',
+    expectedVersion: '0.2.1',
     dependency: '@context-action/preact',
   },
 ];
@@ -30,7 +30,7 @@ if (rootIndex !== -1 && (!args[rootIndex + 1] || args[rootIndex + 1].startsWith(
 const repositoryRoot = rootIndex === -1
   ? defaultRepositoryRoot
   : path.resolve(args[rootIndex + 1] ?? '');
-const planPath = path.join(repositoryRoot, 'releases', 'preact-public-2026-10.json');
+const planPath = path.join(repositoryRoot, 'releases', 'preact-public-2026-10-patch-1.json');
 const unknownArguments = args.filter((argument, index) => argument !== '--require-current-source'
   && argument !== '--root'
   && index !== rootIndex + 1);
@@ -97,8 +97,8 @@ async function validatePlan(errors) {
     'public Preact release plan must declare the Core element interop prerequisite');
   expect(errors, prerequisite?.minimumVersion === ELEMENT_INTEROP_MIN_CORE,
     `public Preact release plan Core prerequisite must be ${ELEMENT_INTEROP_MIN_CORE}`);
-  expect(errors, prerequisite?.status === 'blocked-until-approved-core-cohort',
-    'public Preact release plan must keep the element interop cohort blocked until Core approval');
+  expect(errors, prerequisite?.status === 'approved-for-core-cohort',
+    'public Preact release plan must mark the Core element interop cohort approved');
   expect(errors, JSON.stringify(prerequisite?.publicationOrder ?? [])
     === JSON.stringify([
       '@context-action/core', '@context-action/preact', '@context-action/preact-ui',
@@ -220,7 +220,7 @@ async function main() {
 
   console.log(JSON.stringify({
     status: 'ok',
-    release: plan?.release ?? 'preact-public-2026-10',
+    release: plan?.release ?? 'preact-public-2026-10-patch-1',
     packages: Object.fromEntries(packageDefinitions.map(definition => [definition.name, definition.expectedVersion])),
     currentSource: requireCurrentSource ? 'required' : 'not-required',
   }));

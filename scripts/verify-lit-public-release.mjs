@@ -10,7 +10,7 @@ const packageDefinitions = [
   {
     name: '@context-action/lit',
     directory: 'packages/lit',
-    expectedVersion: '0.1.3',
+    expectedVersion: '0.1.4',
     dependencies: {
       '@context-action/core': (coreVersion) => `^${coreVersion}`,
     },
@@ -18,10 +18,10 @@ const packageDefinitions = [
   {
     name: '@context-action/lit-ui',
     directory: 'packages/lit-ui',
-    expectedVersion: '0.1.3',
+    expectedVersion: '0.1.4',
     dependencies: {
       '@context-action/core': (coreVersion) => `^${coreVersion}`,
-      '@context-action/lit': () => '^0.1.3',
+      '@context-action/lit': () => '^0.1.4',
     },
   },
 ];
@@ -36,7 +36,7 @@ if (rootIndex !== -1 && (!args[rootIndex + 1] || args[rootIndex + 1].startsWith(
 const repositoryRoot = rootIndex === -1
   ? defaultRepositoryRoot
   : path.resolve(args[rootIndex + 1] ?? '');
-const planPath = path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-3.json');
+const planPath = path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-4.json');
 const unknownArguments = args.filter((argument, index) => argument !== '--require-current-source'
   && argument !== '--root'
   && index !== rootIndex + 1);
@@ -109,8 +109,8 @@ async function validatePlan(errors) {
     'public Lit release plan must declare the Core element interop prerequisite');
   expect(errors, prerequisite?.minimumVersion === ELEMENT_INTEROP_MIN_CORE,
     `public Lit release plan Core prerequisite must be ${ELEMENT_INTEROP_MIN_CORE}`);
-  expect(errors, prerequisite?.status === 'blocked-until-approved-core-cohort',
-    'public Lit release plan must keep the element interop cohort blocked until Core approval');
+  expect(errors, prerequisite?.status === 'approved-for-core-cohort',
+    'public Lit release plan must mark the Core element interop cohort approved');
   expect(errors, JSON.stringify(prerequisite?.publicationOrder ?? [])
     === JSON.stringify([
       '@context-action/core', '@context-action/lit', '@context-action/lit-ui',
@@ -267,7 +267,7 @@ async function main() {
 
   console.log(JSON.stringify({
     status: 'ok',
-    release: plan?.release ?? 'lit-public-2026-10-patch-3',
+    release: plan?.release ?? 'lit-public-2026-10-patch-4',
     packages: Object.fromEntries(packageDefinitions.map(definition => [definition.name, definition.expectedVersion])),
     currentSource: requireCurrentSource ? 'required' : 'not-required',
   }));
