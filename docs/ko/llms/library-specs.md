@@ -40,7 +40,7 @@
 
 ### 릴리스 및 보안 기준
 
-- **워크스페이스 패키지 기준 버전**: `@context-action/core` 1.2.6, `@context-action/store-core` 0.1.3, `@context-action/mutative-core` 0.8.14, `@context-action/mutative` 0.8.15, `@context-action/react` 4.0.7, `@context-action/tool-protocol` 1.0.2, `@context-action/tool-durable-operations` 0.2.0, `@context-action/ai-sdk` 0.1.0, `@context-action/webmcp` 0.1.2. 외부 설치에는 published dist-tag를 기준으로 사용합니다.
+- **워크스페이스 패키지 기준 버전**: `@context-action/core` 1.3.0, `@context-action/store-core` 0.1.3, `@context-action/mutative-core` 0.8.14, `@context-action/mutative` 0.8.15, `@context-action/react` 4.0.7, `@context-action/tool-protocol` 1.0.2, `@context-action/tool-durable-operations` 0.2.0, `@context-action/ai-sdk` 0.1.0, `@context-action/webmcp` 0.1.2. 외부 설치에는 published dist-tag를 기준으로 사용합니다.
 - **Mutative 계보**: Mutative Core `0.8.14`과 scoped adapter `0.8.15`는 인수한 upstream `mutative@1.3.0` 호환성 기준을 추적하며, 동기화나 release 전 `pnpm verify:mutative-upstream`으로 committed source inventory를 검증합니다.
 - **런타임 기준**: Node.js `>=24.11.0`, pnpm `>=11.28.6`, TypeScript `6.0.3`
 - **의존성 보안**: `pnpm security:audit`를 필수 OSV 검사로 사용하며 현재 actionable 취약점은 0건이다. 해결된 의존성 최소 버전은 루트 `pnpm-workspace.yaml`의 `overrides`에서 강제한다.
