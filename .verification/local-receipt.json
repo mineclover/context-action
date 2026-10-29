@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-10-29T17:39:31.243Z",
-  "commitSha": "2974f5f70187fcd3d6bf843f1d10466bdf377d77",
-  "branch": "codex/core-public-candidate",
+  "timestamp": "2026-10-29T18:10:11.883Z",
+  "commitSha": "440021508e818a09206dac18d1b15e70114fc3cb",
+  "branch": "codex/core-candidate-browser-gate",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
@@ -11,54 +11,54 @@
   },
   "inputDigest": "sha256:028f7f5053cee0a8c1673e4b4b907601e77c73c3265eabc7f39ca294f6385ea4",
   "workingTree": "clean",
-  "treeDigest": "sha256:1d0df4212e8479378123b672d4da567e7d3b3a938defd402283a75265f0d7057",
+  "treeDigest": "sha256:9ca394115773fecb5d7916e998c3ff9c3cdd94915906e0baed9c7033d25e65e4",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 33.81,
+      "durationSec": 63.33,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 1.88,
-      "status": "passed"
-    },
-    {
-      "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 8.23,
-      "status": "passed"
-    },
-    {
-      "name": "4. Core & React Artifact Parity / Isolation",
-      "durationSec": 0.62,
-      "status": "passed"
-    },
-    {
-      "name": "5. React Production Artifact Boundary",
-      "durationSec": 1.2,
-      "status": "passed"
-    },
-    {
-      "name": "6. React WebMCP Isolation",
-      "durationSec": 0.15,
-      "status": "passed"
-    },
-    {
-      "name": "7. Durable Operations Evidence Schema Test",
       "durationSec": 1.13,
       "status": "passed"
     },
     {
+      "name": "3. Context-Action Conventions & Catalog Check",
+      "durationSec": 2.19,
+      "status": "passed"
+    },
+    {
+      "name": "4. Core & React Artifact Parity / Isolation",
+      "durationSec": 0.06,
+      "status": "passed"
+    },
+    {
+      "name": "5. React Production Artifact Boundary",
+      "durationSec": 0.4,
+      "status": "passed"
+    },
+    {
+      "name": "6. React WebMCP Isolation",
+      "durationSec": 0.05,
+      "status": "passed"
+    },
+    {
+      "name": "7. Durable Operations Evidence Schema Test",
+      "durationSec": 0.44,
+      "status": "passed"
+    },
+    {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 7.06,
+      "durationSec": 1.87,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.69,
+      "durationSec": 0.47,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:e3a3a8bda4b1c7b0bf2de6a6c858cb359e1d2a6615a32c31e8d5de9cd6474053"
+  "receiptDigest": "sha256:81d07b95cbcce4d921a857ce87f8608a62c1839cfa9ec3d4f272c699a3236de3"
 }
