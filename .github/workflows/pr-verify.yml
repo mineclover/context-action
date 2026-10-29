@@ -73,7 +73,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build core and react for smoke checks
-        run: pnpm build:core && pnpm build:react
+        run: pnpm build:core && pnpm build:react && pnpm build:tool-protocol
 
       - name: Audit local verification receipt (Fail-Closed Gate)
         run: pnpm run verify:receipt
