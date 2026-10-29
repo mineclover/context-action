@@ -6,7 +6,11 @@
 
 # Interface: StoreTransactionParticipant\<T\>
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:16](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L16)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:18](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L18)
+
+## Extends
+
+- `TransactionParticipant`&lt;`T`&gt;
 
 ## Type Parameters
 
@@ -16,16 +20,14 @@ Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:16](h
 
 ## Properties
 
-### name
-
-> `readonly` **name**: `string`
-
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:17](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L17)
-
-***
-
 ### store
 
 > `readonly` **store**: `TransactionBackend`&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:18](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L18)
+Defined in: [packages/react/src/stores/core/StoreTransactionCoordinator.ts:20](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/StoreTransactionCoordinator.ts#L20)
+
+Retain the legacy convenience surface for existing React callers.
+
+#### Overrides
+
+`TransactionParticipant.store`

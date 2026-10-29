@@ -6,7 +6,11 @@
 
 # Interface: StoreReader\<T\>
 
-Defined in: [packages/react/src/stores/core/contracts.ts:14](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L14)
+Defined in: [packages/react/src/stores/core/contracts.ts:18](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L18)
+
+## Extends
+
+- `StateReader`\<`T`, `ReadonlyStateSnapshot`&lt;`T`&gt;\>
 
 ## Extended by
 
@@ -17,41 +21,3 @@ Defined in: [packages/react/src/stores/core/contracts.ts:14](https://github.com/
 ### Generic type T
 
 Type parameter **T**
-
-## Methods
-
-### getSnapshot()
-
-> **getSnapshot**(): `ReadonlyStateSnapshot`&lt;`T`&gt;
-
-Defined in: [packages/react/src/stores/core/contracts.ts:16](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L16)
-
-#### Returns
-
-`ReadonlyStateSnapshot`&lt;`T`&gt;
-
-***
-
-### subscribe()
-
-> **subscribe**(`listener`): () => `void`
-
-Defined in: [packages/react/src/stores/core/contracts.ts:17](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L17)
-
-#### Parameters
-
-##### listener
-
-() => `void`
-
-#### Returns
-
-() => `void`
-
-## Properties
-
-### name
-
-> `readonly` **name**: `string`
-
-Defined in: [packages/react/src/stores/core/contracts.ts:15](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/contracts.ts#L15)

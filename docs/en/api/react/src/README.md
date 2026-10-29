@@ -42,6 +42,7 @@
 - [TimelineWriter](interfaces/TimelineWriter.md)
 - [Snapshot](interfaces/Snapshot.md)
 - [IStore](interfaces/IStore.md)
+- [PatchAwareStore](interfaces/PatchAwareStore.md)
 - [UseStorePathOptions](interfaces/UseStorePathOptions.md)
 - [UseStoreSelectorWithPathsOptions](interfaces/UseStoreSelectorWithPathsOptions.md)
 - [TimeTravelControlsState](interfaces/TimeTravelControlsState.md)
@@ -52,11 +53,13 @@
 - [ExplicitStoreValue](interfaces/ExplicitStoreValue.md)
 - [TimeTravelStoreConfig](interfaces/TimeTravelStoreConfig.md)
 - [TimeTravelContextControlsState](interfaces/TimeTravelContextControlsState.md)
+- [StorePathPatch](interfaces/StorePathPatch.md)
 
 ## Type Aliases
 
 - [RefTarget](type-aliases/RefTarget.md)
 - [PatchAwareListener](type-aliases/PatchAwareListener.md)
+- [StoreTransactionOptions](type-aliases/StoreTransactionOptions.md)
 - [StoreTransactionEventPhase](type-aliases/StoreTransactionEventPhase.md)
 - [StoreTransactionListener](type-aliases/StoreTransactionListener.md)
 - [StorePath](type-aliases/StorePath.md)

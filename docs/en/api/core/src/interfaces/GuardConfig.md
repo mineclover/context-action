@@ -56,9 +56,10 @@ Unique identifier for the handler. Auto-generated if not provided
 
 > `optional` **once?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:568](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L568)
+Defined in: [packages/core/src/types.ts:569](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L569)
 
-Whether this handler should run once and then be removed. Default: false
+At most one invocation per registration, across dispatches/retries.
+Skipped handlers are not consumed. Default: false.
 
 #### Inherited from
 
@@ -70,7 +71,7 @@ Whether this handler should run once and then be removed. Default: false
 
 > `optional` **replaceExisting?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:577](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L577)
+Defined in: [packages/core/src/types.ts:578](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L578)
 
 Replace existing handler with same ID. Default: true for backward compatibility
 
@@ -84,7 +85,7 @@ Replace existing handler with same ID. Default: true for backward compatibility
 
 > `optional` **cleanup?**: () => `void`
 
-Defined in: [packages/core/src/types.ts:580](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L580)
+Defined in: [packages/core/src/types.ts:581](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L581)
 
 Cleanup function to call when handler is unregistered
 
@@ -102,7 +103,7 @@ Cleanup function to call when handler is unregistered
 
 > `optional` **condition?**: (`payload`) => `boolean`
 
-Defined in: [packages/core/src/types.ts:583](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L583)
+Defined in: [packages/core/src/types.ts:584](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L584)
 
 Condition function to determine if handler should execute. Default: always execute
 
@@ -126,7 +127,7 @@ Type parameter **T**
 
 > `optional` **metadata?**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/core/src/types.ts:586](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L586)
+Defined in: [packages/core/src/types.ts:587](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L587)
 
 Optional metadata copied into execution outcomes for diagnostics.
 

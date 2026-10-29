@@ -6,7 +6,7 @@
 
 # Interface: HandlerExecutionOutcome\<R\>
 
-Defined in: [packages/core/src/types.ts:682](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L682)
+Defined in: [packages/core/src/types.ts:683](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L683)
 
 Concrete outcome produced by an execution mode. Keeping this record beside
 the executor avoids reconstructing execution metrics from cursor indexes.
@@ -23,7 +23,7 @@ the executor avoids reconstructing execution metrics from cursor indexes.
 
 > **id**: `string`
 
-Defined in: [packages/core/src/types.ts:683](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L683)
+Defined in: [packages/core/src/types.ts:684](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L684)
 
 ***
 
@@ -31,7 +31,7 @@ Defined in: [packages/core/src/types.ts:683](https://github.com/mineclover/conte
 
 > **status**: [`HandlerExecutionStatus`](../type-aliases/HandlerExecutionStatus.md)
 
-Defined in: [packages/core/src/types.ts:684](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L684)
+Defined in: [packages/core/src/types.ts:685](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L685)
 
 ***
 
@@ -39,7 +39,7 @@ Defined in: [packages/core/src/types.ts:684](https://github.com/mineclover/conte
 
 > **executed**: `boolean`
 
-Defined in: [packages/core/src/types.ts:685](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L685)
+Defined in: [packages/core/src/types.ts:686](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L686)
 
 ***
 
@@ -47,7 +47,7 @@ Defined in: [packages/core/src/types.ts:685](https://github.com/mineclover/conte
 
 > **duration**: `number` \| `undefined`
 
-Defined in: [packages/core/src/types.ts:686](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L686)
+Defined in: [packages/core/src/types.ts:687](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L687)
 
 ***
 
@@ -55,7 +55,7 @@ Defined in: [packages/core/src/types.ts:686](https://github.com/mineclover/conte
 
 > **result**: `R` \| `undefined`
 
-Defined in: [packages/core/src/types.ts:687](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L687)
+Defined in: [packages/core/src/types.ts:688](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L688)
 
 ***
 
@@ -63,7 +63,7 @@ Defined in: [packages/core/src/types.ts:687](https://github.com/mineclover/conte
 
 > **error**: `Error` \| `undefined`
 
-Defined in: [packages/core/src/types.ts:688](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L688)
+Defined in: [packages/core/src/types.ts:689](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L689)
 
 ***
 
@@ -71,7 +71,7 @@ Defined in: [packages/core/src/types.ts:688](https://github.com/mineclover/conte
 
 > **metadata**: `Record`\<`string`, `unknown`\> \| `undefined`
 
-Defined in: [packages/core/src/types.ts:689](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L689)
+Defined in: [packages/core/src/types.ts:690](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L690)
 
 ***
 
@@ -79,7 +79,7 @@ Defined in: [packages/core/src/types.ts:689](https://github.com/mineclover/conte
 
 > `optional` **terminationRequested?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:690](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L690)
+Defined in: [packages/core/src/types.ts:691](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L691)
 
 ***
 
@@ -87,4 +87,4 @@ Defined in: [packages/core/src/types.ts:690](https://github.com/mineclover/conte
 
 > `optional` **terminationResult?**: `R`
 
-Defined in: [packages/core/src/types.ts:691](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L691)
+Defined in: [packages/core/src/types.ts:692](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L692)

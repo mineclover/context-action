@@ -6,7 +6,7 @@
 
 # Interface: ActionDispatchTrace
 
-Defined in: [packages/core/src/types.ts:1062](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1062)
+Defined in: [packages/core/src/types.ts:1063](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1063)
 
 Lifecycle trace emitted around a public dispatch operation.
 
@@ -16,7 +16,7 @@ Lifecycle trace emitted around a public dispatch operation.
 
 > `readonly` **dispatchId**: `string`
 
-Defined in: [packages/core/src/types.ts:1063](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1063)
+Defined in: [packages/core/src/types.ts:1064](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1064)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/core/src/types.ts:1063](https://github.com/mineclover/cont
 
 > `readonly` **action**: `string`
 
-Defined in: [packages/core/src/types.ts:1064](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1064)
+Defined in: [packages/core/src/types.ts:1065](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1065)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/core/src/types.ts:1064](https://github.com/mineclover/cont
 
 > `readonly` **phase**: `"started"` \| `"settled"`
 
-Defined in: [packages/core/src/types.ts:1065](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1065)
+Defined in: [packages/core/src/types.ts:1066](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1066)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [packages/core/src/types.ts:1065](https://github.com/mineclover/cont
 
 > `readonly` `optional` **status?**: `"completed"` \| `"completed_with_errors"` \| `"failed"` \| `"cancelled"` \| `"debounced"` \| `"throttled"`
 
-Defined in: [packages/core/src/types.ts:1066](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1066)
+Defined in: [packages/core/src/types.ts:1067](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1067)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [packages/core/src/types.ts:1066](https://github.com/mineclover/cont
 
 > `readonly` `optional` **transactionId?**: `string`
 
-Defined in: [packages/core/src/types.ts:1073](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1073)
+Defined in: [packages/core/src/types.ts:1074](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1074)
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: [packages/core/src/types.ts:1073](https://github.com/mineclover/cont
 
 > `readonly` `optional` **origin?**: `"user"` \| `"system"` \| `"network"` \| `"undo"` \| `"redo"` \| `"reset"`
 
-Defined in: [packages/core/src/types.ts:1074](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1074)
+Defined in: [packages/core/src/types.ts:1075](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1075)
 
 ***
 
@@ -64,7 +64,7 @@ Defined in: [packages/core/src/types.ts:1074](https://github.com/mineclover/cont
 
 > `readonly` `optional` **label?**: `string`
 
-Defined in: [packages/core/src/types.ts:1075](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1075)
+Defined in: [packages/core/src/types.ts:1076](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1076)
 
 ***
 
@@ -72,7 +72,7 @@ Defined in: [packages/core/src/types.ts:1075](https://github.com/mineclover/cont
 
 > `readonly` **startedAt**: `number`
 
-Defined in: [packages/core/src/types.ts:1076](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1076)
+Defined in: [packages/core/src/types.ts:1077](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1077)
 
 ***
 
@@ -80,4 +80,4 @@ Defined in: [packages/core/src/types.ts:1076](https://github.com/mineclover/cont
 
 > `readonly` `optional` **endedAt?**: `number`
 
-Defined in: [packages/core/src/types.ts:1077](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1077)
+Defined in: [packages/core/src/types.ts:1078](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1078)

@@ -12,7 +12,7 @@ Defined in: [packages/react/src/stores/core/ActionTransactionBridge.ts:12](https
 
 ### getParticipants()
 
-> **getParticipants**(`event`): readonly [`StoreTransactionParticipant`](StoreTransactionParticipant.md)&lt;`any`&gt;[]
+> **getParticipants**(`event`): readonly `TransactionParticipant`&lt;`unknown`&gt;[]
 
 Defined in: [packages/react/src/stores/core/ActionTransactionBridge.ts:13](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/ActionTransactionBridge.ts#L13)
 
@@ -24,4 +24,4 @@ Type parameter **ActionDispatchTrace**
 
 #### Returns
 
-readonly [`StoreTransactionParticipant`](StoreTransactionParticipant.md)&lt;`any`&gt;[]
+readonly `TransactionParticipant`&lt;`unknown`&gt;[]

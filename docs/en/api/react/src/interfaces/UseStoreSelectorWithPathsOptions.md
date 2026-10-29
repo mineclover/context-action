@@ -6,7 +6,7 @@
 
 # Interface: UseStoreSelectorWithPathsOptions\<R\>
 
-Defined in: [packages/react/src/stores/hooks/useStorePath.ts:174](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L174)
+Defined in: [packages/react/src/stores/hooks/useStorePath.ts:183](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L183)
 
 Hook for subscribing to multiple paths with a selector
 
@@ -30,9 +30,9 @@ Type parameter **R**
 
 ### dependsOn?
 
-> `optional` **dependsOn?**: [`StorePath`](../type-aliases/StorePath.md)[]
+> `optional` **dependsOn?**: readonly readonly (`string` \| `number`)[][]
 
-Defined in: [packages/react/src/stores/hooks/useStorePath.ts:176](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L176)
+Defined in: [packages/react/src/stores/hooks/useStorePath.ts:185](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L185)
 
 Paths that the selector depends on
 
@@ -42,7 +42,7 @@ Paths that the selector depends on
 
 > `optional` **equalityFn?**: (`a`, `b`) => `boolean`
 
-Defined in: [packages/react/src/stores/hooks/useStorePath.ts:178](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L178)
+Defined in: [packages/react/src/stores/hooks/useStorePath.ts:187](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L187)
 
 Custom equality function
 

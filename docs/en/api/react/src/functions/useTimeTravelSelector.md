@@ -8,7 +8,7 @@
 
 > **useTimeTravelSelector**\<`T`, `R`\>(`store`, `selector`, `options?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:174](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelPath.ts#L174)
+Defined in: [packages/react/src/stores/hooks/useTimeTravelPath.ts:176](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useTimeTravelPath.ts#L176)
 
 ## Type Parameters
 

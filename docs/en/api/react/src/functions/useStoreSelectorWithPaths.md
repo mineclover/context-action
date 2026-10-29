@@ -8,7 +8,7 @@
 
 > **useStoreSelectorWithPaths**\<`T`, `R`\>(`store`, `selector`, `options?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useStorePath.ts:181](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L181)
+Defined in: [packages/react/src/stores/hooks/useStorePath.ts:190](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L190)
 
 ## Type Parameters
 
@@ -24,7 +24,7 @@ Type parameter **R**
 
 ### store
 
-`PatchAwareStore`&lt;`T`&gt;
+[`PatchAwareStore`](../interfaces/PatchAwareStore.md)&lt;`T`&gt;
 
 ### selector
 

@@ -39,6 +39,7 @@
 
 ## Type Aliases
 
+- [PublicActionMethods](type-aliases/PublicActionMethods.md)
 - [ActionPayloadMap](type-aliases/ActionPayloadMap.md)
 - [ActionNames](type-aliases/ActionNames.md)
 - [ActionPayload](type-aliases/ActionPayload.md)

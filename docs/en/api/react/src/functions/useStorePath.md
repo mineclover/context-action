@@ -8,7 +8,7 @@
 
 > **useStorePath**\<`T`, `R`\>(`store`, `path`, `options?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useStorePath.ts:81](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L81)
+Defined in: [packages/react/src/stores/hooks/useStorePath.ts:89](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStorePath.ts#L89)
 
 Hook for subscribing to a specific path in Store
 
@@ -29,11 +29,11 @@ Type parameter **T**
 
 ### store
 
-`PatchAwareStore`&lt;`T`&gt;
+[`PatchAwareStore`](../interfaces/PatchAwareStore.md)&lt;`T`&gt;
 
 ### path
 
-[`StorePath`](../type-aliases/StorePath.md)
+readonly (`string` \| `number`)[]
 
 ### options?
 
