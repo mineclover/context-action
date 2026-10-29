@@ -2,6 +2,15 @@
 
 Pending changes that are not part of a published version are recorded in the repository's [UNRELEASED.md](https://github.com/mineclover/context-action/blob/main/packages/core/UNRELEASED.md).
 
+## [1.3.0] (2026-10-29)
+
+### Element interop
+
+- Add the framework-neutral `./element` and React host `./element/react` entry
+  points for element lifecycle and property/event binding contracts.
+- Preserve the phase-specific action pipeline and asynchronous shutdown contracts
+  used by the current Core release cohort.
+
 ## [1.2.6] (2026-10-02)
 
 - Reissue the coordinated state-management cohort with fresh provenance for the time-travel and hydration stability release.

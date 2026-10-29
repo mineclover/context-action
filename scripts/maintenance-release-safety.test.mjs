@@ -416,8 +416,8 @@ test('release preflight runs the React 19.2 minimum and current compatibility ma
 
   assert.equal(
     compatibility.match(/node scripts\/verify-react-compatibility\.mjs/gu)?.length,
-    2,
-    'the compatibility command must invoke the minimum and current React 19.2 versions',
+    3,
+    'the compatibility command must invoke the React 18 lane, minimum React 19.2 lane, and current React 19.2 lane',
   );
   assert.match(
     compatibility,
