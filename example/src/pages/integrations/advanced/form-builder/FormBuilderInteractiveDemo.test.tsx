@@ -61,4 +61,23 @@ describe('FormBuilderInteractiveDemo', () => {
       expect(screen.getByText('모든 필드가 유효합니다.')).toBeTruthy()
     );
   });
+
+  it('keeps generated field ids unique after removing and re-adding a type', async () => {
+    const user = userEvent.setup();
+    render(<FormBuilderInteractiveDemo />);
+
+    await user.click(screen.getByRole('button', { name: '+ number' }));
+    await user.click(screen.getByRole('button', { name: '+ number' }));
+    const deleteButtons = screen.getAllByRole('button', { name: '삭제' });
+    await user.click(deleteButtons[deleteButtons.length - 1]!);
+    await user.click(screen.getByRole('button', { name: '+ number' }));
+
+    const schema = document.querySelector('pre')?.textContent ?? '';
+    const ids = Array.from(schema.matchAll(/"id": "([^"]+)"/gu)).map(
+      ([, id]) => id
+    );
+
+    expect(ids.length).toBeGreaterThan(2);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
 });
