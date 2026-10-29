@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,6 +23,18 @@ function buildPackage(packageName) {
     cwd: root,
     stdio: 'inherit',
   });
+}
+
+function ensureWorkspaceRuntimeArtifacts() {
+  for (const packageDirectory of ['mutative-core', 'mutative']) {
+    const artifact = resolve(root, 'packages', packageDirectory, 'dist', 'index.cjs');
+    if (!existsSync(artifact)) {
+      buildPackage(`@context-action/${packageDirectory}`);
+    }
+    if (!existsSync(artifact)) {
+      throw new Error(`Missing runtime artifact after build: ${artifact}`);
+    }
+  }
 }
 
 function isolatedNpmEnvironment() {
@@ -91,6 +103,7 @@ try {
   }
   // First prove that an ordinary install does not need any tool integration.
   installCandidates(['core', 'store-core', 'mutative-core', 'mutative', 'react']);
+  ensureWorkspaceRuntimeArtifacts();
 
   // Check both declaration graphs against the same ownership/compatibility rules.
   const transactionTypeContracts = `
@@ -333,6 +346,7 @@ module.exports = {
   console.log('Base-only packed consumer passed: ESM/CJS types and runtime without integration peers.');
   // Then exercise the opt-in subpath with its peers explicitly installed.
   installCandidates(candidatePackages);
+  ensureWorkspaceRuntimeArtifacts();
   writeFileSync(join(consumer, 'integration.tsx'), `
 import { useWebMCPToolScope } from '@context-action/react/webmcp';
 void useWebMCPToolScope;
