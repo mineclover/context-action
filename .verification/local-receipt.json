@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-10-29T16:51:51.403Z",
-  "commitSha": "b2ac97db68b6c87d0492b178138f846308f4085b",
-  "branch": "codex/fix-core-readme-pipeline-contract",
+  "timestamp": "2026-10-29T17:11:33.495Z",
+  "commitSha": "5e2918f6d40097e568394f346f1ea0ff2e7dde8c",
+  "branch": "codex/release-check-alignment",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
@@ -11,54 +11,54 @@
   },
   "inputDigest": "sha256:028f7f5053cee0a8c1673e4b4b907601e77c73c3265eabc7f39ca294f6385ea4",
   "workingTree": "clean",
-  "treeDigest": "sha256:91da4d9a9035a92cff4c8f93314e057e713ac173744702a33c7387b3840e7a67",
+  "treeDigest": "sha256:4744d2449149944d1d4de7704ee598478f430d29601bb06896afa2ac2f84e970",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 28.41,
+      "durationSec": 55.15,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.87,
+      "durationSec": 1.74,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 2,
+      "durationSec": 3.9,
       "status": "passed"
     },
     {
       "name": "4. Core & React Artifact Parity / Isolation",
-      "durationSec": 0.06,
+      "durationSec": 0.18,
       "status": "passed"
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.23,
+      "durationSec": 0.75,
       "status": "passed"
     },
     {
       "name": "6. React WebMCP Isolation",
-      "durationSec": 0.03,
+      "durationSec": 0.06,
       "status": "passed"
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.3,
+      "durationSec": 0.81,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.57,
+      "durationSec": 3.64,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.44,
+      "durationSec": 0.59,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:3fe9086211666b52f714d85d65a0f42fe888a572576b9f89fdad252da17b2fb8"
+  "receiptDigest": "sha256:343245809d0994f6ffc98e7aff9abdee95dc3fd31598b148ff94a29c5ac64005"
 }
