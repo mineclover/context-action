@@ -1,7 +1,7 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-10-29T14:59:18.419Z",
-  "commitSha": "a2bcb94226bf529adc1ff5d1197d357a44f1071c",
+  "timestamp": "2026-10-29T15:42:08.087Z",
+  "commitSha": "9637dd1f1e9aeacb9396711dbd99b8972650793f",
   "branch": "experiment/travels-v3-backend",
   "toolchain": {
     "node": "v24.22.1",
@@ -11,21 +11,21 @@
   },
   "inputDigest": "sha256:028f7f5053cee0a8c1673e4b4b907601e77c73c3265eabc7f39ca294f6385ea4",
   "workingTree": "clean",
-  "treeDigest": "sha256:21929260a16e3ac536ac69fc05fd2430b9bbe09b6fd76133756a14ffa5285574",
+  "treeDigest": "sha256:42af53e0ad9f367f479a3ada743df6e0b43d833c64b6d77bd28751047ce28da8",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 22.3,
+      "durationSec": 25.21,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.87,
+      "durationSec": 0.85,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 1.63,
+      "durationSec": 2.45,
       "status": "passed"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.22,
+      "durationSec": 0.23,
       "status": "passed"
     },
     {
@@ -45,20 +45,20 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.29,
+      "durationSec": 0.32,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.46,
+      "durationSec": 2.18,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.45,
+      "durationSec": 0.52,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:2a69e47e26fc90c98140a59dcb47bf2fcfbed51acbbd93d639146d95361762be"
+  "receiptDigest": "sha256:a86993f224b3a40af22fb6b7be9f7e3439da85d4b0fff591f1f9551872a28655"
 }
