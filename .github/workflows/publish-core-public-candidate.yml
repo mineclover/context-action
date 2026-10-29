@@ -84,6 +84,9 @@ jobs:
       - name: Validate Core public release plan
         run: pnpm verify:core-public-release -- --require-current-source
 
+      - name: Install Chromium for example release smoke tests
+        run: pnpm --filter @context-action/style-testing exec playwright install --with-deps chromium
+
       - name: Run release gate
         run: pnpm release:check
 
