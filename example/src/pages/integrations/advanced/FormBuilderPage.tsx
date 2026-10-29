@@ -97,7 +97,9 @@ export function FormBuilderDemoPage() {
               <h3 className="text-lg font-semibold text-gray-900">
                 🚀 실시간 폼 빌더
               </h3>
-              <Badge variant="outline" className="bg-green-100 text-green-800">Live</Badge>
+              <Badge variant="outline" className="bg-green-100 text-green-800">
+                Live
+              </Badge>
             </div>
             <FormBuilderInteractiveDemo />
           </CardContent>
