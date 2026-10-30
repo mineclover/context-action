@@ -204,6 +204,10 @@ Source of truth는 [`LIT_PUBLIC_0.1.3.md`](LIT_PUBLIC_0.1.3.md)와
 통과해야 합니다. 현재 plans는 `pending-candidate` 상태이고 registry publication
 evidence는 아직 없습니다.
 
+Core 후보 워크플로는 npm trusted publisher가 이 저장소와 아직 결속되지 않았으므로
+`publish_auth=token`을 기본값으로 사용합니다. `publish_auth=oidc`는 npm trusted
+publisher 설정과 transparency-log 검증을 먼저 완료한 뒤에만 선택합니다.
+
 ## 5. 실패와 재개
 
 - 게시 전 실패: 원인을 수정하고 같은 immutable commit 기준으로 처음부터
