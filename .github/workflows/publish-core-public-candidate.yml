@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       publish_auth:
-        description: 'npm authentication mode for the Core public candidate'
+        description: 'npm authentication mode for the Core public candidate (Core currently uses the protected token path)'
         required: true
-        default: oidc
+        default: token
         type: choice
         options:
           - oidc
