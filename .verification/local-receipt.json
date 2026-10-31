@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-10-31T14:11:33.310Z",
-  "commitSha": "43d1083130b1614efa8d7ea08d913e55f117e5ef",
-  "branch": "codex/runtime-stability-followups",
+  "timestamp": "2026-10-31T14:20:19.454Z",
+  "commitSha": "179b7e841cf303cedf210d8a690f6392680d3ea1",
+  "branch": "codex/preact-accessor-stability",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
@@ -11,26 +11,26 @@
   },
   "inputDigest": "sha256:028f7f5053cee0a8c1673e4b4b907601e77c73c3265eabc7f39ca294f6385ea4",
   "workingTree": "clean",
-  "treeDigest": "sha256:c46376fb1e315b5ab419da7000c10fcd5266f929fa6ba436b7f22ce190de14f5",
+  "treeDigest": "sha256:8ffe6efa4bf07340a7a5a2c8d74103c3c9b624dd30189d25f7d09d2503daedf1",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 17.98,
+      "durationSec": 17.96,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.84,
+      "durationSec": 1.21,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 2.01,
+      "durationSec": 2.15,
       "status": "passed"
     },
     {
       "name": "4. Core & React Artifact Parity / Isolation",
-      "durationSec": 0.07,
+      "durationSec": 0.06,
       "status": "passed"
     },
     {
@@ -45,12 +45,12 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.29,
+      "durationSec": 0.28,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.36,
+      "durationSec": 1.34,
       "status": "passed"
     },
     {
@@ -60,5 +60,5 @@
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:63012752c1bef3c7a188a6a406c5ce99bde9415622a2fb9d9b98a9b49cf6a928"
+  "receiptDigest": "sha256:08794a2cbc37378d56b37dc04e7a9a4547f63628b0430afbdb7a3bb2b78fc05a"
 }
