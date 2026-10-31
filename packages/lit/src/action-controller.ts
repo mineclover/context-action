@@ -42,7 +42,15 @@ function mergeSignals(controllerSignal: AbortSignal, userSignal?: AbortSignal): 
   }
 
   const merged = new AbortController();
+  let settled = false;
+  const cleanup = () => {
+    controllerSignal.removeEventListener('abort', onAbort);
+    userSignal.removeEventListener('abort', onAbort);
+  };
   const onAbort = () => {
+    if (settled) return;
+    settled = true;
+    cleanup();
     merged.abort(controllerSignal.reason ?? userSignal.reason);
   };
 
@@ -51,8 +59,8 @@ function mergeSignals(controllerSignal: AbortSignal, userSignal?: AbortSignal): 
     return merged.signal;
   }
 
-  controllerSignal.addEventListener('abort', onAbort, { once: true });
-  userSignal.addEventListener('abort', onAbort, { once: true });
+  controllerSignal.addEventListener('abort', onAbort);
+  userSignal.addEventListener('abort', onAbort);
   return merged.signal;
 }
 

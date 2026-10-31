@@ -265,6 +265,42 @@ describe('ActionController', () => {
       expect(controller.isPending).toBe(false);
     });
 
+    it('cleans up the fallback merged signal listener after the first abort', async () => {
+      const originalAny = AbortSignal.any;
+      Object.defineProperty(AbortSignal, 'any', { configurable: true, value: undefined });
+
+      try {
+        const host = new MockReactiveControllerHost();
+        const register = new ActionRegister<TestActions, TestResults>();
+        const controller = new ActionController(host, register);
+        const userSignal = new EventTarget() as EventTarget & {
+          aborted: boolean;
+          reason?: unknown;
+        };
+        Object.defineProperties(userSignal, {
+          aborted: { configurable: true, value: false, writable: true },
+          reason: { configurable: true, value: undefined, writable: true },
+        });
+        const removeEventListener = vi.spyOn(userSignal, 'removeEventListener');
+
+        register.register('slowAsync', async (_payload, pipelineCtrl) => {
+          await new Promise<void>((_resolve, reject) => {
+            pipelineCtrl.signal?.addEventListener('abort', () => reject(new Error('Aborted')));
+          });
+        });
+
+        const dispatchPromise = controller.dispatch('slowAsync', { delayMs: 50 }, {
+          signal: userSignal as AbortSignal,
+        });
+        controller.abort();
+
+        await expect(dispatchPromise).rejects.toThrow();
+        expect(removeEventListener).toHaveBeenCalledWith('abort', expect.any(Function));
+      } finally {
+        Object.defineProperty(AbortSignal, 'any', { configurable: true, value: originalAny });
+      }
+    });
+
     it('supports manual controller.abort() method', async () => {
       const host = new MockReactiveControllerHost();
       const register = new ActionRegister<TestActions, TestResults>();
