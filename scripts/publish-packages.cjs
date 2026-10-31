@@ -93,6 +93,79 @@ function commandSucceeded(command, args, options = {}) {
   return result.status === 0 ? result : undefined;
 }
 
+function canonicalManifest(value) {
+  if (Array.isArray(value)) return value.map(canonicalManifest);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.keys(value).sort().map(key => [key, canonicalManifest(value[key])]));
+}
+
+function normalizedPackedManifest(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  const copy = { ...value };
+  // npm strips lifecycle scripts from a published package manifest. Keep the
+  // resume comparison strict for every other manifest field while accepting
+  // that deterministic registry normalization.
+  delete copy.scripts;
+  return canonicalManifest(copy);
+}
+
+function tarEntry(command, artifactPath, entry) {
+  const result = spawnSync(command, ['-xOf', artifactPath, entry], { encoding: null });
+  return result.status === 0 ? result.stdout : undefined;
+}
+
+function artifactFiles(command, artifactPath) {
+  const result = spawnSync(command, ['-tzf', artifactPath], { encoding: 'utf8' });
+  if (result.status !== 0) return undefined;
+  return result.stdout.split('\n').map(value => value.trim()).filter(value => value && !value.endsWith('/')).sort();
+}
+
+function registryArtifactMatchesApprovedSource(manifest, artifactPath) {
+  const registryRoot = mkdtempSync(path.join(tmpdir(), 'context-action-registry-pack-'));
+  try {
+    const packed = spawnSync(
+      'npm',
+      ['pack', `${manifest.name}@${manifest.version}`, '--json', '--pack-destination', registryRoot, '--registry=https://registry.npmjs.org'],
+      { encoding: 'utf8', env: { ...process.env } },
+    );
+    if (packed.status !== 0) return false;
+    let metadata;
+    try {
+      metadata = JSON.parse(packed.stdout);
+    } catch {
+      return false;
+    }
+    const entry = Array.isArray(metadata) ? metadata[0] : metadata;
+    if (typeof entry?.filename !== 'string') return false;
+    const registryPath = path.resolve(registryRoot, path.basename(entry.filename));
+    if (path.dirname(registryPath) !== path.resolve(registryRoot)) return false;
+    const localFiles = artifactFiles('tar', artifactPath);
+    const registryFiles = artifactFiles('tar', registryPath);
+    if (!localFiles || !registryFiles || localFiles.length !== registryFiles.length
+      || localFiles.some((file, index) => file !== registryFiles[index])) return false;
+    for (const file of localFiles) {
+      const localContent = tarEntry('tar', artifactPath, file);
+      const registryContent = tarEntry('tar', registryPath, file);
+      if (!localContent || !registryContent) return false;
+      if (file === 'package/package.json') {
+        let localManifest;
+        let registryManifest;
+        try {
+          localManifest = JSON.parse(localContent.toString('utf8'));
+          registryManifest = JSON.parse(registryContent.toString('utf8'));
+        } catch {
+          return false;
+        }
+        if (JSON.stringify(normalizedPackedManifest(localManifest))
+          !== JSON.stringify(normalizedPackedManifest(registryManifest))) return false;
+      } else if (!localContent.equals(registryContent)) return false;
+    }
+    return true;
+  } finally {
+    rmSync(registryRoot, { recursive: true, force: true });
+  }
+}
+
 let activeArtifactRoot;
 
 function publishScopedPackages() {
@@ -329,9 +402,11 @@ function publishScopedPackages() {
             if (published) {
               const publishedIntegrity = registryIntegrity(manifest);
               if (publishedIntegrity !== artifact.integrity) {
-                throw new Error(
-                  `Registry artifact integrity does not match the approved source for ${manifest.name}@${manifest.version}`,
-                );
+                if (!registryArtifactMatchesApprovedSource(manifest, artifact.artifactPath)) {
+                  throw new Error(
+                    `Registry artifact integrity does not match the approved source for ${manifest.name}@${manifest.version}`,
+                  );
+                }
               }
             }
             publicationState.set(manifest.name, { ...artifact, published });
