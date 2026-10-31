@@ -20,7 +20,11 @@ async function createFixture() {
     await mkdir(location, { recursive: true });
     await writeFile(
       path.join(location, 'package.json'),
-      `${JSON.stringify({ name, version: '0.8.8' }, null, 2)}\n`,
+      `${JSON.stringify({
+        name,
+        version: '0.8.8',
+        ...(name === '@context-action/mutative-core' ? { scripts: { prepublishOnly: 'pnpm run build' } } : {}),
+      }, null, 2)}\n`,
     );
     packages.push({ name, version: '0.8.8', location });
   }
@@ -44,6 +48,7 @@ process.stdout.write(process.env.FAKE_LERNA_PACKAGES);
 const npmPath = path.join(binaryDirectory, 'npm');
   await writeFile(npmPath, `#!/usr/bin/env node
 const crypto = require('node:crypto');
+const childProcess = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const args = process.argv.slice(2);
@@ -53,6 +58,8 @@ const failures = JSON.parse(process.env.FAKE_NPM_FAILURES || '{}');
 const publishFailures = JSON.parse(process.env.FAKE_PUBLISH_FAILURES || '[]');
 const integrityOverrides = JSON.parse(process.env.FAKE_NPM_INTEGRITIES || '{}');
 const packedManifestOverrides = JSON.parse(process.env.FAKE_PACKED_MANIFESTS || '{}');
+const registryPackedManifestOverrides = JSON.parse(process.env.FAKE_REGISTRY_PACKED_MANIFESTS || '{}');
+const archivePacks = process.env.FAKE_ARCHIVE_PACKS === 'true';
 function artifactContent(name, version) {
   return Buffer.from('approved-artifact:' + name + '@' + version);
 }
@@ -97,14 +104,40 @@ if (args[0] === 'publish') {
   process.stdout.write(manifest.name + '@' + manifest.version + '\\n');
   process.exit(0);
 }
+if (args[0] === 'pack' && args[1] && args[1].startsWith('@')) {
+  const separator = args[1].lastIndexOf('@');
+  const name = args[1].slice(0, separator);
+  const version = args[1].slice(separator + 1);
+  const destination = args[args.indexOf('--pack-destination') + 1];
+  const filename = name.slice(1).replace('/', '-') + '-' + version + '.tgz';
+  const staging = path.join(destination, 'package');
+  fs.mkdirSync(staging, { recursive: true });
+  const registryManifest = registryPackedManifestOverrides[name] || { name, version };
+  fs.writeFileSync(path.join(staging, 'package.json'), JSON.stringify(registryManifest, null, 2) + '\\n');
+  fs.writeFileSync(path.join(staging, 'artifact.txt'), artifactContent(name, version));
+  fs.mkdirSync(destination, { recursive: true });
+  childProcess.spawnSync('/usr/bin/tar', ['-czf', path.join(destination, filename), '-C', destination, 'package']);
+  fs.rmSync(staging, { recursive: true, force: true });
+  process.stdout.write(JSON.stringify([{ filename, name, version }]));
+  process.exit(0);
+}
 if (args[0] === 'pack') {
   const manifest = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'));
   if (!fs.existsSync(path.join(process.cwd(), '.prepublish-ran'))) process.exit(95);
   const destination = args[args.indexOf('--pack-destination') + 1];
   const filename = manifest.name.slice(1).replace('/', '-') + '-' + manifest.version + '.tgz';
   fs.mkdirSync(destination, { recursive: true });
-  fs.writeFileSync(path.join(destination, filename), artifactContent(manifest.name, manifest.version));
   const packedManifest = packedManifestOverrides[manifest.name] || manifest;
+  if (archivePacks) {
+    const staging = path.join(destination, 'package');
+    fs.mkdirSync(staging, { recursive: true });
+    fs.writeFileSync(path.join(staging, 'package.json'), JSON.stringify(packedManifest, null, 2) + '\\n');
+    fs.writeFileSync(path.join(staging, 'artifact.txt'), artifactContent(manifest.name, manifest.version));
+    childProcess.spawnSync('/usr/bin/tar', ['-czf', path.join(destination, filename), '-C', destination, 'package']);
+    fs.rmSync(staging, { recursive: true, force: true });
+  } else {
+    fs.writeFileSync(path.join(destination, filename), artifactContent(manifest.name, manifest.version));
+  }
   process.stdout.write(JSON.stringify([{
     filename,
     name: packedManifest.name,
@@ -119,8 +152,17 @@ process.exit(93);
 
   const tarPath = path.join(binaryDirectory, 'tar');
   await writeFile(tarPath, `#!/usr/bin/env node
+const childProcess = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
+const args = process.argv.slice(2);
+if (args[0] === '-xOf' || args[0] === '-tzf') {
+  const result = childProcess.spawnSync('/usr/bin/tar', args, { encoding: 'utf8' });
+  if (result.status === 0) {
+    process.stdout.write(result.stdout);
+    process.exit(0);
+  }
+}
 const manifest = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'));
 const overrides = JSON.parse(process.env.FAKE_PACKED_MANIFESTS || '{}');
 process.stdout.write(JSON.stringify(overrides[manifest.name] || manifest));
@@ -163,6 +205,8 @@ function runHelper(
   integrities = {},
   packedManifests = {},
   scopeOrder = fixture.packages.map(({ name }) => name),
+  registryPackedManifests = {},
+  archivePacks = false,
 ) {
   return spawnSync(
     process.execPath,
@@ -183,6 +227,8 @@ function runHelper(
         FAKE_PUBLISH_FAILURES: JSON.stringify(publishFailures),
         FAKE_NPM_INTEGRITIES: JSON.stringify(integrities),
         FAKE_PACKED_MANIFESTS: JSON.stringify(packedManifests),
+        FAKE_REGISTRY_PACKED_MANIFESTS: JSON.stringify(registryPackedManifests),
+        FAKE_ARCHIVE_PACKS: String(archivePacks),
       },
     },
   );
@@ -379,6 +425,32 @@ test('strict partial publication resumes only after matching the existing regist
     const firstMutation = calls.findIndex(({ args }) => args[0] === 'publish' || args[0] === 'dist-tag');
     const integrityLookup = calls.findIndex(({ args }) => args[2] === 'dist.integrity');
     assert.ok(integrityLookup >= 0 && integrityLookup < firstMutation);
+  });
+});
+
+test('strict resume accepts npm manifest normalization without accepting content drift', async () => {
+  await withFixture(async fixture => {
+    const result = runHelper(
+      fixture,
+      ['--require-all-unpublished', '--resume-matching-existing'],
+      {
+        '@context-action/mutative-core': ['0.8.8'],
+        '@context-action/mutative': [],
+      },
+      {},
+      [],
+      { '@context-action/mutative-core': `sha512-${Buffer.alloc(64).toString('base64')}` },
+      {},
+      fixture.packages.map(({ name }) => name),
+      { '@context-action/mutative-core': { name: '@context-action/mutative-core', version: '0.8.8' } },
+      true,
+    );
+    assert.equal(result.status, 0, result.stderr);
+    const summary = JSON.parse(await readFile(path.join(fixture.root, 'reports', 'summary.json'), 'utf8'));
+    assert.deepEqual(summary.map(({ packageName, status }) => [packageName, status]), [
+      ['@context-action/mutative-core', 'existing-integrity-verified'],
+      ['@context-action/mutative', 'published'],
+    ]);
   });
 });
 

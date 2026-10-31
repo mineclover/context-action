@@ -126,19 +126,18 @@ test('retries transient fake-registry E404 and stale-tag visibility errors', () 
   assert.deepEqual(retryDelays, [0, 0]);
 });
 
-test('uses a bounded 125-second default visibility budget', () => {
+test('uses a bounded 425-second default visibility budget', () => {
   const retryDelays = [];
   let reads = 0;
-  const value = retryTransientRegistryVisibilitySync(() => {
+  assert.throws(() => retryTransientRegistryVisibilitySync(() => {
     reads += 1;
-    if (reads === 2) return 'visible';
     const error = new Error('npm ERR! code ETARGET');
     error.code = 'ETARGET';
     throw error;
-  }, { sleep: delay => retryDelays.push(delay) });
+  }, { sleep: delay => retryDelays.push(delay) }));
 
-  assert.equal(value, 'visible');
-  assert.deepEqual(retryDelays, [5000]);
+  assert.deepEqual(retryDelays, [5000, 10000, 20000, 30000, 60000, 120000, 180000]);
+  assert.equal(reads, 8, 'initial read plus every bounded retry');
 });
 
 test('fails closed when a fake registry keeps returning ETARGET after the retry budget', () => {
