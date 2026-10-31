@@ -217,28 +217,6 @@ export function compareValues<T>(
   let result: boolean;
 
   try {
-    // HMR 최적화: 자동 전략 선택 (strategy가 'reference'가 아닌 경우)
-    if (strategy !== 'reference' && strategy !== 'custom' && typeof oldValue === 'object' && typeof newValue === 'object') {
-      // JSON 직렬화 시도로 크기와 복잡도 판단
-      try {
-        const oldStr = JSON.stringify(oldValue);
-        const newStr = JSON.stringify(newValue);
-        
-        // 작은 객체 (1KB 미만): JSON 문자열 비교가 가장 빠름
-        if (oldStr.length < 1000 && newStr.length < 1000) {
-          result = oldStr === newStr;
-          return result;
-        }
-      } catch (error) {
-        // JSON 직렬화 실패 시 (순환 참조, BigInt, Symbol, Function 등)
-        // 디버그 모드에서만 로깅하여 성능 영향 최소화
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('[ComparisonOptimization] JSON serialization failed, falling back to original strategy:', error);
-        }
-        // 원래 전략으로 계속 진행 (fallthrough)
-      }
-    }
-
     // 원래 전략 실행
     switch (strategy) {
       case 'reference':

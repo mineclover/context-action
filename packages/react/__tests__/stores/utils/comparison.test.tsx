@@ -3,6 +3,7 @@
  */
 
 import { shallowEqual, deepEqual, defaultEqualityFn } from '../../../src/stores/hooks/useStoreSelector';
+import { compareValues } from '../../../src/stores/utils/comparison';
 
 describe('Comparison utilities', () => {
   describe('defaultEqualityFn', () => {
@@ -103,5 +104,42 @@ describe('Comparison utilities', () => {
       expect(deepEqual(true, false)).toBe(false);
       expect(deepEqual(null, undefined)).toBe(false);
     });
+  });
+
+  describe('compareValues', () => {
+    it('honors ignored keys for deep comparisons', () => {
+      expect(compareValues(
+        { stable: 1, ignored: 'before' },
+        { stable: 1, ignored: 'after' },
+        { strategy: 'deep', ignoreKeys: ['ignored'] },
+      )).toBe(true);
+    });
+
+    it('does not treat key insertion order as a value change', () => {
+      expect(compareValues(
+        { first: 1, second: 2 },
+        { second: 2, first: 1 },
+        { strategy: 'deep' },
+      )).toBe(true);
+    });
+
+    it('preserves special-value semantics instead of JSON coercion', () => {
+      expect(compareValues(
+        { value: Infinity },
+        { value: null },
+        { strategy: 'deep' },
+      )).toBe(false);
+      expect(compareValues(
+        { value: /before/ },
+        { value: /after/ },
+        { strategy: 'deep' },
+      )).toBe(false);
+      expect(compareValues(
+        { value: undefined },
+        {},
+        { strategy: 'deep' },
+      )).toBe(false);
+    });
+
   });
 });
