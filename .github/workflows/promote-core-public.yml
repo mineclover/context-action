@@ -1,0 +1,130 @@
+name: Promote Core Public Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_commit:
+        description: 'Exact main commit that published the reviewed Core next candidate'
+        required: true
+        type: string
+      confirmation:
+        description: 'Type PROMOTE_CORE_PUBLIC to promote the reviewed Core candidate'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  promote-core-public:
+    runs-on: ubuntu-latest
+    environment:
+      name: npm-stable
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+
+      - name: Verify approved candidate source and current main governance
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          test "$CONFIRMATION" = "PROMOTE_CORE_PUBLIC"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          git merge-base --is-ancestor "$RELEASE_COMMIT" HEAD
+          git diff --exit-code
+          git diff --cached --exit-code
+
+      - name: Clear npm config before registry setup
+        run: |
+          unset NPM_CONFIG_USERCONFIG
+          rm -f ~/.npmrc
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d15e628ca66d93ee5f352c71671a7bc6a97af5c9 # v6.0.8
+        with:
+          version: 11.28.6
+          run_install: false
+
+      - name: Get pnpm store directory
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_ENV"
+
+      - name: Setup pnpm cache
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Verify npm token auth
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Core public release plan
+        run: pnpm verify:core-public-release -- --require-current-source
+
+      - name: Verify reviewed Core candidate consumer matrix
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          node scripts/verify-core-public-provenance.mjs --tag next --commit "$RELEASE_COMMIT" \
+            --output reports/npm-core-public-promotion-preflight-provenance.json
+          node scripts/verify-published-tool-consumers.cjs --tag next --packages "@context-action/core"
+
+      - name: Promote reviewed Core candidate to latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          node scripts/promote-core-public.mjs --commit "$RELEASE_COMMIT" \
+            --output reports/npm-core-public-promotion-summary.json
+
+      - name: Verify promoted Core consumer matrix
+        env:
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          node scripts/verify-published-tool-consumers.cjs --tag latest --packages "@context-action/core"
+          node scripts/verify-core-public-provenance.mjs --tag latest --commit "$RELEASE_COMMIT" \
+            --output reports/npm-core-public-promotion-provenance.json
+
+      - name: Capture promoted Core registry evidence
+        run: |
+          pnpm capture:published-release -- --tag latest \
+            --packages "@context-action/core" \
+            --consumer-status passed --output reports/npm-core-public-promotion-registry-evidence.json
+
+      - name: Upload promoted Core evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: npm-core-public-promotion-evidence
+          path: reports/npm-core-public-promotion-*.json
+          if-no-files-found: error
+          retention-days: 30

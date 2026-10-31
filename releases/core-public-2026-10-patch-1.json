@@ -3,6 +3,9 @@
   "release": "context-action-core-public-2026-10-patch-1",
   "status": "approved-for-candidate",
   "candidateDistTag": "next",
+  "promotionDistTag": "latest",
+  "promotionWorkflow": "promote-core-public.yml",
+  "promotionConfirmation": "PROMOTE_CORE_PUBLIC",
   "packages": {
     "@context-action/core": "1.3.0"
   },
