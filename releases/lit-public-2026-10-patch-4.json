@@ -69,11 +69,17 @@
     "Lit and Lit UI advance to 0.1.4 with Core ^1.3.0 dependency floors.",
     "Candidate publication requires an approved immutable main release commit and protected workflow."
   ],
-  "releaseCommit": "pending-pr-merge",
+  "releaseCommit": "33fd599596230cd60c5058801d431a8867958468",
   "publication": {
-    "status": "pending-candidate",
-    "publishedAt": null,
-    "latest": null,
-    "next": null
+    "status": "published",
+    "publishedAt": "2026-10-31",
+    "latest": "0.1.4",
+    "next": "0.1.4",
+    "candidateRun": "40985265617",
+    "candidateRunUrl": "https://github.com/mineclover/context-action/actions/runs/40985265617",
+    "candidateVerification": "Lit and Lit UI next publication was independently verified after registry propagation with SLSA provenance and the 28-assertion published consumer matrix.",
+    "promotionRun": "41199580467",
+    "promotionRunUrl": "https://github.com/mineclover/context-action/actions/runs/41199580467",
+    "promotionEvidence": "Lit latest promotion passed provenance, published consumer, rollback-safe tag mutation, and registry evidence gates."
   }
 }

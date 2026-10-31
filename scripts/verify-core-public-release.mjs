@@ -34,7 +34,18 @@ expect(changelog.includes(`## [1.3.0] (${releaseDate})`), 'Core CHANGELOG must c
 if (requireCurrentSource) {
   const head = (await import('node:child_process')).execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   if (plan.releaseCommit !== 'pending-pr-merge') {
-    expect(plan.releaseCommit === head, 'Core release plan releaseCommit must match current source');
+    if (plan.publication?.status === 'published') {
+      try {
+        (await import('node:child_process')).execFileSync(
+          'git', ['merge-base', '--is-ancestor', plan.releaseCommit, head],
+          { cwd: root, encoding: 'utf8' },
+        );
+      } catch {
+        expect(false, 'Published Core release plan releaseCommit must be an ancestor of current source');
+      }
+    } else {
+      expect(plan.releaseCommit === head, 'Core release plan releaseCommit must match current source');
+    }
   }
 }
 

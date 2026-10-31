@@ -62,7 +62,7 @@ pnpm release:check
 | Lit public preview patch (Lit 0.1.1 / Lit UI 0.1.1) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.1` 게시 완료. Lit은 cohort alignment, Lit UI는 hydrate patch |
 | Lit public preview patch (Lit 0.1.2 / Lit UI 0.1.2) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.2` 게시 완료. Lit은 cohort alignment, Lit UI는 hydration stabilization |
 | Lit public preview patch (Lit 0.1.3 / Lit UI 0.1.3) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.3` 게시 완료. Lit은 cohort alignment, Lit UI는 stale renderBefore 수정 |
-| Core 1.3.0 element interop cohort | `publish-core-public-candidate.yml` → `publish-lit-public-candidate.yml` / `publish-preact-public-candidate.yml` | Core 1.3.0을 먼저 `next`에 고정한 뒤 Lit 0.1.4 / Lit UI 0.1.4 및 Preact 0.1.3 / Preact UI 0.2.1을 각각 `next`에 게시. 현재 후보 plan은 publish 전 상태 |
+| Core 1.3.0 element interop cohort | `publish-core-public-candidate.yml` → `promote-core-public.yml`, `promote-lit-public.yml`, `promote-preact-public.yml` | Core 1.3.0, Lit 0.1.4 / Lit UI 0.1.4, Preact 0.1.3 / Preact UI 0.2.1을 후보 검증 후 `latest`로 승격 완료. 모든 패키지는 `33fd5995` provenance commit과 registry evidence에 결속 |
 
 모든 워크플로는 승인된 immutable main commit, 정확한 버전, provenance,
 consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 합니다.
@@ -188,10 +188,11 @@ Source of truth는 [`LIT_PUBLIC_0.1.3.md`](LIT_PUBLIC_0.1.3.md)와
 ## 4-6. Core 1.3.0 element interop 후보
 
 이번 안정화 변경은 Core에 `./element` 및 `./element/react` public subpath를
-추가하므로 Core 1.3.0을 먼저 후보로 게시해야 합니다. Lit 후보는
+추가하므로 Core 1.3.0을 먼저 후보로 게시해야 합니다. Core, Lit/Preact 후보는
 [`lit-public-2026-10-patch-4.json`](lit-public-2026-10-patch-4.json), Preact 후보는
 [`preact-public-2026-10-patch-1.json`](preact-public-2026-10-patch-1.json)에
-결속합니다.
+결속하며, 2026-10-31에 각 promotion workflow의 provenance/consumer/evidence gate를
+통과한 뒤 `latest`로 승격했습니다.
 
 후보 버전과 순서는 다음과 같습니다.
 
