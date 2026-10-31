@@ -6,17 +6,16 @@
  * @memberof core-concepts
  */
 
-import type { ReactiveController, ReactiveControllerHost } from 'lit';
 import type {
-  ActionPayloadMap,
   ActionNames,
-  ActionResultMap,
+  ActionPayloadMap,ActionRegister, 
   ActionResult,
+  ActionResultMap,
   DispatchArgs,
   DispatchOptions,
-  ExecutionResult,
+  ExecutionResult
 } from '@context-action/core';
-import type { ActionRegister } from '@context-action/core';
+import type { ReactiveController, ReactiveControllerHost } from 'lit';
 
 /**
  * Options for configuring an ActionController instance.
