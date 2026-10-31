@@ -82,6 +82,32 @@ describe('definePreactElement expose contract', () => {
     expect(onDestroy).toHaveBeenCalledTimes(1);
   });
 
+  it('rejects expose members that would overwrite setup-owned instance accessors', () => {
+    const onDestroy = vi.fn();
+    const tagName = nextTag('setup-accessor');
+    const Element = definePreactElement<{ ok: boolean }, { value: number }>({
+      tagName,
+      setup(element) {
+        Object.defineProperty(element, 'value', {
+          configurable: true,
+          get: () => 1,
+          set: () => undefined,
+        });
+        return {
+          view: () => h('span', null, 'never'),
+          getInput: () => ({ ok: true }),
+          expose: { value: 2 },
+          onDestroy,
+        };
+      },
+    });
+
+    expect(() => new Element()).toThrow(
+      new TypeError(`${tagName} expose cannot redefine reserved element member(s): value`),
+    );
+    expect(onDestroy).toHaveBeenCalledTimes(1);
+  });
+
   it('aggregates the reserved-member error with an onDestroy failure', () => {
     const tagName = nextTag('reserved-cleanup');
     const cleanupError = new Error('cleanup failed');
