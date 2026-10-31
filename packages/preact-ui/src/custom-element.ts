@@ -223,6 +223,7 @@ function installExposedMembers<Input, Expose extends object>(
   tagName: string,
   lifecycle: PreactElementLifecycle<Input, Expose>,
   prototype: object,
+  pendingUpgradeValues: Map<string, unknown>,
 ): void {
   const exposed = lifecycle.expose;
   if (!exposed) return;
@@ -231,7 +232,14 @@ function installExposedMembers<Input, Expose extends object>(
   const keys = Reflect.ownKeys(descriptors);
   // Validate the complete contract first so a rejected element never
   // ends up with a partially installed public surface.
-  const reserved = keys.filter((key) => key in prototype);
+  const reserved = keys.filter((key) => {
+    if (key in prototype) return true;
+    if (typeof key !== 'string' || !Object.hasOwn(instance, key)) return false;
+    // Definition-time data properties are intentionally replayed through
+    // upgradeProperties. Any other own member was created by setup() and
+    // must not be overwritten by expose installation.
+    return !pendingUpgradeValues.has(key);
+  });
   if (reserved.length > 0) {
     const error = new TypeError(
       `${tagName} expose cannot redefine reserved element member(s): ${reserved.map(String).join(', ')}`,
@@ -326,7 +334,13 @@ export function definePreactElement<
       };
 
       this.#lifecycle = config.setup(this, context);
-      installExposedMembers(this, config.tagName, this.#lifecycle, ManagedElement.prototype);
+      installExposedMembers(
+        this,
+        config.tagName,
+        this.#lifecycle,
+        ManagedElement.prototype,
+        this.#pendingUpgradeValues,
+      );
     }
 
     // Standard Form-Associated Custom Elements API
