@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-10-31T10:15:08.348Z",
-  "commitSha": "a8f5d88b1bc976703af39099e8706d6eb2978cdb",
-  "branch": "codex/resume-integrity-npm-normalization",
+  "timestamp": "2026-10-31T12:28:51.287Z",
+  "commitSha": "d87e7d054d0092fd33454fead7de9db5babd2bd2",
+  "branch": "codex/core-public-promotion",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
@@ -11,11 +11,11 @@
   },
   "inputDigest": "sha256:028f7f5053cee0a8c1673e4b4b907601e77c73c3265eabc7f39ca294f6385ea4",
   "workingTree": "clean",
-  "treeDigest": "sha256:c593fee78214bb222c288686305916546e6da25056ffbcc1e590d784b1eb17a4",
+  "treeDigest": "sha256:3bed945a926fd7ff87b66f7a1684f8e96aa2c12404267af3a3e157bf1154b9ac",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 20.4,
+      "durationSec": 21.05,
       "status": "passed"
     },
     {
@@ -25,7 +25,7 @@
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 2.24,
+      "durationSec": 2.13,
       "status": "passed"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.24,
+      "durationSec": 0.33,
       "status": "passed"
     },
     {
@@ -45,20 +45,20 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.3,
+      "durationSec": 0.41,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.55,
+      "durationSec": 1.78,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.44,
+      "durationSec": 0.48,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:d68b54699b732309abaf9c669e84b834a80e06efe97fe29fd30e165f5e189d23"
+  "receiptDigest": "sha256:e1ebc96b4cc7253ac4ea035625da6858abca33e486675e18696725819ac3929a"
 }

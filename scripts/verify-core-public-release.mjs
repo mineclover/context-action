@@ -15,6 +15,9 @@ const expect = (condition, message) => { if (!condition) errors.push(message); }
 expect(plan.schemaVersion === 'context-action-core-public-release.v1', 'Core public release plan schemaVersion is invalid');
 expect(plan.status === 'approved-for-candidate', 'Core public release plan must be approved-for-candidate');
 expect(plan.candidateDistTag === 'next', 'Core public release plan must publish to next');
+expect(plan.promotionDistTag === 'latest', 'Core public release plan must promote to latest');
+expect(plan.promotionWorkflow === 'promote-core-public.yml', 'Core public release plan must bind the promotion workflow');
+expect(plan.promotionConfirmation === 'PROMOTE_CORE_PUBLIC', 'Core public release plan must bind the promotion confirmation');
 expect(plan.provenanceBinding === 'workflow-release-commit', 'Core public release plan must bind workflow release_commit');
 expect(plan.packages?.['@context-action/core'] === '1.3.0', 'Core public release plan must contain Core 1.3.0');
 expect(JSON.stringify(plan.publicationOrder) === JSON.stringify(['@context-action/core']), 'Core publication order must contain only Core');
