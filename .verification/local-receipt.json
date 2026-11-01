@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-10-31T14:32:45.498Z",
-  "commitSha": "1de4fde3846ea5631e91827be1b2a97346d75f2e",
-  "branch": "codex/face-exception-demo",
+  "timestamp": "2026-11-01T03:48:56.697Z",
+  "commitSha": "3a67d2326d06907ef8611d30c09047d13aba385f",
+  "branch": "codex/face-diagnostic",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
@@ -11,21 +11,21 @@
   },
   "inputDigest": "sha256:028f7f5053cee0a8c1673e4b4b907601e77c73c3265eabc7f39ca294f6385ea4",
   "workingTree": "clean",
-  "treeDigest": "sha256:96be6af7b557a2598da6eb886447657de96a5a079145c4e2d2128493c80c493d",
+  "treeDigest": "sha256:19b60da3ee24ac2ad9a272cdc63070d72072e8b17c004e00b040de0e8d411c7c",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 17.15,
+      "durationSec": 23.31,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.82,
+      "durationSec": 0.93,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 1.95,
+      "durationSec": 2,
       "status": "passed"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.23,
+      "durationSec": 0.22,
       "status": "passed"
     },
     {
@@ -45,20 +45,20 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.28,
+      "durationSec": 0.3,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.37,
+      "durationSec": 2.5,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.4,
+      "durationSec": 0.55,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:c47b20f657d4d612694bb7800ad7cab20ca104a95b1ea544c704e7237c3c9209"
+  "receiptDigest": "sha256:e553c2fea46b7e21a3fbddb32466556cecbe5ab972c521cbd0c449d7f8b3a096"
 }
