@@ -26,6 +26,14 @@ Small visual-only changes do not need a separate record, but the owning
 specification or PR should still state the affected design intent and any technical
 accessibility invariant.
 
+Use two impact levels to keep the documentation burden proportional:
+
+- **Lite IIC:** local, reversible, and free of persistence or costly external effects;
+- **Full IIC:** automatic, asynchronous, costly, persistent, externally visible,
+  destructive, or otherwise requiring cancellation or rollback.
+
+Full IIC records must define pending, failure, cancel, and rollback behavior.
+
 ## The implicit agreement record
 
 An implicit agreement is a behavior a user, reviewer, or integrator is expected
@@ -40,6 +48,15 @@ Use this template in the feature specification, decision record, or PR body:
 Agreement ID: CA-IIC-<number>
 Surface and owner:
 User goal:
+Status: draft | accepted | implemented | superseded | deprecated
+Owner:
+Reviewer:
+Reviewed at:
+Review due / revisit:
+Impact: lite | full
+Reversibility:
+Supersedes / superseded by:
+Migration / compatibility impact:
 Design intent (why this UX is easier):
 Removed or condensed affordance (button, explanation, confirmation step):
 Implicit agreement (what the user should be able to predict):
@@ -48,7 +65,11 @@ Discoverability risk (what a first-time user may miss):
 Trigger(s):
 Observable result:
 Source of truth:
+Semantic source of truth (what the user sees as current and authoritative):
+Runtime owner (Context/Store/element):
 Reset / cancel / recovery:
+Rollback criteria:
+Negative contract (behavior that must not occur):
 
 Design accessibility contract:
 - core logic another implementer must be able to reproduce:
@@ -70,6 +91,7 @@ Trade-off:
 Evidence:
 - implementation anchor:
 - behavior test:
+- first-time discoverability scenario (trigger and recovery explanation):
 - accessibility or keyboard test:
 - manual scenario / screenshot, if needed:
 - documentation link:
@@ -144,6 +166,10 @@ state source of truth; changing only the labels is insufficient.
 - [ ] Removed or condensed affordances and their replacement signals are recorded.
 - [ ] First-time discoverability risks are recorded.
 - [ ] Trigger, observable result, source of truth, and reset/recovery are named.
+- [ ] Semantic source of truth and runtime owner are separate.
+- [ ] Status, owner, reviewer, review due, impact, and reversibility are recorded.
+- [ ] Supersession and migration impact are checked.
+- [ ] Negative contract and rollback criteria are written down.
 - [ ] The primary control has a native semantic, visible label, and keyboard path.
 - [ ] Focus behavior is intentional and remains visible.
 - [ ] Live-region scope and politeness are explicit; duplicate announcements are removed.
@@ -152,6 +178,7 @@ state source of truth; changing only the labels is insufficient.
 - [ ] A behavior test covers the default and at least one changed state.
 - [ ] Keyboard or accessibility verification covers the same interaction path.
 - [ ] Human-facing documentation and raw diagnostic evidence are linked separately.
+- [ ] If implementation differs from the IIC, the contract is updated before code is accepted.
 
 ## Evidence expectations
 
@@ -175,10 +202,15 @@ ownership, and accessibility behavior reviewable together.
 ### Example record: `CA-IIC-FACE-001`
 
 - **User goal:** change rejection conditions and compare fallback/native state immediately.
+- **Status:** implemented · **Impact:** lite · **Reversibility:** fully reversible
+- **Owner/reviewer:** Lit UI maintainers · **Review due:** next release review
 - **Implicit agreement:** editing the input or a checkbox reruns the experiment with the current settings.
+- **Semantic source of truth:** experiment result card and raw JSON · **Runtime owner:** probe element state
 - **Design accessibility:** record why the execute button was removed and how automatic execution is discovered.
 - **Technical accessibility follow-up:** use native `input` and `label` controls; one result panel with `aria-live="polite"` reports the diagnostic count.
 - **Trade-off:** removing the execute button reduces steps, so the trigger explanation and reset path stay visible.
+- **Negative contract:** editing controls must not persist data or start destructive external work.
+- **Rollback:** reset restores the rejected-write baseline.
 - **Evidence:** the `run()` rerun component test, the runnable playground, and the raw JSON report.
 
 The FACE exception playground uses this convention as follows:

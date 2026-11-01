@@ -37,6 +37,9 @@ IIC는 Context-Action의 6개 레이어에 추가되는 런타임 레이어가 �
 설계 source of truth입니다. 작은 예제도 IIC를 먼저 기록하고, 필요한 만큼만
 6개 레이어에 매핑합니다.
 
+IIC의 기본 lifecycle은 `draft → accepted → implemented → superseded/deprecated`입니다.
+구현이 계약과 달라지면 코드를 먼저 승인하지 않고 IIC와 증거를 먼저 갱신합니다.
+
 ## 단계별 책임
 
 | 단계 | Context-Action 위치 | IIC 질문 | 필수 산출물 |

@@ -3,7 +3,7 @@ document_id: context-layered--interaction-intent-contract
 category: context-layered
 source_path: en/context-layered/interaction-intent-contract.md
 character_limit: 300
-last_update: '2026-11-01T08:35:36.697Z'
+last_update: '2026-11-01T11:30:48.324Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high

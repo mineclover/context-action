@@ -3,7 +3,7 @@ document_id: context-layered--interaction-intent-contract
 category: context-layered
 source_path: en/context-layered/interaction-intent-contract.md
 character_limit: 2000
-last_update: '2026-11-01T08:35:36.705Z'
+last_update: '2026-11-01T11:30:48.326Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -20,9 +20,7 @@ Key points:
 • removing or condensing an affordance such as a button, explanation, or confirmation step;
 • a visual state whose meaning could be inferred differently by different users;
 • a UX decision that trades fewer steps for lower discoverability.
+• **Lite IIC:** local, reversible, and free of persistence or costly external effects;
+• **Full IIC:** automatic, asynchronous, costly, persistent, externally visible,
 • core logic another implementer must be able to reproduce:
-• sentence that must stay consistent across docs, UI, and tests:
-• semantic control and accessible name:
-• keyboard and non-pointer path:
-• focus behavior:
 •...

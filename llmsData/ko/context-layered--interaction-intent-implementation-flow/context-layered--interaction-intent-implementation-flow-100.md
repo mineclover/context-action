@@ -3,7 +3,7 @@ document_id: context-layered--interaction-intent-implementation-flow
 category: context-layered
 source_path: ko/context-layered/interaction-intent-implementation-flow.md
 character_limit: 100
-last_update: '2026-11-01T10:53:32.799Z'
+last_update: '2026-11-01T11:30:50.022Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high

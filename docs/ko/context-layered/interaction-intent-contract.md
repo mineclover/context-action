@@ -23,6 +23,14 @@
 단순한 시각 변경은 별도 기록이 없어도 되지만, 소유 specification이나 PR에
 영향을 받는 설계 의도와 기술 접근성 불변 조건은 남깁니다.
 
+문서 부담을 조절하기 위해 영향도를 나눕니다.
+
+- **Lite IIC:** 로컬·가역적이고 외부 저장이나 비용 있는 effect가 없는 변경
+- **Full IIC:** 자동 실행, 비동기·비용 있는 작업, persistence, 외부 effect,
+  파괴적 동작, 또는 복구·rollback이 필요한 변경
+
+Full IIC는 pending, failure, cancel, rollback 기준까지 기록합니다.
+
 ## 암묵적 합의 기록
 
 암묵적 합의는 구현을 읽지 않아도 사용자가 예상해야 하는 동작입니다. 예를
@@ -36,6 +44,15 @@ feature specification, decision record, 또는 PR 본문에 다음 형식을 사
 합의 ID: CA-IIC-<번호>
 화면/소유자:
 사용자 목표:
+상태: draft | accepted | implemented | superseded | deprecated
+owner:
+reviewer:
+reviewedAt:
+reviewDue / revisit:
+impact: lite | full
+reversibility:
+supersedes / supersededBy:
+migration / compatibility 영향:
 설계 의도(왜 이 UX가 더 편한가):
 제거·축약한 affordance(버튼, 설명, 확인 단계 등):
 암묵적 합의(사용자가 예측할 수 있어야 하는 것):
@@ -44,7 +61,11 @@ feature specification, decision record, 또는 PR 본문에 다음 형식을 사
 트리거:
 화면에 보이는 결과:
 Source of truth:
+Semantic source of truth(사용자에게 최신·기준으로 보이는 것):
+Runtime owner(Context/Store/element):
 Reset / cancel / recovery:
+Rollback 기준:
+Negative contract(발생하면 안 되는 동작):
 
 설계 접근성 계약:
 - 다른 구현자가 재현해야 하는 핵심 논리:
@@ -66,6 +87,7 @@ Reset / cancel / recovery:
 증거:
 - 구현 anchor:
 - 동작 테스트:
+- 처음 보는 사용자의 trigger·복구 설명 시나리오:
 - 접근성 또는 keyboard 테스트:
 - 필요 시 수동 시나리오/스크린샷:
 - 문서 링크:
@@ -133,6 +155,10 @@ control이 시나리오를 바꾸면 기본 상태를 문서화하고 reset 또�
 - [ ] 제거·축약한 affordance와 대체 신호를 기록했다.
 - [ ] 처음 보는 사용자가 놓칠 수 있는 발견 가능성 위험을 기록했다.
 - [ ] 트리거, 결과, source of truth, reset/recovery를 이름 붙였다.
+- [ ] semantic source of truth와 runtime owner를 분리했다.
+- [ ] status, owner, reviewer, review due, impact, reversibility를 기록했다.
+- [ ] supersedes/supersededBy와 migration 영향을 확인했다.
+- [ ] 발생하면 안 되는 동작과 rollback 기준을 기록했다.
 - [ ] 주 control이 native semantic, visible label, keyboard 경로를 갖는다.
 - [ ] focus 동작이 의도적이고 계속 보인다.
 - [ ] live region의 범위와 politeness가 명시됐고 중복 알림을 제거했다.
@@ -141,6 +167,7 @@ control이 시나리오를 바꾸면 기본 상태를 문서화하고 reset 또�
 - [ ] 기본 상태와 변경 상태 하나 이상을 동작 테스트로 고정했다.
 - [ ] 같은 경로의 keyboard 또는 접근성 검증을 남겼다.
 - [ ] 사용자 문서와 raw diagnostic evidence를 따로 연결했다.
+- [ ] 구현이 IIC와 다르면 코드보다 IIC를 먼저 갱신했다.
 
 ## 증거 기준
 
@@ -164,10 +191,15 @@ implementation-playbook 작업은 이 기록을 scenario 문서에 연결하고,
 ### 기록 예시: `CA-IIC-FACE-001`
 
 - **사용자 목표:** 거부 조건을 바꿔 fallback과 native 상태 차이를 즉시 비교한다.
+- **상태:** implemented · **impact:** lite · **reversibility:** fully reversible
+- **owner/reviewer:** Lit UI maintainers · **reviewDue:** 다음 release review
 - **암묵적 합의:** 입력이나 체크를 바꾸면 현재 설정으로 실험이 다시 실행된다.
+- **semantic source of truth:** 실험 결과 카드와 원시 JSON · **runtime owner:** probe element state
 - **설계 접근성:** 실행 버튼을 제거한 이유와 자동 실행 조건을 이 문서와 화면 설명에 남긴다.
 - **화면 기술 접근성 후속 검증:** native `input`과 `label`을 사용하고, 결과 패널 하나만 `aria-live="polite"`로 진단 건수를 알린다.
 - **트레이드오프:** 실행 버튼을 없애 조작 단계를 줄이는 대신, 트리거 근처 설명과 reset 경로를 제공한다.
+- **negative contract:** 입력 변경이 외부 저장이나 파괴적 작업을 시작하지 않는다.
+- **rollback:** reset이 기본 거부 시나리오를 복원한다.
 - **증거:** `run()` 재실행 component test, 실행 가능한 playground, 원시 JSON report.
 
 FACE 예외 playground는 다음과 같이 이 컨벤션을 적용합니다.

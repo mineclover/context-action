@@ -38,6 +38,10 @@ IIC therefore extends the existing convention upward as a design source of
 truth; it does not add a new runtime boundary. Even a small example records the
 IIC first and maps only the Context-Action layers it actually needs.
 
+The default IIC lifecycle is `draft → accepted → implemented →
+superseded/deprecated`. If implementation differs from the contract, update the
+IIC and its evidence before accepting the code.
+
 ## Stage responsibilities
 
 | Stage | Context-Action location | IIC question | Required output |

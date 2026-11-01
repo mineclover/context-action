@@ -3,7 +3,7 @@ document_id: context-layered--interaction-intent-contract
 category: context-layered
 source_path: ko/context-layered/interaction-intent-contract.md
 character_limit: 1000
-last_update: '2026-11-01T08:35:37.880Z'
+last_update: '2026-11-01T11:30:48.925Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -20,4 +20,4 @@ Key points:
 • 버튼·설명·확인 단계처럼 기존 affordance를 제거하거나 축약하는 선택
 • 사용자가 서로 다르게 해석할 수 있는 시각 상태
 • 확인 단계를 줄이는 대신 발견 가능성이 낮아지는 UX 선택
-• 다른 구현자가...
+• **Lite...
