@@ -148,6 +148,14 @@ implementation-playbook 작업은 이 기록을 scenario 문서에 연결하고,
 
 ## FACE playground 적용 예
 
+### 기록 예시: `CA-UXA11Y-FACE-001`
+
+- **사용자 목표:** 거부 조건을 바꿔 fallback과 native 상태 차이를 즉시 비교한다.
+- **암묵적 합의:** 입력이나 체크를 바꾸면 현재 설정으로 실험이 다시 실행된다.
+- **접근성 계약:** native `input`과 `label`을 사용하고, 결과 패널 하나만 `aria-live="polite"`로 진단 건수를 알린다.
+- **트레이드오프:** 실행 버튼을 없애 조작 단계를 줄이는 대신, 트리거 근처 설명과 reset 경로를 제공한다.
+- **증거:** `run()` 재실행 component test, 실행 가능한 playground, 원시 JSON report.
+
 FACE 예외 playground는 다음과 같이 이 컨벤션을 적용합니다.
 
 - text input 또는 rejection checkbox 변경이 트리거다.

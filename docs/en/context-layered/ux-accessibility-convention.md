@@ -155,6 +155,14 @@ ownership, and accessibility behavior reviewable together.
 
 ## FACE playground example
 
+### Example record: `CA-UXA11Y-FACE-001`
+
+- **User goal:** change rejection conditions and compare fallback/native state immediately.
+- **Implicit agreement:** editing the input or a checkbox reruns the experiment with the current settings.
+- **Accessibility contract:** use native `input` and `label` controls; one result panel with `aria-live="polite"` reports the diagnostic count.
+- **Trade-off:** removing the execute button reduces steps, so the trigger explanation and reset path stay visible.
+- **Evidence:** the `run()` rerun component test, the runnable playground, and the raw JSON report.
+
 The FACE exception playground uses this convention as follows:
 
 - changing the text input or a rejection checkbox is the trigger;

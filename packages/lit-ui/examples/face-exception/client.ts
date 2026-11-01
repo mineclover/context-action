@@ -17,7 +17,6 @@ const requestInvalidInput = document.querySelector<HTMLInputElement>('#request-i
 const rejectFormValueInput = document.querySelector<HTMLInputElement>('#reject-form-value');
 const rejectValidityInput = document.querySelector<HTMLInputElement>('#reject-validity');
 const resetButton = document.querySelector<HTMLButtonElement>('#reset-controls');
-const controlState = document.querySelector<HTMLElement>('#control-state');
 if (
   !status ||
   !probe ||
@@ -62,7 +61,6 @@ function readOptions(): FaceExceptionRunOptions {
 function run(options: FaceExceptionRunOptions): void {
   diagnostics.length = 0;
   probeElement.run(options);
-  if (controlState) controlState.textContent = '설정 변경을 즉시 반영했습니다. 아래 결과를 비교해보세요.';
 }
 
 function resetControls(): void {
