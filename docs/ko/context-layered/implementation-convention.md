@@ -134,9 +134,10 @@ pnpm convention:check
 pnpm --filter example check
 ```
 
-현재 게이트는 canonical root 31곳을 검사하며 레이어 경로·명명 위반은
-0건입니다. advanced 및 compatibility root는 마이그레이션 분류가 바뀔
-때까지 이 자동 명명 범위에서 명시적으로 제외합니다. 저장소 전체 package
+현재 게이트는 저장소 구조에서 canonical root를 발견하며 레이어 경로·명명
+위반은 0건입니다. 현재 root 수는 `pnpm convention:check` 출력으로 확인하고,
+advanced 및 compatibility root는 마이그레이션 분류가 바뀔 때까지 이 자동
+명명 범위에서 명시적으로 제외합니다. 저장소 전체 package
 import는 별도로 `pnpm package-boundary:check`가 관리합니다.
 
 비정형 `handlers/` 디렉터리를 조용히 무시하지 않습니다. 현재 분류와 근거는

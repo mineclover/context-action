@@ -132,8 +132,9 @@ pnpm convention:check
 pnpm --filter example check
 ```
 
-The gate currently covers 31 canonical roots with zero layer-path/name
-violations. Advanced and compatibility roots remain explicitly outside this
+The gate discovers the current canonical roots from the repository structure and
+currently reports zero layer-path/name violations. Run `pnpm convention:check` for
+the current count; advanced and compatibility roots remain explicitly outside this
 automatic naming scope until their migration classification changes. Repository-wide package imports are governed
 separately by `pnpm package-boundary:check`.
 
