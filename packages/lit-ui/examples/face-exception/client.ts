@@ -8,7 +8,17 @@ const status = document.querySelector<HTMLElement>('#status');
 const probe = document.querySelector<FaceExceptionProbeElement>('lit-face-exception-probe');
 if (!status || !probe) throw new Error('FACE exception demo is missing #status or probe element');
 
+const diagnostics: string[] = [];
+probe.addEventListener('form-internals-error', (event) => {
+  diagnostics.push((event as CustomEvent<{ operation: string }>).detail.operation);
+  status.textContent = JSON.stringify({ ...probe.report, diagnostics }, null, 2);
+  status.dataset.ready = 'true';
+});
+
 probe.addEventListener('face-exception-report', (event) => {
-  status.textContent = JSON.stringify((event as CustomEvent).detail, null, 2);
+  status.textContent = JSON.stringify({
+    ...(event as CustomEvent).detail,
+    diagnostics,
+  }, null, 2);
   status.dataset.ready = 'true';
 });

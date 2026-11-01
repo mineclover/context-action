@@ -27,6 +27,15 @@ export interface ValidityStateFlags {
   valueMissing?: boolean;
 }
 
+/** Operations that can be rejected by a native ElementInternals implementation. */
+export type FormInternalsOperation = 'attachInternals' | 'setFormValue' | 'setValidity';
+
+/** Diagnostic payload emitted when native FACE operations fall back safely. */
+export interface FormInternalsErrorDetail {
+  readonly operation: FormInternalsOperation;
+  readonly error: unknown;
+}
+
 /**
  * Synthesizes an immutable ValidityState object from a set of ValidityStateFlags.
  * Used as a high-fidelity fallback when ElementInternals.validity is unavailable in the environment.
@@ -124,10 +133,25 @@ export class FormAssociatedLitElement extends LitElement {
     if (typeof this.attachInternals === 'function') {
       try {
         this.internals = this.attachInternals();
-      } catch {
+      } catch (error) {
         // Defensive fallback: ElementInternals already attached, or environment throws NotSupportedError
+        this.#reportFormInternalsError('attachInternals', error);
       }
     }
+  }
+
+  #reportFormInternalsError(operation: FormInternalsOperation, error: unknown): void {
+    const detail: FormInternalsErrorDetail = { operation, error };
+    try {
+      this.onFormInternalsError(detail);
+    } catch {
+      // Diagnostics must never interfere with the fallback behavior.
+    }
+    this.dispatchEvent(new CustomEvent<FormInternalsErrorDetail>('form-internals-error', {
+      detail,
+      bubbles: false,
+      composed: false,
+    }));
   }
 
   // ==========================================
@@ -173,8 +197,9 @@ export class FormAssociatedLitElement extends LitElement {
     if (this.internals && typeof this.internals.setFormValue === 'function') {
       try {
         this.internals.setFormValue(value, state);
-      } catch {
+      } catch (error) {
         // Defensive fallback if environment rejects parameters
+        this.#reportFormInternalsError('setFormValue', error);
       }
     }
   }
@@ -223,8 +248,9 @@ export class FormAssociatedLitElement extends LitElement {
     if (this.internals && typeof this.internals.setValidity === 'function') {
       try {
         this.internals.setValidity(flags, message, anchor);
-      } catch {
+      } catch (error) {
         // Defensive fallback
+        this.#reportFormInternalsError('setValidity', error);
       }
     }
   }
@@ -386,6 +412,12 @@ export class FormAssociatedLitElement extends LitElement {
    * Overridable lifecycle hook called when the element's form association changes.
    */
   protected onFormAssociated(_form: HTMLFormElement | null): void {}
+
+  /**
+   * Optional diagnostic hook for native FACE operations that fall back safely.
+   * Implementations must not throw; thrown diagnostics are swallowed.
+   */
+  protected onFormInternalsError(_detail: FormInternalsErrorDetail): void {}
 
   // ==========================================
   // Reset Event Coordination & Memory Safety

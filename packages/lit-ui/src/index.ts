@@ -46,6 +46,10 @@ export {
 export type { ImperativeHandleFactory, PublicActionMethods } from './facade.js';
 // Framework-neutral facade (the optional React bridge is a subpath entry).
 export { createElementFacade } from './facade.js';
-export type { ValidityStateFlags } from './form-associated-element.js';
+export type {
+  FormInternalsErrorDetail,
+  FormInternalsOperation,
+  ValidityStateFlags,
+} from './form-associated-element.js';
 // Form-Associated Custom Elements (FACE)
 export { FormAssociatedLitElement } from './form-associated-element.js';
