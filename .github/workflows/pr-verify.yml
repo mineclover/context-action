@@ -76,6 +76,7 @@ jobs:
 
       - name: Verify documentation contracts
         run: |
+          pnpm build:llms-generator
           pnpm docs:management
           pnpm llms:check
 
