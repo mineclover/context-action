@@ -13,6 +13,7 @@ you know which artifact you own.
 | a public guide, API reference, README route, or generated document | [Documentation and Development Management](/en/concept/documentation-development-conventions) | `pnpm docs:check` |
 | a durable architectural boundary or compatibility exception | [Architecture Decision Records](/en/context-layered/decisions/) | the linked package/guide and focused proof |
 | a feature, bug, or workflow contract | [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention) | its change-class gate |
+| UX behavior, implicit agreement, or accessibility trade-off | [UX Intent, Implicit Agreement, and Accessibility Convention](/en/context-layered/ux-accessibility-convention) | behavior, keyboard, and announcement evidence |
 | `ttsc-ex` · `oa-sdk` contract locks, intent separation, or layout hierarchy sync | [Unified Triad Self-Serve Sync Guide](/en/context-layered/triad-evidence-sync-guide) | `pnpm docs:management && pnpm llms:check && pnpm convention:check` |
 | a canonical example/usecase | [Implementation Convention](/en/context-layered/implementation-convention) | `pnpm convention:check` and example checks |
 
@@ -37,6 +38,8 @@ checks rather than replacing focused evidence.
   - Store reader/writer roles, safe reads, transactions, timeline, and inspector boundary
 - [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention)
   - issue lifecycle, contract traceability, decision records, and handoff evidence
+- [UX Intent, Implicit Agreement, and Accessibility Convention](/en/context-layered/ux-accessibility-convention)
+  - explicit interaction agreements, accessibility contracts, trade-offs, and evidence
 - [Architecture Decision Records](/en/context-layered/decisions/)
   - durable home and template for package, protocol, persistence, and compatibility decisions (including [CA-SPEC-EVIDENCE-001](/en/context-layered/decisions/CA-SPEC-EVIDENCE-001))
 - [Unified Triad (`ttsc-ex` · `oa-sdk`) Responsibility Split and Self-Serve Sync Guide](/en/context-layered/triad-evidence-sync-guide)
@@ -106,9 +109,10 @@ standalone build, filesystem, provider, preview, and browser release checks.
 
 1. [Implementation Convention](/en/context-layered/implementation-convention)
 2. [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention)
-3. [Unified Triad (`ttsc-ex` · `oa-sdk`) Responsibility Split and Self-Serve Sync Guide](/en/context-layered/triad-evidence-sync-guide)
-4. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
-5. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+3. [UX Intent, Implicit Agreement, and Accessibility Convention](/en/context-layered/ux-accessibility-convention)
+4. [Unified Triad (`ttsc-ex` · `oa-sdk`) Responsibility Split and Self-Serve Sync Guide](/en/context-layered/triad-evidence-sync-guide)
+5. [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
+6. [Stability Test Cycle](/en/context-layered/stability-test-cycle)
 
 For a stateful action that updates more than one Store, read the [Core Action
 Contracts](../../../packages/core/docs/action-contracts.md) and [React State
