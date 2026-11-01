@@ -1,4 +1,4 @@
-# UX 의도·암묵적 합의·설계 접근성 컨벤션
+# 상호작용 의도 계약(IIC) 컨벤션
 
 **상태:** Active  
 **최근 검토:** 2026-11-01  
@@ -33,7 +33,7 @@
 feature specification, decision record, 또는 PR 본문에 다음 형식을 사용합니다.
 
 ```text
-합의 ID: CA-UXINTENT-<번호>
+합의 ID: CA-IIC-<번호>
 화면/소유자:
 사용자 목표:
 설계 의도(왜 이 UX가 더 편한가):
@@ -161,7 +161,7 @@ implementation-playbook 작업은 이 기록을 scenario 문서에 연결하고,
 
 ## FACE playground 적용 예
 
-### 기록 예시: `CA-UXINTENT-FACE-001`
+### 기록 예시: `CA-IIC-FACE-001`
 
 - **사용자 목표:** 거부 조건을 바꿔 fallback과 native 상태 차이를 즉시 비교한다.
 - **암묵적 합의:** 입력이나 체크를 바꾸면 현재 설정으로 실험이 다시 실행된다.

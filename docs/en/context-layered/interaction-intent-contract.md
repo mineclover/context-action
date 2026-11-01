@@ -1,4 +1,4 @@
-# UX Intent, Implicit Agreement, and Design Accessibility Convention
+# Interaction Intent Contract (IIC)
 
 **Status:** Active  
 **Last reviewed:** 2026-11-01  
@@ -37,7 +37,7 @@ implementation when the design removes an affordance or relies on user inference
 Use this template in the feature specification, decision record, or PR body:
 
 ```text
-Agreement ID: CA-UXINTENT-<number>
+Agreement ID: CA-IIC-<number>
 Surface and owner:
 User goal:
 Design intent (why this UX is easier):
@@ -172,7 +172,7 @@ ownership, and accessibility behavior reviewable together.
 
 ## FACE playground example
 
-### Example record: `CA-UXINTENT-FACE-001`
+### Example record: `CA-IIC-FACE-001`
 
 - **User goal:** change rejection conditions and compare fallback/native state immediately.
 - **Implicit agreement:** editing the input or a checkbox reruns the experiment with the current settings.

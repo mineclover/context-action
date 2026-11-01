@@ -1,9 +1,9 @@
 ---
-document_id: context-layered--ux-accessibility-convention
+document_id: context-layered--interaction-intent-implementation-flow
 category: context-layered
-source_path: ko/context-layered/ux-accessibility-convention.md
+source_path: ko/context-layered/interaction-intent-implementation-flow.md
 character_limit: 100
-last_update: '2026-11-01T07:56:08.497Z'
+last_update: '2026-11-01T08:36:08.901Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high

@@ -1,11 +1,11 @@
 {
   "document": {
-    "id": "context-layered--ux-accessibility-convention",
-    "title": "UX Intent, Implicit Agreement, and Accessibility Convention",
-    "category": "context-layered",
-    "source_path": "en/context-layered/ux-accessibility-convention.md",
-    "lastModified": "2026-11-01T07:51:52.222Z",
-    "wordCount": 1112
+    "id": "context-layered--interaction-intent-implementation-flow",
+    "title": "Interaction Intent Contract to Implementation Flow",
+    "category": "concept",
+    "source_path": "en/context-layered/interaction-intent-implementation-flow.md",
+    "lastModified": "2026-11-01T08:30:56.312Z",
+    "wordCount": 997
   },
   "priority": {
     "score": 50,
@@ -15,28 +15,29 @@
     "autoCalculated": true
   },
   "purpose": {
-    "primary_goal": "Understand and apply the guidance in UX Intent, Implicit Agreement, and Accessibility Convention.",
+    "primary_goal": "Understand and apply the guidance in Interaction Intent Contract to Implementation Flow.",
     "target_audience": [
       "framework-users"
     ],
     "use_cases": [
-      "Learn the concept concepts described in UX Intent, Implicit Agreement, and Accessibility Convention.",
+      "Learn the concept concepts described in Interaction Intent Contract to Implementation Flow.",
       "Use the document as an implementation reference."
     ],
     "learning_objectives": [
-      "Identify the essential ideas and usage guidance in UX Intent, Implicit Agreement, and Accessibility Convention."
+      "Identify the essential ideas and usage guidance in Interaction Intent Contract to Implementation Flow."
     ]
   },
   "keywords": {
     "primary": [
       "context-layered",
       "text",
-      "ux",
-      "intent",
-      "implicit"
+      "bash",
+      "interaction",
+      "intent"
     ],
     "technical": [
       "text",
+      "bash",
       "context-layered",
       "context-action"
     ],
@@ -50,10 +51,10 @@
     "strategy": "concept-first",
     "character_limits": {
       "100": {
-        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
+        "focus": "Summarize the essential concept information from Interaction Intent Contract to Implementation Flow.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX Intent, Implicit Agreement, and Accessibility Convention",
+          "Interaction Intent Contract to Implementation Flow",
           "context-layered",
           "text"
         ],
@@ -63,10 +64,10 @@
         ]
       },
       "200": {
-        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
+        "focus": "Summarize the essential concept information from Interaction Intent Contract to Implementation Flow.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX Intent, Implicit Agreement, and Accessibility Convention",
+          "Interaction Intent Contract to Implementation Flow",
           "context-layered",
           "text"
         ],
@@ -76,10 +77,10 @@
         ]
       },
       "300": {
-        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
+        "focus": "Summarize the essential concept information from Interaction Intent Contract to Implementation Flow.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX Intent, Implicit Agreement, and Accessibility Convention",
+          "Interaction Intent Contract to Implementation Flow",
           "context-layered",
           "text"
         ],
@@ -89,10 +90,10 @@
         ]
       },
       "500": {
-        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
+        "focus": "Summarize the essential concept information from Interaction Intent Contract to Implementation Flow.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX Intent, Implicit Agreement, and Accessibility Convention",
+          "Interaction Intent Contract to Implementation Flow",
           "context-layered",
           "text"
         ],
@@ -102,10 +103,10 @@
         ]
       },
       "1000": {
-        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
+        "focus": "Summarize the essential concept information from Interaction Intent Contract to Implementation Flow.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX Intent, Implicit Agreement, and Accessibility Convention",
+          "Interaction Intent Contract to Implementation Flow",
           "context-layered",
           "text"
         ],
@@ -115,10 +116,10 @@
         ]
       },
       "2000": {
-        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
+        "focus": "Summarize the essential concept information from Interaction Intent Contract to Implementation Flow.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX Intent, Implicit Agreement, and Accessibility Convention",
+          "Interaction Intent Contract to Implementation Flow",
           "context-layered",
           "text"
         ],
@@ -128,10 +129,10 @@
         ]
       },
       "5000": {
-        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
+        "focus": "Summarize the essential concept information from Interaction Intent Contract to Implementation Flow.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX Intent, Implicit Agreement, and Accessibility Convention",
+          "Interaction Intent Contract to Implementation Flow",
           "context-layered",
           "text"
         ],
@@ -143,21 +144,22 @@
     },
     "emphasis": {
       "must_include": [
-        "UX Intent, Implicit Agreement, and Accessibility Convention",
+        "Interaction Intent Contract to Implementation Flow",
         "context-layered",
         "text"
       ],
       "nice_to_have": [
         "text",
+        "bash",
         "context-layered",
         "context-action"
       ],
       "contextual_keywords": [
         "context-layered",
         "text",
-        "ux",
-        "intent",
-        "implicit"
+        "bash",
+        "interaction",
+        "intent"
       ]
     }
   },
@@ -168,9 +170,9 @@
     "secondary": [
       "context-layered",
       "text",
-      "ux",
-      "intent",
-      "implicit"
+      "bash",
+      "interaction",
+      "intent"
     ],
     "audience": [
       "framework-users"
@@ -186,24 +188,25 @@
     "complements": []
   },
   "metadata": {
-    "description": "UX Intent, Implicit Agreement, and Accessibility Convention is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "description": "Interaction Intent Contract to Implementation Flow is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
     "language": "en",
     "created": "2026-11-01",
     "updated": "2026-11-01",
     "version": "1.0.0",
-    "original_size": 7307,
-    "created_at": "2026-11-01T07:56:03.391Z",
-    "source_last_modified": "2026-11-01T08:19:58.483Z",
+    "original_size": 6524,
+    "created_at": "2026-11-01T08:36:07.924Z",
+    "source_last_modified": "2026-11-01T08:30:56.312Z",
     "keywords": {
       "primary": [
         "context-layered",
         "text",
-        "ux",
-        "intent",
-        "implicit"
+        "bash",
+        "interaction",
+        "intent"
       ],
       "technical": [
         "text",
+        "bash",
         "context-layered",
         "context-action"
       ],
@@ -212,7 +215,6 @@
         "documentation",
         "framework"
       ]
-    },
-    "last_updated": "2026-11-01T08:21:20.071Z"
+    }
   }
 }

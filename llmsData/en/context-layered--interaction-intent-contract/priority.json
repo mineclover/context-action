@@ -1,11 +1,11 @@
 {
   "document": {
-    "id": "context-layered--ux-accessibility-convention",
-    "title": "UX 의도·암묵적 합의·접근성 설계 컨벤션",
+    "id": "context-layered--interaction-intent-contract",
+    "title": "UX Intent, Implicit Agreement, and Accessibility Convention",
     "category": "context-layered",
-    "source_path": "ko/context-layered/ux-accessibility-convention.md",
-    "lastModified": "2026-11-01T07:54:02.756Z",
-    "wordCount": 853
+    "source_path": "en/context-layered/interaction-intent-contract.md",
+    "lastModified": "2026-11-01T07:51:52.222Z",
+    "wordCount": 1112
   },
   "priority": {
     "score": 50,
@@ -15,16 +15,16 @@
     "autoCalculated": true
   },
   "purpose": {
-    "primary_goal": "Understand and apply the guidance in UX 의도·암묵적 합의·접근성 설계 컨벤션.",
+    "primary_goal": "Understand and apply the guidance in UX Intent, Implicit Agreement, and Accessibility Convention.",
     "target_audience": [
       "framework-users"
     ],
     "use_cases": [
-      "Learn the concept concepts described in UX 의도·암묵적 합의·접근성 설계 컨벤션.",
+      "Learn the concept concepts described in UX Intent, Implicit Agreement, and Accessibility Convention.",
       "Use the document as an implementation reference."
     ],
     "learning_objectives": [
-      "Identify the essential ideas and usage guidance in UX 의도·암묵적 합의·접근성 설계 컨벤션."
+      "Identify the essential ideas and usage guidance in UX Intent, Implicit Agreement, and Accessibility Convention."
     ]
   },
   "keywords": {
@@ -32,8 +32,8 @@
       "context-layered",
       "text",
       "ux",
-      "의도",
-      "암묵적"
+      "intent",
+      "implicit"
     ],
     "technical": [
       "text",
@@ -50,10 +50,10 @@
     "strategy": "concept-first",
     "character_limits": {
       "100": {
-        "focus": "Summarize the essential concept information from UX 의도·암묵적 합의·접근성 설계 컨벤션.",
+        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX 의도·암묵적 합의·접근성 설계 컨벤션",
+          "UX Intent, Implicit Agreement, and Accessibility Convention",
           "context-layered",
           "text"
         ],
@@ -63,10 +63,10 @@
         ]
       },
       "200": {
-        "focus": "Summarize the essential concept information from UX 의도·암묵적 합의·접근성 설계 컨벤션.",
+        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX 의도·암묵적 합의·접근성 설계 컨벤션",
+          "UX Intent, Implicit Agreement, and Accessibility Convention",
           "context-layered",
           "text"
         ],
@@ -76,10 +76,10 @@
         ]
       },
       "300": {
-        "focus": "Summarize the essential concept information from UX 의도·암묵적 합의·접근성 설계 컨벤션.",
+        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX 의도·암묵적 합의·접근성 설계 컨벤션",
+          "UX Intent, Implicit Agreement, and Accessibility Convention",
           "context-layered",
           "text"
         ],
@@ -89,10 +89,10 @@
         ]
       },
       "500": {
-        "focus": "Summarize the essential concept information from UX 의도·암묵적 합의·접근성 설계 컨벤션.",
+        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX 의도·암묵적 합의·접근성 설계 컨벤션",
+          "UX Intent, Implicit Agreement, and Accessibility Convention",
           "context-layered",
           "text"
         ],
@@ -102,10 +102,10 @@
         ]
       },
       "1000": {
-        "focus": "Summarize the essential concept information from UX 의도·암묵적 합의·접근성 설계 컨벤션.",
+        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX 의도·암묵적 합의·접근성 설계 컨벤션",
+          "UX Intent, Implicit Agreement, and Accessibility Convention",
           "context-layered",
           "text"
         ],
@@ -115,10 +115,10 @@
         ]
       },
       "2000": {
-        "focus": "Summarize the essential concept information from UX 의도·암묵적 합의·접근성 설계 컨벤션.",
+        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX 의도·암묵적 합의·접근성 설계 컨벤션",
+          "UX Intent, Implicit Agreement, and Accessibility Convention",
           "context-layered",
           "text"
         ],
@@ -128,10 +128,10 @@
         ]
       },
       "5000": {
-        "focus": "Summarize the essential concept information from UX 의도·암묵적 합의·접근성 설계 컨벤션.",
+        "focus": "Summarize the essential concept information from UX Intent, Implicit Agreement, and Accessibility Convention.",
         "structure": "Lead with the main purpose, then preserve actionable details.",
         "must_include": [
-          "UX 의도·암묵적 합의·접근성 설계 컨벤션",
+          "UX Intent, Implicit Agreement, and Accessibility Convention",
           "context-layered",
           "text"
         ],
@@ -143,7 +143,7 @@
     },
     "emphasis": {
       "must_include": [
-        "UX 의도·암묵적 합의·접근성 설계 컨벤션",
+        "UX Intent, Implicit Agreement, and Accessibility Convention",
         "context-layered",
         "text"
       ],
@@ -156,8 +156,8 @@
         "context-layered",
         "text",
         "ux",
-        "의도",
-        "암묵적"
+        "intent",
+        "implicit"
       ]
     }
   },
@@ -169,8 +169,8 @@
       "context-layered",
       "text",
       "ux",
-      "의도",
-      "암묵적"
+      "intent",
+      "implicit"
     ],
     "audience": [
       "framework-users"
@@ -186,21 +186,21 @@
     "complements": []
   },
   "metadata": {
-    "description": "UX 의도·암묵적 합의·접근성 설계 컨벤션 is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
-    "language": "ko",
+    "description": "UX Intent, Implicit Agreement, and Accessibility Convention is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
     "created": "2026-11-01",
     "updated": "2026-11-01",
     "version": "1.0.0",
-    "original_size": 7561,
-    "created_at": "2026-11-01T07:56:08.496Z",
-    "source_last_modified": "2026-11-01T08:18:46.673Z",
+    "original_size": 7307,
+    "created_at": "2026-11-01T07:56:03.391Z",
+    "source_last_modified": "2026-11-01T08:34:55.471Z",
     "keywords": {
       "primary": [
         "context-layered",
         "text",
         "ux",
-        "의도",
-        "암묵적"
+        "intent",
+        "implicit"
       ],
       "technical": [
         "text",
@@ -213,6 +213,6 @@
         "framework"
       ]
     },
-    "last_updated": "2026-11-01T08:21:20.071Z"
+    "last_updated": "2026-11-01T08:35:36.680Z"
   }
 }

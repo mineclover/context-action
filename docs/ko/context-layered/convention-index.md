@@ -13,7 +13,7 @@
 | 공개 가이드, API 참조, README 경로, 생성 문서 | [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions) | `pnpm docs:check` |
 | 지속되는 아키텍처 경계 또는 compatibility 예외 | [아키텍처 결정 기록](/ko/context-layered/decisions/) | 연결된 package/guide와 집중 증거 |
 | 기능, 버그, workflow 계약 | [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention) | 변경 분류에 맞는 gate |
-| UX 동작, 암묵적 합의, 설계 접근성 트레이드오프 | [UX 의도·암묵적 합의·설계 접근성 컨벤션](/ko/context-layered/ux-accessibility-convention) | 의도·발견 가능성·화면 기술 후속 증거 |
+| UX 동작, 암묵적 합의, 설계 접근성 트레이드오프 | [상호작용 의도 계약(IIC) 컨벤션](/ko/context-layered/interaction-intent-contract) | 의도·발견 가능성·화면 기술 후속 증거 |
 | `ttsc-ex` · `oa-sdk` 계약 잠금, 인텐트 분리, 레이아웃 위계 동기화 | [통합 트라이어드 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide) | `pnpm docs:management && pnpm llms:check && pnpm convention:check` |
 | canonical example/usecase | [Implementation Convention](/ko/context-layered/implementation-convention) | `pnpm convention:check`와 example check |
 
@@ -38,8 +38,10 @@
   - Store reader/writer, safe read, transaction, timeline, inspector 경계
 - [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
   - 이슈 lifecycle, 계약 추적, decision record, handoff 증거
-- [UX 의도·암묵적 합의·설계 접근성 컨벤션](/ko/context-layered/ux-accessibility-convention)
+- [상호작용 의도 계약(IIC) 컨벤션](/ko/context-layered/interaction-intent-contract)
   - 명시적 상호작용 합의, 제거한 affordance, 트레이드오프, 화면 기술 후속 증거
+- [상호작용 의도 계약에서 구현까지의 흐름](/ko/context-layered/interaction-intent-implementation-flow)
+  - Context-Action 레이어별 설계·구현 매핑과 집중 evidence gate
 - [아키텍처 결정 기록](/ko/context-layered/decisions/)
   - package, protocol, persistence, compatibility 결정을 위한 지속 위치와 형식 ([CA-SPEC-EVIDENCE-001](/ko/context-layered/decisions/CA-SPEC-EVIDENCE-001) 포함)
 - [통합 트라이어드(`ttsc-ex` · `oa-sdk`) 책임 분리 및 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide)
@@ -110,10 +112,11 @@ build·filesystem·provider·preview·browser release 검사는
 
 1. [Implementation Convention](/ko/context-layered/implementation-convention)
 2. [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)
-3. [UX 의도·암묵적 합의·설계 접근성 컨벤션](/ko/context-layered/ux-accessibility-convention)
-4. [통합 트라이어드(`ttsc-ex` · `oa-sdk`) 책임 분리 및 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide)
-5. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
-6. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
+3. [상호작용 의도 계약(IIC) 컨벤션](/ko/context-layered/interaction-intent-contract)
+4. [상호작용 의도 계약에서 구현까지의 흐름](/ko/context-layered/interaction-intent-implementation-flow)
+5. [통합 트라이어드(`ttsc-ex` · `oa-sdk`) 책임 분리 및 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide)
+6. [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
+7. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 
 여러 Store를 변경하는 stateful action은 [Core Action
 Contracts](../../../packages/core/docs/action-contracts.md)와 [React State
