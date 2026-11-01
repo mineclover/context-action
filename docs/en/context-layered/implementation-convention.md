@@ -2,6 +2,11 @@
 
 This document turns the implementation-playbook example into a reusable standard convention for canonical example and usecase surfaces. The goal is not just to keep one demo readable, but to make it possible to design, implement, test, and document more complex flows in the same way. It does not impose this folder structure on every workspace package or demo.
 
+When an interaction removes an affordance, changes a trigger, or relies on a
+shortcut that users must infer, write an [Interaction Intent Contract (IIC)](./interaction-intent-contract.md)
+before applying this implementation convention. Use the [IIC-to-implementation flow](./interaction-intent-implementation-flow.md)
+to map the intent to the six layers and its evidence.
+
 ## When to Use This Convention
 
 Prefer this convention when at least two of these are true:

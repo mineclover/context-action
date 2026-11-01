@@ -21,6 +21,11 @@ The repository already has strong implementation and verification conventions:
 - public and generated documentation have separate ownership rules;
 - durable architectural choices have a tracked decision-record home.
 
+For interaction changes, the [Interaction Intent Contract (IIC)](./interaction-intent-contract.md)
+is a design sub-contract of the feature specification or decision record. The
+issue lifecycle remains authoritative for work progress; the IIC lifecycle records
+whether the interaction agreement is proposed, accepted, implemented, or superseded.
+
 The remaining management risk is traceability. An issue can describe intent,
 while a specification describes the contract, but neither should be inferred
 from a commit message or reconstructed from a finished diff. The rules below

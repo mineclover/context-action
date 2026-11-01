@@ -128,6 +128,8 @@ docs/en/context-layered/
 ├── convention-index.md             # Convention catalogue and ownership links
 ├── implementation-convention.md    # Runtime implementation rules
 ├── change-management-convention.md # Issue/spec/test/document lifecycle
+├── interaction-intent-contract.md  # Upstream UX intent contract
+├── interaction-intent-implementation-flow.md # IIC to six-layer mapping
 ├── package-boundary-convention.md  # Package ownership and dependency direction
 ├── architecture/
 │   ├── folder-structure.md         # Six-layer structure
@@ -146,6 +148,13 @@ derived output; none of them is a second architecture specification. Use the
 one page.
 
 ## 🚀 Getting Started
+
+### 0. Record interaction intent when the UX changes
+
+Before removing a button or explanation, adding automatic behavior, or changing
+how a user discovers and recovers from a state, write an [Interaction Intent
+Contract (IIC)](./interaction-intent-contract.md) and follow the
+[IIC-to-implementation flow](./interaction-intent-implementation-flow.md).
 
 ### 1. Set up the folder structure
 Follow the [folder structure guide](./architecture/folder-structure.md) to organize your project.
@@ -172,6 +181,8 @@ For product-facing features, the recommended composition is `Provider → Handle
 - [Folder Structure Guide](./architecture/folder-structure.md) - Detailed 6-layer structure
 - [Handler Registry](./architecture/handler-registry.md) - ID and priority management
 - [Usecase and Recipe Profile](./usecase-recipe-profile.md) - Facade, Recipe, and design-system boundaries
+- [Interaction Intent Contract (IIC)](./interaction-intent-contract.md) - Upstream UX intent and implicit agreements
+- [IIC to Implementation Flow](./interaction-intent-implementation-flow.md) - Map intent to Context-Action layers and evidence
 - [Migration Guide](./migration-guide.md) - Migrate from traditional MVVM to Context-Layered
 - [Next Work and Documentation Ownership](./next-work.md) - single backlog and source-of-truth map
 

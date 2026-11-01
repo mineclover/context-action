@@ -140,17 +140,21 @@ handler는 필요할 때 store에서 최신 값을 읽고, 그 결과를 다시 
 ## 추천 읽기 순서
 
 1. 이 문서에서 전체 그림을 잡습니다.
-2. [폴더 구조](/ko/context-layered/architecture/folder-structure)로 각 레이어의 책임을 봅니다.
-3. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)로 왜 이 구조가 안정성과 연결되는지 확인합니다.
-4. [Canonical Order Form 예제](/ko/examples/canonical-order-form)로 실제 구현 흐름을 따라갑니다.
-5. [마이그레이션 가이드](/ko/context-layered/migration-guide)로 기존 구조를 어떻게 옮길지 확인합니다.
-7. [다음 작업과 문서 소유권](/ko/context-layered/next-work)에서 후속 작업과 기준 문서를 확인합니다.
+2. 상호작용이나 UX를 바꾼다면 [상호작용 의도 계약(IIC)](/ko/context-layered/interaction-intent-contract)을 먼저 기록합니다.
+3. [상호작용 의도 계약에서 구현까지의 흐름](/ko/context-layered/interaction-intent-implementation-flow)으로 IIC를 6개 레이어에 매핑합니다.
+4. [폴더 구조](/ko/context-layered/architecture/folder-structure)로 각 레이어의 책임을 봅니다.
+5. [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)로 증거를 구성합니다.
+6. [Canonical Order Form 예제](/ko/examples/canonical-order-form)로 실제 구현 흐름을 따라갑니다.
+7. [마이그레이션 가이드](/ko/context-layered/migration-guide)로 기존 구조를 어떻게 옮길지 확인합니다.
+8. [다음 작업과 문서 소유권](/ko/context-layered/next-work)에서 후속 작업과 기준 문서를 확인합니다.
 
 ## 관련 문서
 
 - [폴더 구조](/ko/context-layered/architecture/folder-structure)
 - [핸들러 레지스트리](/ko/context-layered/architecture/handler-registry)
 - [Usecase 및 Recipe Profile](./usecase-recipe-profile.md)
+- [상호작용 의도 계약(IIC)](/ko/context-layered/interaction-intent-contract)
+- [상호작용 의도 계약에서 구현까지의 흐름](/ko/context-layered/interaction-intent-implementation-flow)
 - [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 - [Canonical Order Form 예제](/ko/examples/canonical-order-form)
 - [다음 작업과 문서 소유권](/ko/context-layered/next-work)
