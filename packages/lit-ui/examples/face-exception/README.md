@@ -4,9 +4,9 @@ This fixture simulates an `ElementInternals` implementation that rejects both
 `setFormValue()` and `setValidity()`.
 
 The page reports the requested state beside the state exposed by the native
-internals object. It demonstrates the current defensive fallback behavior:
-form value fallback is retained, while native validity remains unchanged after
-the rejected write.
+internals object and lists `form-internals-error` diagnostic operations. It
+demonstrates the current defensive fallback behavior: form value fallback is
+retained, while native validity remains unchanged after the rejected write.
 
 Run the examples Vite server with:
 
