@@ -21,6 +21,23 @@ Do not begin implementation with a button or component when the interaction
 removes an affordance, changes a trigger, or relies on a user inference. Start
 with an IIC record and make the design shortcut explicit first.
 
+## Position in the existing convention hierarchy
+
+IIC is not an additional runtime layer in Context-Action and does not replace any
+of the six implementation layers. It is an upstream design contract that fixes
+**why the interaction was chosen** before the implementation-playbook decides
+where and how to implement it.
+
+| Position | Question answered | Owning artifact |
+| --- | --- | --- |
+| IIC | What was reduced, and what should the user be able to predict? | feature spec, decision record, PR |
+| Context-Action six layers | Where and how are that intent and state implemented? | `contexts / business / handlers / actions / hooks / views` |
+| Evidence | Does the implementation still preserve the same intent? | tests, docs, runnable scenario, gates |
+
+IIC therefore extends the existing convention upward as a design source of
+truth; it does not add a new runtime boundary. Even a small example records the
+IIC first and maps only the Context-Action layers it actually needs.
+
 ## Stage responsibilities
 
 | Stage | Context-Action location | IIC question | Required output |
