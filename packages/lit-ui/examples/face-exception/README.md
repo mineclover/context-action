@@ -20,11 +20,10 @@ examples Vite 서버를 실행합니다.
 pnpm --filter @context-action/lit-ui exec vite --config examples/vite.config.ts
 ```
 
-브라우저에서 `/face-exception.html`을 열고 `직접 조작해보기`에서 조건을 바꿔 실행합니다.
+브라우저에서 `/face-exception.html`을 열고 `직접 조작해보기`에서 조건을 바꿔 봅니다.
 
-- 폼 값과 무효 상태 요청을 바꿉니다.
-- `setFormValue`와 `setValidity`의 native 거부 토글을 각각 켜거나 끕니다.
-- `실험 실행`을 누르면 카드형 실험 결과와 진단 건수가 갱신됩니다.
+- 폼 값을 입력하거나 무효 상태 요청을 바꾸면 즉시 결과가 갱신됩니다.
+- `setFormValue`와 `setValidity`의 native 거부 토글을 바꾸는 순간 카드형 실험 결과와 진단 건수가 갱신됩니다.
 - `기본 시나리오로 초기화`를 누르면 두 쓰기 모두 거부되는 기본 재현으로 돌아갑니다.
 
 아래 `원시 진단 데이터(개발자용)`에서는 자동화/API 검증에 쓰는 JSON 원본을 확인할 수 있습니다.

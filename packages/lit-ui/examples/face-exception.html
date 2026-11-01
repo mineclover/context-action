@@ -378,11 +378,11 @@
           <li><strong>진단 결과:</strong> <code>form-internals-error</code> 이벤트로 실패한 작업 이름을 수집합니다.</li>
         </ol>
       </section>
-      <form class="controls" id="controls" aria-labelledby="controls-title">
+      <section class="controls" id="controls" aria-labelledby="controls-title">
         <div>
           <h2 id="controls-title">직접 조작해보기</h2>
           <p class="controls-intro">
-            값을 바꾸거나 native 쓰기 거부를 끄고 <strong>실험 실행</strong>을 눌러 결과 차이를 비교하세요.
+            값을 입력하거나 체크를 바꾸면 결과가 즉시 갱신됩니다. 각 native 쓰기 거부를 켜고 끄며 결과 차이를 비교하세요.
           </p>
         </div>
         <div class="control-grid">
@@ -404,11 +404,10 @@
           </label>
         </div>
         <div class="control-actions">
-          <button type="submit">실험 실행</button>
           <button id="reset-controls" type="button">기본 시나리오로 초기화</button>
         </div>
         <p id="control-state" class="control-state" aria-live="polite">기본 시나리오를 불러오는 중…</p>
-      </form>
+      </section>
       <lit-face-exception-probe></lit-face-exception-probe>
       <section class="report-card" aria-labelledby="report-title">
         <div class="report-heading">

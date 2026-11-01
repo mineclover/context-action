@@ -11,7 +11,7 @@ if (!customElements.get('lit-face-exception-probe')) {
 const status = document.querySelector<HTMLElement>('#status');
 const reportState = document.querySelector<HTMLElement>('#report-state');
 const probe = document.querySelector<FaceExceptionProbeElement>('lit-face-exception-probe');
-const controls = document.querySelector<HTMLFormElement>('#controls');
+const controls = document.querySelector<HTMLElement>('#controls');
 const formValueInput = document.querySelector<HTMLInputElement>('#form-value');
 const requestInvalidInput = document.querySelector<HTMLInputElement>('#request-invalid');
 const rejectFormValueInput = document.querySelector<HTMLInputElement>('#reject-form-value');
@@ -62,7 +62,7 @@ function readOptions(): FaceExceptionRunOptions {
 function run(options: FaceExceptionRunOptions): void {
   diagnostics.length = 0;
   probeElement.run(options);
-  if (controlState) controlState.textContent = '실험을 실행했습니다. 아래 결과를 비교해보세요.';
+  if (controlState) controlState.textContent = '설정 변경을 즉시 반영했습니다. 아래 결과를 비교해보세요.';
 }
 
 function resetControls(): void {
@@ -73,10 +73,10 @@ function resetControls(): void {
   run(DEFAULT_FACE_EXCEPTION_RUN);
 }
 
-controls.addEventListener('submit', (event) => {
-  event.preventDefault();
-  run(readOptions());
-});
+formValueControl.addEventListener('input', () => run(readOptions()));
+requestInvalidControl.addEventListener('change', () => run(readOptions()));
+rejectFormValueControl.addEventListener('change', () => run(readOptions()));
+rejectValidityControl.addEventListener('change', () => run(readOptions()));
 
 resetControl.addEventListener('click', resetControls);
 
