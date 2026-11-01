@@ -9,6 +9,8 @@ on:
       - 'scripts/**'
       - 'example/**'
       - 'demos/**'
+      - 'docs/**'
+      - 'llmsData/**'
       - 'tools/**'
       - 'tsconfig*.json'
       - 'lerna.json'
@@ -71,6 +73,15 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Verify documentation contracts
+        run: |
+          pnpm build:llms-generator
+          pnpm docs:management
+          pnpm llms:check
+
+      - name: Build documentation
+        run: pnpm docs:build
 
       - name: Build core and react for smoke checks
         run: >-

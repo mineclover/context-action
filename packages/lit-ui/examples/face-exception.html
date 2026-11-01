@@ -1,16 +1,422 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:," />
-    <title>Lit FACE exception reproduction</title>
+    <meta
+      name="description"
+      content="ElementInternals 쓰기 거부 상황에서 fallback과 진단 이벤트를 확인하는 Lit FACE playground입니다."
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: #f4f7fb;
+        color: #162033;
+        font-synthesis: none;
+        line-height: 1.5;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 10% 0%, rgb(219 234 254 / 0.75), transparent 34rem),
+          #f4f7fb;
+      }
+
+      main {
+        width: min(100% - 2rem, 960px);
+        margin: 0 auto;
+        padding: clamp(2rem, 6vw, 5rem) 0;
+      }
+
+      .page-header {
+        display: grid;
+        gap: 0.65rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .eyebrow {
+        margin: 0;
+        color: #2459a6;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        color: #101828;
+        line-height: 1.15;
+      }
+
+      h1 {
+        max-width: 24ch;
+        font-size: clamp(1.85rem, 4vw, 2.75rem);
+        letter-spacing: -0.03em;
+      }
+
+      .lede {
+        max-width: 68ch;
+        margin: 0;
+        color: #475467;
+        font-size: 1rem;
+      }
+
+      .overview {
+        display: grid;
+        gap: 0.7rem;
+        margin: 0 0 1.5rem;
+        padding: 1rem 1.15rem;
+        border-left: 0.3rem solid #5b8def;
+        border-radius: 0.7rem;
+        background: rgb(255 255 255 / 0.72);
+      }
+
+      .overview h2 {
+        font-size: 1rem;
+      }
+
+      .overview ol {
+        display: grid;
+        gap: 0.4rem;
+        margin: 0;
+        padding-left: 1.25rem;
+        color: #475467;
+        font-size: 0.9rem;
+      }
+
+      .overview code,
+      .lede code,
+      .hint code {
+        border-radius: 0.25rem;
+        background: #eef4ff;
+        color: #2459a6;
+        font-size: 0.9em;
+        padding: 0.08rem 0.28rem;
+      }
+
+      .controls {
+        display: grid;
+        gap: 1rem;
+        margin: 0 0 1.5rem;
+        padding: clamp(1rem, 3vw, 1.4rem);
+        border: 1px solid #b8c7dc;
+        border-radius: 1rem;
+        background: rgb(255 255 255 / 0.86);
+      }
+
+      .controls h2 {
+        font-size: clamp(1.1rem, 2vw, 1.35rem);
+      }
+
+      .controls-intro {
+        margin: 0;
+        color: #667085;
+        font-size: 0.88rem;
+      }
+
+      .control-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+
+      .control-field {
+        display: grid;
+        align-content: start;
+        gap: 0.35rem;
+        min-width: 0;
+        color: #344054;
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+
+      .control-field input[type="text"] {
+        width: 100%;
+        min-height: 2.5rem;
+        padding: 0.55rem 0.7rem;
+        border: 1px solid #98a2b3;
+        border-radius: 0.55rem;
+        background: #fff;
+        color: #101828;
+        font: inherit;
+        font-weight: 500;
+      }
+
+      .check-field {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        min-height: 2.5rem;
+        padding: 0.6rem 0.7rem;
+        border: 1px solid #e4e7ec;
+        border-radius: 0.55rem;
+        background: rgb(255 255 255 / 0.72);
+        color: #344054;
+        font-size: 0.78rem;
+        font-weight: 600;
+        line-height: 1.35;
+      }
+
+      .check-field input {
+        margin: 0.15rem 0 0;
+        accent-color: #2459a6;
+      }
+
+      .control-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+
+      .control-actions button {
+        min-height: 2.5rem;
+        padding: 0.55rem 0.9rem;
+        border: 1px solid #2459a6;
+        border-radius: 0.55rem;
+        background: #2459a6;
+        color: #fff;
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+
+      .control-actions button[type="button"] {
+        border-color: #98a2b3;
+        background: #fff;
+        color: #344054;
+      }
+
+      .control-actions button:focus-visible,
+      .control-field input:focus-visible,
+      .check-field:has(input:focus-visible) {
+        outline: 3px solid rgb(91 141 239 / 0.35);
+        outline-offset: 2px;
+      }
+
+      .report-card {
+        display: grid;
+        gap: 0.85rem;
+        margin-top: 1.5rem;
+        padding: clamp(1rem, 3vw, 1.5rem);
+        border: 1px solid #d0d5dd;
+        border-radius: 1rem;
+        background: rgb(255 255 255 / 0.9);
+        box-shadow: 0 1rem 2.5rem rgb(16 24 40 / 0.08);
+      }
+
+      .report-heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .report-heading h2 {
+        font-size: clamp(1.1rem, 2vw, 1.35rem);
+      }
+
+      .report-heading span {
+        color: #667085;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      pre {
+        overflow-x: auto;
+        min-height: 8rem;
+        margin: 0;
+        padding: 1rem;
+        border: 1px solid #e4e7ec;
+        border-radius: 0.7rem;
+        background: #101828;
+        color: #d1fadf;
+        font: 0.82rem/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      pre[data-ready="false"] {
+        color: #98a2b3;
+      }
+
+      .hint {
+        margin: 0;
+        color: #667085;
+        font-size: 0.85rem;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          background: #0b1220;
+          color: #e4e7ec;
+        }
+
+        body {
+          background:
+            radial-gradient(circle at 10% 0%, rgb(30 64 175 / 0.25), transparent 34rem),
+            #0b1220;
+        }
+
+        h1,
+        h2 {
+          color: #f9fafb;
+        }
+
+        .eyebrow {
+          color: #93c5fd;
+        }
+
+        .lede,
+        .report-heading span,
+        .hint,
+        .overview ol {
+          color: #98a2b3;
+        }
+
+        .overview {
+          background: rgb(16 24 40 / 0.72);
+          border-left-color: #7aa2f7;
+        }
+
+        .controls {
+          border-color: #344054;
+          background: rgb(16 24 40 / 0.82);
+        }
+
+        .controls-intro {
+          color: #98a2b3;
+        }
+
+        .control-field,
+        .check-field {
+          color: #d0d5dd;
+        }
+
+        .control-field input[type="text"],
+        .control-actions button[type="button"] {
+          border-color: #667085;
+          background: #101828;
+          color: #f9fafb;
+        }
+
+        .check-field {
+          border-color: #344054;
+          background: rgb(2 6 23 / 0.4);
+        }
+
+        .overview code,
+        .lede code,
+        .hint code {
+          background: #172554;
+          color: #bfdbfe;
+        }
+
+        .report-card {
+          border-color: #344054;
+          background: rgb(16 24 40 / 0.82);
+          box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 0.2);
+        }
+
+        pre {
+          border-color: #344054;
+          background: #020617;
+        }
+      }
+
+      @media (max-width: 560px) {
+        main {
+          width: min(100% - 1.25rem, 960px);
+          padding-top: 1.5rem;
+        }
+
+        .report-heading {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .control-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <title>Lit FACE 예외 진단 playground</title>
   </head>
   <body>
     <main>
+      <header class="page-header">
+        <p class="eyebrow">Lit UI · 진단 playground</p>
+        <h1>FACE 예외 처리 관찰하기</h1>
+        <p class="lede">
+          이 화면은 네이티브 <code>ElementInternals</code> 쓰기가 거부될 때
+          컴포넌트가 fallback 값을 유지하는지, 그리고 거부된 작업을 진단 이벤트로
+          확인할 수 있는지를 보여줍니다.
+        </p>
+      </header>
+      <section class="overview" aria-labelledby="overview-title">
+        <h2 id="overview-title">이 playground에서 확인하는 것</h2>
+        <ol>
+          <li><strong>요청한 상태:</strong> <code>setFormValue('demo-value')</code>와 필수값 오류 상태를 요청합니다.</li>
+          <li><strong>fallback 상태:</strong> 네이티브 쓰기가 실패해도 컴포넌트 내부 폼 값은 유지됩니다.</li>
+          <li><strong>네이티브 상태:</strong> 기본 시나리오에서는 쓰기가 거부되어 native 상태가 바뀌지 않으며, 아래 토글로 거부 여부를 바꿔 비교할 수 있습니다.</li>
+          <li><strong>진단 결과:</strong> <code>form-internals-error</code> 이벤트로 실패한 작업 이름을 수집합니다.</li>
+        </ol>
+      </section>
+      <section class="controls" id="controls" aria-labelledby="controls-title">
+        <div>
+          <h2 id="controls-title">직접 조작해보기</h2>
+          <p class="controls-intro">
+            값을 입력하거나 체크를 바꾸면 결과가 즉시 갱신됩니다. 각 native 쓰기 거부를 켜고 끄며 결과 차이를 비교하세요.
+          </p>
+        </div>
+        <div class="control-grid">
+          <label class="control-field" for="form-value">
+            폼 값
+            <input id="form-value" type="text" value="demo-value" autocomplete="off" />
+          </label>
+          <label class="check-field" for="request-invalid">
+            <input id="request-invalid" type="checkbox" checked />
+            요청한 유효성을 무효로 설정
+          </label>
+          <label class="check-field" for="reject-form-value">
+            <input id="reject-form-value" type="checkbox" checked />
+            <code>setFormValue</code> 거부
+          </label>
+          <label class="check-field" for="reject-validity">
+            <input id="reject-validity" type="checkbox" checked />
+            <code>setValidity</code> 거부
+          </label>
+        </div>
+        <div class="control-actions">
+          <button id="reset-controls" type="button">기본 시나리오로 초기화</button>
+        </div>
+      </section>
       <lit-face-exception-probe></lit-face-exception-probe>
-      <h2>Observed report</h2>
-      <pre id="status" data-ready="false"></pre>
+      <section class="report-card" aria-labelledby="report-title">
+        <div class="report-heading">
+          <h2 id="report-title">원시 진단 데이터(개발자용)</h2>
+          <span id="report-state" aria-live="polite">probe 실행 대기 중…</span>
+        </div>
+        <pre id="status" data-ready="false" aria-live="polite">probe 결과 대기 중…</pre>
+        <p class="hint">
+          아래 원시 진단 데이터(JSON)에서 fallback 값, 네이티브 값, 그리고
+          <code>form-internals-error</code>로 수집된 실패 작업을 확인할 수 있습니다.
+        </p>
+      </section>
     </main>
     <script type="module" src="./face-exception/client.ts"></script>
   </body>

@@ -16,6 +16,8 @@ class AttachFailureProbeElement extends FormAssociatedLitElement {
   }
 }
 
+class RerunFaceExceptionProbeElement extends FaceExceptionProbeElement {}
+
 describe('FACE exception reproduction demo', () => {
   it('shows fallback/native divergence when ElementInternals rejects writes', async () => {
     const tagName = 'lit-face-exception-probe-test';
@@ -38,6 +40,40 @@ describe('FACE exception reproduction demo', () => {
       validityRejected: true,
     });
     expect(diagnostics).toEqual(['setFormValue', 'setValidity']);
+
+    element.remove();
+  });
+
+  it('reruns with accepted native writes so the playground can compare states', async () => {
+    const tagName = 'lit-face-exception-probe-rerun-test';
+    if (!customElements.get(tagName)) customElements.define(tagName, RerunFaceExceptionProbeElement);
+    const element = document.createElement(tagName) as RerunFaceExceptionProbeElement;
+    const diagnostics: string[] = [];
+    element.addEventListener('form-internals-error', (event) => {
+      diagnostics.push((event as CustomEvent<{ operation: string }>).detail.operation);
+    });
+    document.body.appendChild(element);
+    await element.updateComplete;
+    diagnostics.length = 0;
+
+    element.run({
+      formValue: 'accepted-value',
+      requestInvalid: true,
+      rejectFormValue: false,
+      rejectValidity: false,
+    });
+    await element.updateComplete;
+
+    expect(element.report).toEqual({
+      fallbackFormValue: 'accepted-value',
+      requestedValid: false,
+      reportedValid: false,
+      nativeFormValue: 'accepted-value',
+      nativeValid: false,
+      formValueRejected: false,
+      validityRejected: false,
+    });
+    expect(diagnostics).toEqual([]);
 
     element.remove();
   });

@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-01T03:49:19.089Z",
-  "commitSha": "bbea776263bbcb61fecc4bbba49611de2cf57192",
-  "branch": "codex/face-diagnostic",
+  "timestamp": "2026-11-01T12:39:06.100Z",
+  "commitSha": "ac0536eaeb07ceb413eb285574ed5e2e18deaba0",
+  "branch": "codex/face-demo-readability",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
@@ -11,21 +11,21 @@
   },
   "inputDigest": "sha256:028f7f5053cee0a8c1673e4b4b907601e77c73c3265eabc7f39ca294f6385ea4",
   "workingTree": "clean",
-  "treeDigest": "sha256:19b60da3ee24ac2ad9a272cdc63070d72072e8b17c004e00b040de0e8d411c7c",
+  "treeDigest": "sha256:ebf5ba4ebc13c40557b34a697b7c3222ecaf9c40e0b6cd34a211fd54c4eb00f1",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 20.5,
+      "durationSec": 21.98,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.83,
+      "durationSec": 0.9,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 1.59,
+      "durationSec": 1.96,
       "status": "passed"
     },
     {
@@ -35,22 +35,22 @@
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.24,
+      "durationSec": 0.28,
       "status": "passed"
     },
     {
       "name": "6. React WebMCP Isolation",
-      "durationSec": 0.03,
+      "durationSec": 0.04,
       "status": "passed"
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.29,
+      "durationSec": 0.56,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.91,
+      "durationSec": 1.61,
       "status": "passed"
     },
     {
@@ -60,5 +60,5 @@
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:9135e3063930db03d06f378ac86387952a58f282574e5099c161551f37335679"
+  "receiptDigest": "sha256:56eb86ad3bf6b66eadd613422cc10a811d02ae46cb2c73d3d1ebbb4c730fad91"
 }
