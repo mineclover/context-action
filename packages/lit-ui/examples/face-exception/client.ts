@@ -17,8 +17,8 @@ function renderReport(report: FaceExceptionProbeElement['report']): void {
   statusElement.dataset.ready = 'true';
   if (reportState) {
     reportState.textContent = diagnostics.length
-      ? `${diagnostics.length} diagnostic operation${diagnostics.length === 1 ? '' : 's'} captured`
-      : 'Probe completed';
+      ? `진단 작업 ${diagnostics.length}건 수집됨`
+      : 'probe 실행 완료';
   }
 }
 

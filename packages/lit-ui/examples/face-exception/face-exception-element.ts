@@ -76,6 +76,14 @@ export class FaceExceptionProbeElement extends FormAssociatedLitElement {
       font-size: 0.92rem;
     }
 
+    code {
+      border-radius: 0.25rem;
+      background: #eef4ff;
+      color: #2459a6;
+      font-size: 0.9em;
+      padding: 0.08rem 0.28rem;
+    }
+
     .summary {
       display: flex;
       align-items: center;
@@ -95,10 +103,10 @@ export class FaceExceptionProbeElement extends FormAssociatedLitElement {
       align-items: center;
       gap: 0.4rem;
       padding: 0.3rem 0.65rem;
-      border: 1px solid #f5c2c7;
+      border: 1px solid #abefc6;
       border-radius: 999px;
-      background: #fff1f2;
-      color: #b42318;
+      background: #ecfdf3;
+      color: #067647;
       font-size: 0.76rem;
       font-weight: 700;
       white-space: nowrap;
@@ -186,6 +194,11 @@ export class FaceExceptionProbeElement extends FormAssociatedLitElement {
         color: #98a2b3;
       }
 
+      code {
+        background: #172554;
+        color: #bfdbfe;
+      }
+
       .metric {
         border-color: #344054;
         background: rgb(2 6 23 / 0.4);
@@ -204,9 +217,9 @@ export class FaceExceptionProbeElement extends FormAssociatedLitElement {
       }
 
       .status-chip {
-        border-color: #7a271a;
-        background: #451e1a;
-        color: #fda29b;
+        border-color: #05603a;
+        background: #053321;
+        color: #6ce9a6;
       }
     }
 
@@ -294,47 +307,47 @@ export class FaceExceptionProbeElement extends FormAssociatedLitElement {
   override render() {
     const report = this.report;
     return html`
-      <section aria-label="FACE exception reproduction">
+      <section aria-label="FACE 예외 재현 결과">
         <header>
-          <p class="eyebrow">Native boundary probe</p>
-          <h2>Rejected ElementInternals writes</h2>
+          <p class="eyebrow">네이티브 경계 테스트</p>
+          <h2>실험 결과: 쓰기 거부와 상태 차이</h2>
         </header>
         <p class="description">
-          The simulated native internals reject both writes. The base class catches
-          the errors: the requested invalid state is not reflected by the reported
-          native validity, while the fallback form value still shows the requested value.
+          이 probe는 네이티브 내부 객체가 두 쓰기를 모두 거부하는 상황을 재현합니다.
+          기본 클래스는 오류를 잡아 fallback 값을 유지하지만, 요청한 무효 상태는
+          네이티브 유효성에 반영되지 않습니다.
         </p>
         <div class="summary">
-          <span class="summary-label">Current observation</span>
-          <span class="status-chip">Fallback preserved · diagnostics emitted</span>
+          <span class="summary-label">현재 관찰 요약</span>
+          <span class="status-chip">fallback 값 유지 · 네이티브 유효성 미변경</span>
         </div>
         <dl>
           <div class="metric">
-            <dt>Fallback form value</dt>
+            <dt>fallback 폼 값</dt>
             <dd data-testid="fallback-form-value" data-state="ok">${report.fallbackFormValue}</dd>
           </div>
           <div class="metric">
-            <dt>Native form value</dt>
+            <dt>native 폼 값</dt>
             <dd data-testid="native-form-value" data-state="${report.nativeFormValue === null ? 'muted' : 'ok'}">${report.nativeFormValue ?? 'null'}</dd>
           </div>
           <div class="metric">
-            <dt>Requested valid</dt>
+            <dt>요청한 유효성</dt>
             <dd data-testid="requested-valid" data-state="${report.requestedValid ? 'ok' : 'invalid'}">${String(report.requestedValid)}</dd>
           </div>
           <div class="metric">
-            <dt>Reported valid</dt>
+            <dt>보고된 유효성</dt>
             <dd data-testid="reported-valid" data-state="${report.reportedValid ? 'ok' : 'invalid'}">${String(report.reportedValid)}</dd>
           </div>
           <div class="metric">
-            <dt>Native valid</dt>
+            <dt>네이티브 유효성</dt>
             <dd data-testid="native-valid" data-state="${report.nativeValid ? 'ok' : 'invalid'}">${String(report.nativeValid)}</dd>
           </div>
           <div class="metric">
-            <dt>setFormValue rejected</dt>
+            <dt><code>setFormValue</code> 거부</dt>
             <dd data-testid="form-value-rejected" data-state="${report.formValueRejected ? 'warning' : 'ok'}">${String(report.formValueRejected)}</dd>
           </div>
           <div class="metric">
-            <dt>setValidity rejected</dt>
+            <dt><code>setValidity</code> 거부</dt>
             <dd data-testid="validity-rejected" data-state="${report.validityRejected ? 'warning' : 'ok'}">${String(report.validityRejected)}</dd>
           </div>
         </dl>

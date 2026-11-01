@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:," />
     <meta
       name="description"
-      content="Interactive reproduction of rejected ElementInternals writes with diagnostic fallback reporting."
+      content="ElementInternals 쓰기 거부 상황에서 fallback과 진단 이벤트를 확인하는 Lit FACE playground입니다."
     />
     <style>
       :root {
@@ -72,6 +72,39 @@
         margin: 0;
         color: #475467;
         font-size: 1rem;
+      }
+
+      .overview {
+        display: grid;
+        gap: 0.7rem;
+        margin: 0 0 1.5rem;
+        padding: 1rem 1.15rem;
+        border-left: 0.3rem solid #5b8def;
+        border-radius: 0.7rem;
+        background: rgb(255 255 255 / 0.72);
+      }
+
+      .overview h2 {
+        font-size: 1rem;
+      }
+
+      .overview ol {
+        display: grid;
+        gap: 0.4rem;
+        margin: 0;
+        padding-left: 1.25rem;
+        color: #475467;
+        font-size: 0.9rem;
+      }
+
+      .overview code,
+      .lede code,
+      .hint code {
+        border-radius: 0.25rem;
+        background: #eef4ff;
+        color: #2459a6;
+        font-size: 0.9em;
+        padding: 0.08rem 0.28rem;
       }
 
       .report-card {
@@ -149,8 +182,21 @@
 
         .lede,
         .report-heading span,
-        .hint {
+        .hint,
+        .overview ol {
           color: #98a2b3;
+        }
+
+        .overview {
+          background: rgb(16 24 40 / 0.72);
+          border-left-color: #7aa2f7;
+        }
+
+        .overview code,
+        .lede code,
+        .hint code {
+          background: #172554;
+          color: #bfdbfe;
         }
 
         .report-card {
@@ -178,29 +224,38 @@
         }
       }
     </style>
-    <title>Lit FACE exception reproduction</title>
+    <title>Lit FACE 예외 진단 playground</title>
   </head>
   <body>
     <main>
       <header class="page-header">
-        <p class="eyebrow">Lit UI · diagnostic fixture</p>
-        <h1>FACE exception reproduction</h1>
+        <p class="eyebrow">Lit UI · 진단 playground</p>
+        <h1>FACE 예외 처리 관찰하기</h1>
         <p class="lede">
-          Observe how the component keeps its fallback state when native
-          <code>ElementInternals</code> writes are rejected, while exposing the
-          rejected operations for diagnostics.
+          이 화면은 네이티브 <code>ElementInternals</code> 쓰기가 거부될 때
+          컴포넌트가 fallback 값을 유지하는지, 그리고 거부된 작업을 진단 이벤트로
+          확인할 수 있는지를 보여줍니다.
         </p>
       </header>
+      <section class="overview" aria-labelledby="overview-title">
+        <h2 id="overview-title">이 playground에서 확인하는 것</h2>
+        <ol>
+          <li><strong>요청한 상태:</strong> <code>setFormValue('demo-value')</code>와 필수값 오류 상태를 요청합니다.</li>
+          <li><strong>fallback 상태:</strong> 네이티브 쓰기가 실패해도 컴포넌트 내부 폼 값은 유지됩니다.</li>
+          <li><strong>네이티브 상태:</strong> 가짜 <code>ElementInternals</code>가 쓰기를 거부하므로 네이티브 유효성은 바뀌지 않습니다.</li>
+          <li><strong>진단 결과:</strong> <code>form-internals-error</code> 이벤트로 실패한 작업 이름을 수집합니다.</li>
+        </ol>
+      </section>
       <lit-face-exception-probe></lit-face-exception-probe>
       <section class="report-card" aria-labelledby="report-title">
         <div class="report-heading">
-          <h2 id="report-title">Observed report</h2>
-          <span id="report-state" aria-live="polite">Waiting for probe…</span>
+          <h2 id="report-title">원시 진단 데이터(개발자용)</h2>
+          <span id="report-state" aria-live="polite">probe 실행 대기 중…</span>
         </div>
-        <pre id="status" data-ready="false" aria-live="polite">Waiting for probe output…</pre>
+        <pre id="status" data-ready="false" aria-live="polite">probe 결과 대기 중…</pre>
         <p class="hint">
-          The JSON includes fallback values, native values, and the diagnostic
-          operations emitted by <code>form-internals-error</code>.
+          아래 원시 진단 데이터(JSON)에서 fallback 값, 네이티브 값, 그리고
+          <code>form-internals-error</code>로 수집된 실패 작업을 확인할 수 있습니다.
         </p>
       </section>
     </main>
