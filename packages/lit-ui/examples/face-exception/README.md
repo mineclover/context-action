@@ -26,4 +26,8 @@ pnpm --filter @context-action/lit-ui exec vite --config examples/vite.config.ts
 - `setFormValue`와 `setValidity`의 native 거부 토글을 바꾸는 순간 카드형 실험 결과와 진단 건수가 갱신됩니다.
 - `기본 시나리오로 초기화`를 누르면 두 쓰기 모두 거부되는 기본 재현으로 돌아갑니다.
 
+별도 실행 버튼을 두지 않은 이유는 이 playground의 변경이 외부 저장이나 파괴적
+작업이 아닌, 되돌릴 수 있는 로컬 실험이기 때문입니다. 입력 변경 자체를 트리거로
+삼고 reset을 복구 경로로 두어 조작 단계와 결과 사이의 거리를 줄였습니다.
+
 아래 `원시 진단 데이터(개발자용)`에서는 자동화/API 검증에 쓰는 JSON 원본을 확인할 수 있습니다.

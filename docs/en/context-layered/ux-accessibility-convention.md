@@ -1,13 +1,16 @@
-# UX Intent, Implicit Agreement, and Accessibility Convention
+# UX Intent, Implicit Agreement, and Design Accessibility Convention
 
 **Status:** Active  
 **Last reviewed:** 2026-11-01  
 **Scope:** interactive examples, public UI, demos, and workflow views
 
-This convention makes the behavior users are expected to infer explicit. It
-records the UX intent and the accessibility contract together so that a fast or
-convenient interaction does not silently remove keyboard, screen-reader, focus,
-or recovery support.
+In this convention, accessibility does not mean only screen-reader support. It
+also means that someone who did not make the original design can reconstruct why
+a button or explanation was removed, what immediate behavior was promised, and
+how to undo and verify that choice. We call this **design accessibility**.
+Technical UI accessibility (keyboard, screen reader, contrast, and similar
+requirements) is a follow-up verification when the surface needs it; it is not a
+replacement for documenting UX intent.
 
 ## When to use this convention
 
@@ -15,34 +18,43 @@ Use this convention when a change introduces or changes any of these:
 
 - automatic execution, live updates, debouncing, or background feedback;
 - a new control, status, error, reset, or recovery path;
-- focus movement, keyboard behavior, dialog, popover, or live-region output;
+- removing or condensing an affordance such as a button, explanation, or confirmation step;
 - a visual state whose meaning could be inferred differently by different users;
-- a UX decision that trades fewer steps for less explicit confirmation.
+- a UX decision that trades fewer steps for lower discoverability.
 
 Small visual-only changes do not need a separate record, but the owning
-specification or PR should still state the affected accessibility invariant.
+specification or PR should still state the affected design intent and any technical
+accessibility invariant.
 
 ## The implicit agreement record
 
 An implicit agreement is a behavior a user, reviewer, or integrator is expected
 to understand without reading the implementation. Examples include “changing a
 checkbox runs the experiment”, “the latest value is the source of truth”, and
-“reset returns to the reproducible failure case”. Record these agreements
-before implementation when they affect interaction or assistive output.
+"reset returns to the reproducible failure case". Record these agreements before
+implementation when the design removes an affordance or relies on user inference.
 
 Use this template in the feature specification, decision record, or PR body:
 
 ```text
-Agreement ID: CA-UXA11Y-<number>
+Agreement ID: CA-UXINTENT-<number>
 Surface and owner:
 User goal:
+Design intent (why this UX is easier):
+Removed or condensed affordance (button, explanation, confirmation step):
 Implicit agreement (what the user should be able to predict):
+Replacement signal (what carries the same meaning):
+Discoverability risk (what a first-time user may miss):
 Trigger(s):
 Observable result:
 Source of truth:
 Reset / cancel / recovery:
 
-Accessibility contract:
+Design accessibility contract:
+- core logic another implementer must be able to reproduce:
+- sentence that must stay consistent across docs, UI, and tests:
+
+Technical accessibility follow-up, when applicable:
 - semantic control and accessible name:
 - keyboard and non-pointer path:
 - focus behavior:
@@ -63,17 +75,20 @@ Evidence:
 - documentation link:
 ```
 
-The record is complete only when a reviewer can answer what starts the behavior,
-what changes on screen, how a keyboard or assistive-technology user discovers
-the same change, and how the user recovers from an unintended change.
+The record is complete only when a reviewer can answer why the shortcut is useful,
+what was removed, what signal replaces it, which state is authoritative, and how
+the user recovers from a wrong inference. When the surface has technical
+accessibility requirements, include how keyboard and assistive-technology users
+discover the same change as follow-up evidence.
 
 ## Design rules
 
-### 1. Make automatic behavior predictable
+### 1. Make UX shortcuts explicit and recoverable
 
-Automatic behavior must have a visible explanation near its trigger. State the
-event that causes it and the result it changes. Do not add a second submit or
-confirm action solely to repeat an already automatic operation.
+Automatic behavior must have its intent and result near the trigger. State which
+button or explanation was removed and what signal preserves discoverability. Do
+not add a second submit or confirm action solely to repeat an already automatic
+operation.
 
 If automatic work is expensive, asynchronous, or destructive, specify the
 debounce, cancellation, pending, and failure states. “Immediate” means the
@@ -90,7 +105,7 @@ the result surface. The live region must specify its politeness (`polite` or
 High-frequency input should not produce a verbose announcement for every
 character. Announce completion, error, or a meaningful threshold instead.
 
-### 3. Prefer native semantics
+### 3. Verify technical accessibility as a separate contract
 
 Use native `button`, `input`, `label`, `fieldset`, `legend`, `output`, and form
 controls before adding ARIA roles. Every control needs an accessible name and a
@@ -125,13 +140,15 @@ state source of truth; changing only the labels is insufficient.
 
 ## Review checklist
 
-- [ ] The implicit agreement is written in one sentence and has a stable owner.
+- [ ] The design intent and implicit agreement are written in one sentence and have a stable owner.
+- [ ] Removed or condensed affordances and their replacement signals are recorded.
+- [ ] First-time discoverability risks are recorded.
 - [ ] Trigger, observable result, source of truth, and reset/recovery are named.
 - [ ] The primary control has a native semantic, visible label, and keyboard path.
 - [ ] Focus behavior is intentional and remains visible.
 - [ ] Live-region scope and politeness are explicit; duplicate announcements are removed.
 - [ ] State meaning does not depend on color, hover, motion, or pointer precision.
-- [ ] UX speed/convenience trade-offs and accessibility risks are recorded.
+- [ ] UX speed/convenience trade-offs and design-accessibility risks are recorded.
 - [ ] A behavior test covers the default and at least one changed state.
 - [ ] Keyboard or accessibility verification covers the same interaction path.
 - [ ] Human-facing documentation and raw diagnostic evidence are linked separately.
@@ -155,11 +172,12 @@ ownership, and accessibility behavior reviewable together.
 
 ## FACE playground example
 
-### Example record: `CA-UXA11Y-FACE-001`
+### Example record: `CA-UXINTENT-FACE-001`
 
 - **User goal:** change rejection conditions and compare fallback/native state immediately.
 - **Implicit agreement:** editing the input or a checkbox reruns the experiment with the current settings.
-- **Accessibility contract:** use native `input` and `label` controls; one result panel with `aria-live="polite"` reports the diagnostic count.
+- **Design accessibility:** record why the execute button was removed and how automatic execution is discovered.
+- **Technical accessibility follow-up:** use native `input` and `label` controls; one result panel with `aria-live="polite"` reports the diagnostic count.
 - **Trade-off:** removing the execute button reduces steps, so the trigger explanation and reset path stay visible.
 - **Evidence:** the `run()` rerun component test, the runnable playground, and the raw JSON report.
 
