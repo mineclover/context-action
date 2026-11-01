@@ -5,20 +5,28 @@ if (!customElements.get('lit-face-exception-probe')) {
 }
 
 const status = document.querySelector<HTMLElement>('#status');
+const reportState = document.querySelector<HTMLElement>('#report-state');
 const probe = document.querySelector<FaceExceptionProbeElement>('lit-face-exception-probe');
 if (!status || !probe) throw new Error('FACE exception demo is missing #status or probe element');
+const statusElement = status;
 
 const diagnostics: string[] = [];
+
+function renderReport(report: FaceExceptionProbeElement['report']): void {
+  statusElement.textContent = JSON.stringify({ ...report, diagnostics }, null, 2);
+  statusElement.dataset.ready = 'true';
+  if (reportState) {
+    reportState.textContent = diagnostics.length
+      ? `${diagnostics.length} diagnostic operation${diagnostics.length === 1 ? '' : 's'} captured`
+      : 'Probe completed';
+  }
+}
+
 probe.addEventListener('form-internals-error', (event) => {
   diagnostics.push((event as CustomEvent<{ operation: string }>).detail.operation);
-  status.textContent = JSON.stringify({ ...probe.report, diagnostics }, null, 2);
-  status.dataset.ready = 'true';
+  renderReport(probe.report);
 });
 
 probe.addEventListener('face-exception-report', (event) => {
-  status.textContent = JSON.stringify({
-    ...(event as CustomEvent).detail,
-    diagnostics,
-  }, null, 2);
-  status.dataset.ready = 'true';
+  renderReport((event as CustomEvent<FaceExceptionProbeElement['report']>).detail);
 });
