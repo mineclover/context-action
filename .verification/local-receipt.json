@@ -1,7 +1,7 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-01T03:48:56.697Z",
-  "commitSha": "3a67d2326d06907ef8611d30c09047d13aba385f",
+  "timestamp": "2026-11-01T03:49:19.089Z",
+  "commitSha": "bbea776263bbcb61fecc4bbba49611de2cf57192",
   "branch": "codex/face-diagnostic",
   "toolchain": {
     "node": "v24.22.1",
@@ -15,17 +15,17 @@
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 23.31,
+      "durationSec": 20.5,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.93,
+      "durationSec": 0.83,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 2,
+      "durationSec": 1.59,
       "status": "passed"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.22,
+      "durationSec": 0.24,
       "status": "passed"
     },
     {
@@ -45,20 +45,20 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.3,
+      "durationSec": 0.29,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 2.5,
+      "durationSec": 1.91,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.55,
+      "durationSec": 0.45,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:e553c2fea46b7e21a3fbddb32466556cecbe5ab972c521cbd0c449d7f8b3a096"
+  "receiptDigest": "sha256:9135e3063930db03d06f378ac86387952a58f282574e5099c161551f37335679"
 }
