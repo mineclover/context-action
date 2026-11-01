@@ -2,11 +2,29 @@ import { css, html, type PropertyValues } from 'lit';
 import { FormAssociatedLitElement, type ValidityStateFlags } from '../../src/form-associated-element.js';
 
 interface RejectionState {
+  formValue: string;
+  requestInvalid: boolean;
+  rejectFormValue: boolean;
+  rejectValidity: boolean;
   formValueRejected: boolean;
   validityRejected: boolean;
   nativeFormValue: string | null;
   nativeValid: boolean;
 }
+
+export interface FaceExceptionRunOptions {
+  formValue: string;
+  requestInvalid: boolean;
+  rejectFormValue: boolean;
+  rejectValidity: boolean;
+}
+
+export const DEFAULT_FACE_EXCEPTION_RUN: FaceExceptionRunOptions = {
+  formValue: 'demo-value',
+  requestInvalid: true,
+  rejectFormValue: true,
+  rejectValidity: true,
+};
 
 const rejectionStates = new WeakMap<FaceExceptionProbeElement, RejectionState>();
 
@@ -250,6 +268,7 @@ export class FaceExceptionProbeElement extends FormAssociatedLitElement {
 
   override attachInternals(): ElementInternals {
     const state: RejectionState = {
+      ...DEFAULT_FACE_EXCEPTION_RUN,
       formValueRejected: false,
       validityRejected: false,
       nativeFormValue: null,
@@ -259,25 +278,51 @@ export class FaceExceptionProbeElement extends FormAssociatedLitElement {
 
     return {
       form: null,
-      validity: validState(),
       validationMessage: '',
       willValidate: true,
       setFormValue: (value: string | FormData | Blob | null) => {
-        state.formValueRejected = true;
-        throw new TypeError(`simulated ElementInternals.setFormValue rejection: ${String(value)}`);
+        if (state.rejectFormValue) {
+          state.formValueRejected = true;
+          throw new TypeError(`simulated ElementInternals.setFormValue rejection: ${String(value)}`);
+        }
+        state.nativeFormValue = typeof value === 'string' ? value : null;
       },
-      setValidity: (_flags?: ValidityStateFlags) => {
-        state.validityRejected = true;
-        throw new TypeError('simulated ElementInternals.setValidity rejection');
+      setValidity: (flags?: ValidityStateFlags) => {
+        if (state.rejectValidity) {
+          state.validityRejected = true;
+          throw new TypeError('simulated ElementInternals.setValidity rejection');
+        }
+        state.nativeValid = !Object.values(flags ?? {}).some(Boolean);
       },
       checkValidity: () => true,
       reportValidity: () => true,
+      get validity() {
+        return state.nativeValid ? validState() : { ...validState(), valid: false, valueMissing: true };
+      },
     } as unknown as ElementInternals;
   }
 
   override firstUpdated(_changed: PropertyValues): void {
-    this.setFormValue('demo-value');
-    this.setValidity({ valueMissing: true }, 'Required by the demo');
+    this.run();
+  }
+
+  public run(options: Partial<FaceExceptionRunOptions> = {}): void {
+    const state = rejectionStates.get(this);
+    if (!state) return;
+
+    Object.assign(state, DEFAULT_FACE_EXCEPTION_RUN, options, {
+      formValueRejected: false,
+      validityRejected: false,
+      nativeFormValue: null,
+      nativeValid: true,
+    });
+
+    this.setFormValue(state.formValue);
+    this.setValidity(
+      state.requestInvalid ? { valueMissing: true } : {},
+      state.requestInvalid ? 'Required by the demo' : undefined,
+    );
+    queueMicrotask(() => this.requestUpdate());
     this.dispatchReport();
   }
 
@@ -295,7 +340,7 @@ export class FaceExceptionProbeElement extends FormAssociatedLitElement {
     const state = rejectionStates.get(this);
     return {
       fallbackFormValue: this.getFormValue(),
-      requestedValid: false,
+      requestedValid: !state?.requestInvalid,
       reportedValid: this.validity.valid,
       nativeFormValue: state?.nativeFormValue ?? null,
       nativeValid: state?.nativeValid ?? true,
@@ -306,6 +351,12 @@ export class FaceExceptionProbeElement extends FormAssociatedLitElement {
 
   override render() {
     const report = this.report;
+    const formValueSummary = report.formValueRejected
+      ? 'native 폼 값 거부 · fallback 유지'
+      : 'native 폼 값 반영';
+    const validitySummary = report.validityRejected
+      ? 'native 유효성 거부 · 이전 상태 유지'
+      : 'native 유효성 반영';
     return html`
       <section aria-label="FACE 예외 재현 결과">
         <header>
@@ -313,13 +364,13 @@ export class FaceExceptionProbeElement extends FormAssociatedLitElement {
           <h2>실험 결과: 쓰기 거부와 상태 차이</h2>
         </header>
         <p class="description">
-          이 probe는 네이티브 내부 객체가 두 쓰기를 모두 거부하는 상황을 재현합니다.
-          기본 클래스는 오류를 잡아 fallback 값을 유지하지만, 요청한 무효 상태는
-          네이티브 유효성에 반영되지 않습니다.
+          아래 컨트롤에서 두 native 쓰기의 거부 여부를 바꿀 수 있습니다.
+          현재 실행은 ${report.formValueRejected ? '폼 값 쓰기를 거부해 fallback 값만 유지하고' : '폼 값 쓰기를 반영해 native 값도 갱신하며'},
+          ${report.validityRejected ? '유효성 쓰기를 거부해 native 유효성을 바꾸지 않습니다.' : '유효성 쓰기를 반영해 native 유효성을 요청 상태에 맞춥니다.'}
         </p>
         <div class="summary">
           <span class="summary-label">현재 관찰 요약</span>
-          <span class="status-chip">fallback 값 유지 · 네이티브 유효성 미변경</span>
+          <span class="status-chip">${formValueSummary} · ${validitySummary}</span>
         </div>
         <dl>
           <div class="metric">
