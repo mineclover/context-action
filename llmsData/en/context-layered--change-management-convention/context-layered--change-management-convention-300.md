@@ -3,7 +3,7 @@ document_id: context-layered--change-management-convention
 category: context-layered
 source_path: en/context-layered/change-management-convention.md
 character_limit: 300
-last_update: '2026-11-01T14:50:39.531Z'
+last_update: '2026-11-01T16:44:47.756Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high

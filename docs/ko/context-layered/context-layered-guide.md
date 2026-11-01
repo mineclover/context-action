@@ -94,6 +94,57 @@ sequenceDiagram
 
 Product-facing 기능의 권장 조합은 `Provider → Handler Registry → Facade → Recipe → Primitive`입니다.
 
+## 📚 문서 구조
+
+```text
+docs/ko/context-layered/
+├── context-layered-guide.md
+├── convention-index.md
+├── interaction-intent-contract.md
+├── interaction-intent-implementation-flow.md
+├── implementation-convention.md
+├── change-management-convention.md
+├── package-boundary-convention.md
+├── architecture/
+├── patterns/
+├── usecase-*.md
+├── stability-test-cycle.md
+└── next-work.md
+```
+
+## 🚀 시작하기
+
+### 시작 전: 상호작용 의도 기록
+
+버튼·설명·확인 단계를 제거하거나 자동 실행을 추가하거나 상태 발견·복구
+방식을 바꾸는 경우에는 [상호작용 의도 계약(IIC)](/ko/context-layered/interaction-intent-contract)을
+먼저 작성하고 [IIC에서 구현까지의 흐름](/ko/context-layered/interaction-intent-implementation-flow)을
+따라 6개 레이어와 증거에 매핑합니다.
+
+### 1. 폴더 구조 설정
+
+[폴더 구조 가이드](/ko/context-layered/architecture/folder-structure)에 따라 프로젝트를 구성합니다.
+
+### 2. Context 정의
+
+적절한 TypeScript 인터페이스로 Action과 Store Context를 정의합니다.
+
+### 3. Handler 구현
+
+props 기반 의존성 주입으로 비즈니스 흐름과 side effect를 구현합니다.
+
+### 4. Action과 Hook 연결
+
+Action dispatch와 Store 구독을 구성합니다.
+
+### 5. View 구현
+
+Action과 Hook을 사용하는 순수 UI 컴포넌트를 만듭니다.
+
+### 6. 통합 지점 조합
+
+`Action Provider → Store Provider → Ref Provider(사용 시) → Handler Registry → View` 순서로 조합합니다.
+
 ## 왜 이 구조가 유리한가
 
 ### 1. 관심사 분리가 명확하다

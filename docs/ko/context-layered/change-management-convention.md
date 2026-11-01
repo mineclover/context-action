@@ -24,7 +24,7 @@
 
 상호작용 변경에서는 [상호작용 의도 계약(IIC)](./interaction-intent-contract.md)을
 기능 스펙 또는 decision record의 하위 설계 계약으로 둡니다. 작업 진행은 이슈
-lifecycle이 기준이며, IIC lifecycle은 상호작용 합의가 제안·승인·구현·대체되었는지를
+lifecycle이 기준이며, IIC lifecycle은 상호작용 합의가 제안·승인·구현·대체·폐기되었는지를
 기록합니다.
 
 남은 관리 리스크는 traceability입니다. 이슈는 의도를 기록하고 스펙은 계약을

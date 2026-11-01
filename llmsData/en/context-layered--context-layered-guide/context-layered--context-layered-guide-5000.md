@@ -3,7 +3,7 @@ document_id: context-layered--context-layered-guide
 category: context-layered
 source_path: en/context-layered/context-layered-guide.md
 character_limit: 5000
-last_update: '2026-11-01T14:50:37.439Z'
+last_update: '2026-11-01T16:44:46.501Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high

@@ -24,7 +24,8 @@ The repository already has strong implementation and verification conventions:
 For interaction changes, the [Interaction Intent Contract (IIC)](./interaction-intent-contract.md)
 is a design sub-contract of the feature specification or decision record. The
 issue lifecycle remains authoritative for work progress; the IIC lifecycle records
-whether the interaction agreement is proposed, accepted, implemented, or superseded.
+whether the interaction agreement is proposed, accepted, implemented, superseded,
+or deprecated.
 
 The remaining management risk is traceability. An issue can describe intent,
 while a specification describes the contract, but neither should be inferred

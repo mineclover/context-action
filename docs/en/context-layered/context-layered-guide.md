@@ -149,7 +149,7 @@ one page.
 
 ## 🚀 Getting Started
 
-### 0. Record interaction intent when the UX changes
+### Before you start: record interaction intent when the UX changes
 
 Before removing a button or explanation, adding automatic behavior, or changing
 how a user discovers and recovers from a state, write an [Interaction Intent
