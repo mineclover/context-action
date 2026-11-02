@@ -27,6 +27,16 @@
 lifecycle이 기준이며, IIC lifecycle은 상호작용 합의가 제안·승인·구현·대체·폐기되었는지를
 기록합니다.
 
+두 lifecycle은 독립적이지만 리뷰 경계에서 연결합니다.
+
+| 이슈/스펙 상태 | IIC 상태 기대값 | 리뷰 규칙 |
+| --- | --- | --- |
+| `proposed` / `specified` | `draft` | 의도를 만드는 단계이며 코드를 계약으로 취급하지 않습니다. |
+| `ready` / `in-progress` | `accepted` | 단축, trigger, source of truth, 복구 경로를 합의합니다. |
+| `review` / `verified` | `implemented` | 구현이 IIC와 일치한다는 증거를 확인합니다. |
+| `done` | `implemented` | IIC를 배포 문서와 증거에 계속 연결합니다. |
+| `superseded` | `superseded` / `deprecated` | 대체 IIC와 migration 영향을 연결합니다. |
+
 남은 관리 리스크는 traceability입니다. 이슈는 의도를 기록하고 스펙은 계약을
 기록하지만, 둘 중 어느 것도 commit message나 완료된 diff에서 역추론해서는
 안 됩니다. 아래 규칙으로 이 연결을 명시합니다.

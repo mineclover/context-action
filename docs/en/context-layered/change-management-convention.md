@@ -27,6 +27,16 @@ issue lifecycle remains authoritative for work progress; the IIC lifecycle recor
 whether the interaction agreement is proposed, accepted, implemented, superseded,
 or deprecated.
 
+The two lifecycles are independent but linked at review boundaries:
+
+| Issue/spec status | IIC status expectation | Review rule |
+| --- | --- | --- |
+| `proposed` / `specified` | `draft` | Intent is being shaped; do not treat code as the contract. |
+| `ready` / `in-progress` | `accepted` | The shortcut, trigger, source of truth, and recovery are agreed. |
+| `review` / `verified` | `implemented` | Evidence shows the implementation still matches the IIC. |
+| `done` | `implemented` | Keep the IIC linked to the shipped documentation and evidence. |
+| `superseded` | `superseded` / `deprecated` | Link the replacement IIC and record migration impact. |
+
 The remaining management risk is traceability. An issue can describe intent,
 while a specification describes the contract, but neither should be inferred
 from a commit message or reconstructed from a finished diff. The rules below
