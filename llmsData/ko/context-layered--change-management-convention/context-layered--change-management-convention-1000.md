@@ -3,7 +3,7 @@ document_id: context-layered--change-management-convention
 category: context-layered
 source_path: ko/context-layered/change-management-convention.md
 character_limit: 1000
-last_update: '2026-07-30T23:07:58.732Z'
+last_update: '2026-11-02T04:46:11.768Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
@@ -19,4 +19,4 @@ Key points:
 • tool-calling 작업은 `tools/list` → model tool call → `tools/call` →
 • 실행 가능한 예제에 집중 컨벤션 검사와 browser gate가 있습니다.
 • 공개 문서와 생성 문서의 소유권이 분리되어 있습니다.
-• 아키텍처...
+• 지속되는...
