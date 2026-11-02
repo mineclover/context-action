@@ -22,6 +22,7 @@ packages:
   - demos/*
 
 overrides:
+  "lerna": "10.1.1"
   esbuild@<=0.24.2: '0.25.0'
   # Prevent @types/react duplication in the workspace install. React 18
   # compatibility is validated in an isolated consumer matrix job.
@@ -35,14 +36,16 @@ overrides:
   "brace-expansion@<5.0.12": "5.0.12"
   "lodash-es@<=4.17.23": "4.18.0"
   "defu@<=6.1.4": "6.1.5"
-  "vitepress>vite": "6.4.4"
+  "vitepress>vite": "6.4.5"
   "vitest>vite": "8.1.6"
   "vite@>=8.3.0 <8.3.3": "8.3.3"
   "@vitest/mocker@<4.1.11": "4.1.11"
   "vitest@<4.1.11": "4.1.11"
   "baseline-browser-mapping@<2.11.0": "2.11.0"
   "browserslist@<4.28.7": "4.28.7"
-  "follow-redirects@<1.16.1": "1.16.1"
+  "follow-redirects@<1.16.2": "1.16.2"
+  "glob@>=9.0.0 <14.0.2": "14.0.2"
+  "minimatch@<11.0.1": "11.0.1"
   "fast-uri@<3.1.9": "3.1.9"
   "ip-address@<10.7.4": "10.7.4"
   "nx@<22.7.10": "22.7.10"
@@ -84,6 +87,8 @@ peerDependencyRules:
     - "@emnapi/*"
   allowAny:
     - browserslist
+    - conventional-commits-parser
+    - nx
     - vite
 
 # package.json#pnpm.ignoredBuiltDependencies(esbuild, nx) / onlyBuiltDependencies([])에서 이동.
