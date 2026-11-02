@@ -1,41 +1,41 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-02T16:40:56.211Z",
-  "commitSha": "f72d1a8caad5e82c5f44513be6661c027e4130b2",
-  "branch": "main",
+  "timestamp": "2026-11-02T17:09:38.851Z",
+  "commitSha": "7eff881eaa54173a461faf7d5ca3297d65618d6d",
+  "branch": "codex/issue-185-typedoc-minimatch",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
     "platform": "darwin",
     "arch": "arm64"
   },
-  "inputDigest": "sha256:4e5738b7c369d0c327e4b8f9c8cbc66e727612ae536a5e0ed502b7f9a5e6ab73",
+  "inputDigest": "sha256:642278e164418e290482fff41512fbcce8beac28637c82146eb679d8b59afdad",
   "workingTree": "clean",
-  "treeDigest": "sha256:bf662ef25d3b2c2e128b9ff0a8169af5c956a8b7df38b07b73ccdf8f75ca6307",
+  "treeDigest": "sha256:467d702a8b828167a3c8a191e23b6ff7ad90d7e80dd476be33dd7b3eea80d539",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 23.51,
+      "durationSec": 19.76,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.93,
+      "durationSec": 0.98,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 2.13,
+      "durationSec": 1.86,
       "status": "passed"
     },
     {
       "name": "4. Core & React Artifact Parity / Isolation",
-      "durationSec": 0.06,
+      "durationSec": 0.07,
       "status": "passed"
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.25,
+      "durationSec": 0.26,
       "status": "passed"
     },
     {
@@ -45,7 +45,7 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.42,
+      "durationSec": 0.33,
       "status": "passed"
     },
     {
@@ -60,5 +60,5 @@
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:d97e7293353f3866a8c752b3173cded93b48d6c173c4f1921ce5d778fd619045"
+  "receiptDigest": "sha256:da7db00429cfffb5f84f444fef29a2d1159f2bc9f96330db488fda18c6edacb6"
 }
