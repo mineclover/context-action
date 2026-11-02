@@ -7,3 +7,8 @@
 id = "GHSA-gcqx-w48m-w2h4"
 ignoreUntil = 2026-12-31
 reason = "deepmerge 4.3.1 has no upstream fixed release (last affected 4.3.1) and is only pulled in as a transitive devDependency via jest-config / jest. Re-evaluate when upstream releases a fix."
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2026-12-31
+reason = "typedoc 0.28.20 is the latest upstream release and calls Minimatch.prototype.matchOne, which was removed in minimatch 11.x; no fixed minimatch 10.x release exists upstream, so typedoc is scoped to minimatch 10.2.6 while all other workspace minimatch instances use 11.0.1. Re-evaluate when upstream releases a fix."
