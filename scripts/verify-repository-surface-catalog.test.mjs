@@ -60,9 +60,7 @@ function createValidFixture(root) {
   writeFile(root, 'docs/ko/guide/start.md', '# KO\n');
   writeFile(root, 'docs/en/troubleshooting/index.md', '# EN\n');
   writeFile(root, 'docs/ko/troubleshooting/index.md', '# KO\n');
-  writeFile(root, 'docs/api/generated/README.md', '# Generated\n');
   writeFile(root, 'docs/en/api/README.md', '# API\n');
-  writeFile(root, 'docs/.vitepress/config/api-spec.ts', 'export default [];\n');
   writeFile(root, 'llmsData/README.md', '# LLMS\n');
   writeFile(root, 'docs/releases/index.md', '# Releases\n');
   writeFile(root, 'docs/ko/releases/index.md', '# Releases KO\n');
@@ -201,8 +199,16 @@ function createValidFixture(root) {
         {
           id: 'derived-api',
           path: 'docs/api/generated',
+          gitignored: true,
           sourceOfTruth: 'typedoc.json',
           generatorCommand: 'pnpm docs:api',
+          verificationCommand: 'pnpm docs:build',
+        },
+        {
+          id: 'derived-en-api',
+          path: 'docs/en/api',
+          sourceOfTruth: 'docs/api/generated',
+          generatorCommand: 'pnpm docs:sync',
           verificationCommand: 'pnpm docs:build',
         },
       ],

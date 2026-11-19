@@ -192,7 +192,7 @@ For deciding which state/store API to use across these packages, see the [Store 
 | `doc-releases-ops` | `releases/` | `evidence` | `single-locale` | `RELEASE.md`, cohort JSON plans, public preview release notes |
 | `doc-package-docs` | `packages/*/README.md`, `CHANGELOG.md`, `UNRELEASED.md`, `docs/*.md` | `authoritative` | `single-locale` | Per-package discovery & focused contracts |
 | `doc-catalogs` | `catalog/` | `authoritative` | `not-applicable` | `integration-profiles/*.json` + `repository-surface/*.v1.json` |
-| `doc-skills` | `skills/`, `.agents/skills/` | `authoritative` | `not-applicable` | Repository-local Implementation Playbook skills |
+| `doc-skills` | `skills/` (`.agents/skills/` gitignored mirror) | `authoritative` | `not-applicable` | Repository-local Implementation Playbook skills |
 | `doc-design-tasks` | `design-docs/`, `tasks/` | `historical` | `not-applicable` | Archived design specs and task briefs |
 
 ### 5.3 Derived / Generated Surfaces (10 Outputs)

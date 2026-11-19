@@ -434,7 +434,11 @@ function verifyDocumentSurface(repositoryRoot, catalog, errors) {
 
   for (const derived of derivedSurfaces) {
     const label = `document-surface.derived(${derived.id})`;
-    assertPathExists(repositoryRoot, derived.path, `${label}.path`, errors);
+    if (derived.gitignored === true) {
+      assertNonEmptyText(derived.path, `${label}.path`, errors);
+    } else {
+      assertPathExists(repositoryRoot, derived.path, `${label}.path`, errors);
+    }
     assertNonEmptyText(derived.sourceOfTruth, `${label}.sourceOfTruth`, errors);
     assertNonEmptyText(derived.generatorCommand, `${label}.generatorCommand`, errors);
     assertNonEmptyText(derived.verificationCommand, `${label}.verificationCommand`, errors);
