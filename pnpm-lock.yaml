@@ -15,7 +15,7 @@ overrides:
   rollup@>=4.0.0 <4.59.0: 4.59.0
   handlebars@>=4.0.0 <4.7.10: 4.7.10
   brace-expansion@<5.0.12: 5.0.12
-  lodash-es@<=4.17.23: 4.18.0
+  lodash-es@<=4.18.0: 4.18.1
   defu@<=6.1.4: 6.1.5
   vitepress>vite: 6.4.5
   vitest>vite: 8.1.6
@@ -5806,9 +5806,8 @@ packages:
     resolution: {integrity: sha512-t7hw9pI+WvuwNJXwk5zVHpyhIqzg2qTlklJOf0mVxGSbe3Fp2VieZcduNYjaLDoy6p9uGpQEGWG87WpMKlNq8g==}
     engines: {node: '>=8'}
 
-  lodash-es@4.18.0:
-    resolution: {integrity: sha512-koAgswPPA+UTaPN64Etp+PGP+WT6oqOS2NMi5yDkMaiGw9qY4VxQbQF0mtKMyr4BlTznWyzePV5UpECTJQmSUA==}
-    deprecated: Bad release. Please use lodash-es@4.17.23 instead.
+  lodash-es@4.18.1:
+    resolution: {integrity: sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A==}
 
   log-symbols@4.1.0:
     resolution: {integrity: sha512-8XPvpAA8uyhfteu8pIvQxpJZ7SYYdpUivZpGy6sFsBuKRY/7rQGavedeB8aK+Zkyq6upMFVL/9AW6vOYzfRyLg==}
@@ -11184,7 +11183,7 @@ snapshots:
   dagre-d3-es@7.0.14:
     dependencies:
       d3: 7.9.0
-      lodash-es: 4.18.0
+      lodash-es: 4.18.1
 
   data-uri-to-buffer@4.0.1: {}
 
@@ -12517,7 +12516,7 @@ snapshots:
     dependencies:
       p-locate: 4.1.0
 
-  lodash-es@4.18.0: {}
+  lodash-es@4.18.1: {}
 
   log-symbols@4.1.0:
     dependencies:
