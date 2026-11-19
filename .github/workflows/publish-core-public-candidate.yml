@@ -64,7 +64,10 @@ jobs:
 
       - name: Verify OIDC candidate publishing eligibility
         if: inputs.publish_auth == 'oidc'
-        run: npm view "@context-action/core" name --registry=https://registry.npmjs.org/
+        run: |
+          npm view "@context-action/core" name --registry=https://registry.npmjs.org/
+          npm view "@context-action/store-core" name --registry=https://registry.npmjs.org/
+          npm view "@context-action/xstate" name --registry=https://registry.npmjs.org/
 
       - name: Verify npm token auth
         if: inputs.publish_auth == 'token'
@@ -94,7 +97,7 @@ jobs:
         run: |
           pnpm verify:package-exports
           pnpm verify:package-tarballs
-          node scripts/verify-published-tool-consumers.cjs --local --cohort-only --packages "@context-action/core"
+          node scripts/verify-published-tool-consumers.cjs --local --cohort-only --packages "@context-action/core,@context-action/store-core,@context-action/xstate"
           pnpm package-boundary:check
 
       - name: Re-verify approved source immediately before publication
@@ -121,7 +124,9 @@ jobs:
           pnpm publish:packages -- --summary-file reports/npm-core-public-candidate-summary.json --dist-tag next \
             --require-all-unpublished \
             --resume-matching-existing \
-            --scope @context-action/core
+            --scope @context-action/core \
+            --scope @context-action/store-core \
+            --scope @context-action/xstate
 
       - name: Verify published Core candidate provenance
         env:
@@ -133,7 +138,7 @@ jobs:
       - name: Capture Core registry evidence
         run: |
           pnpm capture:published-release -- --tag next \
-            --packages "@context-action/core" \
+            --packages "@context-action/core,@context-action/store-core,@context-action/xstate" \
             --consumer-status passed --output reports/npm-core-public-candidate-registry-evidence.json
 
       - name: Upload Core public candidate evidence

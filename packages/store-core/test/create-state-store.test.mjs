@@ -7,6 +7,7 @@ test('createStateStore keeps snapshots stable and publishes reference values', (
   const store = createStateStore('reference', { count: 0 }, { now: () => clock });
   const initial = store.getSnapshot();
   assert.strictEqual(store.getSnapshot(), initial);
+  assert.strictEqual(store.getValue(), initial.value);
   assert.equal(initial.version, 0);
   assert.deepEqual(initial.value, { count: 0 });
 
@@ -16,6 +17,7 @@ test('createStateStore keeps snapshots stable and publishes reference values', (
   const next = { count: 1 };
   store.setValue(next, { label: 'set' });
 
+  assert.strictEqual(store.getValue(), next);
   assert.strictEqual(store.getSnapshot().value, next);
   assert.equal(store.getSnapshot().version, 1);
   assert.equal(store.getSnapshot().lastUpdate, 101);

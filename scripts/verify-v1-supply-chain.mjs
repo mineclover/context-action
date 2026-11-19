@@ -18,7 +18,7 @@ const stableCandidatePackageCohort = '@context-action/core,@context-action/react
 const coordinatedStablePackageCohort = '@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react';
 const preactPublicPackageCohort = '@context-action/preact,@context-action/preact-ui';
 const litPublicPackageCohort = '@context-action/lit,@context-action/lit-ui';
-const corePublicPackageCohort = '@context-action/core';
+const corePublicPackageCohort = '@context-action/core,@context-action/store-core,@context-action/xstate';
 const mutativePackageCohort = '@context-action/mutative-core,@context-action/mutative';
 const maintenanceJournalMarkerStatements = [
   'journal_previous_tag="maintenance-previous-$PACKAGE_VERSION"',
@@ -134,6 +134,7 @@ const requiredPublicationBuildScripts = new Map([
   ['@context-action/mutative', 'pnpm run build:prod'],
   ['@context-action/core', 'pnpm run build'],
   ['@context-action/store-core', 'pnpm run build'],
+  ['@context-action/xstate', 'pnpm run build'],
   ['@context-action/react', 'pnpm run build:prod'],
   ['@context-action/preact', 'pnpm run build'],
   ['@context-action/preact-ui', 'pnpm run build'],
@@ -761,7 +762,7 @@ const publishWorkflowPolicies = new Map([
     requireMatchingResume: true,
     uploadPath: 'reports/npm-core-public-candidate-*.json',
     uploadMissingPolicy: 'error',
-    publishScopes: ['@context-action/core'],
+    publishScopes: ['@context-action/core', '@context-action/store-core', '@context-action/xstate'],
     allowedPublicationCommandPatterns: [/^pnpm\s+(?:run\s+)?publish:packages\b/u],
     captureArguments: ['next', corePublicPackageCohort, 'reports/npm-core-public-candidate-registry-evidence.json'],
     requiredBeforeCaptureSteps: [
@@ -776,7 +777,7 @@ const publishWorkflowPolicies = new Map([
     requiredPrepublicationSteps: [
       [['pnpm verify:core-public-release -- --require-current-source'], 'must validate the exact Core public release plan against immutable source before publication'],
       [['pnpm release:check'], 'must run the root release gate before Core public publication'],
-      [['pnpm verify:package-exports', 'pnpm verify:package-tarballs', 'node scripts/verify-published-tool-consumers.cjs --local --cohort-only --packages "@context-action/core"', 'pnpm package-boundary:check'], 'must verify the exact Core artifact and packed consumer before publication'],
+      [['pnpm verify:package-exports', 'pnpm verify:package-tarballs', 'node scripts/verify-published-tool-consumers.cjs --local --cohort-only --packages "@context-action/core,@context-action/store-core,@context-action/xstate"', 'pnpm package-boundary:check'], 'must verify the exact Core artifact and packed consumer before publication'],
     ],
     requiredAdjacentPrepublicationStep: [approvedSourceStatements, { RELEASE_COMMIT: releaseCommitExpression }, 'must re-verify the approved clean source immediately before Core public publication'],
   }],

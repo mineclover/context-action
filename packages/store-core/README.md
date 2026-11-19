@@ -29,7 +29,8 @@ writers; a backend must enforce its scoped authority.
 | --- | --- |
 | `StateSnapshot<T>` | Readonly observation shape; legacy Stores may omit `version` |
 | `ReadonlyStateSnapshot<T>` | Backend snapshot with required monotonic `version` |
-| `StateReader<T>` / `StateBackend<T>` | Strict versioned observation / state ownership |
+| `StateReader<T>` / `StateBackend<T>` | Strict versioned observation (with optional `getValue?(): T`) / state ownership |
+| `StateStore<T>` | Synchronous `StateBackend<T>` extension with required `getValue(): T`, returned by `createStateStore(name, initialValue, options?)` |
 | `TransactionParticipantBackend<T>` | Observation, retained-entry navigation, batch lifecycle and disposal status; no state writer or materialized history required |
 | `TransactionParticipant<T>` | Stable backend identity plus optional operation-scoped `batchControl` |
 | `TransactionCoordinatorPort` | `begin(participants, options)` returning a `TransactionHandle` with metadata, commit and rollback |
@@ -45,3 +46,6 @@ versioned snapshot. These are type-only protocols, not runtime isolation or
 distributed transaction implementations. Their definitions live in
 `src/contracts.ts` and `src/transaction-contracts.ts`; the public import remains
 `@context-action/store-core`, with no new private-path imports or runtime dependencies.
+
+For XState (`ActorRefLike` projection onto `StateReader`) and Effect `TransactionCoordinatorPort`
+scoped adapters, use `@context-action/xstate` and `@context-action/xstate/effect`.

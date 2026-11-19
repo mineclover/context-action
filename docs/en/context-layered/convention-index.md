@@ -34,6 +34,8 @@ checks rather than replacing focused evidence.
   - the standard implementation-playbook rule set
 - [Core Action Contracts](../../../packages/core/docs/action-contracts.md)
   - framework-neutral dispatch, lifecycle trace, and action-to-state boundary
+- [XState & Effect Integration Contracts](../../../packages/xstate/docs/xstate-effect-integration.md)
+  - separated `.` and `./effect` adapter boundaries, philosophical invariants, Standard Schema guards, and transaction scopes ([CA-STATECHART-EFFECT-001](/en/context-layered/decisions/CA-STATECHART-EFFECT-001))
 - [React State Contracts](../../../packages/react/docs/state-contracts.md)
   - Store reader/writer roles, safe reads, transactions, timeline, and inspector boundary
 - [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention)

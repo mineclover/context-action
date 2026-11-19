@@ -2,7 +2,12 @@ import * as React from 'react';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createElementFacade, type ElementBridgeContract, type PublicActionMethods } from '../../src/element.js';
+import {
+  createElementFacade,
+  createSyncActionPipeline,
+  type ElementBridgeContract,
+  type PublicActionMethods,
+} from '../../src/element.js';
 import { createReactElementBridge } from '../../src/element-react.js';
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
@@ -216,6 +221,45 @@ describe('shared Custom Element host contract', () => {
     try {
       await expect(act(async () => root.render(React.createElement(Bridge, { count: -1 })))).rejects.toThrow(RangeError);
     } finally { errors.mockRestore(); }
+  });
+
+  it('reconciles attributes and CSS custom property styles through ElementBinding', async () => {
+    interface HandleBridgeProps {
+      partName?: string;
+      disabled?: boolean;
+      hitSize?: string;
+      left?: string;
+    }
+    const Bridge = createReactElementBridge<HandleBridgeProps, ContractElement>(React, {
+      tagName: contract.tagName,
+      attributes: {
+        partName: 'data-part',
+        disabled: 'aria-disabled',
+      },
+      styles: {
+        hitSize: '--editor-handle-hit-size',
+        left: 'left',
+      },
+    });
+
+    await act(async () => root.render(React.createElement(Bridge, {
+      partName: 'ResizeHandle',
+      disabled: true,
+      hitSize: '28px',
+      left: '100%',
+    })));
+    expect(element().getAttribute('data-part')).toBe('ResizeHandle');
+    expect(element().getAttribute('aria-disabled')).toBe('');
+    expect(element().style.getPropertyValue('--editor-handle-hit-size')).toBe('28px');
+    expect(element().style.left).toBe('100%');
+    expect(element().hasAttribute('partName')).toBe(false);
+
+    await act(async () => root.render(React.createElement(Bridge, {
+      partName: 'ResizeHandle',
+    })));
+    expect(element().hasAttribute('aria-disabled')).toBe(false);
+    expect(element().style.getPropertyValue('--editor-handle-hit-size')).toBe('');
+    expect(element().style.left).toBe('');
   });
 });
 

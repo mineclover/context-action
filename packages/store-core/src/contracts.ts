@@ -36,6 +36,7 @@ export interface ReadonlyStateSnapshot<T> extends StateSnapshot<T> {
 export interface StateReader<T, Snapshot extends StateSnapshot<T> = ReadonlyStateSnapshot<T>> {
   readonly name: string;
   getSnapshot(): Snapshot;
+  getValue?(): T;
   subscribe(listener: () => void): () => void;
 }
 
@@ -59,6 +60,10 @@ export interface StateBackend<T, Patch = StatePatch> extends StateReader<T>, Sta
   dispose?(): void;
   isDisposed?(): boolean;
   subscribeWithPatches?(listener: (patches: readonly Patch[] | null) => void): () => void;
+}
+
+export interface StateStore<T, Patch = StatePatch> extends StateBackend<T, Patch> {
+  getValue(): T;
 }
 
 export interface TimelineBackend<T, Patch = StatePatch> extends StateBackend<T, Patch> {

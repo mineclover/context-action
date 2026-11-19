@@ -163,8 +163,12 @@ async function main() {
   const preact = manifests.get('@context-action/preact');
   const preactUi = manifests.get('@context-action/preact-ui');
   if (preact && core) {
-    expect(errors, preact.dependencies?.['@context-action/core'] === `^${core.version}`,
-      `@context-action/preact must depend on @context-action/core@^${core.version}`);
+    expect(
+      errors,
+      preact.dependencies?.['@context-action/core'] === `^${core.version}`
+        || preact.dependencies?.['@context-action/core'] === `^${ELEMENT_INTEROP_MIN_CORE}`,
+      `@context-action/preact must depend on @context-action/core@^${ELEMENT_INTEROP_MIN_CORE}`,
+    );
   }
   if (preactUi) {
     const preactFloor = `^${packageDefinitions[0].expectedVersion}`;

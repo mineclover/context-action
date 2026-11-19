@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.1.4] (2026-11-19)
+
+- Export `createStateStore`, `StateStore<T>`, `StateStoreOptions`, optional `getValue?()` on `StateReader`, optional-version `StateSnapshot`, `ReadonlyStateSnapshot<T>`, and `TransactionBatchControl` / participant contracts while remaining 100% framework-neutral and zero-dependency.
+
 ## [0.1.3] (2026-10-02)
 
 - Reissue the framework-neutral backend contract in the coordinated stability cohort.

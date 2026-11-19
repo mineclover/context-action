@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createElementBinding } from '../../src/element.js';
+import {
+  createElementBinding,
+  createPointerGestureSession,
+  createRovingFocusController,
+  createSyncActionPipeline,
+  toReactPartProps,
+} from '../../src/element.js';
 import { createPublicFacade } from '../../src/facade/create-public-facade.js';
 
 class Probe extends HTMLElement {
@@ -162,6 +168,254 @@ describe('framework-neutral element binding', () => {
     host.dispatchEvent(new Event('changed'));
     expect(changed).toHaveBeenCalledTimes(2);
     failing.dispose();
+  });
+
+  it('binds declarative attributes and CSS custom properties with omission cleanup', () => {
+    interface PartProps {
+      role?: string;
+      expanded?: boolean;
+      hidden?: boolean | null;
+      hitSize?: string;
+      left?: string;
+      changed?: () => void;
+    }
+    const host = new Probe();
+    host.setAttribute('data-external', 'keep');
+    host.style.setProperty('--external-var', '1px');
+
+    const binding = createElementBinding<PartProps>(host, {
+      attributes: {
+        role: 'role',
+        expanded: 'aria-expanded',
+        hidden: 'hidden',
+      },
+      styles: {
+        hitSize: '--editor-handle-hit-size',
+        left: 'left',
+      },
+      events: {
+        changed: 'changed',
+      },
+    });
+
+    binding.update({
+      role: 'slider',
+      expanded: true,
+      hidden: false,
+      hitSize: '28px',
+      left: '100%',
+    });
+    expect(host.getAttribute('role')).toBe('slider');
+    expect(host.getAttribute('aria-expanded')).toBe('');
+    expect(host.hasAttribute('hidden')).toBe(false);
+    expect(host.style.getPropertyValue('--editor-handle-hit-size')).toBe('28px');
+    expect(host.style.left).toBe('100%');
+    expect(host.getAttribute('data-external')).toBe('keep');
+    expect(host.style.getPropertyValue('--external-var')).toBe('1px');
+
+    // Omission clears owned attributes/styles once without overriding subsequent external edits
+    binding.update({ role: 'button', hitSize: '' });
+    expect(host.getAttribute('role')).toBe('button');
+    expect(host.hasAttribute('aria-expanded')).toBe(false);
+    expect(host.style.getPropertyValue('--editor-handle-hit-size')).toBe('');
+    expect(host.style.left).toBe('');
+
+    host.style.left = '50%';
+    binding.update({});
+    expect(host.style.left).toBe('50%');
+    expect(host.hasAttribute('role')).toBe(false);
+
+    // Reentrant disposal inside an attribute getter prevents writing subsequent styles
+    binding.update({
+      get role() {
+        binding.dispose();
+        return 'gridcell';
+      },
+      hitSize: '40px',
+    });
+    expect(host.hasAttribute('role')).toBe(false);
+    expect(host.style.getPropertyValue('--editor-handle-hit-size')).toBe('');
+  });
+
+  it('projects headless snapshots with toReactPartProps', () => {
+    interface Snap {
+      role?: string;
+      tabIndex?: number;
+      cls?: string;
+      disabled?: boolean;
+      hidden?: boolean;
+      hitSize?: string;
+      minWidth?: string;
+      onKeyDown?: () => void;
+    }
+    const onKeyDown = vi.fn();
+    const projected = toReactPartProps<Snap>(
+      {
+        role: 'slider',
+        tabIndex: 0,
+        cls: 'handle',
+        disabled: true,
+        hidden: false,
+        hitSize: '28px',
+        minWidth: '16px',
+        onKeyDown,
+      },
+      {
+        attributes: {
+          role: 'role',
+          tabIndex: 'tabindex',
+          cls: 'class',
+          disabled: 'aria-disabled',
+          hidden: 'hidden',
+        },
+        styles: {
+          hitSize: '--editor-handle-hit-size',
+          minWidth: 'min-width',
+        },
+        events: {
+          onKeyDown: 'keydown',
+        },
+      },
+    );
+
+    expect(projected).toEqual({
+      role: 'slider',
+      tabIndex: 0,
+      className: 'handle',
+      'aria-disabled': '',
+      style: {
+        '--editor-handle-hit-size': '28px',
+        minWidth: '16px',
+      },
+      onKeyDown,
+    });
+  });
+
+  it('executes createSyncActionPipeline guards, modifiers, handlers, observers, and once hooks', () => {
+    const pipeline = createSyncActionPipeline<{ move: { delta: number; blocked?: boolean } }>('test-ui');
+    const trace: string[] = [];
+
+    pipeline.registerGuard(
+      'move',
+      (payload, controller) => {
+        trace.push(`guard-high:${payload.delta}`);
+        if (payload.blocked) controller.abort('locked');
+      },
+      { priority: 100 },
+    );
+    pipeline.registerGuard(
+      'move',
+      (_payload, controller) => {
+        trace.push('guard-clamp');
+        controller.modifyPayload(prev => ({ ...prev, delta: Math.min(prev.delta, 10) }));
+      },
+      { priority: 50 },
+    );
+    pipeline.register('move', payload => {
+      trace.push(`exec:${payload.delta}`);
+      return payload.delta * 2;
+    });
+    pipeline.registerObserver('move', (_p, meta) => trace.push(`obs-success:${meta.result}`), {
+      when: 'success',
+    });
+    pipeline.registerObserver('move', (_p, meta) => trace.push(`obs-failure:${meta.abortReason}`), {
+      when: 'failure',
+    });
+    pipeline.registerObserver('move', (_p, meta) => trace.push(`obs-always:${meta.aborted}`), {
+      when: 'always',
+      once: true,
+    });
+
+    const ok = pipeline.dispatch('move', { delta: 25 });
+    expect(ok.success).toBe(true);
+    expect(ok.payload.delta).toBe(10);
+    expect(ok.result).toBe(20);
+    expect(trace).toEqual(['guard-high:25', 'guard-clamp', 'exec:10', 'obs-success:20', 'obs-always:false']);
+
+    trace.length = 0;
+    const blocked = pipeline.dispatch('move', { delta: 5, blocked: true });
+    expect(blocked.aborted).toBe(true);
+    expect(blocked.abortReason).toBe('locked');
+    expect(trace).toEqual(['guard-high:5', 'obs-failure:locked']);
+  });
+
+  it('navigates items with createRovingFocusController while skipping disabled items', () => {
+    let activeId = 'tab-1';
+    const roving = createRovingFocusController({
+      orientation: 'horizontal',
+      loop: true,
+      getItems: () => [
+        { id: 'tab-1' },
+        { id: 'tab-2', disabled: true },
+        { id: 'tab-3' },
+      ],
+      getActiveId: () => activeId,
+      onFocusChange: nextId => {
+        activeId = nextId;
+      },
+    });
+
+    expect([roving.getTabIndex('tab-1'), roving.getTabIndex('tab-2'), roving.getTabIndex('tab-3')]).toEqual([0, -1, -1]);
+    const next = roving.handleKeyDown('tab-1', { key: 'ArrowRight' });
+    expect(next).toBe('tab-3');
+    expect(activeId).toBe('tab-3');
+
+    const wrapped = roving.handleKeyDown('tab-3', { key: 'ArrowRight' });
+    expect(wrapped).toBe('tab-1');
+    expect(roving.handleKeyDown('tab-1', { key: 'End' })).toBe('tab-3');
+    expect(roving.handleKeyDown('tab-3', { key: 'Home' })).toBe('tab-1');
+
+    const noLoop = createRovingFocusController({
+      orientation: 'vertical',
+      loop: false,
+      getItems: () => [{ id: 'a' }, { id: 'b' }],
+      getActiveId: () => 'b',
+    });
+    expect(noLoop.handleKeyDown('b', { key: 'ArrowDown' })).toBe('b');
+    expect(noLoop.handleKeyDown('b', { key: 'ArrowRight' })).toBeNull();
+  });
+
+  it('tracks capture, modifiers, commit, guard rejection, and Escape cancel in createPointerGestureSession', () => {
+    const events: string[] = [];
+    const target = {
+      setPointerCapture: vi.fn(),
+      releasePointerCapture: vi.fn(),
+    };
+
+    let rejectStart = true;
+    const session = createPointerGestureSession({
+      onStart: snap => {
+        events.push(`start:${snap.startX},${snap.startY}`);
+        return !rejectStart;
+      },
+      onMove: snap => events.push(`move:${snap.deltaX},${snap.deltaY}:shift=${snap.modifiers.shiftKey}`),
+      onCommit: snap => events.push(`commit:${snap.deltaX},${snap.deltaY}`),
+      onCancel: (_snap, reason) => events.push(`cancel:${reason}`),
+    });
+
+    expect(session.start({ pointerId: 1, button: 0, clientX: 10, clientY: 20, currentTarget: target })).toBe(false);
+    expect(session.isActive()).toBe(false);
+
+    rejectStart = false;
+    expect(session.start({ pointerId: 2, button: 0, clientX: 10, clientY: 20, currentTarget: target })).toBe(true);
+    expect(target.setPointerCapture).toHaveBeenCalledWith(2);
+    expect(session.move({ pointerId: 2, clientX: 35, clientY: 5, shiftKey: true })).toBe(true);
+    expect(session.commit({ pointerId: 2, clientX: 40, clientY: 10 })).toBe(true);
+    expect(target.releasePointerCapture).toHaveBeenCalledWith(2);
+    expect(session.isActive()).toBe(false);
+    expect(events).toEqual([
+      'start:10,20',
+      'start:10,20',
+      'move:25,-15:shift=true',
+      'commit:30,-10',
+    ]);
+
+    events.length = 0;
+    expect(session.start({ pointerId: 3, clientX: 0, clientY: 0, currentTarget: target })).toBe(true);
+    expect(session.handleKeyDown({ key: 'Escape' })).toBe(true);
+    expect(session.isActive()).toBe(false);
+    expect(target.releasePointerCapture).toHaveBeenCalledWith(3);
+    expect(events).toEqual(['start:0,0', 'cancel:escape']);
   });
 });
 

@@ -34,6 +34,8 @@
   - implementation-playbook 계열 개발의 표준 규칙
 - [Core Action Contracts](../../../packages/core/docs/action-contracts.md)
   - framework-neutral dispatch, lifecycle trace, action과 state 경계
+- [XState & Effect 통합 계약](../../../packages/xstate/docs/xstate-effect-integration.md)
+  - 분리된 `.` / `./effect` 어댑터 경계, 핵심 철학 불변 조건, Standard Schema 가드, 트랜잭션 스코프 ([CA-STATECHART-EFFECT-001](/ko/context-layered/decisions/CA-STATECHART-EFFECT-001))
 - [React State Contracts](../../../packages/react/docs/state-contracts.md)
   - Store reader/writer, safe read, transaction, timeline, inspector 경계
 - [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention)

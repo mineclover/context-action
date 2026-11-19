@@ -11,7 +11,9 @@ These changes do not authorize a version change or publication.
   the root exports and reference-store runtime. Add `TransactionParticipantBackend`,
   `TransactionParticipant`, `TransactionMeta`, `TransactionOptions`,
   `TransactionHandle` and `TransactionCoordinatorPort` as shared type-only roles.
-- Add optional-version `StateSnapshot` and an explicit snapshot parameter to
-  `StateReader`; its default and `StateBackend` still require version tokens.
+- Add optional-version `StateSnapshot`, optional `getValue?(): T` on
+  `StateReader`, `StateStore<T>` (with required `getValue(): T` returned by
+  `createStateStore`), and an explicit snapshot parameter to `StateReader`; its
+  default and `StateBackend` still require version tokens.
 - Publishing consumers of this new type requires an approved coordinated
   version/floor decision; the current unchanged manifests are not release evidence.

@@ -542,6 +542,19 @@ await registry.destroyAsync();
 await registry.destroyAsync({ deferCleanup: true });
 ```
 
+## Element Transport & Headless UI Primitives (`@context-action/core/element`)
+
+Framework-neutral headless primitives and DOM host transport live in `@context-action/core/element` (and the optional injected-runtime React bridge in `@context-action/core/element/react`), keeping the package root (`@context-action/core`) free of DOM and React dependencies:
+
+- `createElementBinding(element, config, options?)`: Reconciles complete input snapshots onto an `HTMLElement` in deterministic `events -> attributes -> styles -> properties` order, tracking per-binding ownership so omitted attributes, CSS custom properties (`--*`), inline styles, and properties are cleaned up once without touching host-owned state.
+- `createElementFacade(allowlist)`: Creates a frozen, lazily bound imperative facade over a mounted host element.
+- `createSyncActionPipeline(name)`: Three-phase synchronous UI pipeline (`registerGuard` with `abort`/`modifyPayload` -> `register` with `setResult` -> `registerObserver` with `when: 'success' | 'failure' | 'always'`, `priority`, and `once`) for DOM pointer and keyboard events.
+- `createRovingFocusController(options)`: WAI-ARIA composite focus helper supporting `'horizontal'`, `'vertical'`, and `'both'` arrow keys, `Home`/`End`, disabled-item skipping, looping, and roving `getTabIndex(id)`.
+- `createPointerGestureSession(options)`: Pointer capture gesture lifecycle manager with `onStart` admission guards, `deltaX`/`deltaY` and modifier-key tracking, and `Escape` cancellation.
+- `toReactPartProps(partProps, config)` & `@context-action/core/element/react` (`createReactElementBridge`): Projects headless part props and config onto React 18/19 hosts without adding a package-level React dependency.
+
+See [element transport and host lifecycle adapters](docs/element-interop.md) for ownership rules, host framework patterns, and release boundary details.
+
 ## API Reference
 
 ### ActionRegister<T>
