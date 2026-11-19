@@ -63,6 +63,7 @@ pnpm release:check
 | Lit public preview patch (Lit 0.1.2 / Lit UI 0.1.2) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.2` 게시 완료. Lit은 cohort alignment, Lit UI는 hydration stabilization |
 | Lit public preview patch (Lit 0.1.3 / Lit UI 0.1.3) | `publish-lit-public-candidate.yml` → `promote-lit-public.yml` | 2026-10-23 `latest`/`next` `0.1.3` 게시 완료. Lit은 cohort alignment, Lit UI는 stale renderBefore 수정 |
 | Core 1.3.0 element interop cohort | `publish-core-public-candidate.yml` → `promote-core-public.yml`, `promote-lit-public.yml`, `promote-preact-public.yml` | Core 1.3.0, Lit 0.1.4 / Lit UI 0.1.4, Preact 0.1.3 / Preact UI 0.2.1을 후보 검증 후 `latest`로 승격 완료. 모든 패키지는 `33fd5995` provenance commit과 registry evidence에 결속 |
+| Core 1.3.1 / Store Core 0.1.4 / XState 0.1.0 cohort | `publish-core-public-candidate.yml` → `promote-core-public.yml` | Core 1.3.1, Store Core 0.1.4, XState 0.1.0을 후보 검증 후 `latest`로 승격 완료 (`CA-STATECHART-EFFECT-001`). `412d60d5` provenance commit과 registry evidence에 결속 |
 
 모든 워크플로는 승인된 immutable main commit, 정확한 버전, provenance,
 consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 합니다.
@@ -202,8 +203,19 @@ Source of truth는 [`LIT_PUBLIC_0.1.3.md`](LIT_PUBLIC_0.1.3.md)와
 
 모든 UI 후보는 Core `^1.3.0`을 요구하며, publish 전에는
 `--require-current-source`, packed consumer, export/tarball, host/browser 계약을
-통과해야 합니다. 현재 plans는 `pending-candidate` 상태이고 registry publication
-evidence는 아직 없습니다.
+통과해야 합니다. Core 1.3.0, Lit 0.1.4 / Lit UI 0.1.4, Preact 0.1.3 /
+Preact UI 0.2.1 코호트는 2026-10-31에 candidate 및 promotion 검증을 완료해
+`latest`로 승격되었습니다.
+
+## 4-7. Core 1.3.1 / Store Core 0.1.4 / XState 0.1.0 코호트
+
+`CA-STATECHART-EFFECT-001`에 따라 `@context-action/core@1.3.1`,
+`@context-action/store-core@0.1.4`, `@context-action/xstate@0.1.0` 코호트는
+[`core-public-2026-10-patch-1.json`](core-public-2026-10-patch-1.json)과
+release commit `412d60d59d2d15a5ddbd11bf425743eafda7a8f1`에 결속되어 있으며,
+candidate run [`44500222934`](https://github.com/mineclover/context-action/actions/runs/44500222934)와
+promotion run [`44510400278`](https://github.com/mineclover/context-action/actions/runs/44510400278)을
+통과해 2026-11-19 `latest`로 승격되었습니다.
 
 Core 후보 워크플로는 npm trusted publisher가 이 저장소와 아직 결속되지 않았으므로
 `publish_auth=token`을 기본값으로 사용합니다. `publish_auth=oidc`는 npm trusted
