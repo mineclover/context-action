@@ -6,10 +6,10 @@
  * snapshot/subscription and capability contracts below.
  */
 
-import type { ReadonlyStateSnapshot, StateBackend } from './contracts';
+import type { ReadonlyStateSnapshot, StateStore } from './contracts';
 export type {
   StateMutationOrigin, StateMutationMeta, StatePatch, HistoryEntryId,
-  StateSnapshot, ReadonlyStateSnapshot, StateReader, StateWriter, StateBackend,
+  StateSnapshot, ReadonlyStateSnapshot, StateReader, StateWriter, StateBackend, StateStore,
   TimelineBackend, TransactionBatchControl, TransactionBackend, StateTransition,
 } from './contracts';
 export type {
@@ -29,7 +29,7 @@ export function createStateStore<T>(
   name: string,
   initialValue: T,
   options: StateStoreOptions = {},
-): StateBackend<T> {
+): StateStore<T> {
   const now = options.now ?? Date.now;
   let value = initialValue;
   let version = 0;
@@ -60,10 +60,11 @@ export function createStateStore<T>(
     notify();
   };
 
-  const backend: StateBackend<T> = {
+  const backend: StateStore<T> = {
     name,
     capabilities: { patches: false, timeline: false, immutableSnapshots: false },
     getSnapshot: () => snapshot,
+    getValue: () => snapshot.value,
     subscribe(listener) {
       if (typeof listener !== 'function') {
         throw new TypeError('Store subscriber must be a function.');

@@ -53,8 +53,15 @@ const packages = [
   {
     name: '@context-action/store-core',
     directory: 'packages/store-core',
-    imports: [],
-    supportsCjs: false,
+    imports: [{ specifier: '@context-action/store-core', exports: ['createStateStore'] }],
+  },
+  {
+    name: '@context-action/xstate',
+    directory: 'packages/xstate',
+    imports: [
+      { specifier: '@context-action/xstate', exports: ['bindActor', 'createActorStateReader'] },
+      { specifier: '@context-action/xstate/effect', exports: ['fromStandardSchema', 'registerStandardSchemaGuard'] },
+    ],
   },
   {
     name: '@context-action/mutative-core',
@@ -454,6 +461,23 @@ const mutativeResult = produce({ value: 1 }, (draft: MutativeDraft<MutativeState
 });
 void mutativeResult;
 void createTimeTravel;
+`);
+  }
+  if (names.has('@context-action/xstate')) {
+    statements.push(`
+import { createStateStore } from '@context-action/store-core';
+import { createSyncActionPipeline } from '@context-action/core/element';
+import { bindActor, createActorStateReader, type ActorRefLike } from '@context-action/xstate';
+import { fromStandardSchema, registerStandardSchemaGuard } from '@context-action/xstate/effect';
+const store = createStateStore('consumer-xstate-check', { count: 0 });
+const pipeline = createSyncActionPipeline<{ ping: { value: number } }>('consumer-xstate-pipeline');
+void store;
+void pipeline;
+void bindActor;
+void createActorStateReader;
+void fromStandardSchema;
+void registerStandardSchemaGuard;
+type _CheckActor = ActorRefLike<{ type: 'PING' }>;
 `);
   }
   if (names.has('@context-action/react')) {

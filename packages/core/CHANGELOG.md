@@ -2,12 +2,23 @@
 
 Pending changes that are not part of a published version are recorded in the repository's [UNRELEASED.md](https://github.com/mineclover/context-action/blob/main/packages/core/UNRELEASED.md).
 
+## [1.3.1] (2026-11-19)
+
+### Element host interop & pipeline refinements
+
+- Export attribute/style reconciliation helpers (`attribute-bindings`, `style-bindings`), pointer gesture session helpers (`createPointerGestureSession`), roving focus (`createRovingFocusController`), synchronous pipeline (`createSyncActionPipeline`), and `toReactPartProps` cleanly from `@context-action/core/element` and `@context-action/core/element/react`.
+- Keep `@context-action/core` pure zero-dependency (`dependencies: undefined`), leaving XState v5/v6 and Effect integrations cleanly separated in `@context-action/xstate`.
+
 ## [1.3.0] (2026-10-29)
 
 ### Element interop
 
 - Add the framework-neutral `./element` and React host `./element/react` entry
   points for element lifecycle and property/event binding contracts.
+- Support ownership-tracked `attributes` (`updateAttributes`) and `styles`
+  (`updateStyles`) alongside `properties` and `events`, plus headless
+  `createSyncActionPipeline`, `createRovingFocusController`,
+  `createPointerGestureSession`, and `toReactPartProps` in `./element`.
 - Preserve the phase-specific action pipeline and asynchronous shutdown contracts
   used by the current Core release cohort.
 

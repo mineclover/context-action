@@ -9,7 +9,6 @@ import { retryTransientRegistryVisibility } from './registry-visibility-retry.cj
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const planPath = path.join(repositoryRoot, 'releases', 'core-public-2026-10-patch-1.json');
-const packageName = '@context-action/core';
 const expectedRepository = 'https://github.com/mineclover/context-action';
 const expectedWorkflowPath = '.github/workflows/publish-core-public-candidate.yml';
 const args = new Map(process.argv.slice(2).filter(value => value !== '--').reduce((pairs, value, index, list) => {
@@ -24,8 +23,8 @@ if (!['next', 'latest'].includes(tag) || !/^[a-f0-9]{40}$/u.test(commit ?? '')) 
 }
 
 const plan = JSON.parse(await readFile(planPath, 'utf8'));
-const version = plan.packages?.[packageName];
-if (typeof version !== 'string') throw new Error(`Core public release plan is missing ${packageName}`);
+const packages = Object.entries(plan.packages ?? {});
+if (packages.length === 0) throw new Error('Core public release plan is missing packages');
 
 function run(command, commandArgs, cwd = repositoryRoot) {
   const env = Object.fromEntries(Object.entries(process.env)
@@ -54,7 +53,7 @@ function retryMessage(label) {
   };
 }
 
-async function readDistTags() {
+async function readDistTags(packageName, version) {
   return retryTransientRegistryVisibility(async () => {
     const tags = JSON.parse(run('npm', [
       'view', packageName, 'dist-tags', '--json', '--registry=https://registry.npmjs.org',
@@ -65,10 +64,10 @@ async function readDistTags() {
       throw error;
     }
     return tags;
-  }, { onRetry: retryMessage('npm dist-tag has not propagated') });
+  }, { onRetry: retryMessage(`npm dist-tag for ${packageName} has not propagated`) });
 }
 
-async function readGitHead() {
+async function readGitHead(packageName, version) {
   return retryTransientRegistryVisibility(async () => {
     const raw = run('npm', [
       'view', `${packageName}@${version}`, 'gitHead', '--json', '--registry=https://registry.npmjs.org',
@@ -80,7 +79,7 @@ async function readGitHead() {
     } catch {
       return raw.replace(/^"|"$/gu, '') || null;
     }
-  }, { onRetry: retryMessage('npm package metadata has not propagated') });
+  }, { onRetry: retryMessage(`npm package metadata for ${packageName} has not propagated`) });
 }
 
 async function npmInstall(directory) {
@@ -90,7 +89,7 @@ async function npmInstall(directory) {
       const result = spawnSync('npm', [
         'install', '--ignore-scripts', '--no-audit', '--prefer-online',
         '--registry=https://registry.npmjs.org', '--cache', cache,
-        `${packageName}@${version}`,
+        ...packages.map(([packageName, version]) => `${packageName}@${version}`),
       ], { cwd: directory, encoding: 'utf8', env: { ...process.env } });
       if (result.status === 0) return result.stdout;
       const error = new Error(`npm install failed:\n${result.stdout ?? ''}${result.stderr ?? ''}`);
@@ -104,15 +103,19 @@ async function npmInstall(directory) {
 
 const temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), 'context-action-core-provenance-'));
 try {
-  await readDistTags();
-  const gitHead = await readGitHead();
-  if (gitHead && gitHead !== commit) throw new Error(`${packageName}@${version} gitHead ${gitHead} does not match ${commit}`);
+  const gitHeads = new Map();
+  for (const [packageName, version] of packages) {
+    await readDistTags(packageName, version);
+    const gitHead = await readGitHead(packageName, version);
+    if (gitHead && gitHead !== commit) throw new Error(`${packageName}@${version} gitHead ${gitHead} does not match ${commit}`);
+    gitHeads.set(packageName, gitHead);
+  }
 
   await writeFile(path.join(temporaryDirectory, 'package.json'), `${JSON.stringify({
     name: 'context-action-core-provenance-verifier',
     private: true,
     version: '0.0.0',
-    dependencies: { [packageName]: version },
+    dependencies: Object.fromEntries(packages),
   }, null, 2)}\n`);
   await npmInstall(temporaryDirectory);
 
@@ -122,29 +125,36 @@ try {
   if ((audit.invalid?.length ?? 0) > 0 || (audit.missing?.length ?? 0) > 0) {
     throw new Error('npm audit signatures reported invalid or missing attestations');
   }
-  const entry = new Map((audit.verified ?? []).map(value => [`${value.name}@${value.version}`, value]))
-    .get(`${packageName}@${version}`);
-  const bundle = entry?.attestationBundles?.find(value => value.predicateType === 'https://slsa.dev/provenance/v1');
-  if (!bundle) throw new Error(`No SLSA provenance attestation was returned for ${packageName}@${version}`);
-  const statement = decodeStatement(bundle.bundle);
-  const workflow = statement?.predicate?.buildDefinition?.externalParameters?.workflow;
-  const sourceCommit = attestedCommit(statement);
-  if (sourceCommit !== commit
-    || workflow?.repository !== expectedRepository
-    || workflow?.path !== expectedWorkflowPath
-    || workflow?.ref !== 'refs/heads/main') {
-    throw new Error(`Attested source does not match the Core public release contract for ${packageName}@${version}`);
+
+  const verifiedMap = new Map((audit.verified ?? []).map(value => [`${value.name}@${value.version}`, value]));
+  const results = [];
+  for (const [packageName, version] of packages) {
+    const entry = verifiedMap.get(`${packageName}@${version}`);
+    const bundle = entry?.attestationBundles?.find(value => value.predicateType === 'https://slsa.dev/provenance/v1');
+    if (!bundle) throw new Error(`No SLSA provenance attestation was returned for ${packageName}@${version}`);
+    const statement = decodeStatement(bundle.bundle);
+    const workflow = statement?.predicate?.buildDefinition?.externalParameters?.workflow;
+    const sourceCommit = attestedCommit(statement);
+    if (sourceCommit !== commit
+      || workflow?.repository !== expectedRepository
+      || workflow?.path !== expectedWorkflowPath
+      || workflow?.ref !== 'refs/heads/main') {
+      throw new Error(`Attested source does not match the Core public release contract for ${packageName}@${version}`);
+    }
+    results.push({
+      name: packageName,
+      version,
+      gitHead: gitHeads.get(packageName) ?? null,
+      provenance: { status: 'verified', sourceCommit, workflow },
+    });
   }
 
   const report = {
     schemaVersion: 'context-action-core-public-provenance.v1',
     status: 'verified',
-    package: packageName,
-    version,
     distTag: tag,
     candidateCommit: commit,
-    gitHead: gitHead ?? null,
-    provenance: { status: 'verified', sourceCommit, workflow },
+    packages: results,
   };
   if (output) {
     const outputPath = path.resolve(repositoryRoot, output);

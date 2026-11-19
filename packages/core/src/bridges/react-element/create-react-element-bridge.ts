@@ -18,9 +18,13 @@ export function createReactElementBridge<Props extends object = Record<string, u
   const { tagName, createHandle } = options;
   const properties = Array.from(new Set(options.properties ?? []));
   const propertySet = new Set<PropertyKey>(properties);
+  const attributes = { ...options.attributes };
+  const attributeProps = new Set(Object.keys(attributes));
+  const styles = { ...options.styles };
+  const styleProps = new Set(Object.keys(styles));
   const events = { ...options.events };
   const eventProps = new Set(Object.keys(events));
-  const config = { properties, events };
+  const config = { properties, attributes, styles, events };
 
   const Bridge = React.forwardRef<Handle, Props & Omit<React.HTMLAttributes<Element>, keyof Props>>(
     function ElementBridge(props, forwardedRef) {
@@ -79,7 +83,7 @@ export function createReactElementBridge<Props extends object = Record<string, u
 
       const domProps: Record<string, unknown> = { ref };
       for (const [key, value] of Object.entries(props)) {
-        if (propertySet.has(key) || eventProps.has(key)) continue;
+        if (propertySet.has(key) || attributeProps.has(key) || styleProps.has(key) || eventProps.has(key)) continue;
         domProps[key === 'className' ? 'class' : key === 'htmlFor' ? 'for' : key] = value;
       }
       return React.createElement(tagName, domProps);

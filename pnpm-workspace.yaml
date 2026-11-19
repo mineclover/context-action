@@ -12,6 +12,7 @@ packages:
   - packages/lit-ui
   - packages/mutative-core
   - packages/mutative
+  - packages/xstate
   - packages/llms-generator
   - packages/typedoc-vitepress-sync
   - packages/style-testing

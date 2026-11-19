@@ -1,0 +1,214 @@
+{
+  "document": {
+    "id": "context-layered--decisions--CA-STATECHART-EFFECT-001",
+    "title": "CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy",
+    "category": "concept",
+    "source_path": "en/context-layered/decisions/CA-STATECHART-EFFECT-001.md",
+    "lastModified": "2026-11-19T05:11:18.249Z",
+    "wordCount": 562
+  },
+  "priority": {
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Default priority assigned during documentation synchronization.",
+    "reviewDate": "2026-11-19",
+    "autoCalculated": true
+  },
+  "purpose": {
+    "primary_goal": "Understand and apply the guidance in CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy.",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "Learn the concept concepts described in CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy.",
+      "Use the document as an implementation reference."
+    ],
+    "learning_objectives": [
+      "Identify the essential ideas and usage guidance in CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy."
+    ]
+  },
+  "keywords": {
+    "primary": [
+      "context-layered",
+      "ca-statechart-effect-001",
+      "separate",
+      "context-action",
+      "xstate"
+    ],
+    "technical": [
+      "context-layered",
+      "context-action"
+    ],
+    "functional": [
+      "concept",
+      "documentation",
+      "framework"
+    ]
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "Summarize the essential concept information from CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy",
+          "context-layered",
+          "ca-statechart-effect-001"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "200": {
+        "focus": "Summarize the essential concept information from CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy",
+          "context-layered",
+          "ca-statechart-effect-001"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "300": {
+        "focus": "Summarize the essential concept information from CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy",
+          "context-layered",
+          "ca-statechart-effect-001"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "500": {
+        "focus": "Summarize the essential concept information from CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy",
+          "context-layered",
+          "ca-statechart-effect-001"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "1000": {
+        "focus": "Summarize the essential concept information from CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy",
+          "context-layered",
+          "ca-statechart-effect-001"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "2000": {
+        "focus": "Summarize the essential concept information from CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy",
+          "context-layered",
+          "ca-statechart-effect-001"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      },
+      "5000": {
+        "focus": "Summarize the essential concept information from CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy.",
+        "structure": "Lead with the main purpose, then preserve actionable details.",
+        "must_include": [
+          "CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy",
+          "context-layered",
+          "ca-statechart-effect-001"
+        ],
+        "avoid": [
+          "Unsupported claims",
+          "Unrelated implementation details"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy",
+        "context-layered",
+        "ca-statechart-effect-001"
+      ],
+      "nice_to_have": [
+        "context-layered",
+        "context-action"
+      ],
+      "contextual_keywords": [
+        "context-layered",
+        "ca-statechart-effect-001",
+        "separate",
+        "context-action",
+        "xstate"
+      ]
+    }
+  },
+  "tags": {
+    "primary": [
+      "theory"
+    ],
+    "secondary": [
+      "context-layered",
+      "ca-statechart-effect-001",
+      "separate",
+      "context-action",
+      "xstate"
+    ],
+    "audience": [
+      "framework-users"
+    ],
+    "complexity": "basic",
+    "lastUpdated": "2026-11-19"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "metadata": {
+    "description": "CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy is concept documentation for the Context-Action framework, covering core concepts and practical usage.",
+    "language": "en",
+    "created": "2026-11-19",
+    "updated": "2026-11-19",
+    "version": "1.0.0",
+    "original_size": 6080,
+    "created_at": "2026-11-19T09:22:46.303Z",
+    "source_last_modified": "2026-11-19T05:11:18.249Z",
+    "keywords": {
+      "primary": [
+        "context-layered",
+        "ca-statechart-effect-001",
+        "separate",
+        "context-action",
+        "xstate"
+      ],
+      "technical": [
+        "context-layered",
+        "context-action"
+      ],
+      "functional": [
+        "concept",
+        "documentation",
+        "framework"
+      ]
+    }
+  }
+}

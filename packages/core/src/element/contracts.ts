@@ -5,6 +5,8 @@ export type ImperativeHandleFactory<Element extends HTMLElement, Handle> = Publi
 /** Transport configuration only; semantic validation and commit authority belong to the component. */
 export interface ElementBindingConfig<Props extends object> {
   properties?: readonly (keyof Props)[];
+  attributes?: Partial<Record<keyof Props & string, string>>;
+  styles?: Partial<Record<keyof Props & string, string>>;
   events?: Record<string, string>;
 }
 
@@ -25,9 +27,11 @@ export interface ElementBindingOptions {
 /** One target, complete input snapshots, explicit terminal disposal. Never owns renderer teardown. */
 export interface ElementBinding<Props extends object> {
   readonly disposed: boolean;
-  /** Reconcile events first, then properties, to capture synchronous setter events. */
+  /** Reconcile events first, then attributes, styles, and properties, to capture synchronous setter events. */
   update(input: Props): void;
   updateProperties(input: Props): void;
+  updateAttributes(input: Props): void;
+  updateStyles(input: Props): void;
   updateEvents(input: Props): void;
   /** Replayable listener cleanup; property ownership survives lifecycle replay. */
   disconnectEvents(): void;

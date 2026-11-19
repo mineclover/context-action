@@ -65,8 +65,18 @@ const core = await import('@context-action/core/element');
 const preact = await import('@context-action/preact-ui/react-bridge');
 const lit = await import('@context-action/lit-ui/react-bridge');
 const require = createRequire(import.meta.url);
-for (const mode of [core, require('@context-action/core/element')]) {
-  assert.equal(typeof mode.createElementFacade, 'function');
+const cjsCore = require('@context-action/core/element');
+for (const mode of [core, cjsCore]) {
+  for (const symbol of [
+    'createElementFacade',
+    'createElementBinding',
+    'toReactPartProps',
+    'createSyncActionPipeline',
+    'createRovingFocusController',
+    'createPointerGestureSession',
+  ]) {
+    assert.equal(typeof mode[symbol], 'function');
+  }
 }
 assert.equal(preact.createElementFacade, core.createElementFacade);
 assert.equal(lit.createElementFacade, core.createElementFacade);
@@ -136,17 +146,42 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { ActionRegister } from '@context-action/core';
-import { createElementFacade, createElementBinding } from '@context-action/core/element';
+import {
+  createElementFacade,
+  createElementBinding,
+  toReactPartProps,
+  createSyncActionPipeline,
+  createRovingFocusController,
+  createPointerGestureSession,
+} from '@context-action/core/element';
 const require = createRequire(import.meta.url);
 const manifest = JSON.parse(readFileSync(join(dirname(require.resolve('@context-action/core')), '../package.json')));
 assert.deepEqual(manifest.dependencies ?? {}, {});
 assert.deepEqual(manifest.peerDependencies ?? {}, {});
 for (const peer of ['react', 'preact', 'lit']) assert.throws(() => require.resolve(peer), { code: 'MODULE_NOT_FOUND' });
 assert.equal(typeof globalThis.HTMLElement, 'undefined');
-assert.equal(typeof createElementFacade, 'function');
-assert.equal(typeof createElementBinding, 'function');
+for (const fn of [
+  createElementFacade,
+  createElementBinding,
+  toReactPartProps,
+  createSyncActionPipeline,
+  createRovingFocusController,
+  createPointerGestureSession,
+]) {
+  assert.equal(typeof fn, 'function');
+}
 assert.equal(typeof ActionRegister, 'function');
-assert.equal(typeof require('@context-action/core/element').createElementFacade, 'function');
+const cjsElement = require('@context-action/core/element');
+for (const symbol of [
+  'createElementFacade',
+  'createElementBinding',
+  'toReactPartProps',
+  'createSyncActionPipeline',
+  'createRovingFocusController',
+  'createPointerGestureSession',
+]) {
+  assert.equal(typeof cjsElement[symbol], 'function');
+}
 assert.equal(typeof require('@context-action/core/element/react').createReactElementBridge, 'function');
 `], neutral);
   for (const extension of ['mts', 'cts']) {

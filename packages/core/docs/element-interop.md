@@ -10,7 +10,7 @@ local wiring, not an approved release dependency floor.
 | Entry | Owns | Does not reach |
 | --- | --- | --- |
 | `@context-action/core` | Existing Action runtime, pure `PublicActionMethods` type | Element/DOM types, React runtime/types |
-| `@context-action/core/element` | `createElementBinding`, `createElementFacade`, DOM transport contracts | React, Vue, Svelte, Angular, Lit, Preact |
+| `@context-action/core/element` | `createElementBinding`, `createElementFacade`, `toReactPartProps`, `createSyncActionPipeline`, `createRovingFocusController`, `createPointerGestureSession`, DOM transport contracts | React, Vue, Svelte, Angular, Lit, Preact |
 | `@context-action/core/element/react` | Injected-runtime `createReactElementBridge` and React component types | Store/Mutative or a statically imported React runtime |
 
 Core declares no framework runtime dependency or peer constraint: the React
@@ -37,21 +37,33 @@ interface Input {
   onRequest?: ((event: CustomEvent<string>) => void) | undefined;
 }
 const binding = createElementBinding<Input>(element, {
-  properties: ['items'], events: { onRequest: 'item-request' },
+  attributes: { role: 'role', disabled: 'aria-disabled' },
+  styles: { hitSize: '--handle-hit-size', left: 'left' },
+  properties: ['items'],
+  events: { onRequest: 'item-request' },
 }, { assignmentErrors: 'throw' });
 binding.update({ items, onRequest });
-binding.update({ onRequest }); // releases previously assigned items with undefined
+binding.update({ onRequest }); // releases previously assigned items/attributes/styles once
 binding.dispose();
 ```
 
 - Config is captured at construction. Inputs are **complete snapshots**, not patches.
-- `update` attaches/reconciles events **before** property assignment so synchronous
-  setter events see the current handler. Attach after native creation; constructor
-  and initial connectedCallback events are not captured retroactively.
-- `updateProperties` and `updateEvents` let a host choose its own lifecycle timing.
+- `update` reconciles in deterministic order: **events → attributes → styles → properties**, so synchronous setter events see the current handler, attribute, and style state. Attach after native creation; constructor and initial `connectedCallback` events are not captured retroactively.
+- `updateEvents`, `updateAttributes`, `updateStyles`, and `updateProperties` let a host choose its own lifecycle timing.
+- `attributes` and `styles` bindings track an ownership ledger per binding instance: omitted keys are removed (`removeAttribute` / `removeProperty`) only for keys previously written by that binding, leaving host-owned attributes, CSS custom properties (`--*`), and inline styles untouched. Boolean attributes (`true` writes `""`; `false`, `null`, and `undefined` remove the attribute) and style strings (`""`, `null`, or `undefined` removes the property) normalize consistently.
 - Omission clears only previously attempted writes, once. Untouched defaults survive.
-  Explicit undefined remains an assignment. Objects keep identity; no serialization,
+  Explicit undefined remains an assignment (for properties) or removal (for attributes/styles). Objects keep identity; no serialization,
   validation, diff/equality filtering, rollback or clone is added.
+
+## Headless UI interaction and framework projection primitives
+
+`@context-action/core/element` also exports framework-neutral headless primitives for Vanilla DOM, custom elements, and React/framework consumers without adding a UI framework dependency:
+
+- `createSyncActionPipeline`: Three-phase synchronous pipeline (`registerGuard` with `abort`/`modifyPayload`, `register` with `setResult`, and `registerObserver` with `when: 'success' | 'failure' | 'always'`, `priority`, and `once`) tailored for synchronous pointer/keyboard interactions where DOM events cannot await microtasks.
+- `createRovingFocusController`: ARIA composite navigation helper supporting `'horizontal'`, `'vertical'`, and `'both'` orientations, `Arrow*` / `Home` / `End` keys, disabled item skipping, looping, and roving `getTabIndex(id)` (`0` vs `-1`).
+- `createPointerGestureSession`: Pointer gesture lifecycle manager handling primary-button gating, `onStart` guard rejection, automatic `setPointerCapture`/`releasePointerCapture`, `deltaX`/`deltaY` & modifier tracking (`shiftKey`, `altKey`, `ctrlKey`, `metaKey`), and `Escape` cancellation.
+- `toReactPartProps(partProps, config)`: Projects any headless part snapshot plus its `ElementBindingConfig` into a React-compatible props bag (mapping `attributes`, CSS custom/inline `styles` into `style`, and event names into `on<Event>` handlers).
+- **Statechart & Effect Bridges**: Dedicated integration adapters for XState v5/v6 (`@context-action/xstate`) and Effect v4 / `@xstate/effect` (`@context-action/xstate/effect`) live in the separate `@context-action/xstate` package ([architecture specification](../../xstate/docs/xstate-effect-integration.md)), keeping `@context-action/core` strictly zero-dependency.
 - Stable function/object handlers reuse listeners. Changed/invalid/omitted handlers
   remove prior listeners; object receivers remain intact. Multiple prop names may
   map to one event and remain independent subscriptions.

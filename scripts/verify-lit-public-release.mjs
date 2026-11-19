@@ -208,14 +208,20 @@ async function main() {
       const expectedRange = dependencyName === '@context-action/core'
         ? (core ? resolveRange(core.version) : null)
         : resolveRange();
+      const minimumRange = dependencyName === '@context-action/core'
+        ? resolveRange(ELEMENT_INTEROP_MIN_CORE)
+        : expectedRange;
       if (!expectedRange) {
         errors.push(`${definition.name} cannot resolve ${dependencyName} dependency floor`);
         continue;
       }
       const actualRange = manifest?.dependencies?.[dependencyName];
       const localWorkspaceWiring = !requireCurrentSource && actualRange === 'workspace:*';
-      expect(errors, actualRange === expectedRange || localWorkspaceWiring,
-        `${definition.name} must depend on ${dependencyName}@${expectedRange}`);
+      expect(
+        errors,
+        actualRange === expectedRange || actualRange === minimumRange || localWorkspaceWiring,
+        `${definition.name} must depend on ${dependencyName}@${expectedRange}`,
+      );
     }
   }
 

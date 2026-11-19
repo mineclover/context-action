@@ -32,6 +32,8 @@ when an existing package cannot own the responsibility without violating depende
 | Package | Boundary role | Owns | Must not own |
 | --- | --- | --- | --- |
 | `@context-action/core` | runtime foundation with opt-in host transport | default: action pipeline, handler execution, validation contract, core errors; optional `/element` DOM transport and `/element/react` host lifecycle | DOM/React in default entry, tool transports, Zod, renderer ownership, stores |
+| `@context-action/store-core` | state & transaction protocol foundation | versioned `StateReader`, `StateStore`, `StateBackend`, `TimelineBackend`, `TransactionCoordinatorPort` | React, Mutative, DOM runtime, statechart/Effect runtime engines |
+| `@context-action/xstate` | statechart & Effect adapter | `.` (`bindActor`, `bindActorToActionRegister`, `bindActorToSyncPipeline`, `bindActorEmissions`, `waitForActorSnapshot`, `createActorStateReader`, `createActorActionEmitter`) and `./effect` (`fromStandardSchema`, `registerStandardSchemaGuard`, `registerEffectGuard`, `registerEffectHandler`, `bindEffectActorToActionRegister`, `runInTransactionScope`, `bindActionDispatchTransactions`) | DOM rendering ownership, duplicating XState transitions or `@xstate/effect` internals |
 | `@context-action/tool-protocol` | transport contract foundation | JSON Schema, Zod action schemas, MCP/provider adapters, tool calls, approval queue, call idempotency/provenance/observability contracts | React rendering, action registry internals, durable persistence, architecture policy |
 | `@context-action/ai-sdk` | provider adapter | AI SDK ToolSet conversion, per-turn tool scope, model-call correlation, native approval/error adaptation | action execution, React rendering, provider credentials, durable persistence |
 | `@context-action/tool-durable-operations` | mutation safety foundation | durable operation records, side-effect runner, HTTP/queue adapters, IndexedDB/Redis/PostgreSQL reference backends | provider-neutral tool schemas, React rendering, domain-specific idempotency/outbox policy |
@@ -65,6 +67,7 @@ The default direction is:
 @context-action/tool-durable-operations ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
 @context-action/core          ──→ @context-action/preact ──→ @context-action/preact-ui
+@context-action/core + @context-action/store-core ──→ @context-action/xstate (`.`, `./effect`)
 
 ```
 
