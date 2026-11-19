@@ -192,7 +192,7 @@
 | `doc-releases-ops` | `releases/` | `evidence` | `single-locale` | `RELEASE.md`, 코호트 JSON 계획, 공개 프리뷰 릴리스 노트 |
 | `doc-package-docs` | `packages/*/README.md`, `CHANGELOG.md`, `UNRELEASED.md`, `docs/*.md` | `authoritative` | `single-locale` | 패키지별 탐색 문서 및 세부 계약 |
 | `doc-catalogs` | `catalog/` | `authoritative` | `not-applicable` | `integration-profiles/*.json` + `repository-surface/*.v1.json` |
-| `doc-skills` | `skills/`, `.agents/skills/` | `authoritative` | `not-applicable` | 저장소 로컬 Implementation Playbook 스킬 문서 |
+| `doc-skills` | `skills/` (`.agents/skills/` gitignored 미러) | `authoritative` | `not-applicable` | 저장소 로컬 Implementation Playbook 스킬 문서 |
 | `doc-design-tasks` | `design-docs/`, `tasks/` | `historical` | `not-applicable` | 아카이브된 설계 명세 및 작업 기록 |
 
 ### 5.3 파생 / 생성 산출물 (10개 출력)
