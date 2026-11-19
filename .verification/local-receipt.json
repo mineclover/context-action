@@ -1,31 +1,31 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-02T17:09:38.851Z",
-  "commitSha": "7eff881eaa54173a461faf7d5ca3297d65618d6d",
-  "branch": "codex/issue-185-typedoc-minimatch",
+  "timestamp": "2026-11-19T09:46:17.949Z",
+  "commitSha": "be91f6c28960c2a7c9fea607ce687c4efbccf5e9",
+  "branch": "main",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
     "platform": "darwin",
     "arch": "arm64"
   },
-  "inputDigest": "sha256:642278e164418e290482fff41512fbcce8beac28637c82146eb679d8b59afdad",
+  "inputDigest": "sha256:c0f445d32bf0ae521c13a3b2b94131f89357c8096099cf92111382e5bdcfdd8c",
   "workingTree": "clean",
-  "treeDigest": "sha256:467d702a8b828167a3c8a191e23b6ff7ad90d7e80dd476be33dd7b3eea80d539",
+  "treeDigest": "sha256:23ba188089dae5b40657c38ab4133e978e137f7c222bdecb74115aa29b76748b",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 19.76,
+      "durationSec": 23.85,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.98,
+      "durationSec": 0.93,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 1.86,
+      "durationSec": 2.09,
       "status": "passed"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.26,
+      "durationSec": 0.25,
       "status": "passed"
     },
     {
@@ -45,20 +45,20 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.33,
+      "durationSec": 0.36,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.61,
+      "durationSec": 1.6,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.45,
+      "durationSec": 0.48,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:da7db00429cfffb5f84f444fef29a2d1159f2bc9f96330db488fda18c6edacb6"
+  "receiptDigest": "sha256:6c648ada9fa14fe627d5333b69241fdfb48ee9fff6ad53a0dab112a1d60f4b99"
 }
