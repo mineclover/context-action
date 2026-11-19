@@ -9,4 +9,4 @@
 - Convert domain events to UI text in handler support or hooks
 - Keep views render-only with file-header `@evidenceExclude`, 6-Level layout hierarchy, Two Golden Rules, and 4-Tier Semantic Z-Index tokens (`--z-base: 1` ~ `--z-toast: 1100`)
 - Add at least one integration test for invalid, valid, and reset flows
-- Register source files, link paired KO/EN docs, and pass `pnpm docs:management`, `pnpm llms:check`, and `pnpm convention:check`
+- Register source files, update `catalog/repository-surface/example-surface.v1.json` (if canonical routes/demos changed), link paired KO/EN docs, and pass `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`, and `pnpm verify:quick`

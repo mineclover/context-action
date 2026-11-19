@@ -57,31 +57,28 @@ Use that guide before adding a package, moving a file across package roots, or
 introducing a shared utility. The package README is the discovery entry point;
 the linked guide, schema, or API source remains authoritative.
 
+See the [Convention Index](docs/en/context-layered/convention-index.md), [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md), [Store Selection and Usage Guide](docs/en/context-layered/store-selection-and-usage-guide.md), and [Change Management Convention](docs/en/context-layered/change-management-convention.md) before adding packages, routes, or durable docs.
+
 ```
 context-action/
-├── packages/
-│   ├── core/                   # @context-action/core
-│   │   ├── src/
-│   │   │   ├── ActionRegister.ts    # Core action pipeline
-│   │   │   ├── action-guard.ts      # Action guard system
-│   │   │   └── types.ts             # Type definitions
-│   │   └── __tests__/              # Unit tests
-│   │
-│   ├── react/                  # @context-action/react
-│   │   ├── src/
-│   │   │   ├── actions/             # Action context
-│   │   │   ├── stores/              # Store system
-│   │   │   │   ├── core/           # Store implementation
-│   │   │   │   ├── hooks/          # Store hooks
-│   │   │   │   └── patterns/       # Store patterns
-│   │   │   └── index.ts
-│   │   └── __tests__/              # Integration tests
-│   │
-│   └── llms-generator/         # Documentation tooling
-│
-├── example/                    # Example application
-├── docs/                      # VitePress documentation
-└── scripts/                   # Build scripts
+├── catalog/                  # Integration profiles & repository-surface catalogs (CA-SURFACE-CATALOG-001)
+├── packages/                 # 20 workspace packages across 6 layers (see Repository Surface Catalog)
+│   ├── core/                 # @context-action/core
+│   ├── store-core/           # @context-action/store-core
+│   ├── mutative-core/        # @context-action/mutative-core
+│   ├── mutative/             # @context-action/mutative
+│   ├── react/                # @context-action/react
+│   ├── xstate/               # @context-action/xstate
+│   ├── lit/, lit-ui/         # Lit controllers & Web Components
+│   ├── preact/, preact-ui/   # Preact Signals adapters & UI runtime
+│   ├── tool-protocol/, tool-durable-operations/, ai-sdk/, webmcp/
+│   └── llms-generator/, typedoc-vitepress-sync/, style-testing/, template-react/, ...
+├── example/                  # Example application (72 canonical routes)
+├── demos/                    # Standalone demos (e.g. bolt-style-editor)
+├── skills/                   # Implementation Playbook agent skills
+├── releases/                 # Protected release plans & cohorts
+├── docs/                     # VitePress documentation
+└── scripts/                  # Build, surface-catalog, and verification scripts
 ```
 
 ## 📝 Coding Standards
@@ -114,8 +111,7 @@ export function createStoreContext(name, stores) {
 ```
 
 ### Code Style
-- **ESLint configuration** is enforced in CI
-- **Prettier** for consistent formatting
+- **Biome** is enforced for linting and formatting across workspace packages and `example/` (`pnpm lint` at root, `pnpm --filter example check` for example)
 - **2 spaces** for indentation
 - **Single quotes** for strings
 - **Trailing commas** where valid
@@ -185,7 +181,7 @@ pnpm test
 
 # Run tests for specific package
 pnpm test:core
-pnpm test:react
+pnpm --filter @context-action/react test
 
 # Run tests in watch mode
 cd packages/core && pnpm test:watch
@@ -238,34 +234,32 @@ chore(deps): update TypeScript to 6.0.3
 
 ### Pull Request Process
 1. **Create feature branch** from `main`
-2. **Make changes** following coding standards
-3. **Add tests** for new functionality
-4. **Update documentation** if needed
-5. **Run full test suite** and ensure all checks pass
-6. **Create pull request** using the PR template
+2. **Make changes** following coding and Context-Layered standards
+3. **Add tests** for new functionality and rebuild lower layers before verifying consumers
+4. **Update documentation & catalogs** (`docs/{en,ko}/**`, `catalog/repository-surface/*.v1.json`, `llmsData/` via `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files a.md,b.md`)
+5. **Run Local-First verification** on a clean working tree (`pnpm verify` or `pnpm verify:quick`, then `pnpm verify:receipt`)
+6. **Create pull request** using `.github/PULL_REQUEST_TEMPLATE.md` and include `#<issue>` or a `CA-*` ID (`pnpm change:traceability`)
 7. **Address review feedback** promptly
 
 ### PR Checklist
-- [ ] Tests pass locally (`pnpm test`)
-- [ ] Types check without errors (`pnpm type-check`)
-- [ ] Linting passes (`pnpm lint`)
-- [ ] Build succeeds (`pnpm build`)
-- [ ] Documentation updated and verified according to the documentation-management convention
-- [ ] Example app works if relevant (`pnpm dev`)
+- [ ] Local-First verification receipt is current on a clean working tree (`pnpm verify` or `pnpm verify:quick` + `pnpm verify:receipt`, per [Local-First Verification Policy](docs/LOCAL_FIRST_VERIFICATION_POLICY.md))
+- [ ] Tests, types, and Biome lint pass (`pnpm test`, `pnpm type-check`, `pnpm lint`)
+- [ ] Surface catalogs, conventions, and package boundaries pass (`pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm package-boundary:check`)
+- [ ] PR references `#<issue>` or `CA-*` ID (`pnpm change:traceability`)
+- [ ] Paired EN/KO docs, `llmsData/`, and VitePress build pass (`pnpm docs:check`)
+- [ ] Example app checks/builds pass if relevant (`pnpm --filter example check && pnpm example:build`)
 
 ## 🏷️ Release Process
 
-### Version Management
-We use **Lerna** for automated versioning and publishing:
+### Protected Release Workflow
+Packages use **Lerna** independent versioning. Direct local publishing is disabled (`pnpm release` and `pnpm release:patch` intentionally fail closed). Follow [`releases/RELEASE.md`](./releases/RELEASE.md):
 
 ```bash
-# Version bump (maintainers only)
-pnpm version:patch  # 0.0.x
-pnpm version:minor  # 0.x.0  
-pnpm version:major  # x.0.0
+# Run complete local release preflight on the candidate commit
+pnpm release:check
 
-# Publish (maintainers only)
-pnpm release
+# Inspect changed packages and release inventory
+pnpm release:inventory
 ```
 
 ### Release Notes
@@ -276,8 +270,8 @@ pnpm release
 
 ## 🤝 Community Guidelines
 
-### Code of Conduct
-We are committed to providing a welcoming and inclusive experience for everyone. Please read and follow our [Code of Conduct](./CODE_OF_CONDUCT.md).
+### Conduct & Collaboration
+We are committed to providing a welcoming, respectful, and constructive collaboration environment across issues, pull requests, and discussions ([Security Policy](./SECURITY.md)).
 
 ### Communication
 - **GitHub Issues** - Bug reports and feature requests

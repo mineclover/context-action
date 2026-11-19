@@ -2,7 +2,7 @@
   "document": {
     "id": "context-layered--decisions--CA-STATECHART-EFFECT-001",
     "title": "CA-STATECHART-EFFECT-001: `@context-action/xstate` 어댑터 경계 분리 및 핵심 통합 철학",
-    "category": "concept",
+    "category": "context-layered",
     "source_path": "ko/context-layered/decisions/CA-STATECHART-EFFECT-001.md",
     "lastModified": "2026-11-19T05:11:19.803Z",
     "wordCount": 515
@@ -191,7 +191,7 @@
     "version": "1.0.0",
     "original_size": 6401,
     "created_at": "2026-11-19T09:22:46.298Z",
-    "source_last_modified": "2026-11-19T05:11:19.803Z",
+    "source_last_modified": "2026-11-19T23:05:12.024Z",
     "keywords": {
       "primary": [
         "context-layered",
@@ -209,6 +209,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-11-19T23:08:55.309Z"
   }
 }

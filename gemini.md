@@ -1,47 +1,29 @@
 # Gemini-AI Agent Project Context
 
-This document provides the necessary context for the Gemini-AI agent to understand and work with the `context-action` project.
+This document provides workspace guidance for Gemini agents working in the `context-action` repository.
 
 ## Project Overview
 
-`context-action` is a JavaScript/TypeScript framework for managing application state and business logic in a structured and scalable way. It is built around a central "Action Pipeline" system that processes dispatched actions through a series of handlers. The project emphasizes a clear separation of concerns, following patterns similar to MVVM.
+`context-action` is a modular TypeScript monorepo for managing application state and business logic through framework-neutral **Action Pipelines** and reactive **Stores**. It organizes applications around the **Context-Layered 6-layer architecture** (`contexts / business / handlers / actions / hooks / views`) and explicit separation between view presentation, orchestration handlers, pure business logic, and state stores.
 
-The project is a monorepo managed with pnpm workspaces, containing the core framework, packages for different environments (like React), and a comprehensive documentation and example suite.
+- **Workspace Packages (20 across 6 layers)**: `core`, `store-core`, `mutative-core`, `mutative`, `react`, `xstate`, `preact`, `preact-ui`, `lit`, `lit-ui`, `tool-protocol`, `tool-durable-operations`, `ai-sdk`, `webmcp`, `openrouter-browser-storage`, `live-code-editor`, `style-testing`, `template-react`, `llms-generator`, and `typedoc-vitepress-sync`.
+- **Canonical Inventories & Selection Guides**:
+  - [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) (`catalog/repository-surface/{api,example,document}-surface.v1.json`, `CA-SURFACE-CATALOG-001`)
+  - [Package Boundary and Codebase Management Convention](docs/en/context-layered/package-boundary-convention.md)
+  - [Store Selection and Usage Guide](docs/en/context-layered/store-selection-and-usage-guide.md)
+  - [Convention Index](docs/en/context-layered/convention-index.md)
 
-## Development Workflow
+## Development & Documentation Workflow
 
-The project follows a strict, documentation-driven development workflow:
+The repository follows a contract-first, documentation-synced development loop:
 
-1.  **System Architecture Design (`docs/ko/guide/architecture.md`):** Define the core architectural concepts.
-2.  **Glossary Specification (`glossary/terms/`):** Create implementation-neutral definitions for all core concepts. This is the single source of truth for terminology.
-3.  **Glossary-to-Code Linking (JSDoc):** Connect the abstract glossary terms to the concrete code implementation using `@implements` and `@memberof` JSDoc tags.
-4.  **API Implementation (`packages/`):** Write the actual code in the respective packages.
-5.  **API Documentation (`docs/api/`):** Document the technical details of the API.
-6.  **Usage Guides (`docs/example/`):** Write user-friendly guides and recipes.
-7.  **Examples & Tests (`example/`):** Provide working examples that also serve as integration tests.
-
-## Glossary System
-
-A key feature of this project is the **Glossary System**, which ensures consistency between documentation and code.
-
-*   **Location:** The core logic is in the `@context-action/glossary` package. Configuration is in `glossary.config.js`.
-*   **Purpose:** To scan the codebase for special JSDoc tags (`@implements`, `@memberof`) and automatically generate a mapping between the conceptual glossary and the actual implementation.
-*   **JSDoc Tags:**
-    *   `@implements <term-name>`: Links a piece of code (class, function, type) to a glossary term. The term name must be in `kebab-case`. (e.g., `@implements action-handler`). **This is mandatory for linking.**
-    *   `@memberof <category>`: Assigns the term to a category (e.g., `core-concepts`, `api-terms`). **This is mandatory for linking.**
-*   **Tooling:** The project has a set of scripts to manage the glossary system. The main command is:
-    ```bash
-    # Scans code, validates mappings, analyzes missing links, and generates a dashboard.
-    pnpm glossary:update
-    ```
-*   **Outputs:** The tools generate several files in `docs/implementations/` that report on the status of the glossary-to-code mapping, including `dashboard.md`.
-
-## How to Work with this Project
-
-1.  **Understand the Core Concepts:** Before making changes, review `docs/ko/guide/architecture.md` and the glossary terms in `glossary/terms/`.
-2.  **Follow the Workflow:** When adding a new feature or changing an existing one, adhere to the development workflow.
-3.  **Link Your Code:** If you implement a concept from the glossary, you **must** add the appropriate `@implements` and `@memberof` JSDoc tags to your code.
-4.  **Verify Your Changes:** After making changes, run `pnpm glossary:update` to ensure your code is correctly linked and documented. Also run the standard project checks like `pnpm type-check` and `pnpm test`.
-5.  **Keep Documentation Consistent:** If you change an API, update the corresponding API docs and usage guides.
-
-By following these guidelines, you will help maintain the project's high standards of quality, consistency, and traceability.
+1. **Specify the Contract**: Define public types, state transitions, or durable architecture boundaries in the owning package or decision record (`docs/en/context-layered/decisions/`). Keep 6-layer Context-Layered separation (`contexts / business / handlers / actions / hooks / views`) and `BusinessActionIntent` vs `LayoutActionIntent` separation when authoring React scenarios (`skills/context-action-implementation-playbook/SKILL.md`).
+2. **Implement in Layer Order**: Build lower-level runtime packages before consumers (`pnpm build` runs Lerna in dependency order; after changing `core` or `react`, run `pnpm build:core && pnpm build:react` before checking `example`).
+3. **Update Authoritative Docs & Surface Catalogs**: Keep paired `docs/en/**` and `docs/ko/**` guides aligned per [Documentation and Development Management Conventions](docs/en/concept/documentation-development-conventions.md) and [Change Management Convention](docs/en/context-layered/change-management-convention.md). Update `catalog/repository-surface/*.v1.json` whenever packages, exports, canonical routes, or managed document areas change.
+4. **Sync Derived Outputs**:
+   - After editing `docs/(en|ko)/**/*.md`: run `pnpm build:llms-generator` and `pnpm llms:sync-docs --changed-files path1.md,path2.md` (comma-separated, one argument).
+   - After changing public TypeScript APIs/JSDoc: run `pnpm docs:api && pnpm docs:sync`.
+5. **Verify Locally Before Commit/PR** ([Local-First Verification Policy](docs/LOCAL_FIRST_VERIFICATION_POLICY.md)):
+   - Full / quick receipt generation (on a clean tree before PR): `pnpm verify` or `pnpm verify:quick` (verified via `pnpm verify:receipt`).
+   - Documentation & catalog gates: `pnpm docs:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm package-boundary:check`.
+   - Static checks & tests: `pnpm lint` (Biome), `pnpm type-check`, `pnpm test`.

@@ -64,7 +64,7 @@ It complements [Package Boundary and Codebase Management](/en/context-layered/pa
 
 1. Update the canonical source (`package.json`, `typedoc.json`, `example/src/App.tsx`, or `docs/`).
 2. Update the corresponding catalog in `catalog/repository-surface/*.v1.json` and, if needed, `docs/{en,ko}/context-layered/repository-surface-catalog.md`.
-3. Run `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files <paths>` for edited markdown files.
+3. Run `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md,path2.md` (comma-separated) for edited markdown files.
 4. Run `pnpm verify:surface-catalog && pnpm convention:check && pnpm docs:check`.
 
 ---
@@ -169,7 +169,7 @@ For deciding which state/store API to use across these packages, see the [Store 
 | File | Authority | Lifecycle | Owner | Purpose |
 | --- | --- | --- | --- | --- |
 | `README.md`, `README.en.md`, `README.ko.md` | `discovery` | `active` | Framework Maintainers | GitHub landing & localized entry points linking to authoritative guides |
-| `AGENTS.md`, `CLAUDE.md`, `gemini.md` | `discovery` | `active` | Framework Maintainers | Agent workspace instructions, build order, glossary & verification rules |
+| `AGENTS.md`, `CLAUDE.md`, `gemini.md` | `discovery` | `active` | Framework Maintainers | Agent workspace instructions, build order, catalogs & Local-First verification rules |
 | `CONTRIBUTING.md`, `DEVELOPMENT.md` | `discovery` | `active` | Framework Maintainers | Contributor setup, monorepo commands, and workflow onboarding |
 | `SECURITY.md` | `authoritative` | `active` | Security & Release Maintainers | Supported release-line security scope & disclosure policy |
 | `ECOSYSTEM.md` | `transitional` | `transitional` | Documentation Maintainers | Ecosystem tooling summary alongside newer LLMS & boundary docs |
@@ -199,7 +199,7 @@ For deciding which state/store API to use across these packages, see the [Store 
 
 - `docs/api/generated` (`pnpm docs:api`) ← `typedoc.json` + exported TypeScript source/JSDoc
 - `docs/en/api` & `docs/.vitepress/config/api-spec.ts` (`pnpm docs:sync`) ← `docs/api/generated` + `typedoc-vitepress-sync`
-- `llmsData` (`pnpm llms:sync-docs --changed-files <paths>`) ← `docs/{en,ko}/**/*.md`
+- `llmsData` (`pnpm llms:sync-docs --changed-files path1.md,path2.md`) ← `docs/{en,ko}/**/*.md`
 - `docs/{en,ko}/llms/llms-origin.txt`, `llms-500chars.txt`, `llms-minimal.txt` (`llms-generate`) ← `llmsData/{en,ko}/**`
 
 ---

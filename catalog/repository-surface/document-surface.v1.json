@@ -155,8 +155,8 @@
       "authorityClass": "discovery",
       "owner": "Framework Maintainers",
       "purpose": {
-        "en": "Gemini agent workspace context describing documentation-driven development and glossary workflow.",
-        "ko": "문서 주도 개발 및 용어집 워크플로를 안내하는 Gemini 에이전트용 컨텍스트 문서입니다."
+        "en": "Gemini agent workspace context summarizing Context-Layered 6-layer architecture, surface catalogs (CA-SURFACE-CATALOG-001), store guides, and Local-First verification.",
+        "ko": "Context-Layered 6계층 아키텍처, 표면 카탈로그(CA-SURFACE-CATALOG-001), 스토어 가이드 및 Local-First 검증 절차를 안내하는 Gemini 에이전트 컨텍스트 문서입니다."
       },
       "lifecycle": "active"
     }
@@ -429,7 +429,7 @@
       "id": "derived-llms-data",
       "path": "llmsData",
       "sourceOfTruth": "docs/en/** and docs/ko/** markdown sources",
-      "generatorCommand": "pnpm llms:sync-docs --changed-files <paths>",
+      "generatorCommand": "pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md,path2.md",
       "verificationCommand": "pnpm llms:check"
     },
     {

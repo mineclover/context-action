@@ -198,13 +198,15 @@ activity log는 화면용 문자열을 바로 push하지 않습니다.
 - `pnpm --filter example run verify:conditional`
 - `pnpm --filter @context-action/react test -- __tests__/patterns/enhanced-context-store.rules.test.ts`
 - `pnpm --filter @context-action/react test -- __tests__/patterns/enhanced-context-store.integration.test.tsx`
-- `pnpm docs:build`
+- `pnpm verify:surface-catalog`
+- `pnpm docs:check`
 
 ## 문서 규칙
 
 새 시나리오를 추가하면 최소한 다음도 같이 맞춥니다.
 
-- 예제 설명 문서
+- 한/영 예제 설명 문서 및 `llmsData/` 동기화 (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md,path2.md`)
+- `catalog/repository-surface/example-surface.v1.json` (`pnpm verify:surface-catalog`)
 - state machine 문서 연결
 - PatternsOverview 또는 scenario library에서 진입 링크
 - source registration

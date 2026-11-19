@@ -198,13 +198,15 @@ Recommended commands:
 - `pnpm --filter example run verify:conditional`
 - `pnpm --filter @context-action/react test -- __tests__/patterns/enhanced-context-store.rules.test.ts`
 - `pnpm --filter @context-action/react test -- __tests__/patterns/enhanced-context-store.integration.test.tsx`
-- `pnpm docs:build`
+- `pnpm verify:surface-catalog`
+- `pnpm docs:check`
 
 ## Documentation Rule
 
 When you add a new scenario, update at least:
 
-- an example doc
+- a paired KO/EN example doc and sync `llmsData/` (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md,path2.md`)
+- `catalog/repository-surface/example-surface.v1.json` (`pnpm verify:surface-catalog`)
 - the state-machine doc linkage
 - a discovery link in PatternsOverview or a scenario library
 - source registration

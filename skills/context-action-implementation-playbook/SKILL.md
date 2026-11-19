@@ -16,7 +16,7 @@ Do not default every request to a full demo. Start with the smallest shape that 
 - pure business modules (`*Draft.ts`, `*Validation.ts`, `*Result.ts`, `*Activity.ts`, `*StateMachine.ts`) with `ttsc@0.33.1` / `@wrtnlabs/evidence@0.8.0` Policy Hopping locks (`@evidenceReview ./generated/dto.ts#... #hash`, Heading-Form `## @evidence`, or detached `evidenceFiles`)
 - handlers split by concern (`Draft` vs `Submission` / `Hydration`) using `Promise.allSettled` for parallel `@entityRoot` + `@aspectOf` aspect hydration
 - thin views adhering to the 6-Level layout hierarchy, Two Golden Rules, 4-Tier Semantic Z-Index tokens (`--z-base: 1` ~ `--z-toast: 1100`), and Tier 3 Presentation State Waiver (file-header `@evidenceExclude`)
-- source registration, paired KO/EN docs linkage, and local verification gates (`pnpm docs:management`, `pnpm llms:check`, `pnpm convention:check`)
+- source registration, paired KO/EN docs linkage, `catalog/repository-surface/example-surface.v1.json` registration, and local verification gates (`pnpm docs:management`, `pnpm llms:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`)
 
 ## Read these references first
 
@@ -26,6 +26,7 @@ Do not default every request to a full demo. Start with the smallest shape that 
 - `references/test-and-doc-linking.md`
 - `references/maturity-levels.md`
 - `../../docs/ko/context-layered/implementation-convention.md`
+- `../../docs/ko/context-layered/store-selection-and-usage-guide.md`
 - `../../docs/ko/context-layered/triad-evidence-sync-guide.md`
 - `../../docs/ko/context-layered/decisions/CA-SPEC-EVIDENCE-001.md`
 - `../../docs/ko/context-layered/convention-index.md`
@@ -33,6 +34,7 @@ Do not default every request to a full demo. Start with the smallest shape that 
 If the user is working in English, also read:
 
 - `../../docs/en/context-layered/implementation-convention.md`
+- `../../docs/en/context-layered/store-selection-and-usage-guide.md`
 - `../../docs/en/context-layered/triad-evidence-sync-guide.md`
 - `../../docs/en/context-layered/decisions/CA-SPEC-EVIDENCE-001.md`
 - `../../docs/en/context-layered/convention-index.md`
@@ -83,14 +85,16 @@ If the user is working in English, also read:
 
 6. Add verification and run local gates
    - invalid flow, valid flow, post-success draft invalidation, and reset baseline tests
-   - Run the repository governance and documentation gates:
-     - `pnpm docs:management`
-     - `pnpm llms:check`
+   - Run the repository governance, surface-catalog, and documentation gates:
+     - `pnpm verify:surface-catalog`
      - `pnpm convention:check`
+     - `pnpm docs:check` (`pnpm docs:management`, `pnpm llms:check`, `pnpm docs:build`)
+     - `pnpm verify:quick` (and `pnpm verify:receipt`)
 
 7. Add discoverability
    - source registration
-   - paired KO/EN example and convention docs
+   - update `catalog/repository-surface/example-surface.v1.json` (for new canonical routes or demos)
+   - paired KO/EN example and convention docs (sync with `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files a.md,b.md`)
    - scenario library or overview entry
 
 8. Run the iteration loop
@@ -115,8 +119,8 @@ If the user is working in English, also read:
 
 - the scenario follows the standard 6-layer split and intent separation
 - the async workflow has explicit transitions and `Promise.allSettled` aspect resilience when needed
-- paired KO/EN docs and `llmsData/` are synchronized
-- `pnpm docs:management`, `pnpm llms:check`, `pnpm convention:check`, tests, and builds pass
+- paired KO/EN docs, `catalog/repository-surface/example-surface.v1.json`, and `llmsData/` are synchronized
+- `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`, tests, and builds pass (`pnpm verify:quick`)
 
 ## Iterative enhancement rule
 

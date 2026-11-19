@@ -12,17 +12,18 @@ Use this after the scenario structure exists.
 
 ## Recommended commands
 
-- `pnpm docs:management`
-- `pnpm llms:check`
+- `pnpm verify:surface-catalog`
 - `pnpm convention:check`
+- `pnpm docs:check`
+- `pnpm verify:quick`
 - `pnpm test:canonical-example -- --runInBand`
 - `pnpm --dir example type-check`
 - `pnpm --dir example build:fast`
-- `pnpm docs:build`
 
 ## Discoverability checklist
 
 - register source files for the new page and key modules
-- add paired KO/EN docs links (`docs/ko/...` and `docs/en/...`) and sync `llmsData/`
+- update `catalog/repository-surface/example-surface.v1.json` for new canonical routes or demos
+- add paired KO/EN docs links (`docs/ko/...` and `docs/en/...`) and sync `llmsData/` (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files a.md,b.md`)
 - add docs sidebar entry if a new document was added
 - add route discovery from PatternsOverview or a scenario library page

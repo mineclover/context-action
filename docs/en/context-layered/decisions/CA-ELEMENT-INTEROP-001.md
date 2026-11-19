@@ -1,6 +1,6 @@
 # CA-ELEMENT-INTEROP-001: Core subpaths and host-neutral Element bindings
 
-**Status:** accepted for implementation; release cohort unapproved
+**Status:** implemented; initial cohorts promoted (`@context-action/core@1.3.1`, `@context-action/lit@0.1.4`, `@context-action/lit-ui@0.1.4`, `@context-action/preact@0.1.3`, `@context-action/preact-ui@0.2.1`)
 **Owner:** Framework Core & UI Integration
 **Related issue/spec:** CA-ELEMENT-INTEROP-001 (user-approved local boundary design)
 

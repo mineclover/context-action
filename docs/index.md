@@ -15,11 +15,11 @@ features:
   - icon: 🇰🇷
     title: 한국어
     details: 한국어로 문서를 확인하세요
-    link: /ko/guide/overview
+    link: /ko/guide/getting-started
     linkText: 한국어 문서 보기
   - icon: 🇺🇸  
     title: English
     details: View documentation in English
-    link: /en/guide/overview
+    link: /en/guide/getting-started
     linkText: View English Documentation
 ---

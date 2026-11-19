@@ -1,7 +1,7 @@
 # Context-Layered Convention Alignment Plan
 
 **Status:** Direct-registration inventory closed; remaining structural gates tracked
-**Last reviewed:** 2026-07-16
+**Last reviewed:** 2026-11-20
 
 This document records the repository-level decision for aligning existing examples and documentation with the Context-Layered architecture. It sits beside the implementation convention because it describes the current-state classification, the fixed provider composition, and the migration gates needed to make the convention enforceable.
 
@@ -53,7 +53,7 @@ This is a repository convention, not a claim that the runtime requires one order
 
 ## Lint and convention enforcement
 
-The repository uses Biome `2.5.3`, which is the current npm `latest` as of 2026-07-14. Both Biome configurations were migrated with `biome migrate --write` from the deprecated `linter.rules.recommended` option to `linter.rules.preset`. The root configuration remains lint-only for package source, while the example configuration keeps the formatter-enabled `check` gate.
+The repository uses Biome `2.5.15`. Both Biome configurations were migrated with `biome migrate --write` from the deprecated `linter.rules.recommended` option to `linter.rules.preset`. The root configuration remains lint-only for package source, while the example configuration keeps the formatter-enabled `check` gate.
 
 Biome remains responsible for language-level concerns: parsing, formatting, import organization, and generic lint rules. Context-Layered rules are enforced by the repository-specific `pnpm convention:check` command in `scripts/check-context-layered-conventions.mjs`. This split is intentional: a Biome GritQL plugin can match a local syntax pattern, but registry placement, transitional exceptions, Provider ordering, and migration classification are repository structure rules that need file-aware analysis and an explicit migration inventory.
 

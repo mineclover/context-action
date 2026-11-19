@@ -107,9 +107,9 @@ stateDiagram-v2
 
 Relevant files:
 
-- `/Users/junwoobang/workflow/context-action/example/src/pages/patterns/implementation-playbook/business/submissionStateMachine.ts`
-- `/Users/junwoobang/workflow/context-action/example/src/pages/patterns/implementation-playbook/handlers/useCanonicalOrderSubmissionHandlers.tsx`
-- `/Users/junwoobang/workflow/context-action/example/src/pages/patterns/implementation-playbook/handlers/orderHandlerSupport.ts`
+- [`example/src/pages/patterns/implementation-playbook/business/submissionStateMachine.ts`](../../../../example/src/pages/patterns/implementation-playbook/business/submissionStateMachine.ts)
+- [`example/src/pages/patterns/implementation-playbook/handlers/useCanonicalOrderSubmissionHandlers.tsx`](../../../../example/src/pages/patterns/implementation-playbook/handlers/useCanonicalOrderSubmissionHandlers.tsx)
+- [`example/src/pages/patterns/implementation-playbook/handlers/orderHandlerSupport.ts`](../../../../example/src/pages/patterns/implementation-playbook/handlers/orderHandlerSupport.ts)
 
 ## Why It Improves Stability
 
@@ -140,6 +140,6 @@ The transition function is pure, so it is easy to test and compose alongside pur
 
 ## Related Reading
 
-- `/Users/junwoobang/workflow/context-action/docs/en/examples/canonical-order-form.md`
-- `/Users/junwoobang/workflow/context-action/docs/en/context-layered/stability-test-cycle.md`
-- `/Users/junwoobang/workflow/context-action/docs/en/concept/business-logic-separation-guide.md`
+- [Canonical Order Form Example](/en/examples/canonical-order-form)
+- [Stability Test Cycle](/en/context-layered/stability-test-cycle)
+- [Business Logic Separation Guide](/en/concept/business-logic-separation-guide)

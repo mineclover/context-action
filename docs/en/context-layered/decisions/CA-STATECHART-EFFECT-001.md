@@ -1,6 +1,6 @@
 # CA-STATECHART-EFFECT-001: Separate `@context-action/xstate` Adapter Boundary and Core Integration Philosophy
 
-**Status:** accepted for implementation; publication cohort unapproved  
+**Status:** implemented; initial cohort promoted (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/xstate@0.1.0`)  
 **Owner:** Framework Core & Runtime Integration  
 **Related issue/spec:** CA-STATECHART-EFFECT-001 (`packages/xstate/docs/xstate-effect-integration.md`, [CA-ELEMENT-INTEROP-001](./CA-ELEMENT-INTEROP-001.md), [CA-SPEC-EVIDENCE-001](./CA-SPEC-EVIDENCE-001.md))
 

@@ -4,10 +4,10 @@
 **소유자:** Framework Core & Architecture Governance  
 **관련 문서:** [Implementation Convention](./implementation-convention.md), [CA-SPEC-EVIDENCE-001](./decisions/CA-SPEC-EVIDENCE-001.md), [개발 컨벤션 인덱스](./convention-index.md), [패널 레이아웃 Preference 컨벤션](./usecase-panel-layout.md)  
 **연결된 에이전트 스킬:** [`.agents/skills/context-action-implementation-playbook/SKILL.md`](../../../.agents/skills/context-action-implementation-playbook/SKILL.md), [`skills/context-action-implementation-playbook/SKILL.md`](../../../skills/context-action-implementation-playbook/SKILL.md)  
-**상대 워크스페이스 참조 정본:**  
-- `ttsc-ex` 통합 허브: `/Users/junwoobang/workflow/samchon/docs/cross-repo-responsibility-and-sync-guide.md`  
-- `ttsc-ex` 프론트엔드 연동 가이드: `/Users/junwoobang/workflow/samchon/docs/context-action-frontend-evidence-guide.md`  
-- `oa-sdk` 위임 및 동기화 가이드: `/Users/junwoobang/workflow/oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md`
+**상대 워크스페이스 참조 정본** (공유 워크스페이스 루트 `<triad-root>` 기준 상대 경로):  
+- `ttsc-ex` 통합 허브: `../samchon/docs/cross-repo-responsibility-and-sync-guide.md`  
+- `ttsc-ex` 프론트엔드 연동 가이드: `../samchon/docs/context-action-frontend-evidence-guide.md`  
+- `oa-sdk` 위임 및 동기화 가이드: `../oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md`
 
 ---
 
@@ -30,14 +30,14 @@
 
 ### 2.1 상대 워크스페이스 정본 (`ttsc-ex` & `oa-sdk`)
 1. **3대 워크스페이스 책임 분리 및 매핑 허브 (`ttsc-ex`)**
-   - `/Users/junwoobang/workflow/samchon/docs/cross-repo-responsibility-and-sync-guide.md`
+   - `../samchon/docs/cross-repo-responsibility-and-sync-guide.md`
 2. **Context-Action 프론트엔드 Evidence & 레이아웃 통합 명세 (`ttsc-ex`)**
-   - `/Users/junwoobang/workflow/samchon/docs/context-action-frontend-evidence-guide.md`
-   - `/Users/junwoobang/workflow/samchon/docs/menu-driven-layout-hierarchy-guide.md`
-   - `/Users/junwoobang/workflow/samchon/docs/distributed-identity-and-aspect-lifecycle-spec.md`
+   - `../samchon/docs/context-action-frontend-evidence-guide.md`
+   - `../samchon/docs/menu-driven-layout-hierarchy-guide.md`
+   - `../samchon/docs/distributed-identity-and-aspect-lifecycle-spec.md`
 3. **`.tsp` 데코레이터 위임 및 코드젠 브리지 명세 (`oa-sdk`)**
-   - `/Users/junwoobang/workflow/oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md`
-   - `/Users/junwoobang/workflow/oa-sdk/docs/guides/schema-architecture-and-ttsc-guide.md`
+   - `../oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md`
+   - `../oa-sdk/docs/guides/schema-architecture-and-ttsc-guide.md`
 
 ### 2.2 `context-action` 내부 연결 컨벤션 및 스킬
 - **아키텍처 결정 기록**: [`CA-SPEC-EVIDENCE-001.md`](./decisions/CA-SPEC-EVIDENCE-001.md) (KO) / [`CA-SPEC-EVIDENCE-001.md`](../../en/context-layered/decisions/CA-SPEC-EVIDENCE-001.md) (EN)
@@ -170,7 +170,7 @@ orderStore.setValue({
 `ttsc-ex` 또는 `oa-sdk`에서 아키텍처 규약이 업데이트되었을 때, `context-action`에서는 다음 4단계로 변경사항을 자율 반영하고 검증합니다:
 
 1. **Step 1 — 업스트림 변경사항 확인 (Discovery)**
-   - `/Users/junwoobang/workflow/samchon/docs/cross-repo-responsibility-and-sync-guide.md`, `/Users/junwoobang/workflow/samchon/docs/context-action-frontend-evidence-guide.md`, `/Users/junwoobang/workflow/oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md`에서 갱신된 계약·증명·레이아웃 규칙을 확인합니다.
+   - 인접 트라이어드 워크스페이스 루트의 `../samchon/docs/cross-repo-responsibility-and-sync-guide.md`, `../samchon/docs/context-action-frontend-evidence-guide.md`, `../oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md`에서 갱신된 계약·증명·레이아웃 규칙을 확인합니다.
 2. **Step 2 — 한/영 페어 문서 및 에이전트 스킬 동기화 (Docs & Skill Sync)**
    - `docs/ko/context-layered/`와 `docs/en/context-layered/`의 대응 문서([`triad-evidence-sync-guide.md`](./triad-evidence-sync-guide.md), [`CA-SPEC-EVIDENCE-001.md`](./decisions/CA-SPEC-EVIDENCE-001.md), [`implementation-convention.md`](./implementation-convention.md), [`convention-index.md`](./convention-index.md)) 및 에이전트 스킬([`.agents/skills/context-action-implementation-playbook/SKILL.md`](../../../.agents/skills/context-action-implementation-playbook/SKILL.md), [`skills/context-action-implementation-playbook/SKILL.md`](../../../skills/context-action-implementation-playbook/SKILL.md))을 한/영 대칭으로 갱신합니다.
    - 문서 변경 후 `pnpm llms:sync-docs --changed-files ...`로 `llmsData/` 요약 템플릿과 우선순위 메타데이터를 동기화합니다.

@@ -125,39 +125,33 @@ Use multiple lanes instead of one monolithic pipeline.
 - example app type check and build
 - documentation build and link validation
 
-## 0.9.x Release Policy and Gate
+## Current Release Policy and Gate
 
-`0.9.x` is the pre-1.0 stabilization line. Packages version independently and
-do not claim the long-term compatibility guarantee of a 1.0 release. An API
-move or removal is allowed only when its package changelog marks it as breaking,
-the migration documentation names the replacement import, and the release gate
-tests the resulting public artifact.
+Workspace packages follow independent semantic versioning rather than a single pre-1.0 lockstep line (for example Core `1.3.x`, Store Core `0.1.x`, Mutative Core `0.8.x`, Mutative `0.8.x`, React `4.0.x`, XState `0.1.x`, Lit `0.1.x`, Preact `0.1.x`/`0.2.x`; see [Repository Surface Catalog](/en/context-layered/repository-surface-catalog) and [`releases/RELEASE.md`](../../../releases/RELEASE.md)). An API move or removal is allowed only when its package changelog marks it as breaking, migration documentation names the replacement import, and the release gate tests the resulting packed artifact.
 
-For this line, `@context-action/react/tools` is the authoritative ToolContext
-entry. The default `@context-action/react` entry remains deliberately free of
-the tool protocol runtime; applications must migrate ToolContext imports to the
-explicit subpath.
+For React 4, the published `@context-action/react` entry exposes root stores/actions/refs plus `./backend`, `./advanced`, `./utils`, and `./webmcp`. The default `@context-action/react` entry remains free of Durable/tool protocol runtime dependencies, while `@context-action/react/tools` stays workspace-only for standalone development demos while Durable 0.2 is withheld.
 
-Before a tag or manual publish, run:
+For local pre-PR and local-first receipt verification ([Local-First Verification Policy](../../LOCAL_FIRST_VERIFICATION_POLICY.md)), run:
+
+```bash
+pnpm verify:quick   # Fast smoke gate (~15-35s) + .verification/local-receipt.json
+pnpm verify         # Full 17-step local suite + .verification/local-receipt.json
+pnpm verify:receipt # Audit cryptographic receipt integrity
+```
+
+Before a release candidate tag or protected workflow dispatch, run:
 
 ```bash
 pnpm release:check
 ```
 
-It runs the full local verification set, regenerates API docs, verifies that
-generated docs are committed, and executes the canonical example. The publish
-workflow repeats the same gate before publication and performs the
-post-publication consumer install check.
-
-For the 0.8/0.9 stabilization release lane, the gate requires:
+It runs the full local verification set, regenerates API docs, verifies that generated docs match, checks surface catalogs, and validates packed consumers and examples. Protected release workflows verify immutable commits and run post-publication consumer checks against:
 
 - `pnpm build` and `pnpm type-check`
 - `pnpm verify:package-exports` and `pnpm verify:package-tarballs`
-- `pnpm convention:check` and the active package-boundary checks
-- a clean package version/changelog set and published-consumer smoke tests for
-  `@context-action/tool-protocol` and
-  `@context-action/tool-durable-operations`
-- no removed legacy documentation package or generator reference in the active workspace/release graph
+- `pnpm verify:surface-catalog`, `pnpm convention:check`, and `pnpm package-boundary:check`
+- `pnpm docs:check` (including `pnpm docs:management` and `pnpm llms:check`)
+- a clean package version/changelog set and published-consumer smoke tests across the public package cohorts
 
 ## Recommended Assertions
 

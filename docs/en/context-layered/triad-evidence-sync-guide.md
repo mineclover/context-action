@@ -4,10 +4,10 @@
 **Owner:** Framework Core & Architecture Governance  
 **Related Docs:** [Implementation Convention](./implementation-convention.md), [CA-SPEC-EVIDENCE-001](./decisions/CA-SPEC-EVIDENCE-001.md), [Convention Index](./convention-index.md), [Panel Layout Preference Convention](./usecase-panel-layout.md)  
 **Connected Agent Skills:** [`.agents/skills/context-action-implementation-playbook/SKILL.md`](../../../.agents/skills/context-action-implementation-playbook/SKILL.md), [`skills/context-action-implementation-playbook/SKILL.md`](../../../skills/context-action-implementation-playbook/SKILL.md)  
-**Cross-Workspace Canonical References:**  
-- `ttsc-ex` Unified Hub: `/Users/junwoobang/workflow/samchon/docs/cross-repo-responsibility-and-sync-guide.md`  
-- `ttsc-ex` Frontend Integration Guide: `/Users/junwoobang/workflow/samchon/docs/context-action-frontend-evidence-guide.md`  
-- `oa-sdk` Delegation & Sync Guide: `/Users/junwoobang/workflow/oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md`
+**Cross-Workspace Canonical References** (relative to a shared workspace parent `<triad-root>`):  
+- `ttsc-ex` Unified Hub: `../samchon/docs/cross-repo-responsibility-and-sync-guide.md`  
+- `ttsc-ex` Frontend Integration Guide: `../samchon/docs/context-action-frontend-evidence-guide.md`  
+- `oa-sdk` Delegation & Sync Guide: `../oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md`
 
 ---
 
@@ -30,14 +30,14 @@ This guide explains **how engineers and AI agents working in `context-action` ca
 
 ### 2.1 Upstream Workspace Canonical Docs (`ttsc-ex` & `oa-sdk`)
 1. **Three-Workspace Responsibility Split & Mapping Hub (`ttsc-ex`)**
-   - `/Users/junwoobang/workflow/samchon/docs/cross-repo-responsibility-and-sync-guide.md`
+   - `../samchon/docs/cross-repo-responsibility-and-sync-guide.md`
 2. **Context-Action Frontend Evidence & Layout Integration Specs (`ttsc-ex`)**
-   - `/Users/junwoobang/workflow/samchon/docs/context-action-frontend-evidence-guide.md`
-   - `/Users/junwoobang/workflow/samchon/docs/menu-driven-layout-hierarchy-guide.md`
-   - `/Users/junwoobang/workflow/samchon/docs/distributed-identity-and-aspect-lifecycle-spec.md`
+   - `../samchon/docs/context-action-frontend-evidence-guide.md`
+   - `../samchon/docs/menu-driven-layout-hierarchy-guide.md`
+   - `../samchon/docs/distributed-identity-and-aspect-lifecycle-spec.md`
 3. **`.tsp` Decorator Delegation & Codegen Bridge Specs (`oa-sdk`)**
-   - `/Users/junwoobang/workflow/oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md`
-   - `/Users/junwoobang/workflow/oa-sdk/docs/guides/schema-architecture-and-ttsc-guide.md`
+   - `../oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md`
+   - `../oa-sdk/docs/guides/schema-architecture-and-ttsc-guide.md`
 
 ### 2.2 Connected `context-action` Conventions and Skills
 - **Architecture Decision Record**: [`CA-SPEC-EVIDENCE-001.md`](./decisions/CA-SPEC-EVIDENCE-001.md) (EN) / [`CA-SPEC-EVIDENCE-001.md`](../../ko/context-layered/decisions/CA-SPEC-EVIDENCE-001.md) (KO)
@@ -170,7 +170,7 @@ orderStore.setValue({
 When architecture conventions are updated in `ttsc-ex` or `oa-sdk`, pull and verify them in `context-action` using these four steps:
 
 1. **Step 1 — Inspect Upstream Changes (Discovery)**
-   - Review `/Users/junwoobang/workflow/samchon/docs/cross-repo-responsibility-and-sync-guide.md`, `/Users/junwoobang/workflow/samchon/docs/context-action-frontend-evidence-guide.md`, and `/Users/junwoobang/workflow/oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md`.
+   - Review `../samchon/docs/cross-repo-responsibility-and-sync-guide.md`, `../samchon/docs/context-action-frontend-evidence-guide.md`, and `../oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md` in your sibling triad workspace root.
 2. **Step 2 — Synchronize Paired KO/EN Docs and Agent Skills (Docs & Skill Sync)**
    - Update both `docs/ko/context-layered/` and `docs/en/context-layered/` counterparts ([`triad-evidence-sync-guide.md`](./triad-evidence-sync-guide.md), [`CA-SPEC-EVIDENCE-001.md`](./decisions/CA-SPEC-EVIDENCE-001.md), [`implementation-convention.md`](./implementation-convention.md), [`convention-index.md`](./convention-index.md)) plus the agent playbook skills ([`.agents/skills/context-action-implementation-playbook/SKILL.md`](../../../.agents/skills/context-action-implementation-playbook/SKILL.md) and [`skills/context-action-implementation-playbook/SKILL.md`](../../../skills/context-action-implementation-playbook/SKILL.md)).
    - After editing docs, run `pnpm llms:sync-docs --changed-files ...` to keep `llmsData/` templates and priority metadata synchronized.

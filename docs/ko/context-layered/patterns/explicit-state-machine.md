@@ -107,9 +107,9 @@ stateDiagram-v2
 
 관련 파일:
 
-- `/Users/junwoobang/workflow/context-action/example/src/pages/patterns/implementation-playbook/business/submissionStateMachine.ts`
-- `/Users/junwoobang/workflow/context-action/example/src/pages/patterns/implementation-playbook/handlers/useCanonicalOrderSubmissionHandlers.tsx`
-- `/Users/junwoobang/workflow/context-action/example/src/pages/patterns/implementation-playbook/handlers/orderHandlerSupport.ts`
+- [`example/src/pages/patterns/implementation-playbook/business/submissionStateMachine.ts`](../../../../example/src/pages/patterns/implementation-playbook/business/submissionStateMachine.ts)
+- [`example/src/pages/patterns/implementation-playbook/handlers/useCanonicalOrderSubmissionHandlers.tsx`](../../../../example/src/pages/patterns/implementation-playbook/handlers/useCanonicalOrderSubmissionHandlers.tsx)
+- [`example/src/pages/patterns/implementation-playbook/handlers/orderHandlerSupport.ts`](../../../../example/src/pages/patterns/implementation-playbook/handlers/orderHandlerSupport.ts)
 
 ## 왜 안정적인가
 
@@ -140,6 +140,6 @@ stateDiagram-v2
 
 ## 같이 보면 좋은 문서
 
-- `/Users/junwoobang/workflow/context-action/docs/ko/examples/canonical-order-form.md`
-- `/Users/junwoobang/workflow/context-action/docs/ko/context-layered/stability-test-cycle.md`
-- `/Users/junwoobang/workflow/context-action/docs/ko/concept/business-logic-separation-guide.md`
+- [Canonical Order Form 예제](/ko/examples/canonical-order-form)
+- [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
+- [비즈니스 로직 분리 가이드](/ko/concept/business-logic-separation-guide)

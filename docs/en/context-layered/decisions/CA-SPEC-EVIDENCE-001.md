@@ -97,3 +97,9 @@ To avoid friction during early prototyping:
 - `pnpm llms:check`: Verifies `llmsData/` summary template synchronization after doc updates.
 - `pnpm convention:check` (`node scripts/verify-context-action-conventions.mjs`): Verifies Context-Layered 6-layer boundaries, React isolation, and use-case boundaries.
 - `tsp-evidence check specs/**/*.tsp` / `npx evidence check --only <unit> --context`: Verifies TypeSpec and generated TS declaration bindings against frontend pure business functions.
+
+---
+
+## Reversal or Migration Conditions
+
+- If a dedicated frontend compiler linter plugin matures to enforce full native TS decorator contracts without requiring external TypeSpec schemas, the upper SSOT layer can be re-evaluated.

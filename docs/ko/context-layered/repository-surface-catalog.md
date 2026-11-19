@@ -64,7 +64,7 @@
 
 1. 정식 원본(`package.json`, `typedoc.json`, `example/src/App.tsx`, `docs/`)을 먼저 수정합니다.
 2. `catalog/repository-surface/*.v1.json`과 필요한 경우 이 기준 문서(`docs/{en,ko}/context-layered/repository-surface-catalog.md`)를 함께 갱신합니다.
-3. 마크다운 문서를 수정했으면 `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files <paths>`를 실행합니다.
+3. 마크다운 문서를 수정했으면 `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md,path2.md` (쉼표 구분)를 실행합니다.
 4. `pnpm verify:surface-catalog && pnpm convention:check && pnpm docs:check`로 검증합니다.
 
 ---
@@ -169,7 +169,7 @@
 | 파일 | 권한 등급 | 수명주기 | 소유자 | 역할 |
 | --- | --- | --- | --- | --- |
 | `README.md`, `README.en.md`, `README.ko.md` | `discovery` | `active` | Framework Maintainers | GitHub 기본 진입 및 다국어 탐색용 README |
-| `AGENTS.md`, `CLAUDE.md`, `gemini.md` | `discovery` | `active` | Framework Maintainers | AI 에이전트 작업 지침, 빌드 순서, 용어집·검증 규칙 |
+| `AGENTS.md`, `CLAUDE.md`, `gemini.md` | `discovery` | `active` | Framework Maintainers | AI 에이전트 작업 지침, 빌드 순서, 표면 카탈로그·Local-First 검증 규칙 |
 | `CONTRIBUTING.md`, `DEVELOPMENT.md` | `discovery` | `active` | Framework Maintainers | 기여자 온보딩, 모노레포 개발 환경 및 워크플로 안내 |
 | `SECURITY.md` | `authoritative` | `active` | Security & Release Maintainers | 지원 릴리스 라인 보안 범위 및 취약점 보고 정책 |
 | `ECOSYSTEM.md` | `transitional` | `transitional` | Documentation Maintainers | 최신 LLMS·경계 문서와 함께 유지되는 과도기 생태계 개요 |
@@ -199,7 +199,7 @@
 
 - `docs/api/generated` (`pnpm docs:api`) ← `typedoc.json` + export된 TypeScript 소스/JSDoc
 - `docs/en/api` 및 `docs/.vitepress/config/api-spec.ts` (`pnpm docs:sync`) ← `docs/api/generated` + `typedoc-vitepress-sync`
-- `llmsData` (`pnpm llms:sync-docs --changed-files <paths>`) ← `docs/{en,ko}/**/*.md`
+- `llmsData` (`pnpm llms:sync-docs --changed-files path1.md,path2.md`) ← `docs/{en,ko}/**/*.md`
 - `docs/{en,ko}/llms/llms-origin.txt`, `llms-500chars.txt`, `llms-minimal.txt` (`llms-generate`) ← `llmsData/{en,ko}/**`
 
 ---

@@ -19,8 +19,7 @@ you know which artifact you own.
 | `ttsc-ex` · `oa-sdk` contract locks, intent separation, or layout hierarchy sync | [Unified Triad Self-Serve Sync Guide](/en/context-layered/triad-evidence-sync-guide) | `pnpm docs:management && pnpm llms:check && pnpm convention:check` |
 | a canonical example/usecase | [Implementation Convention](/en/context-layered/implementation-convention) | `pnpm convention:check` and example checks |
 
-For a release candidate, use `pnpm verify:all`; it composes the repository
-checks rather than replacing focused evidence.
+For local pre-PR receipt verification ([Local-First Verification Policy](../../LOCAL_FIRST_VERIFICATION_POLICY.md)), run `pnpm verify:quick` (fast smoke) or `pnpm verify` (full 17-step local suite) and verify with `pnpm verify:receipt`. For a full release candidate preflight, use `pnpm verify:all`; it composes the repository checks rather than replacing focused evidence.
 
 ## Grouped by Role
 
@@ -92,26 +91,22 @@ checks rather than replacing focused evidence.
 
 ### 4. Documents that define verification
 
+- [Documentation and Development Management](/en/concept/documentation-development-conventions)
+  - canonical doc ownership, comma-separated LLMS sync, build order, and docs gates (`pnpm docs:check`)
+- [Local-First Verification Policy](../../LOCAL_FIRST_VERIFICATION_POLICY.md)
+  - single local entrypoints (`pnpm verify`, `pnpm verify:quick`) and RFC 8785 cryptographic receipt rules (`pnpm verify:receipt`)
 - [Stability Test Cycle](/en/context-layered/stability-test-cycle)
   - how to split contract tests, scenario tests, and stress validation
 - [Next Work and Documentation Ownership](/en/context-layered/next-work)
   - the single backlog and source-of-truth map for follow-up work
 
-The general repository convention gate is:
+The repository convention & surface-catalog gate runs via:
 
 ```bash
 pnpm convention:check
 ```
 
-For the complete Context-Action integration gate, run:
-
-```bash
-node scripts/verify-context-action-conventions.mjs
-```
-
-It adds the example use-case recipe, MCP/function-calling catalog, integration-profile catalog, and
-standalone Web Studio action boundaries. Use `pnpm web-coding:verify` for the
-standalone build, filesystem, provider, preview, and browser release checks.
+(`pnpm convention:check` invokes `node scripts/verify-context-action-conventions.mjs`, checking Context-Layered boundaries, example use-case recipes, MCP/function-calling catalog, integration profiles, repository surface catalogs via `pnpm verify:surface-catalog`, and standalone Web Studio action boundaries.) Use `pnpm web-coding:verify` for standalone build, filesystem, provider, preview, and browser release checks.
 
 ## Reading Paths by Goal
 

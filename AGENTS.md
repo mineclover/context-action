@@ -6,12 +6,12 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 This is a TypeScript monorepo for the **Context-Action framework** - a revolutionary state management system designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
 
-## 🎯 Current Status (August 2026)
+## 🎯 Current Status (November 2026)
 
-**Framework Stability: Release stabilization in progress**
+**Framework Stability: Multi-package monorepo with promoted stable/preview cohorts**
 
 Do not rely on historical suite counts or a static “production ready” label.
-The source of truth is the current protected validation pipeline:
+The source of truth is the current protected validation pipeline (`pnpm verify`, `pnpm verify:quick`, `pnpm release:check`):
 
 - `pnpm release:check` for the complete local release preflight
 - full strict source and test type checking across workspace packages
@@ -87,9 +87,16 @@ Context-Action provides sophisticated handler and trigger management that existi
 - **Conditional Triggers**: Smart triggers based on business rules and conditions
 - **Trigger Cleanup**: Automatic cleanup prevents memory leaks and stale references
 
-### Package Structure
-- `@context-action/core` - Core action pipeline management (no React dependency)
-- `@context-action/react` - React integration with Context API and hooks
+### Package Structure (20 Workspace Packages Across 6 Layers)
+
+See [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) (`catalog/repository-surface/api-surface.v1.json`, `CA-SURFACE-CATALOG-001`) and [Package Boundary Convention](docs/en/context-layered/package-boundary-convention.md) for the complete inventory, exports, and dependency rules, and [Store Selection and Usage Guide](docs/en/context-layered/store-selection-and-usage-guide.md) for choosing Store/state primitives:
+
+- **Foundation (`5`)**: `@context-action/core`, `@context-action/store-core`, `@context-action/mutative-core`, `@context-action/tool-protocol`, `@context-action/tool-durable-operations`
+- **Framework Adapters (`4`)**: `@context-action/react`, `@context-action/mutative`, `@context-action/lit`, `@context-action/preact`
+- **UI Runtimes (`2`)**: `@context-action/lit-ui`, `@context-action/preact-ui`
+- **Integration Adapters (`3`)**: `@context-action/xstate`, `@context-action/ai-sdk`, `@context-action/webmcp`
+- **Tooling (`3`)**: `@context-action/llms-generator`, `@context-action/typedoc-vitepress-sync`, `@context-action/style-testing`
+- **Private Host Support (`3`)**: `@context-action/live-code-editor`, `@context-action/openrouter-browser-storage`, `@context-action/template-react`
 
 ### Key Architectural Patterns
 
@@ -230,8 +237,12 @@ pnpm test              # All packages
 pnpm test:core         # Specific package
 
 # Linting and type checking
-pnpm lint              # ESLint for all packages
+pnpm lint              # Biome linting across workspace
 pnpm type-check        # TypeScript compilation check
+pnpm convention:check  # Context-Layered boundaries + CA-SURFACE-CATALOG-001 surface catalog gate
+pnpm verify:surface-catalog # Machine-verifiable API / Example / Document surface catalog parity
+pnpm package-boundary:check # Cross-package import & export boundary gate
+pnpm change:traceability    # PR traceability check (issue # or CA-* ID)
 
 # Clean build artifacts
 pnpm clean
@@ -290,34 +301,32 @@ release plan. Direct local publishing is disabled; `pnpm release` and
 `pnpm release:patch` intentionally fail closed. Follow
 [`releases/RELEASE.md`](releases/RELEASE.md) and the protected workflows.
 
-`packages/lit` and `packages/lit-ui` are public packages (0.1.0, published
-2026-10-23) and participate in Lerna's independent versioning and public package
-verification. Their full gate is `pnpm check:lit` (build, type-check, unit, edge
-runtime); it is wired into `verify:all`, lint, the PR verification workflow, and
-the main CI browser hydration contract (`@context-action/lit-ui test:browser`).
-Public registry publication uses `releases/LIT_PUBLIC_0.1.0.md`,
-`publish-lit-public-candidate.yml`, and `promote-lit-public.yml`.
+`packages/lit` (`0.1.4`) and `packages/lit-ui` (`0.1.4`) alongside `packages/preact` (`0.1.3`), `packages/preact-ui` (`0.2.1`), `packages/store-core` (`0.1.4`), and `packages/xstate` (`0.1.0`) participate in Lerna's independent versioning and public package verification (see `releases/RELEASE.md`). The Lit gate is `pnpm check:lit` (build, type-check, unit, edge runtime); it is wired into `verify:all`, lint, `pr-verify.yml`, and the main CI browser hydration contract (`@context-action/lit-ui test:browser`).
 
 ### Documentation
 ```bash
-# Documentation development
+# Documentation development and verification
 pnpm docs:dev          # VitePress dev server
+pnpm docs:management   # Paired docs, issue templates, convention discovery & ADR checks
+pnpm llms:check        # Detect stale/mismatched LLMS summaries
 pnpm docs:build        # Build documentation
+pnpm docs:check        # docs:management + llms:check + docs:build (canonical docs gate)
 pnpm docs:api          # Generate API docs with TypeDoc
-pnpm docs:sync         # Sync API docs to documentation (with smart caching)
-pnpm docs:full         # Full documentation build pipeline
+pnpm docs:sync         # Sync API docs to VitePress (does not sync LLMS artifacts)
+pnpm docs:full         # Full API-reference refresh pipeline (docs:api + docs:sync + docs:build)
 ```
 
 ### LLMS Generator Commands
 
-The project includes a sophisticated **LLMS Generator** system that automatically converts long documentation into multiple summary lengths (100-5000 characters) with priority management.
+The project includes **LLMS Generator** (`@context-action/llms-generator`) to automatically convert documentation into multiple summary lengths (100-5000 characters) with priority management.
 
 **🎯 Quick Overview:**
+- **Build first**: Run `pnpm build:llms-generator` before running `pnpm llms:sync-docs`.
+- **Comma-separated `--changed-files`**: Pass changed paths as a single comma-separated argument (`pnpm llms:sync-docs --changed-files docs/en/a.md,docs/ko/a.md`). Space-separated paths drop every file after the first, and `--changed-files=...` with `=` fails.
 - **Template Generation**: Converts `docs/ko/concept/pattern-guide.md` → `llmsData/ko/concept--pattern-guide/` with 7 different summary lengths
-- **Document Combination**: Creates single LLMS files by combining multiple documents with size limits
-- **Auto-trigger**: Git post-commit hook processes changed docs automatically
+- **Document Combination**: Creates combined LLMS files within size limits
+- **Auto-trigger**: `.husky/post-commit` runs `sync-docs` after doc commits without creating an extra commit (check `git status --short` before `pnpm verify:quick`)
 - **Most used**: `pnpm llms:sync-docs --changed-files docs/path/to/file.md` (templates)
-- **New feature**: `llms-generate --character-limit 1000 --pattern origin` (combined files)
 
 **Core Commands:**
 
@@ -356,10 +365,10 @@ pnpm llms:work-next         # Find next documentation work based on priorities
 #### LLMS Advanced Usage
 
 ```bash
-# Advanced language filtering
-node packages/llms-generator/dist/cli/index.js sync-docs --languages ko,en --changed-files files...
-node packages/llms-generator/dist/cli/index.js sync-docs --only-korean --changed-files files...
-node packages/llms-generator/dist/cli/index.js sync-docs --no-korean --changed-files files...
+# Advanced language filtering (comma-separated --changed-files paths)
+node packages/llms-generator/dist/cli/index.js sync-docs --languages ko,en --changed-files file1.md,file2.md
+node packages/llms-generator/dist/cli/index.js sync-docs --only-korean --changed-files file1.md,file2.md
+node packages/llms-generator/dist/cli/index.js sync-docs --no-korean --changed-files file1.md,file2.md
 
 # Custom priority criteria
 node packages/llms-generator/dist/cli/index.js priority-auto --criteria ./custom-criteria.json --force
@@ -369,7 +378,7 @@ node packages/llms-generator/dist/cli/index.js work-next --language ko --verbose
 node packages/llms-generator/dist/cli/index.js work-next --language en --verbose
 
 # Dry run and testing
-node packages/llms-generator/dist/cli/index.js sync-docs --dry-run --changed-files files...
+node packages/llms-generator/dist/cli/index.js sync-docs --dry-run --changed-files file1.md,file2.md
 
 # LLMS File Generation Examples
 node packages/llms-generator/dist/cli/index.js llms-generate --character-limit 1000 --pattern standard
@@ -393,12 +402,12 @@ node packages/llms-generator/dist/cli/index.js llms-generate --pattern minimum -
 
 #### Automated Workflow (Post-commit Hook)
 
-The LLMS Generator system automatically processes documentation changes via a post-commit hook:
+`.husky/post-commit` assists documentation commits by running `llms-generator` after a commit touches `docs/(en|ko)/**/*.md`:
 
-1. **Detection**: Automatically detects changes in `docs/(en|ko)/**/*.md` files
+1. **Detection**: Automatically detects changes in `docs/(en|ko)/**/*.md` files from `HEAD~1..HEAD`
 2. **Processing**: Generates 7 character-limited templates (100, 200, 300, 500, 1000, 2000, 5000 chars)
-3. **Metadata**: Creates `priority.json` with title extraction, language detection, and tag generation
-4. **Commit**: Creates separate commits for LLMS files to maintain clean history
+3. **Metadata**: Updates `priority.json` with title extraction, language detection, and tag generation
+4. **Working Tree Check**: Leaves any generated updates unstaged in the working tree (it does **not** create an automatic extra commit)—inspect `git status --short` and commit them before running `pnpm verify:quick`
 5. **Language Support**: Full English and Korean processing with intelligent language detection
 
 **Generated Structure:**
@@ -498,7 +507,7 @@ node packages/llms-generator/dist/cli/index.js combine-references docs/en/concep
 ### Example Application
 ```bash
 # Example app (in example/ directory)
-pnpm example:dev       # Development server
+pnpm dev               # Development server for example app
 pnpm example:build     # Build with TypeScript strict checking (default)
 pnpm example:build:fast # Fast build without TypeScript checking
 
@@ -697,9 +706,15 @@ function EventComponent() {
 ## Key Files and Directories
 
 - `packages/core/src/ActionRegister.ts` - Core action pipeline implementation
-- `packages/react/src/store/` - Store system implementation
+- `packages/react/src/stores/` - Store system implementation
 - `packages/react/src/actions/ActionContext.tsx` - React action context integration
 - `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx` - Declarative Store Pattern implementation
+- `catalog/repository-surface/*.v1.json` - Machine-verifiable API, Example, and Document surface catalogs (`CA-SURFACE-CATALOG-001`)
+- `docs/en/context-layered/convention-index.md` - Central convention entry index
+- `docs/en/context-layered/repository-surface-catalog.md` - Complete 20-package, 72-route, and document inventory
+- `docs/en/context-layered/store-selection-and-usage-guide.md` - Package-wide Store selection matrix & usage patterns
+- `docs/en/context-layered/change-management-convention.md` - Spec, issue, ADR, and review traceability rules
+- `docs/en/concept/documentation-development-conventions.md` - Authoritative doc production and verification rules
 - `docs/en/concept/pattern-guide.md` - Complete pattern guide with two main approaches
 - `docs/en/concept/architecture-guide.md` - Complete architecture guide with Context Store Pattern
 - `docs/en/context-layered/context-layered-guide.md` - Context-Layered Architecture guide with 6-layer structure
@@ -707,7 +722,7 @@ function EventComponent() {
 - `docs/en/concept/hooks-reference.md` - Complete hooks reference documentation
 - `example/src/` - Comprehensive example application
 - `docs/` - VitePress documentation source
-- `scripts/` - Build and utility scripts
+- `scripts/` - Build and verification scripts
 
 ## Framework Architecture Patterns
 
