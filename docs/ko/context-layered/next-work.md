@@ -185,5 +185,5 @@ guide가 소유한다.
 - [ ] 수정 전에 소유 package와 기준 문서를 정한다.
 - [ ] ownership table이 요구하는 교차 링크 외에는 의미 문서 또는 runbook 한 곳만 수정한다.
 - [ ] focused test와 contract/fixture version을 추가한다.
-- [ ] 문서가 안정된 뒤 영문/국문과 LLMS artifact를 생성한다.
-- [ ] `pnpm docs:management`, package focused check, `pnpm docs:build`를 실행한다.
+- [ ] 문서가 안정된 뒤 영문/국문과 LLMS artifact를 생성한다 (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md,path2.md`).
+- [ ] `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`, package focused check, `pnpm verify:quick`(`pnpm verify:receipt`)을 실행한다.

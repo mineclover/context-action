@@ -1,6 +1,6 @@
 # CA-ELEMENT-INTEROP-001: Core subpath와 호스트 중립 Element binding
 
-**상태:** 구현 채택, 릴리스 버전 조합 미승인
+**상태:** 구현 및 초기 코호트 배포 완료 (`@context-action/core@1.3.1`, `@context-action/lit@0.1.4`, `@context-action/lit-ui@0.1.4`, `@context-action/preact@0.1.3`, `@context-action/preact-ui@0.2.1`)
 **소유자:** Framework Core & UI Integration
 **관련 이슈/스펙:** CA-ELEMENT-INTEROP-001 (사용자 승인 로컬 경계 설계)
 

@@ -5,51 +5,43 @@ Comprehensive development setup and workflow guide for the Context-Action framew
 ## 🏗️ Project Architecture
 
 ### Monorepo Structure
+See [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) (`catalog/repository-surface/api-surface.v1.json`) and [Store Selection and Usage Guide](docs/en/context-layered/store-selection-and-usage-guide.md) for the complete 20-package inventory and Store selection matrix.
+
 ```
 context-action/
-├── packages/                          # Main packages
-│   ├── core/                         # @context-action/core (Pure TypeScript)
-│   │   ├── src/
-│   │   │   ├── ActionRegister.ts     # Core action pipeline
-│   │   │   ├── action-guard.ts       # Action guard system  
-│   │   │   ├── execution-modes.ts    # Execution strategies
-│   │   │   ├── types.ts              # Type definitions
-│   │   │   └── index.ts              # Public API exports
-│   │   ├── __tests__/               # Unit tests
-│   │   ├── tsdown.config.ts         # Build configuration
-│   │   └── package.json
-│   │
-│   ├── react/                        # @context-action/react (React integration)
-│   │   ├── src/
-│   │   │   ├── actions/              # Action system
-│   │   │   │   ├── ActionContext.tsx # React action context
-│   │   │   │   └── utils/           # Action utilities
-│   │   │   ├── stores/               # Store system
-│   │   │   │   ├── core/            # Store implementation
-│   │   │   │   ├── hooks/           # Store hooks
-│   │   │   │   ├── patterns/        # Store patterns
-│   │   │   │   └── utils/           # Store utilities  
-│   │   │   ├── refs/                # Ref context system
-│   │   │   └── index.ts             # Public API exports
-│   │   ├── __tests__/              # Integration tests
-│   │   └── package.json
-│   │
-│   ├── llms-generator/              # Documentation tooling
-│   │   ├── src/
-│   │   │   ├── cli/                 # CLI implementation
-│   │   │   ├── core/                # Core functionality
-│   │   │   └── types/               # Type definitions
-│   │   ├── bin/llms                 # Global CLI binary
-│   │   └── package.json
-│   │
-│   └── typedoc-vitepress-sync/      # Documentation sync tools
-│
-├── example/                          # Comprehensive example app
-├── docs/                            # VitePress documentation
-├── llmsData/                        # Generated LLMS content
-├── scripts/                         # Build and utility scripts
-├── .husky/                          # Git hooks
-└── .github/workflows/               # CI/CD pipelines
+├── catalog/                           # Integration profiles & repository-surface catalogs (CA-SURFACE-CATALOG-001)
+├── packages/                          # 20 workspace packages across 6 layers
+│   ├── core/, store-core/, mutative-core/, tool-protocol/, tool-durable-operations/
+│   ├── react/, mutative/, lit/, preact/
+│   ├── lit-ui/, preact-ui/
+│   ├── xstate/, ai-sdk/, webmcp/
+│   ├── llms-generator/, typedoc-vitepress-sync/, style-testing/
+│   └── live-code-editor/, openrouter-browser-storage/, template-react/
+├── example/                           # Comprehensive example app (72 canonical routes)
+├── demos/                             # Standalone demos (e.g., bolt-style-editor)
+├── skills/                            # Context-Action Implementation Playbook skills
+├── releases/                          # Protected release guide and cohort manifests
+├── docs/                              # VitePress documentation
+├── llmsData/                          # Generated LLMS summaries
+├── scripts/                           # Build, catalog, and verification scripts
+├── .husky/                            # Git hooks (post-commit LLMS assist)
+└── .github/workflows/                 # CI/CD and protected release pipelines
+```
+
+### Workspace Build Order
+Lower-level runtime packages (`core`, `store-core`, `mutative-core`, `tool-protocol`, `tool-durable-operations`) must build before higher-level adapters (`mutative`, `react`, `xstate`, `lit`/`lit-ui`, `preact`/`preact-ui`, `ai-sdk`, `webmcp`) and consumers (`example`, `demos/bolt-style-editor`):
+
+```bash
+# Build all workspace library packages in topological order
+pnpm build
+pnpm example:build
+
+# Focused sequence after core or react source changes
+pnpm build:core
+pnpm build:react
+pnpm --filter example type-check
+pnpm --filter example check
+pnpm example:build
 ```
 
 ## 🚀 Development Setup
@@ -173,7 +165,7 @@ pnpm test
 
 # Run tests for specific package
 pnpm test:core
-pnpm test:react
+pnpm --filter @context-action/react test
 
 # Watch mode for development
 cd packages/core && pnpm test:watch
@@ -194,35 +186,34 @@ pnpm test ActionRegister.test.ts
 ## 📋 Code Quality
 
 ### Static Analysis
-- **ESLint**: Code linting with TypeScript rules
-- **TypeScript**: Strict type checking enabled
-- **Prettier**: Code formatting (integrated with ESLint)
+- **Biome**: Linting across workspace (`pnpm lint`) and formatting + checks in `example/` (`pnpm --filter example check`)
+- **TypeScript**: Strict compilation (`pnpm type-check`) across source and tests
+- **Governance & Boundary Gates**: `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm package-boundary:check`, `pnpm docs:check`
 
 ### Quality Commands
 ```bash
 # Local-First verification (Issue #50, #53)
-pnpm verify:quick      # Fast smoke verification (~15s) & receipt generation
-pnpm verify            # Full 13-suite repository verification (~80s)
-pnpm verify:receipt    # Audit local verification receipt (<0.1s, fail-closed)
+pnpm verify:quick           # Fast smoke verification (~15-35s) & receipt generation
+pnpm verify                 # Full 17-step repository verification & receipt generation
+pnpm verify:receipt         # Audit local verification receipt (<0.1s, fail-closed)
 
-# Run linting
+# Run linting, type checking, surface catalogs, and boundary gates
 pnpm lint
-
-# Fix linting issues
-pnpm lint --fix
-
-# Type checking
+pnpm exec biome check --write <paths>
 pnpm type-check
+pnpm verify:surface-catalog
+pnpm convention:check
+pnpm package-boundary:check
 
 # Full quality check
 pnpm lint && pnpm type-check && pnpm test
 ```
 
-### Pre-commit Hooks
+### Git Hooks
 ```bash
-# Automatically configured via .husky/
-.husky/pre-commit      # Runs lint-staged
-.husky/post-commit     # Runs LLMS Generator
+# Configured via .husky/
+.husky/pre-commit      # No-op (verification runs explicitly via pnpm verify / pnpm verify:quick)
+.husky/post-commit     # Assists LLMS sync on docs/(en|ko)/**/*.md changes (does not auto-commit)
 ```
 
 ## 🚀 Development Workflows
@@ -236,7 +227,7 @@ git checkout -b feature/new-store-selectors
 # Edit files in packages/react/src/
 
 # 3. Run tests during development  
-pnpm test:react --watch
+pnpm --filter @context-action/react test -- --watch
 
 # 4. Build and test
 pnpm build && pnpm test
@@ -281,30 +272,34 @@ The source-of-truth rules for hand-authored guides, generated API references,
 LLMS artifacts, and proportional verification are in [Documentation and
 Development Management Conventions](docs/en/concept/documentation-development-conventions.md).
 
-### VitePress Documentation
+### VitePress Documentation & Verification
 ```bash
 # Start documentation dev server
 pnpm docs:dev
 
-# Build documentation
+# Verify documentation management, LLMS freshness, and VitePress build
+pnpm docs:management
+pnpm llms:check
 pnpm docs:build
+pnpm docs:check        # Canonical combined docs gate (docs:management + llms:check + docs:build)
 
-# Generate API documentation
+# Verify machine-verifiable catalogs and Context-Layered conventions
+pnpm verify:surface-catalog
+pnpm convention:check
+
+# Generate and sync API documentation (does not regenerate LLMS artifacts)
 pnpm docs:api
-
-# Sync API docs to VitePress
 pnpm docs:sync
-
-# Full documentation pipeline
 pnpm docs:full
 ```
 
 ### LLMS Generator Integration
 ```bash
-# Process documentation changes
-pnpm llms:sync-docs
+# Build llms-generator first, then pass comma-separated paths
+pnpm build:llms-generator
+pnpm llms:sync-docs --changed-files docs/en/guide/a.md,docs/ko/guide/a.md
 
-# Generate priority-based content
+# Priority & work management
 pnpm llms:priority-stats
 pnpm llms:work-next
 
@@ -398,8 +393,8 @@ pnpm build --verbose
 
 #### Dependency Resolution
 ```bash
-# Clear node_modules and reinstall
-pnpm clean:deps && pnpm install
+# Clean build artifacts and reinstall
+pnpm clean && pnpm install --frozen-lockfile
 
 # Update dependencies
 pnpm update

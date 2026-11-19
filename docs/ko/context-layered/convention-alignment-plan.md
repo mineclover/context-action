@@ -1,7 +1,7 @@
 # Context-Layered 컨벤션 정합성 계획
 
 **상태:** 직접 등록 인벤토리 종료, 잔여 구조 게이트 추적 중
-**최근 검토:** 2026-07-16
+**최근 검토:** 2026-11-20
 
 이 문서는 기존 예제와 문서를 Context-Layered 구조에 맞추기 위한 저장소 단위 결정을 기록합니다. 구현 표준 문서와 같은 위치에서 현재 상태 분류, Provider 중첩 순서, 컨벤션을 강제하기 위한 완료 조건을 관리합니다.
 
@@ -53,7 +53,7 @@ canonical 중첩 순서는 다음과 같습니다.
 
 ## 린트와 컨벤션 검사
 
-저장소는 2026-07-14 기준 npm `latest`인 Biome `2.5.3`을 사용합니다. 두 Biome 설정은 `biome migrate --write`로 deprecated 된 `linter.rules.recommended`를 `linter.rules.preset`으로 마이그레이션했습니다. 루트 설정은 패키지 소스에 대한 lint-only 정책을 유지하고, example 설정은 formatter를 포함하는 `check` 게이트를 유지합니다.
+저장소는 Biome `2.5.15`를 사용합니다. 두 Biome 설정은 `biome migrate --write`로 deprecated 된 `linter.rules.recommended`를 `linter.rules.preset`으로 마이그레이션했습니다. 루트 설정은 패키지 소스에 대한 lint-only 정책을 유지하고, example 설정은 formatter를 포함하는 `check` 게이트를 유지합니다.
 
 Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 검사를 담당합니다. Context-Layered 규칙은 저장소 전용 명령인 `pnpm convention:check`와 `scripts/check-context-layered-conventions.mjs`에서 검사합니다. Biome GritQL 플러그인은 한 파일의 문법 패턴에는 적합하지만, Registry 위치, transitional 예외, Provider 순서, 마이그레이션 분류처럼 파일 경계와 인벤토리를 알아야 하는 규칙은 별도의 구조 검사기로 두는 편이 안정적입니다.
 

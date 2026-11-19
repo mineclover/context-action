@@ -83,8 +83,11 @@ The diagram describes ownership, not import syntax. In particular:
 - `tool-protocol` is framework-neutral and does not depend on `core` or `react`; it owns the provider/tool boundary.
 - `ai-sdk` is a thin optional provider adapter. It depends on `tool-protocol` and has `ai` as a required peer, but it never depends on React, core execution, provider credentials, or an application model client.
 - `tool-durable-operations` is framework-neutral and does not depend on `core`, `react`, or `tool-protocol`; it owns durable mutation recovery and provider side-effect adapters.
-- `react` consumes `core` and `mutative`; `mutative` consumes only the lower-level `mutative-core` runtime and does not import React types.
-- `preact` consumes the framework-neutral `core` action contracts and exposes only Preact Context and read-only Signals adapters. `preact-ui` consumes `preact` and owns DOM roots, templates, SSR/hydration, and disposal. Both packages are public preview packages on the 0.1.x line and remain independent from the React adapter.
+- `react` consumes `core`, `store-core`, and `mutative` (plus optional `tool-protocol` / `webmcp` peer integrations); `mutative` consumes `mutative-core` and `store-core` and does not import React types.
+- `lit` consumes `core`, and `lit-ui` consumes `core` and `lit` (W3C `@lit/context`, FACE, SSR/hydration, `./react-bridge`). Both packages are promoted preview packages on the `0.1.x` line and remain independent from React.
+- `preact` consumes the framework-neutral `core` action contracts and exposes only Preact Context and read-only Signals adapters. `preact-ui` consumes `core` and `preact` and owns DOM roots, templates, SSR/hydration, and disposal (`0.2.1`, promoted preview, independent from the React adapter).
+- `xstate` consumes `core` and `store-core`, separating XState v5/v6 actor bridges (`.`) from Effect / Standard Schema / transaction scopes (`./effect`) per [CA-STATECHART-EFFECT-001](./decisions/CA-STATECHART-EFFECT-001.md).
+- `webmcp` consumes `tool-protocol` and exposes allowlisted `document.modelContext` tool scopes in compatible browsers without depending on React or model-provider SDKs.
 - `preact-ui` may expose an optional React bridge as a separate export, but its runtime contract does not make React a required dependency.
 - `mutative-core` remains upstream-compatible and must not depend on Context-Action adapters or React.
 - documentation generators may inspect source and docs, but runtime packages must not depend on generators.
@@ -206,26 +209,27 @@ pnpm --filter example check
 pnpm example:build
 ```
 
-Add package-specific tests and package export/tarball checks when the public surface changes.
+Add package-specific tests, `pnpm verify:surface-catalog`, `pnpm verify:quick`, and package export/tarball checks when the public surface changes.
 
 ### Step 5 — update the ownership graph
 
 Before handoff, update all affected layers:
 
 1. package manifest and exports;
-2. package README and authoritative guide;
-3. tests and fixtures;
-4. dependency declaration, boundary check, or decision record;
-5. English/Korean public pages when the behavior is public;
-6. generated artifacts only after their source is correct.
+2. `catalog/repository-surface/api-surface.v1.json` and [Repository Surface Catalog](./repository-surface-catalog.md) (`CA-SURFACE-CATALOG-001`);
+3. package README and authoritative guide;
+4. tests and fixtures;
+5. dependency declaration, boundary check, or decision record;
+6. English/Korean public pages when the behavior is public;
+7. generated artifacts only after their source is correct.
 
 ## 6. Adding, merging, splitting, or deprecating packages
 
 ### Add
 
 A new package needs a package ID, owner, stability status, one-sentence responsibility, public/private
-decision, dependency graph, export contract, focused test command, README, authoritative guide, and a
-boundary check or decision record. If it is private or experimental, state the promotion criteria.
+decision, dependency graph, export contract, focused test command, README, authoritative guide, entry in
+`catalog/repository-surface/api-surface.v1.json` (`pnpm verify:surface-catalog`), and a boundary check or decision record. If it is private or experimental, state the promotion criteria.
 
 ### Merge
 
@@ -274,5 +278,7 @@ stop adding new cross-package consumers, and add a verification gate that preven
 ## Related documents
 
 - [Convention Index](./convention-index)
+- [Repository Surface Catalog](./repository-surface-catalog)
+- [Store Selection and Usage Guide](./store-selection-and-usage-guide)
 - [Implementation Convention](./implementation-convention)
 - [Specification, Issue, and Documentation Management](./change-management-convention)

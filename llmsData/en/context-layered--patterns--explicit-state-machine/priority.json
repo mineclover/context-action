@@ -2,7 +2,7 @@
   "document": {
     "id": "context-layered--patterns--explicit-state-machine",
     "title": "Explicit State Machine",
-    "category": "concept",
+    "category": "context-layered",
     "source_path": "en/context-layered/patterns/explicit-state-machine.md",
     "lastModified": "2026-03-29T15:57:12.439Z",
     "wordCount": 601
@@ -195,7 +195,7 @@
     "version": "1.0.0",
     "original_size": 4769,
     "created_at": "2026-07-24T05:15:02.262Z",
-    "source_last_modified": "2026-03-29T15:57:12.439Z",
+    "source_last_modified": "2026-11-19T23:08:18.452Z",
     "keywords": {
       "primary": [
         "context-layered",
@@ -215,6 +215,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-11-19T23:08:55.289Z"
   }
 }

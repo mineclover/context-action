@@ -1,7 +1,7 @@
 # Specification, Issue, and Documentation Management Convention
 
 **Status:** Active
-**Last reviewed:** 2026-07-17
+**Last reviewed:** 2026-11-20
 **Scope:** feature work, architecture changes, bug fixes, and public documentation
 
 This document defines the operating layer between a request and a verified
@@ -54,6 +54,7 @@ replace another.
 | Code and tests | Does the contract work? | implementation anchors and executable evidence | the only explanation of user behavior |
 | Public documentation | How should a user or contributor understand it? | current behavior, usage, limits, verification path | an unimplemented future design |
 | Tracked specification/decision | Which boundary is stable and who owns it? | stable ID, owner, evidence, decision record | a file inventory without semantics |
+| Machine-verifiable surface catalog | Which packages, routes, and managed docs exist (`CA-SURFACE-CATALOG-001`)? | exact inventories under `catalog/repository-surface/*.v1.json` synced with [Repository Surface Catalog](./repository-surface-catalog) | a substitute for behavioral specs or ADRs |
 | Generated output | Which derived artifact is published? | generator source and reproducible command | the canonical source |
 
 The preferred trace is:
@@ -246,25 +247,31 @@ in the commit or PR body. Do not use a commit hash as the only issue link.
 Use the smallest command set that proves the changed surface:
 
 ```bash
-# Hand-authored guide or convention
-pnpm llms:sync-docs --changed-files <paths>
+# Hand-authored guide or convention (requires built llms-generator; comma-separated paths)
+pnpm build:llms-generator
+pnpm llms:sync-docs --changed-files path1.md,path2.md
 pnpm docs:check
 
 # Exported API or API JSDoc
 pnpm docs:api && pnpm docs:sync
 pnpm docs:build
 
-# Pull-request traceability and canonical example structure, when applicable
+# Pull-request traceability, surface catalogs, canonical example structure, and Local-First receipt
 pnpm change:traceability
+pnpm verify:surface-catalog
 pnpm convention:check
+pnpm verify:quick && pnpm verify:receipt
 ```
 
 `pnpm docs:check` checks documentation-management metadata, LLMS freshness,
 and VitePress rendering. It does not generate output. `pnpm docs:full` is the
 API-reference refresh flow (`docs:api` → `docs:sync` → `docs:build`); it does
-not regenerate LLMS artifacts.
+not regenerate LLMS artifacts. `pnpm verify:surface-catalog` fails closed if
+workspace packages/exports, canonical `example/` routes, root markdown files, or
+managed doc pairing drift from `catalog/repository-surface/*.v1.json`.
 
-`pnpm change:traceability` is enforced by the pull-request CI job. It checks
+`pnpm change:traceability` is enforced by the pull-request CI job (`pr-verify.yml`)
+alongside `pnpm verify:receipt` (Local-First receipt integrity). It checks
 contract-bearing changes under `packages/`, `docs/`, `scripts/`, and `.github/`
 for an issue reference such as `#123` or a stable
 `CA-*` specification/decision ID in the pull-request body or commit messages.
@@ -283,8 +290,10 @@ semantic accuracy, package ownership, generated freshness, and rendered links.
 | Question | Source of truth | Automated evidence | Still requires review |
 | --- | --- | --- | --- |
 | Are the paired pages and required discovery routes present? | `docs/en/**`, `docs/ko/**`, sidebar | `pnpm docs:management` | equivalent meaning and correct audience level |
+| Do packages, exports, canonical routes, and managed doc areas match catalogs (`CA-SURFACE-CATALOG-001`)? | `catalog/repository-surface/*.v1.json` | `pnpm verify:surface-catalog` | semantic descriptions and Store selection accuracy ([guide](./store-selection-and-usage-guide)) |
 | Are derived LLMS summaries current? | hand-authored source page | `pnpm llms:check` | summary usefulness and priority |
 | Does the site render and resolve links? | VitePress source/configuration | `pnpm docs:build` | browser interaction and visual quality |
+| Is the PR backed by a valid Local-First execution receipt? | clean tree + `.verification/local-receipt.json` | `pnpm verify:quick` / `pnpm verify` + `pnpm verify:receipt` | whether additional targeted manual/browser tests are needed |
 | Is the PR connected to a request or durable contract? | issue/spec/decision reference | `pnpm change:traceability` in PR CI | whether the selected contract is sufficient |
 | Does an implementation keep its declared ownership? | manifests, `exports`, runtime source | `pnpm package-boundary:check` | whether the chosen package boundary is the right design |
 
@@ -298,7 +307,7 @@ the preferred reference when a change does not have a GitHub issue.
 - [ ] Durable behavior has a tracked specification or decision.
 - [ ] Acceptance criteria map to implementation and test evidence.
 - [ ] Persistence/API/schema changes include compatibility and migration notes.
-- [ ] Authoritative English/Korean docs and discovery links are updated.
-- [ ] Generated artifacts were regenerated from their source, when applicable.
-- [ ] Focused gates and manual proof are recorded.
+- [ ] Authoritative English/Korean docs, discovery links, and `catalog/repository-surface/*.v1.json` (when surfaces change) are updated.
+- [ ] Generated artifacts (`llmsData/`, API docs) were regenerated from their source, when applicable.
+- [ ] Focused gates, `pnpm verify:surface-catalog`, `pnpm docs:check`, and Local-First receipt (`pnpm verify:quick` or `pnpm verify` + `pnpm verify:receipt`) are recorded.
 - [ ] Follow-up issues capture deferred work instead of leaving silent TODOs.

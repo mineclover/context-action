@@ -27,8 +27,8 @@ Store와 Action 계층은 상태 소유권, 구독, 액션 핸들링의 경계�
 
 | 패키지 | 버전 | 의미 |
 | --- | --- | --- |
-| `@context-action/core` | `1.2.6` | 안정화된 액션 lifecycle·dispatch trace·observer 의미론 |
-| `@context-action/store-core` | `0.1.3` | framework-neutral state·patch·timeline backend 계약 |
+| `@context-action/core` | `1.3.1` | 안정화된 액션 lifecycle·dispatch trace·observer 의미론 |
+| `@context-action/store-core` | `0.1.4` | framework-neutral state·patch·timeline backend 계약 |
 | `@context-action/mutative-core` | `0.8.14` | upstream `mutative@1.3.0` 호환성 기준과 유지보수 fork 수정 |
 | `@context-action/mutative` | `0.8.15` | defensive collection snapshot, immutable update, timeline batch |
 | `@context-action/react` | `4.0.7` | React lifecycle·backend notification·declaration·SSR 계약 |
@@ -36,6 +36,12 @@ Store와 Action 계층은 상태 소유권, 구독, 액션 핸들링의 경계�
 upstream 기준과 scoped package 버전은 별도 계약입니다. `mutative@1.3.0`은
 인수한 source baseline이며 runtime dependency나 scoped adapter 버전이 아닙니다.
 core lock과 유지 patch는 `pnpm verify:mutative-upstream`으로 검증합니다.
+
+React 패키지는 두 가지 상태 통합 경로를 제공합니다. 루트 엔트리는 기존
+`Store`와 `TimeTravelStore` API를 유지하므로 런타임에 `@context-action/mutative`를
+설치합니다. 자체 불변성 세만틱을 소유하는 애플리케이션은 프레임워크 중립적인
+`@context-action/store-core` 계약과 함께 `@context-action/react/backend`를 사용할 수 있으며,
+이 어댑터 엔트리는 Mutative 코드를 실행하지 않습니다.
 
 Durable Operations 0.2와 연계된 tool protocol 작업은 적극 개발 중이며, 일반 Store·Action·React 18/19·SSR 사용의 선행 조건이 아닙니다.
 
@@ -85,7 +91,7 @@ if (claim.status === 'owner') {
 
 ## 프로덕션 도입 체크리스트
 
-- Core `1.2.6`, Store Core `0.1.3`, Mutative Core `0.8.14`, scoped adapter `0.8.15`, React `4.0.7`을 함께 고정하고 테스트합니다.
+- Core `1.3.1`, Store Core `0.1.4`, Mutative Core `0.8.14`, scoped adapter `0.8.15`, React `4.0.7`을 함께 고정하고 테스트합니다.
 - 정확한 후보 커밋에서 `pnpm release:check`를 실행합니다.
 - workspace 테스트만이 아니라 패킹 소비자·React 호환성 검사를 릴리즈 게이트로 사용합니다.
 - 이 cohort는 일반적인 애플리케이션 canary·rollback 절차로 점진 배포합니다.

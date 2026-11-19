@@ -124,37 +124,33 @@ flowchart LR
 - example 앱 타입 체크 및 빌드
 - 문서 빌드 및 링크 검증
 
-## 0.9.x 릴리즈 정책과 게이트
+## 현재 릴리즈 정책과 게이트
 
-`0.9.x`는 1.0 이전 안정화 라인입니다. 패키지는 독립적으로 버전이 올라가며,
-1.0 장기 호환성 보장을 주장하지 않습니다. API 이동이나 제거는 해당 package
-changelog에 breaking 변경으로 기록하고, migration 문서에 대체 import를 명시하며,
-release gate가 결과 public artifact를 검증할 때만 허용합니다.
+워크스페이스 패키지는 단일 pre-1.0 일괄 버전이 아니라 독립 시맨틱 버저닝을 따릅니다 (예: Core `1.3.x`, Store Core `0.1.x`, Mutative Core `0.8.x`, Mutative `0.8.x`, React `4.0.x`, XState `0.1.x`, Lit `0.1.x`, Preact `0.1.x`/`0.2.x`; [저장소 표면 카탈로그](/ko/context-layered/repository-surface-catalog) 및 [`releases/RELEASE.md`](../../../releases/RELEASE.md) 참고). API 이동이나 제거는 해당 패키지 changelog에 breaking 변경으로 기록하고 migration 문서에 대체 import를 명시하며 release gate가 결과 패키지를 검증할 때만 허용합니다.
 
-이 라인에서 ToolContext의 권위 있는 entry는
-`@context-action/react/tools`입니다. 기본 `@context-action/react` entry는
-tool protocol runtime을 의도적으로 포함하지 않으므로 ToolContext 사용처는 명시적
-subpath로 migration해야 합니다.
+React 4에서 공개 `@context-action/react` 패키지는 root 외에 `./backend`, `./advanced`, `./utils`, `./webmcp` subpath만 노출합니다. 기본 entry는 Durable/tool protocol runtime 의존성 없이 유지되며, `@context-action/react/tools`는 Durable 0.2가 보류되는 동안 독립 데모 개발용 워크스페이스 경로로만 남겨 둡니다.
 
-tag 또는 수동 publish 전에는 다음을 실행합니다.
+PR 전 로컬 우선 검증 및 서명 영수증 발급([Local-First Verification Policy](../../LOCAL_FIRST_VERIFICATION_POLICY.md))에는 다음을 실행합니다:
+
+```bash
+pnpm verify:quick   # 빠른 스모크 게이트 (~15-35s) + .verification/local-receipt.json
+pnpm verify         # 전체 17단계 로컬 검증 + .verification/local-receipt.json
+pnpm verify:receipt # 암호 무결성 영수증 감사
+```
+
+릴리즈 후보 tag 또는 보호된 배포 워크플로 실행 전에는 다음을 실행합니다:
 
 ```bash
 pnpm release:check
 ```
 
-이 명령은 전체 로컬 검증, API 문서 재생성 및 committed 상태 확인, canonical
-example 실행을 묶습니다. publish workflow도 publish 전에 같은 gate를 반복하고,
-publish 뒤에는 consumer install 검증을 수행합니다.
-
-0.8/0.9 안정화 release lane에서는 다음도 통과해야 합니다.
+이 명령은 전체 로컬 검증, API 문서 재생성 및 정합성 확인, 표면 카탈로그 검증, 패키지 소비자·예제 검증을 수행합니다. 보호된 릴리즈 워크플로는 불변 커밋에서 다음 항목을 함께 확인합니다:
 
 - `pnpm build`와 `pnpm type-check`
 - `pnpm verify:package-exports`와 `pnpm verify:package-tarballs`
-- `pnpm convention:check`와 활성화된 package-boundary 검사
-- package version/changelog 정합성과
-  `@context-action/tool-protocol`,
-  `@context-action/tool-durable-operations` published-consumer smoke test
-- 제거된 legacy documentation package/generator가 active workspace/release graph에 남아 있지 않음
+- `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm package-boundary:check`
+- `pnpm docs:check` (`pnpm docs:management`, `pnpm llms:check` 포함)
+- 공개 패키지 cohort의 version/changelog 정합성과 published-consumer smoke test
 
 ## 추천 Assertion 방식
 

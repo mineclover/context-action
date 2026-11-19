@@ -1,6 +1,6 @@
 # CA-STATECHART-EFFECT-001: `@context-action/xstate` 어댑터 경계 분리 및 핵심 통합 철학
 
-**상태:** 구현 채택, 배포 버전 조합 미승인  
+**상태:** 구현 및 초기 코호트 배포 완료 (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/xstate@0.1.0`)  
 **소유자:** Framework Core & Runtime Integration  
 **관련 이슈/스펙:** CA-STATECHART-EFFECT-001 (`packages/xstate/docs/xstate-effect-integration.md`, [CA-ELEMENT-INTEROP-001](./CA-ELEMENT-INTEROP-001.md), [CA-SPEC-EVIDENCE-001](./CA-SPEC-EVIDENCE-001.md))
 

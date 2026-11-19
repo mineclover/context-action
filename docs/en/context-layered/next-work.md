@@ -200,5 +200,5 @@ runbook; semantic behavior changes belong in the architecture guide.
 - [ ] Update the semantic guide or runbook, not both, unless the ownership table
       requires a cross-link.
 - [ ] Add focused tests and record the contract/fixture version.
-- [ ] Regenerate paired language and LLMS artifacts after source docs are stable.
-- [ ] Run `pnpm docs:management`, focused package checks, and `pnpm docs:build`.
+- [ ] Regenerate paired language and LLMS artifacts (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md,path2.md`) after source docs are stable.
+- [ ] Run `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`, focused package checks, and `pnpm verify:quick` (with `pnpm verify:receipt`).

@@ -79,8 +79,11 @@ LLMS summary는 canonical `docs/`에서 파생하며 별도의 API SSOT가 아�
 - `tool-protocol`은 framework-neutral이며 `core`나 `react`에 의존하지 않는다. provider/tool 경계를 소유한다.
 - `ai-sdk`는 얇은 선택적 provider adapter다. `tool-protocol`에 의존하고 `ai`를 필수 peer로 요구하지만 React, core 실행, provider credential, application model client에는 의존하지 않는다.
 - `tool-durable-operations`도 framework-neutral이며 `core`, `react`, `tool-protocol`에 의존하지 않는다. durable mutation recovery와 provider side-effect adapter를 소유한다.
-- `react`는 `core`, `mutative`를 사용하며 `mutative`는 하위 `mutative-core` runtime만 사용하고 React type을 import하지 않는다.
-- `preact`는 framework-neutral `core` action 계약을 사용하고 Preact Context와 읽기 전용 Signals adapter만 제공한다. `preact-ui`는 `preact`를 사용하며 DOM root, template, SSR/hydration, disposal을 소유한다. 두 package 모두 0.1.x 공개 preview이며 React adapter와 독립된 release 계약을 가진다.
+- `react`는 `core`, `store-core`, `mutative`를 사용하며(선택적 `tool-protocol` / `webmcp` peer 연동 포함) `mutative`는 하위 `mutative-core`와 `store-core`만 사용하고 React type을 import하지 않는다.
+- `lit`은 `core`를, `lit-ui`는 `core`와 `lit`을 사용한다(W3C `@lit/context`, FACE, SSR/hydration, `./react-bridge`). 두 패키지 모두 `0.1.x` 승격 프리뷰이며 React에 의존하지 않는다.
+- `preact`는 framework-neutral `core` action 계약을 사용하고 Preact Context와 읽기 전용 Signals adapter만 제공한다. `preact-ui`는 `core`와 `preact`를 사용하며 DOM root, template, SSR/hydration, disposal을 소유한다(`0.2.1` 승격 프리뷰, React adapter와 독립).
+- `xstate`는 `core`와 `store-core`를 사용하며 XState v5/v6 액터 브리지(`.`)와 Effect / Standard Schema / 트랜잭션 스코프(`./effect`)를 분리한다([CA-STATECHART-EFFECT-001](./decisions/CA-STATECHART-EFFECT-001.md)).
+- `webmcp`는 `tool-protocol`을 사용하며 React나 model-provider SDK 의존 없이 호환 브라우저의 `document.modelContext` allowlist 도구 스코프를 노출한다.
 - `preact-ui`는 별도 export로 선택적 React bridge를 제공할 수 있지만 runtime 계약에서 React를 필수 dependency로 만들지 않는다.
 - `mutative-core`는 upstream 호환성을 유지하며 Context-Action adapter나 React에 의존하지 않는다.
 - 문서 generator는 소스·문서를 읽을 수 있지만 runtime package가 generator에 의존하지 않는다.
@@ -192,17 +195,16 @@ pnpm --filter example check
 pnpm example:build
 ```
 
-public surface 변경이면 package export/tarball check도 추가한다.
+public surface 변경이면 package export/tarball check와 함께 `pnpm verify:surface-catalog`, `pnpm verify:quick`도 실행한다.
 
 ### 5단계 — ownership graph 갱신
 
-handoff 전에 package manifest/export, README/authoritative guide, test/fixture, dependency 선언·boundary check 또는 decision,
-영·한 public page, generated artifact를 순서대로 갱신한다.
+handoff 전에 package manifest/export, `catalog/repository-surface/api-surface.v1.json` 및 [저장소 표면 카탈로그](./repository-surface-catalog.md)(`CA-SURFACE-CATALOG-001`), README/authoritative guide, test/fixture, dependency 선언·boundary check 또는 decision, 영·한 public page, generated artifact를 순서대로 갱신한다.
 
 ## 6. 패키지 추가·병합·분리·폐기
 
 - **추가:** ID, owner, stability, 주 책임, public/private 결정, dependency graph, export, focused test, README,
-  authoritative guide, boundary check 또는 decision record를 갖춘다. private/experimental이면 승격 조건을 적는다.
+  authoritative guide, `catalog/repository-surface/api-surface.v1.json` 등록(`pnpm verify:surface-catalog`), boundary check 또는 decision record를 갖춘다. private/experimental이면 승격 조건을 적는다.
 - **병합:** release cadence, owner, dependency 방향, public contract가 같을 때만 병합한다. source/test를 함께
   옮기고 stable ID를 보존하며 old export와 migration decision을 정리한다.
 - **분리:** independent release contract가 생기거나 upward dependency가 생기거나 runtime/analysis/docs가
@@ -236,5 +238,7 @@ handoff 전에 package manifest/export, README/authoritative guide, test/fixture
 ## 관련 문서
 
 - [개발 컨벤션 인덱스](./convention-index)
+- [저장소 표면 카탈로그](./repository-surface-catalog)
+- [Store별 선택 기준 및 사용법 가이드](./store-selection-and-usage-guide)
 - [표준 구현 컨벤션](./implementation-convention)
 - [스펙·이슈·문서 관리](./change-management-convention)

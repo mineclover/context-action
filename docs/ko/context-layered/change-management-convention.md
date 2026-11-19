@@ -1,7 +1,7 @@
 # 스펙·이슈·문서 관리 컨벤션
 
 **상태:** Active
-**최종 검토:** 2026-07-17
+**최종 검토:** 2026-11-20
 **범위:** 기능 개발, 아키텍처 변경, 버그 수정, 공개 문서
 
 이 문서는 요청을 검증된 변경으로 연결하는 운영 계층을 정의합니다.
@@ -53,6 +53,7 @@ lifecycle이 기준이며, IIC lifecycle은 상호작용 합의가 제안·승�
 | 코드·테스트 | 계약이 실제로 동작하는가? | 구현 anchor와 실행 가능한 증거 | 사용자 동작에 대한 유일한 설명 |
 | 공개 문서 | 사용자·기여자가 어떻게 이해해야 하는가? | 현재 동작, 사용법, 제한, 검증 경로 | 아직 구현되지 않은 미래 설계 |
 | 추적되는 스펙/결정 | 어떤 경계가 안정적이고 누가 소유하는가? | 안정적인 ID, owner, evidence, 결정 기록 | 의미 없는 파일 목록 |
+| 머신 검증용 표면 카탈로그 | 어떤 패키지·라우트·관리 문서가 존재하는가(`CA-SURFACE-CATALOG-001`)? | `catalog/repository-surface/*.v1.json`의 정확한 목록과 [저장소 표면 카탈로그](./repository-surface-catalog) 동기화 | 동작 명세나 ADR의 대체물 |
 | 생성물 | 어떤 파생 산출물을 배포하는가? | generator 원본과 재현 명령 | 정식 원본 문서 |
 
 권장 추적 흐름은 다음과 같습니다.
@@ -242,29 +243,35 @@ GitHub issue를 사용한다면 commit 또는 PR 본문에 `Refs #<number>` 또�
 변경한 영역을 증명하는 가장 작은 명령 집합을 사용합니다.
 
 ```bash
-# 사람이 작성한 가이드 또는 컨벤션
-pnpm llms:sync-docs --changed-files <paths>
+# 사람이 작성한 가이드 또는 컨벤션 (llms-generator 빌드 선행, 쉼표 구분 경로)
+pnpm build:llms-generator
+pnpm llms:sync-docs --changed-files path1.md,path2.md
 pnpm docs:check
 
 # export API 또는 API JSDoc
 pnpm docs:api && pnpm docs:sync
 pnpm docs:build
 
-# 해당하는 경우 pull request 추적성과 canonical example 구조
+# PR 추적성, 표면 카탈로그, canonical example 구조 및 Local-First 영수증
 pnpm change:traceability
+pnpm verify:surface-catalog
 pnpm convention:check
+pnpm verify:quick && pnpm verify:receipt
 ```
 
 `pnpm docs:check`는 문서 관리 metadata, LLMS 최신성, VitePress 렌더링을
 검사합니다. 파일을 생성하지는 않습니다. `pnpm docs:full`은 API 참조 갱신
 흐름(`docs:api` → `docs:sync` → `docs:build`)이며 LLMS 산출물은 재생성하지
-않습니다.
+않습니다. `pnpm verify:surface-catalog`는 워크스페이스 패키지/export, 정식
+`example/` 라우트, 루트 마크다운 파일, 관리 문서 페어링이
+`catalog/repository-surface/*.v1.json`과 어긋나면 fail-closed로 실패합니다.
 
-`pnpm change:traceability`는 pull request CI에서 강제됩니다. `packages/`,
-`docs/`, `scripts/`, `.github/` 아래의 계약 변경이 pull request 본문이나
-commit message에 `#123` 또는 안정적인 `CA-*` 스펙/결정 ID를
-포함하는지 확인합니다. 직접 push와 pull request 이벤트가 아닌 로컬 실행은
-의도적으로 건너뛰므로 과거 commit을 다시 작성할 필요가 없습니다.
+`pnpm change:traceability`는 pull request CI(`pr-verify.yml`)에서
+`pnpm verify:receipt`(Local-First 영수증 무결성)와 함께 강제됩니다.
+`packages/`, `docs/`, `scripts/`, `.github/` 아래의 계약 변경이 pull request 본문이나
+commit message에 `#123` 또는 안정적인 `CA-*` 스펙/결정 ID를 포함하는지 확인합니다.
+직접 push와 pull request 이벤트가 아닌 로컬 실행은 의도적으로 건너뛰므로 과거 commit을
+다시 작성할 필요가 없습니다.
 
 standalone Web Studio는 [Tool-Calling Web Studio 컨벤션](./usecase-tool-calling-web-studio)에
 기록된 집중 convention, type-check, build, browser 검증도 실행합니다.
@@ -277,8 +284,10 @@ standalone Web Studio는 [Tool-Calling Web Studio 컨벤션](./usecase-tool-call
 | 질문 | 정식 원본 | 자동 증거 | 여전히 리뷰가 필요한 것 |
 | --- | --- | --- | --- |
 | 짝을 이루는 페이지와 필요한 discovery 경로가 있는가? | `docs/en/**`, `docs/ko/**`, sidebar | `pnpm docs:management` | 의미 동등성과 독자 수준 |
+| 패키지·export·정식 라우트·관리 문서 영역이 카탈로그(`CA-SURFACE-CATALOG-001`)와 일치하는가? | `catalog/repository-surface/*.v1.json` | `pnpm verify:surface-catalog` | 설명의 정확성과 [Store 가이드](./store-selection-and-usage-guide) 정합성 |
 | 파생 LLMS 요약이 최신인가? | 사람이 작성한 원본 페이지 | `pnpm llms:check` | 요약의 유용성과 priority |
 | 사이트가 렌더되고 링크가 해석되는가? | VitePress source/configuration | `pnpm docs:build` | browser 상호작용과 시각 품질 |
+| PR이 유효한 Local-First 실행 영수증을 동반하는가? | clean tree + `.verification/local-receipt.json` | `pnpm verify:quick` / `pnpm verify` + `pnpm verify:receipt` | 추가 수동·브라우저 검증 필요 여부 |
 | PR이 요청 또는 지속 계약에 연결되는가? | issue/spec/decision 참조 | PR CI의 `pnpm change:traceability` | 선택한 계약이 충분한지 |
 | 구현이 선언된 소유권을 지키는가? | manifest, `exports`, runtime source | `pnpm package-boundary:check` | 선택한 package 경계가 올바른 설계인지 |
 
@@ -292,7 +301,7 @@ standalone Web Studio는 [Tool-Calling Web Studio 컨벤션](./usecase-tool-call
 - [ ] 지속되는 동작에 tracked spec 또는 decision이 있음
 - [ ] Acceptance criteria가 구현·테스트 증거에 연결됨
 - [ ] persistence/API/schema 변경에 호환성과 migration note가 있음
-- [ ] 권위 영문·국문 문서와 discovery link가 갱신됨
-- [ ] 해당 시 원본에서 생성물을 다시 생성함
-- [ ] 집중 gate와 수동 증거가 기록됨
+- [ ] 권위 영문·국문 문서, discovery link 및(표면 변경 시) `catalog/repository-surface/*.v1.json`이 갱신됨
+- [ ] 해당 시 원본에서 생성물(`llmsData/`, API 문서)을 다시 생성함
+- [ ] 집중 gate, `pnpm verify:surface-catalog`, `pnpm docs:check` 및 Local-First 영수증(`pnpm verify:quick` 또는 `pnpm verify` + `pnpm verify:receipt`)이 기록됨
 - [ ] 미룬 작업이 조용한 TODO가 아닌 후속 이슈로 남아 있음

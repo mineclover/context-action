@@ -142,9 +142,9 @@ function App() {
 }
 ```
 
-### 🏗️ 5-Layer Hooks Architecture
+### 🏗️ 6-Layer Hooks Architecture
 
-**Context-Action implements a sophisticated 5-layer hooks architecture that provides perfect separation of concerns and optimal performance through delayed evaluation.**
+**Context-Action implements a 6-layer hooks architecture (`contexts / business / handlers / actions / hooks / views`) that provides clear separation of concerns and optimal performance through delayed evaluation.**
 
 ```mermaid
 graph TD
@@ -220,31 +220,35 @@ graph TD
 - **Singleton Management**: Ref layer ensures efficient resource sharing
 
 ```typescript
-// 6-Layer Implementation Example
-function UserPage() {
-  // Layer 1: contexts - Resource type definitions
+// 6-Layer Implementation Example (contexts / business / handlers / actions / hooks / views)
+// 1. business: pure domain transform
+const applyProfilePatch = (current: UserProfile, patch: Partial<UserProfile>) => ({
+  ...current,
+  ...patch,
+});
+
+// 2. handlers: register orchestration logic with delayed store.getValue() evaluation
+function UserHandlers({ children }: { children: React.ReactNode }) {
   const userStore = useUserStore('profile');
 
-  // Layer 2: handlers - Internal function definitions
-  const updateUserHandler = useCallback(async (payload) => {
-    const currentUser = userStore.getValue(); // Delayed evaluation
-    const updatedUser = { ...currentUser, ...payload };
-    userStore.setValue(updatedUser);
+  const updateUserHandler = useCallback(async (payload: Partial<UserProfile>) => {
+    const currentUser = userStore.getValue();
+    userStore.setValue(applyProfilePatch(currentUser, payload));
   }, [userStore]);
 
-  // Layer 3: subscriptions - Selective state subscriptions
-  const user = useStoreValue(userStore);
-
-  // Layer 4: registries - Handler registration
   useActionHandler('updateUser', updateUserHandler);
+  return <>{children}</>;
+}
 
-  // Layer 5: dispatchers - View-oriented action dispatchers
-  const onUpdateUser = useActionDispatch('updateUser');
+// 3. hooks + views: subscribe cleanly and dispatch intent helpers
+function UserPage() {
+  const user = useStoreValue(useUserStore('profile'));
+  const dispatch = useUserActionDispatch();
 
   return (
     <div>
       <h1>{user.name}</h1>
-      <button onClick={() => onUpdateUser({ name: 'New Name' })}>
+      <button onClick={() => dispatch('updateUser', { name: 'New Name' })}>
         Update User
       </button>
     </div>
@@ -389,39 +393,33 @@ function UserProfile() {
 
 #### 3. **Ref Type Declaration & Singleton Management**
 ```typescript
-// 1️⃣ Ref Type Declarations for Singleton Resources
+import { createRefContext, createStoreContext } from '@context-action/react';
+
+// 1️⃣ Ref Type Declarations for Mutable Elements / Imperative Handles
 interface AppRefs {
+  editorInput: HTMLInputElement;
   apiClient: ApiClient;
-  eventBus: EventBus;
-  cache: LRUCache<string, any>;
 }
 
-// 2️⃣ Context with Ref Management
-const {
-  Provider: AppProvider,
-  useStore,
-  useRef: useAppRef
-} = createStoreContext('App', {
+// 2️⃣ Separate StoreContext (state) and RefContext (refs)
+const { Provider: AppStoreProvider, useStore } = createStoreContext('App', {
   user: { name: '', email: '' },
-  // ✅ Ref types managed alongside stores
-}, {
-  refs: {
-    apiClient: () => new ApiClient(),
-    eventBus: () => new EventBus(),
-    cache: () => new LRUCache(1000)
-  } as AppRefs
 });
+
+const { Provider: AppRefProvider, useRefHandler: useAppRef } =
+  createRefContext<AppRefs>('AppRefs');
 
 // 3️⃣ Type-Safe Ref Access
 function ApiComponent() {
-  const apiClient = useAppRef('apiClient'); // ✅ ApiClient type
+  const apiClientRef = useAppRef('apiClient'); // ✅ RefState<ApiClient>
   const userStore = useStore('user');
 
   const fetchUser = useCallback(async (id: string) => {
-    // ✅ apiClient.get is typed method
-    const userData = await apiClient.get(`/users/${id}`);
+    const client = apiClientRef.target;
+    if (!client) return;
+    const userData = await client.get(`/users/${id}`);
     userStore.setValue(userData);
-  }, [apiClient, userStore]);
+  }, [apiClientRef, userStore]);
 
   return <button onClick={() => fetchUser('123')}>Fetch User</button>;
 }
@@ -453,11 +451,11 @@ For comprehensive type system coverage, see our dedicated guides:
 #### **English Documentation**
 - **[📖 TypeScript Type Inference Guide](https://mineclover.github.io/context-action/en/guide/type-inference)** - Complete type inference overview
 - **[🎯 Action Type System](https://mineclover.github.io/context-action/en/guide/patterns/action/type-system)** - ActionPayloadMap, pipeline controllers, and handler types
-- **[🔧 Advanced Type Features](https://mineclover.github.io/context-action/en/guide/type-inference/advanced)** - Branded types, conditional processing, and utilities
-- **[🛡️ Type Safety Best Practices](https://mineclover.github.io/context-action/en/guide/type-inference/best-practices)** - Essential recommendations and patterns
+- **[🏪 Store Selection and Usage Guide](https://mineclover.github.io/context-action/en/context-layered/store-selection-and-usage-guide)** - Typed store selection matrix across all workspace packages
 
 #### **Korean Documentation**
-- **[🎯 Action Type System](https://mineclover.github.io/context-action/en/guide/patterns/action/type-system)** - ActionPayloadMap, type safety, TypeScript integration
+- **[🎯 Action Type System (KO)](https://mineclover.github.io/context-action/ko/guide/patterns/action/type-system)** - ActionPayloadMap, type safety, TypeScript integration
+- **[🏪 Store Selection and Usage Guide (KO)](https://mineclover.github.io/context-action/ko/context-layered/store-selection-and-usage-guide)** - 패키지별 Store 선택 기준 및 사용법
 
 #### **Core Type System Features**
 - **Action Type Safety**: Complete `ActionPayloadMap` interface with pipeline controller types
@@ -521,21 +519,21 @@ dispatch('updateProfile', { name: 'John', email: 'john@example.com' });
 ## 🎮 Examples & Demos
 
 ### 🚀 Live Interactive Examples
-**[Explore 20+ working examples →](https://mineclover.github.io/context-action/example/)**
+**[Explore 72 canonical example routes →](https://mineclover.github.io/context-action/example/)** ([Catalog Inventory](./catalog/repository-surface/example-surface.v1.json))
 
 #### 🏪 **Store System**
-- [Store Basics](https://mineclover.github.io/context-action/example/#/store-basic) - Fundamental operations
-- [Store Full Demo](https://mineclover.github.io/context-action/example/#/store-full-demo) - Complex state management
-- [Declarative Pattern](https://mineclover.github.io/context-action/example/#/store-declarative-pattern) - Type-safe patterns
+- [Store Basics](https://mineclover.github.io/context-action/example/foundations/store/basics) - Fundamental store creation, updates, and subscriptions
+- [Time Travel Store](https://mineclover.github.io/context-action/example/foundations/store/time-travel) - Undo/redo history navigation and timeline inspection
+- [React Provider & Hooks](https://mineclover.github.io/context-action/example/foundations/react/provider) - Declarative Action/Store provider separation
 
 #### 🎯 **Action System** 
-- [Core Features](https://mineclover.github.io/context-action/example/#/action-core-features) - Pipeline fundamentals
-- [Action Guards](https://mineclover.github.io/context-action/example/#/action-guard-search) - Advanced filtering
-- [Priority System](https://mineclover.github.io/context-action/example/#/action-priority-performance) - Performance optimization
+- [Core Action Basics](https://mineclover.github.io/context-action/example/foundations/core/basics) - Framework-neutral ActionRegister pipeline fundamentals
+- [ActionGuard Search](https://mineclover.github.io/context-action/example/performance/action-guard/search) - Debounced and abortable search pipelines
+- [Priority System](https://mineclover.github.io/context-action/example/performance/priority/demo) - Priority execution scheduling and tracing
 
-#### 🔗 **MVVM Architecture**
-- [Unified Pattern](https://mineclover.github.io/context-action/example/#/unified-pattern-demo) - Complete MVVM demo
-- [Enhanced Context](https://mineclover.github.io/context-action/example/#/enhanced-context-store) - Advanced patterns
+#### 🔗 **Context-Layered & Playbook Examples**
+- [Canonical Order Form](https://mineclover.github.io/context-action/example/patterns/implementation-playbook) - Canonical 6-layer reference workflow
+- [Layered Architecture](https://mineclover.github.io/context-action/example/patterns/layered-architecture) - Separated contexts, handlers, hooks, and views
 
 ### 📖 Real-World Examples
 ```typescript
@@ -554,22 +552,25 @@ interface UserActions extends ActionPayloadMap {
 }
 ```
 
-### 🔍 **New in v0.7.0: Enhanced LogMonitor Documentation**
-- **[📊 Logger System Demo](https://mineclover.github.io/context-action/example/#/logger-demo)** - Interactive LogMonitor showcase
-- **Real-time log collection** - Live demo with practical examples
-- **Integration patterns** - Parent/Child handler implementations
-- **Dependency warnings** - Avoid infinite loops with best practices
+### 🔍 **Observability & Developer Tools**
+- **[📊 Action Lifecycle Workbench](https://mineclover.github.io/context-action/example/integrations/action-lifecycle)** - Dispatch traces, handler phases, and abort inspection
+- **[📋 Logger System Demo](https://mineclover.github.io/context-action/example/utilities/dev-tools/logger)** - Interactive LogMonitor showcase
+- **[⚠️ Warning & Store Scenarios](https://mineclover.github.io/context-action/example/utilities/dev-tools/warning-demo)** - Dependency warning prevention and store strategy inspection
 
 ---
 
 ## 📚 Documentation
 
 ### 📖 Complete Guides
-- **[📚 Official Documentation](https://mineclover.github.io/context-action/)** - Complete API reference
+- **[📚 Official Documentation](https://mineclover.github.io/context-action/)** - Complete guide & API portal
 - **[🚀 Getting Started Guide](https://mineclover.github.io/context-action/en/guide/getting-started)** - 5-minute setup
-- **[🏗️ MVVM Core Architecture](https://mineclover.github.io/context-action/en/concept/mvvm-core-architecture)** - Practical MVVM implementation guide
+- **[🏗️ Context-Layered Architecture](https://mineclover.github.io/context-action/en/context-layered/context-layered-guide)** - Practical 6-layer implementation guide
+- **[🧭 Convention Index](https://mineclover.github.io/context-action/en/context-layered/convention-index)** - Central task-based index for standards & gates
+- **[📦 Repository Surface Catalog](https://mineclover.github.io/context-action/en/context-layered/repository-surface-catalog)** - All 20 packages, 72 canonical routes, and managed docs (`CA-SURFACE-CATALOG-001`)
+- **[🏪 Store Selection and Usage Guide](https://mineclover.github.io/context-action/en/context-layered/store-selection-and-usage-guide)** - Decision matrix across all store/state packages
 - **[📋 Architecture Overview](https://mineclover.github.io/context-action/en/concept/architecture-guide)** - Framework concepts
 - **[⚡ Best Practices](https://mineclover.github.io/context-action/en/guide/best-practices)** - Production patterns
+- **[📜 Documentation & Change Management Conventions](https://mineclover.github.io/context-action/en/concept/documentation-development-conventions)** - Authoritative doc workflow & gates
 
 ### 🌏 Multi-Language Support
 - **[🇺🇸 English Documentation](https://mineclover.github.io/context-action/en/)** - Complete English guides
@@ -579,45 +580,16 @@ interface UserActions extends ActionPayloadMap {
 
 ## 📦 Packages
 
-### [@context-action/core](./packages/core)
-**Pure TypeScript action pipeline** - Framework agnostic core
-```bash
-npm install @context-action/core
-```
-- 🔒 Full TypeScript support
-- ⚡ Action pipeline system  
-- 🛡️ Advanced action guards
-- 🚫 Zero dependencies
+The monorepo contains **20 workspace packages across 6 layers** (16 publishable, 4 internal workspace tools). See the [Repository Surface Catalog](./docs/en/context-layered/repository-surface-catalog.md) and [`api-surface.v1.json`](./catalog/repository-surface/api-surface.v1.json) for the complete inventory, exports, and verification gates.
 
-### [@context-action/react](./packages/react)  
-**React integration** - Complete MVVM architecture
-```bash
-npm install @context-action/react
-```
-- 🏪 Declarative store patterns
-- 🎯 Action context integration
-- 🪝 Advanced React hooks
-- 🏗️ HOC support
-
-### [@context-action/lit](./packages/lit)
-**Lit ReactiveController adapters** - Headless store/action integration
-```bash
-npm install @context-action/lit lit
-```
-- 🧩 `StoreController` and `ActionController`
-- 🧹 `ControllerScope` LIFO lifecycle disposal
-- 🎯 Selector projections and equality suppression
-- 🚫 No React dependency
-
-### [@context-action/lit-ui](./packages/lit-ui)
-**Lit web component primitives and integrations**
-```bash
-npm install @context-action/lit-ui @context-action/lit lit @lit/context
-```
-- 🧱 Form-Associated Custom Elements (FACE)
-- 🌐 W3C `@lit/context` tokens, providers, and controllers
-- ⚛️ React 18/19 custom element bridge with facade handles
-- 🖥️ SSR (`./ssr`) and client hydration (`./hydrate`) entries
+- **[@context-action/core](./packages/core)** — Zero-dependency framework-agnostic action pipeline (`ActionRegister`, guards, priority, cancellation, `./element` host bindings).
+- **[@context-action/store-core](./packages/store-core)** — Framework-neutral `StateBackend`, `TimelineBackend`, `TransactionBackend`, and `createStateStore` contracts.
+- **[@context-action/mutative-core](./packages/mutative-core)** & **[@context-action/mutative](./packages/mutative)** — Upstream-compatible immutable engine (`mutative@1.3.0` lineage) and Context-Action `StateBackend` / time-travel adapter.
+- **[@context-action/react](./packages/react)** — React 18/19 MVVM Context bindings (`createActionContext`, `createStoreContext`, `createTimeTravelStoreContext`, `createRefContext`, `./backend`, `./advanced`, `./utils`, `./webmcp`).
+- **[@context-action/xstate](./packages/xstate)** — Optional XState v5/v6 (`.`) and Effect (`./effect`) adapters bridging state machines with Action & Store ports.
+- **[@context-action/lit](./packages/lit)** & **[@context-action/lit-ui](./packages/lit-ui)** — Lit ReactiveControllers, W3C `@lit/context`, FACE controls, SSR/hydration, and React bridge.
+- **[@context-action/preact](./packages/preact)** & **[@context-action/preact-ui](./packages/preact-ui)** — Preact Context + Signals adapters, mount/hydrate roots, custom element bridge, and React bridge.
+- **[@context-action/tool-protocol](./packages/tool-protocol)**, **[@context-action/tool-durable-operations](./packages/tool-durable-operations)**, **[@context-action/ai-sdk](./packages/ai-sdk)** & **[@context-action/webmcp](./packages/webmcp)** — Zod action schemas, MCP/provider tool contracts, lease/fenced durable mutation recovery, AI SDK adapter, and browser WebMCP scope.
 
 ---
 
@@ -632,6 +604,7 @@ pnpm dev  # Start example app
 ```
 
 ### Project Resources
+- **[📋 Local-First Verification Policy](./docs/LOCAL_FIRST_VERIFICATION_POLICY.md)** - Local-first verification & receipt contract (`pnpm verify:quick` / `pnpm verify`)
 - **[🤝 Contributing Guide](./CONTRIBUTING.md)** - How to contribute
 - **[🌐 Ecosystem](./ECOSYSTEM.md)** - Tools and generators  
 - **[🛠️ Development Guide](./DEVELOPMENT.md)** - Detailed development setup

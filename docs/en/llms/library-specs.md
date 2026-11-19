@@ -40,7 +40,7 @@
 
 ### Release and Security Baseline
 
-- **Workspace package baseline**: `@context-action/core` 1.3.1, `@context-action/store-core` 0.1.4, `@context-action/xstate` 0.1.0, `@context-action/mutative-core` 0.8.14, `@context-action/mutative` 0.8.15, `@context-action/react` 4.0.7, `@context-action/tool-protocol` 1.0.2, `@context-action/tool-durable-operations` 0.2.0, `@context-action/ai-sdk` 0.1.0, and `@context-action/webmcp` 0.1.2. Published dist-tags remain authoritative for an external install.
+- **Workspace package baseline**: `@context-action/core` 1.3.1, `@context-action/store-core` 0.1.4, `@context-action/xstate` 0.1.0, `@context-action/mutative-core` 0.8.14, `@context-action/mutative` 0.8.15, `@context-action/react` 4.0.7, `@context-action/lit` 0.1.4, `@context-action/lit-ui` 0.1.4, `@context-action/preact` 0.1.3, `@context-action/preact-ui` 0.2.1, `@context-action/tool-protocol` 1.0.2, `@context-action/tool-durable-operations` 0.2.0, `@context-action/ai-sdk` 0.1.0, `@context-action/webmcp` 0.1.2, `@context-action/llms-generator` 0.8.7, and `@context-action/typedoc-vitepress-sync` 0.8.8 (see [Repository Surface Catalog](/en/context-layered/repository-surface-catalog) for all 20 workspace packages). Published dist-tags remain authoritative for an external install.
 - **Mutative lineage**: Mutative Core `0.8.14` and the scoped adapter `0.8.15` track the acquired upstream `mutative@1.3.0` compatibility baseline; verify the committed source inventory with `pnpm verify:mutative-upstream` before synchronization or release.
 - **Runtime baseline**: Node.js `>=24.11.0`, pnpm `>=11.28.6`, and TypeScript `6.0.3`.
 - **Dependency security**: `pnpm security:audit` is the required OSV check and currently reports no actionable vulnerability matches. Fixed dependency floors are enforced by the root `overrides` configuration in `pnpm-workspace.yaml`.
@@ -79,7 +79,7 @@
 
 ### Compatibility
 
-- **React**: 19.2.0 or later
+- **React**: 18.3.1 or React 19.2+
 - **TypeScript**: 6.0.3
 - **Node.js**: 24.11.0+
 - **Bundlers**: Vite, Webpack, Rollup

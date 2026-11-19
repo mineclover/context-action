@@ -19,8 +19,7 @@
 | `ttsc-ex` · `oa-sdk` 계약 잠금, 인텐트 분리, 레이아웃 위계 동기화 | [통합 트라이어드 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide) | `pnpm docs:management && pnpm llms:check && pnpm convention:check` |
 | canonical example/usecase | [Implementation Convention](/ko/context-layered/implementation-convention) | `pnpm convention:check`와 example check |
 
-릴리스 후보에는 `pnpm verify:all`을 사용합니다. 이 명령은 저장소 검사를
-조합할 뿐 집중 증거를 대체하지는 않습니다.
+PR 전 로컬 우선 검증 및 영수증 발급([Local-First Verification Policy](../../LOCAL_FIRST_VERIFICATION_POLICY.md))에는 `pnpm verify:quick`(빠른 스모크) 또는 `pnpm verify`(전체 17단계 로컬 검증)를 실행하고 `pnpm verify:receipt`로 무결성을 확인합니다. 릴리스 후보 사전 점검에는 `pnpm verify:all`을 사용하며, 이는 집중 증거를 대체하지 않고 저장소 게이트를 조합합니다.
 
 ## 문서 역할별 분류
 
@@ -92,27 +91,22 @@
 
 ### 4. 검증 기준을 고정하는 문서
 
+- [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions)
+  - 문서 소유권, 쉼표 구분 LLMS 동기화, 패키지 빌드 순서 및 문서 게이트(`pnpm docs:check`)
+- [Local-First 검증 정책](../../LOCAL_FIRST_VERIFICATION_POLICY.md)
+  - 단일 로컬 검증 엔트리(`pnpm verify`, `pnpm verify:quick`)와 RFC 8785 서명 영수증 규칙(`pnpm verify:receipt`)
 - [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
   - 설계 계약, 구현 패턴, 시나리오, 스트레스 테스트를 어떻게 나누는지
 - [다음 작업과 문서 소유권](/ko/context-layered/next-work)
   - 후속 작업과 기준 문서를 한 곳에서 관리하는 backlog
 
-일반 저장소 컨벤션 게이트는 다음 명령입니다.
+저장소 컨벤션 및 표면 카탈로그 게이트는 다음 명령으로 실행합니다:
 
 ```bash
 pnpm convention:check
 ```
 
-Context-Action 통합 경계까지 포함한 전체 검사는 다음 명령으로 실행합니다.
-
-```bash
-node scripts/verify-context-action-conventions.mjs
-```
-
-이 명령은 example use-case recipe, MCP/function-calling catalog, integration-profile catalog, standalone
-Web Studio action 경계까지 추가로 검사합니다. standalone
-build·filesystem·provider·preview·browser release 검사는
-`pnpm web-coding:verify`로 수행합니다.
+(`pnpm convention:check`는 `node scripts/verify-context-action-conventions.mjs`를 실행하며 Context-Layered 경계, example use-case recipe, MCP/function-calling catalog, integration-profile catalog, `pnpm verify:surface-catalog` 저장소 표면 카탈로그, standalone Web Studio action 경계를 함께 검사합니다.) standalone build·filesystem·provider·preview·browser release 검사는 `pnpm web-coding:verify`로 수행합니다.
 
 ## 팀 컨벤션으로 굳힐 때 읽는 순서
 

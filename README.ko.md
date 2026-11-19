@@ -148,10 +148,10 @@ function App() {
 Context-Action 프레임워크는 마이크로 프론트엔드와 엔터프라이즈 환경에서 구현의 자율성을 보장하면서도 일관된 품질과 유지보수성을 확보하기 위해 **4대 핵심 개발 표준**을 확립합니다.
 
 ### 1. 📊 상태 관리 아키텍처 (State Management)
-* **상태 3계층 모델 (3-Tier State Hierarchy)**:
-  - **Tier 1 (로컬 UI 일시 상태)**: 컴포넌트 내부 렌더링 전용 (`isFocused`, `isOpen` 등). Lit `@state()` 또는 Preact `signal()` 사용.
-  - **Tier 2 (컴포넌트 제어 값)**: 폼 컨트롤 고유 값 (`value`, `validity` 등). `@property()` + `ElementInternals.setFormValue()` 및 폼 리셋 복원.
-  - **Tier 3 (도메인/공유 비즈니스 상태)**: 장바구니, 유저 세션 등 전사 공유 데이터. Context-Action `ReadableStore` 또는 Global Signal이 단일 진실 원천(SSOT).
+* **상태 3계층 모델 (3-Tier State Hierarchy)** ([CA-SPEC-EVIDENCE-001](./docs/ko/context-layered/decisions/CA-SPEC-EVIDENCE-001.md)):
+  - **Tier 1 (지속 가능한 도메인 계약 — Durable Domain Contract)**: 장바구니, 유저 세션, 영속화/API DTO 및 핵심 상태 머신. Context-Action `ReadableStore` (`createStoreContext`, `@context-action/store-core`)와 TypeSpec SSOT 계약이 단일 진실 원천(SSOT).
+  - **Tier 2 (일시적 애플리케이션 로직 — Transient Application Logic)**: 클라이언트 계산 결과(`*Result.ts`), 폼 컨트롤 고유 값(`@property()` + `ElementInternals.setFormValue()`), 도메인 활동 이벤트(`*Activity.ts`).
+  - **Tier 3 (휘발성 프레젠테이션 상태 — Volatile Presentation State)**: 컴포넌트 내부 렌더링 전용 UI 상태(`isFocused`, `isOpen`, `activeTab`). 로컬 `useState`, `createRefContext`, Lit `@state()`, Preact `signal()`로 관리하며 TypeSpec/Evidence 추적 대상에서 명시적으로 면제.
 * **선택적 프로젝션 (Selective Projection)**: 스토어 전체가 아닌 컴포넌트에 필요한 최소 슬라이스만 `selector` 함수로 추출.
 * **Equality Guard (방어적 리렌더링)**: `equalityFn`(기본 `Object.is`) 비교로 파생 데이터가 같을 경우 `requestUpdate()`를 억제하여 120fps 고주파 이벤트에서도 렌더링 비용을 0으로 유지.
 * **Coalesced Pending**: 액션 로딩 상태(`isPending`) 추적 시 0 ↔ >0 전환 시점에만 리렌더링 요청을 병합 실행.
@@ -281,9 +281,14 @@ function App() {
 }
 ```
 
-### 🏗️ 5계층 훅 아키텍처
+**📖 [Store별 선택 기준 및 사용법 가이드](./docs/ko/context-layered/store-selection-and-usage-guide.md)** - 패키지 전반 Store/상태 선택 기준:
+- `createStoreContext` / `createStore` / `TimeTravelStore` (`@context-action/react`)
+- 프레임워크 중립 `createStateStore` (`@context-action/store-core`) 및 헤드리스 백엔드 (`@context-action/react/backend`)
+- 파생·로컬 스토어 (`@context-action/react/advanced`), `RefContext`, XState, Preact/Lit, Durable Operations
 
-**Context-Action은 관심사의 완벽한 분리와 지연 평가를 통한 최적의 성능을 제공하는 정교한 5계층 훅 아키텍처를 구현합니다.**
+### 🏗️ 6계층 훅 아키텍처
+
+**Context-Action은 `contexts / business / handlers / actions / hooks / views` 6계층 훅 아키텍처를 통해 관심사의 명확한 분리와 지연 평가 기반의 최적 성능을 제공합니다.**
 
 ```mermaid
 graph TD
@@ -297,13 +302,14 @@ graph TD
         Ref[Ref<br/>- 싱글톤 인스턴스 관리]
     end
 
-    %% 5-Layer Hooks 구조
-    subgraph Hooks["5-Layer Hooks Consumer"]
+    %% 6-Layer Hooks 구조
+    subgraph Hooks["6-Layer Hooks Consumer"]
         ContextDef[contexts<br/>자원 타입 정의]
-        Handlers[handlers<br/>Pipe 등록용<br/>내부 함수 정의]
-        Subscriptions[subscriptions<br/>선택적 상태 구독]
-        Registries[registries<br/>핸들러 등록<br/>지연 평가]
-        Dispatchers[dispatchers<br/>on~ 함수 생성<br/>View용]
+        Business[business<br/>순수 비즈니스 로직<br/>함수]
+        Handlers[handlers<br/>Handler injection<br/>구현 계층]
+        ActionHelpers[actions<br/>액션 디스패치<br/>래퍼 함수]
+        Subscriptions[hooks<br/>Store 구독 및<br/>파생 데이터]
+        Views[views<br/>순수 UI 컴포넌트]
     end
 
     %% UI 계층
@@ -315,15 +321,15 @@ graph TD
 
     %% 데이터 흐름
     Store -->|상태 관리| ContextDef
-    ContextDef -->|타입 정의| Handlers
-    Handlers -->|함수 정의| Registries
-    Registries -->|등록| Pipeline
-    Pipeline -->|실행| Actions
-    Actions -->|업데이트| Store
+    ContextDef -->|타입 정의| Business
+    Business -->|순수 함수| Handlers
+    Handlers -->|핸들러 등록| ActionHelpers
+    ActionHelpers -->|액션 실행| Pipeline
+    Pipeline -->|파이프라인 실행| Store
     Store -->|구독| Subscriptions
-    Subscriptions -->|UI 업데이트| UI
-    Dispatchers -->|액션 발송| Actions
-    UI -->|사용| Dispatchers
+    Subscriptions -->|데이터 전달| Views
+    Views -->|UI 렌더링| UI
+    ActionHelpers -->|액션 발송| Pipeline
 
     %% UI 마운트 순서
     Page -->|마운트| Layout
@@ -337,12 +343,13 @@ graph TD
    - **Actions/Pipeline**: 비즈니스 로직 등록 및 실행 순서 관리
    - **Ref**: 성능 최적화를 위한 싱글톤 인스턴스 관리
 
-2. **5계층 훅 구조 (Consumer)**
+2. **6계층 훅 구조 (Consumer)**
    - **contexts**: 자원 타입 정의 및 컨텍스트 접근
-   - **handlers**: 파이프라인 등록을 위한 내부 함수 정의
-   - **subscriptions**: UI 업데이트를 위한 선택적 상태 구독
-   - **registries**: 지연 평가를 갖춘 핸들러 등록
-   - **dispatchers**: 뷰 지향 액션 디스패처 (`on~` 함수들)
+   - **business**: 사이드 이펙트와 분리된 순수 비즈니스 로직 함수
+   - **handlers**: `store.getValue()` 지연 평가를 사용하는 핸들러 등록 계층
+   - **actions**: 뷰 지향 액션 디스패치 함수 및 콜백 관리
+   - **hooks**: UI 업데이트를 위한 선택적 상태 구독과 파생 값
+   - **views**: 최소 결합을 유지하는 순수 UI 컴포넌트
 
 3. **UI 계층 (Views)**
    - **Page**: 라우트 레벨 컴포넌트
@@ -357,31 +364,35 @@ graph TD
 - **싱글톤 관리**: Ref 레이어가 효율적인 리소스 공유 보장
 
 ```typescript
-// 5계층 구현 예제
-function UserPage() {
-  // 1계층: contexts - 자원 타입 정의
+// 6계층 구현 예제 (contexts / business / handlers / actions / hooks / views)
+// 1. business: 순수 도메인 변환
+const applyProfilePatch = (current: UserProfile, patch: Partial<UserProfile>) => ({
+  ...current,
+  ...patch,
+});
+
+// 2. handlers: 지연 평가 store.getValue() 기반 핸들러 등록
+function UserHandlers({ children }: { children: React.ReactNode }) {
   const userStore = useUserStore('profile');
 
-  // 2계층: handlers - 내부 함수 정의
-  const updateUserHandler = useCallback(async (payload) => {
-    const currentUser = userStore.getValue(); // 지연 평가
-    const updatedUser = { ...currentUser, ...payload };
-    userStore.setValue(updatedUser);
+  const updateUserHandler = useCallback(async (payload: Partial<UserProfile>) => {
+    const currentUser = userStore.getValue();
+    userStore.setValue(applyProfilePatch(currentUser, payload));
   }, [userStore]);
 
-  // 3계층: subscriptions - 선택적 상태 구독
-  const user = useStoreValue(userStore);
-
-  // 4계층: registries - 핸들러 등록
   useActionHandler('updateUser', updateUserHandler);
+  return <>{children}</>;
+}
 
-  // 5계층: dispatchers - 뷰 지향 액션 디스패처
-  const onUpdateUser = useActionDispatch('updateUser');
+// 3. hooks + views: 선택적 구독 및 액션 디스패치
+function UserPage() {
+  const user = useStoreValue(useUserStore('profile'));
+  const dispatch = useUserActionDispatch();
 
   return (
     <div>
       <h1>{user.name}</h1>
-      <button onClick={() => onUpdateUser({ name: '새 이름' })}>
+      <button onClick={() => dispatch('updateUser', { name: '새 이름' })}>
         사용자 업데이트
       </button>
     </div>
@@ -529,39 +540,33 @@ function UserProfile() {
 #### 3. **Ref 타입 선언 및 싱글톤 관리**
 
 ```typescript
-// 1️⃣ 싱글톤 리소스를 위한 Ref 타입 선언
+import { createRefContext, createStoreContext } from '@context-action/react';
+
+// 1️⃣ 가변 요소·명령형 핸들을 위한 Ref 타입 선언
 interface AppRefs {
+  editorInput: HTMLInputElement;
   apiClient: ApiClient;
-  eventBus: EventBus;
-  cache: LRUCache<string, any>;
 }
 
-// 2️⃣ Ref 관리를 갖춘 컨텍스트
-const {
-  Provider: AppProvider,
-  useStore,
-  useRef: useAppRef
-} = createStoreContext('App', {
+// 2️⃣ StoreContext(상태)와 RefContext(참조) 분리 선언
+const { Provider: AppStoreProvider, useStore } = createStoreContext('App', {
   user: { name: '', email: '' },
-  // ✅ 스토어와 함께 관리되는 Ref 타입
-}, {
-  refs: {
-    apiClient: () => new ApiClient(),
-    eventBus: () => new EventBus(),
-    cache: () => new LRUCache(1000)
-  } as AppRefs
 });
+
+const { Provider: AppRefProvider, useRefHandler: useAppRef } =
+  createRefContext<AppRefs>('AppRefs');
 
 // 3️⃣ 타입 안전 Ref 접근
 function ApiComponent() {
-  const apiClient = useAppRef('apiClient'); // ✅ ApiClient 타입
+  const apiClientRef = useAppRef('apiClient'); // ✅ RefState<ApiClient>
   const userStore = useStore('user');
 
   const fetchUser = useCallback(async (id: string) => {
-    // ✅ apiClient.get은 타입화된 메서드
-    const userData = await apiClient.get(`/users/${id}`);
+    const client = apiClientRef.target;
+    if (!client) return;
+    const userData = await client.get(`/users/${id}`);
     userStore.setValue(userData);
-  }, [apiClient, userStore]);
+  }, [apiClientRef, userStore]);
 
   return <button onClick={() => fetchUser('123')}>사용자 가져오기</button>;
 }
@@ -592,12 +597,11 @@ function ApiComponent() {
 
 #### **한국어 문서**
 - **[🎯 액션 타입 시스템](https://mineclover.github.io/context-action/ko/guide/patterns/action/type-system)** - ActionPayloadMap, 타입 안전성, TypeScript 통합
+- **[🏪 Store별 선택 기준 및 사용법 가이드](https://mineclover.github.io/context-action/ko/context-layered/store-selection-and-usage-guide)** - 패키지 전반의 타입 안전 Store 선택 매트릭스
 
 #### **영어 문서**
 - **[📖 TypeScript Type Inference Guide](https://mineclover.github.io/context-action/en/guide/type-inference)** - 완전한 타입 추론 개요
 - **[🎯 Action Type System](https://mineclover.github.io/context-action/en/guide/patterns/action/type-system)** - ActionPayloadMap, 파이프라인 컨트롤러, 핸들러 타입
-- **[🔧 Advanced Type Features](https://mineclover.github.io/context-action/en/guide/type-inference/advanced)** - 브랜드 타입, 조건부 처리, 유틸리티
-- **[🛡️ Type Safety Best Practices](https://mineclover.github.io/context-action/en/guide/type-inference/best-practices)** - 필수 권장사항과 패턴
 
 #### **핵심 타입 시스템 기능**
 - **액션 타입 안전성**: 파이프라인 컨트롤러 타입을 갖춘 완전한 `ActionPayloadMap` 인터페이스
@@ -675,21 +679,21 @@ npx serve examples/vanilla-js
 ```
 
 ### 🚀 React 라이브 예제
-**[20개 이상의 실제 예제 탐색 →](https://mineclover.github.io/context-action/example/)**
+**[72개 정식 예제 라우트 탐색 →](https://mineclover.github.io/context-action/example/)** ([카탈로그 명세](./catalog/repository-surface/example-surface.v1.json))
 
 #### 🏪 **스토어 시스템**
-- [스토어 기초](https://mineclover.github.io/context-action/example/#/store-basic) - 기본 작업
-- [스토어 전체 데모](https://mineclover.github.io/context-action/example/#/store-full-demo) - 복잡한 상태 관리
-- [선언적 패턴](https://mineclover.github.io/context-action/example/#/store-declarative-pattern) - 타입 안전 패턴
+- [스토어 기초](https://mineclover.github.io/context-action/example/foundations/store/basics) - 스토어 생성, 갱신, 구독 기본
+- [Time Travel Store](https://mineclover.github.io/context-action/example/foundations/store/time-travel) - undo/redo 히스토리 및 타임라인 탐색
+- [React Provider 및 훅](https://mineclover.github.io/context-action/example/foundations/react/provider) - 선언적 Action/Store Provider 분리
 
 #### 🎯 **액션 시스템**
-- [핵심 기능](https://mineclover.github.io/context-action/example/#/action-core-features) - 파이프라인 기본
-- [액션 가드](https://mineclover.github.io/context-action/example/#/action-guard-search) - 고급 필터링
-- [우선순위 시스템](https://mineclover.github.io/context-action/example/#/action-priority-performance) - 성능 최적화
+- [코어 액션 기초](https://mineclover.github.io/context-action/example/foundations/core/basics) - 프레임워크 중립 ActionRegister 파이프라인 기본
+- [ActionGuard 검색](https://mineclover.github.io/context-action/example/performance/action-guard/search) - 디바운싱·중단 가능 검색 파이프라인
+- [우선순위 시스템](https://mineclover.github.io/context-action/example/performance/priority/demo) - 우선순위 스케줄링 및 실행 추적
 
-#### 🔗 **MVVM 아키텍처**
-- [통합 패턴](https://mineclover.github.io/context-action/example/#/unified-pattern-demo) - 완전한 MVVM 데모
-- [향상된 컨텍스트](https://mineclover.github.io/context-action/example/#/enhanced-context-store) - 고급 패턴
+#### 🔗 **Context-Layered 및 Playbook 예제**
+- [Canonical Order Form](https://mineclover.github.io/context-action/example/patterns/implementation-playbook) - 6계층 표준 기준 워크플로
+- [레이어드 아키텍처](https://mineclover.github.io/context-action/example/patterns/layered-architecture) - contexts, handlers, hooks, views 분리 구조
 
 ### 📖 실제 예제
 
@@ -709,22 +713,25 @@ interface UserActions extends ActionPayloadMap {
 }
 ```
 
-### 🔍 **v0.7.0 신기능: 향상된 LogMonitor 문서**
-- **[📊 로거 시스템 데모](https://mineclover.github.io/context-action/example/#/logger-demo)** - 인터랙티브 LogMonitor 쇼케이스
-- **실시간 로그 수집** - 실용적인 예제가 포함된 라이브 데모
-- **통합 패턴** - 부모/자식 핸들러 구현
-- **의존성 경고** - 모범 사례로 무한 루프 방지
+### 🔍 **관측성 및 개발자 도구**
+- **[📊 Action Lifecycle Workbench](https://mineclover.github.io/context-action/example/integrations/action-lifecycle)** - 디스패치 트레이스, 핸들러 실행 단계, 중단 상태 점검
+- **[📋 로거 시스템 데모](https://mineclover.github.io/context-action/example/utilities/dev-tools/logger)** - 인터랙티브 LogMonitor 쇼케이스
+- **[⚠️ 경고 및 스토어 시나리오](https://mineclover.github.io/context-action/example/utilities/dev-tools/warning-demo)** - 의존성 경고 방지 및 스토어 전략 비교
 
 ---
 
 ## 📚 문서
 
 ### 📖 완전한 가이드
-- **[📚 공식 문서](https://mineclover.github.io/context-action/ko/)** - 완전한 API 참조
+- **[📚 공식 문서](https://mineclover.github.io/context-action/ko/)** - 전체 가이드 및 API 포털
 - **[🚀 시작하기 가이드](https://mineclover.github.io/context-action/ko/guide/getting-started)** - 5분 설정
-- **[🏗️ MVVM 핵심 아키텍처](https://mineclover.github.io/context-action/ko/concept/mvvm-core-architecture)** - 실용적인 MVVM 구현 가이드
+- **[🏗️ Context-Layered 아키텍처](https://mineclover.github.io/context-action/ko/context-layered/context-layered-guide)** - 실전 6계층 구현 가이드
+- **[🧭 개발 컨벤션 인덱스](https://mineclover.github.io/context-action/ko/context-layered/convention-index)** - 작업별 표준·게이트 중심 인덱스
+- **[📦 저장소 표면 카탈로그](https://mineclover.github.io/context-action/ko/context-layered/repository-surface-catalog)** - 20개 패키지·72개 정식 라우트·관리 문서 전체 목록 (`CA-SURFACE-CATALOG-001`)
+- **[🏪 Store별 선택 기준 및 사용법 가이드](https://mineclover.github.io/context-action/ko/context-layered/store-selection-and-usage-guide)** - 패키지 전반 Store 선택 매트릭스
 - **[📋 아키텍처 개요](https://mineclover.github.io/context-action/ko/concept/architecture-guide)** - 프레임워크 개념
 - **[⚡ 모범 사례](https://mineclover.github.io/context-action/ko/guide/best-practices)** - 프로덕션 패턴
+- **[📜 문서 및 개발 관리 컨벤션](https://mineclover.github.io/context-action/ko/concept/documentation-development-conventions)** - 문서 작성 기준 및 검증 게이트
 
 ### 🌏 다국어 지원
 - **[🇰🇷 한국어 문서](https://mineclover.github.io/context-action/ko/)** - 완전한 한국어 가이드
@@ -734,70 +741,16 @@ interface UserActions extends ActionPayloadMap {
 
 ## 📦 패키지
 
-### [@context-action/core](./packages/core)
-**순수 TypeScript 액션 파이프라인** - ⭐ **프레임워크 독립적** (바닐라 JS, React, Vue, Svelte 등)
-```bash
-npm install @context-action/core
-# 또는 CDN 사용
-# https://esm.sh/@context-action/core@latest
-```
-- 🌐 **바닐라 JavaScript 지원** - 프레임워크 불필요!
-- 🔒 완전한 TypeScript 지원
-- ⚡ 우선순위 기반 실행을 갖춘 액션 파이프라인 시스템
-- 🛡️ 고급 액션 가드 (디바운싱, 쓰로틀링, 필터링)
-- 🚫 의존성 없음
-- 📚 **[바닐라 JS 가이드](./docs/ko/guide/vanilla-js-guide.md)** | **[인터랙티브 예제](./examples/vanilla-js/)**
+모노레포는 **6개 레이어에 걸친 20개 워크스페이스 패키지**(공개 16개, 내부 워크스페이스 도구 4개)로 구성됩니다. 전체 패키지 목록, export subpath, 검증 게이트는 [저장소 표면 카탈로그](./docs/ko/context-layered/repository-surface-catalog.md) 및 [`api-surface.v1.json`](./catalog/repository-surface/api-surface.v1.json)을 참고하세요.
 
-### [@context-action/react](./packages/react)
-**React 통합** - 완전한 MVVM 아키텍처
-```bash
-npm install @context-action/react
-```
-- 🏪 선언적 스토어 패턴
-- 🎯 액션 컨텍스트 통합
-- 🪝 고급 React 훅
-- 🏗️ HOC 지원
-
-### [@context-action/lit](./packages/lit)
-**Lit ReactiveController 어댑터** - 헤드리스 스토어/액션 통합
-```bash
-npm install @context-action/lit lit
-```
-- 🧩 `StoreController`, `ActionController`
-- 🧹 `ControllerScope` LIFO 수명 정리
-- 🎯 selector projection과 equality 억제
-- 🚫 React 의존성 없음
-
-### [@context-action/lit-ui](./packages/lit-ui)
-**Lit 웹 컴포넌트 프리미티브 및 통합**
-```bash
-npm install @context-action/lit-ui @context-action/lit lit @lit/context
-```
-- 🧱 Form-Associated Custom Elements (FACE)
-- 🌐 W3C `@lit/context` token, provider, controller
-- ⚛️ facade handle을 지원하는 React 18/19 custom element bridge
-- 🖥️ SSR(`./ssr`) 및 client hydration(`./hydrate`) entry
-
-### [@context-action/tool-protocol](./packages/tool-protocol)
-**MCP, OpenAI 호환 provider, Anthropic 호환 provider, local adapter를 위한
-framework-neutral tool/action 계약**
-```bash
-npm install @context-action/tool-protocol zod
-```
-- 🧩 Zod 기반 action schema와 JSON Schema 변환
-- 🔌 provider 독립적인 tool-call 및 approval 계약
-- 🧱 React와 action runtime에 의존하지 않음
-- 📦 protocol symbol은 이 패키지에서 직접 import
-
-### [@context-action/tool-durable-operations](./packages/tool-durable-operations)
-**선택적 mutation 안전성 계층**으로 durable idempotency와 외부 side-effect를 관리합니다.
-```bash
-npm install @context-action/tool-durable-operations
-```
-- 🧾 Lease 기반 durable operation record
-- 🔁 HTTP·queue·filesystem·provider side-effect adapter
-- 🗄️ IndexedDB·Redis·PostgreSQL reference backend
-- ⚠️ 모호한 외부 효과는 애플리케이션 reconciliation 전까지 `unknown` 유지
+- **[@context-action/core](./packages/core)** — 무의존성 프레임워크 중립 액션 파이프라인 (`ActionRegister`, 가드, 우선순위, 취소, `./element` 호스트 바인딩)
+- **[@context-action/store-core](./packages/store-core)** — 프레임워크 중립 `StateBackend`, `TimelineBackend`, `TransactionBackend` 및 `createStateStore` 계약
+- **[@context-action/mutative-core](./packages/mutative-core)** & **[@context-action/mutative](./packages/mutative)** — Upstream 호환 불변 엔진(`mutative@1.3.0` 계보)과 `StateBackend` / 타임트래블 어댑터
+- **[@context-action/react](./packages/react)** — React 18/19 MVVM Context 바인딩 (`createActionContext`, `createStoreContext`, `createTimeTravelStoreContext`, `createRefContext`, `./backend`, `./advanced`, `./utils`, `./webmcp`)
+- **[@context-action/xstate](./packages/xstate)** — XState v5/v6(`.`) 및 Effect(`./effect`) 선택형 어댑터
+- **[@context-action/lit](./packages/lit)** & **[@context-action/lit-ui](./packages/lit-ui)** — Lit ReactiveController, W3C `@lit/context`, FACE 컨트롤, SSR/하이드레이션, React 브리지
+- **[@context-action/preact](./packages/preact)** & **[@context-action/preact-ui](./packages/preact-ui)** — Preact Context + Signals 어댑터, mount/hydrate 루트, 커스텀 엘리먼트 브리지, React 브리지
+- **[@context-action/tool-protocol](./packages/tool-protocol)**, **[@context-action/tool-durable-operations](./packages/tool-durable-operations)**, **[@context-action/ai-sdk](./packages/ai-sdk)** & **[@context-action/webmcp](./packages/webmcp)** — Zod 기반 액션 스키마, MCP/provider 도구 계약, lease/fence 기반 내구적 mutation 복구, AI SDK 및 브라우저 WebMCP 어댑터
 
 ---
 
@@ -812,6 +765,7 @@ pnpm dev  # 예제 앱 시작
 ```
 
 ### 프로젝트 리소스
+- **[📋 Local-First 검증 정책](./docs/LOCAL_FIRST_VERIFICATION_POLICY.md)** - 로컬 우선 검증 및 서명 영수증 규약 (`pnpm verify:quick` / `pnpm verify`)
 - **[🤝 기여 가이드](./CONTRIBUTING.md)** - 기여 방법
 - **[🌐 생태계](./ECOSYSTEM.md)** - 도구와 생성기
 - **[🛠️ 개발 가이드](./DEVELOPMENT.md)** - 상세한 개발 설정
