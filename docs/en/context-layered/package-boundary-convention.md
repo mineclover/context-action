@@ -40,13 +40,17 @@ when an existing package cannot own the responsibility without violating depende
 | `@context-action/mutative-core` | immutable runtime foundation | maintained Mutative-compatible draft, patch, and array engine | Context-Action adapters, React, time-travel policy |
 | `@context-action/mutative` | runtime adapter | immutable update and patch utilities used by React | action orchestration or React contexts |
 | `@context-action/react` | framework adapter | React contexts, stores, hooks, refs, tool integration | core policy, documentation generation, Git analysis |
+| `@context-action/lit` | public preview framework adapter | Lit `ReactiveController` adapters for readable stores, action pipelines, and LIFO `ControllerScope` | Lit template rendering, SSR hydration, React dependency, business domain state |
+| `@context-action/lit-ui` | public preview UI runtime | Lit Web Component primitives, W3C Context Protocol controllers, FACE support, optional React bridge, DSD SSR/hydration | mandatory React runtime dependency in `.`, business domain rules, global store state |
 | `@context-action/preact` | public preview framework adapter | Preact dispatch contexts and read-only Signals projections over Core contracts | DOM root ownership, SSR rendering, business-domain state, React integration |
 | `@context-action/preact-ui` | public preview UI runtime | owned Preact roots, template mounting, SSR/hydration helpers, disposal, and Custom Element shells | domain state policy, action orchestration, or React store implementation |
+| `@context-action/webmcp` | integration adapter | optional browser WebMCP imperative scope (`createWebMCPToolScope`) exposing allowlisted canonical tools over `document.modelContext` | second tool execution path bypassing `ToolContext`, React or model-provider dependencies |
 | `@context-action/llms-generator` | documentation generator | LLMS summaries, priorities, derived documentation artifacts | runtime package behavior or architecture policy |
 | `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress synchronization | handwritten guide content or runtime code |
 | `@context-action/style-testing` | UI verification tool | style/browser analysis and its CLI | core state management contracts |
 | `@context-action/live-code-editor` | private integration surface | live editor package experiments | stable public runtime contracts until promoted |
 | `@context-action/openrouter-browser-storage` | private integration surface | browser persistence for the OpenRouter example | generic storage abstractions for core/react |
+| `@context-action/template-react` | private starter template | starter React template demonstrating Context-Layered layout, Astryx design tokens, and state tiering | importable npm library exports or shared runtime primitives |
 
 `example/` and `demos/` are integration hosts, not libraries. They may compose public packages and demonstrate
 architecture, but a reusable implementation belongs in a package before it is imported by another package.
@@ -64,8 +68,10 @@ The default direction is:
 @context-action/core          ──→ @context-action/react
 @context-action/tool-protocol ──→ @context-action/react
 @context-action/tool-protocol ──→ @context-action/ai-sdk ──→ application provider setup
+@context-action/tool-protocol ──→ @context-action/webmcp
 @context-action/tool-durable-operations ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
+@context-action/core          ──→ @context-action/lit    ──→ @context-action/lit-ui
 @context-action/core          ──→ @context-action/preact ──→ @context-action/preact-ui
 @context-action/core + @context-action/store-core ──→ @context-action/xstate (`.`, `./effect`)
 

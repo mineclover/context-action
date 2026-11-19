@@ -39,13 +39,17 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 | `@context-action/mutative-core` | immutable runtime foundation | 유지보수되는 Mutative 호환 draft·patch·array engine | Context-Action adapter, React, time-travel policy |
 | `@context-action/mutative` | runtime adapter | React가 사용하는 immutable update/patch utility | action orchestration, React context |
 | `@context-action/react` | framework adapter | React context, store, hook, ref, tool integration | core policy, 문서 생성, Git 분석 |
+| `@context-action/lit` | public preview framework adapter | 읽기 가능 스토어, 액션 파이프라인, LIFO `ControllerScope`용 Lit `ReactiveController` 어댑터 | Lit 템플릿 렌더링, SSR 하이드레이션, React 의존성, 업무 상태 |
+| `@context-action/lit-ui` | public preview UI runtime | Lit 웹 컴포넌트 프리미티브, W3C Context Protocol 컨트롤러, FACE 지원, 선택적 React 브리지, DSD SSR/하이드레이션 | `.` 엔트리의 필수 React 의존성, 업무 도메인 규칙, 전역 스토어 상태 |
 | `@context-action/preact` | public preview framework adapter | Core 계약 위의 Preact dispatch context와 읽기 전용 Signals projection | DOM root ownership, SSR 렌더링, 업무 상태, React 통합 |
 | `@context-action/preact-ui` | public preview UI runtime | 소유한 Preact root, template mount, SSR/hydration helper, disposal, Custom Element shell | 업무 상태 정책, action orchestration, React store 구현 |
+| `@context-action/webmcp` | integration adapter | `document.modelContext`를 통해 allowlist 기반 정식 도구를 노출하는 선택적 브라우저 WebMCP 명령형 scope(`createWebMCPToolScope`) | `ToolContext`를 우회하는 두 번째 실행 경로, React 또는 모델 프로바이더 의존성 |
 | `@context-action/llms-generator` | documentation generator | LLMS summary, priority, derived artifact | runtime behavior, architecture policy |
 | `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress 동기화 | handwritten guide, runtime code |
 | `@context-action/style-testing` | UI verification tool | style/browser 분석과 CLI | core state contract |
 | `@context-action/live-code-editor` | private integration | live editor 실험 | promotion 전 stable runtime contract |
 | `@context-action/openrouter-browser-storage` | private integration | OpenRouter example browser persistence | core/react용 generic storage abstraction |
+| `@context-action/template-react` | private starter template | Context-Layered 구조, Astryx 디자인 토큰, 상태 계층화를 적용한 React 스타터 템플릿 | import 가능한 npm 라이브러리 export 또는 공용 런타임 프리미티브 |
 
 `example/`과 `demos/`는 library가 아니라 integration host다. public package를 조합하고 아키텍처를 보여줄 수
 있지만 재사용 구현은 다른 패키지가 import하기 전에 package로 승격한다.
@@ -62,8 +66,10 @@ LLMS summary는 canonical `docs/`에서 파생하며 별도의 API SSOT가 아�
 @context-action/core          ──→ @context-action/react
 @context-action/tool-protocol ──→ @context-action/react
 @context-action/tool-protocol ──→ @context-action/ai-sdk ──→ application provider setup
+@context-action/tool-protocol ──→ @context-action/webmcp
 @context-action/tool-durable-operations ──→ @context-action/react
 @context-action/mutative-core ──→ @context-action/mutative ──→ @context-action/react
+@context-action/core          ──→ @context-action/lit    ──→ @context-action/lit-ui
 @context-action/core          ──→ @context-action/preact ──→ @context-action/preact-ui
 @context-action/core + @context-action/store-core ──→ @context-action/xstate (`.`, `./effect`)
 

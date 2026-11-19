@@ -33,6 +33,7 @@
     "verify:core-artifact-parity": "node scripts/verify-core-artifact-parity.mjs",
     "package-boundary:check": "node scripts/verify-package-boundaries.mjs",
     "package-boundary:test": "node --test scripts/verify-package-boundaries.test.mjs",
+    "verify:surface-catalog": "node scripts/verify-repository-surface-catalog.mjs",
     "verify:react-artifact-boundary": "node scripts/verify-react-artifact-boundary.mjs",
     "verify:published-tool-consumers": "node scripts/verify-published-tool-consumers.cjs",
     "verify:local-tool-consumers": "node scripts/verify-published-tool-consumers.cjs --local",

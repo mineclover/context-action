@@ -243,6 +243,8 @@ const CONCEPT_STRUCTURE = {
           items: [
             { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
             { text: 'Convention Index', link: '/en/context-layered/convention-index' },
+            { text: 'Repository Surface Catalog', link: '/en/context-layered/repository-surface-catalog' },
+            { text: 'Store Selection and Usage Guide', link: '/en/context-layered/store-selection-and-usage-guide' },
             { text: 'Package Boundary and Codebase Management', link: '/en/context-layered/package-boundary-convention' },
             { text: 'Mutative Core History and Upstream References', link: '/en/context-layered/mutative-core-history' },
             { text: 'Specification, Issue, and Documentation Management', link: '/en/context-layered/change-management-convention' },
@@ -286,6 +288,8 @@ const CONCEPT_STRUCTURE = {
           items: [
             { text: '개요', link: '/ko/context-layered/context-layered-guide' },
             { text: '개발 컨벤션 인덱스', link: '/ko/context-layered/convention-index' },
+            { text: '저장소 표면 카탈로그', link: '/ko/context-layered/repository-surface-catalog' },
+            { text: 'Store별 선택 및 사용법 가이드', link: '/ko/context-layered/store-selection-and-usage-guide' },
             { text: '패키지 경계 및 코드베이스 관리', link: '/ko/context-layered/package-boundary-convention' },
             { text: 'Mutative Core 히스토리 및 원본 참조', link: '/ko/context-layered/mutative-core-history' },
             { text: '스펙·이슈·문서 관리', link: '/ko/context-layered/change-management-convention' },
@@ -347,6 +351,9 @@ const CONTEXT_LAYERED_SIDEBAR = {
     collapsed: false,
     items: [
       { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
+      { text: 'Convention Index', link: '/en/context-layered/convention-index' },
+      { text: 'Repository Surface Catalog', link: '/en/context-layered/repository-surface-catalog' },
+      { text: 'Store Selection and Usage Guide', link: '/en/context-layered/store-selection-and-usage-guide' },
       { text: 'Mutative Core History and Upstream References', link: '/en/context-layered/mutative-core-history' },
       { text: 'Specification, Issue, and Documentation Management', link: '/en/context-layered/change-management-convention' },
       { text: 'Interaction Intent Contract (IIC)', link: '/en/context-layered/interaction-intent-contract' },
@@ -367,6 +374,9 @@ const CONTEXT_LAYERED_SIDEBAR = {
     collapsed: false,
     items: [
       { text: '개요', link: '/ko/context-layered/context-layered-guide' },
+      { text: '개발 컨벤션 인덱스', link: '/ko/context-layered/convention-index' },
+      { text: '저장소 표면 카탈로그', link: '/ko/context-layered/repository-surface-catalog' },
+      { text: 'Store별 선택 및 사용법 가이드', link: '/ko/context-layered/store-selection-and-usage-guide' },
       { text: 'Mutative Core 히스토리 및 원본 참조', link: '/ko/context-layered/mutative-core-history' },
       { text: '스펙·이슈·문서 관리', link: '/ko/context-layered/change-management-convention' },
       { text: '상호작용 의도 계약(IIC)', link: '/ko/context-layered/interaction-intent-contract' },

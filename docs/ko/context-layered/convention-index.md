@@ -10,6 +10,8 @@
 | 바꾸려는 대상 | 먼저 읽을 문서 | 이어서 사용할 것 |
 | --- | --- | --- |
 | package 책임, dependency, export | [패키지 경계 및 코드베이스 관리](/ko/context-layered/package-boundary-convention) | `pnpm package-boundary:check` |
+| 레포지토리 API 전체 구성, 예제 라우트·데모, 관리 문서 목록 | [저장소 표면 카탈로그](/ko/context-layered/repository-surface-catalog) | `pnpm verify:surface-catalog` |
+| 패키지 전반의 Store·상태 저장소 선택 기준과 사용법 | [Store별 선택 기준 및 사용법 가이드](/ko/context-layered/store-selection-and-usage-guide) | `pnpm package-boundary:check` |
 | 공개 가이드, API 참조, README 경로, 생성 문서 | [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions) | `pnpm docs:check` |
 | 지속되는 아키텍처 경계 또는 compatibility 예외 | [아키텍처 결정 기록](/ko/context-layered/decisions/) | 연결된 package/guide와 집중 증거 |
 | 기능, 버그, workflow 계약 | [스펙·이슈·문서 관리](/ko/context-layered/change-management-convention) | 변경 분류에 맞는 gate |
@@ -28,6 +30,8 @@
   - 현재 상태 분류, Provider 순서, 마이그레이션 완료 조건
 - [패키지 경계 및 코드베이스 관리](/ko/context-layered/package-boundary-convention)
   - package ownership, dependency 방향, package lifecycle, cleanup 규칙
+- [저장소 표면 카탈로그](/ko/context-layered/repository-surface-catalog)
+  - 20개 패키지 API, 72개 정식 예제 라우트·데모, 관리 문서 체계 기본 규격 및 전체 목록 ([CA-SURFACE-CATALOG-001](/ko/context-layered/decisions/CA-SURFACE-CATALOG-001))
 - [Mutative Core 히스토리 및 원본 참조](/ko/context-layered/mutative-core-history)
   - Mutative 소스 계보, 반영한 upstream 수정, 라이선스, 동기화 규칙
 - [Implementation Convention](/ko/context-layered/implementation-convention)
@@ -64,6 +68,8 @@
 - [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
   - 복잡한 async 흐름을 `상태 + 이벤트 + 전이`로 고정하는 방법
 - [Context-Layered 개요](/ko/context-layered/context-layered-guide)
+- [Store별 선택 기준 및 사용법 가이드](/ko/context-layered/store-selection-and-usage-guide)
+  - `createStoreContext`, `createStore`, `TimeTravelStore`, `store-core`, `/backend`, `/advanced`, `RefContext`, `xstate`, `preact`, `lit`, `tool-durable-operations` 전반의 선택 매트릭스와 사용법
 - [Usecase 및 Recipe Profile](/ko/context-layered/usecase-recipe-profile)
   - 전체 구조를 상위 개념에서 설명
 - [Integration Profile](/ko/context-layered/integration-profiles)

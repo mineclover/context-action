@@ -8,6 +8,9 @@ adapter `0.8.15`, and React `4.0.7` cohort. The upstream immutable-update baseli
 transaction contracts are maintained in [Store and time-travel
 contracts](../../../packages/react/docs/state-contracts.md).
 
+> [!TIP]
+> For a repository-wide decision matrix and usage examples across `createStoreContext`, `createStore`, `createTimeTravelStore*`, `@context-action/store-core`, `@context-action/react/backend`, `@context-action/react/advanced`, `createRefContext`, `createActorStateReader`, Preact/Lit read adapters, and `createDurableOperationStore`, see the [Store Selection and Usage Guide](/en/context-layered/store-selection-and-usage-guide).
+
 ## 📋 Table of Contents
 
 1. [Store Types Overview](#store-types-overview)
