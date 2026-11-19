@@ -10,6 +10,8 @@ you know which artifact you own.
 | If you are changing… | Read first | Then use |
 | --- | --- | --- |
 | a package responsibility, dependency, or export | [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention) | `pnpm package-boundary:check` |
+| repository API packages, example routes, or managed document inventory | [Repository Surface Catalog](/en/context-layered/repository-surface-catalog) | `pnpm verify:surface-catalog` |
+| choosing or integrating a Store / state mechanism across packages | [Store Selection and Usage Guide](/en/context-layered/store-selection-and-usage-guide) | `pnpm package-boundary:check` |
 | a public guide, API reference, README route, or generated document | [Documentation and Development Management](/en/concept/documentation-development-conventions) | `pnpm docs:check` |
 | a durable architectural boundary or compatibility exception | [Architecture Decision Records](/en/context-layered/decisions/) | the linked package/guide and focused proof |
 | a feature, bug, or workflow contract | [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention) | its change-class gate |
@@ -28,6 +30,8 @@ checks rather than replacing focused evidence.
   - current-state classification, fixed provider order, and migration gates
 - [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention)
   - package ownership, dependency direction, package lifecycle, and cleanup rules
+- [Repository Surface Catalog](/en/context-layered/repository-surface-catalog)
+  - machine-verifiable base specification and inventory for all 20 API packages, 72 canonical example routes / demos, and managed documents ([CA-SURFACE-CATALOG-001](/en/context-layered/decisions/CA-SURFACE-CATALOG-001))
 - [Mutative Core History and Upstream References](/en/context-layered/mutative-core-history)
   - Mutative source lineage, carried upstream fixes, licensing, and synchronization rules
 - [Implementation Convention](/en/context-layered/implementation-convention)
@@ -64,6 +68,8 @@ checks rather than replacing focused evidence.
 - [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
   - how to lock complex async flows as `state + event + transition`
 - [Context-Layered Overview](/en/context-layered/context-layered-guide)
+- [Store Selection and Usage Guide](/en/context-layered/store-selection-and-usage-guide)
+  - decision matrix and usage patterns across `createStoreContext`, `createStore`, `TimeTravelStore`, `store-core`, `/backend`, `/advanced`, `RefContext`, `xstate`, `preact`, `lit`, and `tool-durable-operations`
 - [Usecase and Recipe Profile](/en/context-layered/usecase-recipe-profile)
   - the high-level architectural picture
 - [Integration Profiles](/en/context-layered/integration-profiles)

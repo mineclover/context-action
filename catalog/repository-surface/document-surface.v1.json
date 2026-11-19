@@ -1,0 +1,477 @@
+{
+  "schemaVersion": "context-action.document-surface/v1",
+  "specId": "CA-SURFACE-CATALOG-001",
+  "authorityClasses": [
+    "authoritative",
+    "discovery",
+    "evidence",
+    "derived",
+    "transitional",
+    "historical"
+  ],
+  "pairingPolicies": [
+    "strict-paired",
+    "tracked-partial",
+    "single-locale",
+    "derived",
+    "not-applicable"
+  ],
+  "rootDocuments": [
+    {
+      "id": "root-agents",
+      "path": "AGENTS.md",
+      "authorityClass": "discovery",
+      "owner": "Framework Maintainers",
+      "purpose": {
+        "en": "Repository operating instructions, development commands, release rules, and workflow conventions for Codex and coding agents.",
+        "ko": "Codex 및 코딩 에이전트를 위한 저장소 운영 지침, 개발 명령, 릴리스 규칙 및 워크플로 컨벤션입니다."
+      },
+      "lifecycle": "active"
+    },
+    {
+      "id": "root-changelog",
+      "path": "CHANGELOG.md",
+      "authorityClass": "historical",
+      "owner": "Release Engineering",
+      "purpose": {
+        "en": "Monorepo historical changelog prior to independent per-package CHANGELOG.md release governance.",
+        "ko": "독립 패키지별 CHANGELOG.md 릴리스 거버넌스 이전의 모노레포 변경 이력입니다."
+      },
+      "lifecycle": "historical"
+    },
+    {
+      "id": "root-claude",
+      "path": "CLAUDE.md",
+      "authorityClass": "discovery",
+      "owner": "Framework Maintainers",
+      "purpose": {
+        "en": "Repository guidance entry for Claude Code summarizing architecture, commands, and conventions.",
+        "ko": "Claude Code용 저장소 가이드 진입점으로 아키텍처, 명령어, 컨벤션을 요약합니다."
+      },
+      "lifecycle": "active"
+    },
+    {
+      "id": "root-contributing",
+      "path": "CONTRIBUTING.md",
+      "authorityClass": "discovery",
+      "owner": "Framework Maintainers",
+      "purpose": {
+        "en": "Contributor quickstart pointing to canonical change-management and verification workflows.",
+        "ko": "정식 변경 관리 및 검증 워크플로로 안내하는 기여자 퀵스타트 문서입니다."
+      },
+      "lifecycle": "active"
+    },
+    {
+      "id": "root-development",
+      "path": "DEVELOPMENT.md",
+      "authorityClass": "discovery",
+      "owner": "Framework Maintainers",
+      "purpose": {
+        "en": "Monorepo setup, workspace build order, and local developer workflow overview.",
+        "ko": "모노레포 초기 설정, 워크스페이스 빌드 순서 및 로컬 개발 워크플로 개요입니다."
+      },
+      "lifecycle": "active"
+    },
+    {
+      "id": "root-ecosystem",
+      "path": "ECOSYSTEM.md",
+      "authorityClass": "transitional",
+      "owner": "Documentation Maintainers",
+      "purpose": {
+        "en": "Ecosystem tooling overview retained alongside newer LLMS and package-boundary conventions.",
+        "ko": "최신 LLMS 및 패키지 경계 컨벤션과 함께 유지되는 생태계 도구 개요 문서입니다."
+      },
+      "lifecycle": "transitional"
+    },
+    {
+      "id": "root-optimization-analysis",
+      "path": "OPTIMIZATION_ANALYSIS.md",
+      "authorityClass": "historical",
+      "owner": "Framework Core",
+      "purpose": {
+        "en": "Point-in-time bundle size and performance optimization analysis snapshot.",
+        "ko": "특정 시점의 번들 크기 및 성능 최적화 분석 스냅샷 보고서입니다."
+      },
+      "lifecycle": "historical"
+    },
+    {
+      "id": "root-react-compiler-migration",
+      "path": "REACT_COMPILER_MIGRATION.md",
+      "authorityClass": "historical",
+      "owner": "Framework React",
+      "purpose": {
+        "en": "Migration note documenting the React 19.2 and pre-compiled React Compiler baseline.",
+        "ko": "React 19.2 및 사전 컴파일된 React Compiler 기준선 전환 메모입니다."
+      },
+      "lifecycle": "historical"
+    },
+    {
+      "id": "root-readme",
+      "path": "README.md",
+      "authorityClass": "discovery",
+      "owner": "Framework Maintainers",
+      "purpose": {
+        "en": "Primary GitHub landing README linking to packages, authoritative guides, and examples without duplicating specs.",
+        "ko": "스펙을 복제하지 않고 패키지, 권위 가이드, 예제로 연결하는 GitHub 기본 진입 README입니다."
+      },
+      "lifecycle": "active"
+    },
+    {
+      "id": "root-readme-en",
+      "path": "README.en.md",
+      "authorityClass": "discovery",
+      "owner": "Framework Maintainers",
+      "purpose": {
+        "en": "English companion landing README paired with README.ko.md and README.md.",
+        "ko": "README.ko.md 및 README.md와 짝을 이루는 영문 진입 README입니다."
+      },
+      "lifecycle": "active"
+    },
+    {
+      "id": "root-readme-ko",
+      "path": "README.ko.md",
+      "authorityClass": "discovery",
+      "owner": "Framework Maintainers",
+      "purpose": {
+        "en": "Korean landing README providing localized repository discovery and entry links.",
+        "ko": "한국어 기반 저장소 탐색 및 진입 링크를 제공하는 국문 README입니다."
+      },
+      "lifecycle": "active"
+    },
+    {
+      "id": "root-security",
+      "path": "SECURITY.md",
+      "authorityClass": "authoritative",
+      "owner": "Security & Release Maintainers",
+      "purpose": {
+        "en": "Supported release-line security scope and vulnerability reporting policy.",
+        "ko": "지원 릴리스 라인 보안 범위 및 취약점 보고 정책입니다."
+      },
+      "lifecycle": "active"
+    },
+    {
+      "id": "root-gemini",
+      "path": "gemini.md",
+      "authorityClass": "discovery",
+      "owner": "Framework Maintainers",
+      "purpose": {
+        "en": "Gemini agent workspace context describing documentation-driven development and glossary workflow.",
+        "ko": "문서 주도 개발 및 용어집 워크플로를 안내하는 Gemini 에이전트용 컨텍스트 문서입니다."
+      },
+      "lifecycle": "active"
+    }
+  ],
+  "managedAreas": [
+    {
+      "id": "doc-context-layered",
+      "authorityClass": "authoritative",
+      "pairingPolicy": "strict-paired",
+      "enDir": "docs/en/context-layered",
+      "koDir": "docs/ko/context-layered",
+      "paths": [
+        "docs/en/context-layered",
+        "docs/ko/context-layered"
+      ],
+      "owner": "Architecture & Convention Owners",
+      "purpose": {
+        "en": "Authoritative architecture conventions, package boundary rules, IIC contracts, decision records (CA-*), and repository surface catalogs.",
+        "ko": "권위 있는 아키텍처 컨벤션, 패키지 경계 규칙, IIC 계약, 아키텍처 결정 기록(CA-*) 및 저장소 표면 카탈로그입니다."
+      },
+      "verificationGate": "pnpm docs:management && pnpm convention:check && pnpm docs:check"
+    },
+    {
+      "id": "doc-concept",
+      "authorityClass": "authoritative",
+      "pairingPolicy": "strict-paired",
+      "enDir": "docs/en/concept",
+      "koDir": "docs/ko/concept",
+      "paths": [
+        "docs/en/concept",
+        "docs/ko/concept"
+      ],
+      "owner": "Framework Core & Docs Owners",
+      "purpose": {
+        "en": "Core architectural concepts, hooks reference, action pipeline semantics, tool-calling editor architecture, and documentation development rules.",
+        "ko": "핵심 아키텍처 개념, 훅 레퍼런스, 액션 파이프라인 시맨틱, 도구 호출 에디터 아키텍처 및 문서 개발 규칙입니다."
+      },
+      "verificationGate": "pnpm docs:management && pnpm docs:check"
+    },
+    {
+      "id": "doc-examples",
+      "authorityClass": "authoritative",
+      "pairingPolicy": "strict-paired",
+      "enDir": "docs/en/examples",
+      "koDir": "docs/ko/examples",
+      "paths": [
+        "docs/en/examples",
+        "docs/ko/examples"
+      ],
+      "owner": "Playbook & Examples Owners",
+      "purpose": {
+        "en": "Bilingual walkthroughs explaining pattern setup, Canonical Order Form, and Implementation Playbook domain scenarios.",
+        "ko": "기본 패턴 조합, Canonical Order Form 및 Implementation Playbook 도메인 시나리오를 설명하는 한영 워크스루입니다."
+      },
+      "verificationGate": "pnpm docs:management && pnpm verify:surface-catalog && pnpm docs:check"
+    },
+    {
+      "id": "doc-llms",
+      "authorityClass": "authoritative",
+      "pairingPolicy": "strict-paired",
+      "enDir": "docs/en/llms",
+      "koDir": "docs/ko/llms",
+      "paths": [
+        "docs/en/llms",
+        "docs/ko/llms"
+      ],
+      "owner": "LLMS & Spec Maintainers",
+      "purpose": {
+        "en": "Handwritten LLMS resource indexes, conventions, and library specification summaries (excluding derived llms-*.txt outputs).",
+        "ko": "직접 작성된 LLMS 리소스 인덱스, 컨벤션 및 라이브러리 사양 요약 문서입니다 (파생 llms-*.txt 제외)."
+      },
+      "verificationGate": "pnpm docs:management && pnpm docs:check"
+    },
+    {
+      "id": "doc-guide",
+      "authorityClass": "authoritative",
+      "pairingPolicy": "tracked-partial",
+      "enDir": "docs/en/guide",
+      "koDir": "docs/ko/guide",
+      "paths": [
+        "docs/en/guide",
+        "docs/ko/guide"
+      ],
+      "knownUnpaired": {
+        "onlyEn": [
+          "index.md",
+          "patterns/action/react-integration.md",
+          "patterns/store/batching-patterns.md",
+          "patterns/store/comparison-strategies.md",
+          "patterns/store/debugging-development.md",
+          "patterns/store/error-handling-recovery.md",
+          "patterns/store/immer-integration.md",
+          "patterns/store/immutability-comparison-integration.md",
+          "patterns/store/lazy-evaluation-patterns.md",
+          "patterns/store/memoization-patterns.md",
+          "patterns/store/memory-management.md",
+          "patterns/store/subscription-optimization.md",
+          "patterns/store/useComputedStore-basic.md",
+          "patterns/store/useComputedStore-overview.md",
+          "pipeline/advanced-filtering.md",
+          "test-sync-demo.md",
+          "troubleshooting.md",
+          "type-inference.md"
+        ],
+        "onlyKo": [
+          "action-handlers.md",
+          "action-pipeline.md",
+          "architecture.md",
+          "hooks.md"
+        ]
+      },
+      "owner": "Documentation Maintainers",
+      "purpose": {
+        "en": "User-facing getting-started, pipeline, action/store/ref/async/setup pattern guides with explicitly tracked EN/KO translation gaps.",
+        "ko": "시작하기, 파이프라인, 액션/스토어/Ref/비동기/설정 패턴을 다루며 한영 미번역 격차를 명시적으로 추적하는 사용자 가이드입니다."
+      },
+      "verificationGate": "pnpm verify:surface-catalog && pnpm verify:doc-snippets && pnpm docs:check"
+    },
+    {
+      "id": "doc-troubleshooting",
+      "authorityClass": "authoritative",
+      "pairingPolicy": "tracked-partial",
+      "enDir": "docs/en/troubleshooting",
+      "koDir": "docs/ko/troubleshooting",
+      "paths": [
+        "docs/en/troubleshooting",
+        "docs/ko/troubleshooting"
+      ],
+      "knownUnpaired": {
+        "onlyEn": [
+          "infinite-loop-issues.md"
+        ],
+        "onlyKo": []
+      },
+      "owner": "Documentation Maintainers",
+      "purpose": {
+        "en": "Diagnostic guides for action, store, ref, and performance issues with explicit tracking of pending Korean translations.",
+        "ko": "액션, 스토어, Ref, 성능 문제 진단 가이드이며 미번역 페이지를 명시적으로 추적합니다."
+      },
+      "verificationGate": "pnpm verify:surface-catalog && pnpm docs:check"
+    },
+    {
+      "id": "doc-docs-root",
+      "authorityClass": "authoritative",
+      "pairingPolicy": "single-locale",
+      "paths": [
+        "docs/index.md",
+        "docs/LOCAL_FIRST_VERIFICATION_POLICY.md",
+        "docs/STORE_GUIDE.md"
+      ],
+      "owner": "Documentation & Verification Owners",
+      "purpose": {
+        "en": "VitePress home selector, enforced Local-First Verification Policy (#50/#53), and historical Store system notes.",
+        "ko": "VitePress 홈 언어 선택기, 강제되는 Local-First 검증 정책(#50/#53) 및 역사적 Store 참고 문서입니다."
+      },
+      "verificationGate": "pnpm docs:build"
+    },
+    {
+      "id": "doc-releases-v1",
+      "authorityClass": "evidence",
+      "pairingPolicy": "single-locale",
+      "paths": [
+        "docs/releases",
+        "docs/ko/releases"
+      ],
+      "owner": "Release Engineering",
+      "purpose": {
+        "en": "v1.0.0 release scope, audit reports, semver/deprecation policy, publish runbooks, and coordinated-stable release records.",
+        "ko": "v1.0.0 릴리스 범위, 감사 리포트, Semver/지원 중단 정책, 배포 런북 및 coordinated-stable 릴리스 기록입니다."
+      },
+      "verificationGate": "pnpm verify:v1-release-manifest && pnpm verify:v1-release-state-alignment"
+    },
+    {
+      "id": "doc-releases-ops",
+      "authorityClass": "evidence",
+      "pairingPolicy": "single-locale",
+      "paths": [
+        "releases"
+      ],
+      "owner": "Release Engineering",
+      "purpose": {
+        "en": "Protected release operational guide (RELEASE.md), cohort manifests (.json), and public preview release notes.",
+        "ko": "보호된 릴리스 운영 가이드(RELEASE.md), 코호트 매니페스트(.json) 및 공개 프리뷰 릴리스 노트입니다."
+      },
+      "verificationGate": "pnpm verify:core-public-release -- --require-current-source && pnpm verify:lit-public-release -- --require-current-source && pnpm verify:preact-public-release -- --require-current-source"
+    },
+    {
+      "id": "doc-package-docs",
+      "authorityClass": "authoritative",
+      "pairingPolicy": "single-locale",
+      "paths": [
+        "packages"
+      ],
+      "owner": "Per-Package Owners",
+      "purpose": {
+        "en": "Package-level discovery READMEs, CHANGELOG/UNRELEASED history, and focused package specifications (packages/*/docs/*.md).",
+        "ko": "패키지별 탐색용 README, CHANGELOG/UNRELEASED 이력 및 패키지 전용 상세 명세(packages/*/docs/*.md)입니다."
+      },
+      "verificationGate": "pnpm package-boundary:check && pnpm verify:surface-catalog"
+    },
+    {
+      "id": "doc-catalogs",
+      "authorityClass": "authoritative",
+      "pairingPolicy": "not-applicable",
+      "paths": [
+        "catalog"
+      ],
+      "owner": "Architecture & Spec Maintainers",
+      "purpose": {
+        "en": "Machine-verifiable JSON catalogs for external integration profiles and repository API/Example/Document surfaces.",
+        "ko": "외부 연동 프로파일과 저장소 API·예제·문서 표면을 기계적으로 검증하는 JSON 카탈로그입니다."
+      },
+      "verificationGate": "pnpm convention:check && pnpm verify:surface-catalog"
+    },
+    {
+      "id": "doc-skills",
+      "authorityClass": "authoritative",
+      "pairingPolicy": "not-applicable",
+      "paths": [
+        "skills",
+        ".agents/skills"
+      ],
+      "owner": "Playbook Maintainers",
+      "purpose": {
+        "en": "Repository-local Context-Action Implementation Playbook skill definitions and scaffolding checklists.",
+        "ko": "저장소 로컬 Context-Action Implementation Playbook 스킬 정의 및 스캐폴딩 체크리스트입니다."
+      },
+      "verificationGate": "pnpm convention:check"
+    },
+    {
+      "id": "doc-design-tasks",
+      "authorityClass": "historical",
+      "pairingPolicy": "not-applicable",
+      "paths": [
+        "design-docs",
+        "tasks"
+      ],
+      "owner": "Framework Maintainers",
+      "purpose": {
+        "en": "Historical design specifications and archived implementation task briefs.",
+        "ko": "보존된 설계 명세 및 아카이브된 구현 작업 명세입니다."
+      },
+      "verificationGate": "pnpm verify:surface-catalog"
+    }
+  ],
+  "derivedSurfaces": [
+    {
+      "id": "derived-typedoc-raw",
+      "path": "docs/api/generated",
+      "sourceOfTruth": "typedoc.json + exported TypeScript source/JSDoc",
+      "generatorCommand": "pnpm docs:api",
+      "verificationCommand": "pnpm release:check"
+    },
+    {
+      "id": "derived-api-vitepress",
+      "path": "docs/en/api",
+      "sourceOfTruth": "docs/api/generated + typedoc-vitepress-sync.config.js",
+      "generatorCommand": "pnpm docs:api && pnpm docs:sync",
+      "verificationCommand": "pnpm docs:build"
+    },
+    {
+      "id": "derived-api-sidebar",
+      "path": "docs/.vitepress/config/api-spec.ts",
+      "sourceOfTruth": "docs/api/generated + typedoc-vitepress-sync",
+      "generatorCommand": "pnpm docs:sync",
+      "verificationCommand": "pnpm docs:build"
+    },
+    {
+      "id": "derived-llms-data",
+      "path": "llmsData",
+      "sourceOfTruth": "docs/en/** and docs/ko/** markdown sources",
+      "generatorCommand": "pnpm llms:sync-docs --changed-files <paths>",
+      "verificationCommand": "pnpm llms:check"
+    },
+    {
+      "id": "derived-llms-txt-origin-en",
+      "path": "docs/en/llms/llms-origin.txt",
+      "sourceOfTruth": "llmsData/en/** + packages/llms-generator",
+      "generatorCommand": "node packages/llms-generator/dist/cli/index.js llms-generate --language en --pattern origin",
+      "verificationCommand": "pnpm docs:build"
+    },
+    {
+      "id": "derived-llms-txt-500-en",
+      "path": "docs/en/llms/llms-500chars.txt",
+      "sourceOfTruth": "llmsData/en/** + packages/llms-generator",
+      "generatorCommand": "node packages/llms-generator/dist/cli/index.js llms-generate --language en --character-limit 500",
+      "verificationCommand": "pnpm docs:build"
+    },
+    {
+      "id": "derived-llms-txt-minimal-en",
+      "path": "docs/en/llms/llms-minimal.txt",
+      "sourceOfTruth": "llmsData/en/** + packages/llms-generator",
+      "generatorCommand": "node packages/llms-generator/dist/cli/index.js llms-generate --language en --pattern minimum",
+      "verificationCommand": "pnpm docs:build"
+    },
+    {
+      "id": "derived-llms-txt-origin-ko",
+      "path": "docs/ko/llms/llms-origin.txt",
+      "sourceOfTruth": "llmsData/ko/** + packages/llms-generator",
+      "generatorCommand": "node packages/llms-generator/dist/cli/index.js llms-generate --language ko --pattern origin",
+      "verificationCommand": "pnpm docs:build"
+    },
+    {
+      "id": "derived-llms-txt-500-ko",
+      "path": "docs/ko/llms/llms-500chars.txt",
+      "sourceOfTruth": "llmsData/ko/** + packages/llms-generator",
+      "generatorCommand": "node packages/llms-generator/dist/cli/index.js llms-generate --language ko --character-limit 500",
+      "verificationCommand": "pnpm docs:build"
+    },
+    {
+      "id": "derived-llms-txt-minimal-ko",
+      "path": "docs/ko/llms/llms-minimal.txt",
+      "sourceOfTruth": "llmsData/ko/** + packages/llms-generator",
+      "generatorCommand": "node packages/llms-generator/dist/cli/index.js llms-generate --language ko --pattern minimum",
+      "verificationCommand": "pnpm docs:build"
+    }
+  ]
+}

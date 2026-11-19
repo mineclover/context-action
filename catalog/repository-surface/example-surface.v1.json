@@ -1,0 +1,1089 @@
+{
+  "schemaVersion": "context-action.example-surface/v1",
+  "specId": "CA-SURFACE-CATALOG-001",
+  "exampleAppGroups": [
+    {
+      "id": "ex-app-hub",
+      "category": "hub-and-catalog",
+      "summary": {
+        "en": "Entry pages, category catalogs, and conceptual overviews indexing the 72 canonical routes inside example/.",
+        "ko": "example/ 내부 72개 정식 라우트를 안내하는 진입 페이지, 카테고리 카탈로그 및 개념 개요 화면입니다."
+      },
+      "primaryApis": [
+        "createActionContext",
+        "createStoreContext",
+        "ToolContext"
+      ],
+      "relatedDocs": [
+        "docs/en/context-layered/convention-index.md",
+        "docs/en/guide/getting-started.md"
+      ],
+      "verificationGate": "pnpm --filter example check && pnpm --filter example build",
+      "routes": [
+        {
+          "path": "/",
+          "explains": {
+            "en": "Entry home introducing the Implementation Playbook and primary architecture walkthroughs.",
+            "ko": "Implementation Playbook과 핵심 아키텍처 워크스루를 안내하는 홈 진입 화면입니다."
+          }
+        },
+        {
+          "path": "/demos",
+          "explains": {
+            "en": "Interactive demos hub linking foundation, performance, and integration sandboxes.",
+            "ko": "기초, 성능, 통합 샌드박스 데모들을 모아 연결하는 허브 페이지입니다."
+          }
+        },
+        {
+          "path": "/catalog/foundations",
+          "explains": {
+            "en": "Catalog overview comparing Core action, Store, and React context foundation demos.",
+            "ko": "Core 액션, Store, React 컨텍스트 기초 데모를 비교·안내하는 카탈로그입니다."
+          }
+        },
+        {
+          "path": "/catalog/performance",
+          "explains": {
+            "en": "Catalog overview for ActionGuard, priority execution, mouse-event optimization, and memoization demos.",
+            "ko": "ActionGuard, 우선순위 실행, 마우스 이벤트 최적화, 메모이제이션 데모를 모은 카탈로그입니다."
+          }
+        },
+        {
+          "path": "/catalog/patterns",
+          "explains": {
+            "en": "Catalog overview for conditional execution, Context-Layered architecture, pipeline flow control, and refs.",
+            "ko": "조건부 실행, Context-Layered 아키텍처, 파이프라인 흐름 제어, Ref 패턴 카탈로그입니다."
+          }
+        },
+        {
+          "path": "/catalog/integrations",
+          "explains": {
+            "en": "Catalog overview for Action Lifecycle, React Aria, Preact/Lit Web Components, chat, and form integrations.",
+            "ko": "액션 수명주기, React Aria, Preact/Lit 웹 컴포넌트, 채팅, 폼 통합 데모 카탈로그입니다."
+          }
+        },
+        {
+          "path": "/catalog/integrations/mcp-function-calling",
+          "explains": {
+            "en": "MCP and function-calling tool catalog registry boundary validated by verify:catalog.",
+            "ko": "verify:catalog 게이트가 검증하는 MCP 및 함수 호출 도구 카탈로그 레지스트리 경계입니다."
+          }
+        },
+        {
+          "path": "/catalog/utilities",
+          "explains": {
+            "en": "Catalog overview for logger, toast config, store scenarios, and source directory dev tools.",
+            "ko": "로거, 토스트 설정, 스토어 시나리오, 소스 디렉터리 개발 도구를 안내하는 카탈로그입니다."
+          }
+        },
+        {
+          "path": "/overview/core",
+          "explains": {
+            "en": "Core concepts overview summarizing Action-Only, Store-Only, and Ref-Context separation.",
+            "ko": "Action-Only, Store-Only, Ref-Context 분리 모델을 요약하는 핵심 개념 개요입니다."
+          }
+        },
+        {
+          "path": "/overview/actionguard",
+          "explains": {
+            "en": "ActionGuard feature overview explaining debounce, throttle, priority, and deduplication.",
+            "ko": "디바운스, 스로틀, 우선순위, 중복 제거 기능을 설명하는 ActionGuard 개요입니다."
+          }
+        },
+        {
+          "path": "/overview/examples",
+          "explains": {
+            "en": "Examples and utilities overview summarizing debugging, tracing, and testing showcases.",
+            "ko": "디버깅, 트레이싱, 테스트 쇼케이스를 요약하는 예제·유틸리티 개요입니다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ex-app-foundations-core",
+      "category": "foundations-core",
+      "summary": {
+        "en": "Demonstrates framework-neutral ActionRegister dispatching, handler priority ordering, and async pipeline control.",
+        "ko": "프레임워크 중립 ActionRegister 디스패치, 핸들러 우선순위 실행 및 비동기 파이프라인 제어를 설명합니다."
+      },
+      "primaryApis": [
+        "ActionRegister",
+        "executeParallel",
+        "executeSequential",
+        "executeRace"
+      ],
+      "relatedDocs": [
+        "docs/en/concept/action-pipeline-guide.md",
+        "docs/en/examples/action-only.md"
+      ],
+      "verificationGate": "pnpm --filter example test && pnpm --filter example build",
+      "routes": [
+        {
+          "path": "/foundations/core/basics",
+          "explains": {
+            "en": "Basic ActionRegister payload typing, handler registration, and priority-ordered dispatch.",
+            "ko": "ActionRegister 기본 페이로드 타입 정의, 핸들러 등록 및 우선순위 기반 디스패치를 보여줍니다."
+          }
+        },
+        {
+          "path": "/foundations/core/advanced",
+          "explains": {
+            "en": "Advanced ActionRegister features including async execution modes, abort signals, and error handling.",
+            "ko": "비동기 실행 모드, 중단 시그널, 오류 처리를 포함한 ActionRegister 고급 기능을 설명합니다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ex-app-foundations-store",
+      "category": "foundations-store",
+      "summary": {
+        "en": "Demonstrates Store reactivity, Mutative-backed immutability guarantees, and TimeTravelStore undo/redo semantics.",
+        "ko": "Store 반응성, Mutative 기반 불변성 보장 및 TimeTravelStore 실행 취소/다시 실행 시맨틱을 설명합니다."
+      },
+      "primaryApis": [
+        "createStore",
+        "createStoreContext",
+        "createTimeTravelStore",
+        "createTimeTravelStoreContext",
+        "useTimeTravelControls"
+      ],
+      "relatedDocs": [
+        "docs/en/examples/store-only.md",
+        "packages/mutative/docs/time-travel-specialization.md"
+      ],
+      "verificationGate": "pnpm --filter example test && pnpm --filter example build",
+      "routes": [
+        {
+          "path": "/foundations/store/basics",
+          "explains": {
+            "en": "Store creation, setValue/update mutations, and component subscription basics.",
+            "ko": "Store 생성, setValue/update 상태 변경 및 컴포넌트 구독 기본 사용법을 설명합니다."
+          }
+        },
+        {
+          "path": "/foundations/store/immutability-test",
+          "explains": {
+            "en": "Structural sharing and immutability preservation across nested store updates.",
+            "ko": "중첩 스토어 업데이트에서의 구조적 공유와 불변성 유지 동작을 검증합니다."
+          }
+        },
+        {
+          "path": "/foundations/store/time-travel",
+          "explains": {
+            "en": "Direct TimeTravelStore history tracking, back/forward navigation, and position inspection.",
+            "ko": "직접 생성한 TimeTravelStore의 히스토리 추적 및 back/forward 탐색을 보여줍니다."
+          }
+        },
+        {
+          "path": "/foundations/store/time-travel-context",
+          "explains": {
+            "en": "Declarative createTimeTravelStoreContext usage with undo/redo UI controls across components.",
+            "ko": "컴포넌트 간 undo/redo 제어를 위한 선언적 createTimeTravelStoreContext 패턴을 보여줍니다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ex-app-foundations-react",
+      "category": "foundations-react",
+      "summary": {
+        "en": "Demonstrates React Action/Store Provider composition, selective store hooks, result collection, and imperative refs.",
+        "ko": "React Action/Store Provider 조합, 선택적 스토어 훅, 결과 수집 디스패치 및 명령형 ref 제어를 설명합니다."
+      },
+      "primaryApis": [
+        "createActionContext",
+        "createStoreContext",
+        "createRefContext",
+        "useStoreValue",
+        "useStoreSelector",
+        "dispatchWithResult"
+      ],
+      "relatedDocs": [
+        "docs/en/examples/basic-setup.md",
+        "docs/en/examples/pattern-composition.md",
+        "docs/en/concept/hooks-reference.md"
+      ],
+      "verificationGate": "pnpm --filter example test && pnpm --filter example build",
+      "routes": [
+        {
+          "path": "/foundations/react/provider",
+          "explains": {
+            "en": "Separated Provider pattern decoupling ActionContext, StoreContext, and presentation components.",
+            "ko": "ActionContext, StoreContext 및 프레젠테이션 컴포넌트를 분리한 Provider 패턴을 보여줍니다."
+          }
+        },
+        {
+          "path": "/foundations/react/context",
+          "explains": {
+            "en": "Multi-context Context-Layered boundary design isolating domain stores and action registries.",
+            "ko": "도메인 스토어와 액션 레지스트리를 격리하는 다중 컨텍스트 Context-Layered 경계를 설명합니다."
+          }
+        },
+        {
+          "path": "/foundations/react/hooks",
+          "explains": {
+            "en": "Selective subscription optimization comparing useStoreValue, useStoreSelector, and useStorePath.",
+            "ko": "useStoreValue, useStoreSelector, useStorePath를 비교하는 선택적 구독 최적화 예제입니다."
+          }
+        },
+        {
+          "path": "/foundations/react/useActionWithResult",
+          "explains": {
+            "en": "Collecting and aggregating structured results from prioritized action handlers via dispatchWithResult.",
+            "ko": "dispatchWithResult를 통해 우선순위 핸들러의 구조화된 실행 결과를 수집·집계하는 방법을 보여줍니다."
+          }
+        },
+        {
+          "path": "/foundations/react/imperativeRef",
+          "explains": {
+            "en": "Bridging React useImperativeHandle and createRefContext for imperative UI control without prop drilling.",
+            "ko": "prop drilling 없는 명령형 UI 제어를 위해 useImperativeHandle과 createRefContext를 결합한 예제입니다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ex-app-performance-action-guard",
+      "category": "performance-action-guard",
+      "summary": {
+        "en": "Demonstrates ActionGuard rate-limiting, deduplication, cancellation, and priority filtering under burst traffic.",
+        "ko": "대량 이벤트 환경에서 ActionGuard의 속도 제한, 중복 차단, 취소 및 우선순위 필터링을 설명합니다."
+      },
+      "primaryApis": [
+        "ActionGuard",
+        "ActionRegister",
+        "PipelineController"
+      ],
+      "relatedDocs": [
+        "docs/en/guide/pipeline/priority.md",
+        "docs/en/guide/pipeline/advanced-filtering.md"
+      ],
+      "verificationGate": "pnpm --filter example check && pnpm --filter example test",
+      "routes": [
+        {
+          "path": "/performance/action-guard",
+          "explains": {
+            "en": "ActionGuard hub indexing search debouncing, scroll throttling, and API deduplication scenarios.",
+            "ko": "검색 디바운싱, 스크롤 스로틀링, API 중복 방지 시나리오를 안내하는 ActionGuard 인덱스입니다."
+          }
+        },
+        {
+          "path": "/performance/action-guard/showcase",
+          "explains": {
+            "en": "Comprehensive ActionGuard showcase combining real-time priority monitoring and API request guards.",
+            "ko": "실시간 우선순위 모니터링과 API 요청 가드를 통합 시연하는 ActionGuard 쇼케이스입니다."
+          }
+        },
+        {
+          "path": "/performance/action-guard/search",
+          "explains": {
+            "en": "Debounced and abortable search pipeline preventing stale response race conditions.",
+            "ko": "디바운싱과 요청 취소를 결합해 지연 응답 레이스 컨디션을 방지하는 검색 파이프라인 예제입니다."
+          }
+        },
+        {
+          "path": "/performance/action-guard/scroll",
+          "explains": {
+            "en": "Throttled scroll event handling keeping high-frequency scroll handlers within frame budgets.",
+            "ko": "고빈도 스크롤 핸들러를 프레임 예산 내로 유지하는 스로틀링 처리 예제입니다."
+          }
+        },
+        {
+          "path": "/performance/action-guard/api-blocking",
+          "explains": {
+            "en": "In-flight API request blocking and deduplication preventing duplicate mutation submissions.",
+            "ko": "진행 중인 API 요청을 차단·중복 제거해 중복 제출을 막는 패턴을 보여줍니다."
+          }
+        },
+        {
+          "path": "/performance/action-guard/throttle-comparison",
+          "explains": {
+            "en": "Side-by-side comparison of raw, throttled, and debounced action execution timing.",
+            "ko": "비제어·스로틀·디바운스 액션 실행 타이밍을 나란히 비교하는 데모입니다."
+          }
+        },
+        {
+          "path": "/performance/action-guard/advanced-filtering",
+          "explains": {
+            "en": "Priority jumping, abort controller cancellation, and conditional payload filtering in ActionRegister.",
+            "ko": "ActionRegister의 우선순위 점프, AbortController 취소 및 조건부 페이로드 필터링을 시연합니다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ex-app-performance-priority",
+      "category": "performance-priority",
+      "summary": {
+        "en": "Demonstrates multi-handler priority scheduling, execution telemetry, and non-blocking UI updates.",
+        "ko": "다중 핸들러 우선순위 스케줄링, 실행 텔레메트리 및 논블로킹 UI 갱신을 설명합니다."
+      },
+      "primaryApis": [
+        "ActionRegister",
+        "useActionHandler"
+      ],
+      "relatedDocs": [
+        "docs/en/guide/pipeline/priority.md",
+        "docs/en/concept/action-pipeline-guide.md"
+      ],
+      "verificationGate": "pnpm --filter example build",
+      "routes": [
+        {
+          "path": "/performance/priority/advanced",
+          "explains": {
+            "en": "Layered priority-execution benchmark measuring handler ordering and render overhead.",
+            "ko": "계층화된 구조에서 핸들러 우선순위 실행 순서와 렌더링 오버헤드를 측정하는 데모입니다."
+          }
+        },
+        {
+          "path": "/performance/priority/demo",
+          "explains": {
+            "en": "Interactive action priority demonstration allowing dynamic priority tuning and trace inspection.",
+            "ko": "우선순위를 동적으로 조정하며 실행 순서를 실시간으로 추적할 수 있는 인터랙티브 데모입니다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ex-app-performance-mouse-events",
+      "category": "performance-mouse-events",
+      "summary": {
+        "en": "Contrasts reactive Store updates vs RefContext direct DOM updates under 120fps mouse movement workloads.",
+        "ko": "120fps 마우스 이동 부하에서 반응형 Store 구독과 RefContext 직접 DOM 조작의 성능 차이를 비교합니다."
+      },
+      "primaryApis": [
+        "createStoreContext",
+        "createRefContext",
+        "createActionContext"
+      ],
+      "relatedDocs": [
+        "docs/en/concept/react-refs-guide.md",
+        "docs/en/concept/notifyPath-performance-proof.md"
+      ],
+      "verificationGate": "pnpm --filter example verify:mouse-action && pnpm --filter example verify:mouse-pattern && pnpm --filter example verify:mouse-enhanced",
+      "routes": [
+        {
+          "path": "/performance/mouse-events",
+          "explains": {
+            "en": "Overview comparing mouse-event architecture patterns across legacy, store, and ref-based approaches.",
+            "ko": "레거시, 스토어 기반, Ref 기반 마우스 이벤트 아키텍처 패턴을 비교 안내하는 인덱스입니다."
+          }
+        },
+        {
+          "path": "/performance/mouse-events/legacy",
+          "explains": {
+            "en": "Legacy React state mouse tracking baseline showing re-render amplification.",
+            "ko": "리렌더링 증폭 문제를 보여주는 기존 React 상태 기반 마우스 추적 기준선입니다."
+          }
+        },
+        {
+          "path": "/performance/mouse-events/reactive",
+          "explains": {
+            "en": "Reactive Context-Store mouse tracking isolating updates to subscribed components.",
+            "ko": "구독 컴포넌트로만 업데이트를 격리하는 반응형 Context-Store 마우스 추적 패턴입니다."
+          }
+        },
+        {
+          "path": "/performance/mouse-events/non-reactive",
+          "explains": {
+            "en": "Non-reactive RefContext direct DOM mutation achieving zero React re-renders during pointer streams.",
+            "ko": "포인터 스트림 중 React 리렌더링 0회를 달성하는 비반응형 RefContext 직접 DOM 제어 패턴입니다."
+          }
+        },
+        {
+          "path": "/performance/mouse-events/context-store-action",
+          "explains": {
+            "en": "Action-driven mouse event orchestration verified by the verify:mouse-action boundary gate.",
+            "ko": "verify:mouse-action 경계 게이트로 검증되는 액션 기반 마우스 이벤트 오케스트레이션 데모입니다."
+          }
+        },
+        {
+          "path": "/performance/mouse-events/canvas-ref-demo",
+          "explains": {
+            "en": "Zero-re-render HTML5 Canvas drawing driven by RefContext imperative handle references.",
+            "ko": "RefContext 명령형 핸들을 사용해 리렌더링 없이 HTML5 Canvas를 그리는 데모입니다."
+          }
+        },
+        {
+          "path": "/performance/mouse-events/context-store",
+          "explains": {
+            "en": "Context-Store mouse event benchmark validated by the mouse-pattern verification script.",
+            "ko": "verify:mouse-pattern 스크립트로 검증되는 Context-Store 마우스 이벤트 벤치마크입니다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ex-app-performance-memoization",
+      "category": "performance-memoization",
+      "summary": {
+        "en": "Explains handler memoization with useCallback and React Compiler stability rules to avoid churned registrations.",
+        "ko": "핸들러 재등록을 방지하기 위한 useCallback 메모이제이션 및 React Compiler 안정성 규칙을 설명합니다."
+      },
+      "primaryApis": [
+        "useActionHandler",
+        "createActionContext"
+      ],
+      "relatedDocs": [
+        "docs/en/guide/best-practices.md",
+        "docs/en/guide/production-readiness.md"
+      ],
+      "verificationGate": "pnpm --filter example build",
+      "routes": [
+        {
+          "path": "/performance",
+          "explains": {
+            "en": "Main memoization performance benchmark comparing memoized vs unmemoized action handlers.",
+            "ko": "메모이제이션 적용 여부별 액션 핸들러 성능 차이를 비교하는 메인 벤치마크 페이지입니다."
+          }
+        },
+        {
+          "path": "/performance/memoization/demo",
+          "explains": {
+            "en": "Live handler re-registration counter demonstrating dependency-array pitfalls.",
+            "ko": "의존성 배열 실수에 따른 핸들러 재등록 횟수를 실시간으로 확인하는 데모입니다."
+          }
+        },
+        {
+          "path": "/performance/memoization/analysis",
+          "explains": {
+            "en": "Performance analysis breakdown explaining registration vs dispatch cost trade-offs.",
+            "ko": "핸들러 등록 비용과 디스패치 비용의 트레이드오프를 분석하는 리포트 화면입니다."
+          }
+        },
+        {
+          "path": "/performance/memoization/guidelines",
+          "explains": {
+            "en": "Practical memoization checklist for Context-Action hooks in React 18/19 apps.",
+            "ko": "React 18/19 앱에서 Context-Action 훅 사용 시 적용할 실전 메모이제이션 가이드라인입니다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ex-app-patterns-conditional",
+      "category": "patterns-conditional",
+      "summary": {
+        "en": "Demonstrates conditional action execution, permission guards, multi-step workflows, and feature toggles.",
+        "ko": "조건부 액션 실행, 권한 가드, 다단계 워크플로 및 피처 토글 패턴을 설명합니다."
+      },
+      "primaryApis": [
+        "useActionHandler",
+        "PipelineController",
+        "ActionGuard"
+      ],
+      "relatedDocs": [
+        "docs/en/guide/patterns/action/advanced-patterns.md",
+        "docs/en/context-layered/patterns/explicit-state-machine.md"
+      ],
+      "verificationGate": "pnpm --filter example verify:conditional",
+      "routes": [
+        {
+          "path": "/patterns/conditional",
+          "explains": {
+            "en": "Hub indexing conditional execution patterns verified by verify:conditional.",
+            "ko": "verify:conditional 게이트로 검증되는 조건부 실행 패턴 모음 허브입니다."
+          }
+        },
+        {
+          "path": "/patterns/conditional/permissions",
+          "explains": {
+            "en": "Role/permission guard handlers gating sensitive actions before domain execution.",
+            "ko": "도메인 실행 전에 권한 가드 핸들러가 민감한 액션을 차단·허용하는 패턴을 보여줍니다."
+          }
+        },
+        {
+          "path": "/patterns/conditional/form-validation",
+          "explains": {
+            "en": "Multi-stage validation handlers intercepting invalid payloads inside the action pipeline.",
+            "ko": "액션 파이프라인 내부에서 잘못된 페이로드를 조기 차단하는 다단계 폼 검증 패턴입니다."
+          }
+        },
+        {
+          "path": "/patterns/conditional/workflow-steps",
+          "explains": {
+            "en": "Sequential conditional workflow step progression controlled through pipeline priorities and guards.",
+            "ko": "우선순위와 가드를 통해 순차 워크플로 단계를 제어하는 조건부 실행 데모입니다."
+          }
+        },
+        {
+          "path": "/patterns/conditional/feature-toggle",
+          "explains": {
+            "en": "Runtime feature-flag routing between legacy and experimental action handlers.",
+            "ko": "런타임 피처 플래그에 따라 핸들러 실행 경로를 전환하는 패턴을 보여줍니다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ex-app-patterns-architecture",
+      "category": "patterns-architecture",
+      "summary": {
+        "en": "Canonical Context-Layered and Implementation Playbook examples separating contexts, pure business logic, handlers, actions, hooks, and views.",
+        "ko": "contexts, business, handlers, actions, hooks, views 6계층을 분리하는 표준 Context-Layered 및 Implementation Playbook 예제군입니다."
+      },
+      "primaryApis": [
+        "createActionContext",
+        "createStoreContext",
+        "useActionHandler",
+        "useStoreValue"
+      ],
+      "relatedDocs": [
+        "docs/en/context-layered/implementation-convention.md",
+        "docs/en/examples/canonical-order-form.md",
+        "docs/en/examples/implementation-playbook-scenarios.md"
+      ],
+      "verificationGate": "pnpm convention:check && pnpm --filter example verify:usecase",
+      "routes": [
+        {
+          "path": "/patterns/business-logic",
+          "explains": {
+            "en": "Pure business-logic function extraction isolating calculations from React components.",
+            "ko": "React 컴포넌트에서 순수 비즈니스 로직 함수를 분리하는 기본 아키텍처 패턴을 보여줍니다."
+          }
+        },
+        {
+          "path": "/patterns/layered-architecture",
+          "explains": {
+            "en": "Six-layer folder and dependency flow across Model, ViewModel, Handler, and View layers.",
+            "ko": "Model, ViewModel, Handler, View 계층 간 6계층 폴더 구조와 의존성 흐름을 설명합니다."
+          }
+        },
+        {
+          "path": "/patterns/implementation-playbook",
+          "explains": {
+            "en": "Canonical Order Form reference walkthrough proving strict Context-Layered separation.",
+            "ko": "엄격한 Context-Layered 관심사 분리를 증명하는 표준 주문 견적(Canonical Order Form) 기준 예제입니다."
+          }
+        },
+        {
+          "path": "/patterns/implementation-playbook/scenarios",
+          "explains": {
+            "en": "Scenario catalog showing how to generalize the Implementation Playbook across business domains.",
+            "ko": "Implementation Playbook 스킬을 여러 비즈니스 도메인으로 일반화하는 시나리오 목록입니다."
+          }
+        },
+        {
+          "path": "/patterns/implementation-playbook/access-request",
+          "explains": {
+            "en": "Approval-oriented Workspace Access Request workflow assembling auditable review packets.",
+            "ko": "승인·검토 워크플로에서 감사 가능한 리뷰 패킷을 조립하는 Access Request Playbook 예제입니다."
+          }
+        },
+        {
+          "path": "/patterns/implementation-playbook/incident-escalation",
+          "explains": {
+            "en": "Operations Incident Escalation workflow computing severity tiers and escalation packets.",
+            "ko": "심각도와 영향 범위에 따라 에스컬레이션 패킷을 조립하는 운영 워크플로 Playbook 예제입니다."
+          }
+        },
+        {
+          "path": "/patterns/implementation-playbook/renewal-risk-review",
+          "explains": {
+            "en": "Customer-success Renewal Risk Review workflow driving structured state transitions and review output.",
+            "ko": "사용 점수와 갱신 시점에 따라 갱신 리스크 리뷰 패킷을 생성하는 Playbook 예제입니다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ex-app-patterns-pipeline-refs",
+      "category": "patterns-pipeline-refs",
+      "summary": {
+        "en": "Demonstrates dynamic pipeline flow control (skip/abort/jump/modify) and safe RefContext DOM/canvas lifecycle.",
+        "ko": "동적 파이프라인 흐름 제어(skip/abort/jump/modify)와 안전한 RefContext DOM/Canvas 수명주기를 설명합니다."
+      },
+      "primaryApis": [
+        "PipelineController",
+        "createRefContext",
+        "waitForRefs",
+        "useRefMountState"
+      ],
+      "relatedDocs": [
+        "docs/en/guide/pipeline/index.md",
+        "docs/en/concept/react-refs-guide.md"
+      ],
+      "verificationGate": "pnpm --filter example build",
+      "routes": [
+        {
+          "path": "/patterns/pipeline/flow-control",
+          "explains": {
+            "en": "Interactive playground visualizing PipelineController abort, skip, jumpToPriority, and payload modification.",
+            "ko": "PipelineController의 abort, skip, jumpToPriority, 페이로드 변형을 시각화하는 플레이그라운드입니다."
+          }
+        },
+        {
+          "path": "/patterns/refs",
+          "explains": {
+            "en": "Overview of createRefContext patterns for zero-re-render DOM and third-party widget ownership.",
+            "ko": "리렌더링 없는 DOM 및 서드파티 위젯 제어를 위한 createRefContext 패턴 개요입니다."
+          }
+        },
+        {
+          "path": "/patterns/refs/waitforrefs-performance",
+          "explains": {
+            "en": "Measuring waitForRefs async mount synchronization under dynamic ref availability.",
+            "ko": "동적 ref 마운트 대기(waitForRefs) 동기화 성능을 측정·검증하는 데모입니다."
+          }
+        },
+        {
+          "path": "/patterns/refs/use-ref-mount-state-test",
+          "explains": {
+            "en": "Tracking ref mount readiness inside Context-Layered views using useRefMountState.",
+            "ko": "Context-Layered 뷰에서 useRefMountState로 ref 마운트 준비 상태를 추적하는 테스트 화면입니다."
+          }
+        },
+        {
+          "path": "/patterns/refs/canvas",
+          "explains": {
+            "en": "Advanced multi-tool Canvas manipulation using RefContext imperative handlers and store overlays.",
+            "ko": "RefContext 명령형 핸들과 스토어 오버레이를 결합한 고급 캔버스 조작 데모입니다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ex-app-integrations",
+      "category": "integrations",
+      "summary": {
+        "en": "Cross-framework and real-world integrations: ActionLifecycle traces, React Aria, Preact/Lit Web Components, chat, and concurrent workflows.",
+        "ko": "프레임워크 간 연동 및 실전 통합 사례: ActionLifecycle 추적, React Aria, Preact/Lit 웹 컴포넌트, 채팅, 동시성 워크플로입니다."
+      },
+      "primaryApis": [
+        "ActionRegister",
+        "@context-action/core/element",
+        "@context-action/preact-ui/react-bridge",
+        "@context-action/lit-ui/react-bridge"
+      ],
+      "relatedDocs": [
+        "docs/en/guide/react-aria-integration.md",
+        "packages/core/docs/element-interop.md",
+        "docs/en/context-layered/decisions/CA-ELEMENT-INTEROP-001.md"
+      ],
+      "verificationGate": "pnpm verify:react-aria-reference-hydration && pnpm verify:element-interop && pnpm --filter example test",
+      "routes": [
+        {
+          "path": "/integrations/action-lifecycle",
+          "explains": {
+            "en": "Action Lifecycle Workbench inspecting dispatch traces, handler execution phases, and abort states.",
+            "ko": "디스패치 트레이스, 핸들러 실행 단계, 중단 상태를 실시간 점검하는 Action Lifecycle Workbench입니다."
+          }
+        },
+        {
+          "path": "/integrations/react-aria-reference",
+          "explains": {
+            "en": "Layered React Aria integration separating accessible UI primitives from Context-Action handlers and hydration.",
+            "ko": "접근성 UI 프리미티브와 Context-Action 핸들러·하이드레이션 계층을 분리한 React Aria 기준 통합 예제입니다."
+          }
+        },
+        {
+          "path": "/integrations/preact-web-components",
+          "explains": {
+            "en": "Hosting Preact Web Components inside React via @context-action/preact-ui/react-bridge and Context-Action stores.",
+            "ko": "@context-action/preact-ui/react-bridge로 React 호스트 내에서 Preact 웹 컴포넌트를 연동하는 예제입니다."
+          }
+        },
+        {
+          "path": "/integrations/lit-web-components",
+          "explains": {
+            "en": "Hosting Lit FACE Web Components inside React via @context-action/lit-ui/react-bridge and W3C Context Protocol.",
+            "ko": "@context-action/lit-ui/react-bridge와 W3C Context Protocol로 Lit FACE 웹 컴포넌트를 연동하는 예제입니다."
+          }
+        },
+        {
+          "path": "/integrations/business/chat",
+          "explains": {
+            "en": "Real-time multi-panel business chat flow coordinating optimistic state, stores, and actions.",
+            "ko": "낙관적 상태 갱신, 스토어, 액션을 조합한 실시간 비즈니스 채팅 워크플로 데모입니다."
+          }
+        },
+        {
+          "path": "/integrations/advanced/form-builder",
+          "explains": {
+            "en": "Dynamic schema-driven Form Builder coordinating field validation, stores, and action handlers.",
+            "ko": "동적 필드 검증, 스토어, 액션 핸들러를 조합한 동적 폼 빌더 통합 예제입니다."
+          }
+        },
+        {
+          "path": "/integrations/advanced/concurrent-actions",
+          "explains": {
+            "en": "Testing concurrent dispatch isolation, race resolution, and sequential queue safety.",
+            "ko": "동시 디스패치 격리, race 해결 및 순차 큐 안전성을 검증하는 동시성 액션 테스트 데모입니다."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ex-app-utilities",
+      "category": "utilities",
+      "summary": {
+        "en": "Developer tooling demonstrations: logger integration, toast configuration, warning telemetry, store scenarios, and source directory.",
+        "ko": "로거 통합, 토스트 설정, 경고 텔레메트리, 스토어 시나리오 및 소스 링크 디렉터리를 보여주는 개발자 도구 데모입니다."
+      },
+      "primaryApis": [
+        "ActionRegister",
+        "createStoreContext",
+        "createActionContext"
+      ],
+      "relatedDocs": [
+        "docs/en/troubleshooting/index.md",
+        "docs/en/guide/testing-boundaries.md"
+      ],
+      "verificationGate": "pnpm --filter example check && pnpm --filter example build",
+      "routes": [
+        {
+          "path": "/utilities/dev-tools/logger",
+          "explains": {
+            "en": "Integrating action dispatch logging and execution diagnostics with the in-app LogMonitor.",
+            "ko": "액션 디스패치 로깅과 실행 진단을 앱 내 LogMonitor에 연동하는 방법을 보여줍니다."
+          }
+        },
+        {
+          "path": "/utilities/dev-tools/toast-config",
+          "explains": {
+            "en": "Configuring toast notification lifecycle and action feedback policies.",
+            "ko": "토스트 알림 수명주기와 액션 피드백 정책 설정을 시연하는 데모입니다."
+          }
+        },
+        {
+          "path": "/utilities/dev-tools/warning-demo",
+          "explains": {
+            "en": "Reproducing and diagnosing framework warning messages for common anti-patterns.",
+            "ko": "흔한 안티패턴에 대한 프레임워크 경고 메시지 발생과 진단 과정을 시연합니다."
+          }
+        },
+        {
+          "path": "/utilities/dev-tools/store-scenarios",
+          "explains": {
+            "en": "Comparing store update strategies, comparison modes, and scenario benchmarks.",
+            "ko": "스토어 업데이트 전략, 비교 전략 및 시나리오별 동작을 비교하는 데모입니다."
+          }
+        },
+        {
+          "path": "/utilities/source-directory",
+          "explains": {
+            "en": "Interactive source-link directory mapping example pages to their underlying repository files.",
+            "ko": "예제 화면과 저장소 소스 파일 경로를 연결해 탐색하는 소스 링크 디렉터리입니다."
+          }
+        },
+        {
+          "path": "/utilities/testing/enhanced-search",
+          "explains": {
+            "en": "Testable abortable search scenario demonstrating cancellation and deterministic assertions.",
+            "ko": "취소 가능한 검색 시나리오와 결정론적 테스트 단언 패턴을 보여주는 예제입니다."
+          }
+        }
+      ]
+    }
+  ],
+  "standaloneDemos": [
+    {
+      "id": "ex-demo-web-studio",
+      "path": "demos/bolt-style-editor",
+      "status": "verified",
+      "explains": {
+        "en": "Standalone Bolt-style Tool-Calling Web Studio combining @context-action/tool-protocol, @context-action/ai-sdk, @context-action/tool-durable-operations, IndexedDB persistence, approval queues, bounded trace projection, and sandboxed iframe preview.",
+        "ko": "tool-protocol, ai-sdk, tool-durable-operations, IndexedDB 영속화, 승인 큐, 제한된 트레이스 프로젝션 및 샌드박스 iframe 미리보기를 통합한 독립 Bolt 스타일 Tool-Calling Web Studio입니다."
+      },
+      "primaryApis": [
+        "@context-action/tool-protocol",
+        "@context-action/ai-sdk",
+        "@context-action/tool-durable-operations",
+        "@context-action/live-code-editor",
+        "@context-action/react"
+      ],
+      "verificationGate": "pnpm web-coding:verify"
+    },
+    {
+      "id": "ex-demo-vanilla-js",
+      "path": "examples/vanilla-js",
+      "status": "reference",
+      "explains": {
+        "en": "Framework-free HTML/JavaScript counter and todo examples using @context-action/core directly without React or a bundler.",
+        "ko": "React나 번들러 없이 @context-action/core를 직접 사용하는 순수 HTML/JavaScript 카운터 및 Todo 예제입니다."
+      },
+      "primaryApis": [
+        "ActionRegister"
+      ],
+      "verificationGate": "pnpm build:core"
+    }
+  ],
+  "packageExamples": [
+    {
+      "id": "ex-pkg-core",
+      "packageName": "@context-action/core",
+      "path": "packages/core/examples",
+      "status": "verified",
+      "explains": {
+        "en": "Framework-neutral ActionRegister demos plus copyable Vue, Svelte, and Angular element-hosts patterns over @context-action/core/element.",
+        "ko": "프레임워크 중립 ActionRegister 데모와 @context-action/core/element 기반 Vue·Svelte·Angular 호스트 복사형 예제입니다."
+      },
+      "primaryApis": [
+        "ActionRegister",
+        "createElementBinding",
+        "createElementFacade"
+      ],
+      "verificationGate": "pnpm verify:element-hosts && pnpm verify:element-interop"
+    },
+    {
+      "id": "ex-pkg-lit-ui",
+      "packageName": "@context-action/lit-ui",
+      "path": "packages/lit-ui/examples",
+      "status": "verified",
+      "explains": {
+        "en": "Declarative Shadow DOM SSR hydration harness and ElementInternals FACE exception diagnostic playground.",
+        "ko": "Declarative Shadow DOM SSR 하이드레이션 검증 하네스 및 ElementInternals FACE 예외 진단 플레이그라운드입니다."
+      },
+      "primaryApis": [
+        "renderLitElement",
+        "hydrateLit",
+        "ContextActionController"
+      ],
+      "verificationGate": "pnpm --filter @context-action/lit-ui test:browser"
+    },
+    {
+      "id": "ex-pkg-llms-generator",
+      "packageName": "@context-action/llms-generator",
+      "path": "packages/llms-generator/examples",
+      "status": "reference",
+      "explains": {
+        "en": "TypeScript and JavaScript programmatic API usage examples for LLMSGenerator and CategoryMinimumGenerator.",
+        "ko": "LLMSGenerator 및 CategoryMinimumGenerator의 TypeScript/JavaScript 프로그래밍 API 사용 예제입니다."
+      },
+      "primaryApis": [
+        "LLMSGenerator",
+        "CategoryMinimumGenerator",
+        "EnhancedConfigManager"
+      ],
+      "verificationGate": "pnpm --filter @context-action/llms-generator test"
+    },
+    {
+      "id": "ex-pkg-mutative",
+      "packageName": "@context-action/mutative",
+      "path": "packages/mutative/examples",
+      "status": "experimental",
+      "explains": {
+        "en": "Workspace-only travels@3 + mutative@2 experimental backend prototypes (travels-v3) evaluating compatibility without changing stable 0.8 exports.",
+        "ko": "안정 0.8 공개 API를 변경하지 않고 travels@3 + mutative@2 호환성을 평가하는 워크스페이스 전용 실험(travels-v3)입니다."
+      },
+      "primaryApis": [
+        "@context-action/store-core",
+        "MutativeStateBackend",
+        "MutativeTimelineBackend"
+      ],
+      "verificationGate": "pnpm --filter @context-action/mutative test:travels-v3"
+    },
+    {
+      "id": "ex-pkg-preact-ui",
+      "packageName": "@context-action/preact-ui",
+      "path": "packages/preact-ui/examples",
+      "status": "verified",
+      "explains": {
+        "en": "Projected Order 6-layer workspace, Layer Panel contract reuse (template island + Custom Element), modular Signals Web Components, and SSR hydration.",
+        "ko": "Projected Order 6계층 워크스페이스, Layer Panel 계약 재사용(템플릿 아일랜드+웹 컴포넌트), 모듈형 Signals 웹 컴포넌트 및 SSR 하이드레이션 예제입니다."
+      },
+      "primaryApis": [
+        "mountPreact",
+        "hydratePreact",
+        "createDisposalScope",
+        "createCustomElementBridge"
+      ],
+      "verificationGate": "pnpm --filter @context-action/preact-ui test:browser"
+    },
+    {
+      "id": "ex-pkg-react",
+      "packageName": "@context-action/react",
+      "path": "packages/react/examples",
+      "status": "verified",
+      "explains": {
+        "en": "Package-level React hook, RefContext (GameUI/SimpleForm), and declarative/unified Store pattern usage examples.",
+        "ko": "패키지 수준의 React 훅, RefContext(GameUI/SimpleForm) 및 선언적/통합 Store 패턴 사용 예제입니다."
+      },
+      "primaryApis": [
+        "createActionContext",
+        "createStoreContext",
+        "createRefContext",
+        "useStoreValue",
+        "useStoreSelector"
+      ],
+      "verificationGate": "pnpm --filter @context-action/react test"
+    },
+    {
+      "id": "ex-pkg-typedoc-vitepress-sync",
+      "packageName": "@context-action/typedoc-vitepress-sync",
+      "path": "packages/typedoc-vitepress-sync/examples",
+      "status": "reference",
+      "explains": {
+        "en": "Basic and advanced configuration examples for running TypeDocVitePressSync in Node.js scripts.",
+        "ko": "Node.js 스크립트에서 TypeDocVitePressSync를 실행하는 기본·고급 설정 예제입니다."
+      },
+      "primaryApis": [
+        "TypeDocVitePressSync",
+        "ConsoleLogger"
+      ],
+      "verificationGate": "pnpm --filter @context-action/typedoc-vitepress-sync test"
+    }
+  ],
+  "narrativeExampleDocs": [
+    {
+      "id": "ex-doc-basic-setup",
+      "file": "basic-setup.md",
+      "enPath": "docs/en/examples/basic-setup.md",
+      "koPath": "docs/ko/examples/basic-setup.md",
+      "explains": {
+        "en": "Foundational setup combining Action-Only and Store-Only providers in a minimal React application.",
+        "ko": "최소 React 애플리케이션에서 Action-Only와 Store-Only 프로바이더를 함께 구성하는 기본 설정을 설명합니다."
+      },
+      "primaryApis": [
+        "createActionContext",
+        "createStoreContext"
+      ],
+      "relatedRoutes": [
+        "/foundations/react/provider"
+      ]
+    },
+    {
+      "id": "ex-doc-action-only",
+      "file": "action-only.md",
+      "enPath": "docs/en/examples/action-only.md",
+      "koPath": "docs/ko/examples/action-only.md",
+      "explains": {
+        "en": "Pure event/command dispatching without reactive store state using Action Context.",
+        "ko": "반응형 스토어 상태 없이 순수 이벤트/커맨드 디스패칭에 Action Context만 사용하는 패턴을 설명합니다."
+      },
+      "primaryApis": [
+        "createActionContext",
+        "useActionDispatch",
+        "useActionHandler"
+      ],
+      "relatedRoutes": [
+        "/foundations/core/basics"
+      ]
+    },
+    {
+      "id": "ex-doc-store-only",
+      "file": "store-only.md",
+      "enPath": "docs/en/examples/store-only.md",
+      "koPath": "docs/ko/examples/store-only.md",
+      "explains": {
+        "en": "Pure reactive state management and selective subscriptions without action dispatch pipelines.",
+        "ko": "액션 디스패치 파이프라인 없이 순수 반응형 상태 관리와 선택적 구독만 사용하는 패턴을 설명합니다."
+      },
+      "primaryApis": [
+        "createStoreContext",
+        "useStoreValue",
+        "useStoreSelector"
+      ],
+      "relatedRoutes": [
+        "/foundations/store/basics"
+      ]
+    },
+    {
+      "id": "ex-doc-pattern-composition",
+      "file": "pattern-composition.md",
+      "enPath": "docs/en/examples/pattern-composition.md",
+      "koPath": "docs/ko/examples/pattern-composition.md",
+      "explains": {
+        "en": "Composing Action-Only and Store-Only contexts cleanly across MVVM layers.",
+        "ko": "MVVM 계층에 맞춰 Action-Only와 Store-Only 컨텍스트를 깔끔하게 조합하는 방법을 설명합니다."
+      },
+      "primaryApis": [
+        "createActionContext",
+        "createStoreContext",
+        "useActionHandler",
+        "useStoreValue"
+      ],
+      "relatedRoutes": [
+        "/patterns/layered-architecture"
+      ]
+    },
+    {
+      "id": "ex-doc-canonical-order-form",
+      "file": "canonical-order-form.md",
+      "enPath": "docs/en/examples/canonical-order-form.md",
+      "koPath": "docs/ko/examples/canonical-order-form.md",
+      "explains": {
+        "en": "Recommended implementation-first canonical order-quote form demonstrating Context-Layered reliability.",
+        "ko": "Context-Layered 구조가 신뢰성을 높이는 이유를 증명하는 표준 구현 기준(주문 견적 폼) 워크스루입니다."
+      },
+      "primaryApis": [
+        "createActionContext",
+        "createStoreContext",
+        "useActionHandler",
+        "useStoreValue"
+      ],
+      "relatedRoutes": [
+        "/patterns/implementation-playbook"
+      ]
+    },
+    {
+      "id": "ex-doc-access-request-playbook",
+      "file": "access-request-playbook.md",
+      "enPath": "docs/en/examples/access-request-playbook.md",
+      "koPath": "docs/ko/examples/access-request-playbook.md",
+      "explains": {
+        "en": "Applies the 6-layer Implementation Playbook convention to an approval-oriented Workspace Access Request packet workflow.",
+        "ko": "6계층 Implementation Playbook 컨벤션을 승인·검토 성격의 Workspace Access Request 워크플로에 적용한 예제입니다."
+      },
+      "primaryApis": [
+        "createActionContext",
+        "createStoreContext"
+      ],
+      "relatedRoutes": [
+        "/patterns/implementation-playbook/access-request"
+      ]
+    },
+    {
+      "id": "ex-doc-incident-escalation-playbook",
+      "file": "incident-escalation-playbook.md",
+      "enPath": "docs/en/examples/incident-escalation-playbook.md",
+      "koPath": "docs/ko/examples/incident-escalation-playbook.md",
+      "explains": {
+        "en": "Applies the Implementation Playbook convention to an operations Incident Escalation packet workflow.",
+        "ko": "심각도·영향 기반 운영 에스컬레이션 패킷 조립에 Implementation Playbook 컨벤션을 적용한 예제입니다."
+      },
+      "primaryApis": [
+        "createActionContext",
+        "createStoreContext"
+      ],
+      "relatedRoutes": [
+        "/patterns/implementation-playbook/incident-escalation"
+      ]
+    },
+    {
+      "id": "ex-doc-renewal-risk-review-playbook",
+      "file": "renewal-risk-review-playbook.md",
+      "enPath": "docs/en/examples/renewal-risk-review-playbook.md",
+      "koPath": "docs/ko/examples/renewal-risk-review-playbook.md",
+      "explains": {
+        "en": "Applies the Implementation Playbook convention to a customer-success Renewal Risk Review workflow.",
+        "ko": "고객 성공 도메인의 Renewal Risk Review 패킷 워크플로에 Implementation Playbook을 적용한 예제입니다."
+      },
+      "primaryApis": [
+        "createActionContext",
+        "createStoreContext"
+      ],
+      "relatedRoutes": [
+        "/patterns/implementation-playbook/renewal-risk-review"
+      ]
+    },
+    {
+      "id": "ex-doc-implementation-playbook-scenarios",
+      "file": "implementation-playbook-scenarios.md",
+      "enPath": "docs/en/examples/implementation-playbook-scenarios.md",
+      "koPath": "docs/ko/examples/implementation-playbook-scenarios.md",
+      "explains": {
+        "en": "Cross-domain scenario library showing how to apply the Implementation Playbook skill to new workflows.",
+        "ko": "Implementation Playbook 스킬을 새로운 도메인 시나리오로 확장할 때 참고하는 시나리오 라이브러리입니다."
+      },
+      "primaryApis": [
+        "createActionContext",
+        "createStoreContext"
+      ],
+      "relatedRoutes": [
+        "/patterns/implementation-playbook/scenarios"
+      ]
+    }
+  ]
+}

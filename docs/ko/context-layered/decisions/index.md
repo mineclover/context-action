@@ -58,4 +58,5 @@ persistence·privacy 동작, 임시 compatibility 예외가 바뀌면 기록을 
 - [CA-STATECHART-EFFECT-001: `@context-action/xstate` 어댑터 경계 분리 및 핵심 통합 철학](./CA-STATECHART-EFFECT-001.md)
 
 - [CA-SPEC-EVIDENCE-001: TypeSpec Evidence 결합 및 프론트엔드 상태 계층화(State Tiering) 거버넌스](./CA-SPEC-EVIDENCE-001.md)
+- [CA-SURFACE-CATALOG-001: 저장소 API·예제·문서 표면 카탈로그 거버넌스](./CA-SURFACE-CATALOG-001.md)
 - [PostgreSQL Durable Operation Adapter](../architecture/postgres-durable-operation-adapter.md)

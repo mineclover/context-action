@@ -1,0 +1,993 @@
+{
+  "schemaVersion": "context-action.api-surface/v1",
+  "specId": "CA-SURFACE-CATALOG-001",
+  "layers": [
+    "foundation",
+    "framework-adapter",
+    "ui-runtime",
+    "integration-adapter",
+    "tooling",
+    "private-host-support"
+  ],
+  "stabilities": [
+    "stable",
+    "public-preview",
+    "tooling",
+    "private"
+  ],
+  "packages": [
+    {
+      "id": "api-ai-sdk",
+      "packageName": "@context-action/ai-sdk",
+      "directory": "packages/ai-sdk",
+      "layer": "integration-adapter",
+      "visibility": "public",
+      "stability": "public-preview",
+      "summary": {
+        "en": "Optional AI SDK v7 adapter converting canonical Context-Action tool managers into turn-scoped dynamicTool ToolSets.",
+        "ko": "정식 Context-Action 도구 매니저를 턴 범위 dynamicTool ToolSet으로 변환하는 선택적 AI SDK v7 어댑터입니다."
+      },
+      "nonGoals": [
+        "Action pipeline execution or handler registration",
+        "React rendering or UI state ownership",
+        "Provider credentials, model client management, or durable persistence"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Turn-scoped AI SDK ToolSet builders, approval mapping, and structured tool execution error wrapper.",
+          "keySymbols": [
+            "createAISDKToolScope",
+            "createAISDKTools",
+            "AISDKToolExecutionError",
+            "AISDKToolScope",
+            "AISDKToolSetOptions"
+          ]
+        }
+      ],
+      "workspaceDependencies": [
+        "@context-action/tool-protocol"
+      ],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [
+        "./packages/ai-sdk/src/index.ts"
+      ],
+      "readme": "packages/ai-sdk/README.md",
+      "authoritativeDocs": [
+        "docs/en/context-layered/usecase-tool-calling-web-studio.md",
+        "docs/ko/context-layered/usecase-tool-calling-web-studio.md"
+      ],
+      "verificationGate": "pnpm test:ai-sdk-integration && pnpm verify:ai-sdk-tool-protocol-contract"
+    },
+    {
+      "id": "api-core",
+      "packageName": "@context-action/core",
+      "directory": "packages/core",
+      "layer": "foundation",
+      "visibility": "public",
+      "stability": "stable",
+      "summary": {
+        "en": "Zero-dependency action pipeline foundation plus optional framework-neutral DOM element transport and React host bridge.",
+        "ko": "Zero-dependency 액션 파이프라인 파운데이션과 선택적 프레임워크 중립 DOM Element 전송 및 React 호스트 브리지입니다."
+      },
+      "nonGoals": [
+        "DOM or React dependency inside the root '.' entrypoint",
+        "Reactive state store ownership or Mutative draft internals",
+        "Tool-protocol schemas, Zod runtime coupling, or renderer ownership"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "ActionRegister, ActionGuard, priority/sequential/parallel/race execution modes, dispatch traces, and core errors.",
+          "keySymbols": [
+            "ActionRegister",
+            "ActionGuard",
+            "executeParallel",
+            "executeRace",
+            "executeSequential",
+            "ActionTimeoutError",
+            "ActionValidationError"
+          ]
+        },
+        {
+          "subpath": "./element",
+          "purpose": "Framework-neutral DOM binding, attribute/style reconciliation, imperative facades, SyncActionPipeline, roving focus, and pointer gesture primitives.",
+          "keySymbols": [
+            "createElementFacade",
+            "createElementBinding",
+            "createSyncActionPipeline",
+            "createRovingFocusController",
+            "createPointerGestureSession",
+            "toReactPartProps"
+          ]
+        },
+        {
+          "subpath": "./element/react",
+          "purpose": "Injected-runtime React bridge wrapper over framework-neutral ElementBinding and facade handles.",
+          "keySymbols": [
+            "createReactElementBridge",
+            "ReactElementComponent"
+          ]
+        }
+      ],
+      "workspaceDependencies": [],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [
+        "./packages/core/src/index.ts"
+      ],
+      "readme": "packages/core/README.md",
+      "authoritativeDocs": [
+        "packages/core/docs/action-contracts.md",
+        "packages/core/docs/element-interop.md",
+        "docs/en/concept/action-pipeline-guide.md",
+        "docs/en/context-layered/decisions/CA-ELEMENT-INTEROP-001.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/core test && pnpm verify:element-unit && pnpm verify:element-interop"
+    },
+    {
+      "id": "api-lit",
+      "packageName": "@context-action/lit",
+      "directory": "packages/lit",
+      "layer": "framework-adapter",
+      "visibility": "public",
+      "stability": "public-preview",
+      "summary": {
+        "en": "Lit ReactiveController adapters connecting Context-Action readable stores, ActionRegister pipelines, and LIFO cleanup scopes.",
+        "ko": "Context-Action 읽기 가능 스토어, ActionRegister 파이프라인, LIFO 정리 스코프를 연결하는 Lit ReactiveController 어댑터입니다."
+      },
+      "nonGoals": [
+        "Lit element rendering templates or Custom Element definitions",
+        "SSR or Declarative Shadow DOM hydration runtime",
+        "React dependency or application domain state"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "ReactiveControllers for store subscriptions, action handler registration, and LIFO controller scopes.",
+          "keySymbols": [
+            "StoreController",
+            "ActionController",
+            "ControllerScope",
+            "ReadableStore",
+            "ControllerScopeOptions"
+          ]
+        }
+      ],
+      "workspaceDependencies": [
+        "@context-action/core"
+      ],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/lit/README.md",
+      "authoritativeDocs": [
+        "packages/lit/docs/01-controller-scope.md",
+        "docs/en/context-layered/decisions/CA-ELEMENT-INTEROP-001.md"
+      ],
+      "verificationGate": "pnpm check:lit"
+    },
+    {
+      "id": "api-lit-ui",
+      "packageName": "@context-action/lit-ui",
+      "directory": "packages/lit-ui",
+      "layer": "ui-runtime",
+      "visibility": "public",
+      "stability": "public-preview",
+      "summary": {
+        "en": "Lit Web Component primitives, W3C Context Protocol controllers, FACE form-associated patterns, React host bridge, and DSD SSR/hydration helpers.",
+        "ko": "Lit 웹 컴포넌트 프리미티브, W3C Context Protocol 컨트롤러, FACE 폼 연결 패턴, React 브리지 및 DSD SSR/하이드레이션 유틸리티입니다."
+      },
+      "nonGoals": [
+        "Mandatory React runtime dependency in the root '.' entrypoint",
+        "Business domain rules or global store state ownership",
+        "Replacing application routing or backend persistence"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "W3C Context Protocol controllers, ControllerScope re-export, and reference modular Custom Elements.",
+          "keySymbols": [
+            "ContextActionController",
+            "ContextConsumer",
+            "ControllerScope",
+            "LitCartBadge",
+            "LitQuantityStepper"
+          ]
+        },
+        {
+          "subpath": "./react-bridge",
+          "purpose": "React host element bridge and imperative facade over Core element interop.",
+          "keySymbols": [
+            "createLitElementBridge",
+            "createLitBridge",
+            "createCustomElementBridge",
+            "createElementFacade"
+          ]
+        },
+        {
+          "subpath": "./ssr",
+          "purpose": "Declarative Shadow DOM SSR template and element rendering with hydration re-export.",
+          "keySymbols": [
+            "renderLitTemplate",
+            "renderLitTemplateAsync",
+            "renderLitElement",
+            "renderLitElementAsync",
+            "hydrateLit"
+          ]
+        },
+        {
+          "subpath": "./hydrate",
+          "purpose": "Standalone client hydration helper supporting DSD static styles and fallback markers.",
+          "keySymbols": [
+            "hydrateLit"
+          ]
+        }
+      ],
+      "workspaceDependencies": [
+        "@context-action/core",
+        "@context-action/lit"
+      ],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/lit-ui/README.md",
+      "authoritativeDocs": [
+        "packages/lit-ui/docs/01-dom-ownership.md",
+        "packages/lit-ui/docs/02-reactive-controller-vs-hooks.md",
+        "packages/lit-ui/docs/03-form-associated-elements.md",
+        "packages/lit-ui/docs/06-ssr-hydration.md"
+      ],
+      "verificationGate": "pnpm check:lit && pnpm --filter @context-action/lit-ui test:browser && pnpm verify:lit-packed-consumer"
+    },
+    {
+      "id": "api-live-code-editor",
+      "packageName": "@context-action/live-code-editor",
+      "directory": "packages/live-code-editor",
+      "layer": "private-host-support",
+      "visibility": "private",
+      "stability": "private",
+      "summary": {
+        "en": "Private workspace runtime and browser preview bridge contracts shared by repository live code editor demos.",
+        "ko": "저장소 내 라이브 코드 에디터 데모에서 사용하는 비공개 워크스페이스 런타임 및 브라우저 미리보기 브리지 계약입니다."
+      },
+      "nonGoals": [
+        "Public npm distribution prior to explicit promotion",
+        "Core ActionRegister or React Store runtime semantics"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Workspace file snapshots, preview HTML assembly, diagnostics collection, and iframe bridge message guards.",
+          "keySymbols": [
+            "buildPreviewDocument",
+            "collectPreviewDiagnostics",
+            "findPreviewHtmlFile",
+            "isPreviewBridgeMessage",
+            "WorkspaceRepository"
+          ]
+        }
+      ],
+      "workspaceDependencies": [],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/live-code-editor/README.md",
+      "authoritativeDocs": [
+        "docs/en/concept/tool-calling-editor-architecture.md",
+        "docs/en/context-layered/usecase-tool-calling-web-studio.md"
+      ],
+      "verificationGate": "pnpm build:live-code-editor && pnpm --filter @context-action/live-code-editor check && pnpm --filter @context-action/live-code-editor test"
+    },
+    {
+      "id": "api-llms-generator",
+      "packageName": "@context-action/llms-generator",
+      "directory": "packages/llms-generator",
+      "layer": "tooling",
+      "visibility": "public",
+      "stability": "tooling",
+      "summary": {
+        "en": "Documentation-to-LLMS template generator, priority manager, mismatch detector, and reference combiner CLI/library.",
+        "ko": "문서-LLMS 요약 템플릿 생성기, 우선순위 관리, 불일치 탐지 및 참조 결합 CLI/라이브러리입니다."
+      },
+      "nonGoals": [
+        "Runtime state or action execution inside consumer apps",
+        "Acting as primary source of truth over handwritten docs"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Programmatic configuration manager, LLMS summary types, and DEFAULT_CONFIG exports.",
+          "keySymbols": [
+            "EnhancedConfigManager",
+            "DEFAULT_CONFIG",
+            "LLMSConfig",
+            "GenerationOptions"
+          ]
+        },
+        {
+          "subpath": "./cli",
+          "purpose": "Executable CLI entry supporting sync-docs, detect-mismatches, priority-*, generate-templates, and code-mode.",
+          "keySymbols": [
+            "main"
+          ]
+        }
+      ],
+      "workspaceDependencies": [],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/llms-generator/README.md",
+      "authoritativeDocs": [
+        "packages/llms-generator/docs/README.md",
+        "packages/llms-generator/docs/data-structure.md",
+        "docs/en/llms/index.md"
+      ],
+      "verificationGate": "pnpm build:llms-generator && pnpm --filter @context-action/llms-generator test && pnpm llms:check"
+    },
+    {
+      "id": "api-mutative",
+      "packageName": "@context-action/mutative",
+      "directory": "packages/mutative",
+      "layer": "framework-adapter",
+      "visibility": "public",
+      "stability": "stable",
+      "summary": {
+        "en": "Context-Action immutable update utilities, TimeTravel timeline engine, and MutativeStateBackend / MutativeTimelineBackend adapters.",
+        "ko": "Context-Action 불변 업데이트 유틸리티, TimeTravel 타임라인 엔진 및 MutativeStateBackend / MutativeTimelineBackend 어댑터입니다."
+      },
+      "nonGoals": [
+        "React context hooks or component rendering",
+        "Action pipeline orchestration"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Mutative produce wrappers, patch utilities, TimeTravel history controller, and store-core compatible Mutative backends.",
+          "keySymbols": [
+            "produce",
+            "produceWithPatches",
+            "TimeTravel",
+            "createTimeTravel",
+            "MutativeStateBackend",
+            "MutativeTimelineBackend"
+          ]
+        }
+      ],
+      "workspaceDependencies": [
+        "@context-action/mutative-core",
+        "@context-action/store-core"
+      ],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/mutative/README.md",
+      "authoritativeDocs": [
+        "packages/mutative/docs/time-travel-specialization.md",
+        "docs/en/context-layered/mutative-core-history.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/mutative test && pnpm verify:mutative-upstream"
+    },
+    {
+      "id": "api-mutative-core",
+      "packageName": "@context-action/mutative-core",
+      "directory": "packages/mutative-core",
+      "layer": "foundation",
+      "visibility": "public",
+      "stability": "stable",
+      "summary": {
+        "en": "Zero-dependency maintained Mutative-compatible immutable draft, patch, and array engine tracking upstream mutative@1.3.0 compatibility.",
+        "ko": "Upstream mutative@1.3.0 호환성을 추적하며 유지보수되는 Zero-dependency 불변 draft·patch·배열 엔진입니다."
+      },
+      "nonGoals": [
+        "Context-Action store/action policy or React integration",
+        "Time-travel policy or undo/redo history management"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Core immutable draft creation, patch generation/application, rawReturn, original, current, and unsafe helpers.",
+          "keySymbols": [
+            "makeCreator",
+            "create",
+            "produce",
+            "apply",
+            "original",
+            "current",
+            "unsafe",
+            "rawReturn",
+            "isDraft"
+          ]
+        }
+      ],
+      "workspaceDependencies": [],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/mutative-core/README.md",
+      "authoritativeDocs": [
+        "docs/en/context-layered/mutative-core-history.md",
+        "docs/ko/context-layered/mutative-core-history.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/mutative-core test && pnpm verify:mutative-upstream"
+    },
+    {
+      "id": "api-openrouter-browser-storage",
+      "packageName": "@context-action/openrouter-browser-storage",
+      "directory": "packages/openrouter-browser-storage",
+      "layer": "private-host-support",
+      "visibility": "private",
+      "stability": "private",
+      "summary": {
+        "en": "Private browser-local OpenRouter API key storage and subscription helper for repository interactive AI demos.",
+        "ko": "저장소 내 대화형 AI 데모를 위한 비공개 브라우저 로컬 OpenRouter API 키 저장 및 구독 헬퍼입니다."
+      },
+      "nonGoals": [
+        "Generic application persistence or credential vault",
+        "Server-side secret handling or public package distribution"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Browser storage read/write/clear and listener helpers for demo OpenRouter API keys.",
+          "keySymbols": [
+            "OPENROUTER_API_KEY_STORAGE_KEY",
+            "getStoredOpenRouterApiKey",
+            "saveOpenRouterApiKey",
+            "clearStoredOpenRouterApiKey",
+            "subscribeStoredOpenRouterApiKey"
+          ]
+        }
+      ],
+      "workspaceDependencies": [],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/openrouter-browser-storage/README.md",
+      "authoritativeDocs": [
+        "docs/en/context-layered/package-boundary-convention.md"
+      ],
+      "verificationGate": "pnpm verify:private-tools"
+    },
+    {
+      "id": "api-preact",
+      "packageName": "@context-action/preact",
+      "directory": "packages/preact",
+      "layer": "framework-adapter",
+      "visibility": "public",
+      "stability": "public-preview",
+      "summary": {
+        "en": "Preact dispatch context and read-only Signals projection adapters built over @context-action/core.",
+        "ko": "@context-action/core 기반의 Preact 디스패치 컨텍스트 및 읽기 전용 Signals 프로젝션 어댑터입니다."
+      },
+      "nonGoals": [
+        "DOM root ownership, template mounting, or SSR hydration",
+        "React store mutation or bidirectional state ownership"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Preact action dispatch contexts and read-only Signals projection hooks/sources.",
+          "keySymbols": [
+            "createDispatchContext",
+            "createSourceContext",
+            "connectSourceSignal",
+            "useProjection",
+            "ReadableSource"
+          ]
+        }
+      ],
+      "workspaceDependencies": [
+        "@context-action/core"
+      ],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/preact/README.md",
+      "authoritativeDocs": [
+        "docs/en/context-layered/package-boundary-convention.md",
+        "docs/en/context-layered/decisions/CA-ELEMENT-INTEROP-001.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/preact test && pnpm verify:preact-public-release -- --require-current-source"
+    },
+    {
+      "id": "api-preact-ui",
+      "packageName": "@context-action/preact-ui",
+      "directory": "packages/preact-ui",
+      "layer": "ui-runtime",
+      "visibility": "public",
+      "stability": "public-preview",
+      "summary": {
+        "en": "Owned Preact DOM roots, template mounting, disposal scopes, SSR helpers, and optional Custom Element / React host bridges.",
+        "ko": "소유된 Preact DOM 루트, 템플릿 마운팅, 폐기 스코프, SSR 헬퍼 및 선택적 Custom Element / React 호스트 브리지입니다."
+      },
+      "nonGoals": [
+        "Domain state policy or action orchestration",
+        "Mandatory React runtime dependency inside the root '.' entrypoint"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Owned Preact mount/hydrate/template instances, LIFO disposal scopes, and Core element facade re-exports.",
+          "keySymbols": [
+            "mountPreact",
+            "hydratePreact",
+            "mountTemplate",
+            "createDisposalScope",
+            "createElementFacade"
+          ]
+        },
+        {
+          "subpath": "./react-bridge",
+          "purpose": "React host wrapper bridge and imperative facade for Preact Custom Elements.",
+          "keySymbols": [
+            "createCustomElementBridge",
+            "createElementFacade"
+          ]
+        },
+        {
+          "subpath": "./ssr",
+          "purpose": "Server-side Preact SSR view renderer helper.",
+          "keySymbols": [
+            "createSSR",
+            "SSRView",
+            "SSRRenderer"
+          ]
+        }
+      ],
+      "workspaceDependencies": [
+        "@context-action/core",
+        "@context-action/preact"
+      ],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/preact-ui/README.md",
+      "authoritativeDocs": [
+        "packages/preact-ui/docs/README.md",
+        "packages/preact-ui/docs/01-dom-ownership-and-lifecycle.md",
+        "packages/preact-ui/docs/03-api.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/preact-ui test && pnpm --filter @context-action/preact-ui test:browser"
+    },
+    {
+      "id": "api-react",
+      "packageName": "@context-action/react",
+      "directory": "packages/react",
+      "layer": "framework-adapter",
+      "visibility": "public",
+      "stability": "stable",
+      "summary": {
+        "en": "Primary React 18/19 framework adapter providing ActionContext, declarative Store/TimeTravelStore contexts, path hooks, RefContext, backend portability, and WebMCP hooks.",
+        "ko": "ActionContext, 선언적 Store/TimeTravelStore 컨텍스트, 경로 구독 훅, RefContext, 백엔드 이식성 및 WebMCP 훅을 제공하는 React 18/19 기본 프레임워크 어댑터입니다."
+      },
+      "nonGoals": [
+        "Framework-neutral core pipeline semantics",
+        "Durable external persistence inside the root production runtime"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "createActionContext, createStoreContext, createTimeTravelStoreContext, createRefContext, Store hooks, transactions, and ErrorBoundary.",
+          "keySymbols": [
+            "createActionContext",
+            "createStoreContext",
+            "createTimeTravelStoreContext",
+            "createRefContext",
+            "createStore",
+            "useStoreValue",
+            "useStoreSelector",
+            "useStorePath",
+            "StoreTransactionCoordinator",
+            "bindActionTransactions"
+          ]
+        },
+        {
+          "subpath": "./backend",
+          "purpose": "BackendStore portability wrapper and re-exported framework-neutral store-core protocol contracts.",
+          "keySymbols": [
+            "BackendStore",
+            "createBackendStore",
+            "StateBackend",
+            "TimelineBackend",
+            "TransactionCoordinatorPort"
+          ]
+        },
+        {
+          "subpath": "./advanced",
+          "purpose": "StoreRegistry, dynamic/local/computed store hooks, error handlers, and React utilities.",
+          "keySymbols": [
+            "StoreRegistry",
+            "useComputedStore",
+            "useLocalStore",
+            "ContextActionError",
+            "StoreErrorBoundary"
+          ]
+        },
+        {
+          "subpath": "./utils",
+          "purpose": "Deep clone, safe property access, Mutative helpers, and configurable equality comparison utilities.",
+          "keySymbols": [
+            "deepClone",
+            "safeGet",
+            "safeSet",
+            "MutativeUtils",
+            "compareValues"
+          ]
+        },
+        {
+          "subpath": "./webmcp",
+          "purpose": "Optional isolated React hook binding canonical tool managers into browser WebMCP scopes.",
+          "keySymbols": [
+            "useWebMCPToolScope",
+            "WebMCPToolScopeState"
+          ]
+        }
+      ],
+      "workspaceDependencies": [
+        "@context-action/core",
+        "@context-action/mutative",
+        "@context-action/store-core"
+      ],
+      "workspacePeerDependencies": [
+        "@context-action/tool-protocol",
+        "@context-action/webmcp"
+      ],
+      "typedocEntryPoints": [
+        "./packages/react/src/index.ts",
+        "./packages/react/src/webmcp.ts"
+      ],
+      "readme": "packages/react/README.md",
+      "authoritativeDocs": [
+        "packages/react/docs/state-contracts.md",
+        "docs/en/concept/hooks-reference.md",
+        "docs/en/context-layered/context-layered-guide.md",
+        "docs/en/context-layered/store-selection-and-usage-guide.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/react test && pnpm verify:react-compatibility && pnpm verify:react-artifact-boundary"
+    },
+    {
+      "id": "api-store-core",
+      "packageName": "@context-action/store-core",
+      "directory": "packages/store-core",
+      "layer": "foundation",
+      "visibility": "public",
+      "stability": "stable",
+      "summary": {
+        "en": "Zero-dependency framework-neutral StateReader, StateStore, StateBackend, TimelineBackend, and TransactionCoordinatorPort contracts plus reference createStateStore.",
+        "ko": "Zero-dependency 프레임워크 중립 StateReader, StateStore, StateBackend, TimelineBackend, TransactionCoordinatorPort 계약과 기준 createStateStore 구현입니다."
+      },
+      "nonGoals": [
+        "React hooks, Context API, or DOM bindings",
+        "Mutative draft engine or XState/Effect runtime coupling"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Store observation, mutation, timeline, transaction coordination contracts, and lightweight createStateStore implementation.",
+          "keySymbols": [
+            "createStateStore",
+            "StateReader",
+            "StateStore",
+            "StateBackend",
+            "TimelineBackend",
+            "TransactionBatchControl",
+            "TransactionBackend",
+            "TransactionCoordinatorPort"
+          ]
+        }
+      ],
+      "workspaceDependencies": [],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/store-core/README.md",
+      "authoritativeDocs": [
+        "packages/react/docs/state-contracts.md",
+        "docs/en/context-layered/package-boundary-convention.md",
+        "docs/en/context-layered/store-selection-and-usage-guide.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/store-core test && pnpm package-boundary:check"
+    },
+    {
+      "id": "api-style-testing",
+      "packageName": "@context-action/style-testing",
+      "directory": "packages/style-testing",
+      "layer": "tooling",
+      "visibility": "private",
+      "stability": "private",
+      "summary": {
+        "en": "Internal browser style extraction, Tailwind class resolution, and visual diff CLI/tooling package.",
+        "ko": "내부 브라우저 스타일 추출, Tailwind 클래스 해석 및 시각적 diff CLI/도구 패키지입니다."
+      },
+      "nonGoals": [
+        "Public runtime state or action management",
+        "External npm consumer publication"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Playwright browser runner, style extractor, diff engine, and reporter utilities.",
+          "keySymbols": [
+            "BrowserRunner",
+            "StyleExtractor",
+            "DiffEngine",
+            "Reporter",
+            "resolveTailwindClasses"
+          ]
+        },
+        {
+          "subpath": "./babel-plugin",
+          "purpose": "Babel AST plugin for style test instrumentation.",
+          "keySymbols": [
+            "styleTestPlugin"
+          ]
+        }
+      ],
+      "workspaceDependencies": [],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/style-testing/README.md",
+      "authoritativeDocs": [
+        "docs/en/context-layered/package-boundary-convention.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/style-testing test && pnpm --filter @context-action/style-testing verify:exports"
+    },
+    {
+      "id": "api-template-react",
+      "packageName": "@context-action/template-react",
+      "directory": "packages/template-react",
+      "layer": "private-host-support",
+      "visibility": "private",
+      "stability": "private",
+      "summary": {
+        "en": "Private React starter template demonstrating Context-Layered layout, Astryx design tokens, and CA-SPEC-EVIDENCE-001 State Tiering.",
+        "ko": "Context-Layered 구조, Astryx 디자인 토큰 및 CA-SPEC-EVIDENCE-001 상태 계층화를 적용한 비공개 React 스타터 템플릿입니다."
+      },
+      "nonGoals": [
+        "Importable npm library exports",
+        "Shared runtime primitives imported by other packages"
+      ],
+      "exports": [],
+      "workspaceDependencies": [
+        "@context-action/core",
+        "@context-action/react"
+      ],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/template-react/README.md",
+      "authoritativeDocs": [
+        "docs/en/context-layered/decisions/CA-SPEC-EVIDENCE-001.md",
+        "docs/en/context-layered/triad-evidence-sync-guide.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/template-react type-check && pnpm --filter @context-action/template-react build"
+    },
+    {
+      "id": "api-tool-durable-operations",
+      "packageName": "@context-action/tool-durable-operations",
+      "directory": "packages/tool-durable-operations",
+      "layer": "foundation",
+      "visibility": "public",
+      "stability": "public-preview",
+      "summary": {
+        "en": "Framework-neutral durable operation lease/claim store, side-effect runner, HTTP/queue bridges, and IndexedDB/Redis/PostgreSQL reference backends.",
+        "ko": "프레임워크 중립 durable operation lease/claim 스토어, side-effect 러너, HTTP/큐 브리지 및 IndexedDB/Redis/PostgreSQL 기준 백엔드입니다."
+      },
+      "nonGoals": [
+        "Provider-neutral tool schema validation or discovery",
+        "Application-owned domain outbox policy or production credentials"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Durable operation stores, side-effect recovery runners, HTTP/queue adapters, and IndexedDB/Redis/PostgreSQL reference backends.",
+          "keySymbols": [
+            "createDurableOperationStore",
+            "createDurableSideEffectRunner",
+            "runHttpSideEffect",
+            "runQueueSideEffect",
+            "createIndexedDbDurableOperationBackend",
+            "createRedisDurableOperationBackend",
+            "createPostgresDurableOperationBackend",
+            "createPostgresDurableOperationSchemaSql"
+          ]
+        }
+      ],
+      "workspaceDependencies": [],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [
+        "./packages/tool-durable-operations/src/index.ts"
+      ],
+      "readme": "packages/tool-durable-operations/README.md",
+      "authoritativeDocs": [
+        "docs/en/context-layered/architecture/durable-operation-operations.md",
+        "docs/en/context-layered/architecture/postgres-durable-operation-adapter.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/tool-durable-operations test && pnpm tool-durable:test:evidence"
+    },
+    {
+      "id": "api-tool-protocol",
+      "packageName": "@context-action/tool-protocol",
+      "directory": "packages/tool-protocol",
+      "layer": "foundation",
+      "visibility": "public",
+      "stability": "stable",
+      "summary": {
+        "en": "Framework-neutral action schema, MCP/OpenAI/Anthropic tool definitions, approval queues, idempotency fingerprinting, and observability redaction contracts.",
+        "ko": "프레임워크 중립 액션 스키마, MCP/OpenAI/Anthropic 도구 정의, 승인 큐, 멱등성 지문 및 관측 마스킹 계약입니다."
+      },
+      "nonGoals": [
+        "React rendering or ActionRegister runtime internals",
+        "Durable mutation storage or external database drivers"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "defineAction/schema converters, MCP & model provider tool adapters, approval queue, idempotency, provenance, and observability policy helpers.",
+          "keySymbols": [
+            "createToolApprovalQueue",
+            "createToolCallSuccess",
+            "createToolCallError",
+            "createToolIdempotencyRegistry",
+            "createToolExecutionProvenance",
+            "createToolObservabilityPolicy",
+            "createToolObservationSink",
+            "TOOL_CALL_ERROR_CODES"
+          ]
+        }
+      ],
+      "workspaceDependencies": [],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [
+        "./packages/tool-protocol/src/index.ts"
+      ],
+      "readme": "packages/tool-protocol/README.md",
+      "authoritativeDocs": [
+        "docs/en/concept/tool-calling-editor-architecture.md",
+        "docs/en/context-layered/usecase-tool-calling-web-studio.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/tool-protocol test && pnpm verify:tool-protocol-changelog && pnpm verify:local-tool-consumers"
+    },
+    {
+      "id": "api-typedoc-vitepress-sync",
+      "packageName": "@context-action/typedoc-vitepress-sync",
+      "directory": "packages/typedoc-vitepress-sync",
+      "layer": "tooling",
+      "visibility": "public",
+      "stability": "tooling",
+      "summary": {
+        "en": "Smart-cached parallel TypeDoc-to-VitePress API markdown synchronizer, sidebar spec generator, and link quality validator.",
+        "ko": "스마트 캐싱·병렬 TypeDoc-to-VitePress API 마크다운 동기화, 사이드바 스펙 생성 및 링크 품질 검증 도구입니다."
+      },
+      "nonGoals": [
+        "Authoring handwritten conceptual guides",
+        "Runtime state management in consumer applications"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Programmatic sync orchestrator, cache/metrics managers, markdown processor, and VitePress sidebar generator.",
+          "keySymbols": [
+            "TypeDocVitePressSync",
+            "CacheManager",
+            "QualityValidator",
+            "SidebarGenerator",
+            "MarkdownProcessor"
+          ]
+        },
+        {
+          "subpath": "./cli",
+          "purpose": "CLI entrypoint powering pnpm docs:sync.",
+          "keySymbols": []
+        }
+      ],
+      "workspaceDependencies": [],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/typedoc-vitepress-sync/README.md",
+      "authoritativeDocs": [
+        "packages/typedoc-vitepress-sync/docs/README.md",
+        "packages/typedoc-vitepress-sync/docs/architecture.md",
+        "docs/en/concept/documentation-development-conventions.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/typedoc-vitepress-sync test && pnpm docs:sync"
+    },
+    {
+      "id": "api-webmcp",
+      "packageName": "@context-action/webmcp",
+      "directory": "packages/webmcp",
+      "layer": "integration-adapter",
+      "visibility": "public",
+      "stability": "public-preview",
+      "summary": {
+        "en": "Browser WebMCP imperative API adapter exposing explicit allowlisted canonical tools over document.modelContext.",
+        "ko": "document.modelContext를 통해 명시적 allowlist 기반 정식 도구를 노출하는 브라우저 WebMCP 명령형 API 어댑터입니다."
+      },
+      "nonGoals": [
+        "Second tool execution path bypassing ToolContext validation or approval",
+        "React or model-provider client dependencies"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "WebMCP scope registration, explicit allowlist enforcement, abort cleanup, and Draft profile helper.",
+          "keySymbols": [
+            "createWebMCPToolScope",
+            "currentWebMCPProfile",
+            "WebMCPToolScope",
+            "WebMCPToolDefinition"
+          ]
+        },
+        {
+          "subpath": "./profiles/chrome-legacy",
+          "purpose": "Compatibility adapter profile for legacy Chrome WebMCP host documents.",
+          "keySymbols": [
+            "chromeLegacyWebMCPProfile",
+            "ChromeLegacyWebMCPDocument"
+          ]
+        }
+      ],
+      "workspaceDependencies": [
+        "@context-action/tool-protocol"
+      ],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [
+        "./packages/webmcp/src/index.ts"
+      ],
+      "readme": "packages/webmcp/README.md",
+      "authoritativeDocs": [
+        "docs/en/guide/webmcp.md",
+        "docs/ko/guide/webmcp.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/webmcp test && pnpm verify:webmcp-changelog && pnpm verify:react-webmcp-isolation"
+    },
+    {
+      "id": "api-xstate",
+      "packageName": "@context-action/xstate",
+      "directory": "packages/xstate",
+      "layer": "integration-adapter",
+      "visibility": "public",
+      "stability": "public-preview",
+      "summary": {
+        "en": "Structural bridges connecting XState v5/v6 statecharts, Effect v4 / @xstate/effect scopes, Standard Schema v1 guards, and TransactionCoordinatorPort while keeping Core zero-dependency.",
+        "ko": "코어 패키지의 Zero-dependency 순수성을 유지하면서 XState v5/v6 상태 차트, Effect v4 / @xstate/effect 스코프, Standard Schema v1 가드, TransactionCoordinatorPort를 연결하는 구조적 어댑터입니다."
+      },
+      "nonGoals": [
+        "Pinning mutually exclusive xstate v5 and @xstate/effect alpha peer trees",
+        "DOM rendering ownership or duplicating XState transition engines"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Actor bindings for ActionRegister and SyncActionPipeline, outbound emission bridge, monotonic StateReader, and waitForActorSnapshot.",
+          "keySymbols": [
+            "bindActor",
+            "bindActorToActionRegister",
+            "bindActorToSyncPipeline",
+            "bindStatechartToSyncPipeline",
+            "bindActorEmissions",
+            "createActorStateReader",
+            "createActorActionEmitter",
+            "enqueueSyncCommand",
+            "waitForActorSnapshot"
+          ]
+        },
+        {
+          "subpath": "./effect",
+          "purpose": "Standard Schema v1 guards, Effect runner guards/handlers, scoped actor binding, and framework-neutral action dispatch transactions.",
+          "keySymbols": [
+            "fromStandardSchema",
+            "registerStandardSchemaGuard",
+            "registerEffectGuard",
+            "registerEffectHandler",
+            "bindEffectActorToActionRegister",
+            "bindActionDispatchTransactions",
+            "runInTransactionScope"
+          ]
+        }
+      ],
+      "workspaceDependencies": [
+        "@context-action/core",
+        "@context-action/store-core"
+      ],
+      "workspacePeerDependencies": [],
+      "typedocEntryPoints": [],
+      "readme": "packages/xstate/README.md",
+      "authoritativeDocs": [
+        "packages/xstate/docs/xstate-effect-integration.md",
+        "docs/en/context-layered/decisions/CA-STATECHART-EFFECT-001.md",
+        "docs/ko/context-layered/decisions/CA-STATECHART-EFFECT-001.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/xstate test && pnpm verify:core-public-release -- --require-current-source"
+    }
+  ]
+}

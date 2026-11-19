@@ -8,6 +8,9 @@ scoped adapter 버전은 별도로 관리합니다. 역할과 transaction 계약
 [Store and time-travel contracts](../../../packages/react/docs/state-contracts.md)를
 따릅니다.
 
+> [!TIP]
+> `createStoreContext`, `createStore`, `createTimeTravelStore*`, `@context-action/store-core`, `@context-action/react/backend`, `@context-action/react/advanced`, `createRefContext`, `createActorStateReader`, Preact/Lit 읽기 어댑터, `createDurableOperationStore` 등 저장소 전체 상태 수단별 선택 기준과 사용법은 [Store별 선택 기준 및 사용법 가이드](/ko/context-layered/store-selection-and-usage-guide)를 함께 참고하세요.
+
 ## 📋 목차
 
 1. [Store 타입 개요](#store-타입-개요)
