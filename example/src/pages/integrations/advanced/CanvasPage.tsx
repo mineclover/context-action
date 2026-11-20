@@ -429,7 +429,7 @@ export function Canvas({ width, height, onFocusChange }) {
             </div>
           </Link>
           <Link
-            to="/refs"
+            to="/patterns/refs"
             className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-start gap-3">

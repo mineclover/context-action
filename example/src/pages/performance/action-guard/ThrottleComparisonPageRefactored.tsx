@@ -51,8 +51,8 @@ function ArchitectureSection() {
   return (
     <section className="bg-white rounded-2xl shadow-xl p-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-r from-teal-500 to-cyan-600 rounded-xl">
-          <span className="w-8 h-8 text-white" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-2xl text-white">
+          <span aria-hidden="true">⚖️</span>
         </div>
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
@@ -100,29 +100,29 @@ function ArchitectureSection() {
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2 text-blue-800">
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4" />
+                  <span aria-hidden="true">🔴</span>
                   <span>Normal (No throttling)</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4" />
+                  <span aria-hidden="true">🔵</span>
                   <span>Standard Throttling</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4" />
+                  <span aria-hidden="true">🟢</span>
                   <span>Debouncing</span>
                 </div>
               </div>
               <div className="space-y-2 text-blue-800">
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4" />
+                  <span aria-hidden="true">🟣</span>
                   <span>Leading Edge</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4" />
+                  <span aria-hidden="true">🟠</span>
                   <span>Trailing Edge</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4" />
+                  <span aria-hidden="true">📊</span>
                   <span>Performance Analysis</span>
                 </div>
               </div>
@@ -132,24 +132,24 @@ function ArchitectureSection() {
 
         <div className="space-y-6">
           <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
-            <h3 className="text-xl font-semibent text-green-900 mb-4">
+            <h3 className="text-xl font-semibold text-green-900 mb-4">
               🔄 Event Flow
             </h3>
             <div className="space-y-3 text-sm text-green-800">
               <div className="flex items-center gap-2">
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">⚡</span>
                 <span>User Input</span>
                 <span>→</span>
                 <span>Strategy</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">⏱️</span>
                 <span>Timing Control</span>
                 <span>→</span>
                 <span>Processing</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">📈</span>
                 <span>Metrics</span>
                 <span>→</span>
                 <span>Analysis</span>
@@ -224,7 +224,7 @@ function ThrottleDemoInterface() {
       {/* Configuration Panel */}
       <div className="p-6 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl">
         <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <span className="w-5 h-5" />
+          <span aria-hidden="true">⚙️</span>
           쓰로틀링 설정 패널
         </h3>
 
@@ -267,7 +267,7 @@ function ThrottleDemoInterface() {
       {/* Live Input Test */}
       <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
         <h3 className="text-xl font-semibold text-blue-900 mb-4 flex items-center gap-2">
-          <span className="w-5 h-5" />
+          <span aria-hidden="true">⌨️</span>
           실시간 입력 테스트
         </h3>
 
@@ -286,7 +286,7 @@ function ThrottleDemoInterface() {
           />
 
           <div className="text-sm text-gray-600 flex items-center gap-2">
-            <span className="w-4 h-4" />
+            <span aria-hidden="true">⚡</span>
             <span>각 방식별로 다른 빈도와 타이밍으로 이벤트가 처리됩니다.</span>
           </div>
         </div>
@@ -305,9 +305,12 @@ function ThrottleDemoInterface() {
               className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:bg-gray-400 flex items-center justify-center gap-2"
             >
               {isAutoTesting ? (
-                <span className="w-4 h-4" />
+                <span
+                  aria-hidden="true"
+                  className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                />
               ) : (
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">▶️</span>
               )}
               {isAutoTesting ? '테스트 중...' : '자동 이벤트 생성'}
             </button>
@@ -316,7 +319,7 @@ function ThrottleDemoInterface() {
               onClick={() => runPerformanceTest('normal', 50, 20)}
               className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
             >
-              <span className="w-4 h-4" />
+              <span aria-hidden="true">📊</span>
               성능 벤치마크
             </button>
           </div>
@@ -331,7 +334,7 @@ function ThrottleDemoInterface() {
               onClick={clearLogs}
               className="w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
             >
-              <span className="w-4 h-4" />
+              <span aria-hidden="true">🗑️</span>
               로그 및 메트릭스 초기화
             </button>
 
@@ -340,7 +343,7 @@ function ThrottleDemoInterface() {
                 onClick={stopAutoTest}
                 className="w-full px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
               >
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">⏹️</span>
                 자동 테스트 중지
               </button>
             )}
@@ -409,7 +412,7 @@ function ThrottleDemoInterface() {
       <div className="bg-gray-50 rounded-xl p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-            <span className="w-5 h-5" />
+            <span aria-hidden="true">📝</span>
             실시간 이벤트 로그
           </h3>
           <div className="text-sm text-gray-600">
@@ -420,7 +423,9 @@ function ThrottleDemoInterface() {
         <div className="max-h-96 overflow-y-auto space-y-2">
           {eventLogs.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
-              <span className="w-8 h-8 mx-auto mb-2" />
+              <div aria-hidden="true" className="text-2xl mb-2">
+                ⚡
+              </div>
               <div>이벤트를 생성하여 비교를 시작하세요</div>
             </div>
           ) : (
@@ -519,8 +524,8 @@ function StatusSection() {
   return (
     <section className="bg-white rounded-2xl shadow-xl p-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl">
-          <span className="w-8 h-8 text-white" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-2xl text-white">
+          <span aria-hidden="true">📊</span>
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
@@ -537,7 +542,7 @@ function StatusSection() {
           {/* Event Processing Metrics */}
           <div className="p-6 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl">
             <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5" />
+              <span aria-hidden="true">⚡</span>
               이벤트 처리
             </h3>
             <div className="space-y-3">
@@ -565,7 +570,7 @@ function StatusSection() {
           {/* Response Time Comparison */}
           <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
             <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5" />
+              <span aria-hidden="true">⏱️</span>
               응답시간 비교
             </h3>
             <div className="space-y-3">
@@ -593,7 +598,7 @@ function StatusSection() {
           {/* Configuration Status */}
           <div className="p-6 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl">
             <h3 className="text-lg font-semibold text-teal-900 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5" />
+              <span aria-hidden="true">⚙️</span>
               설정 상태
             </h3>
             <div className="space-y-3">
@@ -700,8 +705,8 @@ function CodeSection() {
   return (
     <section className="bg-white rounded-2xl shadow-xl p-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl">
-          <span className="w-8 h-8 text-white" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-2xl text-white">
+          <span aria-hidden="true">💻</span>
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">

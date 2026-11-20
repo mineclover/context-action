@@ -1,5 +1,6 @@
 import { useStoreValue } from '@context-action/react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { PageLayout } from '../../components/layout/PageLayout';
 import { CodeBlock, CodeExample } from '../../components/ui/CodeExample';
 import {
@@ -124,10 +125,12 @@ function FileStatusChecker() {
 // 인스턴스 카운터 데모
 function InstanceCounterDemo() {
   const [instances, setInstances] = useState<number[]>([]);
+  const nextIdRef = useRef(1);
   const instanceCount = useSourceFileInstanceCount('demo/MultiInstance.tsx');
 
   const addInstance = () => {
-    setInstances((prev) => [...prev, Date.now()]);
+    const nextId = nextIdRef.current++;
+    setInstances((prev) => [...prev, nextId]);
   };
 
   const removeInstance = (id: number) => {
@@ -424,12 +427,12 @@ function UserManagement() {
             실제 사용 예시: Layered Architecture
           </h2>
           <p className="text-sm text-gray-600 mb-4">
-            <a
-              href="/patterns/layered-architecture"
+            <Link
+              to="/patterns/layered-architecture"
               className="text-blue-600 hover:underline"
             >
               Layered Architecture 패턴
-            </a>
+            </Link>
             에서 6-Layer 구조의 TypeScript 파일들이 어떻게 등록되는지 확인할 수
             있습니다:
           </p>

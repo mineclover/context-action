@@ -2,14 +2,12 @@ import { Link } from 'react-router-dom';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { ReactCompilerDemo } from '@/components/ReactCompilerTest';
 import { Card, CardContent } from '@/components/ui';
-import { useSourceLinkRegistration } from '@/hooks/useSourceLinkRegistration';
+import { useRegisterSourceFile } from '@/hooks/useRegisterSourceFile';
 
 function HomePage() {
   // 🎯 소스 링크 등록
-  useSourceLinkRegistration({
-    id: 'home-page',
+  useRegisterSourceFile('pages/HomePage.tsx', {
     name: 'Home Page',
-    filePath: 'pages/HomePage.tsx',
     category: 'core',
     description:
       'Main landing page showcasing Context-Action framework examples',

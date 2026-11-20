@@ -709,7 +709,7 @@ export default function DemosIndexPage() {
           {/* Resources */}
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
             <h2 className="text-xl font-bold mb-4">🔗 추가 자료</h2>
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-5 gap-4">
               <Link
                 to="/catalog/foundations"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
@@ -727,6 +727,18 @@ export default function DemosIndexPage() {
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 🎨 패턴 가이드
+              </Link>
+              <Link
+                to="/catalog/integrations"
+                className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
+              >
+                🧩 통합 카탈로그
+              </Link>
+              <Link
+                to="/catalog/utilities"
+                className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
+              >
+                🧰 유틸리티
               </Link>
             </div>
           </div>

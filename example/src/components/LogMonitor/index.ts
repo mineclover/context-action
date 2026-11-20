@@ -26,11 +26,6 @@ export {
 // 메인 컴포넌트
 // 기본 내보내기 (하위 호환성)
 export { LogMonitor, LogMonitor as default } from './LogMonitor';
-// 스토어 레지스트리
-export {
-  LogMonitorStoreRegistry,
-  logMonitorStoreRegistry,
-} from './store-registry';
 // 타입 정의
 export type {
   ActionLogOptions,

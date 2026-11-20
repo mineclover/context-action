@@ -20,9 +20,36 @@
         // VitePress 404 redirect 처리: ?redirect=<path>
         var params = new URLSearchParams(l.search);
         if (params.has('redirect')) {
-          var redirectPath = decodeURIComponent(params.get('redirect'));
-          console.log('VitePress redirect detected:', redirectPath);
-          window.history.replaceState(null, null, redirectPath + l.hash);
+          try {
+            var rawRedirect = params.get('redirect') || '';
+            var redirectPath = decodeURIComponent(rawRedirect).trim();
+            var hasControl = false;
+            for (var i = 0; i < redirectPath.length; i += 1) {
+              var code = redirectPath.charCodeAt(i);
+              if (code <= 31 || code === 127) {
+                hasControl = true;
+                break;
+              }
+            }
+            if (
+              !hasControl &&
+              redirectPath.charAt(0) === '/' &&
+              redirectPath.charAt(1) !== '/' &&
+              redirectPath.indexOf('\\') === -1
+            ) {
+              var resolved = new URL(redirectPath, l.origin);
+              if (resolved.origin === l.origin) {
+                var targetHash = resolved.hash || l.hash;
+                window.history.replaceState(
+                  null,
+                  '',
+                  resolved.pathname + resolved.search + targetHash
+                );
+              }
+            }
+          } catch (_err) {
+            // Ignore malformed redirect parameter
+          }
           return;
         }
 

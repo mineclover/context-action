@@ -1,6 +1,6 @@
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { SourceLink } from '@/components/ui/SourceLink';
-import { useSourceLinkRegistration } from '@/hooks/useSourceLinkRegistration';
+import { useRegisterSourceFile } from '@/hooks/useRegisterSourceFile';
 import { AdvancedCodeExamples } from './components/AdvancedCodeExamples';
 import { AsyncDemo } from './components/AsyncDemo';
 import { BasicActionsDemo } from './components/BasicActionsDemo';
@@ -9,10 +9,8 @@ import { CoreAdvancedProviders } from './handlers/CoreAdvancedHandlerRegistry';
 import { useCoreAdvancedViewModel } from './hooks/useCoreAdvancedViewModel';
 
 function CoreAdvancedDemo() {
-  useSourceLinkRegistration({
-    id: 'core-advanced-page',
+  useRegisterSourceFile('pages/foundations/core/AdvancedPage.tsx', {
     name: 'Core Advanced Page',
-    filePath: 'pages/foundations/core/AdvancedPage.tsx',
     category: 'core',
     description:
       'Advanced ActionRegister features with page-scoped priority, async, and error handling',

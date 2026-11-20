@@ -6,8 +6,6 @@
 import { useStoreValue } from '@context-action/react';
 import { useCallback, useState } from 'react';
 
-export { ContextActionDemo } from './ContextActionDemo';
-
 import { DemoCard, MetricsDisplay, StatusIndicator } from '@/components/ui';
 import {
   useActionPerformanceMonitor,

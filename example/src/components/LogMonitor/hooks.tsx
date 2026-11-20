@@ -17,11 +17,19 @@ import type {
 import { getActionMessage } from './utils';
 
 /**
- * Sanitize payload to remove DOM elements, event objects, and Promise objects that cannot be cloned
+ * Sanitize payload to remove DOM elements, event objects, Promise objects, and circular references
  */
-function sanitizeLogPayload(payload: unknown): unknown {
+export function sanitizeLogPayload(
+  payload: unknown,
+  visited = new WeakSet<object>()
+): unknown {
   if (payload === null || payload === undefined) {
     return payload;
+  }
+
+  // Handle functions before object check
+  if (typeof payload === 'function') {
+    return '[Function - Removed for Cloning Safety]';
   }
 
   // Handle primitives
@@ -32,11 +40,6 @@ function sanitizeLogPayload(payload: unknown): unknown {
   // Handle Promise objects (main fix)
   if (payload instanceof Promise) {
     return '[Promise Object - Removed for Cloning Safety]';
-  }
-
-  // Handle functions
-  if (typeof payload === 'function') {
-    return '[Function - Removed for Cloning Safety]';
   }
 
   // Handle DOM elements and event objects
@@ -56,67 +59,65 @@ function sanitizeLogPayload(payload: unknown): unknown {
     return '[WeakMap/WeakSet - Removed for Cloning Safety]';
   }
 
+  if (visited.has(payload)) {
+    return '[Circular Reference]';
+  }
+  visited.add(payload);
+
   // Handle arrays
   if (Array.isArray(payload)) {
-    return payload.map((item) => sanitizeLogPayload(item));
+    return payload.map((item) => sanitizeLogPayload(item, visited));
   }
 
   // Handle plain objects
-  if (payload && typeof payload === 'object') {
-    try {
-      const sanitized: any = {};
-      for (const key in payload) {
-        // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn not available in ES2020 target
-        if (Object.prototype.hasOwnProperty.call(payload, key)) {
-          const value = (payload as any)[key];
+  try {
+    const sanitized: Record<string, unknown> = {};
+    for (const key in payload) {
+      // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn not available in ES2020 target
+      if (Object.prototype.hasOwnProperty.call(payload, key)) {
+        const value = (payload as Record<string, unknown>)[key];
 
-          // Skip non-cloneable objects
-          if (
-            value instanceof Promise ||
-            typeof value === 'function' ||
-            value instanceof Element ||
-            value instanceof Node ||
-            value instanceof Event ||
-            value instanceof WeakMap ||
-            value instanceof WeakSet ||
-            (value &&
-              typeof value === 'object' &&
-              value.nodeType !== undefined) ||
-            (value &&
-              typeof value === 'object' &&
-              value.target !== undefined) ||
-            (value && typeof value.preventDefault === 'function')
-          ) {
-            let replacementText =
-              '[Unknown Object - Removed for Cloning Safety]';
+        // Skip non-cloneable objects
+        if (
+          value instanceof Promise ||
+          typeof value === 'function' ||
+          value instanceof Element ||
+          value instanceof Node ||
+          value instanceof Event ||
+          value instanceof WeakMap ||
+          value instanceof WeakSet ||
+          (value &&
+            typeof value === 'object' &&
+            (value as any).nodeType !== undefined) ||
+          (value &&
+            typeof value === 'object' &&
+            (value as any).target !== undefined) ||
+          (value && typeof (value as any).preventDefault === 'function')
+        ) {
+          let replacementText = '[Unknown Object - Removed for Cloning Safety]';
 
-            if (value instanceof Promise) {
-              replacementText = '[Promise Object - Removed for Cloning Safety]';
-            } else if (typeof value === 'function') {
-              replacementText = '[Function - Removed for Cloning Safety]';
-            } else if (value instanceof Element || value instanceof Node) {
-              replacementText =
-                '[DOM Element/Node - Removed for Cloning Safety]';
-            } else if (value instanceof Event) {
-              replacementText = '[Event Object - Removed for Cloning Safety]';
-            } else if (value instanceof WeakMap || value instanceof WeakSet) {
-              replacementText =
-                '[WeakMap/WeakSet - Removed for Cloning Safety]';
-            }
-
-            sanitized[key] = replacementText;
-          } else {
-            sanitized[key] = sanitizeLogPayload(value);
+          if (value instanceof Promise) {
+            replacementText = '[Promise Object - Removed for Cloning Safety]';
+          } else if (typeof value === 'function') {
+            replacementText = '[Function - Removed for Cloning Safety]';
+          } else if (value instanceof Element || value instanceof Node) {
+            replacementText = '[DOM Element/Node - Removed for Cloning Safety]';
+          } else if (value instanceof Event) {
+            replacementText = '[Event Object - Removed for Cloning Safety]';
+          } else if (value instanceof WeakMap || value instanceof WeakSet) {
+            replacementText = '[WeakMap/WeakSet - Removed for Cloning Safety]';
           }
+
+          sanitized[key] = replacementText;
+        } else {
+          sanitized[key] = sanitizeLogPayload(value, visited);
         }
       }
-      return sanitized;
-    } catch {
-      return '[Object - Could not sanitize]';
     }
+    return sanitized;
+  } catch {
+    return '[Object - Could not sanitize]';
   }
-
-  return payload;
 }
 
 /**
@@ -200,21 +201,8 @@ export function useActionLogger(
         logger.info(`Action: ${actionType} (${executionTime}ms)`, payload);
 
         // Toast 표시 (활성화된 경우) - 자동 계산된 데이터 사용
-        console.log('🍞 Toast check conditions:', {
-          enableToast: config.enableToast,
-          hasToastSystem: !!toastSystem,
-          toastOption: options.toast,
-          shouldShow:
-            config.enableToast && toastSystem && options.toast !== false,
-        });
-
         if (config.enableToast && toastSystem && options.toast !== false) {
           const actionMsg = getActionMessage(actionType);
-          console.log('🍞 Calling showToast with auto-calculated data:', {
-            actionType,
-            executionTime,
-            timestamp,
-          });
 
           if (typeof options.toast === 'object') {
             toastSystem.showToast(
@@ -232,8 +220,6 @@ export function useActionLogger(
               enhancedMessage
             );
           }
-        } else {
-          console.log('🍞 Toast not shown due to conditions not met');
         }
       }
     );
@@ -393,8 +379,6 @@ export function useActionLogger(
       ) => {
         // Sanitize payload to remove DOM elements and event objects
         const sanitizedPayload = sanitizeLogPayload(payload);
-        // 자동 계산: 실행 시작 시간 기록
-        const startTime = performance.now();
 
         // 자동 계산: 타임스탬프 생성
         const timestamp = new Date().toLocaleTimeString('ko-KR', {
@@ -403,12 +387,11 @@ export function useActionLogger(
           second: '2-digit',
         });
 
-        // 액션 실행 완료 후 정확한 실행시간 계산
-        const endTime = performance.now();
-        const executionTime = Math.max(
-          0.1,
-          Math.round((endTime - startTime) * 10) / 10
-        ); // 0.1ms 최소값, 소수점 1자리
+        const executionTime =
+          typeof options.executionTime === 'number' &&
+          Number.isFinite(options.executionTime)
+            ? Math.max(0, Math.round(options.executionTime * 10) / 10)
+            : 0;
 
         internalActionRegister.dispatch('_internal.log.action', {
           actionType,

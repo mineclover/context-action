@@ -12,7 +12,7 @@ import {
   DemoCard,
 } from '@/components/ui';
 import { SourceLink } from '@/components/ui/SourceLink';
-import { useSourceLinkRegistration } from '@/hooks/useSourceLinkRegistration';
+import { useRegisterSourceFile } from '@/hooks/useRegisterSourceFile';
 import {
   useCoreAction,
   useCoreActionWithResult,
@@ -221,10 +221,8 @@ function AdvancedFeaturesDemo() {
 // 3. Provider Setup
 function CoreBasicsPage() {
   // 🎯 소스 링크 등록
-  useSourceLinkRegistration({
-    id: 'core-basics-page',
+  useRegisterSourceFile('pages/foundations/core/BasicsPage.tsx', {
     name: 'Core Basics Page',
-    filePath: 'pages/foundations/core/BasicsPage.tsx',
     category: 'core',
     description:
       'Fundamentals of Action Context pattern with handlers and dispatching',

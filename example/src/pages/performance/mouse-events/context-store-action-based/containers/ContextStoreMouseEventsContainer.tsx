@@ -18,13 +18,7 @@ import { MouseActionHandlerRegistry } from '../handlers/MouseActionHandlerRegist
  * Context Store 기반 마우스 이벤트 컨테이너
  */
 export const ContextStoreMouseEventsContainer = () => {
-  console.log(
-    '🏪 ContextStoreMouseEventsContainer render at',
-    new Date().toISOString()
-  );
-
   const containerRef = useRef<HTMLDivElement>(null);
-  const _isInitialized = useRef(false);
 
   // Action Context Pattern 사용 - 구조 분해 할당 방식
   const mouseStateStore = useMouseStore('mouseState');
@@ -32,13 +26,13 @@ export const ContextStoreMouseEventsContainer = () => {
 
   // DOM 요소 설정 및 이벤트 바인딩
   useEffect(() => {
+    let cancelled = false;
+    let activeCleanup: (() => void) | null = null;
+
     const timer = setTimeout(() => {
+      if (cancelled) return;
       const container = document.getElementById('context-store-mouse-area');
       if (!container) return;
-
-      console.log(
-        '🔧 Initializing ContextStore mouse events with DOM elements'
-      );
 
       // DOM 요소들 생성 및 설정
       const elements = setupDOMElements(container);
@@ -49,14 +43,18 @@ export const ContextStoreMouseEventsContainer = () => {
       // 상태 변화 구독하여 경로 렌더링
       const stateCleanup = subscribeToStateChanges(mouseStateStore, elements);
 
-      return () => {
+      activeCleanup = () => {
         cleanup();
         stateCleanup();
+        elements.cleanup();
       };
     }, 100); // DOM이 완전히 렌더링될 때까지 기다림
 
     return () => {
+      cancelled = true;
       clearTimeout(timer);
+      activeCleanup?.();
+      activeCleanup = null;
     };
   }, [dispatch, mouseStateStore]);
 
@@ -96,6 +94,7 @@ interface RenderElements {
  */
 function setupDOMElements(container: HTMLElement): {
   renderElements: RenderElements;
+  cleanup: () => void;
 } {
   // 커서 요소 생성
   const cursor = document.createElement('div');
@@ -195,6 +194,12 @@ function setupDOMElements(container: HTMLElement): {
       pathSvg: path,
       clickContainer,
     } as RenderElements,
+    cleanup: () => {
+      cursor.remove();
+      trail.remove();
+      svg.remove();
+      clickContainer.remove();
+    },
   };
 }
 
@@ -206,8 +211,35 @@ function subscribeToStateChanges(
   elements: { renderElements: RenderElements }
 ): () => void {
   let prevState = mouseStateStore.getValue();
+  let isDisposed = false;
+  const activeFrames = new Set<number>();
+  const activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
+
+  const scheduleFrame = (callback: FrameRequestCallback) => {
+    if (isDisposed) return;
+    let frameId = 0;
+    frameId = requestAnimationFrame((time) => {
+      activeFrames.delete(frameId);
+      if (!isDisposed) {
+        callback(time);
+      }
+    });
+    activeFrames.add(frameId);
+  };
+
+  const scheduleTimeout = (callback: () => void, delayMs: number) => {
+    if (isDisposed) return;
+    const timeoutId = setTimeout(() => {
+      activeTimeouts.delete(timeoutId);
+      if (!isDisposed) {
+        callback();
+      }
+    }, delayMs);
+    activeTimeouts.add(timeoutId);
+  };
 
   const updateVisuals = () => {
+    if (isDisposed) return;
     const currentState = mouseStateStore.getValue();
 
     // 리셋 상태 확인 - 모든 값이 초기값이면 DOM도 초기화
@@ -222,7 +254,7 @@ function subscribeToStateChanges(
       const { cursor, trail, pathSvg, clickContainer } =
         elements.renderElements;
 
-      requestAnimationFrame(() => {
+      scheduleFrame(() => {
         cursor.style.opacity = '0';
         cursor.style.transform = 'translate3d(-999px, -999px, 0)';
 
@@ -243,7 +275,7 @@ function subscribeToStateChanges(
         const { cursor, trail } = elements.renderElements;
 
         // 커서와 트레일 위치 업데이트
-        requestAnimationFrame(() => {
+        scheduleFrame(() => {
           cursor.style.transform = `translate3d(${currentState.mousePosition.x - 8}px, ${currentState.mousePosition.y - 8}px, 0)`;
           cursor.style.opacity = '1';
 
@@ -268,7 +300,9 @@ function subscribeToStateChanges(
         if (latestClick && latestClick.x !== -999 && latestClick.y !== -999) {
           renderClickAnimation(
             latestClick,
-            elements.renderElements.clickContainer
+            elements.renderElements.clickContainer,
+            scheduleFrame,
+            scheduleTimeout
           );
         }
       }
@@ -283,7 +317,18 @@ function subscribeToStateChanges(
   // 상태 변화 구독
   const unsubscribe = mouseStateStore.subscribe(updateVisuals);
 
-  return unsubscribe;
+  return () => {
+    isDisposed = true;
+    unsubscribe();
+    for (const frameId of activeFrames) {
+      cancelAnimationFrame(frameId);
+    }
+    activeFrames.clear();
+    for (const timeoutId of activeTimeouts) {
+      clearTimeout(timeoutId);
+    }
+    activeTimeouts.clear();
+  };
 }
 
 /**
@@ -291,7 +336,9 @@ function subscribeToStateChanges(
  */
 function renderClickAnimation(
   click: { x: number; y: number; timestamp: number },
-  clickContainer: HTMLDivElement
+  clickContainer: HTMLDivElement,
+  scheduleFrame: (callback: FrameRequestCallback) => void,
+  scheduleTimeout: (callback: () => void, delayMs: number) => void
 ): void {
   const clickElement = document.createElement('div');
   clickElement.className = 'absolute pointer-events-none';
@@ -322,16 +369,16 @@ function renderClickAnimation(
   clickElement.style.transform = 'scale(0)';
   clickElement.style.opacity = '0';
 
-  requestAnimationFrame(() => {
+  scheduleFrame(() => {
     clickElement.style.transition = 'all 0.6s ease-out';
     clickElement.style.transform = 'scale(1.2)';
     clickElement.style.opacity = '1';
 
-    setTimeout(() => {
+    scheduleTimeout(() => {
       clickElement.style.transform = 'scale(0)';
       clickElement.style.opacity = '0';
 
-      setTimeout(() => {
+      scheduleTimeout(() => {
         if (clickElement.parentNode) {
           clickElement.parentNode.removeChild(clickElement);
         }

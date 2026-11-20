@@ -276,19 +276,19 @@ const sendMessage = useCallback(() => {
             </h2>
             <div className="grid md:grid-cols-3 gap-4">
               <Link
-                to="/demos/store-scenarios"
+                to="/utilities/dev-tools/store-scenarios"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 🏪 전체 Store 데모 컬렉션
               </Link>
               <Link
-                to="/refs/canvas"
+                to="/patterns/refs/canvas"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 🎨 Canvas Ref Demo
               </Link>
               <Link
-                to="/actionguard/scroll"
+                to="/performance/action-guard/scroll"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"
               >
                 📜 Advanced Scroll Demo

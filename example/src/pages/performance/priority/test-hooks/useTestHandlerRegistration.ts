@@ -5,7 +5,7 @@
  * 복잡한 ActionRegistry 패턴을 캡슐화하여 재사용성 향상
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import {
   usePriorityActionRegister,
   usePriorityTestStore,
@@ -43,8 +43,6 @@ export function useTestHandlerRegistration(
   const actionRegister = usePriorityActionRegister();
   const priorityCountsStore = usePriorityTestStore('priorityCounts');
   const executionStateStore = usePriorityTestStore('executionState');
-
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   /**
    * 모든 핸들러를 등록합니다
@@ -104,7 +102,7 @@ export function useTestHandlerRegistration(
             const handlerStartTime = Date.now();
 
             // abortSignal 체크
-            if (abortControllerRef.current?.signal?.aborted) {
+            if (controller.signal?.aborted) {
               throw new Error('Operation aborted');
             }
 
@@ -117,19 +115,26 @@ export function useTestHandlerRegistration(
 
             // 딜레이 적용 (abort 가능하도록 처리)
             if (config.delay > 0) {
-              await new Promise((resolve, reject) => {
-                const timeoutId = setTimeout(resolve, config.delay);
+              await new Promise<void>((resolve, reject) => {
+                const signal = controller.signal;
+                if (signal?.aborted) {
+                  reject(new Error('Operation aborted'));
+                  return;
+                }
 
-                // abortSignal이 있으면 abort 이벤트 리스너 등록
-                if (abortControllerRef.current?.signal) {
-                  abortControllerRef.current.signal.addEventListener(
-                    'abort',
-                    () => {
-                      clearTimeout(timeoutId);
-                      reject(new Error('Operation aborted'));
-                    },
-                    { once: true }
-                  );
+                let timeoutId: ReturnType<typeof setTimeout>;
+                const handleAbort = () => {
+                  clearTimeout(timeoutId);
+                  reject(new Error('Operation aborted'));
+                };
+
+                timeoutId = setTimeout(() => {
+                  signal?.removeEventListener('abort', handleAbort);
+                  resolve();
+                }, config.delay);
+
+                if (signal) {
+                  signal.addEventListener('abort', handleAbort, { once: true });
                 }
               });
             }
@@ -176,9 +181,7 @@ export function useTestHandlerRegistration(
                   `🦘 ${config.label} → P${config.jumpToPriority} (count: ${currentCount})`
                 );
                 controller.jumpToPriority(config.jumpToPriority);
-              } else {
               }
-            } else {
             }
           },
           {

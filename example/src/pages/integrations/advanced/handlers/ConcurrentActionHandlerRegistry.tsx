@@ -24,6 +24,38 @@ type HandlerController = {
   signal?: AbortSignal;
 };
 
+let taskSequence = 0;
+function nextTaskId(prefix: string): string {
+  taskSequence += 1;
+  return `${prefix}-${Date.now()}-${taskSequence}`;
+}
+
+export function waitAbortable(
+  delayMs: number,
+  signal: AbortSignal | undefined,
+  abortMessage: string
+): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new Error(abortMessage));
+      return;
+    }
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const abortHandler = () => {
+      clearTimeout(timeoutId);
+      reject(new Error(abortMessage));
+    };
+
+    timeoutId = setTimeout(() => {
+      signal?.removeEventListener('abort', abortHandler);
+      resolve();
+    }, delayMs);
+
+    signal?.addEventListener('abort', abortHandler, { once: true });
+  });
+}
+
 async function runProgressTask(
   payload: ProgressTaskPayload,
   controller: HandlerController,
@@ -48,21 +80,11 @@ async function runProgressTask(
       }
 
       const stepDelay = payload.duration / steps + Math.random() * jitter;
-      await new Promise<void>((resolve, reject) => {
-        if (activeController.signal?.aborted) {
-          reject(new Error('Task was aborted'));
-          return;
-        }
-
-        const timeoutId = setTimeout(resolve, stepDelay);
-        const abortHandler = () => {
-          clearTimeout(timeoutId);
-          reject(new Error('Task was aborted'));
-        };
-        activeController.signal?.addEventListener('abort', abortHandler, {
-          once: true,
-        });
-      });
+      await waitAbortable(
+        stepDelay,
+        activeController.signal,
+        'Task was aborted'
+      );
 
       if (activeController.signal?.aborted) {
         callbacks.updateTaskStatus(
@@ -131,7 +153,7 @@ export function ConcurrentActionHandlerRegistry({
     'networkRequest',
     React.useCallback(
       async ({ endpoint, params }, controller) => {
-        const taskId = `network-${Date.now()}`;
+        const taskId = nextTaskId('network');
         addNetworkTask(taskId, 'networkRequest');
 
         try {
@@ -139,7 +161,14 @@ export function ConcurrentActionHandlerRegistry({
             if (controller.signal?.aborted) {
               throw new Error('Network request was aborted');
             }
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await waitAbortable(
+              100,
+              controller.signal,
+              'Network request was aborted'
+            );
+            if (controller.signal?.aborted) {
+              throw new Error('Network request was aborted');
+            }
             const progress = Math.round((index / 10) * 100);
             updateTaskProgress(taskId, progress);
             if (progress === 100) updateTaskStatus(taskId, 'completed');
@@ -162,7 +191,7 @@ export function ConcurrentActionHandlerRegistry({
     'backgroundJob',
     React.useCallback(
       async ({ jobId, jobType, priority }, controller) => {
-        const taskId = `job-${Date.now()}`;
+        const taskId = nextTaskId('job');
         addBackgroundTask(taskId, 'backgroundJob');
 
         try {
@@ -170,7 +199,14 @@ export function ConcurrentActionHandlerRegistry({
             if (controller.signal?.aborted) {
               throw new Error('Background job was aborted');
             }
-            await new Promise((resolve) => setTimeout(resolve, 80));
+            await waitAbortable(
+              80,
+              controller.signal,
+              'Background job was aborted'
+            );
+            if (controller.signal?.aborted) {
+              throw new Error('Background job was aborted');
+            }
             const progress = Math.round((index / 25) * 100);
             updateTaskProgress(taskId, progress);
             if (progress === 100) updateTaskStatus(taskId, 'completed');
