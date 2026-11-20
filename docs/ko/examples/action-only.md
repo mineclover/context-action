@@ -36,13 +36,15 @@ const {
 ## v1 권장 Lifecycle
 
 새 pipeline에서는 handler 역할을 명시적으로 구분합니다. guard는 작업 전에
-입력과 정책을 검사하고, result handler는 타입이 지정된 결과를 만들며, observer는
+입력과 정책을 검사하고, command handler(`useActionCommandHandler`)는 결과 중재 없이
+void 상태 갱신/부작용을 실행하며, result handler는 타입이 지정된 결과를 만들고, observer는
 변경할 수 없는 최종 이벤트만 받습니다. `useActionHandler`는 호환성을 위해 유지되지만,
 새 코드에는 역할별 훅을 권장합니다.
 
+<!-- @context-action-compile -->
 ```tsx
 import { useCallback } from 'react';
-import type { ActionPayloadMap, ActionResultMap } from '@context-action/core';
+import type { ActionGuardController, ActionObserverEvent, ActionPayloadMap, ActionResultMap } from '@context-action/core';
 import { createActionContext } from '@context-action/react';
 
 interface ReportActions extends ActionPayloadMap {
@@ -53,40 +55,66 @@ interface ReportResults extends ActionResultMap<ReportActions> {
   publishReport: { reportId: string; publishedAt: string };
 }
 
+const reportApi = { publish: async (_reportId: string) => {} };
+const auditLog = { write: (_entry: unknown) => {} };
+
 const {
   Provider: ReportActionProvider,
   useActionDispatch: useReportAction,
   useActionGuard: useReportGuard,
+  useActionCommandHandler: useReportCommandHandler,
   useActionResultHandler: useReportResultHandler,
   useActionObserver: useReportObserver,
 } = createActionContext<ReportActions, ReportResults>('Reports');
 
-function ReportPipeline() {
-  useReportGuard('publishReport', useCallback((payload, controller) => {
-    if (!payload.approved) controller.abort('보고서 승인이 필요합니다.');
-  }, []), { id: 'report-approval', priority: 100 });
+export function ReportPipeline() {
+  useReportGuard(
+    'publishReport',
+    useCallback((payload: ReportActions['publishReport'], controller: ActionGuardController<ReportActions['publishReport']>) => {
+      if (!payload.approved) controller.abort('보고서 승인이 필요합니다.');
+    }, []),
+    { id: 'report-approval', priority: 100 },
+  );
 
-  useReportResultHandler('publishReport', useCallback(async (payload) => {
-    await reportApi.publish(payload.reportId);
-    return { reportId: payload.reportId, publishedAt: new Date().toISOString() };
-  }, []), {
-    id: 'report-publish',
-    priority: 50,
-    scheduling: 'await-before-next',
-    errorPolicy: 'fatal',
-  });
+  useReportCommandHandler(
+    'publishReport',
+    useCallback((payload: ReportActions['publishReport']) => {
+      auditLog.write({ action: 'publishReport', phase: 'started', reportId: payload.reportId });
+    }, []),
+    { id: 'report-prepare', priority: 75 },
+  );
 
-  useReportObserver('publishReport', useCallback(({ outcome, result }) => {
-    auditLog.write({ action: 'publishReport', outcome, result });
-  }, []), { id: 'report-audit', when: 'always', scheduling: 'start-and-continue' });
+  useReportResultHandler(
+    'publishReport',
+    useCallback(async (payload: ReportActions['publishReport']) => {
+      await reportApi.publish(payload.reportId);
+      return { reportId: payload.reportId, publishedAt: new Date().toISOString() };
+    }, []),
+    {
+      id: 'report-publish',
+      priority: 50,
+      scheduling: 'await-before-next',
+      errorPolicy: 'fatal',
+    },
+  );
+
+  useReportObserver(
+    'publishReport',
+    useCallback(({ outcome, result }: ActionObserverEvent<ReportActions['publishReport'], ReportResults['publishReport']>) => {
+      auditLog.write({ action: 'publishReport', outcome, result });
+    }, []),
+    { id: 'report-audit', when: 'always', scheduling: 'start-and-continue' },
+  );
 
   return null;
 }
 
-function PublishButton({ reportId }: { reportId: string }) {
+export function PublishButton({ reportId }: { reportId: string }) {
   const dispatch = useReportAction();
   return <button onClick={() => dispatch('publishReport', { reportId, approved: true })}>게시</button>;
 }
+
+export { ReportActionProvider };
 ```
 
 ## 이벤트 추적 시스템

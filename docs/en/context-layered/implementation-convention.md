@@ -2,6 +2,9 @@
 
 This document turns the implementation-playbook example into a reusable standard convention for canonical example and usecase surfaces. The goal is not just to keep one demo readable, but to make it possible to design, implement, test, and document more complex flows in the same way. It does not impose this folder structure on every workspace package or demo.
 
+> [!NOTE]
+> **Enforcement Scope:** Handler-boundary checks (`pnpm convention:check`), catalog parity (`pnpm verify:surface-catalog`), and `example` build/use-case scripts are **CI-Enforced**. Companion [Interaction Intent Contract (IIC)](./interaction-intent-contract.md) and [Unified Triad (`ttsc-ex` · `oa-sdk`)](./triad-evidence-sync-guide.md) annotations (such as `@evidenceExclude` and `@evidenceReview`) are **Advisory / Cross-Repo** guidance unless checked by a sibling triad workspace.
+
 When an interaction removes an affordance, changes a trigger, or relies on a
 shortcut that users must infer, write an [Interaction Intent Contract (IIC)](./interaction-intent-contract.md)
 before applying this implementation convention. Use the [IIC-to-implementation flow](./interaction-intent-implementation-flow.md)
@@ -205,7 +208,7 @@ Recommended commands:
 
 When you add a new scenario, update at least:
 
-- a paired KO/EN example doc and sync `llmsData/` (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md,path2.md`)
+- a paired KO/EN example doc and sync `llmsData/` (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md path2.md`)
 - `catalog/repository-surface/example-surface.v1.json` (`pnpm verify:surface-catalog`)
 - the state-machine doc linkage
 - a discovery link in PatternsOverview or a scenario library

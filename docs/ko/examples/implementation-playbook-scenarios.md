@@ -11,7 +11,7 @@
 - submission 또는 review 흐름은 명시적 상태 머신으로 정의
 - activity log는 도메인 이벤트에서 파생
 - `BusinessActionIntent`와 `LayoutActionIntent` 분리(Tier 3 인스펙터 탭을 전용 `*LayoutActionProvider` / `*LayoutStoreProvider`로 격리)
-- `handlers/` 계층에서 v1 역할별 액션 훅(`useActionGuard`, `useActionEffectHandler`, `useActionObserver`) 사용
+- `handlers/` 계층에서 v1 역할별 액션 훅(`useActionGuard`, `useActionCommandHandler`, `useActionObserver`) 사용
 - 4개 인터랙티브 시나리오 모두 Tier 3 presentation 뷰(`views/*.tsx`)에 `@evidenceExclude` 적용
 - integration test로 invalid, valid, reset 흐름 고정
 

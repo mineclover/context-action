@@ -2,6 +2,9 @@
 
 이 문서는 implementation-playbook에서 정리한 구조를 canonical example과 usecase 표면에서 재사용할 수 있도록 고정한 표준 컨벤션입니다. 목표는 “예제가 잘 보이는 것”이 아니라, 복잡한 로직이 늘어나도 같은 방식으로 설계, 구현, 테스트, 문서화할 수 있게 만드는 데 있습니다. 모든 workspace package나 demo에 이 폴더 구조를 강제하지는 않습니다.
 
+> [!NOTE]
+> **강제 범위:** 핸들러 경계 검사(`pnpm convention:check`), 카탈로그 정합성(`pnpm verify:surface-catalog`), `example` 빌드·유즈케이스 스크립트는 **CI 강제(CI-Enforced)** 입니다. 함께 연결된 [상호작용 의도 계약(IIC)](./interaction-intent-contract.md) 및 [통합 트라이어드(`ttsc-ex` · `oa-sdk`)](./triad-evidence-sync-guide.md) 주석(`@evidenceExclude`, `@evidenceReview`)은 별도 트라이어드 워크스페이스 도구가 없는 한 이 저장소에서는 **권고 / 크로스-레포(Advisory / Cross-Repo)** 가이드입니다.
+
 버튼·설명·확인 단계를 제거하거나 trigger를 바꾸는 상호작용은 이 컨벤션으로
 들어가기 전에 [상호작용 의도 계약(IIC)](./interaction-intent-contract.md)을
 기록합니다. [IIC에서 구현까지의 흐름](./interaction-intent-implementation-flow.md)으로
@@ -205,7 +208,7 @@ activity log는 화면용 문자열을 바로 push하지 않습니다.
 
 새 시나리오를 추가하면 최소한 다음도 같이 맞춥니다.
 
-- 한/영 예제 설명 문서 및 `llmsData/` 동기화 (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md,path2.md`)
+- 한/영 예제 설명 문서 및 `llmsData/` 동기화 (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md path2.md`)
 - `catalog/repository-surface/example-surface.v1.json` (`pnpm verify:surface-catalog`)
 - state machine 문서 연결
 - PatternsOverview 또는 scenario library에서 진입 링크

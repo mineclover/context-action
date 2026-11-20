@@ -37,6 +37,7 @@ Context-Action separates **write ownership** (`StoreWriter` / Action Handlers) f
 
 Use `createStoreContext` as the default way to manage domain stores inside a React subtree. It returns `{ Provider, useStore, useStoreManager, useStoreInfo, useStoreClear, withProvider }`.
 
+<!-- @context-action-compile -->
 ```tsx
 import { createStoreContext, asStoreValue, useStoreValue } from '@context-action/react';
 
@@ -50,11 +51,13 @@ const {
   status: 'idle' as 'idle' | 'submitting' | 'done',
 });
 
-// Write inside an Action Handler:
-function updateQuantity(qty: number) {
+// Hook exposing write helper for an Action Handler:
+function useOrderQuantityUpdater() {
   const draftStore = useOrderStore('draft');
-  const current = draftStore.getValue();
-  draftStore.setValue({ ...current, qty });
+  return (qty: number) => {
+    const current = draftStore.getValue();
+    draftStore.setValue({ ...current, qty });
+  };
 }
 
 // Read inside a View component:
@@ -63,18 +66,26 @@ function OrderQuantityBadge() {
   const draft = useStoreValue(draftStore);
   return <span>{draft.qty}</span>;
 }
+
+export { OrderStoreProvider, useOrderQuantityUpdater, OrderQuantityBadge };
 ```
 
 ### 2.2 `createStore` (`@context-action/react`) — Standalone Single Store
 
 Use `createStore` when you need a single independent store outside a Provider (module scope, direct prop/DI injection, or focused unit tests). Because `Store` generates Mutative JSON patches, it works directly with `useStorePath`.
 
+<!-- @context-action-compile -->
 ```tsx
 import { createStore, useStorePath } from '@context-action/react';
 
-const profileStore = createStore('profile', {
+interface ProfileState {
+  user: { name: string; age: number };
+  theme: 'light' | 'dark';
+}
+
+const profileStore = createStore<ProfileState>('profile', {
   user: { name: 'Kim', age: 30 },
-  theme: 'dark' as 'light' | 'dark',
+  theme: 'dark',
 });
 
 profileStore.update((prev) => ({
@@ -82,9 +93,9 @@ profileStore.update((prev) => ({
   user: { ...prev.user, name: 'Lee' },
 }));
 
-function UserNameLabel() {
+export function UserNameLabel() {
   // Re-renders only when ['user', 'name'] is affected by patches
-  const name = useStorePath(profileStore, ['user', 'name']);
+  const name = useStorePath<ProfileState, string>(profileStore, ['user', 'name']);
   return <span>{name}</span>;
 }
 
@@ -100,6 +111,7 @@ Use `TimeTravelStore` whenever users need undo, redo, or bounded history navigat
 - Declarative `createTimeTravelStoreContext` defaults `readMode` to `'safe'`.
 - Always read via `store.getSafeValue()` when crossing an external serialization or host boundary.
 
+<!-- @context-action-compile -->
 ```tsx
 import { createTimeTravelStoreContext } from '@context-action/react';
 
@@ -107,7 +119,7 @@ const DocStores = createTimeTravelStoreContext('Doc', {
   content: { initialValue: { text: '' }, maxHistory: 50 },
 });
 
-function HistoryToolbar() {
+export function HistoryToolbar() {
   const { canUndo, canRedo, undo, redo, position, historyLength } =
     DocStores.useTimeTravelControls('content');
 
@@ -125,6 +137,7 @@ function HistoryToolbar() {
 
 Use `createStateStore` when you want a lightweight, framework-neutral state container with zero React, Mutative, or DOM dependencies (`capabilities: { patches: false, timeline: false, immutableSnapshots: false }`). The caller owns immutability by passing fresh references; identical `Object.is(prev, next)` updates are skipped.
 
+<!-- @context-action-compile -->
 ```ts
 import { createStateStore } from '@context-action/store-core';
 
@@ -136,7 +149,7 @@ const unsubscribe = counterStore.subscribe(() => {
 
 counterStore.update((prev) => ({ count: prev.count + 1 }));
 unsubscribe();
-counterStore.dispose();
+counterStore.dispose?.();
 ```
 
 ### 2.5 `createBackendStore` / `BackendStore` (`@context-action/react/backend`) — Custom Backend Bridge
@@ -146,6 +159,7 @@ Use `createBackendStore` to expose any `@context-action/store-core` `StateBacken
 - `ownership: 'shared'` (default): disposing the `BackendStore` wrapper keeps the underlying backend alive.
 - `ownership: 'owned'`: disposing the wrapper also disposes the underlying backend.
 
+<!-- @context-action-compile -->
 ```tsx
 import { createStateStore } from '@context-action/store-core';
 import { createBackendStore } from '@context-action/react/backend';
@@ -154,7 +168,7 @@ import { useStoreValue } from '@context-action/react';
 const sharedBackend = createStateStore('session', { step: 1 });
 const reactStore = createBackendStore('session', sharedBackend, { ownership: 'shared' });
 
-function SessionStep() {
+export function SessionStep() {
   const state = useStoreValue(reactStore);
   return <span>Step {state.step}</span>;
 }
@@ -168,6 +182,7 @@ Use `StoreTransactionCoordinator` when a single logical action must update multi
 - Notifications are deferred until commit flush so readers never observe half-committed pairs.
 - For framework-neutral coordination without React, use `bindActionDispatchTransactions` and `runInTransactionScope` from `@context-action/xstate/effect`.
 
+<!-- @context-action-compile -->
 ```ts
 import { StoreTransactionCoordinator, createTimeTravelStore } from '@context-action/react';
 
@@ -175,20 +190,22 @@ const cart = createTimeTravelStore('cart', { items: [] as string[] });
 const totals = createTimeTravelStore('totals', { price: 0 });
 const coordinator = new StoreTransactionCoordinator();
 
-await coordinator.run(
-  [
-    { name: 'cart', store: cart },
-    { name: 'totals', store: totals },
-  ],
-  () => {
-    cart.update((prev) => ({ items: [...prev.items, 'book'] }));
-    totals.update((prev) => ({ price: prev.price + 25 }));
-  },
-  { label: 'addItem' },
-);
+export async function addItemWithRollback() {
+  await coordinator.run(
+    [
+      { name: 'cart', store: cart },
+      { name: 'totals', store: totals },
+    ],
+    () => {
+      cart.update((prev) => ({ items: [...prev.items, 'book'] }));
+      totals.update((prev) => ({ price: prev.price + 25 }));
+    },
+    { label: 'addItem' },
+  );
 
-// Undoing the transaction reverts both cart and totals together
-coordinator.undo();
+  // Undoing the transaction reverts both cart and totals together
+  coordinator.undo();
+}
 ```
 
 ### 2.7 `useLocalStore`, `useComputedStore`, and `StoreRegistry` (`@context-action/react/advanced`)

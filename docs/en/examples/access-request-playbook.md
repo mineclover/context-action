@@ -10,7 +10,7 @@ This document explains the `Workspace Access Request` example built with the imp
 - activity logs derived from domain events
 - invalidating a stale review result when the draft changes after success
 - Unified Triad separation between `BusinessActionIntent` (`AccessRequestActionProvider`) and `LayoutActionIntent` (`AccessRequestLayoutActionProvider` / `AccessRequestLayoutStoreProvider` for `setInspectorTab`)
-- v1 role-specific action hooks (`useActionGuard` busy guard, `useActionEffectHandler`, `useActionObserver`) inside `handlers/`
+- v1 role-specific action hooks (`useActionGuard` busy guard, `useActionCommandHandler`, `useActionObserver`) inside `handlers/`
 - Tier 3 `@evidenceExclude` annotation on `views/AccessRequestView.tsx` to keep volatile presentation chrome out of domain contracts
 
 ## Route

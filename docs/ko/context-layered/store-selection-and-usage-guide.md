@@ -37,6 +37,7 @@ Context-Action은 **쓰기 경계(`StoreWriter` / Action Handler)** 와 **읽기
 
 같은 도메인에 속하는 여러 스토어를 하나의 Provider로 묶고 컴포넌트 트리 단위로 격리할 때 기본으로 사용합니다. `{ Provider, useStore, useStoreManager, useStoreInfo, useStoreClear, withProvider }`를 반환합니다.
 
+<!-- @context-action-compile -->
 ```tsx
 import { createStoreContext, asStoreValue, useStoreValue } from '@context-action/react';
 
@@ -50,11 +51,13 @@ const {
   status: 'idle' as 'idle' | 'submitting' | 'done',
 });
 
-// Action Handler 내부 (쓰기):
-function updateQuantity(qty: number) {
+// Action Handler 내부에서 사용할 쓰기 헬퍼 훅:
+function useOrderQuantityUpdater() {
   const draftStore = useOrderStore('draft');
-  const current = draftStore.getValue();
-  draftStore.setValue({ ...current, qty });
+  return (qty: number) => {
+    const current = draftStore.getValue();
+    draftStore.setValue({ ...current, qty });
+  };
 }
 
 // View 컴포넌트 (읽기):
@@ -63,18 +66,26 @@ function OrderQuantityBadge() {
   const draft = useStoreValue(draftStore);
   return <span>{draft.qty}</span>;
 }
+
+export { OrderStoreProvider, useOrderQuantityUpdater, OrderQuantityBadge };
 ```
 
 ### 2.2 `createStore` (`@context-action/react`) — 독립 단일 Store
 
 Provider 없이 모듈 스코프, 직접 주입(DI), 또는 단위 테스트에서 단일 스토어 인스턴스를 쓸 때 사용합니다. 내부적으로 Mutative 패치를 발행하므로 `useStorePath` 경로 구독과 바로 호환됩니다.
 
+<!-- @context-action-compile -->
 ```tsx
 import { createStore, useStorePath } from '@context-action/react';
 
-const profileStore = createStore('profile', {
+interface ProfileState {
+  user: { name: string; age: number };
+  theme: 'light' | 'dark';
+}
+
+const profileStore = createStore<ProfileState>('profile', {
   user: { name: 'Kim', age: 30 },
-  theme: 'dark' as 'light' | 'dark',
+  theme: 'dark',
 });
 
 profileStore.update((prev) => ({
@@ -82,9 +93,9 @@ profileStore.update((prev) => ({
   user: { ...prev.user, name: 'Lee' },
 }));
 
-function UserNameLabel() {
+export function UserNameLabel() {
   // 패치가 ['user', 'name'] 경로에 영향을 줄 때만 리렌더
-  const name = useStorePath(profileStore, ['user', 'name']);
+  const name = useStorePath<ProfileState, string>(profileStore, ['user', 'name']);
   return <span>{name}</span>;
 }
 
@@ -100,6 +111,7 @@ profileStore.dispose();
 - 선언적 `createTimeTravelStoreContext`는 `readMode: 'safe'`가 기본값입니다.
 - 외부 직렬화·전달 경계에서는 내부 상태 변이를 막기 위해 `store.getSafeValue()`를 사용합니다.
 
+<!-- @context-action-compile -->
 ```tsx
 import { createTimeTravelStoreContext } from '@context-action/react';
 
@@ -107,7 +119,7 @@ const DocStores = createTimeTravelStoreContext('Doc', {
   content: { initialValue: { text: '' }, maxHistory: 50 },
 });
 
-function HistoryToolbar() {
+export function HistoryToolbar() {
   const { canUndo, canRedo, undo, redo, position, historyLength } =
     DocStores.useTimeTravelControls('content');
 
@@ -125,6 +137,7 @@ function HistoryToolbar() {
 
 React·Mutative·DOM 없이 순수 TypeScript, Node.js, Vanilla JS, Preact, Lit, XState 환경에서 가벼운 상태 저장소가 필요할 때 사용합니다(`capabilities: { patches: false, timeline: false, immutableSnapshots: false }`). 불변성(새 참조 전달)은 호출자가 책임지며 `Object.is(prev, next)`로 동일 참조 갱신은 건너뜁니다.
 
+<!-- @context-action-compile -->
 ```ts
 import { createStateStore } from '@context-action/store-core';
 
@@ -136,7 +149,7 @@ const unsubscribe = counterStore.subscribe(() => {
 
 counterStore.update((prev) => ({ count: prev.count + 1 }));
 unsubscribe();
-counterStore.dispose();
+counterStore.dispose?.();
 ```
 
 ### 2.5 `createBackendStore` / `BackendStore` (`@context-action/react/backend`) — 커스텀 백엔드 연결
@@ -146,6 +159,7 @@ counterStore.dispose();
 - `ownership: 'shared'` (기본값): 래퍼가 `dispose()`되어도 원본 백엔드는 살아 있습니다.
 - `ownership: 'owned'`: 래퍼를 `dispose()`할 때 원본 백엔드도 함께 정리합니다.
 
+<!-- @context-action-compile -->
 ```tsx
 import { createStateStore } from '@context-action/store-core';
 import { createBackendStore } from '@context-action/react/backend';
@@ -154,7 +168,7 @@ import { useStoreValue } from '@context-action/react';
 const sharedBackend = createStateStore('session', { step: 1 });
 const reactStore = createBackendStore('session', sharedBackend, { ownership: 'shared' });
 
-function SessionStep() {
+export function SessionStep() {
   const state = useStoreValue(reactStore);
   return <span>Step {state.step}</span>;
 }
@@ -168,6 +182,7 @@ function SessionStep() {
 - 커밋이 끝날 때까지 알림을 보류한 뒤 일괄 flush하므로 구독자가 절반만 커밋된 상태를 보지 않습니다.
 - React 없이 프레임워크 중립으로 액션-트랜잭션을 묶으려면 `@context-action/xstate/effect`의 `bindActionDispatchTransactions` 및 `runInTransactionScope`를 사용합니다.
 
+<!-- @context-action-compile -->
 ```ts
 import { StoreTransactionCoordinator, createTimeTravelStore } from '@context-action/react';
 
@@ -175,20 +190,22 @@ const cart = createTimeTravelStore('cart', { items: [] as string[] });
 const totals = createTimeTravelStore('totals', { price: 0 });
 const coordinator = new StoreTransactionCoordinator();
 
-await coordinator.run(
-  [
-    { name: 'cart', store: cart },
-    { name: 'totals', store: totals },
-  ],
-  () => {
-    cart.update((prev) => ({ items: [...prev.items, 'book'] }));
-    totals.update((prev) => ({ price: prev.price + 25 }));
-  },
-  { label: 'addItem' },
-);
+export async function addItemWithRollback() {
+  await coordinator.run(
+    [
+      { name: 'cart', store: cart },
+      { name: 'totals', store: totals },
+    ],
+    () => {
+      cart.update((prev) => ({ items: [...prev.items, 'book'] }));
+      totals.update((prev) => ({ price: prev.price + 25 }));
+    },
+    { label: 'addItem' },
+  );
 
-// 트랜잭션 단위로 cart와 totals가 함께 되돌려집니다
-coordinator.undo();
+  // 트랜잭션 단위로 cart와 totals가 함께 되돌려집니다
+  coordinator.undo();
+}
 ```
 
 ### 2.7 `useLocalStore`, `useComputedStore`, `StoreRegistry` (`@context-action/react/advanced`)

@@ -10,7 +10,7 @@ This document explains the `Incident Escalation` example built with the implemen
 - activity logs derived from domain events
 - invalidating a stale escalation result when severity changes after success
 - Unified Triad separation between `BusinessActionIntent` (`IncidentEscalationActionProvider`) and `LayoutActionIntent` (`IncidentEscalationLayoutActionProvider` / `IncidentEscalationLayoutStoreProvider` for `setInspectorTab`)
-- v1 role-specific action hooks (`useActionGuard` busy guard, `useActionEffectHandler`, `useActionObserver`) inside `handlers/`
+- v1 role-specific action hooks (`useActionGuard` busy guard, `useActionCommandHandler`, `useActionObserver`) inside `handlers/`
 - Tier 3 `@evidenceExclude` annotation on `views/IncidentEscalationView.tsx` to keep volatile presentation chrome out of domain contracts
 
 ## Route

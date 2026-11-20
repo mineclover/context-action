@@ -11,14 +11,17 @@ Convention](../context-layered/change-management-convention). This document
 defines document-production rules; the linked convention defines how a change
 is planned and closed.
 
+> [!NOTE]
+> **Enforcement Scope:** File pairing (`strict-paired` / `tracked-partial`), LLMS sync freshness (`pnpm llms:check`), catalog parity (`pnpm verify:surface-catalog`), VitePress builds (`pnpm docs:build`), and `<!-- @context-action-compile -->` snippet compilation (`pnpm verify:doc-snippets`) are **CI-Enforced**. Unmarked illustrative prose and snippets remain **Advisory**.
+
 ## 1. Documentation Ownership
 
 | Surface | Owner and editing rule | Verification |
 | --- | --- | --- |
 | `docs/en/**`, `docs/ko/**` guides and concepts | Hand-authored source. Keep English and Korean pages aligned (`strict-paired` in `context-layered`, `concept`, `examples`, `llms`; `tracked-partial` in `guide`, `troubleshooting`). Use [Store Selection and Usage Guide](../context-layered/store-selection-and-usage-guide) as the canonical Store/state reference. | `pnpm docs:check` |
-| `catalog/repository-surface/*.v1.json` | Machine-verifiable inventory of all 20 packages (`api-surface`), 76 canonical routes & examples (`example-surface`), and root/managed/derived documents (`document-surface`, `CA-SURFACE-CATALOG-001`). Update alongside any surface addition or removal. | `pnpm verify:surface-catalog` |
+| `catalog/repository-surface/*.v1.json` | Machine-verifiable inventory of workspace packages (`api-surface`), canonical example routes & demos (`example-surface`), and root/managed/derived documents (`document-surface`, `CA-SURFACE-CATALOG-001`; live counts live in JSON). Update alongside any surface addition or removal. | `pnpm verify:surface-catalog` |
 | `docs/api/generated/**`, `docs/.vitepress/config/api-spec.ts`, `docs/en/api/**` | Generated API reference. `docs/api/generated/**` and `api-spec.ts` are `gitignored: true` build outputs; change TypeScript exports and JSDoc first and regenerate rather than hand-editing. | `pnpm docs:api`, `pnpm docs:sync`, `pnpm docs:build` |
-| `llmsData/**` and `docs/{en,ko}/llms/llms-*.txt` | Tracked derived learning/context artifacts generated from `docs/{en,ko}/**`. Do not treat them as the canonical explanation. | `pnpm build:llms-generator` then `pnpm llms:sync-docs --changed-files a.md,b.md` followed by `pnpm llms:check` |
+| `llmsData/**` and `docs/{en,ko}/llms/llms-*.txt` | Tracked derived learning/context artifacts generated from `docs/{en,ko}/**`. Do not treat them as the canonical explanation. | `pnpm build:llms-generator` then `pnpm llms:sync-docs --changed-files a.md b.md` followed by `pnpm llms:check` |
 | Root and package `README.md` | Discovery and package entry points. They must route readers to the authoritative guide, [Repository Surface Catalog](../context-layered/repository-surface-catalog), or API page rather than duplicate specs. | Relevant build, surface catalog, and link check |
 
 Generated files may be reviewed, but a behavioral correction belongs in their
@@ -41,7 +44,7 @@ start from a generated page merely because it is where the drift was noticed.
 
 | Change | Canonical source to edit | Derived/update path | Minimum proof |
 | --- | --- | --- | --- |
-| Public guide, Store usage, or convention | paired `docs/en/**` and `docs/ko/**` pages (`store-selection-and-usage-guide` for cross-package Store decisions) | regenerate affected `llmsData/` via comma-separated `--changed-files` | `pnpm docs:check` |
+| Public guide, Store usage, or convention | paired `docs/en/**` and `docs/ko/**` pages (`store-selection-and-usage-guide` for cross-package Store decisions) | regenerate affected `llmsData/` via `--changed-files` | `pnpm docs:check` |
 | Package, export subpath, or verification gate | package `package.json` + source + `catalog/repository-surface/api-surface.v1.json` + `repository-surface-catalog.md` | `pnpm docs:api && pnpm docs:sync` (for public API/JSDoc) | `pnpm verify:surface-catalog && pnpm package-boundary:check` |
 | Canonical `example/` route, standalone demo, or example doc | route/demo/doc + `catalog/repository-surface/example-surface.v1.json` + `repository-surface-catalog.md` | sync paired `docs/{en,ko}/examples/*.md` LLMS summaries | `pnpm verify:surface-catalog && pnpm --filter example build` |
 | Root `*.md` or managed doc area metadata | root/managed document + `catalog/repository-surface/document-surface.v1.json` + `repository-surface-catalog.md` | update `knownUnpaired` if `guide`/`troubleshooting` pairing changes | `pnpm verify:surface-catalog && pnpm docs:check` |
@@ -91,7 +94,7 @@ describing it as available.
 
 | Change | Minimum gate | Add when applicable |
 | --- | --- | --- |
-| Hand-authored documentation | `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files a.md,b.md` then `pnpm docs:check` | focused link/browser proof when a rendered interaction changed |
+| Hand-authored documentation | `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files a.md b.md` then `pnpm docs:check` | focused link/browser proof when a rendered interaction changed; `pnpm verify:doc-snippets` when `<!-- @context-action-compile -->` blocks changed |
 | Repository surfaces (packages, routes, managed/root docs) | `pnpm verify:surface-catalog` and `pnpm convention:check` | update `catalog/repository-surface/*.v1.json` and `repository-surface-catalog.md` |
 | Public TypeScript API | `pnpm type-check` | `pnpm docs:api && pnpm docs:sync` |
 | Runtime behavior or a framework pattern | Focused package test and `pnpm type-check` | `pnpm test`, example build |
@@ -100,22 +103,25 @@ describing it as available.
 | LLMS/documentation consistency | `pnpm llms:check` | `pnpm llms:detect-mismatches --output reports/llms-mismatch-report.md` for review evidence |
 | Local-First PR preflight receipt ([policy](../../LOCAL_FIRST_VERIFICATION_POLICY.md)) | `pnpm verify:quick` (or `pnpm verify`) then `pnpm verify:receipt` | Commit `.verification/local-receipt.json` on a clean tree before PR |
 
-> **CLI `--changed-files` syntax rule:** `pnpm llms:sync-docs` parses
-> `--changed-files` as a **single comma-separated argument** (e.g.,
-> `--changed-files docs/en/guide/a.md,docs/ko/guide/a.md`) and requires
-> `pnpm build:llms-generator` first. Space-separated paths drop every file after
-> the first, and `--changed-files=...` with `=` fails. Note that `.husky/post-commit`
-> runs `sync-docs` automatically on committed `docs/(en|ko)/**/*.md` changes
-> without creating an extra commit—always check `git status --short` after
-> committing docs and before running `pnpm verify:quick`.
+> **CLI `--changed-files` syntax:** `pnpm llms:sync-docs` accepts `--changed-files`
+> as comma-separated paths (`--changed-files docs/en/guide/a.md,docs/ko/guide/a.md`),
+> space-separated paths (`--changed-files docs/en/guide/a.md docs/ko/guide/a.md`),
+> `--changed-files=...` with `=`, quoted whitespace, or repeated flags, after
+> running `pnpm build:llms-generator`. Note that `.husky/post-commit` runs `sync-docs`
+> automatically on committed hand-authored `docs/(en|ko)/**/*.md` changes (excluding
+> `docs/{en,ko}/llms/` and `docs/{en,ko}/api/`) without creating an extra commit—always
+> check `git status --short` after committing docs and before running `pnpm verify:quick`.
 
 Canonical TypeScript examples that are intended to be self-contained may be
 marked with `<!-- @context-action-compile -->` immediately before a `ts`,
 `typescript`, or `tsx` fence. `pnpm verify:doc-snippets` extracts those marked
-blocks, compiles them against the built `@context-action/core`,
-`@context-action/react`, and `@context-action/ai-sdk` declarations, and is
-included in `pnpm verify` / `pnpm verify:all`. Unmarked explanatory fragments
-may remain illustrative and are not treated as standalone consumer programs.
+blocks, compiles them with TypeScript `strict: true` against the built workspace
+declarations (`@context-action/core`, `@context-action/store-core`,
+`@context-action/mutative`, `@context-action/react` + subpaths,
+`@context-action/xstate` + `./effect`, `@context-action/webmcp`,
+`@context-action/ai-sdk`, and `@context-action/tool-protocol`), and is included in
+`pnpm verify` / `pnpm verify:all`. Unmarked explanatory fragments remain illustrative
+advisory examples rather than standalone consumer programs.
 
 The AI SDK adapter also has a real-runtime smoke gate:
 `pnpm test:ai-sdk-integration`. It builds the local protocol and adapter,

@@ -4,6 +4,9 @@
 **Last reviewed:** 2026-11-01  
 **Scope:** interactive examples, public UI, demos, and workflow views
 
+> [!NOTE]
+> **Enforcement Scope — Advisory / Design-Review Guidance:** Use IIC to document removed affordances, implicit agreements, and rollback expectations during design and PR review; there is no standalone IIC linter that blocks `context-action` CI.
+
 In this convention, accessibility does not mean only screen-reader support. It
 also means that someone who did not make the original design can reconstruct why
 a button or explanation was removed, what immediate behavior was promised, and

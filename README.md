@@ -697,7 +697,7 @@ npx serve examples/vanilla-js
 ```
 
 ### 🚀 React Live Examples
-**[Explore 76 canonical example routes →](https://mineclover.github.io/context-action/example/)** ([Catalog Inventory](./catalog/repository-surface/example-surface.v1.json))
+**[Explore canonical example routes →](https://mineclover.github.io/context-action/example/)** ([Catalog Inventory](./catalog/repository-surface/example-surface.v1.json))
 
 #### 🏪 **Store System**
 - [Store Basics](https://mineclover.github.io/context-action/example/foundations/store/basics) - Fundamental store creation, updates, and subscriptions
@@ -756,7 +756,7 @@ Context-Action Framework organizes application state, logic, and views around ex
 ### 🔧 **Implementation & Architecture Guides**
 
 - **[Convention Index](https://mineclover.github.io/context-action/en/context-layered/convention-index)** - Central task-based index for standards and gates
-- **[Repository Surface Catalog](https://mineclover.github.io/context-action/en/context-layered/repository-surface-catalog)** - Complete inventory of all 20 packages, 76 canonical routes, and managed docs
+- **[Repository Surface Catalog](https://mineclover.github.io/context-action/en/context-layered/repository-surface-catalog)** - Complete inventory of workspace packages, canonical example routes, and managed docs
 - **[Store Selection and Usage Guide](https://mineclover.github.io/context-action/en/context-layered/store-selection-and-usage-guide)** - When to use each Store/state package across the monorepo
 - **[Folder Structure Guide](https://mineclover.github.io/context-action/en/context-layered/architecture/folder-structure)** - Organized 6-layer project structure
 - **[Handler Registry Management](https://mineclover.github.io/context-action/en/context-layered/architecture/handler-registry)** - ID and priority management

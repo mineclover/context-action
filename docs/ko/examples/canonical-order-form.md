@@ -12,7 +12,7 @@
 - 결정론적 validation과 quote 계산을 위한 순수 `business` 함수
 - 숨겨진 비즈니스 로직 없이 렌더링만 담당하는 reactive `hooks`와 `views`
 - `BusinessActionIntent`(`CanonicalOrderActionProvider`)와 `LayoutActionIntent`(`CanonicalOrderLayoutActionProvider` / `CanonicalOrderLayoutStoreProvider`의 `setInspectorTab`)를 분리한 Unified Triad 계약
-- `handlers/` 계층에 적용한 v1 역할별 액션 훅(`useActionGuard` busy guard, `useActionEffectHandler`, `useActionObserver`)
+- `handlers/` 계층에 적용한 v1 역할별 액션 훅(`useActionGuard` busy guard, `useActionCommandHandler`, `useActionObserver`)
 - presentation 뷰를 도메인 계약 증거에서 분리하는 `views/CanonicalOrderView.tsx`의 Tier 3 `@evidenceExclude` 주석
 
 ## 라우트

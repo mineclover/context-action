@@ -11,6 +11,9 @@
 
 ---
 
+> [!NOTE]
+> **Scope — Advisory / Cross-Repo (`ttsc-ex` · `oa-sdk`):** The 3-workspace `.tsp` / `@evidenceReview` contract-lock rules below apply only when working inside a multi-repo Triad setup with companion `../samchon` and `../oa-sdk` checkouts. In `context-action` standalone CI, Step 4 only checks local docs, LLMS sync, and repository conventions (`pnpm docs:management`, `pnpm llms:check`, `pnpm convention:check`).
+
 ## 1. Purpose and Three-Workspace Responsibility Boundaries (Zero-Dependency Principle)
 
 Within the Unified Triad architecture, `context-action` owns **frontend modular state management, the action intent pipeline, and viewport layout hierarchy (Pillar 3 & Pillar 4)**.  
@@ -173,7 +176,7 @@ When architecture conventions are updated in `ttsc-ex` or `oa-sdk`, pull and ver
    - Review `../samchon/docs/cross-repo-responsibility-and-sync-guide.md`, `../samchon/docs/context-action-frontend-evidence-guide.md`, and `../oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md` in your sibling triad workspace root.
 2. **Step 2 — Synchronize Paired KO/EN Docs and Agent Skills (Docs & Skill Sync)**
    - Update both `docs/ko/context-layered/` and `docs/en/context-layered/` counterparts ([`triad-evidence-sync-guide.md`](./triad-evidence-sync-guide.md), [`CA-SPEC-EVIDENCE-001.md`](./decisions/CA-SPEC-EVIDENCE-001.md), [`implementation-convention.md`](./implementation-convention.md), [`convention-index.md`](./convention-index.md)) plus the agent playbook skills ([`.agents/skills/context-action-implementation-playbook/SKILL.md`](../../../.agents/skills/context-action-implementation-playbook/SKILL.md) and [`skills/context-action-implementation-playbook/SKILL.md`](../../../skills/context-action-implementation-playbook/SKILL.md)).
-   - After editing docs, run `pnpm llms:sync-docs --changed-files ...` to keep `llmsData/` templates and priority metadata synchronized.
+   - After editing docs, run `pnpm llms:sync-docs --changed-files <path1.md> <path2.md>` (comma- or space-separated) to keep `llmsData/` templates and priority metadata synchronized.
 3. **Step 3 — Apply to Examples and Business/Handler/View Layers (Layer Application)**
    - Apply intent separation (`BusinessActionIntent` vs `LayoutActionIntent`) in `contexts/`, `@evidenceReview ./generated/dto.ts#... #hash` locks in pure `business/` modules, `Promise.allSettled` parallel aspect hydration in `handlers/`, and file-header `@evidenceExclude` plus 6-Level layout rules in `views/`.
 4. **Step 4 — Run `context-action` Local Verification Gates (Local Verification)**

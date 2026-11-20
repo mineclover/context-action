@@ -11,6 +11,9 @@
 
 ---
 
+> [!NOTE]
+> **적용 범위 — 권고 / 크로스-레포 (`ttsc-ex` · `oa-sdk`):** 아래의 3자 워크스페이스 `.tsp` / `@evidenceReview` 계약 잠금 규칙은 인접한 `../samchon` 및 `../oa-sdk` 체크아웃과 함께 작업하는 Triad 구성에만 적용됩니다. `context-action` 단독 CI의 Step 4는 저장소 내 문서·LLMS·컨벤션 정합성(`pnpm docs:management`, `pnpm llms:check`, `pnpm convention:check`)만 검증합니다.
+
 ## 1. 목적 및 3대 워크스페이스 책임 경계 (Zero-Dependency 보존 원칙)
 
 `context-action`은 통합 트라이어드(Unified Triad) 아키텍처에서 **프론트엔드 모듈러 상태 관리, 액션 인텐트 파이프라인, 그리고 뷰포트 레이아웃 위계(Pillar 3 & Pillar 4)**를 전담합니다.  
@@ -173,7 +176,7 @@ orderStore.setValue({
    - 인접 트라이어드 워크스페이스 루트의 `../samchon/docs/cross-repo-responsibility-and-sync-guide.md`, `../samchon/docs/context-action-frontend-evidence-guide.md`, `../oa-sdk/docs/guides/ttsc-ex-delegation-and-sync-guide.md`에서 갱신된 계약·증명·레이아웃 규칙을 확인합니다.
 2. **Step 2 — 한/영 페어 문서 및 에이전트 스킬 동기화 (Docs & Skill Sync)**
    - `docs/ko/context-layered/`와 `docs/en/context-layered/`의 대응 문서([`triad-evidence-sync-guide.md`](./triad-evidence-sync-guide.md), [`CA-SPEC-EVIDENCE-001.md`](./decisions/CA-SPEC-EVIDENCE-001.md), [`implementation-convention.md`](./implementation-convention.md), [`convention-index.md`](./convention-index.md)) 및 에이전트 스킬([`.agents/skills/context-action-implementation-playbook/SKILL.md`](../../../.agents/skills/context-action-implementation-playbook/SKILL.md), [`skills/context-action-implementation-playbook/SKILL.md`](../../../skills/context-action-implementation-playbook/SKILL.md))을 한/영 대칭으로 갱신합니다.
-   - 문서 변경 후 `pnpm llms:sync-docs --changed-files ...`로 `llmsData/` 요약 템플릿과 우선순위 메타데이터를 동기화합니다.
+   - 문서 변경 후 `pnpm llms:sync-docs --changed-files <path1.md> <path2.md>`(쉼표 또는 공백 구분)로 `llmsData/` 요약 템플릿과 우선순위 메타데이터를 동기화합니다.
 3. **Step 3 — 예제 및 핸들러/비즈니스 레이어 적용 (Layer Application)**
    - `contexts/`의 인텐트 분리(`BusinessActionIntent` vs `LayoutActionIntent`), `business/` 순수 함수의 `@evidenceReview ./generated/dto.ts#... #hash` 잠금, `handlers/`의 `Promise.allSettled` 병렬 복원, `views/`의 파일 상단 `@evidenceExclude` 및 6-Level 레이아웃 규칙을 적용합니다.
 4. **Step 4 — `context-action` 로컬 검증 게이트 실행 (Local Verification)**

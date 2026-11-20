@@ -10,7 +10,7 @@
 - domain event에서 파생되는 activity log
 - success 이후 severity 변경 시 이전 escalation 결과 무효화
 - `BusinessActionIntent`(`IncidentEscalationActionProvider`)와 `LayoutActionIntent`(`IncidentEscalationLayoutActionProvider` / `IncidentEscalationLayoutStoreProvider`의 `setInspectorTab`)를 분리한 Unified Triad 계약
-- `handlers/` 계층에 적용한 v1 역할별 액션 훅(`useActionGuard` busy guard, `useActionEffectHandler`, `useActionObserver`)
+- `handlers/` 계층에 적용한 v1 역할별 액션 훅(`useActionGuard` busy guard, `useActionCommandHandler`, `useActionObserver`)
 - presentation 뷰를 도메인 계약 증거에서 분리하는 `views/IncidentEscalationView.tsx`의 Tier 3 `@evidenceExclude` 주석
 
 ## 라우트
