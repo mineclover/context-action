@@ -121,6 +121,16 @@ export function useWorkspaceFolderActions({
 
   const handleOpenFolder = async () => {
     if (openingFolder || !isStorageReady) return;
+    const picker = (
+      window as Window & {
+        showDirectoryPicker?: unknown;
+      }
+    ).showDirectoryPicker;
+    if (!picker) {
+      folderInputRef.current?.setAttribute('webkitdirectory', '');
+      folderInputRef.current?.click();
+      return;
+    }
     if (
       hasUnsavedChanges &&
       !(await requestConfirmation({
@@ -131,15 +141,6 @@ export function useWorkspaceFolderActions({
         tone: 'warning',
       }))
     ) {
-      return;
-    }
-    const picker = (
-      window as Window & {
-        showDirectoryPicker?: unknown;
-      }
-    ).showDirectoryPicker;
-    if (!picker) {
-      folderInputRef.current?.click();
       return;
     }
 

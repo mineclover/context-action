@@ -87,7 +87,11 @@ export class Reporter {
     md += `- Total: ${results.length}\n`;
     md += `- Passed: ${passed.length}\n`;
     md += `- Failed: ${failed.length}\n`;
-    md += `- Pass Rate: ${((passed.length / results.length) * 100).toFixed(1)}%\n\n`;
+    const passRate =
+      results.length === 0
+        ? '0.0'
+        : ((passed.length / results.length) * 100).toFixed(1);
+    md += `- Pass Rate: ${passRate}%\n\n`;
 
     if (failed.length > 0) {
       md += `## Failures\n\n`;

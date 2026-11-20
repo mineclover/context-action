@@ -354,13 +354,13 @@ export function OpenRouterSettingsDialog({
         <div className="settings-note">
           <span className="status-dot" />
           Stored in this browser origin and sent directly to the configured
-          endpoint. The API key uses the shared
+          endpoint. The API key uses the shared{' '}
           <code>context-action.openrouter.api-key</code> entry and is reused by
           the example OpenRouter demos on this origin. Model, endpoint, and
-          provider data-policy settings remain standalone-specific. `Deny` sends{' '}
-          <code>provider.data_collection=deny</code>; `ZDR` sends
-          <code>provider.zdr=true</code> for the chat request. It is not
-          committed to the repository.
+          provider data-policy settings remain standalone-specific.{' '}
+          <code>Deny</code> sends <code>provider.data_collection=deny</code>;{' '}
+          <code>ZDR</code> sends <code>provider.zdr=true</code> for the chat
+          request. It is not committed to the repository.
         </div>
 
         <div className="settings-actions">

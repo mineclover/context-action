@@ -7,6 +7,14 @@ export interface ResolvedStyle {
   [property: string]: string;
 }
 
+function resolveSpacingToken(value: string): string | null {
+  if (value === 'px') return '1px';
+  const arbitrary = value.match(/^\[(.+)\]$/);
+  if (arbitrary?.[1]) return arbitrary[1];
+  if (/^\d+(?:\.\d+)?$/.test(value)) return `${Number(value) * 0.25}rem`;
+  return null;
+}
+
 /**
  * Parse Tailwind classes and resolve to CSS properties
  * This is a simplified implementation - full implementation would use tailwindcss directly
@@ -51,44 +59,46 @@ export function resolveTailwindClasses(classNames: string): ResolvedStyle {
     // Margins
     if (cls.startsWith('m-') || cls.startsWith('mx-') || cls.startsWith('my-') ||
         cls.startsWith('mt-') || cls.startsWith('mr-') || cls.startsWith('mb-') || cls.startsWith('ml-')) {
-      const match = cls.match(/^m([xytrblt]?)-(.+)$/);
+      const match = cls.match(/^m([xytrbl]?)-(.+)$/);
       if (match) {
         const [, dir, value] = match;
-        const pxValue = value === 'auto' ? 'auto' : `${Number(value) * 0.25}rem`;
-
-        if (!dir) styles.margin = pxValue;
-        else if (dir === 'x') {
-          styles.marginLeft = pxValue;
-          styles.marginRight = pxValue;
-        } else if (dir === 'y') {
-          styles.marginTop = pxValue;
-          styles.marginBottom = pxValue;
-        } else if (dir === 't') styles.marginTop = pxValue;
-        else if (dir === 'r') styles.marginRight = pxValue;
-        else if (dir === 'b') styles.marginBottom = pxValue;
-        else if (dir === 'l') styles.marginLeft = pxValue;
+        const resolved = value === 'auto' ? 'auto' : resolveSpacingToken(value);
+        if (resolved) {
+          if (!dir) styles.margin = resolved;
+          else if (dir === 'x') {
+            styles.marginLeft = resolved;
+            styles.marginRight = resolved;
+          } else if (dir === 'y') {
+            styles.marginTop = resolved;
+            styles.marginBottom = resolved;
+          } else if (dir === 't') styles.marginTop = resolved;
+          else if (dir === 'r') styles.marginRight = resolved;
+          else if (dir === 'b') styles.marginBottom = resolved;
+          else if (dir === 'l') styles.marginLeft = resolved;
+        }
       }
     }
 
     // Padding
     if (cls.startsWith('p-') || cls.startsWith('px-') || cls.startsWith('py-') ||
         cls.startsWith('pt-') || cls.startsWith('pr-') || cls.startsWith('pb-') || cls.startsWith('pl-')) {
-      const match = cls.match(/^p([xytrblt]?)-(.+)$/);
+      const match = cls.match(/^p([xytrbl]?)-(.+)$/);
       if (match) {
         const [, dir, value] = match;
-        const pxValue = `${Number(value) * 0.25}rem`;
-
-        if (!dir) styles.padding = pxValue;
-        else if (dir === 'x') {
-          styles.paddingLeft = pxValue;
-          styles.paddingRight = pxValue;
-        } else if (dir === 'y') {
-          styles.paddingTop = pxValue;
-          styles.paddingBottom = pxValue;
-        } else if (dir === 't') styles.paddingTop = pxValue;
-        else if (dir === 'r') styles.paddingRight = pxValue;
-        else if (dir === 'b') styles.paddingBottom = pxValue;
-        else if (dir === 'l') styles.paddingLeft = pxValue;
+        const resolved = resolveSpacingToken(value);
+        if (resolved) {
+          if (!dir) styles.padding = resolved;
+          else if (dir === 'x') {
+            styles.paddingLeft = resolved;
+            styles.paddingRight = resolved;
+          } else if (dir === 'y') {
+            styles.paddingTop = resolved;
+            styles.paddingBottom = resolved;
+          } else if (dir === 't') styles.paddingTop = resolved;
+          else if (dir === 'r') styles.paddingRight = resolved;
+          else if (dir === 'b') styles.paddingBottom = resolved;
+          else if (dir === 'l') styles.paddingLeft = resolved;
+        }
       }
     }
 
@@ -140,15 +150,4 @@ function grayScale(shade: string): string {
     '900': '17, 24, 39',
   };
   return scales[shade] || '0, 0, 0';
-}
-
-/**
- * Extract className from JSX element
- */
-export function extractClassNameFromCode(code: string, testId: string): string | null {
-  // Simple regex-based extraction for now
-  // In production, would use proper AST parsing
-  const regex = new RegExp(`data-style-test="${testId}"[^>]*className="([^"]+)"`);
-  const match = code.match(regex);
-  return match ? match[1] : null;
 }

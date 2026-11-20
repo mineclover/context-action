@@ -1030,6 +1030,37 @@ describe('Challenger M4-2: <lit-cart-badge> & React Bridge Adversarial Stress Su
       expect(badge.count).toBe(0);
       expect(customStore.getListenerCount()).toBe(0);
     });
+
+    it('disposes the previous direct ActionController when register property changes', async () => {
+      const registerA = new ActionRegister<any>();
+      const registerB = new ActionRegister<any>();
+      const abortObserved: boolean[] = [];
+
+      registerA.register('click', async (_payload, ctrl) => {
+        await new Promise<void>((_resolve, reject) => {
+          ctrl.signal?.addEventListener('abort', () => {
+            abortObserved.push(true);
+            reject(new Error('Aborted previous controller'));
+          });
+        });
+      });
+      registerB.register('click', async () => {});
+
+      const badge = document.createElement('lit-cart-badge') as LitCartBadge;
+      badge.register = registerA;
+      badge.actionName = 'click';
+      container.appendChild(badge);
+      await badge.updateComplete;
+
+      badge.shadowRoot?.querySelector('button')?.click();
+      expect(badge.isPending).toBe(true);
+
+      badge.register = registerB;
+      await badge.updateComplete;
+
+      expect(abortObserved).toEqual([true]);
+      expect(badge.isPending).toBe(false);
+    });
   });
 });
 

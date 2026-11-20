@@ -202,5 +202,90 @@ describe('W3C Context Protocol (@lit/context) Integration', () => {
         /No ActionRegister found in context hierarchy/
       );
     });
+
+    it('keeps ContextActionController isPending true until overlapping dispatches settle', async () => {
+      const provider = document.createElement(providerTag) as ProviderHostElement;
+      const consumer = document.createElement(consumerTag) as ConsumerLeafElement;
+
+      let resolveFirst: (() => void) | undefined;
+      let resolveSecond: (() => void) | undefined;
+      let calls = 0;
+
+      provider.register.register('increment', async () => {
+        calls += 1;
+        if (calls === 1) {
+          await new Promise<void>((resolve) => {
+            resolveFirst = resolve;
+          });
+        } else {
+          await new Promise<void>((resolve) => {
+            resolveSecond = resolve;
+          });
+        }
+      });
+
+      provider.appendChild(consumer);
+      container.appendChild(provider);
+      await consumer.updateComplete;
+
+      const p1 = consumer.actions.dispatch('increment', { amount: 1 });
+      const p2 = consumer.actions.dispatch('increment', { amount: 2 });
+      expect(consumer.actions.isPending).toBe(true);
+
+      resolveFirst?.();
+      await p1;
+      expect(consumer.actions.isPending).toBe(true);
+
+      resolveSecond?.();
+      await p2;
+      expect(consumer.actions.isPending).toBe(false);
+    });
+
+    it('unwraps getSnapshot() value objects in ContextStoreController', async () => {
+      let current = { count: 7 };
+      const listeners = new Set<() => void>();
+      const snapshotStore: ReadableStore<{ count: number }> = {
+        getValue: undefined as any,
+        getSnapshot: () => ({ value: current }) as any,
+        subscribe: (listener) => {
+          listeners.add(listener);
+          return () => listeners.delete(listener);
+        },
+      };
+
+      const snapshotCtx = createStoreContext<{ count: number }>('snapshot-ctx');
+      class SnapshotProvider extends LitElement {
+        constructor() {
+          super();
+          provideStore(this, snapshotCtx, snapshotStore);
+        }
+        override render() {
+          return html`<slot></slot>`;
+        }
+      }
+      class SnapshotConsumer extends LitElement {
+        ctrl = new ContextStoreController(this, { context: snapshotCtx });
+      }
+      const providerTagName = 'test-snapshot-provider-unwrapped';
+      const consumerTagName = 'test-snapshot-consumer-unwrapped';
+      if (!customElements.get(providerTagName)) {
+        customElements.define(providerTagName, SnapshotProvider);
+      }
+      if (!customElements.get(consumerTagName)) {
+        customElements.define(consumerTagName, SnapshotConsumer);
+      }
+
+      const hostEl = document.createElement(providerTagName) as SnapshotProvider;
+      const consumerEl = document.createElement(consumerTagName) as SnapshotConsumer;
+      hostEl.appendChild(consumerEl);
+      container.appendChild(hostEl);
+      await hostEl.updateComplete;
+      await consumerEl.updateComplete;
+
+      expect(consumerEl.ctrl.value).toEqual({ count: 7 });
+      current = { count: 12 };
+      for (const listener of listeners) listener();
+      expect(consumerEl.ctrl.value).toEqual({ count: 12 });
+    });
   });
 });

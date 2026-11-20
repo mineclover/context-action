@@ -12,7 +12,7 @@ export const {
   useToolRegistry: useBoltStyleToolRegistry,
 } = createToolContext('BoltStyleWebEditor', {
   schema: boltStyleToolSchema,
-  debug: true,
+  debug: import.meta.env.DEV,
   onToolCall: recordToolCall,
   toolPolicy: ({ context, definition, request, signal }) => {
     if (

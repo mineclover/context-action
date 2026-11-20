@@ -105,11 +105,11 @@ program
       // Exit with error if tests failed
       const failedCount = results.filter(r => !r.passed).length;
       if (failedCount > 0) {
-        process.exit(1);
+        process.exitCode = 1;
       }
     } catch (error) {
       console.error('❌ Error running tests:', error);
-      process.exit(1);
+      process.exitCode = 1;
     } finally {
       await browser.close();
     }
@@ -140,7 +140,7 @@ program
       console.log(`   Captured ${styles.size} elements\n`);
     } catch (error) {
       console.error('❌ Error creating snapshot:', error);
-      process.exit(1);
+      process.exitCode = 1;
     } finally {
       await browser.close();
     }

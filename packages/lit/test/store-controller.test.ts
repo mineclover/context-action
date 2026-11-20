@@ -255,5 +255,26 @@ describe('StoreController', () => {
       expect(controller.value).toBe('updated-snapshot');
       expect(host.requestUpdateCount).toBe(1);
     });
+
+    it('unregisters from host if initial subscribe throws and blocks subscribe after dispose', () => {
+      const host = new MockReactiveControllerHost();
+      const failingStore: ReadableStore<number> = {
+        getValue: () => 1,
+        subscribe() {
+          throw new Error('subscribe failed');
+        },
+      };
+
+      expect(() => new StoreController(host, failingStore)).toThrow('subscribe failed');
+      expect(host.controllers).toHaveLength(0);
+
+      const store = createMockStore(5);
+      const controller = new StoreController(host, store);
+      expect(store.listenerCount).toBe(1);
+      controller.dispose();
+      controller.subscribe();
+      expect(controller.isSubscribed).toBe(false);
+      expect(store.listenerCount).toBe(0);
+    });
   });
 });

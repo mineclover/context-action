@@ -818,11 +818,12 @@ export class WorkspaceDocumentManager {
     path: string,
     expectedRevision: number
   ): Promise<boolean> {
+    const normalizedPath = normalizeWorkspacePath(path);
     await this.persistQueue;
     if (this.snapshot.revision !== expectedRevision) return false;
-    if (!this.deletedPaths.includes(path)) return true;
+    if (!this.deletedPaths.includes(normalizedPath)) return true;
     this.deletedPaths = this.deletedPaths.filter(
-      (deletedPath) => deletedPath !== path
+      (deletedPath) => deletedPath !== normalizedPath
     );
     this.snapshot = { ...this.snapshot };
     this.notify();
@@ -915,6 +916,12 @@ export class WorkspaceDocumentManager {
   }
 
   private notify(): void {
-    for (const listener of this.listeners) listener();
+    for (const listener of [...this.listeners]) {
+      try {
+        listener();
+      } catch {
+        // Isolate subscriber failures so remaining observers still receive notifications.
+      }
+    }
   }
 }

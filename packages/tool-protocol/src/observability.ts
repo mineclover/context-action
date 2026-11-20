@@ -1,4 +1,3 @@
-import { measureToolOutputBytes } from './execution-provenance.js';
 import type {
   ToolCallEvent,
   ToolCallId,
@@ -179,6 +178,13 @@ export function redactToolObservabilityValue(
   return redactValue(value, undefined, 0, new WeakSet<object>(), policy);
 }
 
+function measureSerializedUtf8Bytes(serialized: string): number {
+  if (typeof TextEncoder === 'function') {
+    return new TextEncoder().encode(serialized).byteLength;
+  }
+  return encodeURIComponent(serialized).replace(/%[0-9A-F]{2}/gi, '_').length;
+}
+
 /** Serializes an observation within the policy byte budget. */
 export function serializeToolObservabilityValue(
   value: unknown,
@@ -193,7 +199,7 @@ export function serializeToolObservabilityValue(
       _redacted: 'unserializable observability value',
     });
   }
-  if (measureToolOutputBytes(serialized) <= policy.maxBytes) return serialized;
+  if (measureSerializedUtf8Bytes(serialized) <= policy.maxBytes) return serialized;
   return boundedObservabilityMarker(policy.maxBytes);
 }
 
@@ -431,7 +437,7 @@ function boundedObservabilityMarker(maxBytes: number): string {
     '{}',
     '0',
   ];
-  return candidates.find((candidate) => measureToolOutputBytes(candidate) <= maxBytes) ?? '0';
+  return candidates.find((candidate) => measureSerializedUtf8Bytes(candidate) <= maxBytes) ?? '0';
 }
 
 function normalizeKey(value: string): string {

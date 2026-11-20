@@ -152,7 +152,12 @@ export function createIndexedDbDurableOperationBackend<TResult = unknown>(
   let databasePromise: Promise<IDBDatabase> | undefined;
 
   const getDatabase = (): Promise<IDBDatabase> => {
-    databasePromise ??= openDatabase(factory, databaseName, storeName, version);
+    databasePromise ??= openDatabase(factory, databaseName, storeName, version).catch(
+      (error) => {
+        databasePromise = undefined;
+        throw error;
+      }
+    );
     return databasePromise;
   };
 
@@ -236,9 +241,15 @@ export function createIndexedDbDurableOperationBackend<TResult = unknown>(
     compareAndSet,
     backfillLegacyIncarnation,
     close: async () => {
-      const database = databasePromise ? await databasePromise : undefined;
-      database?.close();
+      const pending = databasePromise;
       databasePromise = undefined;
+      if (!pending) return;
+      try {
+        const database = await pending;
+        database.close();
+      } catch {
+        // Pending open failure already clears databasePromise; closing remains idempotent.
+      }
     },
   };
 }

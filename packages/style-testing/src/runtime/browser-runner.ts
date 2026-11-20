@@ -13,14 +13,23 @@ export class BrowserRunner {
   private page: Page | null = null;
 
   async launch(options: BrowserOptions = {}): Promise<void> {
-    this.browser = await chromium.launch({
+    if (this.browser || this.page) {
+      await this.close();
+    }
+    const browser = await chromium.launch({
       headless: options.headless ?? true,
     });
 
-    this.page = await this.browser.newPage();
-
-    if (options.timeout) {
-      this.page.setDefaultTimeout(options.timeout);
+    try {
+      const page = await browser.newPage();
+      if (options.timeout) {
+        page.setDefaultTimeout(options.timeout);
+      }
+      this.browser = browser;
+      this.page = page;
+    } catch (error) {
+      await browser.close().catch(() => {});
+      throw error;
     }
   }
 
@@ -40,7 +49,7 @@ export class BrowserRunner {
       throw new Error('Browser not launched. Call launch() first.');
     }
 
-    const element = await this.page.$(`[data-style-test="${testId}"]`);
+    const element = await this.page.$(`[data-style-test=${JSON.stringify(testId)}]`);
 
     if (!element) {
       return null;
@@ -121,14 +130,15 @@ export class BrowserRunner {
   }
 
   async close(): Promise<void> {
-    if (this.page) {
-      await this.page.close();
-      this.page = null;
-    }
+    const page = this.page;
+    const browser = this.browser;
+    this.page = null;
+    this.browser = null;
 
-    if (this.browser) {
-      await this.browser.close();
-      this.browser = null;
+    try {
+      await page?.close();
+    } finally {
+      await browser?.close();
     }
   }
 }

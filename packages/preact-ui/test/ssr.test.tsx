@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hydratePreact, mountPreact } from '../src/index.js';
+import { definePreactElement, hydratePreact, mountPreact } from '../src/index.js';
 import { createSSR } from '../src/ssr.js';
 
 function View({ input }: { input: { label: string } }) {
@@ -69,5 +69,44 @@ describe('SSR and hydration boundaries', () => {
     const replacement = mountPreact(host, FailingView, { label: 'recovered' });
     expect(host.querySelectorAll('span')).toHaveLength(1);
     replacement.destroy();
+  });
+
+  it('clears hydration-pending state after hydration failure so reconnects mount cleanly', () => {
+    const tag = `test-recoverable-hydrate-${Date.now()}`;
+    const host = document.createElement(tag);
+    const shadow = host.attachShadow({ mode: 'open' });
+    shadow.innerHTML = '<div data-preact-root><span>stale-ssr</span></div>';
+
+    let shouldFail = true;
+    definePreactElement<{ label: string }>({
+      tagName: tag,
+      hydrateShadowRoot: true,
+      setup() {
+        return {
+          view: ({ input }) => {
+            if (shouldFail) throw new Error('initial hydration boom');
+            return <span>{input.label}</span>;
+          },
+          getInput: () => ({ label: 'recovered-after-hydration' }),
+        };
+      },
+    });
+    customElements.upgrade(host);
+
+    Object.defineProperty(host, 'isConnected', {
+      value: true,
+      configurable: true,
+    });
+    try {
+      expect(() => (host as unknown as { connectedCallback(): void }).connectedCallback())
+        .toThrow('initial hydration boom');
+    } finally {
+      delete (host as unknown as { isConnected?: boolean }).isConnected;
+    }
+
+    shouldFail = false;
+    document.body.append(host);
+    expect(host.shadowRoot?.textContent).toBe('recovered-after-hydration');
+    host.remove();
   });
 });

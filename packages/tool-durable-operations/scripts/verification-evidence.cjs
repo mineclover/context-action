@@ -167,11 +167,12 @@ function createVerificationEvidence({
   for (const step of STEP_NAMES) {
     const { parsed, text, available } = readStepLog(inputDirectory, step, secrets);
     const outcome = outcomes[step] ?? 'unknown';
+    const result = safeResult(step, parsed, text, outcome);
     checks[step] = {
       outcome,
       available,
-      status: parsed?.status === 'ok' ? 'ok' : 'unknown',
-      result: safeResult(step, parsed, text, outcome),
+      status: parsed?.status === 'ok' || result?.status === 'ok' ? 'ok' : 'unknown',
+      result,
     };
   }
 

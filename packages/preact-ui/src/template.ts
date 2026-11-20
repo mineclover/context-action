@@ -44,7 +44,16 @@ export function mountTemplate<Input>(
   }
   return {
     get destroyed() { return instance.destroyed; },
-    update(next) { instance.update(next); },
+    update(next) {
+      try {
+        instance.update(next);
+      } catch (error) {
+        if (instance.destroyed) {
+          removeShell();
+        }
+        throw error;
+      }
+    },
     destroy() {
       try { instance.destroy(); } finally { removeShell(); }
     },

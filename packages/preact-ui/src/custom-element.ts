@@ -412,6 +412,7 @@ export function definePreactElement<
       const errors: unknown[] = [];
       const mount = this.#mount;
       this.#mount = undefined;
+      this.#hydrationPending = false;
       try {
         mount?.destroy();
       } catch (error) {
@@ -447,10 +448,12 @@ export function definePreactElement<
         if (this.#disposed || !this.#sessionActive || this.#mount || !this.isConnected) return;
         const input = this.#lifecycle.getInput();
         if (this.#disposed || !this.#sessionActive || this.#mount || !this.isConnected) return;
-        this.#mount = this.#hydrationPending
-          ? hydratePreact(this.#root, this.#lifecycle.view, input)
-          : mountPreact(this.#root, this.#lifecycle.view, input);
-        this.#hydrationPending = false;
+        if (this.#hydrationPending) {
+          this.#hydrationPending = false;
+          this.#mount = hydratePreact(this.#root, this.#lifecycle.view, input);
+        } else {
+          this.#mount = mountPreact(this.#root, this.#lifecycle.view, input);
+        }
       } catch (error) {
         const cleanupErrors = this.#teardownSession();
         if (cleanupErrors.length > 0) {

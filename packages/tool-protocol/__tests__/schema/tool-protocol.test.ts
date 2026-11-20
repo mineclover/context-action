@@ -630,4 +630,44 @@ describe('tool protocol context', () => {
     queue.resolve(currentSnapshot.id, 'allow');
     await expect(current).resolves.toBe('allow');
   });
+
+  it('isolates throwing approval subscribers and still settles and cleans abort listeners', async () => {
+    const queue = createToolApprovalQueue();
+    const throwingListener = jest.fn(() => {
+      throw new Error('subscriber failure');
+    });
+    const healthyListener = jest.fn();
+    const unsubscribeThrowing = queue.store.subscribe(throwingListener);
+    const unsubscribeHealthy = queue.store.subscribe(healthyListener);
+
+    const abortController = new AbortController();
+    const removeListenerSpy = jest.spyOn(abortController.signal, 'removeEventListener');
+
+    const decisionPromise = queue.request({
+      request: {
+        id: 'isolated-approval',
+        method: 'tools/call',
+        params: { name: 'workspace.writeFile' },
+      },
+      definition: {
+        name: 'workspace.writeFile',
+        inputSchema: { type: 'object' as const },
+      },
+      signal: abortController.signal,
+    });
+
+    expect(throwingListener).toHaveBeenCalledTimes(1);
+    expect(healthyListener).toHaveBeenCalledTimes(1);
+
+    const snapshot = queue.store.getSnapshot()[0]!;
+    queue.resolve(snapshot.id, 'allow');
+
+    await expect(decisionPromise).resolves.toBe('allow');
+    expect(throwingListener).toHaveBeenCalledTimes(2);
+    expect(healthyListener).toHaveBeenCalledTimes(2);
+    expect(removeListenerSpy).toHaveBeenCalledWith('abort', expect.any(Function));
+
+    unsubscribeThrowing();
+    unsubscribeHealthy();
+  });
 });

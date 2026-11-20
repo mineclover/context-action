@@ -274,7 +274,11 @@ export class ContextStoreController<T = unknown, Selected = T> implements Reacti
       return store.getValue();
     }
     if (typeof store.getSnapshot === 'function') {
-      return store.getSnapshot() as T;
+      const snap = store.getSnapshot();
+      if (snap !== null && typeof snap === 'object' && 'value' in snap) {
+        return (snap as { value: T }).value;
+      }
+      return snap as T;
     }
     throw new TypeError(
       'ContextStoreController: Provided store must implement getValue() or getSnapshot().'
@@ -299,6 +303,17 @@ export class ContextStoreController<T = unknown, Selected = T> implements Reacti
     }
 
     this.#isResolved = true;
+    const isExplicitlyDisconnected =
+      'isConnected' in this.#host &&
+      typeof (this.#host as { isConnected?: unknown }).isConnected === 'boolean' &&
+      !(this.#host as { isConnected?: boolean }).isConnected;
+
+    if (isExplicitlyDisconnected) {
+      const raw = this.#extractRawValue(nextStore);
+      this.#selectedValue = this.#selector(raw);
+      return;
+    }
+
     this.#syncStateAndSubscribe();
     this.#host.requestUpdate();
   }
@@ -306,12 +321,14 @@ export class ContextStoreController<T = unknown, Selected = T> implements Reacti
   #syncStateAndSubscribe(): void {
     if (!this.#currentStore) return;
 
+    const boundStore = this.#currentStore;
+
     // Compute initial value
-    const raw = this.#extractRawValue(this.#currentStore);
+    const raw = this.#extractRawValue(boundStore);
     this.#selectedValue = this.#selector(raw);
 
     // Subscribe to store notifications
-    this.#unsubscribeStore = this.#currentStore.subscribe(() => {
+    this.#unsubscribeStore = boundStore.subscribe(() => {
       if (!this.#currentStore) return;
       const nextRaw = this.#extractRawValue(this.#currentStore);
       const nextSelected = this.#selector(nextRaw);
@@ -321,6 +338,15 @@ export class ContextStoreController<T = unknown, Selected = T> implements Reacti
         this.#host.requestUpdate();
       }
     });
+
+    // Close read/subscribe race window in case state mutated before subscribe completed.
+    if (this.#currentStore !== boundStore) return;
+    const freshRaw = this.#extractRawValue(boundStore);
+    const freshSelected = this.#selector(freshRaw);
+    if (!this.#equalityFn(this.#selectedValue as Selected, freshSelected)) {
+      this.#selectedValue = freshSelected;
+      this.#host.requestUpdate();
+    }
   }
 
   #cleanupStoreSubscription(): void {
@@ -371,7 +397,7 @@ export class ContextActionController<A extends ActionPayloadMap = ActionPayloadM
   readonly #host: ReactiveControllerHost & HTMLElement;
 
   #register: ActionRegister<A> | undefined = undefined;
-  #isPending = false;
+  #activeCount = 0;
   #lastError: Error | undefined = undefined;
 
   constructor(
@@ -406,12 +432,32 @@ export class ContextActionController<A extends ActionPayloadMap = ActionPayloadM
 
   /** Whether an action dispatch is currently in progress. */
   get isPending(): boolean {
-    return this.#isPending;
+    return this.#activeCount > 0;
   }
 
   /** The last error thrown during an action dispatch, if any. */
   get lastError(): Error | undefined {
     return this.#lastError;
+  }
+
+  #isHostConnected(): boolean {
+    return !('isConnected' in this.#host) || this.#host.isConnected;
+  }
+
+  #incrementPending(): void {
+    const wasPending = this.#activeCount > 0;
+    this.#activeCount++;
+    this.#lastError = undefined;
+    if (!wasPending && this.#isHostConnected()) {
+      this.#host.requestUpdate();
+    }
+  }
+
+  #decrementPending(): void {
+    this.#activeCount = Math.max(0, this.#activeCount - 1);
+    if (this.#activeCount === 0 && this.#isHostConnected()) {
+      this.#host.requestUpdate();
+    }
   }
 
   /**
@@ -431,9 +477,7 @@ export class ContextActionController<A extends ActionPayloadMap = ActionPayloadM
       );
     }
 
-    this.#isPending = true;
-    this.#lastError = undefined;
-    this.#host.requestUpdate();
+    this.#incrementPending();
 
     try {
       await this.#register.dispatch(action, ...args);
@@ -442,8 +486,7 @@ export class ContextActionController<A extends ActionPayloadMap = ActionPayloadM
       this.#lastError = errorObj;
       throw errorObj;
     } finally {
-      this.#isPending = false;
-      this.#host.requestUpdate();
+      this.#decrementPending();
     }
   }
 
@@ -466,9 +509,7 @@ export class ContextActionController<A extends ActionPayloadMap = ActionPayloadM
       );
     }
 
-    this.#isPending = true;
-    this.#lastError = undefined;
-    this.#host.requestUpdate();
+    this.#incrementPending();
 
     try {
       if (typeof (this.#register as any).dispatchWithResult === 'function') {
@@ -480,8 +521,7 @@ export class ContextActionController<A extends ActionPayloadMap = ActionPayloadM
       this.#lastError = errorObj;
       throw errorObj;
     } finally {
-      this.#isPending = false;
-      this.#host.requestUpdate();
+      this.#decrementPending();
     }
   }
 

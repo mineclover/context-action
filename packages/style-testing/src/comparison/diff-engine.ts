@@ -78,11 +78,6 @@ export class DiffEngine {
 
       // Compare values
       if (!this.valuesMatch(normalizedExpected, normalizedActual, property)) {
-        // Don't report if actual has individual properties set correctly
-        if (this.isShorthandProperty(property) && actualValue) {
-          continue; // Skip if shorthand was successfully resolved
-        }
-
         differences.push({
           property,
           expected: expectedValue,
@@ -169,22 +164,28 @@ export class DiffEngine {
   }
 
   private normalizeColor(hex: string): string {
+    const normalized = hex.trim().toLowerCase();
     // Convert #fff to #ffffff
-    if (hex.length === 4) {
-      return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+    if (normalized.length === 4) {
+      return `#${normalized[1]}${normalized[1]}${normalized[2]}${normalized[2]}${normalized[3]}${normalized[3]}`;
     }
-    return hex.toLowerCase();
+    return normalized;
   }
 
   private normalizeRgb(rgb: string): string {
     // Extract numbers from rgb(r, g, b) or rgba(r, g, b, a)
-    const match = rgb.match(/\d+/g);
-    if (!match) return rgb;
+    const match = rgb.match(/(?:\d+(?:\.\d+)?|\.\d+)/g);
+    if (!match || match.length < 3) return rgb.trim().toLowerCase();
 
-    const [r, g, b] = match.map(Number);
-    // Convert to hex for easier comparison
-    const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-    return hex;
+    const r = Number(match[0]);
+    const g = Number(match[1]);
+    const b = Number(match[2]);
+    const alpha = match.length >= 4 ? Number(match[3]) : 1;
+    if (alpha !== 1) {
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    // Convert opaque colors to hex for easier comparison
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   }
 
   private valuesMatch(expected: string, actual: string, property: string): boolean {

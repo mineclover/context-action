@@ -390,4 +390,53 @@ describe('createWebMCPToolScope', () => {
     expect(error.details.reason.policy).toBe('original');
     scope.dispose();
   });
+
+  it('preserves modelContext receiver binding in the chrome-legacy profile', async () => {
+    const modelContext = {
+      tag: 'bound-model-context',
+      registered: [] as WebMCPToolDefinition[],
+      registerTool(this: { tag: string; registered: WebMCPToolDefinition[] }, tool: WebMCPToolDefinition) {
+        if (this !== modelContext || this.tag !== 'bound-model-context') {
+          throw new TypeError('Illegal invocation');
+        }
+        this.registered.push(tool);
+      },
+    };
+
+    const scope = await createWebMCPToolScope(createManager(), {
+      sessionId: 'legacy-session',
+      toolNames: ['search'],
+      profile: chromeLegacyWebMCPProfile,
+      document: { modelContext },
+    });
+
+    expect(scope.activeTools).toEqual(['search']);
+    expect(modelContext.registered).toHaveLength(1);
+    scope.dispose();
+  });
+
+  it('reports no active tools if signal aborts during subsequent tool registration', async () => {
+    const controller = new AbortController();
+    let callCount = 0;
+
+    const scope = await createWebMCPToolScope(createManager(), {
+      sessionId: 'abort-mid-loop',
+      toolNames: ['search', 'save'],
+      signal: controller.signal,
+      document: {
+        modelContext: {
+          registerTool: async () => {
+            callCount += 1;
+            if (callCount === 2) {
+              controller.abort('mid-loop abort');
+            }
+          },
+        },
+      },
+    });
+
+    expect(callCount).toBe(2);
+    expect(scope.activeTools).toEqual([]);
+    scope.dispose();
+  });
 });

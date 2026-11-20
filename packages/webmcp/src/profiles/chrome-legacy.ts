@@ -24,8 +24,10 @@ export const chromeLegacyWebMCPProfile: WebMCPRuntimeProfile<ChromeLegacyWebMCPD
     return typeof (document as ChromeLegacyWebMCPDocument | undefined)?.modelContext?.registerTool === 'function';
   },
   async registerTool(document, tool, options): Promise<void> {
-    const registerTool = document.modelContext?.registerTool;
-    if (!registerTool) throw new Error('Chrome legacy WebMCP modelContext is unavailable.');
-    await registerTool(tool, options);
+    const modelContext = document.modelContext;
+    if (!modelContext || typeof modelContext.registerTool !== 'function') {
+      throw new Error('Chrome legacy WebMCP modelContext is unavailable.');
+    }
+    await modelContext.registerTool(tool, options);
   },
 };

@@ -78,7 +78,14 @@ export class StoreController<T = unknown, Selected = T> implements ReactiveContr
       !(this.#host as { isConnected?: boolean }).isConnected;
 
     if (!isExplicitlyDisconnected) {
-      this.subscribe();
+      try {
+        this.subscribe();
+      } catch (error) {
+        if (typeof this.#host.removeController === 'function') {
+          this.#host.removeController(this);
+        }
+        throw error;
+      }
     }
   }
 
@@ -138,13 +145,15 @@ export class StoreController<T = unknown, Selected = T> implements ReactiveContr
    * Safe to call multiple times (idempotent).
    */
   subscribe(): void {
+    if (this.#isDisposed) {
+      return;
+    }
     if (this.#unsubscribe !== null) {
       // Already subscribed; refresh projection in case state changed
       this.#refresh(true);
       return;
     }
 
-    this.#isDisposed = false;
     const unsub = this.#store.subscribe(this.#handleStoreUpdate);
     this.#unsubscribe = unsub;
 

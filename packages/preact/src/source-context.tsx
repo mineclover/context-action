@@ -11,7 +11,7 @@
  *   - `useSourceSignal()` fails closed when called outside its matching `<Provider>`.
  */
 import { createContext } from 'preact';
-import type { ComponentChildren } from 'preact';
+import type { ComponentChildren, JSX } from 'preact';
 import { useContext } from 'preact/hooks';
 import type { ReadonlySignal } from '@preact/signals';
 
@@ -19,7 +19,7 @@ export interface SourceContext<T> {
   Provider(props: {
     sourceSignal: ReadonlySignal<T>;
     children?: ComponentChildren;
-  }): preact.JSX.Element;
+  }): JSX.Element;
   useSourceSignal(): ReadonlySignal<T>;
 }
 
