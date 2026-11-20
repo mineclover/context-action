@@ -3,12 +3,17 @@ import type {
   AccessRequestDraft,
   AccessScope,
 } from '../business/accessBusiness';
-import { useAccessRequestDispatch } from '../contexts/AccessRequestContexts';
+import {
+  type AccessRequestInspectorTab,
+  useAccessRequestDispatch,
+  useAccessRequestLayoutDispatch,
+} from '../contexts/AccessRequestContexts';
 
 type DraftStringField = 'requesterName' | 'email' | 'justification';
 
 export function useAccessRequestActions() {
   const dispatch = useAccessRequestDispatch();
+  const layoutDispatch = useAccessRequestLayoutDispatch();
 
   const updateTextField = React.useCallback(
     (field: DraftStringField, value: string) => {
@@ -42,6 +47,12 @@ export function useAccessRequestActions() {
 
   const resetDemo = React.useCallback(() => dispatch('resetDemo'), [dispatch]);
 
+  const setInspectorTab = React.useCallback(
+    (tab: AccessRequestInspectorTab) =>
+      layoutDispatch('setInspectorTab', { tab }),
+    [layoutDispatch]
+  );
+
   return {
     updateTextField,
     updateScope,
@@ -49,5 +60,6 @@ export function useAccessRequestActions() {
     submitReview,
     prefillExample,
     resetDemo,
+    setInspectorTab,
   };
 }

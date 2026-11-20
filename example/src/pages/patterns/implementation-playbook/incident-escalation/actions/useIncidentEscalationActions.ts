@@ -4,12 +4,17 @@ import type {
   IncidentDraft,
   IncidentSeverity,
 } from '../business/incidentBusiness';
-import { useIncidentEscalationDispatch } from '../contexts/IncidentEscalationContexts';
+import {
+  type IncidentEscalationInspectorTab,
+  useIncidentEscalationDispatch,
+  useIncidentEscalationLayoutDispatch,
+} from '../contexts/IncidentEscalationContexts';
 
 type DraftStringField = 'incidentTitle' | 'summary';
 
 export function useIncidentEscalationActions() {
   const dispatch = useIncidentEscalationDispatch();
+  const layoutDispatch = useIncidentEscalationLayoutDispatch();
 
   const updateTextField = React.useCallback(
     (field: DraftStringField, value: string) => {
@@ -53,6 +58,12 @@ export function useIncidentEscalationActions() {
 
   const resetDemo = React.useCallback(() => dispatch('resetDemo'), [dispatch]);
 
+  const setInspectorTab = React.useCallback(
+    (tab: IncidentEscalationInspectorTab) =>
+      layoutDispatch('setInspectorTab', { tab }),
+    [layoutDispatch]
+  );
+
   return {
     updateTextField,
     updateSeverity,
@@ -62,5 +73,6 @@ export function useIncidentEscalationActions() {
     submitEscalation,
     prefillExample,
     resetDemo,
+    setInspectorTab,
   };
 }

@@ -5,8 +5,12 @@ import {
 } from '../business/renewalBusiness';
 import {
   RenewalRiskReviewActionProvider,
+  RenewalRiskReviewLayoutActionProvider,
+  RenewalRiskReviewLayoutStoreProvider,
   RenewalRiskReviewRefProvider,
   RenewalRiskReviewStoreProvider,
+  useRenewalRiskReviewLayoutEffectHandler,
+  useRenewalRiskReviewLayoutStore,
   useRenewalRiskReviewStoreManager,
 } from '../contexts/RenewalRiskReviewContexts';
 import { useRenewalDraftHandlers } from './useRenewalDraftHandlers';
@@ -18,6 +22,7 @@ function RenewalRiskReviewHandlerRegistry({
   children: React.ReactNode;
 }) {
   const storeManager = useRenewalRiskReviewStoreManager();
+  const inspectorTabStore = useRenewalRiskReviewLayoutStore('inspectorTab');
 
   const appendActivity = React.useCallback(
     (event: RenewalActivityEventInput) => {
@@ -28,6 +33,18 @@ function RenewalRiskReviewHandlerRegistry({
       ]);
     },
     [storeManager]
+  );
+
+  // Separate LayoutActionIntent handler for Tier 3 UI tab state
+  useRenewalRiskReviewLayoutEffectHandler(
+    'setInspectorTab',
+    React.useCallback(
+      ({ tab }) => {
+        inspectorTabStore.setValue(tab);
+      },
+      [inspectorTabStore]
+    ),
+    { effectKind: 'observer' }
   );
 
   useRenewalDraftHandlers({ appendActivity });
@@ -43,13 +60,17 @@ export function RenewalRiskReviewProviders({
 }) {
   return (
     <RenewalRiskReviewActionProvider>
-      <RenewalRiskReviewStoreProvider>
-        <RenewalRiskReviewRefProvider>
-          <RenewalRiskReviewHandlerRegistry>
-            {children}
-          </RenewalRiskReviewHandlerRegistry>
-        </RenewalRiskReviewRefProvider>
-      </RenewalRiskReviewStoreProvider>
+      <RenewalRiskReviewLayoutActionProvider>
+        <RenewalRiskReviewStoreProvider>
+          <RenewalRiskReviewLayoutStoreProvider>
+            <RenewalRiskReviewRefProvider>
+              <RenewalRiskReviewHandlerRegistry>
+                {children}
+              </RenewalRiskReviewHandlerRegistry>
+            </RenewalRiskReviewRefProvider>
+          </RenewalRiskReviewLayoutStoreProvider>
+        </RenewalRiskReviewStoreProvider>
+      </RenewalRiskReviewLayoutActionProvider>
     </RenewalRiskReviewActionProvider>
   );
 }

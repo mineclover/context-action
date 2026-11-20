@@ -7,11 +7,16 @@ import {
   validateIncidentDraft,
 } from '../business/incidentBusiness';
 import {
-  useIncidentEscalationActionHandler,
+  useIncidentEscalationActionGuard,
+  useIncidentEscalationActionObserver,
+  useIncidentEscalationEffectHandler,
   useIncidentEscalationRef,
   useIncidentEscalationStoreManager,
 } from '../contexts/IncidentEscalationContexts';
-import { toValidationViewState } from './incidentHandlerSupport';
+import {
+  isEscalationBusy,
+  toValidationViewState,
+} from './incidentHandlerSupport';
 
 interface SubmissionHandlerOptions {
   appendActivity: (event: IncidentActivityEventInput) => void;
@@ -30,7 +35,28 @@ export function useIncidentSubmissionHandlers({
   const summaryRef = useIncidentEscalationRef('summaryInput');
   const statusPanelRef = useIncidentEscalationRef('statusPanel');
 
-  useIncidentEscalationActionHandler(
+  useIncidentEscalationActionGuard(
+    'submitEscalation',
+    React.useCallback(
+      (_, controller) => {
+        if (isEscalationBusy(storeManager.getStore('escalation').getValue())) {
+          controller.abort('Escalation already in progress');
+        }
+      },
+      [storeManager]
+    ),
+    { id: 'incident-busy-guard', priority: 100 }
+  );
+
+  useIncidentEscalationActionObserver(
+    'submitEscalation',
+    React.useCallback(() => {
+      // Detached post-outcome telemetry hook (v1 observer)
+    }, []),
+    { id: 'incident-escalation-observer', when: 'always', priority: 10 }
+  );
+
+  useIncidentEscalationEffectHandler(
     'submitEscalation',
     React.useCallback(async () => {
       const draftStore = storeManager.getStore('draft');
@@ -143,6 +169,7 @@ export function useIncidentSubmissionHandlers({
       statusPanelRef,
       storeManager,
       summaryRef,
-    ])
+    ]),
+    { effectKind: 'observer' }
   );
 }

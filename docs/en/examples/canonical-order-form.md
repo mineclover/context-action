@@ -11,6 +11,9 @@ If you only read one example to understand the architecture, start with this one
 - `Ref Context` for imperative focus management after validation failure
 - pure `business` functions for deterministic validation and quote calculation
 - reactive `hooks` and `views` for rendering without hidden local business logic
+- Unified Triad separation between `BusinessActionIntent` (`CanonicalOrderActionProvider`) and `LayoutActionIntent` (`CanonicalOrderLayoutActionProvider` / `CanonicalOrderLayoutStoreProvider` for `setInspectorTab`)
+- v1 role-specific action hooks (`useActionGuard` busy guard, `useActionEffectHandler`, `useActionObserver`) inside `handlers/`
+- Tier 3 `@evidenceExclude` annotation on `views/CanonicalOrderView.tsx` to keep volatile presentation chrome out of domain contracts
 
 ## Route
 
@@ -25,6 +28,7 @@ The live example is exposed in the example application at:
 ```text
 example/src/pages/patterns/implementation-playbook/
 ├── CanonicalOrderExample.tsx
+├── CanonicalOrderExample.test.tsx
 ├── CanonicalOrderExamplePage.tsx
 ├── contexts/
 │   └── CanonicalOrderContexts.tsx
@@ -218,12 +222,13 @@ Views render state and emit user intent.
 
 ### How is it tested
 
-The example is verified by an integration test that imports the real example component and checks:
+The example is verified by integration tests (`packages/react/__tests__/patterns/implementation-playbook.integration.test.tsx` and `example/src/pages/patterns/implementation-playbook/CanonicalOrderExample.test.tsx`) that import the real example component and check:
 
 - validation errors render for invalid input
 - focus moves to the invalid field through refs
 - valid submission produces a quote and success state
 - reset restores baseline state
+- toggling `LayoutActionIntent` (`setInspectorTab`) switches between activity logs and Triad contract notes without disturbing domain stores or active quotes
 
 ## Recommended Reading Order
 

@@ -1,6 +1,7 @@
 import { useStoreValue } from '@context-action/react';
 import { buildAccessReviewPacket } from '../business/accessBusiness';
 import {
+  useAccessRequestLayoutStore,
   useAccessRequestRef,
   useAccessRequestStore,
 } from '../contexts/AccessRequestContexts';
@@ -15,11 +16,13 @@ export function useAccessRequestData() {
   const validationStore = useAccessRequestStore('validation');
   const reviewStore = useAccessRequestStore('review');
   const activityStore = useAccessRequestStore('activity');
+  const inspectorTabStore = useAccessRequestLayoutStore('inspectorTab');
 
   const draft = useStoreValue(draftStore);
   const validation = useStoreValue(validationStore);
   const review = useStoreValue(reviewStore);
   const activity = useStoreValue(activityStore);
+  const inspectorTab = useStoreValue(inspectorTabStore);
   const livePacket = buildAccessReviewPacket(draft);
   const reviewView = toReviewViewState(review);
   const activityEntries = activity.map(toActivityEntry);
@@ -31,6 +34,7 @@ export function useAccessRequestData() {
     reviewView,
     livePacket,
     activity: activityEntries,
+    inspectorTab,
     isBusy: isReviewBusy(review),
     hasErrors: Object.keys(validation.fieldErrors).length > 0,
   };

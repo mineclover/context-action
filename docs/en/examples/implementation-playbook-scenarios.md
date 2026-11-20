@@ -10,6 +10,9 @@ Each scenario follows the same base rules:
 - keep validation and result calculation pure
 - define review or submission flow as an explicit state machine
 - derive activity logs from domain events
+- separate `BusinessActionIntent` from `LayoutActionIntent` (isolating inspector tabs in dedicated `*LayoutActionProvider` / `*LayoutStoreProvider` pairs)
+- use v1 role-specific action hooks (`useActionGuard`, `useActionEffectHandler`, `useActionObserver`) inside `handlers/`
+- mark Tier 3 presentation views (`views/*.tsx`) with `@evidenceExclude` across all four interactive scenarios
 - lock invalid, valid, and reset behavior with integration tests
 
 The standard is defined in [Implementation Playbook Standard Convention](/en/context-layered/implementation-convention).

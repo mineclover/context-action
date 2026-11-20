@@ -7,11 +7,13 @@ import {
   validateRenewalReviewDraft,
 } from '../business/renewalBusiness';
 import {
-  useRenewalRiskReviewActionHandler,
+  useRenewalRiskReviewActionGuard,
+  useRenewalRiskReviewActionObserver,
+  useRenewalRiskReviewEffectHandler,
   useRenewalRiskReviewRef,
   useRenewalRiskReviewStoreManager,
 } from '../contexts/RenewalRiskReviewContexts';
-import { toValidationViewState } from './renewalHandlerSupport';
+import { isReviewBusy, toValidationViewState } from './renewalHandlerSupport';
 
 interface SubmissionHandlerOptions {
   appendActivity: (event: RenewalActivityEventInput) => void;
@@ -27,7 +29,28 @@ export function useRenewalSubmissionHandlers({
   const riskNotesRef = useRenewalRiskReviewRef('riskNotesInput');
   const statusPanelRef = useRenewalRiskReviewRef('statusPanel');
 
-  useRenewalRiskReviewActionHandler(
+  useRenewalRiskReviewActionGuard(
+    'submitReview',
+    React.useCallback(
+      (_, controller) => {
+        if (isReviewBusy(storeManager.getStore('review').getValue())) {
+          controller.abort('Renewal review already in progress');
+        }
+      },
+      [storeManager]
+    ),
+    { id: 'renewal-busy-guard', priority: 100 }
+  );
+
+  useRenewalRiskReviewActionObserver(
+    'submitReview',
+    React.useCallback(() => {
+      // Detached post-outcome telemetry hook (v1 observer)
+    }, []),
+    { id: 'renewal-review-observer', when: 'always', priority: 10 }
+  );
+
+  useRenewalRiskReviewEffectHandler(
     'submitReview',
     React.useCallback(async () => {
       const draftStore = storeManager.getStore('draft');
@@ -134,6 +157,7 @@ export function useRenewalSubmissionHandlers({
       statusPanelRef,
       storeManager,
       usageScoreRef,
-    ])
+    ]),
+    { effectKind: 'observer' }
   );
 }

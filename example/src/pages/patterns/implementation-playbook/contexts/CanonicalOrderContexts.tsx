@@ -27,11 +27,23 @@ export interface CanonicalOrderStores {
   activity: OrderActivityEvent[];
 }
 
-export interface CanonicalOrderActions extends ActionPayloadMap {
+export interface CanonicalOrderBusinessActions extends ActionPayloadMap {
   updateDraft: Partial<OrderDraft>;
   submitOrder: void;
   prefillExample: void;
   resetDemo: void;
+}
+
+export type CanonicalOrderActions = CanonicalOrderBusinessActions;
+
+export type CanonicalOrderInspectorTab = 'activity' | 'contract';
+
+export interface CanonicalOrderLayoutActions extends ActionPayloadMap {
+  setInspectorTab: { tab: CanonicalOrderInspectorTab };
+}
+
+export interface CanonicalOrderLayoutStores {
+  inspectorTab: CanonicalOrderInspectorTab;
 }
 
 export interface CanonicalOrderRefs {
@@ -87,7 +99,30 @@ export const {
   Provider: CanonicalOrderActionProvider,
   useActionDispatch: useCanonicalOrderDispatch,
   useActionHandler: useCanonicalOrderActionHandler,
-} = createActionContext<CanonicalOrderActions>('CanonicalOrderActions');
+  useActionGuard: useCanonicalOrderActionGuard,
+  useActionEffectHandler: useCanonicalOrderEffectHandler,
+  useActionObserver: useCanonicalOrderActionObserver,
+} = createActionContext<CanonicalOrderBusinessActions>('CanonicalOrderActions');
+
+export const {
+  Provider: CanonicalOrderLayoutActionProvider,
+  useActionDispatch: useCanonicalOrderLayoutDispatch,
+  useActionEffectHandler: useCanonicalOrderLayoutEffectHandler,
+} = createActionContext<CanonicalOrderLayoutActions>(
+  'CanonicalOrderLayoutActions'
+);
+
+export const {
+  Provider: CanonicalOrderLayoutStoreProvider,
+  useStore: useCanonicalOrderLayoutStore,
+} = createStoreContext<CanonicalOrderLayoutStores>(
+  'CanonicalOrderLayoutStores',
+  {
+    inspectorTab: {
+      initialValue: 'activity' as CanonicalOrderInspectorTab,
+    },
+  }
+);
 
 export const {
   Provider: CanonicalOrderRefProvider,

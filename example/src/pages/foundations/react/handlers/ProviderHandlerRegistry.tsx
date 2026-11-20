@@ -13,26 +13,85 @@ export function ProviderHandlerRegistry({
   const messageStore = ProviderStoreContext.useStore('message');
   const activitiesStore = ProviderStoreContext.useStore('activities');
 
-  ProviderActionContext.useActionHandler('updateCounter', ({ value }) => {
-    counterStore.setValue(value);
-  });
+  ProviderActionContext.useActionGuard(
+    'updateMessage',
+    React.useCallback(({ text }, controller) => {
+      if (!text.trim()) {
+        controller.abort('Message cannot be empty');
+      }
+    }, []),
+    { id: 'provider-message-guard', priority: 100 }
+  );
 
-  ProviderActionContext.useActionHandler('resetCounter', () => {
-    counterStore.setValue(0);
-  });
+  ProviderActionContext.useActionEffectHandler(
+    'updateCounter',
+    React.useCallback(
+      ({ value }) => {
+        counterStore.setValue(value);
+      },
+      [counterStore]
+    ),
+    { effectKind: 'observer' }
+  );
 
-  ProviderActionContext.useActionHandler('updateMessage', ({ text }) => {
-    messageStore.setValue(text);
-  });
+  ProviderActionContext.useActionObserver(
+    'updateCounter',
+    React.useCallback(
+      (event) => {
+        if (event.outcome === 'completed') {
+          const timestamp = new Date().toLocaleTimeString();
+          activitiesStore.update((prev) => [
+            ...prev,
+            `${timestamp}: [observer] updateCounter settled (${event.payload.value})`,
+          ]);
+        }
+      },
+      [activitiesStore]
+    ),
+    { id: 'provider-counter-observer', when: 'success', priority: 10 }
+  );
 
-  ProviderActionContext.useActionHandler('resetMessage', () => {
-    messageStore.setValue('Hello from Provider!');
-  });
+  ProviderActionContext.useActionEffectHandler(
+    'resetCounter',
+    React.useCallback(() => {
+      counterStore.setValue(0);
+    }, [counterStore]),
+    { effectKind: 'observer' }
+  );
 
-  ProviderActionContext.useActionHandler('logActivity', ({ activity }) => {
-    const timestamp = new Date().toLocaleTimeString();
-    activitiesStore.update((prev) => [...prev, `${timestamp}: ${activity}`]);
-  });
+  ProviderActionContext.useActionEffectHandler(
+    'updateMessage',
+    React.useCallback(
+      ({ text }) => {
+        messageStore.setValue(text);
+      },
+      [messageStore]
+    ),
+    { effectKind: 'observer' }
+  );
+
+  ProviderActionContext.useActionEffectHandler(
+    'resetMessage',
+    React.useCallback(() => {
+      messageStore.setValue('Hello from Provider!');
+    }, [messageStore]),
+    { effectKind: 'observer' }
+  );
+
+  ProviderActionContext.useActionEffectHandler(
+    'logActivity',
+    React.useCallback(
+      ({ activity }) => {
+        const timestamp = new Date().toLocaleTimeString();
+        activitiesStore.update((prev) => [
+          ...prev,
+          `${timestamp}: ${activity}`,
+        ]);
+      },
+      [activitiesStore]
+    ),
+    { effectKind: 'observer' }
+  );
 
   return <>{children}</>;
 }

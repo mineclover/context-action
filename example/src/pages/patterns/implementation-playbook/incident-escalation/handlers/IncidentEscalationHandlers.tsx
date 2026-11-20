@@ -5,8 +5,12 @@ import {
 } from '../business/incidentBusiness';
 import {
   IncidentEscalationActionProvider,
+  IncidentEscalationLayoutActionProvider,
+  IncidentEscalationLayoutStoreProvider,
   IncidentEscalationRefProvider,
   IncidentEscalationStoreProvider,
+  useIncidentEscalationLayoutEffectHandler,
+  useIncidentEscalationLayoutStore,
   useIncidentEscalationStoreManager,
 } from '../contexts/IncidentEscalationContexts';
 import { useIncidentDraftHandlers } from './useIncidentDraftHandlers';
@@ -18,6 +22,7 @@ function IncidentEscalationHandlerRegistry({
   children: React.ReactNode;
 }) {
   const storeManager = useIncidentEscalationStoreManager();
+  const inspectorTabStore = useIncidentEscalationLayoutStore('inspectorTab');
 
   const appendActivity = React.useCallback(
     (event: IncidentActivityEventInput) => {
@@ -28,6 +33,18 @@ function IncidentEscalationHandlerRegistry({
       ]);
     },
     [storeManager]
+  );
+
+  // Separate LayoutActionIntent handler for Tier 3 UI tab state
+  useIncidentEscalationLayoutEffectHandler(
+    'setInspectorTab',
+    React.useCallback(
+      ({ tab }) => {
+        inspectorTabStore.setValue(tab);
+      },
+      [inspectorTabStore]
+    ),
+    { effectKind: 'observer' }
   );
 
   useIncidentDraftHandlers({ appendActivity });
@@ -43,13 +60,17 @@ export function IncidentEscalationProviders({
 }) {
   return (
     <IncidentEscalationActionProvider>
-      <IncidentEscalationStoreProvider>
-        <IncidentEscalationRefProvider>
-          <IncidentEscalationHandlerRegistry>
-            {children}
-          </IncidentEscalationHandlerRegistry>
-        </IncidentEscalationRefProvider>
-      </IncidentEscalationStoreProvider>
+      <IncidentEscalationLayoutActionProvider>
+        <IncidentEscalationStoreProvider>
+          <IncidentEscalationLayoutStoreProvider>
+            <IncidentEscalationRefProvider>
+              <IncidentEscalationHandlerRegistry>
+                {children}
+              </IncidentEscalationHandlerRegistry>
+            </IncidentEscalationRefProvider>
+          </IncidentEscalationLayoutStoreProvider>
+        </IncidentEscalationStoreProvider>
+      </IncidentEscalationLayoutActionProvider>
     </IncidentEscalationActionProvider>
   );
 }

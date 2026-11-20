@@ -7,11 +7,13 @@ import {
   validateAccessRequestDraft,
 } from '../business/accessBusiness';
 import {
-  useAccessRequestActionHandler,
+  useAccessRequestActionGuard,
+  useAccessRequestActionObserver,
+  useAccessRequestEffectHandler,
   useAccessRequestRef,
   useAccessRequestStoreManager,
 } from '../contexts/AccessRequestContexts';
-import { toValidationViewState } from './accessHandlerSupport';
+import { isReviewBusy, toValidationViewState } from './accessHandlerSupport';
 
 interface SubmissionHandlerOptions {
   appendActivity: (event: AccessActivityEventInput) => void;
@@ -27,7 +29,28 @@ export function useAccessSubmissionHandlers({
   const justificationRef = useAccessRequestRef('justificationInput');
   const statusPanelRef = useAccessRequestRef('statusPanel');
 
-  useAccessRequestActionHandler(
+  useAccessRequestActionGuard(
+    'submitReview',
+    React.useCallback(
+      (_, controller) => {
+        if (isReviewBusy(storeManager.getStore('review').getValue())) {
+          controller.abort('Review generation already in progress');
+        }
+      },
+      [storeManager]
+    ),
+    { id: 'access-busy-guard', priority: 100 }
+  );
+
+  useAccessRequestActionObserver(
+    'submitReview',
+    React.useCallback(() => {
+      // Detached post-outcome telemetry hook (v1 observer)
+    }, []),
+    { id: 'access-review-observer', when: 'always', priority: 10 }
+  );
+
+  useAccessRequestEffectHandler(
     'submitReview',
     React.useCallback(async () => {
       const draftStore = storeManager.getStore('draft');
@@ -128,6 +151,7 @@ export function useAccessSubmissionHandlers({
       scopeRef,
       statusPanelRef,
       storeManager,
-    ])
+    ]),
+    { effectKind: 'observer' }
   );
 }

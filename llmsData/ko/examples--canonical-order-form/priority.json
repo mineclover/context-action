@@ -2,7 +2,7 @@
   "document": {
     "id": "examples--canonical-order-form",
     "title": "Canonical Order Form 예제",
-    "category": "example",
+    "category": "examples",
     "source_path": "ko/examples/canonical-order-form.md",
     "lastModified": "2026-03-29T15:57:55.394Z",
     "wordCount": 1044
@@ -197,7 +197,7 @@
     "version": "1.0.0",
     "original_size": 9613,
     "created_at": "2026-07-24T05:15:02.537Z",
-    "source_last_modified": "2026-03-29T15:57:55.394Z",
+    "source_last_modified": "2026-11-20T01:19:57.865Z",
     "keywords": {
       "primary": [
         "examples",
@@ -218,6 +218,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-11-20T01:20:46.861Z"
   }
 }

@@ -11,7 +11,7 @@ import {
   initialRenewalActivityState,
   initialRenewalReviewState,
   initialRenewalValidationState,
-  useRenewalRiskReviewActionHandler,
+  useRenewalRiskReviewEffectHandler,
   useRenewalRiskReviewRef,
   useRenewalRiskReviewStoreManager,
 } from '../contexts/RenewalRiskReviewContexts';
@@ -27,7 +27,7 @@ export function useRenewalDraftHandlers({
   const storeManager = useRenewalRiskReviewStoreManager();
   const accountNameRef = useRenewalRiskReviewRef('accountNameInput');
 
-  useRenewalRiskReviewActionHandler(
+  useRenewalRiskReviewEffectHandler(
     'updateDraft',
     React.useCallback(
       async (payload) => {
@@ -67,10 +67,11 @@ export function useRenewalDraftHandlers({
         });
       },
       [appendActivity, storeManager]
-    )
+    ),
+    { effectKind: 'observer' }
   );
 
-  useRenewalRiskReviewActionHandler(
+  useRenewalRiskReviewEffectHandler(
     'prefillExample',
     React.useCallback(async () => {
       storeManager
@@ -87,10 +88,11 @@ export function useRenewalDraftHandlers({
         })
       );
       appendActivity({ type: 'sample_loaded' });
-    }, [appendActivity, storeManager])
+    }, [appendActivity, storeManager]),
+    { effectKind: 'observer' }
   );
 
-  useRenewalRiskReviewActionHandler(
+  useRenewalRiskReviewEffectHandler(
     'resetDemo',
     React.useCallback(async () => {
       storeManager.getStore('draft').setValue(createEmptyRenewalReviewDraft());
@@ -112,6 +114,7 @@ export function useRenewalDraftHandlers({
       accountNameRef.executeIfMounted((target) => {
         target.focus();
       });
-    }, [accountNameRef, storeManager])
+    }, [accountNameRef, storeManager]),
+    { effectKind: 'observer' }
   );
 }

@@ -34,4 +34,7 @@ export const {
   Provider: UploadActionProvider,
   useActionDispatch: useUploadAction,
   useActionHandler: useUploadActionHandler,
+  useActionGuard: useUploadActionGuard,
+  useActionEffectHandler: useUploadActionEffectHandler,
+  useActionObserver: useUploadActionObserver,
 } = createActionContext<UploadActions>('UploadActions');

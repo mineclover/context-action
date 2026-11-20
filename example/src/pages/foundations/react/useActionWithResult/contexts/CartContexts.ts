@@ -49,6 +49,14 @@ export interface CartActions extends ActionPayloadMap {
   clearCart: void;
 }
 
+// 🎯 Action Result Map (v1 role-typed result contracts)
+export interface CartActionResults {
+  validateCart: ValidationResult;
+  calculateTotal: CalculationResult;
+  processOrder: ProcessingResult;
+  clearCart: { cleared: true };
+}
+
 // 🎯 Store Schema
 export interface CartStores {
   cart: CartItem[];
@@ -62,8 +70,11 @@ export const {
   Provider: CartActionProvider,
   useActionDispatch: useCartAction,
   useActionHandler: useCartActionHandler,
+  useActionGuard: useCartActionGuard,
+  useActionResultHandler: useCartResultHandler,
+  useActionObserver: useCartActionObserver,
   useActionDispatchWithResult: useCartActionWithResult,
-} = createActionContext<CartActions>('Cart');
+} = createActionContext<CartActions, CartActionResults>('Cart');
 
 export const { Provider: CartStoreProvider, useStore: useCartStore } =
   createStoreContext('CartStores', {

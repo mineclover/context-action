@@ -11,6 +11,9 @@
 - 검증 실패 후 포커스 이동을 위한 `Ref Context`
 - 결정론적 validation과 quote 계산을 위한 순수 `business` 함수
 - 숨겨진 비즈니스 로직 없이 렌더링만 담당하는 reactive `hooks`와 `views`
+- `BusinessActionIntent`(`CanonicalOrderActionProvider`)와 `LayoutActionIntent`(`CanonicalOrderLayoutActionProvider` / `CanonicalOrderLayoutStoreProvider`의 `setInspectorTab`)를 분리한 Unified Triad 계약
+- `handlers/` 계층에 적용한 v1 역할별 액션 훅(`useActionGuard` busy guard, `useActionEffectHandler`, `useActionObserver`)
+- presentation 뷰를 도메인 계약 증거에서 분리하는 `views/CanonicalOrderView.tsx`의 Tier 3 `@evidenceExclude` 주석
 
 ## 라우트
 
@@ -25,6 +28,7 @@ live example은 example 앱에서 다음 경로로 확인할 수 있습니다.
 ```text
 example/src/pages/patterns/implementation-playbook/
 ├── CanonicalOrderExample.tsx
+├── CanonicalOrderExample.test.tsx
 ├── CanonicalOrderExamplePage.tsx
 ├── contexts/
 │   └── CanonicalOrderContexts.tsx
@@ -218,12 +222,13 @@ view는 상태를 렌더링하고 사용자 의도만 발생시킵니다.
 
 ### 어떻게 테스트하는가
 
-이 예제는 실제 컴포넌트를 import하는 integration test로 검증됩니다.
+이 예제는 실제 컴포넌트를 import하는 통합 테스트(`packages/react/__tests__/patterns/implementation-playbook.integration.test.tsx`, `example/src/pages/patterns/implementation-playbook/CanonicalOrderExample.test.tsx`)로 검증됩니다.
 
 - 잘못된 입력에서 validation error가 렌더링되는가
 - ref를 통해 invalid field로 focus가 이동하는가
 - 정상 제출 시 quote와 success 상태가 생성되는가
 - reset 시 기본 상태로 복원되는가
+- `LayoutActionIntent`(`setInspectorTab`) 전환 시 도메인 스토어나 생성된 견적을 훼손하지 않고 실행 로그와 Triad 계약 패널을 전환하는가
 
 ## 권장 읽기 순서
 

@@ -16,7 +16,12 @@ import {
   processOrderData,
   validateCartItems,
 } from '../business/cartBusinessLogic';
-import { type CartItem, useCartActionHandler } from '../contexts/CartContexts';
+import {
+  type CartItem,
+  useCartActionGuard,
+  useCartActionObserver,
+  useCartResultHandler,
+} from '../contexts/CartContexts';
 
 // 🎯 Handler Props Interface (Dependency Injection)
 export interface CartHandlersProps {
@@ -69,8 +74,38 @@ export function CartHandlers({
   onCalculationCompleted,
   onCartCleared,
 }: CartHandlersProps) {
-  // 🎯 Validate Cart Handler
-  useCartActionHandler(
+  // 🛡️ Guard: reject empty cart orders before execution
+  useCartActionGuard(
+    'processOrder',
+    useCallback(
+      (payload, controller) => {
+        if (payload.items.length === 0) {
+          logger?.info(`[${moduleId}] Blocked empty order submission`);
+          controller.abort('Cannot process an empty cart');
+        }
+      },
+      [moduleId, logger]
+    ),
+    { id: 'cart-process-order-guard', priority: 100 }
+  );
+
+  // 🔍 Post-outcome observer for order lifecycle logging
+  useCartActionObserver(
+    'processOrder',
+    useCallback(
+      (event) => {
+        logger?.info(`[${moduleId}] processOrder settled`, {
+          outcome: event.outcome,
+          itemCount: event.payload.items.length,
+        });
+      },
+      [moduleId, logger]
+    ),
+    { id: 'cart-process-order-observer', when: 'always', priority: 10 }
+  );
+
+  // 🎯 Validate Cart Result Handler
+  useCartResultHandler(
     'validateCart',
     useCallback(
       async (payload) => {
@@ -79,37 +114,33 @@ export function CartHandlers({
             itemCount: payload.items.length,
           });
 
-          // Step 1: Read current state (if needed)
-          const _currentValidation = validationStore.getValue();
-
-          // Step 2: Execute business logic
           const validationResult = validateCartItems(payload.items);
-
-          // Step 3: Update store
           validationStore.setValue(validationResult);
 
-          // Side effects
           logger?.info(`[${moduleId}] Cart validation completed`, {
             isValid: validationResult.isValid,
             errorCount: validationResult.errors.length,
           });
 
           onCartValidated?.(validationResult);
+          return validationResult;
         } catch (error) {
           logger?.error(`[${moduleId}] Cart validation failed`, error);
-          validationStore.setValue({
+          const fallback = {
             isValid: false,
             errors: ['Validation process failed'],
             validatedBy: 'error-handler',
-          });
+          };
+          validationStore.setValue(fallback);
+          return fallback;
         }
       },
       [moduleId, validationStore, logger, onCartValidated]
     )
   );
 
-  // 🎯 Calculate Total Handler
-  useCartActionHandler(
+  // 🎯 Calculate Total Result Handler
+  useCartResultHandler(
     'calculateTotal',
     useCallback(
       async (payload) => {
@@ -119,13 +150,8 @@ export function CartHandlers({
             hasDiscount: !!payload.discountCode,
           });
 
-          // Step 1: Read current state
-          const _currentCalculation = calculationStore.getValue();
-
-          // Step 2: Execute business logic
           let discountCode = payload.discountCode;
 
-          // Optional: Validate discount code with external API
           if (discountCode && apiClient?.applyDiscountCode) {
             try {
               const discountValidation =
@@ -146,35 +172,35 @@ export function CartHandlers({
             payload.items,
             discountCode
           );
-
-          // Step 3: Update store
           calculationStore.setValue(calculationResult);
 
-          // Side effects
           logger?.info(`[${moduleId}] Calculation completed`, {
             total: calculationResult.total,
             itemCount: calculationResult.itemCount,
           });
 
           onCalculationCompleted?.(calculationResult);
+          return calculationResult;
         } catch (error) {
           logger?.error(`[${moduleId}] Calculation failed`, error);
-          calculationStore.setValue({
+          const fallback = {
             subtotal: 0,
             tax: 0,
             total: 0,
             itemCount: 0,
             timestamp: Date.now(),
             calculatedBy: 'error-handler',
-          });
+          };
+          calculationStore.setValue(fallback);
+          return fallback;
         }
       },
       [moduleId, calculationStore, apiClient, logger, onCalculationCompleted]
     )
   );
 
-  // 🎯 Process Order Handler
-  useCartActionHandler(
+  // 🎯 Process Order Result Handler
+  useCartResultHandler(
     'processOrder',
     useCallback(
       async (payload) => {
@@ -184,19 +210,12 @@ export function CartHandlers({
             paymentMethod: payload.paymentMethod,
           });
 
-          // Step 1: Read current state
-          const _currentOrder = orderStore.getValue();
-
-          // Step 2: Execute business logic
           const orderResult = processOrderData(
             payload.items,
             payload.paymentMethod
           );
-
-          // Step 3: Update store
           orderStore.setValue(orderResult);
 
-          // Side effects: Save to API
           if (apiClient?.saveOrder) {
             try {
               await apiClient.saveOrder({
@@ -211,28 +230,24 @@ export function CartHandlers({
                 orderId: orderResult.orderId,
               });
 
-              // Update order status to completed after successful API save
               orderStore.update((current) => ({
                 ...current!,
                 status: 'completed' as const,
               }));
             } catch (error) {
               logger?.error(`[${moduleId}] Failed to save order to API`, error);
-              // Update order status to reflect API failure
               orderStore.update((current) => ({
                 ...current!,
                 status: 'failed' as const,
               }));
             }
           } else {
-            // No API client provided, mark as completed immediately
             orderStore.update((current) => ({
               ...current!,
               status: 'completed' as const,
             }));
           }
 
-          // Update inventory if needed
           if (
             orderResult.status === 'completed' &&
             apiClient?.updateInventory
@@ -248,38 +263,35 @@ export function CartHandlers({
           }
 
           onOrderProcessed?.(orderResult);
+          return orderStore.getValue() ?? orderResult;
         } catch (error) {
           logger?.error(`[${moduleId}] Order processing failed`, error);
-          orderStore.setValue({
+          const fallback = {
             orderId: '',
-            status: 'failed',
+            status: 'failed' as const,
             processedBy: 'error-handler',
             timestamp: Date.now(),
-          });
+          };
+          orderStore.setValue(fallback);
+          return fallback;
         }
       },
       [moduleId, orderStore, apiClient, logger, onOrderProcessed]
     )
   );
 
-  // 🎯 Clear Cart Handler
-  useCartActionHandler(
+  // 🎯 Clear Cart Result Handler
+  useCartResultHandler(
     'clearCart',
     useCallback(async () => {
       try {
         logger?.info(`[${moduleId}] Clearing cart`);
 
-        // Step 1: Read current state
         const currentCart = cartStore.getValue();
         const itemCount = currentCart.length;
-
-        // Step 2: Execute business logic
         const emptyCart = clearCartItems();
 
-        // Step 3: Update store
         cartStore.setValue(emptyCart);
-
-        // Side effects: Reset related stores
         validationStore.setValue(null);
         calculationStore.setValue(null);
         orderStore.setValue(null);
@@ -291,6 +303,7 @@ export function CartHandlers({
       } catch (error) {
         logger?.error(`[${moduleId}] Failed to clear cart`, error);
       }
+      return { cleared: true as const };
     }, [
       moduleId,
       cartStore,

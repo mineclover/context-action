@@ -5,8 +5,12 @@ import {
 } from '../business/orderBusiness';
 import {
   CanonicalOrderActionProvider,
+  CanonicalOrderLayoutActionProvider,
+  CanonicalOrderLayoutStoreProvider,
   CanonicalOrderRefProvider,
   CanonicalOrderStoreProvider,
+  useCanonicalOrderLayoutEffectHandler,
+  useCanonicalOrderLayoutStore,
   useCanonicalOrderStoreManager,
 } from '../contexts/CanonicalOrderContexts';
 import { useCanonicalOrderDraftHandlers } from './useCanonicalOrderDraftHandlers';
@@ -18,6 +22,7 @@ function CanonicalOrderHandlerRegistry({
   children: React.ReactNode;
 }) {
   const storeManager = useCanonicalOrderStoreManager();
+  const inspectorTabStore = useCanonicalOrderLayoutStore('inspectorTab');
 
   const appendActivity = React.useCallback(
     (event: OrderActivityEventInput) => {
@@ -28,6 +33,18 @@ function CanonicalOrderHandlerRegistry({
       ]);
     },
     [storeManager]
+  );
+
+  // Separate LayoutActionIntent handler for Tier 3 UI tab state
+  useCanonicalOrderLayoutEffectHandler(
+    'setInspectorTab',
+    React.useCallback(
+      ({ tab }) => {
+        inspectorTabStore.setValue(tab);
+      },
+      [inspectorTabStore]
+    ),
+    { effectKind: 'observer' }
   );
 
   useCanonicalOrderDraftHandlers({ appendActivity });
@@ -43,13 +60,17 @@ export function CanonicalOrderProviders({
 }) {
   return (
     <CanonicalOrderActionProvider>
-      <CanonicalOrderStoreProvider>
-        <CanonicalOrderRefProvider>
-          <CanonicalOrderHandlerRegistry>
-            {children}
-          </CanonicalOrderHandlerRegistry>
-        </CanonicalOrderRefProvider>
-      </CanonicalOrderStoreProvider>
+      <CanonicalOrderLayoutActionProvider>
+        <CanonicalOrderStoreProvider>
+          <CanonicalOrderLayoutStoreProvider>
+            <CanonicalOrderRefProvider>
+              <CanonicalOrderHandlerRegistry>
+                {children}
+              </CanonicalOrderHandlerRegistry>
+            </CanonicalOrderRefProvider>
+          </CanonicalOrderLayoutStoreProvider>
+        </CanonicalOrderStoreProvider>
+      </CanonicalOrderLayoutActionProvider>
     </CanonicalOrderActionProvider>
   );
 }

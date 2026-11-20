@@ -5,8 +5,12 @@ import {
 } from '../business/accessBusiness';
 import {
   AccessRequestActionProvider,
+  AccessRequestLayoutActionProvider,
+  AccessRequestLayoutStoreProvider,
   AccessRequestRefProvider,
   AccessRequestStoreProvider,
+  useAccessRequestLayoutEffectHandler,
+  useAccessRequestLayoutStore,
   useAccessRequestStoreManager,
 } from '../contexts/AccessRequestContexts';
 import { useAccessDraftHandlers } from './useAccessDraftHandlers';
@@ -18,6 +22,7 @@ function AccessRequestHandlerRegistry({
   children: React.ReactNode;
 }) {
   const storeManager = useAccessRequestStoreManager();
+  const inspectorTabStore = useAccessRequestLayoutStore('inspectorTab');
 
   const appendActivity = React.useCallback(
     (event: AccessActivityEventInput) => {
@@ -28,6 +33,18 @@ function AccessRequestHandlerRegistry({
       ]);
     },
     [storeManager]
+  );
+
+  // Separate LayoutActionIntent handler for Tier 3 UI tab state
+  useAccessRequestLayoutEffectHandler(
+    'setInspectorTab',
+    React.useCallback(
+      ({ tab }) => {
+        inspectorTabStore.setValue(tab);
+      },
+      [inspectorTabStore]
+    ),
+    { effectKind: 'observer' }
   );
 
   useAccessDraftHandlers({ appendActivity });
@@ -43,13 +60,17 @@ export function AccessRequestProviders({
 }) {
   return (
     <AccessRequestActionProvider>
-      <AccessRequestStoreProvider>
-        <AccessRequestRefProvider>
-          <AccessRequestHandlerRegistry>
-            {children}
-          </AccessRequestHandlerRegistry>
-        </AccessRequestRefProvider>
-      </AccessRequestStoreProvider>
+      <AccessRequestLayoutActionProvider>
+        <AccessRequestStoreProvider>
+          <AccessRequestLayoutStoreProvider>
+            <AccessRequestRefProvider>
+              <AccessRequestHandlerRegistry>
+                {children}
+              </AccessRequestHandlerRegistry>
+            </AccessRequestRefProvider>
+          </AccessRequestLayoutStoreProvider>
+        </AccessRequestStoreProvider>
+      </AccessRequestLayoutActionProvider>
     </AccessRequestActionProvider>
   );
 }

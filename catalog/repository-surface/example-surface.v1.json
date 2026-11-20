@@ -6,8 +6,8 @@
       "id": "ex-app-hub",
       "category": "hub-and-catalog",
       "summary": {
-        "en": "Entry pages, category catalogs, and conceptual overviews indexing the 72 canonical routes inside example/.",
-        "ko": "example/ 내부 72개 정식 라우트를 안내하는 진입 페이지, 카테고리 카탈로그 및 개념 개요 화면입니다."
+        "en": "Entry pages, category catalogs, and conceptual overviews indexing the 76 canonical routes inside example/.",
+        "ko": "example/ 내부 76개 정식 라우트를 안내하는 진입 페이지, 카테고리 카탈로그 및 개념 개요 화면입니다."
       },
       "primaryApis": [
         "createActionContext",
@@ -110,7 +110,10 @@
         "ActionRegister",
         "executeParallel",
         "executeSequential",
-        "executeRace"
+        "executeRace",
+        "useActionGuard",
+        "useActionEffectHandler",
+        "useActionObserver"
       ],
       "relatedDocs": [
         "docs/en/concept/action-pipeline-guide.md",
@@ -210,7 +213,11 @@
         "createRefContext",
         "useStoreValue",
         "useStoreSelector",
-        "dispatchWithResult"
+        "dispatchWithResult",
+        "useActionGuard",
+        "useActionResultHandler",
+        "useActionEffectHandler",
+        "useActionObserver"
       ],
       "relatedDocs": [
         "docs/en/examples/basic-setup.md",
@@ -540,7 +547,10 @@
         "createActionContext",
         "createStoreContext",
         "useActionHandler",
-        "useStoreValue"
+        "useStoreValue",
+        "useActionGuard",
+        "useActionEffectHandler",
+        "useActionObserver"
       ],
       "relatedDocs": [
         "docs/en/context-layered/implementation-convention.md",
