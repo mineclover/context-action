@@ -345,7 +345,12 @@ describe('SyncDocsCommand', () => {
         
         // Should show sync processing 
         expect(output).toContain('📝 Syncing documentation changes');
+        expect(output).toContain('🔍 Valid files after filtering: en/guide/getting-started.md');
         expect(output).toContain('getting-started');
+        expect(output).not.toContain('Processing api--core--src--ActionRegister');
+        await expect(
+          fs.access(path.join(testDataDir, 'llmsData', 'en', 'api--core--src--ActionRegister'))
+        ).rejects.toThrow();
         
       } finally {
         consoleSpy.mockRestore();

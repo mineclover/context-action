@@ -11,10 +11,15 @@ import type {
   HandlerError,
   HandlerExecutionOutcome,
   HandlerRegistration, 
+  HandlerRole,
   PipelineContext,
   PipelineController,
   PipelineControllerState,
 } from './types.js';
+
+function publishesResults(role?: HandlerRole): boolean {
+  return role !== 'guard' && role !== 'command';
+}
 
 function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
   return (
@@ -97,7 +102,7 @@ function appendLocalResults<T, R>(
   registration: HandlerRegistration<T, R>,
   target: R[] = context.results,
 ): void {
-  if (registration.role === 'guard') return;
+  if (!publishesResults(registration.role)) return;
   if (state.results.length > 0) target.push(...state.results);
   if (returnedResult !== undefined && !state.terminated) {
     target.push(returnedResult);
@@ -216,10 +221,10 @@ export async function executeSequential<T, R = void>(
           outcome,
           startedAt,
           'succeeded',
-          registration.role === 'guard' ? undefined : handlerResult as R | undefined,
+          publishesResults(registration.role) ? handlerResult as R | undefined : undefined,
         );
         if (
-          registration.role !== 'guard' &&
+          publishesResults(registration.role) &&
           handlerResult !== undefined &&
           !context.terminated
         ) {
@@ -235,10 +240,10 @@ export async function executeSequential<T, R = void>(
                 outcome,
                 startedAt,
                 'succeeded',
-                registration.role === 'guard' ? undefined : asyncResult as R | undefined,
+                publishesResults(registration.role) ? asyncResult as R | undefined : undefined,
               );
               if (
-                registration.role !== 'guard' &&
+                publishesResults(registration.role) &&
                 asyncResult !== undefined &&
                 !context.terminated
               ) {
@@ -262,7 +267,7 @@ export async function executeSequential<T, R = void>(
           
           nonBlockingPromises.push(promiseWithErrorHandling);
         } else if (
-          registration.role !== 'guard' &&
+          publishesResults(registration.role) &&
           result !== undefined &&
           !context.terminated
         ) {
@@ -274,7 +279,7 @@ export async function executeSequential<T, R = void>(
             outcome,
             startedAt,
             'succeeded',
-            registration.role === 'guard' ? undefined : result as R | undefined,
+            publishesResults(registration.role) ? result as R | undefined : undefined,
           );
         }
       }
@@ -418,10 +423,10 @@ export async function executeParallel<T, R = void>(
         outcome,
         startedAt,
         'succeeded',
-        registration.role === 'guard' ? undefined : handlerResult,
+        publishesResults(registration.role) ? handlerResult : undefined,
       );
       outcome.terminationRequested = state.terminated;
-      if (state.terminated && registration.role !== 'guard') {
+      if (state.terminated && publishesResults(registration.role)) {
         outcome.terminationResult = state.terminationResult;
         terminationSlots[_index] = {
           requested: true,
@@ -559,7 +564,7 @@ export async function executeRace<T, R = void>(
         outcome,
         startedAt,
         'succeeded',
-        registration.role === 'guard' ? undefined : handlerResult,
+        publishesResults(registration.role) ? handlerResult : undefined,
       );
       outcome.terminationRequested = state.terminated;
       if (state.terminated) outcome.terminationResult = state.terminationResult;
@@ -593,11 +598,11 @@ export async function executeRace<T, R = void>(
     ? handlerPromises.map(promise => context.trackHandlerPromise!(promise))
     : handlerPromises;
 
-  // Guards are executed by the register before race arbitration. Retain this
-  // filtering for callers of this low-level primitive.
-  const winnerCandidates = runnableHandlers.some(handler => handler.role !== 'guard')
+  // Guards run before race arbitration, and void command handlers never
+  // compete with result-producing handlers in a mixed race.
+  const winnerCandidates = runnableHandlers.some(handler => publishesResults(handler.role))
     ? trackedHandlerPromises.filter((_, index) => (
-      runnableHandlers[index]?.role !== 'guard'
+      publishesResults(runnableHandlers[index]?.role)
     ))
     : trackedHandlerPromises;
 

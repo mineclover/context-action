@@ -9,7 +9,7 @@ import {
   IncidentEscalationLayoutStoreProvider,
   IncidentEscalationRefProvider,
   IncidentEscalationStoreProvider,
-  useIncidentEscalationLayoutEffectHandler,
+  useIncidentEscalationLayoutCommandHandler,
   useIncidentEscalationLayoutStore,
   useIncidentEscalationStoreManager,
 } from '../contexts/IncidentEscalationContexts';
@@ -36,15 +36,14 @@ function IncidentEscalationHandlerRegistry({
   );
 
   // Separate LayoutActionIntent handler for Tier 3 UI tab state
-  useIncidentEscalationLayoutEffectHandler(
+  useIncidentEscalationLayoutCommandHandler(
     'setInspectorTab',
     React.useCallback(
       ({ tab }) => {
         inspectorTabStore.setValue(tab);
       },
       [inspectorTabStore]
-    ),
-    { effectKind: 'observer' }
+    )
   );
 
   useIncidentDraftHandlers({ appendActivity });

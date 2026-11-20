@@ -9,7 +9,7 @@ import {
 import {
   useCanonicalOrderActionGuard,
   useCanonicalOrderActionObserver,
-  useCanonicalOrderEffectHandler,
+  useCanonicalOrderCommandHandler,
   useCanonicalOrderRef,
   useCanonicalOrderStoreManager,
 } from '../contexts/CanonicalOrderContexts';
@@ -49,7 +49,7 @@ export function useCanonicalOrderSubmissionHandlers({
     { id: 'order-submission-observer', when: 'always', priority: 10 }
   );
 
-  useCanonicalOrderEffectHandler(
+  useCanonicalOrderCommandHandler(
     'submitOrder',
     React.useCallback(async () => {
       const draftStore = storeManager.getStore('draft');
@@ -146,7 +146,6 @@ export function useCanonicalOrderSubmissionHandlers({
       quantityRef,
       statusPanelRef,
       storeManager,
-    ]),
-    { effectKind: 'observer' }
+    ])
   );
 }

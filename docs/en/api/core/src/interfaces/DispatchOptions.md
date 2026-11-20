@@ -6,7 +6,7 @@
 
 # Interface: DispatchOptions
 
-Defined in: [packages/core/src/types.ts:960](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L960)
+Defined in: [packages/core/src/types.ts:976](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L976)
 
 Comprehensive dispatch options for controlling action execution
 
@@ -73,7 +73,7 @@ await register.dispatch('longRunningTask', data, {
 
 > `optional` **trace?**: `object`
 
-Defined in: [packages/core/src/types.ts:962](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L962)
+Defined in: [packages/core/src/types.ts:978](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L978)
 
 Metadata forwarded to external state transaction bridges.
 
@@ -95,7 +95,7 @@ Metadata forwarded to external state transaction bridges.
 
 > `optional` **debounce?**: `number`
 
-Defined in: [packages/core/src/types.ts:968](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L968)
+Defined in: [packages/core/src/types.ts:984](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L984)
 
 Debounce delay in milliseconds - wait for this delay after last call
 
@@ -105,7 +105,7 @@ Debounce delay in milliseconds - wait for this delay after last call
 
 > `optional` **throttle?**: `number`
 
-Defined in: [packages/core/src/types.ts:971](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L971)
+Defined in: [packages/core/src/types.ts:987](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L987)
 
 Throttle delay in milliseconds - limit execution to once per this period
 
@@ -115,7 +115,7 @@ Throttle delay in milliseconds - limit execution to once per this period
 
 > `optional` **executionMode?**: [`ExecutionMode`](../type-aliases/ExecutionMode.md)
 
-Defined in: [packages/core/src/types.ts:974](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L974)
+Defined in: [packages/core/src/types.ts:990](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L990)
 
 Execution mode override for this specific dispatch
 
@@ -125,7 +125,7 @@ Execution mode override for this specific dispatch
 
 > `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/core/src/types.ts:977](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L977)
+Defined in: [packages/core/src/types.ts:993](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L993)
 
 Abort signal for cancelling the dispatch
 
@@ -135,7 +135,7 @@ Abort signal for cancelling the dispatch
 
 > `optional` **immediate?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:980](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L980)
+Defined in: [packages/core/src/types.ts:996](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L996)
 
 Bypass queue and execute immediately
 
@@ -145,7 +145,7 @@ Bypass queue and execute immediately
 
 > `optional` **queuePriority?**: `number`
 
-Defined in: [packages/core/src/types.ts:983](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L983)
+Defined in: [packages/core/src/types.ts:999](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L999)
 
 Priority in dispatch queue (higher = earlier execution)
 
@@ -155,7 +155,7 @@ Priority in dispatch queue (higher = earlier execution)
 
 > `optional` **timeout?**: `number`
 
-Defined in: [packages/core/src/types.ts:990](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L990)
+Defined in: [packages/core/src/types.ts:1006](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1006)
 
 Non-negative finite wall-clock timeout in milliseconds, including queue
 wait and retry delay. Rejects with ActionTimeoutError and aborts the
@@ -167,7 +167,7 @@ dispatch signal. Invalid values throw RangeError.
 
 > `optional` **retryOnError?**: `object`
 
-Defined in: [packages/core/src/types.ts:997](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L997)
+Defined in: [packages/core/src/types.ts:1013](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1013)
 
 Retry configuration for error recovery. Retries reuse the handler
 selection and timing settings resolved when the dispatch starts, except
@@ -200,7 +200,7 @@ only the former waits for its started work to settle.
 
 > `optional` **autoAbort?**: `object`
 
-Defined in: [packages/core/src/types.ts:1012](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1012)
+Defined in: [packages/core/src/types.ts:1028](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1028)
 
 Auto-abort options for automatic AbortController management
 
@@ -238,7 +238,7 @@ Enable pipeline abort trigger from handlers
 
 > `optional` **filter?**: `object`
 
-Defined in: [packages/core/src/types.ts:1024](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1024)
+Defined in: [packages/core/src/types.ts:1040](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1040)
 
 Handler filtering options
 
@@ -294,7 +294,7 @@ Custom filter function. Receives an immutable config snapshot.
 
 > `optional` **result?**: `object`
 
-Defined in: [packages/core/src/types.ts:1044](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1044)
+Defined in: [packages/core/src/types.ts:1060](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1060)
 
 Result collection and processing options
 

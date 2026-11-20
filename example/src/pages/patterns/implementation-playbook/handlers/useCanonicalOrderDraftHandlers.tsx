@@ -11,7 +11,7 @@ import {
   initialActivityState,
   initialSubmissionState,
   initialValidationState,
-  useCanonicalOrderEffectHandler,
+  useCanonicalOrderCommandHandler,
   useCanonicalOrderRef,
   useCanonicalOrderStoreManager,
 } from '../contexts/CanonicalOrderContexts';
@@ -27,7 +27,7 @@ export function useCanonicalOrderDraftHandlers({
   const storeManager = useCanonicalOrderStoreManager();
   const customerNameRef = useCanonicalOrderRef('customerNameInput');
 
-  useCanonicalOrderEffectHandler(
+  useCanonicalOrderCommandHandler(
     'updateDraft',
     React.useCallback(
       async (payload) => {
@@ -67,11 +67,10 @@ export function useCanonicalOrderDraftHandlers({
         });
       },
       [appendActivity, storeManager]
-    ),
-    { effectKind: 'observer' }
+    )
   );
 
-  useCanonicalOrderEffectHandler(
+  useCanonicalOrderCommandHandler(
     'prefillExample',
     React.useCallback(async () => {
       storeManager.getStore('draft').setValue(createExampleOrderDraft());
@@ -88,11 +87,10 @@ export function useCanonicalOrderDraftHandlers({
       appendActivity({
         type: 'sample_loaded',
       });
-    }, [appendActivity, storeManager]),
-    { effectKind: 'observer' }
+    }, [appendActivity, storeManager])
   );
 
-  useCanonicalOrderEffectHandler(
+  useCanonicalOrderCommandHandler(
     'resetDemo',
     React.useCallback(async () => {
       storeManager.getStore('draft').setValue(createEmptyOrderDraft());
@@ -112,7 +110,6 @@ export function useCanonicalOrderDraftHandlers({
       customerNameRef.executeIfMounted((target) => {
         target.focus();
       });
-    }, [customerNameRef, storeManager]),
-    { effectKind: 'observer' }
+    }, [customerNameRef, storeManager])
   );
 }

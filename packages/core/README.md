@@ -185,8 +185,10 @@ const actions = new ActionRegister<MyActions>({
 
 ### Phase-specific registration
 
-New pipelines should make their role explicit: guards decide admission, result
-handlers contribute typed results, and observers run after the terminal result.
+New pipelines should make their role explicit: guards decide admission,
+void command handlers (`registerCommand`) mutate state or run side effects
+without publishing results, result handlers contribute typed results, and
+observers run after the terminal result.
 
 <!-- @context-action-compile -->
 ```typescript
@@ -194,6 +196,7 @@ import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
 
 interface AppActions extends ActionPayloadMap {
   save: { id: string; valid: boolean };
+  reset: void;
 }
 
 interface AppResults {
@@ -205,6 +208,10 @@ const registry = new ActionRegister<AppActions, AppResults>({ name: 'App' });
 registry.registerGuard('save', payload => {
   if (!payload.valid) throw new Error('Save requires valid input');
 }, { id: 'validate-save' });
+
+registry.registerCommand('reset', (_payload, controller) => {
+  if (controller.signal?.aborted) return;
+}, { id: 'reset-state' });
 
 registry.registerResult('save', async payload => {
   await Promise.resolve(payload);

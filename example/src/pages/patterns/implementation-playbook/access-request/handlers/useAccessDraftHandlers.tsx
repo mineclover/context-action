@@ -11,7 +11,7 @@ import {
   initialAccessActivityState,
   initialAccessReviewState,
   initialAccessValidationState,
-  useAccessRequestEffectHandler,
+  useAccessRequestCommandHandler,
   useAccessRequestRef,
   useAccessRequestStoreManager,
 } from '../contexts/AccessRequestContexts';
@@ -27,7 +27,7 @@ export function useAccessDraftHandlers({
   const storeManager = useAccessRequestStoreManager();
   const requesterNameRef = useAccessRequestRef('requesterNameInput');
 
-  useAccessRequestEffectHandler(
+  useAccessRequestCommandHandler(
     'updateDraft',
     React.useCallback(
       async (payload) => {
@@ -67,11 +67,10 @@ export function useAccessDraftHandlers({
         });
       },
       [appendActivity, storeManager]
-    ),
-    { effectKind: 'observer' }
+    )
   );
 
-  useAccessRequestEffectHandler(
+  useAccessRequestCommandHandler(
     'prefillExample',
     React.useCallback(async () => {
       storeManager
@@ -88,11 +87,10 @@ export function useAccessDraftHandlers({
         })
       );
       appendActivity({ type: 'sample_loaded' });
-    }, [appendActivity, storeManager]),
-    { effectKind: 'observer' }
+    }, [appendActivity, storeManager])
   );
 
-  useAccessRequestEffectHandler(
+  useAccessRequestCommandHandler(
     'resetDemo',
     React.useCallback(async () => {
       storeManager.getStore('draft').setValue(createEmptyAccessRequestDraft());
@@ -114,7 +112,6 @@ export function useAccessDraftHandlers({
       requesterNameRef.executeIfMounted((target) => {
         target.focus();
       });
-    }, [requesterNameRef, storeManager]),
-    { effectKind: 'observer' }
+    }, [requesterNameRef, storeManager])
   );
 }

@@ -9,7 +9,7 @@ import {
 import {
   useAccessRequestActionGuard,
   useAccessRequestActionObserver,
-  useAccessRequestEffectHandler,
+  useAccessRequestCommandHandler,
   useAccessRequestRef,
   useAccessRequestStoreManager,
 } from '../contexts/AccessRequestContexts';
@@ -50,7 +50,7 @@ export function useAccessSubmissionHandlers({
     { id: 'access-review-observer', when: 'always', priority: 10 }
   );
 
-  useAccessRequestEffectHandler(
+  useAccessRequestCommandHandler(
     'submitReview',
     React.useCallback(async () => {
       const draftStore = storeManager.getStore('draft');
@@ -151,7 +151,6 @@ export function useAccessSubmissionHandlers({
       scopeRef,
       statusPanelRef,
       storeManager,
-    ]),
-    { effectKind: 'observer' }
+    ])
   );
 }

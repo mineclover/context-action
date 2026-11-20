@@ -8,7 +8,7 @@
 
 > **ProxyActionKey**&lt;`T`&gt; = `Exclude`\<[`ActionNames`](ActionNames.md)&lt;`T`&gt;, [`ReservedActionKey`](ReservedActionKey.md)\>
 
-Defined in: [packages/core/src/types.ts:1313](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1313)
+Defined in: [packages/core/src/types.ts:1329](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1329)
 
 Action keys that can be exposed through `register.actions` proxies.
 

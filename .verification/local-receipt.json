@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-20T01:59:19.404Z",
-  "commitSha": "644c5a6ca1b9d8c7cce39559e1c64aa6fa628957",
-  "branch": "docs/wrap-up-surface-catalog-and-playbook-docs",
+  "timestamp": "2026-11-20T06:43:48.027Z",
+  "commitSha": "66b07d109287a5b5436f54ceafe5bacd291f4194",
+  "branch": "feat/v1-command-handler-and-cli-dx",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
@@ -11,21 +11,21 @@
   },
   "inputDigest": "sha256:584fbe08f17d63a6daa7d63eee6c23d1f79a1e969516a8a88e2562e14bb4cf53",
   "workingTree": "clean",
-  "treeDigest": "sha256:962615e7ceb455b8713c7510d31c5f433ac338558830a3dfb14b93c7de5637a5",
+  "treeDigest": "sha256:63d37a5b19567b7e2211f4eabd8fc2702f730660e6ee9edd60101bb1c7732beb",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 18.94,
+      "durationSec": 18.07,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.86,
+      "durationSec": 0.89,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 3.41,
+      "durationSec": 3.26,
       "status": "passed"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.22,
+      "durationSec": 0.23,
       "status": "passed"
     },
     {
@@ -45,7 +45,7 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.32,
+      "durationSec": 0.3,
       "status": "passed"
     },
     {
@@ -55,10 +55,10 @@
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.42,
+      "durationSec": 0.41,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:3f6ee4c6f053ef3dbc237817614b19106d62a1c59f3f28ad3c075ff96afb94c2"
+  "receiptDigest": "sha256:168130f8da8b516726440885a86edf17e48a0859e2535b720d663d991c996344"
 }

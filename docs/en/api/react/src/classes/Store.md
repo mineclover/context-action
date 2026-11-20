@@ -165,7 +165,7 @@ store.subscribeWithPatches((patches) => {
 
 ### getLastPatches()
 
-> **getLastPatches**(): `Patches` \| `null`
+> **getLastPatches**(): [`Patches`](../../../mutative/src/type-aliases/Patches.md) \| `null`
 
 Defined in: [packages/react/src/stores/core/Store.ts:241](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L241)
 
@@ -178,7 +178,7 @@ are available (e.g., initial state or full replacement).
 
 #### Returns
 
-`Patches` \| `null`
+[`Patches`](../../../mutative/src/type-aliases/Patches.md) \| `null`
 
 Array of JSON patches or null
 

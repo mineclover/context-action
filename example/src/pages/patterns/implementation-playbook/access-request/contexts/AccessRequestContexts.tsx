@@ -99,14 +99,14 @@ export const {
   useActionDispatch: useAccessRequestDispatch,
   useActionHandler: useAccessRequestActionHandler,
   useActionGuard: useAccessRequestActionGuard,
-  useActionEffectHandler: useAccessRequestEffectHandler,
+  useActionCommandHandler: useAccessRequestCommandHandler,
   useActionObserver: useAccessRequestActionObserver,
 } = createActionContext<AccessRequestBusinessActions>('AccessRequestActions');
 
 export const {
   Provider: AccessRequestLayoutActionProvider,
   useActionDispatch: useAccessRequestLayoutDispatch,
-  useActionEffectHandler: useAccessRequestLayoutEffectHandler,
+  useActionCommandHandler: useAccessRequestLayoutCommandHandler,
 } = createActionContext<AccessRequestLayoutActions>(
   'AccessRequestLayoutActions'
 );

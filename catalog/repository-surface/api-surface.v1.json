@@ -354,7 +354,9 @@
         "@context-action/store-core"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
+      "typedocEntryPoints": [
+        "./packages/mutative/src/index.ts"
+      ],
       "readme": "packages/mutative/README.md",
       "authoritativeDocs": [
         "packages/mutative/docs/time-travel-specialization.md",
@@ -669,7 +671,9 @@
       ],
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
+      "typedocEntryPoints": [
+        "./packages/store-core/src/index.ts"
+      ],
       "readme": "packages/store-core/README.md",
       "authoritativeDocs": [
         "packages/react/docs/state-contracts.md",
@@ -980,7 +984,9 @@
         "@context-action/store-core"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
+      "typedocEntryPoints": [
+        "./packages/xstate/src/index.ts"
+      ],
       "readme": "packages/xstate/README.md",
       "authoritativeDocs": [
         "packages/xstate/docs/xstate-effect-integration.md",

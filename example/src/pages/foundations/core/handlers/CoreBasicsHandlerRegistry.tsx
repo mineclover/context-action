@@ -9,7 +9,7 @@ import {
 import {
   CoreActionProvider,
   CoreStoreProvider,
-  useCoreActionEffectHandler,
+  useCoreActionCommandHandler,
   useCoreActionGuard,
   useCoreActionHandler,
   useCoreActionObserver,
@@ -34,29 +34,27 @@ function CoreBasicsHandlerRegistry({
     { id: 'core-basics-set-count-guard', priority: 100 }
   );
 
-  useCoreActionEffectHandler(
+  useCoreActionCommandHandler(
     'increment',
     React.useCallback(() => {
       storeManager
         .getStore('count')
         .update((current) => updateCount(current, 1));
       logAction('increment', undefined);
-    }, [logAction, storeManager]),
-    { effectKind: 'observer' }
+    }, [logAction, storeManager])
   );
 
-  useCoreActionEffectHandler(
+  useCoreActionCommandHandler(
     'decrement',
     React.useCallback(() => {
       storeManager
         .getStore('count')
         .update((current) => updateCount(current, -1));
       logAction('decrement', undefined);
-    }, [logAction, storeManager]),
-    { effectKind: 'observer' }
+    }, [logAction, storeManager])
   );
 
-  useCoreActionEffectHandler(
+  useCoreActionCommandHandler(
     'setCount',
     React.useCallback(
       (value) => {
@@ -64,8 +62,7 @@ function CoreBasicsHandlerRegistry({
         logAction('setCount', value);
       },
       [logAction, storeManager]
-    ),
-    { effectKind: 'observer' }
+    )
   );
 
   useCoreActionObserver(
@@ -81,21 +78,19 @@ function CoreBasicsHandlerRegistry({
     { id: 'core-basics-set-count-observer', when: 'always', priority: 10 }
   );
 
-  useCoreActionEffectHandler(
+  useCoreActionCommandHandler(
     'reset',
     React.useCallback(() => {
       storeManager.getStore('count').setValue(0);
       logAction('reset', undefined);
-    }, [logAction, storeManager]),
-    { effectKind: 'observer' }
+    }, [logAction, storeManager])
   );
 
-  useCoreActionEffectHandler(
+  useCoreActionCommandHandler(
     'generateLog',
     React.useCallback(() => {
       logAction('generateLog', createRandomLogMessage());
-    }, [logAction]),
-    { effectKind: 'observer' }
+    }, [logAction])
   );
 
   useCoreActionHandler(

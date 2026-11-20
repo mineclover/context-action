@@ -18,6 +18,7 @@ export interface LLMSConfig {
     outputDir: string;         // 출력 디렉토리
     templatesDir: string;      // 지시문 템플릿 경로
     instructionsDir: string;   // 생성된 지시문 경로
+    excludePatterns?: string[]; // 동기화에서 제외할 glob 패턴 목록
   };
   
   generation: {

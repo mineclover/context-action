@@ -32,6 +32,8 @@
     { "path": "./packages/tool-durable-operations" },
     { "path": "./packages/react" },
     { "path": "./packages/store-core" },
+    { "path": "./packages/mutative" },
+    { "path": "./packages/xstate" },
     { "path": "./packages/llms-generator" },
     { "path": "./packages/typedoc-vitepress-sync" },
     { "path": "./example" }

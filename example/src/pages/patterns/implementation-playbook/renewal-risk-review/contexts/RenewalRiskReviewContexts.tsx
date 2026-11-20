@@ -102,7 +102,7 @@ export const {
   useActionDispatch: useRenewalRiskReviewDispatch,
   useActionHandler: useRenewalRiskReviewActionHandler,
   useActionGuard: useRenewalRiskReviewActionGuard,
-  useActionEffectHandler: useRenewalRiskReviewEffectHandler,
+  useActionCommandHandler: useRenewalRiskReviewCommandHandler,
   useActionObserver: useRenewalRiskReviewActionObserver,
 } = createActionContext<RenewalRiskReviewBusinessActions>(
   'RenewalRiskReviewActions'
@@ -111,7 +111,7 @@ export const {
 export const {
   Provider: RenewalRiskReviewLayoutActionProvider,
   useActionDispatch: useRenewalRiskReviewLayoutDispatch,
-  useActionEffectHandler: useRenewalRiskReviewLayoutEffectHandler,
+  useActionCommandHandler: useRenewalRiskReviewLayoutCommandHandler,
 } = createActionContext<RenewalRiskReviewLayoutActions>(
   'RenewalRiskReviewLayoutActions'
 );

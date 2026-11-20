@@ -2,18 +2,92 @@
  * Argument Parser - Utility for parsing CLI arguments
  */
 
+function stripMatchingQuotes(value: string): string {
+  if (
+    value.length >= 2 &&
+    ((value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'")))
+  ) {
+    return value.slice(1, -1);
+  }
+  return value;
+}
+
 export class ArgumentParser {
   extractFlag(args: string[], shortFlag: string, longFlag?: string): string | undefined {
-    const flags = [shortFlag];
-    if (longFlag) flags.push(longFlag);
-    
-    for (const flag of flags) {
-      const index = args.indexOf(flag);
-      if (index !== -1 && index + 1 < args.length) {
-        return args[index + 1];
+    const flags = longFlag ? [shortFlag, longFlag] : [shortFlag];
+
+    for (let i = 0; i < args.length; i++) {
+      const token = args[i];
+      if (!token) continue;
+
+      for (const flag of flags) {
+        if (token === flag) {
+          const nextArg = args[i + 1];
+          if (nextArg !== undefined && !nextArg.startsWith('-')) {
+            return stripMatchingQuotes(nextArg);
+          }
+          return undefined;
+        }
+
+        const prefix = `${flag}=`;
+        if (token.startsWith(prefix)) {
+          return stripMatchingQuotes(token.slice(prefix.length));
+        }
       }
     }
     return undefined;
+  }
+
+  extractListFlag(args: string[], ...flags: string[]): string[] {
+    const targetFlags = flags.filter(Boolean);
+    if (targetFlags.length === 0) {
+      return [];
+    }
+
+    const results: string[] = [];
+    const seen = new Set<string>();
+
+    const pushParsedValues = (rawValue: string): void => {
+      const cleaned = stripMatchingQuotes(rawValue.trim());
+      if (!cleaned) return;
+      for (const part of cleaned.split(/[\s,]+/)) {
+        const trimmed = stripMatchingQuotes(part.trim());
+        if (trimmed && !seen.has(trimmed)) {
+          seen.add(trimmed);
+          results.push(trimmed);
+        }
+      }
+    };
+
+    for (let i = 0; i < args.length; i++) {
+      const token = args[i];
+      if (!token) continue;
+
+      for (const flag of targetFlags) {
+        if (token === flag) {
+          let j = i + 1;
+          while (j < args.length) {
+            const candidate = args[j];
+            if (candidate === undefined || candidate.startsWith('-')) {
+              break;
+            }
+            pushParsedValues(candidate);
+            j += 1;
+          }
+          i = j - 1;
+          break;
+        }
+
+        const prefix = `${flag}=`;
+        if (token.startsWith(prefix)) {
+          pushParsedValues(token.slice(prefix.length));
+          break;
+        }
+      }
+    }
+
+    return results;
   }
 
   extractNumberFlag(args: string[], shortFlag: string, longFlag?: string): number | undefined {
@@ -26,18 +100,28 @@ export class ArgumentParser {
   }
 
   extractMultipleFlags(args: string[], shortFlag: string, longFlag?: string): string[] {
-    const flags = [shortFlag];
-    if (longFlag) flags.push(longFlag);
-    
+    const flags = longFlag ? [shortFlag, longFlag] : [shortFlag];
+
     const results: string[] = [];
-    for (const flag of flags) {
-      let index = args.indexOf(flag);
-      while (index !== -1 && index + 1 < args.length) {
-        const nextArg = args[index + 1];
-        if (nextArg !== undefined) {
-          results.push(nextArg);
+    for (let i = 0; i < args.length; i++) {
+      const token = args[i];
+      if (!token) continue;
+
+      for (const flag of flags) {
+        if (token === flag && i + 1 < args.length) {
+          const nextArg = args[i + 1];
+          if (nextArg !== undefined && !nextArg.startsWith('-')) {
+            results.push(stripMatchingQuotes(nextArg));
+            i += 1;
+            break;
+          }
         }
-        index = args.indexOf(flag, index + 2);
+
+        const prefix = `${flag}=`;
+        if (token.startsWith(prefix)) {
+          results.push(stripMatchingQuotes(token.slice(prefix.length)));
+          break;
+        }
       }
     }
     return results;

@@ -421,7 +421,7 @@ export class MismatchDetectionCommand {
       if (missingLlms.length > 0) {
         const sourceFiles = missingLlms.map(m => m.sourcePath).filter(Boolean);
         if (sourceFiles.length > 0) {
-          content.push(`pnpm llms:sync-docs --changed-files "${sourceFiles.join(' ')}"`);
+          content.push(`pnpm llms:sync-docs --changed-files ${sourceFiles.join(',')}`);
         }
       } else {
         content.push('# No missing LLMS data');

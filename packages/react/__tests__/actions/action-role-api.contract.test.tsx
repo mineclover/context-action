@@ -89,4 +89,64 @@ describe('Public Action role hooks', () => {
       });
     } finally { unmount(); }
   });
+
+  it('runs useActionCommandHandler after guards, before observers, skips on abort, and respects errorPolicy', async () => {
+    const Actions = createActionContext<Actions, Results>('CommandRole');
+    const order: string[] = [];
+    const observe = jest.fn();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <Actions.Provider>{children}</Actions.Provider>
+    );
+
+    const { result, unmount } = renderHook(() => {
+      Actions.useActionGuard('save', (payload, controller) => {
+        order.push('guard');
+        if (!payload.allowed) controller.abort('denied');
+      });
+      Actions.useActionCommandHandler('save', payload => {
+        order.push(`command:${payload.value}`);
+        if (payload.value === 'boom') {
+          throw new Error('command fatal failure');
+        }
+      }, { errorPolicy: 'fatal' });
+      Actions.useActionObserver('save', event => {
+        order.push(`observer:${event.outcome}`);
+        observe(event);
+      });
+      return {
+        dispatch: Actions.useActionDispatch(),
+        results: Actions.useActionDispatchWithResult(),
+      };
+    }, { wrapper });
+
+    try {
+      await act(async () => {
+        const res = await result.current.results.dispatchWithResult('save', {
+          allowed: true,
+          value: 'ok',
+        });
+        expect(res.result).toBeUndefined();
+        expect(res.outcome).toBe('completed');
+      });
+      expect(order).toEqual(['guard', 'command:ok', 'observer:completed']);
+      expect(observe).toHaveBeenLastCalledWith(
+        expect.objectContaining({ result: undefined, outcome: 'completed' }),
+      );
+
+      order.length = 0;
+      await act(async () => {
+        await result.current.dispatch('save', { allowed: false, value: 'ignored' });
+      });
+      expect(order).toEqual(['guard', 'observer:cancelled']);
+
+      order.length = 0;
+      await act(async () => {
+        await expect(
+          result.current.dispatch('save', { allowed: true, value: 'boom' }),
+        ).rejects.toThrow('command fatal failure');
+      });
+    } finally {
+      await act(async () => { unmount(); });
+    }
+  });
 });

@@ -6,8 +6,8 @@
 
 # Type Alias: HandlerRole
 
-> **HandlerRole** = `"guard"` \| `"result"` \| `"observer"` \| `"legacy"`
+> **HandlerRole** = `"guard"` \| `"command"` \| `"result"` \| `"observer"` \| `"legacy"`
 
-Defined in: [packages/core/src/types.ts:385](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L385)
+Defined in: [packages/core/src/types.ts:391](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L391)
 
 The explicit execution role of a registered handler.

@@ -8,7 +8,7 @@
 
 > **ActionGuardHandler**&lt;`T`&gt; = (`payload`, `controller`) => `void` \| `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:499](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L499)
+Defined in: [packages/core/src/types.ts:515](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L515)
 
 A preflight validator/authorizer.
 

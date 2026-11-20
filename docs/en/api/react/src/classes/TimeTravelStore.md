@@ -111,7 +111,7 @@ Type parameter **Unsubscribe**
 
 ### getLastPatches()
 
-> **getLastPatches**(): `Patches` \| `null`
+> **getLastPatches**(): [`Patches`](../../../mutative/src/type-aliases/Patches.md) \| `null`
 
 Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:171](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L171)
 
@@ -120,7 +120,7 @@ every transition accumulated before the notification frame was flushed.
 
 #### Returns
 
-`Patches` \| `null`
+[`Patches`](../../../mutative/src/type-aliases/Patches.md) \| `null`
 
 ***
 

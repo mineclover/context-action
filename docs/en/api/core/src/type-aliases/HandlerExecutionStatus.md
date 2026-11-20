@@ -8,6 +8,6 @@
 
 > **HandlerExecutionStatus** = `"running"` \| `"succeeded"` \| `"failed"` \| `"skipped"` \| `"cancelled"`
 
-Defined in: [packages/core/src/types.ts:672](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L672)
+Defined in: [packages/core/src/types.ts:688](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L688)
 
 The lifecycle state recorded for one handler invocation.

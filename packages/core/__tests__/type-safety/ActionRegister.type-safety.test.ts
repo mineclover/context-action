@@ -94,6 +94,17 @@ describe('ActionRegister - Type Safety Tests', () => {
         // @ts-expect-error guards cannot publish results
         controller.setResult({ normalized: 'ignored' });
       });
+      typedRegister.registerCommand('stringAction', (_payload, controller) => {
+        if (false) controller.abort('aborted');
+        // @ts-expect-error commands cannot publish results
+        controller.setResult({ normalized: 'ignored' });
+        // @ts-expect-error commands cannot mutate shared payloads
+        controller.modifyPayload(value => value);
+      });
+      if (false) {
+        // @ts-expect-error command handlers cannot return a result value
+        typedRegister.registerCommand('stringAction', () => ({ normalized: 'ignored' }));
+      }
       typedRegister.registerObserver('stringAction', event => {
         expect(event.payload).toBeDefined();
         // @ts-expect-error observers do not receive a pipeline controller
@@ -213,6 +224,59 @@ describe('ActionRegister - Type Safety Tests', () => {
       expect(effect).toHaveBeenCalledTimes(1);
       expect(execution.result).toEqual({ accepted: true });
       expect(execution.handlers.find(handler => handler.id !== undefined)?.result).toBeUndefined();
+      register.destroy();
+    });
+
+    it('runs Phase 2 registerCommand after guard, before observer, respects fatal errors, and never beats results in mixed race', async () => {
+      interface CommandActions extends ActionPayloadMap {
+        run: { allowed: boolean; fail?: boolean };
+        race: void;
+      }
+      interface CommandResults {
+        race: { winner: string };
+      }
+
+      const register = new ActionRegister<CommandActions, CommandResults>();
+      const order: string[] = [];
+
+      register.registerGuard('run', (payload, controller) => {
+        order.push('guard');
+        if (!payload.allowed) controller.abort('blocked');
+      }, { priority: 1 });
+      register.registerCommand('run', payload => {
+        order.push('command');
+        if (payload.fail) throw new Error('command failed');
+      }, { priority: 100, errorPolicy: 'fatal' });
+      register.registerObserver('run', event => {
+        order.push(`observer:${event.outcome}`);
+      });
+
+      const okExecution = await register.dispatchWithResult('run', { allowed: true });
+      expect(okExecution.result).toBeUndefined();
+      expect(okExecution.results).toEqual([]);
+      expect(order).toEqual(['guard', 'command', 'observer:completed']);
+
+      order.length = 0;
+      const abortedExecution = await register.dispatchWithResult('run', { allowed: false });
+      expect(abortedExecution.aborted).toBe(true);
+      expect(order).toEqual(['guard', 'observer:cancelled']);
+
+      order.length = 0;
+      await expect(register.dispatch('run', { allowed: true, fail: true }))
+        .rejects.toThrow('command failed');
+
+      register.registerCommand('race', () => {
+        order.push('race-command');
+      }, { priority: 100 });
+      register.registerResult('race', async () => {
+        await new Promise(resolve => setTimeout(resolve, 15));
+        return { winner: 'result-handler' };
+      }, { priority: 0 });
+
+      const raceExecution = await register.dispatchWithResult('race', undefined, {
+        executionMode: 'race',
+      });
+      expect(raceExecution.result).toEqual({ winner: 'result-handler' });
       register.destroy();
     });
 

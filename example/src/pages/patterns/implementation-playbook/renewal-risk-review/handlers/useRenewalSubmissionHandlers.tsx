@@ -9,7 +9,7 @@ import {
 import {
   useRenewalRiskReviewActionGuard,
   useRenewalRiskReviewActionObserver,
-  useRenewalRiskReviewEffectHandler,
+  useRenewalRiskReviewCommandHandler,
   useRenewalRiskReviewRef,
   useRenewalRiskReviewStoreManager,
 } from '../contexts/RenewalRiskReviewContexts';
@@ -50,7 +50,7 @@ export function useRenewalSubmissionHandlers({
     { id: 'renewal-review-observer', when: 'always', priority: 10 }
   );
 
-  useRenewalRiskReviewEffectHandler(
+  useRenewalRiskReviewCommandHandler(
     'submitReview',
     React.useCallback(async () => {
       const draftStore = storeManager.getStore('draft');
@@ -157,7 +157,6 @@ export function useRenewalSubmissionHandlers({
       statusPanelRef,
       storeManager,
       usageScoreRef,
-    ]),
-    { effectKind: 'observer' }
+    ])
   );
 }

@@ -6,7 +6,7 @@
 
 # Interface: ActionGuardController\<T\>
 
-Defined in: [packages/core/src/types.ts:368](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L368)
+Defined in: [packages/core/src/types.ts:374](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L374)
 
 Controller available to preflight guards. Guards may reject or normalize input,
 but cannot publish a result or terminate a result pipeline.
@@ -43,7 +43,7 @@ Type parameter **T**
 
 > **abort**(`reason?`): `void`
 
-Defined in: [packages/core/src/types.ts:369](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L369)
+Defined in: [packages/core/src/types.ts:375](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L375)
 
 #### Parameters
 
@@ -61,7 +61,7 @@ Defined in: [packages/core/src/types.ts:369](https://github.com/mineclover/conte
 
 > **modifyPayload**(`modifier`): `void`
 
-Defined in: [packages/core/src/types.ts:370](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L370)
+Defined in: [packages/core/src/types.ts:376](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L376)
 
 #### Parameters
 

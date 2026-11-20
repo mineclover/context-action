@@ -1,11 +1,14 @@
 import {
   ActionRegister,
+  type ActionCommandController,
+  type ActionCommandHandler,
   type ActionDispatcherWithResult,
   type ActionHandlerStats,
   type ActionPayload,
   type ActionPayloadMap,
   type ActionRegistryInfo,
   type ActionResultMap,
+  type CommandConfig,
   type ExecutionResult,
   type HandlerError,
   type HandlerExecutionOutcome,
@@ -39,6 +42,15 @@ describe('public core type exports', () => {
     const register = new ActionRegister<ConsumerActions, ConsumerResults>();
     const payload: ActionPayload<ConsumerActions, 'save'> = { id: 'save-1' };
 
+    const commandConfig: CommandConfig<void> = { id: 'reset-command', priority: 10 };
+    const commandHandler: ActionCommandHandler<void> = (
+      _payload,
+      controller: ActionCommandController<void>,
+    ) => {
+      if (controller.signal?.aborted) return;
+    };
+
+    register.registerCommand('reset', commandHandler, commandConfig);
     register.registerResult('save', () => ({ persisted: true } as const));
 
     const dispatchWithResult: ActionDispatcherWithResult<ConsumerActions, ConsumerResults> =
@@ -54,7 +66,7 @@ describe('public core type exports', () => {
     const winner: HandlerExecutionOutcome<ConsumerResults['save']> | undefined =
       execution.raceDiagnostics?.winner;
 
-    expect(registryInfo.registeredActions).toEqual(['save']);
+    expect(registryInfo.registeredActions).toEqual(['reset', 'save']);
     expect(actionStats?.action).toBe('save');
     expect(errors).toEqual([]);
     expect(status).toBe('succeeded');

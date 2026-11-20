@@ -6,7 +6,7 @@
 
 # Interface: ExecutionResult\<R\>
 
-Defined in: [packages/core/src/types.ts:1124](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1124)
+Defined in: [packages/core/src/types.ts:1140](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1140)
 
 Comprehensive result of pipeline execution with detailed execution information
 
@@ -62,7 +62,7 @@ The result type for this execution
 
 > **success**: `boolean`
 
-Defined in: [packages/core/src/types.ts:1126](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1126)
+Defined in: [packages/core/src/types.ts:1142](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1142)
 
 Whether the execution completed successfully
 
@@ -72,7 +72,7 @@ Whether the execution completed successfully
 
 > **aborted**: `boolean`
 
-Defined in: [packages/core/src/types.ts:1129](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1129)
+Defined in: [packages/core/src/types.ts:1145](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1145)
 
 Whether caller or pipeline cancellation aborted the execution
 
@@ -82,7 +82,7 @@ Whether caller or pipeline cancellation aborted the execution
 
 > **abortReason**: `string` \| `undefined`
 
-Defined in: [packages/core/src/types.ts:1132](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1132)
+Defined in: [packages/core/src/types.ts:1148](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1148)
 
 Reason for abortion if aborted
 
@@ -92,7 +92,7 @@ Reason for abortion if aborted
 
 > **terminated**: `boolean`
 
-Defined in: [packages/core/src/types.ts:1135](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1135)
+Defined in: [packages/core/src/types.ts:1151](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1151)
 
 Whether the execution was terminated early via controller.return()
 
@@ -102,7 +102,7 @@ Whether the execution was terminated early via controller.return()
 
 > **outcome**: `"completed"` \| `"completed_with_errors"` \| `"failed"` \| `"cancelled"` \| `"debounced"` \| `"throttled"`
 
-Defined in: [packages/core/src/types.ts:1138](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1138)
+Defined in: [packages/core/src/types.ts:1154](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1154)
 
 High-level terminal state, including timing-guard rejections.
 
@@ -112,7 +112,7 @@ High-level terminal state, including timing-guard rejections.
 
 > `optional` **validation?**: `object`
 
-Defined in: [packages/core/src/types.ts:1141](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1141)
+Defined in: [packages/core/src/types.ts:1157](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1157)
 
 Runtime payload validation outcome when a schema was configured
 
@@ -130,7 +130,7 @@ Runtime payload validation outcome when a schema was configured
 
 > **result**: `R` \| `R`[] \| `undefined`
 
-Defined in: [packages/core/src/types.ts:1147](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1147)
+Defined in: [packages/core/src/types.ts:1163](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1163)
 
 Final result based on result strategy - only present for non-void results
 
@@ -140,7 +140,7 @@ Final result based on result strategy - only present for non-void results
 
 > **successResults**: `R`[]
 
-Defined in: [packages/core/src/types.ts:1151](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1151)
+Defined in: [packages/core/src/types.ts:1167](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1167)
 
 All successful handler results (guaranteed non-undefined)
 
@@ -150,7 +150,7 @@ All successful handler results (guaranteed non-undefined)
 
 > **results**: (`R` \| `undefined`)[]
 
-Defined in: [packages/core/src/types.ts:1154](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1154)
+Defined in: [packages/core/src/types.ts:1170](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1170)
 
 All handler results including undefined from failed handlers (legacy compatibility)
 
@@ -160,7 +160,7 @@ All handler results including undefined from failed handlers (legacy compatibili
 
 > **failedResults**: `object`[]
 
-Defined in: [packages/core/src/types.ts:1157](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1157)
+Defined in: [packages/core/src/types.ts:1173](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1173)
 
 Failed handler results with error context
 
@@ -186,7 +186,7 @@ Runtime execution cannot infer the TypeScript result type.
 
 > **execution**: `object`
 
-Defined in: [packages/core/src/types.ts:1165](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1165)
+Defined in: [packages/core/src/types.ts:1181](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1181)
 
 Execution metadata
 
@@ -270,7 +270,7 @@ Execution end timestamp
 
 > **handlers**: `object`[]
 
-Defined in: [packages/core/src/types.ts:1211](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1211)
+Defined in: [packages/core/src/types.ts:1227](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1227)
 
 Detailed information about each handler
 
@@ -322,7 +322,7 @@ Custom metadata for this handler
 
 > `optional` **raceDiagnostics?**: `object`
 
-Defined in: [packages/core/src/types.ts:1235](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1235)
+Defined in: [packages/core/src/types.ts:1251](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1251)
 
 Race-only snapshots. Loser failures never change the winner contract.
 
@@ -358,6 +358,6 @@ Failed losers observable at that same snapshot point.
 
 > **errors**: [`HandlerError`](HandlerError.md)[]
 
-Defined in: [packages/core/src/types.ts:1247](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1247)
+Defined in: [packages/core/src/types.ts:1263](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1263)
 
 Errors that occurred during execution

@@ -9,7 +9,7 @@ import {
 import {
   useIncidentEscalationActionGuard,
   useIncidentEscalationActionObserver,
-  useIncidentEscalationEffectHandler,
+  useIncidentEscalationCommandHandler,
   useIncidentEscalationRef,
   useIncidentEscalationStoreManager,
 } from '../contexts/IncidentEscalationContexts';
@@ -56,7 +56,7 @@ export function useIncidentSubmissionHandlers({
     { id: 'incident-escalation-observer', when: 'always', priority: 10 }
   );
 
-  useIncidentEscalationEffectHandler(
+  useIncidentEscalationCommandHandler(
     'submitEscalation',
     React.useCallback(async () => {
       const draftStore = storeManager.getStore('draft');
@@ -169,7 +169,6 @@ export function useIncidentSubmissionHandlers({
       statusPanelRef,
       storeManager,
       summaryRef,
-    ]),
-    { effectKind: 'observer' }
+    ])
   );
 }

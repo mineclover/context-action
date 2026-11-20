@@ -17,8 +17,11 @@ export {
 export { executeParallel, executeRace, executeSequential } from './execution-modes.js';
 export { resolveHandlerConfig } from './types.js';
 export type {
+  ActionCommandController,
+  ActionCommandHandler,
   ActionEffectController,
   ActionEffectHandler,
+  CommandConfig,
   EffectConfig,
   ActionGuardController,
   ActionGuardHandler,
