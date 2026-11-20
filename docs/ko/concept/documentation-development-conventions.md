@@ -14,7 +14,7 @@
 | 영역 | 소유자 및 편집 규칙 | 검증 |
 | --- | --- | --- |
 | `docs/en/**`, `docs/ko/**` 가이드·개념 문서 | 사람이 작성하는 원문입니다. 공개 내용은 영문·국문 페이지의 의미를 함께 맞춥니다 (`context-layered`, `concept`, `examples`, `llms`는 `strict-paired`, `guide`, `troubleshooting`은 `tracked-partial`). 패키지 전반 Store 사용 기준은 [Store별 선택 및 사용법 가이드](../context-layered/store-selection-and-usage-guide)를 정본으로 삼습니다. | `pnpm docs:check` |
-| `catalog/repository-surface/*.v1.json` | 20개 패키지 API(`api-surface`), 72개 정식 예제 라우트·데모(`example-surface`), 루트·관리·파생 문서 목록(`document-surface`, `CA-SURFACE-CATALOG-001`)을 고정하는 머신 검증용 카탈로그입니다. 표면 추가·변경·삭제 시 함께 갱신합니다. | `pnpm verify:surface-catalog` |
+| `catalog/repository-surface/*.v1.json` | 20개 패키지 API(`api-surface`), 76개 정식 예제 라우트·데모(`example-surface`), 루트·관리·파생 문서 목록(`document-surface`, `CA-SURFACE-CATALOG-001`)을 고정하는 머신 검증용 카탈로그입니다. 표면 추가·변경·삭제 시 함께 갱신합니다. | `pnpm verify:surface-catalog` |
 | `docs/api/generated/**`, `docs/.vitepress/config/api-spec.ts`, `docs/en/api/**` | 생성 API 참조입니다. `docs/api/generated/**`와 `api-spec.ts`는 `gitignored: true` 빌드 산출물이며, TypeScript export와 JSDoc을 먼저 고친 뒤 출력물을 직접 고치지 말고 다시 생성합니다. | `pnpm docs:api`, `pnpm docs:sync`, `pnpm docs:build` |
 | `llmsData/**` 및 `docs/{en,ko}/llms/llms-*.txt` | `docs/{en,ko}/**` 원문에서 파생되는 학습·컨텍스트 산출물입니다. 정식 설명의 원문으로 취급하지 않습니다. | `pnpm build:llms-generator` 후 `pnpm llms:sync-docs --changed-files a.md,b.md` 및 `pnpm llms:check` |
 | 루트와 패키지 `README` | 발견과 진입을 위한 문서입니다. 설명을 중복하기보다 권위 있는 가이드, [저장소 표면 카탈로그](../context-layered/repository-surface-catalog), API 페이지로 연결합니다. | 관련 빌드·표면 카탈로그·링크 검증 |

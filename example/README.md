@@ -16,9 +16,9 @@ The application is organized into **5 specialized catalogs**, each designed for 
 
 ### 🏗️ **Foundations** (`/foundations/`)
 **Target**: New users, developers learning Context-Action basics
-- **Core** - ActionRegister, pipeline fundamentals
-- **Store** - State management, declarative patterns  
-- **React** - Context integration, hooks, providers
+- **Core** - ActionRegister, pipeline fundamentals, v1 role hooks (`useActionGuard`, `useActionEffectHandler`, `useActionObserver`)
+- **Store** - State management, declarative patterns, `Store Backend & Transactions` (`@context-action/store-core`, `@context-action/react/backend`, `StoreTransactionCoordinator`)
+- **React** - Context integration, v1 role-specific hooks (`useActionGuard`, `useActionResultHandler`, `useActionEffectHandler`, `useActionObserver`), providers
 
 ### ⚡ **Performance** (`/performance/`) 
 **Target**: Developers solving performance problems
@@ -30,13 +30,14 @@ The application is organized into **5 specialized catalogs**, each designed for 
 ### 🎛️ **Patterns** (`/patterns/`)
 **Target**: Experienced developers implementing complex workflows  
 - **Conditional** - Permission-based execution, form validation
+- **Implementation Playbook** - Canonical Order Form + 3 domain scenarios (`access-request`, `incident-escalation`, `renewal-risk-review`) with Unified Triad (`BusinessActionIntent` vs `LayoutActionIntent`) separation and Tier 3 `@evidenceExclude` views
 - **Pipeline** - Flow control, workflow orchestration
 - **Refs** - Advanced reference patterns, performance optimization
 
 ### 🧩 **Integrations** (`/integrations/`)
 **Target**: Developers building real applications
 - **Business** - Real-time chat and domain workflows
-- **Advanced** - Action Lifecycle Workbench, React Aria Table + Calendar, Preact/Lit Web Components, Form Builder, Canvas drawing, and Concurrent Actions
+- **Advanced** - Action Lifecycle Workbench, React Aria Table + Calendar, Preact/Lit Web Components, `XState Statecharts` (`/integrations/xstate-statechart`), `WebMCP Scope` (`/integrations/webmcp-scope`), `AI SDK Tools` (`/integrations/ai-sdk-tools`), Form Builder, Canvas drawing, and Concurrent Actions
 
 ### 🛠️ **Utilities** (`/utilities/`)
 **Target**: Developers improving development workflow
@@ -187,7 +188,7 @@ src/
 - **Memory Management**: Proper cleanup and lifecycle handling
 
 ### Business Logic Patterns
-- **Handler Registration**: `useActionHandler` + `useCallback` pattern
+- **Handler Registration**: v1 role-specific hooks (`useActionGuard`, `useActionResultHandler`, `useActionEffectHandler`, `useActionObserver`) and compatible `useActionHandler` + `useCallback` pattern
 - **Store Updates**: Reactive state management with `useStoreValue`
 - **Error Handling**: Pipeline controller abort and error management  
 - **Async Operations**: Async handler support with proper error boundaries

@@ -6,7 +6,7 @@
 
 ## Context
 
-The repository now spans 20 workspace packages (`packages/*`), 72 canonical routes inside `example/` (116 total routes including legacy redirects), standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), 7 package-local `examples/` suites, 9 narrative example walkthroughs, 13 root markdown files, bilingual documentation trees, release manifests, and derived TypeDoc/LLMS artifacts.
+The repository now spans 20 workspace packages (`packages/*`), 76 canonical routes inside `example/` (120 total routes including legacy redirects), standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), 7 package-local `examples/` suites, 9 narrative example walkthroughs, 13 root markdown files, bilingual documentation trees, release manifests, and derived TypeDoc/LLMS artifacts.
 
 Previously, these surfaces were only discoverable piecemeal across `package.json`, `typedoc.json`, `example/src/App.tsx`, `sidebars.ts`, and `package-boundary-convention.md` (where `@context-action/lit`, `@context-action/lit-ui`, `@context-action/webmcp`, and `@context-action/template-react` were already omitted from the package map). Without a machine-verifiable base specification, new packages, example routes, or unpaired translations drifted silently.
 
@@ -21,7 +21,7 @@ Previously, these surfaces were only discoverable piecemeal across `package.json
 Establish three versioned, machine-verifiable surface catalogs under `catalog/repository-surface/` plus bilingual base specifications:
 
 - `catalog/repository-surface/api-surface.v1.json`: catalogs all 20 workspace packages (`layer`, `visibility`, `stability`, `exports` subpaths, workspace dependencies/peers, `typedocEntryPoints`, `readme`, `authoritativeDocs`, `verificationGate`).
-- `catalog/repository-surface/example-surface.v1.json`: catalogs all 72 canonical `example/` routes across 13 semantic groups, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), all 7 `packages/*/examples` suites, and all 9 paired narrative example docs (`docs/{en,ko}/examples/*.md`).
+- `catalog/repository-surface/example-surface.v1.json`: catalogs all 76 canonical `example/` routes across 13 semantic groups, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), all 7 `packages/*/examples` suites, and all 9 paired narrative example docs (`docs/{en,ko}/examples/*.md`).
 - `catalog/repository-surface/document-surface.v1.json`: catalogs all 13 root markdown files, managed documentation areas with explicit `authorityClass` and `pairingPolicy` (`strict-paired`, `tracked-partial`, `single-locale`, `derived`, `not-applicable`), and derived TypeDoc/LLMS outputs.
 - Enforce 1:1 parity via `scripts/verify-repository-surface-catalog.mjs` (`pnpm verify:surface-catalog`), wired into `pnpm convention:check` alongside `scripts/verify-repository-surface-catalog.test.mjs`.
 

@@ -30,7 +30,7 @@ For local pre-PR receipt verification ([Local-First Verification Policy](../../L
 - [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention)
   - package ownership, dependency direction, package lifecycle, and cleanup rules
 - [Repository Surface Catalog](/en/context-layered/repository-surface-catalog)
-  - machine-verifiable base specification and inventory for all 20 API packages, 72 canonical example routes / demos, and managed documents ([CA-SURFACE-CATALOG-001](/en/context-layered/decisions/CA-SURFACE-CATALOG-001))
+  - machine-verifiable base specification and inventory for all 20 API packages, 76 canonical example routes / demos, and managed documents ([CA-SURFACE-CATALOG-001](/en/context-layered/decisions/CA-SURFACE-CATALOG-001))
 - [Mutative Core History and Upstream References](/en/context-layered/mutative-core-history)
   - Mutative source lineage, carried upstream fixes, licensing, and synchronization rules
 - [Implementation Convention](/en/context-layered/implementation-convention)
