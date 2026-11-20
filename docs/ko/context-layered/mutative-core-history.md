@@ -16,7 +16,7 @@
 | 유지보수 포크 | [`mineclover/mutative`](https://github.com/mineclover/mutative) | 유지보수와 upstream 호환 수정의 기준 포크 |
 | 편입 revision | [`5fd7d56`](https://github.com/mineclover/mutative/commit/5fd7d56b3f88185ef26908df055a9a27be9a2b88) | `@context-action/mutative-core`에 vendoring한 revision |
 | upstream 호환성 기준 | `mutative@1.3.0` | npm tarball과 source `gitHead`를 `upstream-lock.json`에 기록 |
-| Context-Action 패키지 | [`packages/mutative-core`](../../../packages/mutative-core/) | publish 패키지와 동기화 경계 |
+| Context-Action 패키지 | [`packages/mutative-core`](https://github.com/mineclover/context-action/tree/main/packages/mutative-core) | publish 패키지와 동기화 경계 |
 
 이 revision은 2026-07-18에 준비했으며, 설치 시 별도 빌드가 필요하지 않도록
 배포 산출물도 포함한다. 인수한 upstream `mutative@1.3.0` npm tarball integrity,

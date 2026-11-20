@@ -365,7 +365,7 @@ const handler = async (payload, controller) => {
 ---
 
 ::: tip 다음 단계
-- 효과적인 상태 처리를 위한 [스토어 관리](./store-management) 학습
-- 다중 도메인 핸들러를 위한 [교차 도메인 통합](./cross-domain-integration) 탐색
-- 종합적인 핸들러 테스트 전략을 위한 [테스트 가이드](./testing) 참조
+- 효과적인 상태 처리를 위한 [스토어 관리](./patterns/store/basic-usage.md) 학습
+- 다중 도메인 핸들러를 위한 [교차 도메인 통합](../context-layered/context-layered-guide.md) 탐색
+- 종합적인 핸들러 테스트 전략을 위한 [테스트 가이드](./testing-boundaries.md) 참조
 :::

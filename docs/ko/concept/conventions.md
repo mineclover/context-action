@@ -1992,11 +1992,11 @@ function SlowMouseTracker() {
 - [Pattern Guide](./pattern-guide.md) - 상세한 패턴 사용법
 - [Full Architecture Guide](./architecture-guide.md) - 완전한 아키텍처 가이드
 - [Hooks Reference](./hooks-reference.md) - Hooks 참조 문서
-- [API Reference](../../api/) - API 문서
+- [API Reference](../../en/api/README.md) - API 문서
 
 ### 예제 프로젝트
-- [Basic Example](../../../example/) - 기본 사용 예제
-- [Advanced Patterns](../../examples/) - 고급 패턴 예제
+- [Basic Example](https://github.com/mineclover/context-action/tree/main/example) - 기본 사용 예제
+- [Advanced Patterns](../examples/basic-setup.md) - 고급 패턴 예제
 
 ### 마이그레이션 가이드
 - [Legacy Pattern Migration](./pattern-guide.md#migration-guide) - 레거시 패턴에서 마이그레이션

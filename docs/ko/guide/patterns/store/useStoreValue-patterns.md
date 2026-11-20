@@ -837,7 +837,7 @@ function App() {
 ## 관련 패턴
 
 - **[기본 스토어 설정](../setup/basic-store-setup.md)** - 스토어 컨텍스트 설정 패턴
-- **[useStoreSelector 패턴](./useStoreSelector-patterns.md)** - 다중 스토어 선택 패턴
-- **[useComputedStore 패턴](./useComputedStore-patterns.md)** - 계산된 값 패턴
-- **[성능 패턴](./performance-patterns.md)** - 성능 최적화 기법
+- **[useStoreSelector 패턴](./useStoreValue-patterns.md)** - 다중 스토어 선택 패턴
+- **[useComputedStore 패턴](./useStoreValue-patterns.md)** - 계산된 값 패턴
+- **[성능 패턴](./path-based-subscription.md)** - 성능 최적화 기법
 - **[useStoreManager API](./useStoreManager-api.md)** - 저레벨 스토어 관리

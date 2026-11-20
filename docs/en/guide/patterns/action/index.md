@@ -26,7 +26,7 @@ All examples in Action pattern documents use the standardized setup patterns, pa
   - *Uses EventActions setup pattern from Basic Action Setup*
 - **[Type System](./type-system.md)** - TypeScript integration and type safety
   - *Built on ActionPayloadMap extension pattern from setup guide*
-- **[Register Delegation](./register-delegation.md)** - Modular handler organization for large applications
+- **[Register Delegation](./register-patterns.md)** - Modular handler organization for large applications
   - *Uses Multi-Domain Context Setup pattern*
 
 ### Advanced Patterns
@@ -34,9 +34,9 @@ All examples in Action pattern documents use the standardized setup patterns, pa
   - *Showcases multiple setup patterns for complex architectures*
 - **[Dispatch Patterns](./dispatch-patterns.md)** - Execution modes, filtering, and performance
   - *Uses AppActions extended interface pattern from setup*
-- **[Advanced Filtering](./advanced-filtering.md)** - Sophisticated handler filtering strategies
+- **[Advanced Filtering](../../pipeline/advanced-filtering.md)** - Sophisticated handler filtering strategies
   - *Handler ID, priority ranges, custom logic, and combined filtering patterns*
-- **[Dispatch with Result](./dispatch-with-result.md)** - Result collection and processing
+- **[Dispatch with Result](./dispatch-patterns.md)** - Result collection and processing
   - *Built on setup patterns with result handling extensions*
 - **[Register Patterns](./register-patterns.md)** - Advanced handler registration and memory management
   - *Uses conditional provider setup patterns for complex scenarios*
@@ -130,9 +130,9 @@ Action patterns provide these capabilities through standardized setup:
 
 Action patterns integrate seamlessly with other patterns through shared setup foundations:
 
-- **[Store Patterns](../store/)** - Combine with Store setup for state management
+- **[Store Patterns](../store/basic-usage.md)** - Combine with Store setup for state management
 - **[Setup Patterns](../setup/)** - Foundation for all Action implementations
-- **[Architecture Patterns](../architecture/)** - MVVM and Domain Context integration
+- **[Architecture Patterns](../../../context-layered/context-layered-guide.md)** - MVVM and Domain Context integration
 - **Multi-Context Setup** - Complex application architectures
 
 ### Setup Integration Flow
@@ -147,4 +147,4 @@ Action patterns integrate seamlessly with other patterns through shared setup fo
 1. **Complete Setup**: Follow [Basic Action Setup](../setup/basic-action-setup.md) first
 2. **Start with Basics**: Begin with [Basic Usage](./basic-usage.md) 
 3. **Explore Advanced**: Move to [Advanced Patterns](./advanced-patterns.md) when ready
-4. **Scale Up**: Use [Register Delegation](./register-delegation.md) for complex applications
+4. **Scale Up**: Use [Register Delegation](./register-patterns.md) for complex applications

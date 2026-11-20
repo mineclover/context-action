@@ -798,10 +798,10 @@ export { composeProviders } from '@context-action/react';
 
 이 설정 파일은 다음을 위한 재사용 가능한 패턴을 제공합니다:
 
-- **[컨텍스트 분할 패턴](../architecture/context-splitting.md)** - 프로바이더 구성 사용
-- **[MVVM 아키텍처](../architecture/mvvm.md)** - 레이어 기반 구성 사용
-- **[도메인 컨텍스트 아키텍처](../architecture/domain-context.md)** - 도메인 구성 사용
-- **[withProvider 패턴](../store/withProvider-pattern.md)** - 구성과 함께 HOC 사용
+- **[컨텍스트 분할 패턴](../../../context-layered/context-layered-guide.md)** - 프로바이더 구성 사용
+- **[MVVM 아키텍처](../../../concept/architecture-guide.md)** - 레이어 기반 구성 사용
+- **[도메인 컨텍스트 아키텍처](../../../context-layered/context-layered-guide.md)** - 도메인 구성 사용
+- **[withProvider 패턴](./provider-composition-setup.md)** - 구성과 함께 HOC 사용
 
 ## 관련 설정 가이드
 

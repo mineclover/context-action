@@ -846,4 +846,4 @@ function FileUploadLogic({ children }) {
 - [Main Conventions](./conventions.md) - 전체 프레임워크 컨벤션
 - [Hooks Reference](./hooks-reference.md) - 완전한 hooks 문서
 - [Architecture Guide](./architecture-guide.md) - 프레임워크 아키텍처
-- [Infinite Loop Issues](../../troubleshooting/infinite-loop-issues.md) - 문제 해결 가이드
+- [Infinite Loop Issues](../troubleshooting/store-issues.md) - 문제 해결 가이드

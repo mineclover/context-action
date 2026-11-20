@@ -38,7 +38,7 @@ MVVM 아키텍처 분리와 함께 멀티 컨텍스트 설정을 사용한 크�
 - **크로스 컨텍스트 검증**: 결과 처리와 검증 도메인 통합
 - **엔터프라이즈 결과 처리**: 도메인 분리를 통한 대규모 데이터 처리
 
-**[결과와 함께 디스패치 패턴 보기 →](./dispatch-with-result.md)**
+**[결과와 함께 디스패치 패턴 보기 →](./dispatch-patterns.md)**
 
 ### ⚙️ 등록 패턴
 MVVM 레이어 구성과 크로스 컨텍스트 조정을 갖춘 도메인 인식 핸들러 등록.
@@ -205,17 +205,17 @@ function useAdvancedUserOperations() {
 멀티 컨텍스트 설정은 정교한 실제 패턴을 가능하게 합니다:
 
 - [우선순위 성능 데모](https://github.com/mineclover/context-action/tree/main/example/src/pages/actionguard/priority-performance) - 크로스 도메인 우선순위 실행
-- [검색 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/SearchPage.tsx) - 검증과 함께 멀티 도메인 검색
-- [스크롤 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/ScrollPage.tsx) - 성능 최적화된 UI 상태 관리
+- [검색 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/performance/action-guard/SearchPageRefactored.tsx) - 검증과 함께 멀티 도메인 검색
+- [스크롤 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/performance/action-guard/ScrollPageRefactored.tsx) - 성능 최적화된 UI 상태 관리
 
 ## 관련 패턴
 
 ### 설정 기반
 - **[멀티 컨텍스트 설정](../setup/multi-context-setup.md)** - 완전한 아키텍처 기반
-- **[MVVM 아키텍처](../architecture/mvvm.md)** - 레이어 분리 패턴
-- **[도메인 컨텍스트](../architecture/domain-context.md)** - 비즈니스 도메인 격리
+- **[MVVM 아키텍처](../../../concept/architecture-guide.md)** - 레이어 분리 패턴
+- **[도메인 컨텍스트](../../../context-layered/context-layered-guide.md)** - 비즈니스 도메인 격리
 
 ### 기본 패턴
 - [액션 기본 사용법](./basic-usage.md) - 단일 컨텍스트 기본 패턴
 - [타입 시스템](./type-system.md) - 멀티 컨텍스트 TypeScript 통합
-- [등록 위임](./register-delegation.md) - 크로스 도메인 핸들러 구성
+- [등록 위임](./register-patterns.md) - 크로스 도메인 핸들러 구성

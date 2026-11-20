@@ -6,18 +6,18 @@ Essential best practices for Context-Action framework development. This document
 
 ## 📚 Comprehensive Pattern Documentation
 
-This guide has been reorganized for better maintainability. For detailed implementations, see the [**Pattern Collection**](./patterns/):
+This guide has been reorganized for better maintainability. For detailed implementations, see the [**Pattern Collection**](./patterns/setup/index.md):
 
 ### 🎯 Core Framework Patterns
 - **[Action Patterns](./patterns/action/)** - Pure action dispatching without state management
-- **[Store Patterns](./patterns/store/)** - Type-safe state management (Recommended)  
-- **[RefContext Patterns](./patterns/ref/)** - Direct DOM manipulation with zero re-renders
+- **[Store Patterns](./patterns/store/basic-usage.md)** - Type-safe state management (Recommended)  
+- **[RefContext Patterns](./patterns/ref/basic-usage.md)** - Direct DOM manipulation with zero re-renders
 
 ### 🏗️ Advanced Patterns
-- **[Architecture Patterns](./patterns/architecture/)** - System architecture and design patterns
+- **[Architecture Patterns](../context-layered/context-layered-guide.md)** - System architecture and design patterns
 - **[Async Patterns](./patterns/async/)** - Asynchronous operation patterns and control flow
-- **[Performance Patterns](./patterns/performance/)** - Performance optimization techniques
-- **[Debug Patterns](./patterns/debug/)** - Production debugging and troubleshooting
+- **[Performance Patterns](./patterns/store/subscription-optimization.md)** - Performance optimization techniques
+- **[Debug Patterns](./patterns/store/debugging-development.md)** - Production debugging and troubleshooting
 
 ## ⚠️ Critical Best Practices
 
@@ -57,7 +57,7 @@ function GoodComponent() {
 #### 2. **Production Debugging** - 🐛 **ESSENTIAL**
 Critical issues like duplicate handlers, race conditions, and component lifecycle conflicts.
 
-**📖 Read More**: [Production Debugging Patterns](./patterns/debug/production-debugging.md)
+**📖 Read More**: [Production Debugging Patterns](./patterns/store/debugging-development.md)
 
 #### 3. **Real-time State Access** - ⚡ **IMPORTANT**
 Proper async patterns for accessing current state values.
@@ -121,8 +121,8 @@ For naming conventions, file structure, and type definitions, see:
 
 ### Implementation Guides
 For step-by-step implementation details, see:
-- **[Basic Examples](../../examples/)** - Working code examples
-- **[Pattern Collection](./patterns/)** - Comprehensive implementation guides
+- **[Basic Examples](../examples/basic-setup.md)** - Working code examples
+- **[Pattern Collection](./patterns/setup/index.md)** - Comprehensive implementation guides
 
 ## 🚨 Common Pitfalls
 
@@ -136,7 +136,7 @@ For step-by-step implementation details, see:
 6. **Event Object Storage**: Never store DOM events or React event objects in stores
 7. **Cross-Platform Compatibility**: Use proper timeout types for browser/Node.js environments
 
-**📖 Detailed Solutions**: [Production Debugging](./patterns/debug/production-debugging.md)
+**📖 Detailed Solutions**: [Production Debugging](./patterns/store/debugging-development.md)
 
 ### 🔧 Security & Performance Guidelines
 
@@ -204,9 +204,9 @@ If you're migrating from other state management libraries or updating existing c
 ## 📚 Additional Resources
 
 ### Documentation Links
-- [API Reference](../../api/) - Complete API documentation
-- [Example Code](../../../example/) - Working example application
-- [Pattern Collection](./patterns/) - Comprehensive pattern guides
+- [API Reference](../api/README.md) - Complete API documentation
+- [Example Code](https://github.com/mineclover/context-action/tree/main/example) - Working example application
+- [Pattern Collection](./patterns/setup/index.md) - Comprehensive pattern guides
 
 ### External Resources
 - [Context-Action GitHub](https://github.com/mineclover/context-action) - Source code and issues

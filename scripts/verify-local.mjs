@@ -114,9 +114,9 @@ console.log();
 
 // ── 1. Toolchain Lock Check ──────────────────────────────────────────────────
 const nodeVer = process.version;
-const majorNode = parseInt(nodeVer.slice(1).split('.')[0], 10);
-if (majorNode < 20) {
-  console.error(`✖ [FAIL] Node.js >= 20 required, detected: ${nodeVer}`);
+const [majorNode, minorNode] = nodeVer.slice(1).split('.').map(Number);
+if (majorNode < 24 || (majorNode === 24 && minorNode < 11)) {
+  console.error(`✖ [FAIL] Node.js >= 24.11.0 required, detected: ${nodeVer}`);
   process.exit(1);
 }
 

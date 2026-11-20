@@ -2,7 +2,7 @@
   "document": {
     "id": "context-layered--migration-guide",
     "title": "Migration Guide: MVVM to Context-Layered Architecture",
-    "category": "context-layered",
+    "category": "concept",
     "source_path": "en/context-layered/migration-guide.md",
     "lastModified": "2026-07-20T23:24:48.102Z",
     "wordCount": 1399
@@ -197,7 +197,7 @@
     "version": "1.0.0",
     "original_size": 13080,
     "created_at": "2026-07-20T23:30:19.154Z",
-    "source_last_modified": "2026-08-30T10:26:20.373Z",
+    "source_last_modified": "2026-11-20T15:59:08.033Z",
     "keywords": {
       "primary": [
         "context-layered",
@@ -219,6 +219,6 @@
         "framework"
       ]
     },
-    "last_updated": "2026-08-30T10:30:07.800Z"
+    "last_updated": "2026-11-20T16:03:36.079Z"
   }
 }

@@ -363,7 +363,7 @@ useActionHandler('executeLowPriority', handler, { priority: 30 });
 
 ## 관련 문서
 
-- **[차단 작업](./blocking.md)** - 차단으로 실행 플로우 제어
-- **[중단 메커니즘](./abort.md)** - 필요시 파이프라인 실행 중지
-- **[결과 처리](./result-handling.md)** - 핸들러 결과 수집과 사용
+- **[차단 작업](./dispatch.md)** - 차단으로 실행 플로우 제어
+- **[중단 메커니즘](../patterns/action/advanced-patterns.md)** - 필요시 파이프라인 실행 중지
+- **[결과 처리](./dispatch.md)** - 핸들러 결과 수집과 사용
 - **[디스패치 메서드](./dispatch.md)** - 파이프라인을 트리거하는 다양한 방법

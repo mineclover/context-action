@@ -643,13 +643,13 @@ export {
 
 이 설정 파일은 다음을 위한 재사용 가능한 패턴을 제공합니다:
 
-- **[MVVM 아키텍처](../architecture/mvvm.md)** - 완전한 MVVM 설정 사용
-- **[도메인 컨텍스트 아키텍처](../architecture/domain-context.md)** - 도메인 분리 사용
-- **[컨텍스트 분할 패턴](../architecture/context-splitting.md)** - 프로바이더 구성 사용
-- **[성능 패턴](../performance/optimization-techniques.md)** - RefContext 패턴 사용
+- **[MVVM 아키텍처](../../../concept/architecture-guide.md)** - 완전한 MVVM 설정 사용
+- **[도메인 컨텍스트 아키텍처](../../../context-layered/context-layered-guide.md)** - 도메인 분리 사용
+- **[컨텍스트 분할 패턴](../../../context-layered/context-layered-guide.md)** - 프로바이더 구성 사용
+- **[성능 패턴](../store/path-based-subscription.md)** - RefContext 패턴 사용
 
 ## 관련 설정 가이드
 
 - **[기본 액션 설정](./basic-action-setup.md)** - 단일 액션 컨텍스트 패턴
 - **[기본 스토어 설정](./basic-store-setup.md)** - 단일 스토어 컨텍스트 패턴
-- **[프로바이더 구성](../store/withProvider-pattern.md)** - 고급 구성 기법
+- **[프로바이더 구성](./provider-composition-setup.md)** - 고급 구성 기법

@@ -602,5 +602,5 @@ interface DispatchOptions {
 
 - [Action Pattern Guide](./patterns/action/index.md)
 - [Store Integration Pattern](../concept/store-conventions.md)
-- [TypeScript API Reference](../../api/core/README.md)
+- [TypeScript API Reference](../api/core/src/README.md)
 - [React Integration Guide](./patterns/action/react-integration.md)

@@ -494,13 +494,13 @@ function UserManagement() {
 이 설정 파일은 다음을 위한 재사용 가능한 패턴을 제공합니다:
 
 - **[스토어 기본 사용법](../store/basic-usage.md)** - UserStores 패턴 사용
-- **[스토어 성능 패턴](../store/performance-patterns.md)** - 최적화된 구성 사용
+- **[스토어 성능 패턴](../store/path-based-subscription.md)** - 최적화된 구성 사용
 - **[useStoreValue 패턴](../store/useStoreValue-patterns.md)** - 액세스 패턴 사용
-- **[MVVM 아키텍처](../architecture/mvvm.md)** - 도메인 스토어 분리 사용
-- **[도메인 컨텍스트 아키텍처](../architecture/domain-context.md)** - 다중 도메인 스토어 사용
+- **[MVVM 아키텍처](../../../concept/architecture-guide.md)** - 도메인 스토어 분리 사용
+- **[도메인 컨텍스트 아키텍처](../../../context-layered/context-layered-guide.md)** - 다중 도메인 스토어 사용
 
 ## 관련 설정 가이드
 
 - **[기본 액션 설정](./basic-action-setup.md)** - 액션 컨텍스트 설정 패턴
 - **[다중 컨텍스트 설정](./multi-context-setup.md)** - 복잡한 아키텍처 설정
-- **[프로바이더 구성](../store/withProvider-pattern.md)** - 고급 프로바이더 패턴
+- **[프로바이더 구성](./provider-composition-setup.md)** - 고급 프로바이더 패턴

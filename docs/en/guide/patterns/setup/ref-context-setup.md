@@ -643,10 +643,10 @@ export * from './PaymentRefs';
 This setup file provides reusable patterns for:
 
 - **[Ref Basic Usage](../ref/basic-usage.md)** - Uses CanvasRefs pattern
-- **[Canvas Optimization](../ref/canvas-optimization.md)** - Uses CanvasRefs and WorkerRefs
-- **[Memory Optimization](../ref/memory-optimization.md)** - Uses service cleanup patterns
-- **[MVVM Architecture](../architecture/mvvm.md)** - Uses RefContext as Performance layer
-- **[Performance Patterns](../performance/optimization-techniques.md)** - Uses all ref patterns
+- **[Canvas Optimization](../ref/basic-usage.md)** - Uses CanvasRefs and WorkerRefs
+- **[Memory Optimization](../ref/basic-usage.md)** - Uses service cleanup patterns
+- **[MVVM Architecture](../../../concept/architecture-guide.md)** - Uses RefContext as Performance layer
+- **[Performance Patterns](../store/subscription-optimization.md)** - Uses all ref patterns
 
 ## Related Setup Guides
 

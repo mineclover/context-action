@@ -498,14 +498,14 @@ store.setValue(state);                          // Final re-render
 
 **Performance & Testing**:
 - [Performance Proof](./notifyPath-performance-proof.md) - Mathematical performance proofs (50% re-render reduction, RAF batching, etc.)
-- [Async Process Tests](../../packages/react/__tests__/stores/notifyPath-async-process.test.tsx) - Comprehensive test suite with 6 test categories:
+- [Async Process Tests](https://github.com/mineclover/context-action/blob/main/packages/react/__tests__/stores/notifyPath-async-process.test.tsx) - Comprehensive test suite with 6 test categories:
   - Business Logic Separation - Pure business logic without dependencies
   - Async Process State Machine - State transitions with notifyPath
   - Progress-Only Updates - Selective re-rendering proof
   - Modular Business Logic Integration - Full layer separation
   - Error Handling - Validation and error states
   - Multi-file Queue Management - Complex concurrent workflows
-- [Performance Tests](../../packages/react/__tests__/stores/notifyPath-performance.test.tsx) - Re-render reduction, RAF batching, selective rendering benchmarks
+- [Performance Tests](https://github.com/mineclover/context-action/blob/main/packages/react/__tests__/stores/notifyPath-performance.test.tsx) - Re-render reduction, RAF batching, selective rendering benchmarks
 
 **Architecture & Patterns**:
 - [Event Loop Control](#event-loop-control) - Integration patterns with Action Handlers and RefContext

@@ -798,10 +798,10 @@ export { composeProviders } from '@context-action/react';
 
 This setup file provides reusable patterns for:
 
-- **[Context Splitting Patterns](../architecture/context-splitting.md)** - Uses provider composition
-- **[MVVM Architecture](../architecture/mvvm.md)** - Uses layer-based composition
-- **[Domain Context Architecture](../architecture/domain-context.md)** - Uses domain composition
-- **[withProvider Pattern](../store/withProvider-pattern.md)** - Uses HOC with composition
+- **[Context Splitting Patterns](../../../context-layered/context-layered-guide.md)** - Uses provider composition
+- **[MVVM Architecture](../../../concept/architecture-guide.md)** - Uses layer-based composition
+- **[Domain Context Architecture](../../../context-layered/context-layered-guide.md)** - Uses domain composition
+- **[withProvider Pattern](./provider-composition-setup.md)** - Uses HOC with composition
 
 ## Related Setup Guides
 

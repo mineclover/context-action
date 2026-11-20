@@ -4,8 +4,8 @@ This document is a **comprehensive catalog** of all available React hooks in the
 
 ## Related Guides
 
-- 🎯 **[React Hooks](/en/guide/hooks)** - How to use hooks (API examples and usage patterns)
-- 🔄 **[Hooks Lifecycle](/en/guide/hooks-lifecycle)** - How hooks work internally (lifecycle, cleanup, performance)  
+- 🎯 **[React Hooks](/en/concept/hooks-reference)** - How to use hooks (API examples and usage patterns)
+- 🔄 **[Hooks Lifecycle](/en/concept/hooks-reference)** - How hooks work internally (lifecycle, cleanup, performance)  
 - ✅ **[Best Practices](/en/guide/best-practices)** - Coding patterns and conventions
 
 ---
@@ -131,7 +131,7 @@ const replaceHandler = (newHandler) => {
 };
 ```
 
-📖 **See**: [Handler Runtime Updates](/en/guide/patterns/action/handler-updates) for comprehensive patterns
+📖 **See**: [Handler Runtime Updates](/en/guide/patterns/action/handler-state-access) for comprehensive patterns
 
 ### 🏪 Store Hooks (Core)
 

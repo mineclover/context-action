@@ -123,7 +123,7 @@ const replaceHandler = (newHandler) => {
 };
 ```
 
-📖 **참조**: [핸들러 런타임 업데이트](/ko/guide/patterns/action/handler-updates) 종합적인 패턴 가이드
+📖 **참조**: [핸들러 런타임 업데이트](/ko/guide/patterns/action/handler-state-access) 종합적인 패턴 가이드
 
 ### 🏪 Store 훅 (핵심)
 

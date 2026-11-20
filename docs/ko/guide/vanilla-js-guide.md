@@ -602,5 +602,5 @@ interface DispatchOptions {
 
 - [Action 패턴 가이드](./patterns/action/index.md)
 - [Store 통합 패턴](../concept/store-conventions.md)
-- [TypeScript API 참조](../../api/core/README.md)
-- [React 통합 가이드](./patterns/action/react-integration.md)
+- [TypeScript API 참조](../../en/api/core/src/README.md)
+- [React 통합 가이드](./patterns/action/index.md)

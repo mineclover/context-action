@@ -1,54 +1,139 @@
 {
   "package": "core",
-  "generatedAt": "2025-08-31T09:46:55.138Z",
+  "generatedAt": "2026-11-20T16:03:35.524Z",
   "statistics": {
-    "totalFiles": 8,
-    "typeFiles": 1,
-    "codeFiles": 7,
-    "totalLines": 1772,
-    "typeLines": 190,
-    "codeLines": 1582
+    "totalFiles": 25,
+    "typeFiles": 3,
+    "codeFiles": 22,
+    "totalLines": 4990,
+    "typeLines": 388,
+    "codeLines": 4602
   },
   "files": [
     {
+      "path": "bridges/react-element/types.ts",
+      "isType": true,
+      "lines": 4
+    },
+    {
+      "path": "facade/types.ts",
+      "isType": true,
+      "lines": 2
+    },
+    {
       "path": "types.ts",
       "isType": true,
-      "lines": 190
+      "lines": 382
     },
     {
       "path": "action-guard.ts",
       "isType": false,
-      "lines": 156
+      "lines": 222
     },
     {
       "path": "ActionRegister.ts",
       "isType": false,
-      "lines": 939
+      "lines": 2639
     },
     {
-      "path": "concurrency/index.ts",
+      "path": "bridges/react-element/create-react-element-bridge.ts",
       "isType": false,
-      "lines": 2
+      "lines": 80
     },
     {
       "path": "concurrency/OperationQueue.ts",
       "isType": false,
-      "lines": 117
+      "lines": 167
     },
     {
-      "path": "execution-modes.ts",
+      "path": "contracts/public-action-methods.ts",
       "isType": false,
-      "lines": 202
+      "lines": 9
     },
     {
-      "path": "index.ts",
+      "path": "element-react.ts",
+      "isType": false,
+      "lines": 3
+    },
+    {
+      "path": "element.ts",
+      "isType": false,
+      "lines": 36
+    },
+    {
+      "path": "element/attribute-bindings.ts",
+      "isType": false,
+      "lines": 26
+    },
+    {
+      "path": "element/contracts.ts",
+      "isType": false,
+      "lines": 29
+    },
+    {
+      "path": "element/create-element-binding.ts",
+      "isType": false,
+      "lines": 41
+    },
+    {
+      "path": "element/create-element-facade.ts",
+      "isType": false,
+      "lines": 7
+    },
+    {
+      "path": "element/event-bindings.ts",
+      "isType": false,
+      "lines": 48
+    },
+    {
+      "path": "element/pointer-gesture-session.ts",
+      "isType": false,
+      "lines": 187
+    },
+    {
+      "path": "element/property-bindings.ts",
       "isType": false,
       "lines": 23
     },
     {
-      "path": "react-helpers.ts",
+      "path": "element/roving-focus.ts",
       "isType": false,
-      "lines": 143
+      "lines": 77
+    },
+    {
+      "path": "element/style-bindings.ts",
+      "isType": false,
+      "lines": 24
+    },
+    {
+      "path": "element/sync-action-pipeline.ts",
+      "isType": false,
+      "lines": 237
+    },
+    {
+      "path": "element/to-react-part-props.ts",
+      "isType": false,
+      "lines": 44
+    },
+    {
+      "path": "errors.ts",
+      "isType": false,
+      "lines": 130
+    },
+    {
+      "path": "execution-modes.ts",
+      "isType": false,
+      "lines": 458
+    },
+    {
+      "path": "facade/create-public-facade.ts",
+      "isType": false,
+      "lines": 51
+    },
+    {
+      "path": "index.ts",
+      "isType": false,
+      "lines": 64
     }
   ]
 }

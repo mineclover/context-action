@@ -59,10 +59,10 @@ const validationResult = results.find(r => r.step === 'validation');
 | 기능 | 목적 | 문서 |
 |------|------|------|
 | **[우선순위 시스템](./priority.md)** | 실행 순서 제어 | 우선순위 기반 핸들러 실행 |
-| **[차단 작업](./blocking.md)** | 실행 플로우 제어 | 차단 vs 비차단 핸들러 |
+| **[차단 작업](./dispatch.md)** | 실행 플로우 제어 | 차단 vs 비차단 핸들러 |
 | **[디스패치 메서드](./dispatch.md)** | 파이프라인 트리거 | 기본 디스패치 vs 결과 수집 |
-| **[중단 메커니즘](./abort.md)** | 실행 중지 | 우아한 파이프라인 종료 |
-| **[결과 처리](./result-handling.md)** | 결과 수집 | 핸들러 간 통신 |
+| **[중단 메커니즘](../patterns/action/advanced-patterns.md)** | 실행 중지 | 우아한 파이프라인 종료 |
+| **[결과 처리](./dispatch.md)** | 결과 수집 | 핸들러 간 통신 |
 
 ## 빠른 시작
 
@@ -459,10 +459,10 @@ actionRegister.register('updateUserData', async (payload, controller) => {
 특정 파이프라인 패턴 탐색:
 
 - **[우선순위 시스템](./priority.md)** - 우선순위 기반 실행 순서와 모범 사례
-- **[차단 작업](./blocking.md)** - 실행 플로우 제어와 성능
+- **[차단 작업](./dispatch.md)** - 실행 플로우 제어와 성능
 - **[디스패치 메서드](./dispatch.md)** - 파이프라인을 트리거하는 다양한 방법  
-- **[중단 메커니즘](./abort.md)** - 우아한 파이프라인 종료
-- **[결과 처리](./result-handling.md)** - 포괄적인 결과 수집과 사용
+- **[중단 메커니즘](../patterns/action/advanced-patterns.md)** - 우아한 파이프라인 종료
+- **[결과 처리](./dispatch.md)** - 포괄적인 결과 수집과 사용
 
 ## 예제 앱에서의 실제 예제
 
@@ -479,6 +479,6 @@ actionRegister.register('updateUserData', async (payload, controller) => {
 ## 관련 문서
 
 - **[액션 패턴](../patterns/action/)** - 액션 전용 패턴 구현
-- **[스토어 통합](../patterns/store/)** - 파이프라인과 상태 관리 결합
-- **[MVVM 아키텍처](../patterns/architecture/mvvm.md)** - MVVM 패턴에서의 파이프라인 역할
-- **[훅 라이프사이클](../lifecycle/)** - 훅이 파이프라인 시스템에 연결되는 방법
+- **[스토어 통합](../patterns/store/basic-usage.md)** - 파이프라인과 상태 관리 결합
+- **[MVVM 아키텍처](../../concept/architecture-guide.md)** - MVVM 패턴에서의 파이프라인 역할
+- **[훅 라이프사이클](../../concept/action-pipeline-guide.md)** - 훅이 파이프라인 시스템에 연결되는 방법

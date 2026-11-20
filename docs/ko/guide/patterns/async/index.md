@@ -85,14 +85,14 @@ const { useAppRef, useWaitForRefs } = createRefContext<AsyncElementRefs>('AsyncR
 - **목적**: 런타임 조건에 따른 스마트 대기
 - **필수 설정**: 상태 기반 대기 결정을 위한 세 가지 컨텍스트 설정 모두
 - **핵심 구현**: 스토어 상태에 따른 조건부 `waitForRefs()`
-- **문서**: [조건부 대기](./conditional-await.md)
+- **문서**: [조건부 대기](./index.md)
 
 #### 4. 타임아웃 보호 패턴
 **설정 사양**: 액션 컨텍스트 + 스토어 컨텍스트 (선택적 RefContext)
 - **목적**: 폴백 전략으로 무한 대기 방지
 - **필수 설정**: 타임아웃 로직을 위한 [기본 액션 설정](../setup/basic-action-setup.md)
 - **핵심 구현**: 구성 가능한 타임아웃과 함께 `Promise.race()` 사용  
-- **문서**: [타임아웃 보호](./timeout-protection.md)
+- **문서**: [타임아웃 보호](./index.md)
 
 ## 설정 기반 빠른 참조
 

@@ -71,4 +71,4 @@ const memoizedComputation = useComputedStore(
 - [Subscription Optimization](./subscription-optimization.md) - Optimize subscription patterns
 - [Comparison Strategies](./comparison-strategies.md) - Choose the right comparison method
 - [useStoreValue Patterns](./useStoreValue-patterns.md) - Basic subscription patterns
-- [useComputedStore Patterns](./useComputedStore-patterns.md) - Computed value patterns
+- [useComputedStore Patterns](./useComputedStore-overview.md) - Computed value patterns

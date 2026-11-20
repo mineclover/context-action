@@ -498,14 +498,14 @@ store.setValue(state);                          // 최종 재렌더링
 
 **성능 & 테스팅**:
 - [Performance Proof](./notifyPath-performance-proof.md) - 수학적 성능 증명 (50% 재렌더링 감소, RAF 배칭 등)
-- [Async Process Tests](../../packages/react/__tests__/stores/notifyPath-async-process.test.tsx) - 6개 테스트 카테고리의 종합 테스트 스위트:
+- [Async Process Tests](https://github.com/mineclover/context-action/blob/main/packages/react/__tests__/stores/notifyPath-async-process.test.tsx) - 6개 테스트 카테고리의 종합 테스트 스위트:
   - Business Logic Separation - 의존성 없는 순수 비즈니스 로직
   - Async Process State Machine - notifyPath를 사용한 상태 전이
   - Progress-Only Updates - 선택적 재렌더링 증명
   - Modular Business Logic Integration - 전체 레이어 분리
   - Error Handling - 검증 및 에러 상태
   - Multi-file Queue Management - 복잡한 동시 워크플로우
-- [Performance Tests](../../packages/react/__tests__/stores/notifyPath-performance.test.tsx) - 재렌더링 감소, RAF 배칭, 선택적 렌더링 벤치마크
+- [Performance Tests](https://github.com/mineclover/context-action/blob/main/packages/react/__tests__/stores/notifyPath-performance.test.tsx) - 재렌더링 감소, RAF 배칭, 선택적 렌더링 벤치마크
 
 **아키텍처 & 패턴**:
 - [Event Loop Control](#event-loop-control) - Action Handler 및 RefContext와의 통합 패턴

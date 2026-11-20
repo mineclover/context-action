@@ -543,5 +543,5 @@ const preferencesStore = useUserStore('preferences');
 
 - [기본 스토어 사용법](./basic-usage.md) - 기본 스토어 패턴
 - [useStoreValue 패턴](./useStoreValue-patterns.md) - 고급 훅 패턴
-- [withProvider 패턴](./withProvider-pattern.md) - 고차 컴포넌트 패턴
+- [withProvider 패턴](../setup/provider-composition-setup.md) - 고차 컴포넌트 패턴
 - [액션 통합](../action/basic-usage.md) - 액션과의 통합

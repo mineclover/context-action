@@ -328,6 +328,6 @@ function AuthComponent() {
 
 ## 다음 단계
 
-- **[메인 패턴](./patterns)** - Action Only와 Store Only 패턴 알아보기
-- **[API 참조](../api/core/action-register)** - 자세한 ActionRegister API 문서  
+- **[메인 패턴](./patterns/setup/index.md)** - Action Only와 Store Only 패턴 알아보기
+- **[API 참조](../../en/api/core/src/classes/ActionRegister.md)** - 자세한 ActionRegister API 문서  
 - **[예제](../examples/action-only)** - 실제 Action Only 패턴 보기

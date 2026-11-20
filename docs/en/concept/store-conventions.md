@@ -847,4 +847,4 @@ This dedicated guide covers:
 - [Main Conventions](./conventions.md) - Overall framework conventions
 - [Hooks Reference](./hooks-reference.md) - Complete hooks documentation
 - [Architecture Guide](./architecture-guide.md) - Framework architecture
-- [Infinite Loop Issues](../../troubleshooting/infinite-loop-issues.md) - Troubleshooting guide
+- [Infinite Loop Issues](../troubleshooting/infinite-loop-issues.md) - Troubleshooting guide

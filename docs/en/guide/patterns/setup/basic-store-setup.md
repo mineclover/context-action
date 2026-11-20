@@ -494,13 +494,13 @@ function UserManagement() {
 This setup file provides reusable patterns for:
 
 - **[Store Basic Usage](../store/basic-usage.md)** - Uses UserStores pattern
-- **[Store Performance Patterns](../store/performance-patterns.md)** - Uses optimized configurations
+- **[Store Performance Patterns](../store/subscription-optimization.md)** - Uses optimized configurations
 - **[useStoreValue Patterns](../store/useStoreValue-patterns.md)** - Uses access patterns
-- **[MVVM Architecture](../architecture/mvvm.md)** - Uses domain store separation
-- **[Domain Context Architecture](../architecture/domain-context.md)** - Uses multi-domain stores
+- **[MVVM Architecture](../../../concept/architecture-guide.md)** - Uses domain store separation
+- **[Domain Context Architecture](../../../context-layered/context-layered-guide.md)** - Uses multi-domain stores
 
 ## Related Setup Guides
 
 - **[Basic Action Setup](./basic-action-setup.md)** - Action context setup patterns
 - **[Multi-Context Setup](./multi-context-setup.md)** - Complex architecture setup
-- **[Provider Composition](../store/withProvider-pattern.md)** - Advanced provider patterns
+- **[Provider Composition](./provider-composition-setup.md)** - Advanced provider patterns

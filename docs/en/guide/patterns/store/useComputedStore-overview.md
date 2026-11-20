@@ -13,7 +13,7 @@ Fundamental patterns for computed values:
 - **String Concatenation**: Combining multiple fields
 
 ### Advanced Computed Patterns
-Complex computation scenarios (see original [useComputedStore-patterns.md](./useComputedStore-patterns.md)):
+Complex computation scenarios (see original [useComputedStore-patterns.md](./useComputedStore-overview.md)):
 
 - **Conditional Computations**: Dynamic calculations based on conditions
 - **Complex Object Transformations**: Advanced data manipulation
@@ -148,7 +148,7 @@ const safeComputation = useComputedStore(
 ## Migration Guide
 
 ### From Full Document
-The comprehensive [useComputedStore-patterns.md](./useComputedStore-patterns.md) contains all patterns in detail. Use this overview to navigate to specific sections:
+The comprehensive [useComputedStore-patterns.md](./useComputedStore-overview.md) contains all patterns in detail. Use this overview to navigate to specific sections:
 
 - **Getting Started**: [Basic Computed Patterns](./useComputedStore-basic.md)
 - **Complex Scenarios**: Original document sections 86-518

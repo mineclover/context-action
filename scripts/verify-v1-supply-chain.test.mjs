@@ -113,7 +113,7 @@ async function createFixture() {
         'verify:v1-release-state-alignment': 'node scripts/verify-v1-release-state-alignment.mjs',
         'verify:coordinated-stable-release-plan': 'node scripts/verify-coordinated-stable-release-plan.mjs',
         'web-coding:build': 'pnpm --filter @context-action/web-coding-demo build',
-        'test:release-safety': 'node --test --test-concurrency=1 scripts/maintenance-release-safety.test.mjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.test.cjs scripts/coordinated-stable-release.test.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-v1-supply-chain.test.mjs scripts/verify-preact-public-release.test.mjs scripts/verify-lit-public-release.test.mjs',
+        'test:release-safety': 'node --test --test-concurrency=1 scripts/maintenance-release-safety.test.mjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.test.cjs scripts/coordinated-stable-release.test.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-v1-supply-chain.test.mjs scripts/verify-preact-public-release.test.mjs scripts/verify-lit-public-release.test.mjs scripts/verify-core-public-provenance.test.mjs scripts/verify-existing-cohort-provenance.test.mjs',
         'verify:v1-release-workflows': 'node scripts/verify-v1-release-workflows.mjs',
         'verify:v1-supply-chain': 'node scripts/verify-v1-supply-chain.mjs',
       'tool-durable:test:evidence': 'node --test scripts/verify-durable-operation-evidence-schema.test.mjs',

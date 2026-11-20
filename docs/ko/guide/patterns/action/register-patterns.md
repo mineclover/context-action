@@ -689,6 +689,6 @@ function RegistryInfoComponent() {
 ## 관련 패턴
 
 - [디스패치 패턴](./dispatch-patterns.md) - 기본 디스패칭 패턴
-- [결과와 함께 디스패치](./dispatch-with-result.md) - 결과 수집 패턴
+- [결과와 함께 디스패치](./dispatch-patterns.md) - 결과 수집 패턴
 - [타입 시스템](./type-system.md) - TypeScript 통합
 - [액션 기본 사용법](./basic-usage.md) - 기본 패턴

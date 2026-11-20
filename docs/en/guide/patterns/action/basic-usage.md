@@ -22,7 +22,7 @@ import { createActionContext } from '@context-action/react';
 2. **Context Creation** - Create typed action contexts with proper hook renaming
 3. **Provider Configuration** - Set up action providers in your app structure
 
-For detailed setup instructions, see **[Basic Action Setup](../../setup/basic-action-setup.md)**.
+For detailed setup instructions, see **[Basic Action Setup](../setup/basic-action-setup.md)**.
 
 ### Required Action Types
 This document uses the `EventActions` specification from the setup guide:
@@ -64,7 +64,7 @@ function App() {
 }
 ```
 
-> **Setup Reference**: [Basic Action Setup Guide](../../setup/basic-action-setup.md#event-actions-ui-interactions)
+> **Setup Reference**: [Basic Action Setup Guide](../setup/basic-action-setup.md)
 
 ## Basic Usage
 ```tsx
@@ -153,8 +153,8 @@ function AdvancedComponent() {
 - **[Chat Demo](https://github.com/mineclover/context-action/blob/main/example/src/pages/demos/store-scenarios/components/ChatDemo.tsx)** - Real-time message handling
 - **[User Profile Demo](https://github.com/mineclover/context-action/blob/main/example/src/pages/demos/store-scenarios/components/UserProfileDemo.tsx)** - User action management
 - **[Mouse Events Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/MouseEventsPage.tsx)** - High-frequency event handling
-- **[Search Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/SearchPage.tsx)** - Abortable search actions
-- **[API Blocking Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/ApiBlockingPage.tsx)** - Blocking action patterns
+- **[Search Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/performance/action-guard/SearchPageRefactored.tsx)** - Abortable search actions
+- **[API Blocking Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/performance/action-guard/ApiBlockingPageRefactored.tsx)** - Blocking action patterns
 
 ## Error Handling Best Practices
 
@@ -278,4 +278,4 @@ function AsyncErrorRecoveryComponent() {
 - Blocking the main thread with heavy computations in handlers
 - Missing cleanup for async operations or timers
 
-> **Important**: For detailed handler registration patterns, see the [Handler Registration Guide](../../conventions.md#handler-registration)
+> **Important**: For detailed handler registration patterns, see the [Handler Registration Guide](../../../concept/conventions.md)

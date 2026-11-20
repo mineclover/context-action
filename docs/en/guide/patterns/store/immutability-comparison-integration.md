@@ -367,7 +367,7 @@ const debugStore = useStoreValue(store, undefined, {
 
 - [Comparison Strategies](./comparison-strategies.md) - Detailed comparison options
 - [Memory Management](./memory-management.md) - Resource-efficient patterns
-- [Performance Patterns](./performance-patterns.md) - Overall optimization guide
+- [Performance Patterns](./subscription-optimization.md) - Overall optimization guide
 - [Store Configuration](./store-configuration.md) - Advanced store setup
 - [Memoization Patterns](./memoization-patterns.md) - Complementary optimizations
 

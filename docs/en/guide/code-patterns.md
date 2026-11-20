@@ -1,23 +1,23 @@
 # Code Patterns
 
-**📁 For comprehensive patterns and implementation guides, visit: [Pattern Collection](./patterns/)**
+**📁 For comprehensive patterns and implementation guides, visit: [Pattern Collection](./patterns/setup/index.md)**
 
-This section has been reorganized into the dedicated [patterns directory](./patterns/) with clear categorization:
+This section has been reorganized into the dedicated [patterns directory](./patterns/setup/index.md) with clear categorization:
 
 ## 🎯 Core Framework Patterns
-- **[Action Only Pattern](./patterns/action-only-pattern.md)** - Pure action dispatching
-- **[Store Only Pattern](./patterns/store-only-pattern.md)** - Type-safe state management  
-- **[RefContext Pattern](./patterns/ref-context-pattern.md)** - Zero re-render DOM manipulation
+- **[Action Only Pattern](../examples/action-only.md)** - Pure action dispatching
+- **[Store Only Pattern](../examples/store-only.md)** - Type-safe state management  
+- **[RefContext Pattern](./patterns/ref/basic-usage.md)** - Zero re-render DOM manipulation
 
 ## 🏗️ Architecture Patterns
-- **[Pattern Composition](./patterns/pattern-composition.md)** - Combining patterns for complex apps
-- **[MVVM Architecture](./patterns/mvvm-architecture.md)** - Single domain architectural layers
-- **[Domain Context Architecture](./patterns/domain-context-architecture.md)** - Multi-domain business separation
+- **[Pattern Composition](../examples/pattern-composition.md)** - Combining patterns for complex apps
+- **[MVVM Architecture](../concept/architecture-guide.md)** - Single domain architectural layers
+- **[Domain Context Architecture](../context-layered/context-layered-guide.md)** - Multi-domain business separation
 
 ## ⚡ Advanced Patterns
-- **[Async Patterns](./patterns/async-patterns.md)** - Real-time state, element waiting, timeout protection
+- **[Async Patterns](./patterns/async/index.md)** - Real-time state, element waiting, timeout protection
 
-> **Migration Note**: All individual pattern files have been consolidated and organized. Please use the [patterns directory](./patterns/) for the most up-to-date documentation.
+> **Migration Note**: All individual pattern files have been consolidated and organized. Please use the [patterns directory](./patterns/setup/index.md) for the most up-to-date documentation.
 
 ## Quick Reference
 

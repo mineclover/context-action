@@ -197,7 +197,7 @@
     "version": "1.0.0",
     "original_size": 16301,
     "created_at": "2026-07-24T05:15:02.245Z",
-    "source_last_modified": "2026-07-11T17:47:38.886Z",
+    "source_last_modified": "2026-11-20T15:59:08.051Z",
     "keywords": {
       "primary": [
         "guide",
@@ -218,6 +218,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-11-20T16:03:36.117Z"
   }
 }

@@ -89,8 +89,8 @@ ErrorHandlers.store('Error in event handler', {
 ## 🚨 Critical Performance Issues
 
 For detailed troubleshooting guides, see:
-- [Infinite Loop Issues](/troubleshooting/infinite-loop-issues.md) - Comprehensive guide for all infinite loop patterns (NEW)
-- [Performance Issues](/troubleshooting/performance-issues.md) - Memory management, re-renders, and optimization
+- [Infinite Loop Issues](/en/troubleshooting/infinite-loop-issues) - Comprehensive guide for all infinite loop patterns (NEW)
+- [Performance Issues](/en/troubleshooting/performance-issues) - Memory management, re-renders, and optimization
 
 ### Quick Reference: Infinite Loop Prevention
 

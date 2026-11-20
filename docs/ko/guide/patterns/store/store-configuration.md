@@ -516,6 +516,6 @@ const {
 ## 관련 패턴
 
 - **[기본 스토어 설정](../setup/basic-store-setup.md)** - 스토어 설정을 위한 기본 패턴
-- **[스토어 성능 패턴](./performance-patterns.md)** - 성능 최적화 기법
+- **[스토어 성능 패턴](./path-based-subscription.md)** - 성능 최적화 기법
 - **[useStoreValue 패턴](./useStoreValue-patterns.md)** - 효율적인 스토어 값 사용
-- **[MVVM 아키텍처](../architecture/mvvm.md)** - 스토어 설정을 위한 아키텍처 컨텍스트
+- **[MVVM 아키텍처](../../../concept/architecture-guide.md)** - 스토어 설정을 위한 아키텍처 컨텍스트

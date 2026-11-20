@@ -282,11 +282,11 @@ This setup file provides reusable patterns for:
 - **[Action Basic Usage](../action/basic-usage.md)** - Uses EventActions pattern
 - **[Dispatch Access Patterns](../action/dispatch-access.md)** - Uses AppActions pattern  
 - **[Advanced Action Patterns](../action/advanced-patterns.md)** - Uses multiple domain patterns
-- **[MVVM Architecture](../architecture/mvvm.md)** - Uses UserActions pattern
-- **[Domain Context Architecture](../architecture/domain-context.md)** - Uses multi-domain patterns
+- **[MVVM Architecture](../../../concept/architecture-guide.md)** - Uses UserActions pattern
+- **[Domain Context Architecture](../../../context-layered/context-layered-guide.md)** - Uses multi-domain patterns
 
 ## Related Setup Guides
 
 - **[Basic Store Setup](./basic-store-setup.md)** - Store context setup patterns
 - **[Multi-Context Setup](./multi-context-setup.md)** - Complex architecture setup
-- **[Provider Composition](../store/withProvider-pattern.md)** - Advanced provider patterns
+- **[Provider Composition](./provider-composition-setup.md)** - Advanced provider patterns

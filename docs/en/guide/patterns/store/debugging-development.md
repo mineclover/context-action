@@ -201,4 +201,4 @@ const useStoreProfiler = (stores) => {
 - [Memory Management](./memory-management.md) - Prevent memory leaks in debugging code
 - [Error Handling & Recovery](./error-handling-recovery.md) - Handle debugging errors safely
 - [Subscription Optimization](./subscription-optimization.md) - Optimize subscription patterns
-- [Production Debugging](../debug/production-debugging.md) - Production debugging techniques
+- [Production Debugging](./debugging-development.md) - Production debugging techniques

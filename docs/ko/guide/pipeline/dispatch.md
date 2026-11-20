@@ -472,6 +472,6 @@ const executeWorkflow = async () => {
 ## 관련 문서
 
 - **[우선순위 시스템](./priority.md)** - 우선순위로 실행 순서 제어
-- **[차단 작업](./blocking.md)** - 실행 플로우 제어
-- **[중단 메커니즘](./abort.md)** - 필요시 파이프라인 실행 중지
-- **[결과 처리](./result-handling.md)** - 디스패치 결과 처리와 사용
+- **[차단 작업](./dispatch.md)** - 실행 플로우 제어
+- **[중단 메커니즘](../patterns/action/advanced-patterns.md)** - 필요시 파이프라인 실행 중지
+- **[결과 처리](./dispatch.md)** - 디스패치 결과 처리와 사용

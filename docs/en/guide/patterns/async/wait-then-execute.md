@@ -215,5 +215,5 @@ const renderChart = useCallback(async (data: ChartData) => {
 ## Related Patterns
 
 - **[RefContext Setup](../setup/ref-context-setup.md#waiting-for-multiple-refs)** - Complete waiting patterns
-- **[Canvas Optimization](../ref/canvas-optimization.md)** - High-performance canvas operations
+- **[Canvas Optimization](../ref/basic-usage.md)** - High-performance canvas operations
 - **[Store Integration Patterns](../store/basic-usage.md)** - Store updates after DOM operations
