@@ -84,6 +84,51 @@ const coreConcepts: CoreConcept[] = [
     icon: '🔒',
   },
   {
+    id: 'time-travel',
+    title: 'Time Travel Store',
+    description:
+      'Undo/Redo history navigation and snapshot inspection with createTimeTravelStore',
+    path: '/foundations/store/time-travel',
+    category: 'integration',
+    concepts: ['Undo/Redo', 'History Navigation', 'Patch Inspection'],
+    difficulty: 'Intermediate',
+    order: 5,
+    icon: '🕰️',
+  },
+  {
+    id: 'time-travel-context',
+    title: 'Time Travel Context',
+    description:
+      'Declarative createTimeTravelStoreContext for coordinated undo/redo controls across React components',
+    path: '/foundations/store/time-travel-context',
+    category: 'integration',
+    concepts: [
+      'TimeTravelContext',
+      'Structural Sharing',
+      'useTimeTravelControls',
+    ],
+    difficulty: 'Intermediate',
+    order: 6,
+    icon: '⏪',
+  },
+  {
+    id: 'backend-transactions',
+    title: 'Backend & Atomic Transactions',
+    description:
+      'Framework-neutral StateBackend adaptation and multi-store atomic transactions with rollback',
+    path: '/foundations/store/backend-transactions',
+    category: 'integration',
+    concepts: [
+      'createStateStore',
+      'createBackendStore',
+      'StoreTransactionCoordinator',
+      'bindActionTransactions',
+    ],
+    difficulty: 'Advanced',
+    order: 7,
+    icon: '🏦',
+  },
+  {
     id: 'provider',
     title: 'React Provider',
     description:
@@ -97,7 +142,7 @@ const coreConcepts: CoreConcept[] = [
       'Component Isolation',
     ],
     difficulty: 'Intermediate',
-    order: 5,
+    order: 8,
     icon: '🔧',
   },
   {
@@ -114,7 +159,7 @@ const coreConcepts: CoreConcept[] = [
       'Performance Optimization',
     ],
     difficulty: 'Intermediate',
-    order: 6,
+    order: 9,
     icon: '🏗️',
   },
   {
@@ -127,11 +172,11 @@ const coreConcepts: CoreConcept[] = [
     concepts: [
       'useActionDispatch',
       'useStoreValue',
-      'useActionHandler',
-      'Custom Hooks',
+      'useStoreSelector',
+      'useStorePath',
     ],
     difficulty: 'Basic',
-    order: 7,
+    order: 10,
     icon: '🎣',
   },
   {
@@ -148,8 +193,20 @@ const coreConcepts: CoreConcept[] = [
       'Result Strategies',
     ],
     difficulty: 'Advanced',
-    order: 8,
+    order: 11,
     icon: '✨',
+  },
+  {
+    id: 'imperative-ref',
+    title: 'ImperativeRef + Ref Context',
+    description:
+      'Combine createRefContext and useImperativeHandle for zero-re-render DOM control boundaries',
+    path: '/foundations/react/imperativeRef',
+    category: 'patterns',
+    concepts: ['createRefContext', 'useRefHandler', 'useImperativeHandle'],
+    difficulty: 'Advanced',
+    order: 12,
+    icon: '🎯',
   },
 ];
 

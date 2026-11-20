@@ -146,10 +146,16 @@
         "createStoreContext",
         "createTimeTravelStore",
         "createTimeTravelStoreContext",
-        "useTimeTravelControls"
+        "useTimeTravelControls",
+        "createStateStore",
+        "createBackendStore",
+        "StoreTransactionCoordinator",
+        "bindActionTransactions",
+        "useStoreTransactionInspector"
       ],
       "relatedDocs": [
         "docs/en/examples/store-only.md",
+        "docs/en/context-layered/store-selection-and-usage-guide.md",
         "packages/mutative/docs/time-travel-specialization.md"
       ],
       "verificationGate": "pnpm --filter example test && pnpm --filter example build",
@@ -180,6 +186,13 @@
           "explains": {
             "en": "Declarative createTimeTravelStoreContext usage with undo/redo UI controls across components.",
             "ko": "컴포넌트 간 undo/redo 제어를 위한 선언적 createTimeTravelStoreContext 패턴을 보여줍니다."
+          }
+        },
+        {
+          "path": "/foundations/store/backend-transactions",
+          "explains": {
+            "en": "Adapting framework-neutral StateStore backends via createBackendStore and coordinating multi-store atomic transactions with StoreTransactionCoordinator.",
+            "ko": "프레임워크 중립 StateStore를 createBackendStore로 어댑팅하고 StoreTransactionCoordinator로 다중 스토어 원자적 트랜잭션·롤백을 조율합니다."
           }
         }
       ]
@@ -654,7 +667,12 @@
         "ActionRegister",
         "@context-action/core/element",
         "@context-action/preact-ui/react-bridge",
-        "@context-action/lit-ui/react-bridge"
+        "@context-action/lit-ui/react-bridge",
+        "@context-action/xstate",
+        "@context-action/xstate/effect",
+        "@context-action/webmcp",
+        "@context-action/react/webmcp",
+        "@context-action/ai-sdk"
       ],
       "relatedDocs": [
         "docs/en/guide/react-aria-integration.md",
@@ -689,6 +707,27 @@
           "explains": {
             "en": "Hosting Lit FACE Web Components inside React via @context-action/lit-ui/react-bridge and W3C Context Protocol.",
             "ko": "@context-action/lit-ui/react-bridge와 W3C Context Protocol로 Lit FACE 웹 컴포넌트를 연동하는 예제입니다."
+          }
+        },
+        {
+          "path": "/integrations/xstate-statechart",
+          "explains": {
+            "en": "XState actor binding with enforceCanGuard, Standard Schema validation via @context-action/xstate/effect, and memoized createActorStateReader projections.",
+            "ko": "XState 액터 바인딩(enforceCanGuard), @context-action/xstate/effect의 Standard Schema 검증, createActorStateReader 선택 투영을 보여줍니다."
+          }
+        },
+        {
+          "path": "/integrations/webmcp-scope",
+          "explains": {
+            "en": "Scoped browser tool registration via useWebMCPToolScope with AbortSignal cleanup, structured/throw error modes, and idempotency.",
+            "ko": "useWebMCPToolScope로 브라우저 도구 스코프를 등록하고 AbortSignal 정리, 오류 모드, 멱등성을 검증하는 예제입니다."
+          }
+        },
+        {
+          "path": "/integrations/ai-sdk-tools",
+          "explains": {
+            "en": "AI SDK v7 tool scope creation via createAISDKToolScope with approval queue gating and redacted observability sink output.",
+            "ko": "createAISDKToolScope 기반 AI SDK v7 도구 스코프, 승인 큐 게이트, 마스킹된 관측 싱크를 보여주는 통합 예제입니다."
           }
         },
         {

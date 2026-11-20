@@ -215,12 +215,21 @@ importers:
       '@context-action/react':
         specifier: workspace:*
         version: link:../packages/react
+      '@context-action/store-core':
+        specifier: workspace:*
+        version: link:../packages/store-core
       '@context-action/tool-durable-operations':
         specifier: workspace:*
         version: link:../packages/tool-durable-operations
       '@context-action/tool-protocol':
         specifier: workspace:*
         version: link:../packages/tool-protocol
+      '@context-action/webmcp':
+        specifier: workspace:*
+        version: link:../packages/webmcp
+      '@context-action/xstate':
+        specifier: workspace:*
+        version: link:../packages/xstate
       '@internationalized/date':
         specifier: 3.12.4
         version: 3.12.4

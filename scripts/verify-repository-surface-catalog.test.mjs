@@ -220,7 +220,7 @@ test('real repository passes repository surface catalog verification with expect
   const result = verifyRepositorySurfaceCatalog();
   assert.equal(result.ok, true, `Expected 0 errors, got: ${result.errors.join('; ')}`);
   assert.equal(result.summary.packages, 20);
-  assert.equal(result.summary.canonicalRouteCount, 72);
+  assert.equal(result.summary.canonicalRouteCount, 76);
   assert.equal(result.summary.packageExampleCount, 7);
   assert.equal(result.summary.narrativeDocCount, 9);
   assert.equal(result.summary.rootDocumentCount, 13);

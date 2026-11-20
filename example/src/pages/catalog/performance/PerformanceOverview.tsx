@@ -59,7 +59,7 @@ export default function PerformanceOverview() {
         </ol>
       </div>
 
-      <div className="categories grid md:grid-cols-3 gap-6">
+      <div className="categories grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="category-card bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
           <h3 className="text-xl font-semibold mb-4">🛡️ Action Guard</h3>
           <ul className="space-y-2">
@@ -69,6 +69,14 @@ export default function PerformanceOverview() {
                 className="text-yellow-600 hover:underline"
               >
                 Guard 개요
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/performance/action-guard/showcase"
+                className="text-yellow-600 hover:underline"
+              >
+                ActionGuard Showcase
               </Link>
             </li>
             <li>
@@ -101,6 +109,14 @@ export default function PerformanceOverview() {
                 className="text-yellow-600 hover:underline"
               >
                 Throttle Comparison
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/performance/action-guard/advanced-filtering"
+                className="text-yellow-600 hover:underline"
+              >
+                Advanced Filtering
               </Link>
             </li>
           </ul>
@@ -141,6 +157,14 @@ export default function PerformanceOverview() {
             </li>
             <li>
               <Link
+                to="/performance/mouse-events/legacy"
+                className="text-yellow-600 hover:underline"
+              >
+                Legacy Mouse Events
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/performance/mouse-events/reactive"
                 className="text-yellow-600 hover:underline"
               >
@@ -149,10 +173,72 @@ export default function PerformanceOverview() {
             </li>
             <li>
               <Link
+                to="/performance/mouse-events/non-reactive"
+                className="text-yellow-600 hover:underline"
+              >
+                Non-Reactive Context Store
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/performance/mouse-events/context-store-action"
                 className="text-yellow-600 hover:underline"
               >
                 Context Store Action
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/performance/mouse-events/canvas-ref-demo"
+                className="text-yellow-600 hover:underline"
+              >
+                Canvas Ref Demo
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/performance/mouse-events/context-store"
+                className="text-yellow-600 hover:underline"
+              >
+                Context Store Pattern
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        <div className="category-card bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
+          <h3 className="text-xl font-semibold mb-4">🧠 Memoization</h3>
+          <ul className="space-y-2">
+            <li>
+              <Link
+                to="/performance"
+                className="text-yellow-600 hover:underline"
+              >
+                Memoization Overview
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/performance/memoization/demo"
+                className="text-yellow-600 hover:underline"
+              >
+                Memoization Demo
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/performance/memoization/analysis"
+                className="text-yellow-600 hover:underline"
+              >
+                Performance Analysis
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/performance/memoization/guidelines"
+                className="text-yellow-600 hover:underline"
+              >
+                Optimization Guidelines
               </Link>
             </li>
           </ul>

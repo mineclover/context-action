@@ -30,7 +30,13 @@ export default defineConfig({
     exclude: [
       '@context-action/core',
       '@context-action/react',
-      '@context-action/react/tools'
+      '@context-action/react/tools',
+      '@context-action/react/backend',
+      '@context-action/react/webmcp',
+      '@context-action/store-core',
+      '@context-action/xstate',
+      '@context-action/webmcp',
+      '@context-action/ai-sdk'
     ],
   },
   build: {
@@ -65,6 +71,8 @@ export default defineConfig({
     alias: {
       // Core resolves through public package exports, including /element subpaths.
       '@context-action/react/tools': path.resolve(import.meta.dirname, '../packages/react/src/tools/index.ts'),
+      '@context-action/react/backend': path.resolve(import.meta.dirname, '../packages/react/src/backend.ts'),
+      '@context-action/react/webmcp': path.resolve(import.meta.dirname, '../packages/react/src/webmcp.ts'),
       '@context-action/react': path.resolve(import.meta.dirname, '../packages/react/src/index.ts'),
       // Path mapping for refactored directories
       '@': path.resolve(import.meta.dirname, './src'),

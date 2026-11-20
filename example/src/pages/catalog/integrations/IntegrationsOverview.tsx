@@ -91,11 +91,72 @@ export default function IntegrationsOverview() {
         </div>
 
         <div className="category-card bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
-          <h3 className="text-xl font-semibold mb-4">🔬 Advanced Examples</h3>
+          <h3 className="text-xl font-semibold mb-4">
+            🔬 Advanced &amp; Ecosystem Examples
+          </h3>
           <p className="text-sm text-gray-600 mb-4">
-            고급 기능과 복잡한 상호작용을 보여주는 실험적 구현들
+            액션 생명주기, 웹 컴포넌트 브릿지, XState/WebMCP/AI SDK 어댑터
+            구현들
           </p>
           <ul className="space-y-2">
+            <li>
+              <Link
+                to="/integrations/action-lifecycle"
+                className="text-green-600 hover:underline"
+              >
+                ⚙️ Action Lifecycle Workbench
+              </Link>
+              <span className="text-xs text-gray-500 ml-2">v1 Role Hooks</span>
+            </li>
+            <li>
+              <Link
+                to="/integrations/preact-web-components"
+                className="text-green-600 hover:underline"
+              >
+                🧩 Preact Web Components
+              </Link>
+              <span className="text-xs text-gray-500 ml-2">FACE Bridge</span>
+            </li>
+            <li>
+              <Link
+                to="/integrations/lit-web-components"
+                className="text-green-600 hover:underline"
+              >
+                🔥 Lit Web Components
+              </Link>
+              <span className="text-xs text-gray-500 ml-2">W3C Context</span>
+            </li>
+            <li>
+              <Link
+                to="/integrations/xstate-statechart"
+                className="text-green-600 hover:underline"
+              >
+                🔀 XState &amp; Effect Adapter
+              </Link>
+              <span className="text-xs text-gray-500 ml-2">
+                Standard Schema
+              </span>
+            </li>
+            <li>
+              <Link
+                to="/integrations/webmcp-scope"
+                className="text-green-600 hover:underline"
+              >
+                🌐 WebMCP Tool Scope
+              </Link>
+              <span className="text-xs text-gray-500 ml-2">Browser MCP</span>
+            </li>
+            <li>
+              <Link
+                to="/integrations/ai-sdk-tools"
+                className="text-green-600 hover:underline"
+              >
+                🤖 AI SDK v7 Tool Scope
+              </Link>
+              <span className="text-xs text-gray-500 ml-2">
+                Approval &amp; Sink
+              </span>
+            </li>
             <li>
               <Link
                 to="/integrations/advanced/form-builder"
@@ -107,13 +168,13 @@ export default function IntegrationsOverview() {
             </li>
             <li>
               <Link
-                to="/integrations/advanced/canvas"
+                to="/patterns/refs/canvas"
                 className="text-green-600 hover:underline"
               >
                 🎨 Canvas Integration
               </Link>
               <span className="text-xs text-gray-500 ml-2">
-                Graphics & Animation
+                Graphics &amp; Animation
               </span>
             </li>
             <li>
