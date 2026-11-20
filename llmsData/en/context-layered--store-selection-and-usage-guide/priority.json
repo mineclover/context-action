@@ -2,7 +2,7 @@
   "document": {
     "id": "context-layered--store-selection-and-usage-guide",
     "title": "Store Selection and Usage Guide",
-    "category": "concept",
+    "category": "context-layered",
     "source_path": "en/context-layered/store-selection-and-usage-guide.md",
     "lastModified": "2026-11-19T22:08:48.132Z",
     "wordCount": 1447
@@ -195,7 +195,7 @@
     "version": "1.0.0",
     "original_size": 12484,
     "created_at": "2026-11-19T22:10:08.353Z",
-    "source_last_modified": "2026-11-19T22:08:48.132Z",
+    "source_last_modified": "2026-11-20T06:50:22.947Z",
     "keywords": {
       "primary": [
         "context-layered",
@@ -215,6 +215,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-11-20T06:55:07.332Z"
   }
 }

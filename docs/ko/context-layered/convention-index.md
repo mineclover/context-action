@@ -30,7 +30,7 @@ PR 전 로컬 우선 검증 및 영수증 발급([Local-First Verification Polic
 - [패키지 경계 및 코드베이스 관리](/ko/context-layered/package-boundary-convention)
   - package ownership, dependency 방향, package lifecycle, cleanup 규칙
 - [저장소 표면 카탈로그](/ko/context-layered/repository-surface-catalog)
-  - 20개 패키지 API, 76개 정식 예제 라우트·데모, 관리 문서 체계 기본 규격 및 전체 목록 ([CA-SURFACE-CATALOG-001](/ko/context-layered/decisions/CA-SURFACE-CATALOG-001))
+  - 워크스페이스 패키지 API, 정식 예제 라우트·데모, 관리 문서 체계 기본 규격 및 전체 목록 ([CA-SURFACE-CATALOG-001](/ko/context-layered/decisions/CA-SURFACE-CATALOG-001))
 - [Mutative Core 히스토리 및 원본 참조](/ko/context-layered/mutative-core-history)
   - Mutative 소스 계보, 반영한 upstream 수정, 라이선스, 동기화 규칙
 - [Implementation Convention](/ko/context-layered/implementation-convention)
@@ -92,7 +92,7 @@ PR 전 로컬 우선 검증 및 영수증 발급([Local-First Verification Polic
 ### 4. 검증 기준을 고정하는 문서
 
 - [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions)
-  - 문서 소유권, 쉼표 구분 LLMS 동기화, 패키지 빌드 순서 및 문서 게이트(`pnpm docs:check`)
+  - 문서 소유권, LLMS 동기화, 패키지 빌드 순서, 스니펫 컴파일 검증 및 문서 게이트(`pnpm docs:check`)
 - [Local-First 검증 정책](../../LOCAL_FIRST_VERIFICATION_POLICY.md)
   - 단일 로컬 검증 엔트리(`pnpm verify`, `pnpm verify:quick`)와 RFC 8785 서명 영수증 규칙(`pnpm verify:receipt`)
 - [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
@@ -107,6 +107,15 @@ pnpm convention:check
 ```
 
 (`pnpm convention:check`는 `node scripts/verify-context-action-conventions.mjs`를 실행하며 Context-Layered 경계, example use-case recipe, MCP/function-calling catalog, integration-profile catalog, `pnpm verify:surface-catalog` 저장소 표면 카탈로그, standalone Web Studio action 경계를 함께 검사합니다.) standalone build·filesystem·provider·preview·browser release 검사는 `pnpm web-coding:verify`로 수행합니다.
+
+## 강제 범위: CI 강제 게이트 vs. 권고 / 크로스-레포 규칙
+
+이 인덱스의 모든 규칙이 동일한 자동화 수준으로 강제되지는 않습니다:
+
+| 구분 | 해당 컨벤션 | 검증 방식 |
+| --- | --- | --- |
+| **레포 내 CI 강제 (`CI-Enforced`)** | `package-boundary-convention`, `repository-surface-catalog` (`CA-SURFACE-CATALOG-001`), `documentation-development-conventions`, `implementation-convention`, `change-management-convention`, `LOCAL_FIRST_VERIFICATION_POLICY` | 자동 스크립트 및 PR CI: `pnpm package-boundary:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`, `pnpm verify:doc-snippets`, `pnpm change:traceability`, `pnpm verify:quick` / `pnpm verify:receipt` |
+| **권고 / 크로스-레포 (`Advisory / Cross-Repo`)** | `interaction-intent-contract`(IIC 체크리스트), `triad-evidence-sync-guide`(`ttsc-ex` · `oa-sdk` 연동 잠금), `usecase-panel-layout`(패널 UX 휴리스틱) | 설계·PR 리뷰 가이드 및 인접 워크스페이스 도구 기준; `context-action` 로컬 CI는 저장소 내 문서/컨벤션 정합성만 검증 |
 
 ## 팀 컨벤션으로 굳힐 때 읽는 순서
 

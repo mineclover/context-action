@@ -12,7 +12,7 @@ If you only read one example to understand the architecture, start with this one
 - pure `business` functions for deterministic validation and quote calculation
 - reactive `hooks` and `views` for rendering without hidden local business logic
 - Unified Triad separation between `BusinessActionIntent` (`CanonicalOrderActionProvider`) and `LayoutActionIntent` (`CanonicalOrderLayoutActionProvider` / `CanonicalOrderLayoutStoreProvider` for `setInspectorTab`)
-- v1 role-specific action hooks (`useActionGuard` busy guard, `useActionEffectHandler`, `useActionObserver`) inside `handlers/`
+- v1 role-specific action hooks (`useActionGuard` busy guard, `useActionCommandHandler`, `useActionObserver`) inside `handlers/`
 - Tier 3 `@evidenceExclude` annotation on `views/CanonicalOrderView.tsx` to keep volatile presentation chrome out of domain contracts
 
 ## Route

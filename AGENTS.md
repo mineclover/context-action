@@ -322,10 +322,10 @@ The project includes **LLMS Generator** (`@context-action/llms-generator`) to au
 
 **🎯 Quick Overview:**
 - **Build first**: Run `pnpm build:llms-generator` before running `pnpm llms:sync-docs`.
-- **Comma-separated `--changed-files`**: Pass changed paths as a single comma-separated argument (`pnpm llms:sync-docs --changed-files docs/en/a.md,docs/ko/a.md`). Space-separated paths drop every file after the first, and `--changed-files=...` with `=` fails.
+- **Flexible `--changed-files`**: Pass changed paths comma-separated (`--changed-files docs/en/a.md,docs/ko/a.md`), space-separated (`--changed-files docs/en/a.md docs/ko/a.md`), with `=`, quoted whitespace, or via repeated flags (check `<!-- @context-action-compile -->` blocks with `pnpm verify:doc-snippets`).
 - **Template Generation**: Converts `docs/ko/concept/pattern-guide.md` → `llmsData/ko/concept--pattern-guide/` with 7 different summary lengths
 - **Document Combination**: Creates combined LLMS files within size limits
-- **Auto-trigger**: `.husky/post-commit` runs `sync-docs` after doc commits without creating an extra commit (check `git status --short` before `pnpm verify:quick`)
+- **Auto-trigger**: `.husky/post-commit` runs `sync-docs` after doc commits (excluding `docs/{en,ko}/{llms,api}/`) without creating an extra commit (check `git status --short` before `pnpm verify:quick`)
 - **Most used**: `pnpm llms:sync-docs --changed-files docs/path/to/file.md` (templates)
 
 **Core Commands:**
@@ -365,7 +365,7 @@ pnpm llms:work-next         # Find next documentation work based on priorities
 #### LLMS Advanced Usage
 
 ```bash
-# Advanced language filtering (comma-separated --changed-files paths)
+# Advanced language filtering (--changed-files accepts comma- or space-separated paths)
 node packages/llms-generator/dist/cli/index.js sync-docs --languages ko,en --changed-files file1.md,file2.md
 node packages/llms-generator/dist/cli/index.js sync-docs --only-korean --changed-files file1.md,file2.md
 node packages/llms-generator/dist/cli/index.js sync-docs --no-korean --changed-files file1.md,file2.md

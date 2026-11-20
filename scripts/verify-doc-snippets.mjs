@@ -8,9 +8,24 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const docsRoot = join(repositoryRoot, 'docs');
-const packageTypes = join(repositoryRoot, 'packages', 'core', 'dist', 'index.d.ts');
-const reactPackageTypes = join(repositoryRoot, 'packages', 'react', 'dist', 'index.d.ts');
-const aiSDKPackageTypes = join(repositoryRoot, 'packages', 'ai-sdk', 'dist', 'index.d.ts');
+const snippetPathMappings = {
+  '@context-action/core': [join(repositoryRoot, 'packages', 'core', 'dist', 'index.d.ts')],
+  '@context-action/core/element': [join(repositoryRoot, 'packages', 'core', 'dist', 'element.d.ts')],
+  '@context-action/store-core': [join(repositoryRoot, 'packages', 'store-core', 'dist', 'index.d.ts')],
+  '@context-action/mutative': [join(repositoryRoot, 'packages', 'mutative', 'dist', 'index.d.ts')],
+  '@context-action/react': [join(repositoryRoot, 'packages', 'react', 'dist', 'index.d.ts')],
+  '@context-action/react/backend': [join(repositoryRoot, 'packages', 'react', 'dist', 'backend.d.ts')],
+  '@context-action/react/advanced': [join(repositoryRoot, 'packages', 'react', 'dist', 'advanced.d.ts')],
+  '@context-action/react/webmcp': [join(repositoryRoot, 'packages', 'react', 'dist', 'webmcp.d.ts')],
+  '@context-action/xstate': [join(repositoryRoot, 'packages', 'xstate', 'dist', 'index.d.ts')],
+  '@context-action/xstate/effect': [join(repositoryRoot, 'packages', 'xstate', 'dist', 'effect.d.ts')],
+  '@context-action/webmcp': [join(repositoryRoot, 'packages', 'webmcp', 'dist', 'index.d.ts')],
+  '@context-action/ai-sdk': [join(repositoryRoot, 'packages', 'ai-sdk', 'dist', 'index.d.ts')],
+  '@context-action/tool-protocol': [join(repositoryRoot, 'packages', 'tool-protocol', 'dist', 'index.d.ts')],
+  'react': [join(repositoryRoot, 'node_modules', '@types', 'react', 'index.d.ts')],
+  'react/jsx-runtime': [join(repositoryRoot, 'node_modules', '@types', 'react', 'jsx-runtime.d.ts')],
+  'react/jsx-dev-runtime': [join(repositoryRoot, 'node_modules', '@types', 'react', 'jsx-dev-runtime.d.ts')],
+};
 
 const coreManifest = JSON.parse(await readFile(join(repositoryRoot, 'packages', 'core', 'package.json'), 'utf8'));
 const reactManifest = JSON.parse(await readFile(join(repositoryRoot, 'packages', 'react', 'package.json'), 'utf8'));
@@ -45,7 +60,13 @@ const reactReleaseLine = `${reactMajor}.${reactMinor}`;
 if (!coreReadme.includes(`v${coreMajor}.${coreMinor} Pipeline Contract`)) {
   throw new Error('packages/core/README.md must name the current core pipeline contract.');
 }
-for (const api of ['registerGuard', 'registerResult', 'registerObserver', 'destroyAsync({ deferCleanup: true })']) {
+for (const api of [
+  'registerGuard',
+  'registerCommand',
+  'registerResult',
+  'registerObserver',
+  'destroyAsync({ deferCleanup: true })',
+]) {
   if (!coreReadme.includes(api)) {
     throw new Error(`packages/core/README.md must document ${api}.`);
   }
@@ -120,11 +141,7 @@ try {
       jsx: 'react-jsx',
       ignoreDeprecations: '6.0',
       baseUrl: temporaryDirectory,
-      paths: {
-        '@context-action/core': [packageTypes],
-        '@context-action/react': [reactPackageTypes],
-        '@context-action/ai-sdk': [aiSDKPackageTypes],
-      },
+      paths: snippetPathMappings,
     },
     files: snippetFiles,
   }, null, 2), 'utf8');
@@ -136,7 +153,9 @@ try {
     });
   } catch (error) {
     const details = [error.stdout, error.stderr].filter(Boolean).join('\n');
-    const locations = snippets.map(snippet => `- ${relative(repositoryRoot, snippet.file)}`).join('\n');
+    const locations = snippets
+      .map((snippet, index) => `- snippet-${index + 1}: ${relative(repositoryRoot, snippet.file)}`)
+      .join('\n');
     throw new Error(`Documentation snippet compilation failed.\n${locations}\n${details}`);
   }
 } finally {

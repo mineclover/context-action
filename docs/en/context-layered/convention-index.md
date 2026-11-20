@@ -30,7 +30,7 @@ For local pre-PR receipt verification ([Local-First Verification Policy](../../L
 - [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention)
   - package ownership, dependency direction, package lifecycle, and cleanup rules
 - [Repository Surface Catalog](/en/context-layered/repository-surface-catalog)
-  - machine-verifiable base specification and inventory for all 20 API packages, 76 canonical example routes / demos, and managed documents ([CA-SURFACE-CATALOG-001](/en/context-layered/decisions/CA-SURFACE-CATALOG-001))
+  - machine-verifiable base specification and inventory for workspace API packages, canonical example routes / demos, and managed documents ([CA-SURFACE-CATALOG-001](/en/context-layered/decisions/CA-SURFACE-CATALOG-001))
 - [Mutative Core History and Upstream References](/en/context-layered/mutative-core-history)
   - Mutative source lineage, carried upstream fixes, licensing, and synchronization rules
 - [Implementation Convention](/en/context-layered/implementation-convention)
@@ -92,7 +92,7 @@ For local pre-PR receipt verification ([Local-First Verification Policy](../../L
 ### 4. Documents that define verification
 
 - [Documentation and Development Management](/en/concept/documentation-development-conventions)
-  - canonical doc ownership, comma-separated LLMS sync, build order, and docs gates (`pnpm docs:check`)
+  - canonical doc ownership, LLMS sync, build order, compile-checked snippets, and docs gates (`pnpm docs:check`)
 - [Local-First Verification Policy](../../LOCAL_FIRST_VERIFICATION_POLICY.md)
   - single local entrypoints (`pnpm verify`, `pnpm verify:quick`) and RFC 8785 cryptographic receipt rules (`pnpm verify:receipt`)
 - [Stability Test Cycle](/en/context-layered/stability-test-cycle)
@@ -107,6 +107,15 @@ pnpm convention:check
 ```
 
 (`pnpm convention:check` invokes `node scripts/verify-context-action-conventions.mjs`, checking Context-Layered boundaries, example use-case recipes, MCP/function-calling catalog, integration profiles, repository surface catalogs via `pnpm verify:surface-catalog`, and standalone Web Studio action boundaries.) Use `pnpm web-coding:verify` for standalone build, filesystem, provider, preview, and browser release checks.
+
+## Enforcement Scope: CI-Enforced vs. Advisory / Cross-Repo
+
+Not every rule in this index has the same enforcement mechanism:
+
+| Scope | Conventions Covered | How It Is Checked |
+| --- | --- | --- |
+| **CI-Enforced in this repo** | `package-boundary-convention`, `repository-surface-catalog` (`CA-SURFACE-CATALOG-001`), `documentation-development-conventions`, `implementation-convention`, `change-management-convention`, `LOCAL_FIRST_VERIFICATION_POLICY` | Automated scripts & PR CI: `pnpm package-boundary:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`, `pnpm verify:doc-snippets`, `pnpm change:traceability`, `pnpm verify:quick` / `pnpm verify:receipt` |
+| **Advisory / Cross-Repo** | `interaction-intent-contract` (IIC checklists), `triad-evidence-sync-guide` (`ttsc-ex` · `oa-sdk` companion locks), `usecase-panel-layout` (panel UX heuristics) | Design/PR review guidance and optional sibling-workspace tooling; local `context-action` CI checks repo-local docs/convention parity only |
 
 ## Reading Paths by Goal
 

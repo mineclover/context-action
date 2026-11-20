@@ -13,13 +13,14 @@ This example demonstrates the **Action Only Pattern** for pure action dispatchin
 ## v1 Recommended Lifecycle
 
 For new pipelines, make each handler's role explicit. Guards run before work,
-result handlers publish typed values, and observers receive only the immutable
+command handlers (`useActionCommandHandler`) run void state/side-effect work without result arbitration, result handlers publish typed values, and observers receive only the immutable
 terminal event. `useActionHandler` remains available for compatibility, but it
 does not communicate those boundaries as clearly.
 
+<!-- @context-action-compile -->
 ```tsx
 import { useCallback } from 'react';
-import type { ActionPayloadMap, ActionResultMap } from '@context-action/core';
+import type { ActionGuardController, ActionObserverEvent, ActionPayloadMap, ActionResultMap } from '@context-action/core';
 import { createActionContext } from '@context-action/react';
 
 interface ReportActions extends ActionPayloadMap {
@@ -30,40 +31,66 @@ interface ReportResults extends ActionResultMap<ReportActions> {
   publishReport: { reportId: string; publishedAt: string };
 }
 
+const reportApi = { publish: async (_reportId: string) => {} };
+const auditLog = { write: (_entry: unknown) => {} };
+
 const {
   Provider: ReportActionProvider,
   useActionDispatch: useReportAction,
   useActionGuard: useReportGuard,
+  useActionCommandHandler: useReportCommandHandler,
   useActionResultHandler: useReportResultHandler,
   useActionObserver: useReportObserver,
 } = createActionContext<ReportActions, ReportResults>('Reports');
 
-function ReportPipeline() {
-  useReportGuard('publishReport', useCallback((payload, controller) => {
-    if (!payload.approved) controller.abort('The report must be approved first.');
-  }, []), { id: 'report-approval', priority: 100 });
+export function ReportPipeline() {
+  useReportGuard(
+    'publishReport',
+    useCallback((payload: ReportActions['publishReport'], controller: ActionGuardController<ReportActions['publishReport']>) => {
+      if (!payload.approved) controller.abort('The report must be approved first.');
+    }, []),
+    { id: 'report-approval', priority: 100 },
+  );
 
-  useReportResultHandler('publishReport', useCallback(async (payload) => {
-    await reportApi.publish(payload.reportId);
-    return { reportId: payload.reportId, publishedAt: new Date().toISOString() };
-  }, []), {
-    id: 'report-publish',
-    priority: 50,
-    scheduling: 'await-before-next',
-    errorPolicy: 'fatal',
-  });
+  useReportCommandHandler(
+    'publishReport',
+    useCallback((payload: ReportActions['publishReport']) => {
+      auditLog.write({ action: 'publishReport', phase: 'started', reportId: payload.reportId });
+    }, []),
+    { id: 'report-prepare', priority: 75 },
+  );
 
-  useReportObserver('publishReport', useCallback(({ outcome, result }) => {
-    auditLog.write({ action: 'publishReport', outcome, result });
-  }, []), { id: 'report-audit', when: 'always', scheduling: 'start-and-continue' });
+  useReportResultHandler(
+    'publishReport',
+    useCallback(async (payload: ReportActions['publishReport']) => {
+      await reportApi.publish(payload.reportId);
+      return { reportId: payload.reportId, publishedAt: new Date().toISOString() };
+    }, []),
+    {
+      id: 'report-publish',
+      priority: 50,
+      scheduling: 'await-before-next',
+      errorPolicy: 'fatal',
+    },
+  );
+
+  useReportObserver(
+    'publishReport',
+    useCallback(({ outcome, result }: ActionObserverEvent<ReportActions['publishReport'], ReportResults['publishReport']>) => {
+      auditLog.write({ action: 'publishReport', outcome, result });
+    }, []),
+    { id: 'report-audit', when: 'always', scheduling: 'start-and-continue' },
+  );
 
   return null;
 }
 
-function PublishButton({ reportId }: { reportId: string }) {
+export function PublishButton({ reportId }: { reportId: string }) {
   const dispatch = useReportAction();
   return <button onClick={() => dispatch('publishReport', { reportId, approved: true })}>Publish</button>;
 }
+
+export { ReportActionProvider };
 ```
 
 ## Complete Example

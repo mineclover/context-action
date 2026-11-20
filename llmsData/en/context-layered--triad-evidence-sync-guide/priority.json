@@ -195,7 +195,7 @@
     "version": "1.0.0",
     "original_size": 8711,
     "created_at": "2026-10-17T15:53:28.620Z",
-    "source_last_modified": "2026-11-19T23:08:25.079Z",
+    "source_last_modified": "2026-11-20T06:54:48.225Z",
     "keywords": {
       "primary": [
         "context-layered",
@@ -216,6 +216,6 @@
         "framework"
       ]
     },
-    "last_updated": "2026-11-19T23:08:55.294Z"
+    "last_updated": "2026-11-20T06:55:07.334Z"
   }
 }

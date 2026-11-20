@@ -10,7 +10,7 @@ This document explains the `Renewal Risk Review` example built with the implemen
 - activity logs derived from domain events
 - invalidating stale review output when inputs change after success
 - Unified Triad separation between `BusinessActionIntent` (`RenewalRiskReviewActionProvider`) and `LayoutActionIntent` (`RenewalRiskReviewLayoutActionProvider` / `RenewalRiskReviewLayoutStoreProvider` for `setInspectorTab`)
-- v1 role-specific action hooks (`useActionGuard` busy guard, `useActionEffectHandler`, `useActionObserver`) inside `handlers/`
+- v1 role-specific action hooks (`useActionGuard` busy guard, `useActionCommandHandler`, `useActionObserver`) inside `handlers/`
 - Tier 3 `@evidenceExclude` annotation on `views/RenewalRiskReviewView.tsx` to keep volatile presentation chrome out of domain contracts
 
 ## Route
