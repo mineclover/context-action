@@ -66,8 +66,11 @@ export type { RefTarget, RefOperationOptions, RefOperationResult } from './refs/
 
 // Core types from @context-action/core
 export type {
+  ActionCommandController,
+  ActionCommandHandler,
   ActionPayloadMap,
   ActionHandler,
+  CommandConfig,
   HandlerConfig,
   PipelineController,
   ActionRegisterConfig,

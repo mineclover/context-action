@@ -23,15 +23,14 @@ export function ProviderHandlerRegistry({
     { id: 'provider-message-guard', priority: 100 }
   );
 
-  ProviderActionContext.useActionEffectHandler(
+  ProviderActionContext.useActionCommandHandler(
     'updateCounter',
     React.useCallback(
       ({ value }) => {
         counterStore.setValue(value);
       },
       [counterStore]
-    ),
-    { effectKind: 'observer' }
+    )
   );
 
   ProviderActionContext.useActionObserver(
@@ -51,34 +50,31 @@ export function ProviderHandlerRegistry({
     { id: 'provider-counter-observer', when: 'success', priority: 10 }
   );
 
-  ProviderActionContext.useActionEffectHandler(
+  ProviderActionContext.useActionCommandHandler(
     'resetCounter',
     React.useCallback(() => {
       counterStore.setValue(0);
-    }, [counterStore]),
-    { effectKind: 'observer' }
+    }, [counterStore])
   );
 
-  ProviderActionContext.useActionEffectHandler(
+  ProviderActionContext.useActionCommandHandler(
     'updateMessage',
     React.useCallback(
       ({ text }) => {
         messageStore.setValue(text);
       },
       [messageStore]
-    ),
-    { effectKind: 'observer' }
+    )
   );
 
-  ProviderActionContext.useActionEffectHandler(
+  ProviderActionContext.useActionCommandHandler(
     'resetMessage',
     React.useCallback(() => {
       messageStore.setValue('Hello from Provider!');
-    }, [messageStore]),
-    { effectKind: 'observer' }
+    }, [messageStore])
   );
 
-  ProviderActionContext.useActionEffectHandler(
+  ProviderActionContext.useActionCommandHandler(
     'logActivity',
     React.useCallback(
       ({ activity }) => {
@@ -89,8 +85,7 @@ export function ProviderHandlerRegistry({
         ]);
       },
       [activitiesStore]
-    ),
-    { effectKind: 'observer' }
+    )
   );
 
   return <>{children}</>;

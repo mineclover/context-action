@@ -9,7 +9,7 @@ import {
   RenewalRiskReviewLayoutStoreProvider,
   RenewalRiskReviewRefProvider,
   RenewalRiskReviewStoreProvider,
-  useRenewalRiskReviewLayoutEffectHandler,
+  useRenewalRiskReviewLayoutCommandHandler,
   useRenewalRiskReviewLayoutStore,
   useRenewalRiskReviewStoreManager,
 } from '../contexts/RenewalRiskReviewContexts';
@@ -36,15 +36,14 @@ function RenewalRiskReviewHandlerRegistry({
   );
 
   // Separate LayoutActionIntent handler for Tier 3 UI tab state
-  useRenewalRiskReviewLayoutEffectHandler(
+  useRenewalRiskReviewLayoutCommandHandler(
     'setInspectorTab',
     React.useCallback(
       ({ tab }) => {
         inspectorTabStore.setValue(tab);
       },
       [inspectorTabStore]
-    ),
-    { effectKind: 'observer' }
+    )
   );
 
   useRenewalDraftHandlers({ appendActivity });

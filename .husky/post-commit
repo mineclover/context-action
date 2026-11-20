@@ -1,11 +1,11 @@
 #!/bin/sh
 
 # Get list of modified markdown files from the last commit
-MODIFIED_DOCS=$(git diff --name-only HEAD~1 HEAD | grep -E '^docs/(en|ko)/.*\.md$' | grep -v llms/ || true)
+MODIFIED_DOCS=$(git diff --name-only HEAD~1 HEAD | grep -E '^docs/(en|ko)/.*\.md$' | grep -v -E '^docs/(en|ko)/(llms|api)/' || true)
 
 # Get list of all changed files (including deleted) to detect potential mismatches
-ALL_DOC_CHANGES=$(git diff --name-only HEAD~1 HEAD | grep -E '^docs/(en|ko)/.*\.md$' | grep -v llms/ || true)
-DELETED_DOCS=$(git diff --name-status HEAD~1 HEAD | grep '^D' | grep -E 'docs/(en|ko)/.*\.md$' | grep -v llms/ | cut -f2 || true)
+ALL_DOC_CHANGES=$(git diff --name-only HEAD~1 HEAD | grep -E '^docs/(en|ko)/.*\.md$' | grep -v -E '^docs/(en|ko)/(llms|api)/' || true)
+DELETED_DOCS=$(git diff --name-status HEAD~1 HEAD | grep '^D' | grep -E 'docs/(en|ko)/.*\.md$' | grep -v -E 'docs/(en|ko)/(llms|api)/' | cut -f2 || true)
 
 # Check if llmsData directory exists and has been initialized
 if [ -d "llmsData" ]; then

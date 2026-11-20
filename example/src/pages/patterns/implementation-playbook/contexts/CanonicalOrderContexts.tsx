@@ -100,14 +100,14 @@ export const {
   useActionDispatch: useCanonicalOrderDispatch,
   useActionHandler: useCanonicalOrderActionHandler,
   useActionGuard: useCanonicalOrderActionGuard,
-  useActionEffectHandler: useCanonicalOrderEffectHandler,
+  useActionCommandHandler: useCanonicalOrderCommandHandler,
   useActionObserver: useCanonicalOrderActionObserver,
 } = createActionContext<CanonicalOrderBusinessActions>('CanonicalOrderActions');
 
 export const {
   Provider: CanonicalOrderLayoutActionProvider,
   useActionDispatch: useCanonicalOrderLayoutDispatch,
-  useActionEffectHandler: useCanonicalOrderLayoutEffectHandler,
+  useActionCommandHandler: useCanonicalOrderLayoutCommandHandler,
 } = createActionContext<CanonicalOrderLayoutActions>(
   'CanonicalOrderLayoutActions'
 );

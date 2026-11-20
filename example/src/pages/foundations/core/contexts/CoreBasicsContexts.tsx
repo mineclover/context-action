@@ -26,7 +26,7 @@ export const {
   useActionDispatchWithResult: useCoreActionWithResult,
   useActionHandler: useCoreActionHandler,
   useActionGuard: useCoreActionGuard,
-  useActionEffectHandler: useCoreActionEffectHandler,
+  useActionCommandHandler: useCoreActionCommandHandler,
   useActionObserver: useCoreActionObserver,
 } = createActionContext<CoreBasicsActions>('CoreBasics');
 

@@ -162,6 +162,19 @@ export class SyncDocsCommand {
         continue;
       }
 
+      const excludePatterns = this.config.paths.excludePatterns ?? [];
+      const posixRelativePath = normalizeDocumentPath(resolvedFile.identity.relativeSourcePath);
+      const posixDocsPath = `docs/${posixRelativePath}`;
+      if (
+        excludePatterns.some(
+          pattern =>
+            path.posix.matchesGlob(posixRelativePath, pattern) ||
+            path.posix.matchesGlob(posixDocsPath, pattern),
+        )
+      ) {
+        continue;
+      }
+
       // 파일 존재 여부 확인 (삭제된 파일도 처리 필요)
       try {
         await fs.access(resolvedFile.absolutePath);

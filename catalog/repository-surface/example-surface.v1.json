@@ -112,7 +112,7 @@
         "executeSequential",
         "executeRace",
         "useActionGuard",
-        "useActionEffectHandler",
+        "useActionCommandHandler",
         "useActionObserver"
       ],
       "relatedDocs": [
@@ -216,7 +216,7 @@
         "dispatchWithResult",
         "useActionGuard",
         "useActionResultHandler",
-        "useActionEffectHandler",
+        "useActionCommandHandler",
         "useActionObserver"
       ],
       "relatedDocs": [
@@ -549,7 +549,7 @@
         "useActionHandler",
         "useStoreValue",
         "useActionGuard",
-        "useActionEffectHandler",
+        "useActionCommandHandler",
         "useActionObserver"
       ],
       "relatedDocs": [

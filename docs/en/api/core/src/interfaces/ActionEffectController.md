@@ -12,6 +12,7 @@ Controller available to observer-only effect handlers.
 
 ## Extended by
 
+- [`ActionCommandController`](ActionCommandController.md)
 - [`ActionGuardController`](ActionGuardController.md)
 - [`ActionResultController`](ActionResultController.md)
 

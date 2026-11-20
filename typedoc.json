@@ -1,6 +1,9 @@
 {
   "entryPoints": [
     "./packages/core/src/index.ts",
+    "./packages/store-core/src/index.ts",
+    "./packages/mutative/src/index.ts",
+    "./packages/xstate/src/index.ts",
     "./packages/tool-protocol/src/index.ts",
     "./packages/ai-sdk/src/index.ts",
     "./packages/webmcp/src/index.ts",
@@ -36,6 +39,9 @@
   "categorizeByGroup": false,
   "categoryOrder": [
     "Core",
+    "Store Core",
+    "Mutative",
+    "XState",
     "Tool Protocol",
     "AI SDK",
     "WebMCP",

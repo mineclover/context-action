@@ -8,7 +8,7 @@
 
 > **resolveHandlerConfig**&lt;`T`&gt;(`config`, `handlerId`): [`ResolvedHandlerConfig`](../interfaces/ResolvedHandlerConfig.md)&lt;`T`&gt;
 
-Defined in: [packages/core/src/types.ts:619](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L619)
+Defined in: [packages/core/src/types.ts:635](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L635)
 
 Resolve the supported `blocking` shorthand and all registration
 defaults in one place. Adapters should pass their original config to the

@@ -6,7 +6,7 @@
 
 # Interface: ActionContextConfig
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:53](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L53)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:55](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L55)
 
 Configuration options for createActionContext
 
@@ -34,7 +34,7 @@ const { Provider } = createActionContext<UserActions>('User', {
 
 > `optional` **schema?**: `Record`\<`string`, `ActionSchemaLike`\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:59](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L59)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:61](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L61)
 
 Action schema map for runtime payload validation
 Uses the core validator contract; no tool protocol or schema library is required.

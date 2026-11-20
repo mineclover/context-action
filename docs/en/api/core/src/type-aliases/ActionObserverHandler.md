@@ -8,7 +8,7 @@
 
 > **ActionObserverHandler**\<`T`, `R`\> = (`event`) => `void` \| `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:398](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L398)
+Defined in: [packages/core/src/types.ts:404](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L404)
 
 A post-result side effect. Observer return values are deliberately ignored.
 

@@ -6,12 +6,14 @@
  */
 
 import {
+  ActionCommandHandler,
   ActionNames,
   ActionRegister,
   ActionRegisterConfig,
   ActionEffectHandler,
   ActionGuardHandler,
   ActionObserverHandler,
+  CommandConfig,
   ObserverConfig,
   ActionResult,
   ActionResultHandler,
@@ -114,6 +116,11 @@ export interface ActionContextReturn<
     action: K,
     handler: ActionGuardHandler<T[K]>,
     config?: GuardConfig<T[K]>
+  ) => void;
+  useActionCommandHandler: <K extends ActionNames<T>>(
+    action: K,
+    handler: ActionCommandHandler<T[K]>,
+    config?: CommandConfig<T[K]>
   ) => void;
   useActionObserver: <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
     action: K,

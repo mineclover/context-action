@@ -11,7 +11,7 @@
 
 import { useCallback, useRef } from 'react';
 import {
-  useUploadActionEffectHandler,
+  useUploadActionCommandHandler,
   useUploadActionGuard,
 } from '../contexts/UploadActionContext';
 import {
@@ -332,30 +332,14 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
     { id: 'upload-start-guard', priority: 100 }
   );
 
-  useUploadActionEffectHandler('addFiles', handleAddFiles, {
-    effectKind: 'observer',
-  });
-  useUploadActionEffectHandler('clearQueue', handleClearQueue, {
-    effectKind: 'observer',
-  });
-  useUploadActionEffectHandler('clearProcessed', handleClearProcessed, {
-    effectKind: 'observer',
-  });
-  useUploadActionEffectHandler('removeFile', handleRemoveFile, {
-    effectKind: 'observer',
-  });
-  useUploadActionEffectHandler('startUpload', handleStartUpload, {
-    effectKind: 'observer',
-  });
-  useUploadActionEffectHandler('cancelUpload', handleCancelUpload, {
-    effectKind: 'observer',
-  });
-  useUploadActionEffectHandler('retryFailed', handleRetryFailed, {
-    effectKind: 'observer',
-  });
-  useUploadActionEffectHandler('retryFile', handleRetryFile, {
-    effectKind: 'observer',
-  });
+  useUploadActionCommandHandler('addFiles', handleAddFiles);
+  useUploadActionCommandHandler('clearQueue', handleClearQueue);
+  useUploadActionCommandHandler('clearProcessed', handleClearProcessed);
+  useUploadActionCommandHandler('removeFile', handleRemoveFile);
+  useUploadActionCommandHandler('startUpload', handleStartUpload);
+  useUploadActionCommandHandler('cancelUpload', handleCancelUpload);
+  useUploadActionCommandHandler('retryFailed', handleRetryFailed);
+  useUploadActionCommandHandler('retryFile', handleRetryFile);
 
   return <>{children}</>;
 }

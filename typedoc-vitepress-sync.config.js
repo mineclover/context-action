@@ -37,6 +37,9 @@ export default {
   // Package mapping for proper organization
   packageMapping: {
     'core': 'core',
+    'store-core': 'store-core',
+    'mutative': 'mutative',
+    'xstate': 'xstate',
     'tool-protocol': 'tool-protocol',
     'ai-sdk': 'ai-sdk',
     'webmcp': 'webmcp',

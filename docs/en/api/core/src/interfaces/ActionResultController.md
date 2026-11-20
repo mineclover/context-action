@@ -6,7 +6,7 @@
 
 # Interface: ActionResultController\<T, R\>
 
-Defined in: [packages/core/src/types.ts:375](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L375)
+Defined in: [packages/core/src/types.ts:381](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L381)
 
 Controller for a result-producing handler. Concurrent result handlers do
 not receive payload mutation or priority-jump capabilities.
@@ -47,7 +47,7 @@ Type parameter **T**
 
 > **abort**(`reason?`): `void`
 
-Defined in: [packages/core/src/types.ts:377](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L377)
+Defined in: [packages/core/src/types.ts:383](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L383)
 
 #### Parameters
 
@@ -65,7 +65,7 @@ Defined in: [packages/core/src/types.ts:377](https://github.com/mineclover/conte
 
 > **return**(`result`): `R`
 
-Defined in: [packages/core/src/types.ts:378](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L378)
+Defined in: [packages/core/src/types.ts:384](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L384)
 
 #### Parameters
 
@@ -83,7 +83,7 @@ Type parameter **R**
 
 > **setResult**(`result`): `void`
 
-Defined in: [packages/core/src/types.ts:379](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L379)
+Defined in: [packages/core/src/types.ts:385](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L385)
 
 #### Parameters
 
@@ -101,7 +101,7 @@ Type parameter **R**
 
 > **getResults**(): readonly `R`[]
 
-Defined in: [packages/core/src/types.ts:380](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L380)
+Defined in: [packages/core/src/types.ts:386](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L386)
 
 #### Returns
 
@@ -113,7 +113,7 @@ readonly `R`[]
 
 > **mergeResult**(`merger`): `void`
 
-Defined in: [packages/core/src/types.ts:381](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L381)
+Defined in: [packages/core/src/types.ts:387](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L387)
 
 #### Parameters
 

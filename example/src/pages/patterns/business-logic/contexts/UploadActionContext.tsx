@@ -35,6 +35,6 @@ export const {
   useActionDispatch: useUploadAction,
   useActionHandler: useUploadActionHandler,
   useActionGuard: useUploadActionGuard,
-  useActionEffectHandler: useUploadActionEffectHandler,
+  useActionCommandHandler: useUploadActionCommandHandler,
   useActionObserver: useUploadActionObserver,
 } = createActionContext<UploadActions>('UploadActions');

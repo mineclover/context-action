@@ -9,7 +9,7 @@ import {
   CanonicalOrderLayoutStoreProvider,
   CanonicalOrderRefProvider,
   CanonicalOrderStoreProvider,
-  useCanonicalOrderLayoutEffectHandler,
+  useCanonicalOrderLayoutCommandHandler,
   useCanonicalOrderLayoutStore,
   useCanonicalOrderStoreManager,
 } from '../contexts/CanonicalOrderContexts';
@@ -36,15 +36,14 @@ function CanonicalOrderHandlerRegistry({
   );
 
   // Separate LayoutActionIntent handler for Tier 3 UI tab state
-  useCanonicalOrderLayoutEffectHandler(
+  useCanonicalOrderLayoutCommandHandler(
     'setInspectorTab',
     React.useCallback(
       ({ tab }) => {
         inspectorTabStore.setValue(tab);
       },
       [inspectorTabStore]
-    ),
-    { effectKind: 'observer' }
+    )
   );
 
   useCanonicalOrderDraftHandlers({ appendActivity });

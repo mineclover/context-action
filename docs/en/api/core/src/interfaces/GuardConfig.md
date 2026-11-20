@@ -6,7 +6,7 @@
 
 # Interface: GuardConfig\<T\>
 
-Defined in: [packages/core/src/types.ts:411](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L411)
+Defined in: [packages/core/src/types.ts:417](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L417)
 
 Configuration accepted by an admission guard. Guard failures always deny
 admission, so scheduling and error-policy controls are intentionally not
@@ -28,13 +28,13 @@ configurable.
 
 > `optional` **priority?**: `number`
 
-Defined in: [packages/core/src/types.ts:549](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L549)
+Defined in: [packages/core/src/types.ts:565](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L565)
 
 Priority level (higher numbers execute first). Default: 0
 
 #### Inherited from
 
-[`HandlerConfig`](HandlerConfig.md).[`priority`](HandlerConfig.md#priority)
+[`EffectConfig`](EffectConfig.md).[`priority`](EffectConfig.md#priority)
 
 ***
 
@@ -42,13 +42,13 @@ Priority level (higher numbers execute first). Default: 0
 
 > `optional` **id?**: `string`
 
-Defined in: [packages/core/src/types.ts:552](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L552)
+Defined in: [packages/core/src/types.ts:568](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L568)
 
 Unique identifier for the handler. Auto-generated if not provided
 
 #### Inherited from
 
-[`HandlerConfig`](HandlerConfig.md).[`id`](HandlerConfig.md#id)
+[`EffectConfig`](EffectConfig.md).[`id`](EffectConfig.md#id)
 
 ***
 
@@ -56,14 +56,14 @@ Unique identifier for the handler. Auto-generated if not provided
 
 > `optional` **once?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:569](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L569)
+Defined in: [packages/core/src/types.ts:585](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L585)
 
 At most one invocation per registration, across dispatches/retries.
 Skipped handlers are not consumed. Default: false.
 
 #### Inherited from
 
-[`HandlerConfig`](HandlerConfig.md).[`once`](HandlerConfig.md#once)
+[`EffectConfig`](EffectConfig.md).[`once`](EffectConfig.md#once)
 
 ***
 
@@ -71,13 +71,13 @@ Skipped handlers are not consumed. Default: false.
 
 > `optional` **replaceExisting?**: `boolean`
 
-Defined in: [packages/core/src/types.ts:578](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L578)
+Defined in: [packages/core/src/types.ts:594](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L594)
 
 Replace existing handler with same ID. Default: true for backward compatibility
 
 #### Inherited from
 
-[`HandlerConfig`](HandlerConfig.md).[`replaceExisting`](HandlerConfig.md#replaceexisting)
+[`EffectConfig`](EffectConfig.md).[`replaceExisting`](EffectConfig.md#replaceexisting)
 
 ***
 
@@ -85,7 +85,7 @@ Replace existing handler with same ID. Default: true for backward compatibility
 
 > `optional` **cleanup?**: () => `void`
 
-Defined in: [packages/core/src/types.ts:581](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L581)
+Defined in: [packages/core/src/types.ts:597](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L597)
 
 Cleanup function to call when handler is unregistered
 
@@ -103,7 +103,7 @@ Cleanup function to call when handler is unregistered
 
 > `optional` **condition?**: (`payload`) => `boolean`
 
-Defined in: [packages/core/src/types.ts:584](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L584)
+Defined in: [packages/core/src/types.ts:600](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L600)
 
 Condition function to determine if handler should execute. Default: always execute
 
@@ -127,10 +127,10 @@ Type parameter **T**
 
 > `optional` **metadata?**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/core/src/types.ts:587](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L587)
+Defined in: [packages/core/src/types.ts:603](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L603)
 
 Optional metadata copied into execution outcomes for diagnostics.
 
 #### Inherited from
 
-[`HandlerConfig`](HandlerConfig.md).[`metadata`](HandlerConfig.md#metadata)
+[`EffectConfig`](EffectConfig.md).[`metadata`](EffectConfig.md#metadata)

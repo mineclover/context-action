@@ -449,7 +449,7 @@ export function AccessRequestView() {
                 </div>
                 <div>
                   <strong>v1 Role Hooks</strong>: <code>useActionGuard</code>{' '}
-                  (busy guard), <code>useActionEffectHandler</code>,{' '}
+                  (busy guard), <code>useActionCommandHandler</code>,{' '}
                   <code>useActionObserver</code>
                 </div>
                 <div>

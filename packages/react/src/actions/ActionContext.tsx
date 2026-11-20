@@ -1,4 +1,5 @@
 import {
+  ActionCommandHandler,
   ActionEffectHandler,
   ActionGuardHandler,
   ActionHandler,
@@ -10,6 +11,7 @@ import {
   ActionResult,
   ActionResultHandler,
   ActionResultMap,
+  CommandConfig,
   DispatchArgs,
   DispatchOptions,
   EffectConfig,
@@ -465,7 +467,7 @@ export function createActionContext<
       ? ActionResultHandler<T[K], ActionResult<TResultMap, K>>
       : ActionHandler<T[K], R>,
     config?: HandlerConfig<T[K]> | EffectConfig<T[K]>,
-    registrationRole: 'legacy' | 'effect' | 'guard' | 'observer' | 'result' = 'legacy',
+    registrationRole: 'legacy' | 'effect' | 'guard' | 'command' | 'observer' | 'result' = 'legacy',
   ): void => {
     const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
     const actionId = useId();
@@ -565,11 +567,13 @@ export function createActionContext<
           ? register.registerEffect
           : registrationRole === 'guard'
             ? register.registerGuard
-            : registrationRole === 'observer'
-              ? register.registerObserver
-          : registrationRole === 'result'
-            ? register.registerResult
-            : register.register;
+            : registrationRole === 'command'
+              ? register.registerCommand
+              : registrationRole === 'observer'
+                ? register.registerObserver
+                : registrationRole === 'result'
+                  ? register.registerResult
+                  : register.register;
         const registerHandler = registerMethod.bind(register) as unknown as (
           action: K,
           handler: ActionHandler<T[K], R>,
@@ -647,6 +651,14 @@ export function createActionContext<
     config?: GuardConfig<T[K]>,
   ): void => {
     useActionHandler(action, handler as never, config, 'guard');
+  };
+
+  const useActionCommandHandler = <K extends ActionNames<T>>(
+    action: K,
+    handler: ActionCommandHandler<T[K]>,
+    config?: CommandConfig<T[K]>,
+  ): void => {
+    useActionHandler(action, handler as never, config, 'command');
   };
 
   const useActionObserver = <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
@@ -777,6 +789,7 @@ export function createActionContext<
     useActionHandler,
     useActionEffectHandler,
     useActionGuard,
+    useActionCommandHandler,
     useActionObserver,
     useActionResultHandler,
     useActionRegister: useFactoryActionRegister,

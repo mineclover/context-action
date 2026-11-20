@@ -192,7 +192,7 @@ export default function ImplementationScenarioLibraryPage() {
               </li>
               <li>
                 v1 role-specific hooks: <code>useActionGuard</code> (busy
-                guard), <code>useActionEffectHandler</code>,{' '}
+                guard), <code>useActionCommandHandler</code>,{' '}
                 <code>useActionObserver</code> 적용
               </li>
               <li>

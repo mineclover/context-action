@@ -6,7 +6,7 @@
 
 # Interface: ActionObserverEvent\<T, R\>
 
-Defined in: [packages/core/src/types.ts:388](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L388)
+Defined in: [packages/core/src/types.ts:394](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L394)
 
 Immutable terminal event delivered to observer handlers.
 
@@ -26,7 +26,7 @@ Immutable terminal event delivered to observer handlers.
 
 > `readonly` **action**: `string`
 
-Defined in: [packages/core/src/types.ts:389](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L389)
+Defined in: [packages/core/src/types.ts:395](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L395)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [packages/core/src/types.ts:389](https://github.com/mineclover/conte
 
 > `readonly` **payload**: `Readonly`&lt;`T`&gt;
 
-Defined in: [packages/core/src/types.ts:390](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L390)
+Defined in: [packages/core/src/types.ts:396](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L396)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [packages/core/src/types.ts:390](https://github.com/mineclover/conte
 
 > `readonly` **outcome**: `"completed"` \| `"completed_with_errors"` \| `"failed"` \| `"cancelled"` \| `"debounced"` \| `"throttled"`
 
-Defined in: [packages/core/src/types.ts:391](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L391)
+Defined in: [packages/core/src/types.ts:397](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L397)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [packages/core/src/types.ts:391](https://github.com/mineclover/conte
 
 > `readonly` **result**: `R` \| readonly `R`[] \| `undefined`
 
-Defined in: [packages/core/src/types.ts:392](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L392)
+Defined in: [packages/core/src/types.ts:398](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L398)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [packages/core/src/types.ts:392](https://github.com/mineclover/conte
 
 > `readonly` **errors**: readonly [`HandlerError`](HandlerError.md)[]
 
-Defined in: [packages/core/src/types.ts:393](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L393)
+Defined in: [packages/core/src/types.ts:399](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L399)
 
 ***
 
@@ -66,4 +66,4 @@ Defined in: [packages/core/src/types.ts:393](https://github.com/mineclover/conte
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/core/src/types.ts:394](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L394)
+Defined in: [packages/core/src/types.ts:400](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L400)

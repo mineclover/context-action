@@ -11,6 +11,8 @@ import {
 } from './errors.js';
 import { executeParallel, executeRace, executeSequential } from './execution-modes.js';
 import {
+  ActionCommandController,
+  ActionCommandHandler,
   ActionDispatchTrace,
   ActionDispatchTraceListener,
   ActionEffectHandler,
@@ -26,6 +28,7 @@ import {
   ActionResult,
   ActionResultHandler,
   ActionResultMap,
+  CommandConfig,
   DispatchArgs,
   DispatchOptions,
   EffectConfig,
@@ -473,6 +476,32 @@ export class ActionRegister<
       scheduling: 'await-before-next',
       errorPolicy: 'fatal',
     }, 'guard');
+  }
+
+  /**
+   * Register a Phase 2 void command handler that mutates stores or performs
+   * side effects after guards pass and before terminal observers run.
+   * Command handlers cannot publish or arbitrate results.
+   *
+   * @public
+   */
+  registerCommand<
+    K extends ActionNames<T>,
+    H extends (
+      payload: T[K],
+      controller: ActionCommandController<T[K]>,
+    ) => unknown = ActionCommandHandler<T[K]>,
+  >(
+    action: K,
+    handler: H & (ReturnType<H> extends void | Promise<void> ? unknown : never),
+    config?: CommandConfig<T[K]>,
+  ): UnregisterFunction {
+    return this.registerWithRole(
+      action,
+      handler as ActionHandler<T[K], void>,
+      config ?? {},
+      'command',
+    );
   }
 
   /** Register a terminal observer. It runs after result aggregation and has
@@ -2804,16 +2833,23 @@ export class ActionRegister<
         autoAbortController,
         autoAbortOptions,
         state,
-        registration.role !== 'guard',
+        registration.role !== 'guard' && registration.role !== 'command',
       );
       // Runtime mirrors the narrow public controller contracts. This also
-      // prevents JavaScript consumers from accidentally publishing guard
-      // results through an API that would be ignored.
+      // prevents JavaScript consumers from accidentally publishing guard or
+      // command results through an API that would be ignored.
       if (registration.role === 'guard') {
         return {
           signal: controller.signal,
           getPayload: controller.getPayload,
           modifyPayload: controller.modifyPayload,
+          abort: controller.abort,
+        } as PipelineController<T[K], any>;
+      }
+      if (registration.role === 'command') {
+        return {
+          signal: controller.signal,
+          getPayload: controller.getPayload,
           abort: controller.abort,
         } as PipelineController<T[K], any>;
       }

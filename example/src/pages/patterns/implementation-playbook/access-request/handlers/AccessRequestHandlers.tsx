@@ -9,7 +9,7 @@ import {
   AccessRequestLayoutStoreProvider,
   AccessRequestRefProvider,
   AccessRequestStoreProvider,
-  useAccessRequestLayoutEffectHandler,
+  useAccessRequestLayoutCommandHandler,
   useAccessRequestLayoutStore,
   useAccessRequestStoreManager,
 } from '../contexts/AccessRequestContexts';
@@ -36,15 +36,14 @@ function AccessRequestHandlerRegistry({
   );
 
   // Separate LayoutActionIntent handler for Tier 3 UI tab state
-  useAccessRequestLayoutEffectHandler(
+  useAccessRequestLayoutCommandHandler(
     'setInspectorTab',
     React.useCallback(
       ({ tab }) => {
         inspectorTabStore.setValue(tab);
       },
       [inspectorTabStore]
-    ),
-    { effectKind: 'observer' }
+    )
   );
 
   useAccessDraftHandlers({ appendActivity });

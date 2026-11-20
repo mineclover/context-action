@@ -363,6 +363,12 @@ export interface ActionEffectController<T = unknown> {
   getPayload(): T;
 }
 
+/** Controller available to void command handlers (Phase 2). Commands run after guards pass,
+ * may read payload/signal and abort execution, and cannot publish or arbitrate results. */
+export interface ActionCommandController<T = unknown> extends ActionEffectController<T> {
+  abort(reason?: string): void;
+}
+
 /** Controller available to preflight guards. Guards may reject or normalize input,
  * but cannot publish a result or terminate a result pipeline. */
 export interface ActionGuardController<T = unknown> extends ActionEffectController<T> {
@@ -382,7 +388,7 @@ export interface ActionResultController<T = unknown, R = void>
 }
 
 /** The explicit execution role of a registered handler. */
-export type HandlerRole = 'guard' | 'result' | 'observer' | 'legacy';
+export type HandlerRole = 'guard' | 'command' | 'result' | 'observer' | 'legacy';
 
 /** Immutable terminal event delivered to observer handlers. */
 export interface ActionObserverEvent<T = unknown, R = void> {
@@ -412,12 +418,22 @@ export interface GuardConfig<T = unknown> extends Omit<HandlerConfig<T>,
   'blocking' | 'scheduling' | 'errorPolicy' | 'debounce' | 'throttle' | 'when'> {}
 
 /** Configuration for the supported `registerEffect()` convenience API.
- * New code with a statically known role may call `registerGuard()` or
- * `registerObserver()` directly. */
+ * New code with a statically known role may call `registerGuard()`,
+ * `registerCommand()`, or `registerObserver()` directly. */
 export interface EffectConfig<T = unknown> extends HandlerConfig<T> {
   /** Select the explicit phase that owns this legacy effect. */
   effectKind: 'guard' | 'observer';
 }
+
+/** Void Phase 2 command handler that mutates stores or performs side effects
+ * without publishing or arbitrating action results. */
+export type ActionCommandHandler<T = unknown> = (
+  payload: T,
+  controller: ActionCommandController<T>,
+) => void | Promise<void>;
+
+/** Configuration accepted by a Phase 2 void command handler. */
+export interface CommandConfig<T = unknown> extends Omit<HandlerConfig<T>, 'when'> {}
 
 /**
  * Action handler function type for processing actions within the pipeline

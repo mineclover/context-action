@@ -16,7 +16,7 @@ Listener that receives patches information for path-based optimization
 
 ### patches
 
-`Patches` \| `null`
+[`Patches`](../../../mutative/src/type-aliases/Patches.md) \| `null`
 
 ## Returns
 

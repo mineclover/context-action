@@ -103,7 +103,7 @@ export const {
   useActionDispatch: useIncidentEscalationDispatch,
   useActionHandler: useIncidentEscalationActionHandler,
   useActionGuard: useIncidentEscalationActionGuard,
-  useActionEffectHandler: useIncidentEscalationEffectHandler,
+  useActionCommandHandler: useIncidentEscalationCommandHandler,
   useActionObserver: useIncidentEscalationActionObserver,
 } = createActionContext<IncidentEscalationBusinessActions>(
   'IncidentEscalationActions'
@@ -112,7 +112,7 @@ export const {
 export const {
   Provider: IncidentEscalationLayoutActionProvider,
   useActionDispatch: useIncidentEscalationLayoutDispatch,
-  useActionEffectHandler: useIncidentEscalationLayoutEffectHandler,
+  useActionCommandHandler: useIncidentEscalationLayoutCommandHandler,
 } = createActionContext<IncidentEscalationLayoutActions>(
   'IncidentEscalationLayoutActions'
 );

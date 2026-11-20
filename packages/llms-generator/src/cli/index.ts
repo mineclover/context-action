@@ -186,12 +186,11 @@ async function handleSyncDocs(args: string[], argumentParser: ArgumentParser): P
   const config = await loadEnhancedConfig();
   const syncDocsCommand = new SyncDocsCommand(config);
   
-  const changedFilesStr = argumentParser.extractFlag(args, '--changed-files');
-  const changedFiles = changedFilesStr ? changedFilesStr.split(',').map(f => f.trim()) : [];
-  
+  const changedFiles = argumentParser.extractListFlag(args, '--changed-files');
+
   // 언어 필터링 옵션 처리
-  const languagesStr = argumentParser.extractFlag(args, '--languages');
-  const languages = languagesStr ? languagesStr.split(',').map(l => l.trim()) : undefined;
+  const parsedLanguages = argumentParser.extractListFlag(args, '--languages');
+  const languages = parsedLanguages.length > 0 ? parsedLanguages : undefined;
   
   const options = {
     changedFiles,

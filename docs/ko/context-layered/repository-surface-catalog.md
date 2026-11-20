@@ -64,7 +64,7 @@
 
 1. 정식 원본(`package.json`, `typedoc.json`, `example/src/App.tsx`, `docs/`)을 먼저 수정합니다.
 2. `catalog/repository-surface/*.v1.json`과 필요한 경우 이 기준 문서(`docs/{en,ko}/context-layered/repository-surface-catalog.md`)를 함께 갱신합니다.
-3. 마크다운 문서를 수정했으면 `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md,path2.md` (쉼표 구분)를 실행합니다.
+3. 마크다운 문서를 수정했으면 `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md path2.md` (쉼표 또는 공백 구분)를 실행합니다.
 4. `pnpm verify:surface-catalog && pnpm convention:check && pnpm docs:check`로 검증합니다.
 
 ---
@@ -76,19 +76,19 @@
 | 패키지 | 계층 | 공개성 / 안정성 | 공개 `exports` | 워크스페이스 의존성 (+Peer) | TypeDoc 포함 |
 | --- | --- | --- | --- | --- | --- |
 | `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | 없음 | 예 (`.`만 포함) |
-| `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | 없음 | 아니오 |
+| `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | 없음 | 예 (`.`) |
 | `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | 없음 | 아니오 |
 | `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | 없음 | 예 (`.`) |
 | `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | 없음 | 예 (`.`) |
 | `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | 예 (`.`, `./webmcp`) |
-| `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | 아니오 |
+| `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | 예 (`.`) |
 | `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | 아니오 |
 | `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | 아니오 |
 | `@context-action/lit-ui` (`0.1.4`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr`, `./hydrate` | `core`, `lit` | 아니오 |
 | `@context-action/preact-ui` (`0.2.1`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | 아니오 |
 | `@context-action/ai-sdk` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.` | `tool-protocol` | 예 (`.`) |
 | `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | 예 (`.`) |
-| `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | 아니오 |
+| `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | 예 (`.`만 포함) |
 | `@context-action/llms-generator` (`0.8.7`) | `tooling` | `public` / `tooling` | `.`, `./cli` | 없음 | 아니오 |
 | `@context-action/typedoc-vitepress-sync` (`0.8.8`) | `tooling` | `public` / `tooling` | `.`, `./cli` | 없음 | 아니오 |
 | `@context-action/style-testing` (`0.1.0`) | `tooling` | `private` / `private` | `.`, `./babel-plugin` | 없음 | 아니오 |
@@ -97,7 +97,7 @@
 | `@context-action/template-react` (`1.0.0`) | `private-host-support` | `private` / `private` | `(없음)` | `core`, `react` | 아니오 |
 
 > [!NOTE]
-> **TypeDoc 커버리지 공백**: 현재 `typedoc.json`은 **공개 패키지 16개 중 6개**의 7개 엔트리(`core`, `tool-protocol`, `ai-sdk`, `webmcp`, `tool-durable-operations`, `react` `.` 및 `./webmcp`)만 API 참조로 생성합니다. 나머지 10개 공개 패키지(`store-core`, `xstate`, `lit`, `lit-ui`, `preact`, `preact-ui`, `mutative`, `mutative-core`, `llms-generator`, `typedoc-vitepress-sync`)와 `@context-action/core/element`, `@context-action/react/backend`, `@context-action/react/advanced` 같은 서브패스는 TypeDoc에 편입되기 전까지 `api-surface.v1.json`에서 명시적으로 추적합니다.
+> **TypeDoc 커버리지 공백**: 현재 `typedoc.json`은 **공개 패키지 16개 중 9개**의 10개 엔트리(`core`, `store-core`, `mutative`, `xstate` `.`, `tool-protocol`, `ai-sdk`, `webmcp`, `tool-durable-operations`, `react` `.` 및 `./webmcp`)를 API 참조로 생성합니다. 나머지 7개 공개 패키지(`lit`, `lit-ui`, `preact`, `preact-ui`, `mutative-core`, `llms-generator`, `typedoc-vitepress-sync`)와 `@context-action/core/element`, `@context-action/react/backend`, `@context-action/react/advanced`, `@context-action/xstate/effect` 같은 서브패스는 TypeDoc에 편입되기 전까지 `api-surface.v1.json`에서 명시적으로 추적합니다.
 
 ### 3.1 계층별 패키지 용도 요약
 
@@ -121,15 +121,15 @@
 | 그룹 ID | 포함 라우트 (개수) | 설명하는 핵심 주제 | 주요 API | 검증 게이트 |
 | --- | --- | --- | --- | --- |
 | `ex-app-hub` | `/`, `/demos`, 6개 `/catalog/*`, 3개 `/overview/*` (**11**) | 진입 홈, 영역별 카탈로그, MCP/함수 호출 카탈로그 레지스트리, 핵심 개념 개요 | `createActionContext`, `createStoreContext`, `ToolContext` | `pnpm --filter example check && pnpm --filter example build` |
-| `ex-app-foundations-core` | `/foundations/core/basics`, `/foundations/core/advanced` (**2**) | 프레임워크 중립 `ActionRegister` 페이로드 타입, 우선순위 실행, 비동기 모드 및 중단 처리 | `ActionRegister`, `executeParallel`, `executeSequential`, `executeRace`, `useActionGuard`, `useActionEffectHandler`, `useActionObserver` | `pnpm --filter example test && pnpm --filter example build` |
+| `ex-app-foundations-core` | `/foundations/core/basics`, `/foundations/core/advanced` (**2**) | 프레임워크 중립 `ActionRegister` 페이로드 타입, 우선순위 실행, 비동기 모드 및 중단 처리 | `ActionRegister`, `executeParallel`, `executeSequential`, `executeRace`, `useActionGuard`, `useActionCommandHandler`, `useActionObserver` | `pnpm --filter example test && pnpm --filter example build` |
 | `ex-app-foundations-store` | `/foundations/store/basics`, `immutability-test`, `time-travel`, `time-travel-context`, `backend-transactions` (**5**) | Store 반응성, Mutative 불변성 보장, `TimeTravelStore`, `createBackendStore`, `StoreTransactionCoordinator` | `createStore`, `createTimeTravelStore`, `createStateStore`, `createBackendStore`, `StoreTransactionCoordinator` | `pnpm --filter example test && pnpm --filter example build` |
-| `ex-app-foundations-react` | `/foundations/react/provider`, `context`, `hooks`, `useActionWithResult`, `imperativeRef` (**5**) | 분리된 Provider, 다중 컨텍스트 격리, 선택적 구독 훅, `dispatchWithResult`, `useImperativeHandle + RefContext` | `createActionContext`, `createStoreContext`, `createRefContext`, `useStoreValue`, `useStoreSelector`, `dispatchWithResult`, `useActionGuard`, `useActionResultHandler`, `useActionEffectHandler`, `useActionObserver` | `pnpm --filter example test && pnpm --filter example build` |
+| `ex-app-foundations-react` | `/foundations/react/provider`, `context`, `hooks`, `useActionWithResult`, `imperativeRef` (**5**) | 분리된 Provider, 다중 컨텍스트 격리, 선택적 구독 훅, `dispatchWithResult`, `useImperativeHandle + RefContext` | `createActionContext`, `createStoreContext`, `createRefContext`, `useStoreValue`, `useStoreSelector`, `dispatchWithResult`, `useActionGuard`, `useActionResultHandler`, `useActionCommandHandler`, `useActionObserver` | `pnpm --filter example test && pnpm --filter example build` |
 | `ex-app-performance-action-guard` | `/performance/action-guard`, `showcase`, `search`, `scroll`, `api-blocking`, `throttle-comparison`, `advanced-filtering` (**7**) | 디바운스, 스로틀, 중복 API 요청 차단, 취소 가능한 검색, 우선순위 점프 및 필터링 | `ActionGuard`, `ActionRegister`, `PipelineController` | `pnpm --filter example check && pnpm --filter example test` |
 | `ex-app-performance-priority` | `/performance/priority/advanced`, `/performance/priority/demo` (**2**) | 다중 핸들러 우선순위 스케줄링 벤치마크 및 실시간 실행 순서 튜닝 | `ActionRegister`, `useActionHandler` | `pnpm --filter example build` |
 | `ex-app-performance-mouse-events` | `/performance/mouse-events`, `legacy`, `reactive`, `non-reactive`, `context-store-action`, `canvas-ref-demo`, `context-store` (**7**) | 120fps 포인터 부하에서 반응형 Store 구독 vs 리렌더링 0회 `RefContext` 직접 DOM/Canvas 제어 비교 | `createStoreContext`, `createRefContext`, `createActionContext` | `pnpm --filter example verify:mouse-action && verify:mouse-pattern && verify:mouse-enhanced` |
 | `ex-app-performance-memoization` | `/performance`, `/performance/memoization/{demo,analysis,guidelines}` (**4**) | 핸들러 재등록 방지를 위한 `useCallback` 메모이제이션과 React Compiler 안정성 기준 | `useActionHandler`, `createActionContext` | `pnpm --filter example build` |
 | `ex-app-patterns-conditional` | `/patterns/conditional`, `permissions`, `form-validation`, `workflow-steps`, `feature-toggle` (**5**) | 조건부 파이프라인 가드: RBAC 권한, 다단계 폼 검증, 순차 워크플로 단계, 피처 토글 | `useActionHandler`, `PipelineController`, `ActionGuard` | `pnpm --filter example verify:conditional` |
-| `ex-app-patterns-architecture` | `/patterns/business-logic`, `layered-architecture`, `/patterns/implementation-playbook` + `scenarios`, `access-request`, `incident-escalation`, `renewal-risk-review` (**7**) | 순수 비즈니스 함수 분리, 6계층 Context-Layered 구조, Unified Triad (`BusinessActionIntent` vs `LayoutActionIntent`) 정렬, Canonical Order Form 및 Implementation Playbook 도메인 워크플로 | `createActionContext`, `createStoreContext`, `useActionHandler`, `useStoreValue`, `useActionGuard`, `useActionEffectHandler`, `useActionObserver` | `pnpm convention:check && pnpm --filter example verify:usecase` |
+| `ex-app-patterns-architecture` | `/patterns/business-logic`, `layered-architecture`, `/patterns/implementation-playbook` + `scenarios`, `access-request`, `incident-escalation`, `renewal-risk-review` (**7**) | 순수 비즈니스 함수 분리, 6계층 Context-Layered 구조, Unified Triad (`BusinessActionIntent` vs `LayoutActionIntent`) 정렬, Canonical Order Form 및 Implementation Playbook 도메인 워크플로 | `createActionContext`, `createStoreContext`, `useActionHandler`, `useStoreValue`, `useActionGuard`, `useActionCommandHandler`, `useActionObserver` | `pnpm convention:check && pnpm --filter example verify:usecase` |
 | `ex-app-patterns-pipeline-refs` | `/patterns/pipeline/flow-control`, `/patterns/refs`, `waitforrefs-performance`, `use-ref-mount-state-test`, `canvas` (**5**) | 동적 `PipelineController`(`abort`/`skip`/`jumpToPriority`/`modifyPayload`)와 `waitForRefs`/`useRefMountState` DOM/Canvas 제어 | `PipelineController`, `createRefContext`, `waitForRefs`, `useRefMountState` | `pnpm --filter example build` |
 | `ex-app-integrations` | `/integrations/action-lifecycle`, `react-aria-reference`, `preact-web-components`, `lit-web-components`, `xstate-statechart`, `webmcp-scope`, `ai-sdk-tools`, `business/chat`, `advanced/form-builder`, `advanced/concurrent-actions` (**10**) | Action Lifecycle Workbench, React Aria 계층형 하이드레이션, Preact/Lit 웹 컴포넌트 브리지, XState/Effect, WebMCP, AI SDK v7 도구 스코프, 실시간 채팅, 동적 폼 빌더, 동시성 격리 | `ActionRegister`, `@context-action/core/element`, `preact-ui/react-bridge`, `lit-ui/react-bridge`, `@context-action/xstate`, `@context-action/webmcp`, `@context-action/ai-sdk` | `pnpm verify:react-aria-reference-hydration && pnpm verify:element-interop && pnpm --filter example test` |
 | `ex-app-utilities` | `/utilities/dev-tools/{logger,toast-config,warning-demo,store-scenarios}`, `source-directory`, `testing/enhanced-search` (**6**) | LogMonitor 트레이싱, 토스트 설정, 경고 진단, 스토어 비교 벤치마크, 소스 링크 디렉터리, 취소형 검색 테스트 하네스 | `ActionRegister`, `createStoreContext`, `createActionContext` | `pnpm --filter example check && pnpm --filter example build` |
