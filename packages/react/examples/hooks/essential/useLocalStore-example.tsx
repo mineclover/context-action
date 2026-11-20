@@ -4,12 +4,12 @@
  * Demonstrates component-local store creation and management
  */
 
-import React, { useState } from 'react';
-import { useLocalStore } from '../../../src/stores/hooks/useLocalStore';
+import React from 'react';
+import { useLocalStore } from '@context-action/react/advanced';
 
 // Example 1: Basic local store usage
 function BasicLocalStore() {
-  const { value, setValue, update, store } = useLocalStore(0);
+  const { value, store } = useLocalStore(0);
   
   return (
     <div className="example-section">
@@ -18,10 +18,10 @@ function BasicLocalStore() {
       <p>Value: {value}</p>
       
       <div>
-        <button onClick={() => setValue(value + 1)}>Increment</button>
-        <button onClick={() => setValue(value - 1)}>Decrement</button>
-        <button onClick={() => update(prev => prev * 2)}>Double</button>
-        <button onClick={() => setValue(0)}>Reset</button>
+        <button onClick={() => store.setValue(value + 1)}>Increment</button>
+        <button onClick={() => store.setValue(value - 1)}>Decrement</button>
+        <button onClick={() => store.update(prev => prev * 2)}>Double</button>
+        <button onClick={() => store.setValue(0)}>Reset</button>
       </div>
     </div>
   );
@@ -29,7 +29,7 @@ function BasicLocalStore() {
 
 // Example 2: Local store with complex objects
 function ObjectLocalStore() {
-  const { value: user, setValue, update } = useLocalStore({
+  const { value: user, store } = useLocalStore({
     name: 'John Doe',
     age: 30,
     skills: ['JavaScript', 'React', 'TypeScript'],
@@ -42,7 +42,7 @@ function ObjectLocalStore() {
   const addSkill = () => {
     const newSkill = prompt('Enter a new skill:');
     if (newSkill) {
-      update(prev => ({
+      store.update(prev => ({
         ...prev,
         skills: [...prev.skills, newSkill]
       }));
@@ -50,7 +50,7 @@ function ObjectLocalStore() {
   };
   
   const removeSkill = (skillToRemove: string) => {
-    update(prev => ({
+    store.update(prev => ({
       ...prev,
       skills: prev.skills.filter(skill => skill !== skillToRemove)
     }));
@@ -68,12 +68,12 @@ function ObjectLocalStore() {
           
           <div>
             <button 
-              onClick={() => update(prev => ({ ...prev, age: prev.age + 1 }))}
+              onClick={() => store.update(prev => ({ ...prev, age: prev.age + 1 }))}
             >
               Age +1
             </button>
             <button 
-              onClick={() => setValue({
+              onClick={() => store.setValue({
                 ...user,
                 name: user.name === 'John Doe' ? 'Jane Smith' : 'John Doe',
                 profile: {
@@ -111,7 +111,7 @@ function ObjectLocalStore() {
 
 // Example 3: Form management with local store
 function FormWithLocalStore() {
-  const { value: formData, setValue, update } = useLocalStore({
+  const { value: formData, store } = useLocalStore({
     firstName: '',
     lastName: '',
     email: '',
@@ -123,7 +123,7 @@ function FormWithLocalStore() {
   const availableInterests = ['Programming', 'Design', 'Music', 'Sports', 'Reading', 'Travel'];
   
   const toggleInterest = (interest: string) => {
-    update(prev => ({
+    store.update(prev => ({
       ...prev,
       interests: prev.interests.includes(interest)
         ? prev.interests.filter(i => i !== interest)
@@ -148,21 +148,21 @@ function FormWithLocalStore() {
               type="text"
               placeholder="First Name"
               value={formData.firstName}
-              onChange={(e) => update(prev => ({ ...prev, firstName: e.target.value }))}
+              onChange={(e) => store.update(prev => ({ ...prev, firstName: e.target.value }))}
             />
             
             <input
               type="text"
               placeholder="Last Name"
               value={formData.lastName}
-              onChange={(e) => update(prev => ({ ...prev, lastName: e.target.value }))}
+              onChange={(e) => store.update(prev => ({ ...prev, lastName: e.target.value }))}
             />
             
             <input
               type="email"
               placeholder="Email"
               value={formData.email}
-              onChange={(e) => update(prev => ({ ...prev, email: e.target.value }))}
+              onChange={(e) => store.update(prev => ({ ...prev, email: e.target.value }))}
             />
             
             <input
@@ -170,14 +170,14 @@ function FormWithLocalStore() {
               min="18"
               max="100"
               value={formData.age}
-              onChange={(e) => update(prev => ({ ...prev, age: parseInt(e.target.value) }))}
+              onChange={(e) => store.update(prev => ({ ...prev, age: parseInt(e.target.value) || 18 }))}
             />
             
             <label>
               <input
                 type="checkbox"
                 checked={formData.newsletter}
-                onChange={(e) => update(prev => ({ ...prev, newsletter: e.target.checked }))}
+                onChange={(e) => store.update(prev => ({ ...prev, newsletter: e.target.checked }))}
               />
               Subscribe to newsletter
             </label>
@@ -217,7 +217,7 @@ function FormWithLocalStore() {
         </button>
         
         <button 
-          onClick={() => setValue({
+          onClick={() => store.setValue({
             firstName: '',
             lastName: '',
             email: '',
@@ -236,7 +236,7 @@ function FormWithLocalStore() {
 
 // Example 4: Shopping cart with local store
 function ShoppingCartLocalStore() {
-  const { value: cart, update } = useLocalStore<{
+  const { value: cart, store } = useLocalStore<{
     items: Array<{ id: number; name: string; price: number; quantity: number }>;
     total: number;
   }>({
@@ -252,7 +252,7 @@ function ShoppingCartLocalStore() {
   ];
   
   const addToCart = (product: typeof availableProducts[0]) => {
-    update(prev => {
+    store.update(prev => {
       const existingItem = prev.items.find(item => item.id === product.id);
       let newItems;
       
@@ -273,7 +273,7 @@ function ShoppingCartLocalStore() {
   };
   
   const removeFromCart = (productId: number) => {
-    update(prev => {
+    store.update(prev => {
       const newItems = prev.items.filter(item => item.id !== productId);
       const newTotal = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       return { items: newItems, total: newTotal };
@@ -286,7 +286,7 @@ function ShoppingCartLocalStore() {
       return;
     }
     
-    update(prev => {
+    store.update(prev => {
       const newItems = prev.items.map(item =>
         item.id === productId ? { ...item, quantity } : item
       );
@@ -392,8 +392,8 @@ function NamedLocalStores() {
             <h4>{counter.store.name}</h4>
             <p style={{ fontSize: '24px', fontWeight: 'bold' }}>{counter.value}</p>
             <div>
-              <button onClick={() => counter.setValue(counter.value + 1)}>+</button>
-              <button onClick={() => counter.setValue(counter.value - 1)} style={{ marginLeft: '5px' }}>-</button>
+              <button onClick={() => counter.store.setValue(counter.value + 1)}>+</button>
+              <button onClick={() => counter.store.setValue(counter.value - 1)} style={{ marginLeft: '5px' }}>-</button>
             </div>
           </div>
         ))}

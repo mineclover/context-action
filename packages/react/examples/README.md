@@ -12,8 +12,13 @@ examples/
 │   │   └── useLocalStore-example.tsx
 │   ├── utility/            # Performance and convenience hooks
 │   │   └── useStoreSelector-example.tsx
-│   ├── patterns/           # Pattern hook examples
 │   └── index.tsx           # Interactive hook explorer
+├── refs/                     # Imperative & custom ref examples
+│   ├── SimpleFormExample.tsx
+│   ├── GameUIExample.tsx
+│   ├── createRefContext-examples.tsx
+│   ├── three-mock-types.ts
+│   └── three-types.d.ts
 └── stores/
     └── patterns/           # Store pattern examples
         ├── declarative-examples.tsx
@@ -23,48 +28,46 @@ examples/
 ## 🎯 Hook Examples
 
 ### Essential Hooks (Must Learn)
-- **`useStoreValue`**: Subscribe to store values with reactive updates
-- **`useLocalStore`**: Create component-local stores for complex state
+- **`useStoreValue`** (`@context-action/react`): Subscribe to store values with reactive updates
+- **`useLocalStore`** (`@context-action/react/advanced`): Create component-local stores (`{ value, store }`)
 
-### Utility Hooks (Learn As Needed)
-- **`useStoreSelector`**: Performance optimization through selective subscriptions
+### Utility & Path Hooks
+- **`useStoreSelector`** (`@context-action/react`): Performance optimization through selective subscriptions
+- **`useStorePath`** (`@context-action/react`): Patch-aware subscription for nested object paths
+- **`compareValues`** (`@context-action/react/utils`): Shallow and deep value comparison helpers
 
-### Pattern Hooks (For Larger Apps)
+### Pattern Factories (`@context-action/react`)
 - **`createStoreContext`**: Type-safe store pattern factory
 - **`createActionContext`**: Action context factory for business logic
+- **`createRefContext`**: Type-safe DOM and imperative object reference factory
 
 ## 🚀 Getting Started
 
-### View Examples Locally
+### Type-check & Run Examples
 
 ```bash
-# In the React package directory
-cd packages/react
+# Type-check all React package examples
+pnpm --filter @context-action/react exec tsc --noEmit -p tsconfig.examples.json
 
-# Install dependencies (if not already done)
-pnpm install
-
-# Start the example app (you'll need to set up a dev server)
-# Or import the components in your own React app
+# Run React package unit tests
+pnpm --filter @context-action/react test
 ```
 
-### Using Examples in Your App
+### Public Package Imports
+
+All example files import from the public entrypoints rather than internal `src/*` paths:
 
 ```tsx
-import { HookExamplesIndex } from './examples/hooks';
-import { UseStoreValueExamples } from './examples/hooks/essential/useStoreValue-example';
-
-function App() {
-  return (
-    <div>
-      {/* Interactive hook explorer */}
-      <HookExamplesIndex />
-      
-      {/* Or specific hook examples */}
-      <UseStoreValueExamples />
-    </div>
-  );
-}
+import {
+  createActionContext,
+  createStoreContext,
+  createRefContext,
+  useStoreValue,
+  useStoreSelector,
+  useStorePath,
+} from '@context-action/react';
+import { useLocalStore, useComputedStore } from '@context-action/react/advanced';
+import { compareValues } from '@context-action/react/utils';
 ```
 
 ## 📚 Learning Path
@@ -85,7 +88,9 @@ For larger applications:
 
 ### 4. Add Specialized Features
 As needed:
-- `useStoreActions` - Memoized methods
+- `useComputedStore` (`@context-action/react/advanced`) - Derived state from stores
+- `useStorePath` (`@context-action/react`) - JSON-patch path subscriptions
+- `createRefContext` (`@context-action/react`) - Imperative DOM/Canvas/WebGL refs
 
 ## 🔍 Example Features
 
@@ -103,9 +108,9 @@ As needed:
 
 ## 📖 Documentation References
 
-- **[HOOKS_REFERENCE.md](../docs/HOOKS_REFERENCE.md)**: Complete hook documentation
-- **[PATTERN_GUIDE.md](../docs/PATTERN_GUIDE.md)**: Architectural patterns
-- **[TEST_STRUCTURE.md](../docs/TEST_STRUCTURE.md)**: Testing approach
+- **[Store Selection & Usage Guide](../../docs/en/context-layered/store-selection-and-usage-guide.md)**: Choosing stores and React subscription hooks
+- **[Context-Layered Architecture Guide](../../docs/en/context-layered/context-layered-guide.md)**: Architectural patterns
+- **[Repository Surface Catalog](../../docs/en/context-layered/repository-surface-catalog.md)**: Package exports and example inventory
 
 ## 🧪 Testing
 

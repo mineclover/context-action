@@ -7,8 +7,7 @@
  */
 
 import React from 'react';
-import { createStoreContext } from '../../../src/stores/patterns/declarative-store-pattern-v2';
-import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 
 /**
  * Example 1: User Management Stores

@@ -2,7 +2,7 @@
   "document": {
     "id": "examples--implementation-playbook-scenarios",
     "title": "Implementation Playbook 시나리오 라이브러리",
-    "category": "example",
+    "category": "examples",
     "source_path": "ko/examples/implementation-playbook-scenarios.md",
     "lastModified": "2026-03-29T23:42:17.804Z",
     "wordCount": 514
@@ -191,7 +191,7 @@
     "version": "1.0.0",
     "original_size": 4765,
     "created_at": "2026-07-24T05:15:02.542Z",
-    "source_last_modified": "2026-03-29T23:42:17.804Z",
+    "source_last_modified": "2026-11-19T23:36:02.685Z",
     "keywords": {
       "primary": [
         "examples",
@@ -209,6 +209,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-11-19T23:42:54.585Z"
   }
 }

@@ -407,3 +407,10 @@ function AdvancedApiService() {
 5. **에러 처리**: 적절한 에러 처리 및 복구
 
 Action Only 패턴은 상태 관리 없이 비즈니스 로직을 깔끔하게 분리하는 강력한 도구입니다.
+
+## 관련 자료
+
+- **[Context-Layered 아키텍처 가이드](../context-layered/context-layered-guide)** - 핸들러·비즈니스·뷰 6계층 분리 원칙
+- **[Action Pipeline 가이드](../concept/action-pipeline-guide)** - 액션 파이프라인 상세 문서
+- **[Pipeline 가이드](../guide/pipeline/index)** - 우선순위, 필터링, 디스패치 제어
+- **[패턴 조합 예제](./pattern-composition)** - Store 패턴과 결합하기

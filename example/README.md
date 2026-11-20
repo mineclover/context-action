@@ -35,9 +35,8 @@ The application is organized into **5 specialized catalogs**, each designed for 
 
 ### 🧩 **Integrations** (`/integrations/`)
 **Target**: Developers building real applications
-- **Business** - Todo lists, shopping carts, chat systems
-- **Advanced** - Canvas drawing, concurrent actions, form builders
-- **Usecase Boundary Lab** - Context-Layered Runtime, Facade, Recipe, and Astryx-style UI composition
+- **Business** - Real-time chat and domain workflows
+- **Advanced** - Action Lifecycle Workbench, React Aria Table + Calendar, Preact/Lit Web Components, Form Builder, Canvas drawing, and Concurrent Actions
 
 ### 🛠️ **Utilities** (`/utilities/`)
 **Target**: Developers improving development workflow
@@ -158,36 +157,18 @@ and the [Access Request Playbook](/patterns/implementation-playbook/access-reque
 ## 📂 Catalog Structure
 
 ```
-src/pages/
-├── foundations/          🏗️ Core concepts & basic usage
-│   ├── core/            ActionRegister, pipeline fundamentals
-│   ├── store/           Store management, declarative patterns
-│   └── react/           Context integration, hooks
-│
-├── performance/          ⚡ Optimization & action guards
-│   ├── action-guard/    Debouncing, throttling, filtering
-│   ├── priority/        Handler execution order  
-│   ├── mouse-events/    High-frequency event handling
-│   └── memoization/     Performance comparison with/without memoization
-│
-├── patterns/             🎛️ Advanced patterns & workflows
-│   ├── conditional/     Permission-based execution
-│   ├── pipeline/        Flow control, orchestration
-│   └── refs/            Advanced reference patterns
-│
-├── integrations/         🧩 Real-world applications
-│   ├── business/        Todo, shopping, chat examples
-│   └── advanced/        Canvas, concurrent actions
-│
-├── utilities/            🛠️ Development tools
-│   ├── dev-tools/       Logging, debugging, toasts
-│   └── testing/         Test patterns, validation
-│
-└── shared/               Common components & utilities
-    ├── components/      Reusable UI components
-    ├── lib/             Library code & patterns
-    ├── hooks/           Shared hooks
-    └── utils/           Utility functions
+src/
+├── pages/                Catalog & scenario pages
+│   ├── foundations/      🏗️ Core concepts & basic usage
+│   ├── performance/      ⚡ Optimization & action guards
+│   ├── patterns/         🎛️ Advanced patterns, conditionals & implementation playbooks
+│   ├── integrations/     🧩 Real-world & framework-bridge integrations
+│   ├── utilities/        🛠️ Logging, warnings, toast & store scenario tools
+│   └── catalog/          📑 Catalog index & overview pages
+├── components/           Shared UI, Layout & LogMonitor components
+├── lib/                  Pattern helpers & shared library utilities
+├── hooks/                Shared React hooks
+└── utils/                Logger & utility helpers
 ```
 
 ## 🎯 Key Features Demonstrated
@@ -277,9 +258,4 @@ Route/link ownership and the experimental integration gate are documented in
 - [Core Package](../packages/core/) - @context-action/core source code
 - [React Package](../packages/react/) - @context-action/react source code
 - [Monorepo Root](../README.md) - Project overview and development setup
-
-## 🔗 Related
-
-- [Main Library](../context-action) - @context-action/core package
-- [Monorepo Root](../../README.md) - Project overview
 - [Vite Documentation](https://vitejs.dev/) - Build tool documentation

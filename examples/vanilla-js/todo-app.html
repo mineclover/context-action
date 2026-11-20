@@ -161,42 +161,12 @@
   </div>
 
   <script type="module">
-    import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+    import { ActionRegister } from 'https://esm.sh/@context-action/core@1.3.1';
+    import { createStateStore } from 'https://esm.sh/@context-action/store-core@0.1.4';
 
-    // Store implementation
-    class Store {
-      constructor(initialState) {
-        this.state = initialState;
-        this.listeners = new Set();
-      }
-
-      getValue() {
-        return this.state;
-      }
-
-      setValue(newState) {
-        this.state = newState;
-        this.notify();
-      }
-
-      update(updater) {
-        this.setValue(updater(this.state));
-      }
-
-      subscribe(listener) {
-        this.listeners.add(listener);
-        listener(this.state);
-        return () => this.listeners.delete(listener);
-      }
-
-      notify() {
-        this.listeners.forEach(listener => listener(this.state));
-      }
-    }
-
-    // Create stores
-    const todoStore = new Store({ todos: [] });
-    const filterStore = new Store({ filter: 'all' });
+    // Create stores via @context-action/store-core
+    const todoStore = createStateStore('todos', { todos: [] });
+    const filterStore = createStateStore('filter', { filter: 'all' });
 
     // Create action register
     const actions = new ActionRegister({
@@ -264,39 +234,42 @@
       const todoList = document.getElementById('todoList');
 
       if (filteredTodos.length === 0) {
-        todoList.innerHTML = '<div class="empty-state">No todos to show</div>';
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = 'No todos to show';
+        todoList.replaceChildren(empty);
         return;
       }
 
-      todoList.innerHTML = filteredTodos
-        .map(todo => `
-          <li class="todo-item ${todo.completed ? 'completed' : ''}" data-id="${todo.id}">
-            <input
-              type="checkbox"
-              class="todo-checkbox"
-              ${todo.completed ? 'checked' : ''}
-              data-id="${todo.id}"
-            >
-            <span class="todo-text">${todo.text}</span>
-            <button class="delete-btn" data-id="${todo.id}">Delete</button>
-          </li>
-        `)
-        .join('');
+      const items = filteredTodos.map((todo) => {
+        const li = document.createElement('li');
+        li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+        li.dataset.id = String(todo.id);
 
-      // Add event listeners
-      todoList.querySelectorAll('.todo-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', (e) => {
-          const id = parseInt(e.target.dataset.id);
-          actions.dispatch('toggleTodo', { id });
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'todo-checkbox';
+        checkbox.checked = Boolean(todo.completed);
+        checkbox.addEventListener('change', () => {
+          actions.dispatch('toggleTodo', { id: todo.id });
         });
+
+        const span = document.createElement('span');
+        span.className = 'todo-text';
+        span.textContent = todo.text;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', () => {
+          actions.dispatch('deleteTodo', { id: todo.id });
+        });
+
+        li.append(checkbox, span, deleteBtn);
+        return li;
       });
 
-      todoList.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = parseInt(e.target.dataset.id);
-          actions.dispatch('deleteTodo', { id });
-        });
-      });
+      todoList.replaceChildren(...items);
     }
 
     function renderStats() {
@@ -316,7 +289,7 @@
       });
     }
 
-    // Subscribe to store changes
+    // Subscribe to store changes and render initial UI
     todoStore.subscribe(() => {
       renderTodos();
       renderStats();
@@ -326,6 +299,10 @@
       renderTodos();
       updateFilterButtons();
     });
+
+    renderTodos();
+    renderStats();
+    updateFilterButtons();
 
     // Wire up events
     const todoInput = document.getElementById('todoInput');

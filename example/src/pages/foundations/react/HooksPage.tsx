@@ -2,14 +2,14 @@ import {
   type ActionPayloadMap,
   ActionRegister,
   createStoreContext,
-  type Store,
+  useStorePath,
+  useStoreSelector,
   useStoreValue,
 } from '@context-action/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { CodeBlock } from '@/components/ui';
 import {
-  buttonVariants,
   codeExampleVariants,
   controlGroupVariants,
   controlLabelVariants,
@@ -62,30 +62,46 @@ interface HooksOptimizationMap extends ActionPayloadMap {
  * const memoryStore = HooksStores.useStoreManager().getStore('memory');
  * @since 1.0.0
  */
-const HooksStores = createStoreContext<Record<string, unknown>>(
-  'ReactHooks',
-  {}
-);
-
-// Store 생성 헬퍼 함수
-function useHooksStore<T>(storeName: string, initialValue: T): Store<T> {
-  const manager = HooksStores.useStoreManager();
-
-  // Check if store already exists
-  const existingStore = manager.stores.get(storeName);
-  if (existingStore) {
-    return existingStore as Store<T>;
-  }
-
-  // Create new store dynamically
-  (manager.initialStores as any)[storeName] = {
-    initialValue,
-    strategy: 'reference',
-    debug: false,
+interface SubscriptionState {
+  user: {
+    name: string;
+    role: string;
   };
-
-  return manager.getStore(storeName) as Store<T>;
+  metrics: {
+    clicks: number;
+    updates: number;
+  };
 }
+
+const HooksStores = createStoreContext('ReactHooks', {
+  calculation: {
+    initialValue: {
+      result: 0,
+      computeTime: 0,
+    },
+    strategy: 'reference' as const,
+  },
+  memory: {
+    initialValue: {
+      allocatedMB: 0,
+      objects: 0,
+    },
+    strategy: 'reference' as const,
+  },
+  subscription: {
+    initialValue: {
+      user: {
+        name: 'Alice',
+        role: 'Engineer',
+      },
+      metrics: {
+        clicks: 0,
+        updates: 0,
+      },
+    } satisfies SubscriptionState,
+    strategy: 'shallow' as const,
+  },
+});
 
 // 무거운 계산 시뮬레이션
 const heavyComputation = (
@@ -110,10 +126,7 @@ function MemoizationDemo() {
   const [trigger, setTrigger] = useState(0);
   const [inputSize, setInputSize] = useState(100);
 
-  const calculationStore = useHooksStore('calculation', {
-    result: 0,
-    computeTime: 0,
-  });
+  const calculationStore = HooksStores.useStore('calculation');
   const calculationResult = useStoreValue(calculationStore);
 
   // React 컴파일러가 자동으로 메모이제이션하는 무거운 계산
@@ -186,12 +199,6 @@ function MemoizationDemo() {
               variant: 'secondary',
               type: 'memoization',
             })}
-          >
-            Trigger Rerender
-          </button>
-          <button
-            onClick={handleTriggerRerender}
-            className={buttonVariants({ variant: 'secondary' })}
           >
             Trigger Re-render ({trigger})
           </button>
@@ -429,10 +436,7 @@ function MemoryOptimizationDemo() {
   const [objectSize, setObjectSize] = useState(1000);
   const [autoCleanup, setAutoCleanup] = useState(true);
 
-  const memoryStore = useHooksStore('memory', {
-    allocatedMB: 0,
-    objects: 0,
-  });
+  const memoryStore = HooksStores.useStore('memory');
   const memoryInfo = useStoreValue(memoryStore);
   const objectsRef = useRef<any[]>([]);
 
@@ -580,6 +584,171 @@ function MemoryOptimizationDemo() {
   );
 }
 
+function FullValueSubscriber() {
+  const subscriptionStore = HooksStores.useStore('subscription');
+  const fullState = useStoreValue(subscriptionStore);
+  const [history, setHistory] = useState({
+    count: 0,
+    label: fullState.user.name,
+  });
+
+  useEffect(() => {
+    setHistory((prev) => ({
+      count: prev.count + 1,
+      label: `${fullState.user.name} (${fullState.metrics.clicks}/${fullState.metrics.updates})`,
+    }));
+  }, [fullState]);
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+        useStoreValue(store)
+      </div>
+      <div className="mt-2 text-lg font-bold text-slate-900">
+        Updates: {history.count}
+      </div>
+      <div className="mt-1 text-xs text-slate-600">
+        Snapshot: {history.label}
+      </div>
+    </div>
+  );
+}
+
+function SelectorClicksSubscriber() {
+  const subscriptionStore = HooksStores.useStore('subscription');
+  const clicks = useStoreSelector(
+    subscriptionStore,
+    (state) => state.metrics.clicks
+  );
+  const [history, setHistory] = useState({ count: 0, clicks });
+
+  useEffect(() => {
+    setHistory((prev) => ({ count: prev.count + 1, clicks }));
+  }, [clicks]);
+
+  return (
+    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+      <div className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+        useStoreSelector(store, s =&gt; s.metrics.clicks)
+      </div>
+      <div className="mt-2 text-lg font-bold text-blue-900">
+        Updates: {history.count}
+      </div>
+      <div className="mt-1 text-xs text-blue-700">Clicks: {history.clicks}</div>
+    </div>
+  );
+}
+
+function PathNameSubscriber() {
+  const subscriptionStore = HooksStores.useStore('subscription');
+  const userName = useStorePath<SubscriptionState, string>(subscriptionStore, [
+    'user',
+    'name',
+  ]);
+  const [history, setHistory] = useState({ count: 0, userName });
+
+  useEffect(() => {
+    setHistory((prev) => ({ count: prev.count + 1, userName }));
+  }, [userName]);
+
+  return (
+    <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+      <div className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+        useStorePath(store, [&apos;user&apos;, &apos;name&apos;])
+      </div>
+      <div className="mt-2 text-lg font-bold text-emerald-900">
+        Updates: {history.count}
+      </div>
+      <div className="mt-1 text-xs text-emerald-700">
+        User: {history.userName}
+      </div>
+    </div>
+  );
+}
+
+function SubscriptionComparisonDemo() {
+  const subscriptionStore = HooksStores.useStore('subscription');
+
+  const incrementClicks = () => {
+    subscriptionStore.update((prev) => ({
+      ...prev,
+      metrics: {
+        ...prev.metrics,
+        clicks: prev.metrics.clicks + 1,
+        updates: prev.metrics.updates + 1,
+      },
+    }));
+  };
+
+  const incrementBackgroundUpdates = () => {
+    subscriptionStore.update((prev) => ({
+      ...prev,
+      metrics: {
+        ...prev.metrics,
+        updates: prev.metrics.updates + 1,
+      },
+    }));
+  };
+
+  const toggleUserName = () => {
+    subscriptionStore.update((prev) => ({
+      ...prev,
+      user: {
+        ...prev.user,
+        name: prev.user.name === 'Alice' ? 'Bob' : 'Alice',
+      },
+    }));
+  };
+
+  return (
+    <div className={hooksDemoCardVariants({ type: 'memoization' })}>
+      <h3 className={textTitleVariants({ variant: 'section' })}>
+        Selective Subscription Comparison
+      </h3>
+      <p className={textHintVariants()}>
+        Compare full-store updates (useStoreValue), selector slices
+        (useStoreSelector), and JSON-patch path tracking (useStorePath).
+      </p>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          onClick={incrementClicks}
+          className={hooksButtonVariants({
+            variant: 'primary',
+            type: 'memoization',
+          })}
+        >
+          Increment Clicks (Value + Selector)
+        </button>
+        <button
+          onClick={incrementBackgroundUpdates}
+          className={hooksButtonVariants({
+            variant: 'secondary',
+            type: 'memoization',
+          })}
+        >
+          Background Metric Update (Value Only)
+        </button>
+        <button
+          onClick={toggleUserName}
+          className={hooksButtonVariants({
+            variant: 'secondary',
+            type: 'memoization',
+          })}
+        >
+          Toggle User Name (Value + Path)
+        </button>
+      </div>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <FullValueSubscriber />
+        <SelectorClicksSubscriber />
+        <PathNameSubscriber />
+      </div>
+    </div>
+  );
+}
+
 // ActionRegister 인스턴스 생성
 const hooksActionRegister = new ActionRegister<HooksOptimizationMap>();
 
@@ -639,6 +808,7 @@ function ReactHooksPage() {
           <ReactHooksSetup />
 
           <div className="space-y-6">
+            <SubscriptionComparisonDemo />
             <MemoizationDemo />
             <ConditionalHandlerDemo />
             <DynamicHandlerDemo />

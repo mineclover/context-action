@@ -138,14 +138,14 @@ For deciding which state/store API to use across these packages, see the [Store 
 
 | Surface | Path | Status | What It Explains | Verification Gate |
 | --- | --- | --- | --- | --- |
-| Standalone Demo | `demos/bolt-style-editor` | `verified` | Tool-Calling Web Studio (`tool-protocol`, `ai-sdk`, `tool-durable-operations`, IndexedDB, approval queue, bounded trace, iframe preview) | `pnpm web-coding:verify` |
-| Standalone Demo | `examples/vanilla-js` | `reference` | Framework-free HTML/JS counter and todo apps using `@context-action/core` | `pnpm build:core` |
+| Standalone Demo | `demos/bolt-style-editor` | `verified` | Tool-Calling Web Studio (`tool-protocol`, `tool-durable-operations`, `live-code-editor`, IndexedDB, approval queue, bounded trace, iframe preview) | `pnpm web-coding:verify` |
+| Standalone Demo | `examples/vanilla-js` | `reference` | Framework-free HTML/JS counter and XSS-safe todo apps using `@context-action/core` + `@context-action/store-core` | `pnpm build:core && pnpm --filter @context-action/store-core build` |
 | Package Examples | `packages/core/examples` | `verified` | Core `ActionRegister` demos + copyable Vue/Svelte/Angular `element-hosts` over `./element` | `pnpm verify:element-hosts && pnpm verify:element-interop` |
 | Package Examples | `packages/lit-ui/examples` | `verified` | DSD SSR hydration harness + ElementInternals FACE exception diagnostic playground | `pnpm --filter @context-action/lit-ui test:browser` |
 | Package Examples | `packages/preact-ui/examples` | `verified` | Projected Order 6-layer workspace, Layer Panel contract reuse, modular Signals Web Components, SSR | `pnpm --filter @context-action/preact-ui test:browser` |
-| Package Examples | `packages/react/examples` | `verified` | Package-level hooks, RefContext (`GameUI`/`SimpleForm`), declarative/unified Store patterns | `pnpm --filter @context-action/react test` |
+| Package Examples | `packages/react/examples` | `verified` | Package-level hooks, RefContext (`GameUI`/`SimpleForm`), declarative/unified Store patterns | `pnpm --filter @context-action/react exec tsc --noEmit -p tsconfig.examples.json && pnpm --filter @context-action/react test` |
 | Package Examples | `packages/mutative/examples` | `experimental` | Workspace-only `travels@3` + `mutative@2` backend prototypes (`travels-v3`) | `pnpm --filter @context-action/mutative test:travels-v3` |
-| Package Examples | `packages/llms-generator/examples` | `reference` | Programmatic `LLMSGenerator` & `CategoryMinimumGenerator` TS/JS usage | `pnpm --filter @context-action/llms-generator test` |
+| Package Examples | `packages/llms-generator/examples` | `reference` | Programmatic `EnhancedConfigManager`, `DEFAULT_CONFIG`, and CLI workflow usage | `pnpm build:llms-generator && node packages/llms-generator/examples/library-usage.js` |
 | Package Examples | `packages/typedoc-vitepress-sync/examples` | `reference` | Basic and advanced Node.js configuration scripts for `TypeDocVitePressSync` | `pnpm --filter @context-action/typedoc-vitepress-sync test` |
 
 ### 4.3 Narrative Example Walkthroughs (`docs/{en,ko}/examples/*.md`, 9 Paired Docs)

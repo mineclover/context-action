@@ -10,7 +10,7 @@ A simple counter application demonstrating:
 - Creating an ActionRegister
 - Registering action handlers
 - Dispatching actions
-- State management with a simple Store
+- State management with `@context-action/store-core` (`createStateStore`)
 - Async operations
 
 **Features:**
@@ -33,11 +33,11 @@ npx serve .
 ### 2. Todo App (`todo-app.html`)
 
 A full-featured todo application demonstrating:
-- Multiple stores (todos + filter state)
+- Multiple stores (`createStateStore` for todos + filter state)
 - Priority-based action handlers
 - Result collection and error handling
 - Filtering and state composition
-- Complex UI interactions
+- XSS-safe DOM updates via `document.createElement` and `textContent`
 
 **Features:**
 - ➕ Add new todos
@@ -58,34 +58,21 @@ npx serve .
 
 ## 🎯 Key Patterns Demonstrated
 
-### 1. Simple Store Pattern
+### 1. Framework-Neutral Store Pattern (`@context-action/store-core`)
+
+`createStateStore` provides a minimal reference store with `getValue()`, `setValue()`, `update()`, and zero-arg `subscribe(() => void)` listeners (render once initially after subscribing):
 
 ```javascript
-class Store {
-  constructor(initialState) {
-    this.state = initialState;
-    this.listeners = new Set();
-  }
+import { createStateStore } from 'https://esm.sh/@context-action/store-core@0.1.4';
 
-  getValue() {
-    return this.state;
-  }
+const counterStore = createStateStore('counter', { count: 0 });
 
-  setValue(newState) {
-    this.state = newState;
-    this.notify();
-  }
-
-  subscribe(listener) {
-    this.listeners.add(listener);
-    listener(this.state); // Call immediately
-    return () => this.listeners.delete(listener);
-  }
-
-  notify() {
-    this.listeners.forEach(listener => listener(this.state));
-  }
+function render() {
+  document.getElementById('counter').textContent = String(counterStore.getValue().count);
 }
+
+counterStore.subscribe(render);
+render();
 ```
 
 ### 2. Store Integration Pattern
@@ -133,12 +120,14 @@ actions.register('submitForm', (payload, controller) => {
 
 ## 🚀 Using in Your Project
 
-### Option 1: CDN (Quick Start)
+### Option 1: CDN (Quick Start with Pinned Versions)
 
 ```html
 <script type="module">
-  import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+  import { ActionRegister } from 'https://esm.sh/@context-action/core@1.3.1';
+  import { createStateStore } from 'https://esm.sh/@context-action/store-core@0.1.4';
 
+  const countStore = createStateStore('count', 0);
   const actions = new ActionRegister({ name: 'MyApp' });
   // ...
 </script>
@@ -147,25 +136,27 @@ actions.register('submitForm', (payload, controller) => {
 ### Option 2: NPM (Production)
 
 ```bash
-npm install @context-action/core
+pnpm add @context-action/core @context-action/store-core
 ```
 
 ```javascript
 import { ActionRegister } from '@context-action/core';
+import { createStateStore } from '@context-action/store-core';
 
+const countStore = createStateStore('count', 0);
 const actions = new ActionRegister({ name: 'MyApp' });
 ```
 
-### Option 3: Build Tools (Vite, Webpack, etc.)
+### Option 3: Build Tools (Vite, Rollup, etc.)
 
 ```bash
-npm install @context-action/core
+pnpm add @context-action/core @context-action/store-core
 ```
 
 ```javascript
 // main.js
 import { ActionRegister } from '@context-action/core';
-import { Store } from './store.js';
+import { createStateStore } from '@context-action/store-core';
 
 // Your application code
 ```

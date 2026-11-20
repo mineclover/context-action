@@ -197,8 +197,7 @@ function ConsoleLoggerDemo() {
   useEffect(() => {
     // 로그 레벨 변경 시 새 로거 생성
     setLogger(new ConsoleLogger(logLevel));
-    (actionRegister as any).logger = new ConsoleLogger(logLevel);
-  }, [logLevel, actionRegister]);
+  }, [logLevel]);
 
   useEffect(() => {
     // 액션 핸들러 등록 (LogMonitor와 통합)
@@ -347,51 +346,6 @@ function ConsoleLoggerDemo() {
           })}
         >
           Throw Error
-        </button>
-        <button
-          onClick={dispatchAction}
-          className={loggerButtonVariants({
-            variant: 'secondary',
-            type: 'console',
-          })}
-        >
-          Dispatch Action
-        </button>
-        <button
-          onClick={dispatchAsync}
-          className={loggerButtonVariants({
-            variant: 'secondary',
-            type: 'console',
-          })}
-        >
-          Async Action
-        </button>
-        <button
-          onClick={dispatchError}
-          className={loggerButtonVariants({
-            variant: 'success',
-            type: 'console',
-          })}
-        >
-          Throw Error
-        </button>
-        <button
-          onClick={dispatchAsync}
-          className={loggerButtonVariants({
-            variant: 'secondary',
-            type: 'console',
-          })}
-        >
-          Async Action
-        </button>
-        <button
-          onClick={dispatchError}
-          className={loggerButtonVariants({
-            variant: 'success',
-            type: 'console',
-          })}
-        >
-          Trigger Error
         </button>
       </div>
     </div>
@@ -550,9 +504,19 @@ function LoggerFactoryDemo() {
   const actionLogger = useActionLoggerWithToast();
 
   const createCustomLogger = useCallback(() => {
-    // 환경 변수 시뮬레이션
-    const level = getLogLevelFromEnv();
-    const newLogger = createLogger(level);
+    const levelMap: Record<string, LogLevel> = {
+      TRACE: LogLevel.TRACE,
+      DEBUG: LogLevel.DEBUG,
+      INFO: LogLevel.INFO,
+      LOG: LogLevel.LOG,
+      WARN: LogLevel.WARN,
+      ERROR: LogLevel.ERROR,
+      CRITICAL: LogLevel.CRITICAL,
+      NONE: LogLevel.NONE,
+    };
+    const level = levelMap[envLevel] ?? getLogLevelFromEnv();
+    const prefix = customPrefix.trim() || '[App]';
+    const newLogger = createLogger(prefix, level);
     setLogger(newLogger);
 
     // 테스트 로그
@@ -560,7 +524,7 @@ function LoggerFactoryDemo() {
 
     // LogMonitor에 로거 생성 기록
     actionLogger.logSystem(
-      `Logger Factory에서 로거 생성 (레벨: ${LogLevel[level]})`,
+      `Logger Factory에서 로거 생성 (${prefix}, 레벨: ${LogLevel[level]})`,
       {
         context: 'LoggerFactory Demo',
         toast: { type: 'success', message: '새 로거가 생성되었습니다' },
@@ -601,8 +565,10 @@ function LoggerFactoryDemo() {
             <option value="TRACE">TRACE</option>
             <option value="DEBUG">DEBUG</option>
             <option value="INFO">INFO</option>
+            <option value="LOG">LOG</option>
             <option value="WARN">WARN</option>
             <option value="ERROR">ERROR</option>
+            <option value="CRITICAL">CRITICAL</option>
             <option value="NONE">NONE</option>
           </select>
         </div>
@@ -682,13 +648,19 @@ function LoggerDemoPage() {
                 <strong>INFO (2)</strong> - 일반적인 정보성 메시지
               </li>
               <li>
-                <strong>WARN (3)</strong> - 경고 메시지
+                <strong>LOG (3)</strong> - 표준 출력 로그 메시지
               </li>
               <li>
-                <strong>ERROR (4)</strong> - 오류 메시지
+                <strong>WARN (4)</strong> - 경고 메시지
               </li>
               <li>
-                <strong>NONE (5)</strong> - 로깅 비활성화
+                <strong>ERROR (5)</strong> - 오류 메시지
+              </li>
+              <li>
+                <strong>CRITICAL (6)</strong> - 치명적 오류 메시지
+              </li>
+              <li>
+                <strong>NONE (7)</strong> - 로깅 비활성화
               </li>
             </ul>
           </div>

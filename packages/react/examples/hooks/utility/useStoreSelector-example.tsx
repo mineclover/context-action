@@ -5,14 +5,14 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { createStore } from '../../../src/stores/core/Store';
-import { 
-  useStoreSelector, 
-  useMultiStoreSelector,
-  useStorePathSelector,
-  shallowEqual, 
-  deepEqual 
-} from '../../../src/stores/hooks/useStoreSelector';
+import { createStore, useStoreSelector, useStorePath } from '@context-action/react';
+import { compareValues } from '@context-action/react/utils';
+
+const shallowEqual = <T,>(a: T, b: T): boolean =>
+  compareValues(a, b, { strategy: 'shallow' });
+
+const deepEqual = <T,>(a: T, b: T): boolean =>
+  compareValues(a, b, { strategy: 'deep' });
 
 // Create example stores with complex data
 const appStore = createStore('app', {
@@ -285,20 +285,32 @@ function EqualityFunctionExample() {
   );
 }
 
-// Example 4: useMultiStoreSelector
+// Example 4: Combining multiple stores with useStoreSelector
 function MultiStoreSelector() {
-  const combinedData = useMultiStoreSelector(
-    [appStore, settingsStore],
-    ([app, settings]) => ({
+  const userSummary = useStoreSelector(
+    appStore,
+    app => ({
       userName: app.user.profile.name,
-      userPosts: app.user.stats.posts,
-      maxPosts: settings.limits.maxPosts,
-      betaFeatures: settings.features.beta,
-      apiEndpoint: settings.api.endpoint,
-      remainingPosts: settings.limits.maxPosts - app.user.stats.posts
+      userPosts: app.user.stats.posts
     }),
     shallowEqual
   );
+
+  const settingsSummary = useStoreSelector(
+    settingsStore,
+    settings => ({
+      maxPosts: settings.limits.maxPosts,
+      betaFeatures: settings.features.beta,
+      apiEndpoint: settings.api.endpoint
+    }),
+    shallowEqual
+  );
+
+  const combinedData = {
+    ...userSummary,
+    ...settingsSummary,
+    remainingPosts: settingsSummary.maxPosts - userSummary.userPosts
+  };
   
   return (
     <div className="example-section">
@@ -341,12 +353,14 @@ function MultiStoreSelector() {
   );
 }
 
-// Example 5: useStorePathSelector
+// Example 5: Path-based subscriptions with useStorePath
+type AppState = ReturnType<typeof appStore.getValue>;
+
 function PathSelector() {
-  const userName = useStorePathSelector(appStore, ['user', 'profile', 'name']);
-  const emailNotifications = useStorePathSelector(appStore, ['user', 'profile', 'preferences', 'notifications', 'email']);
-  const sidebarWidth = useStorePathSelector(appStore, ['ui', 'sidebar', 'width']);
-  const nonExistentPath = useStorePathSelector(appStore, ['user', 'nonexistent', 'path']);
+  const userName = useStorePath<AppState, string>(appStore, ['user', 'profile', 'name']);
+  const emailNotifications = useStorePath<AppState, boolean>(appStore, ['user', 'profile', 'preferences', 'notifications', 'email']);
+  const sidebarWidth = useStorePath<AppState, number>(appStore, ['ui', 'sidebar', 'width']);
+  const nonExistentPath = useStorePath<AppState, string | undefined>(appStore, ['user', 'nonexistent', 'path']);
   
   return (
     <div className="example-section">
@@ -507,8 +521,8 @@ export function UseStoreSelectorExamples() {
         <ul>
           <li>✅ Selective subscriptions prevent unnecessary re-renders</li>
           <li>✅ Custom equality functions for complex comparisons</li>
-          <li>✅ Multi-store selection with useMultiStoreSelector</li>
-          <li>✅ Path-based selection with useStorePathSelector</li>
+          <li>✅ Composing multiple stores with useStoreSelector</li>
+          <li>✅ Patch-aware nested path selection with useStorePath</li>
           <li>✅ Built-in equality functions (shallow, deep)</li>
           <li>✅ TypeScript support with type inference</li>
           <li>✅ Performance monitoring and optimization</li>

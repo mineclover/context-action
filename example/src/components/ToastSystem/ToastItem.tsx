@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react';
 import { cn } from '../../lib/utils';
 import { type ToastVariants, toastVariants } from '../ui/variants';
@@ -56,6 +55,8 @@ const ToastItemComponent = ({ toast }: ToastItemProps): React.JSX.Element => {
       }, 300);
       return () => clearTimeout(timer);
     }
+
+    return undefined;
   }, [
     safeToast.duration,
     safeToast.id,
@@ -89,15 +90,15 @@ const ToastItemComponent = ({ toast }: ToastItemProps): React.JSX.Element => {
     ? safeToast.payload
     : null;
   const executionStep =
-    actionPayload?.executionStep as ToastVariants['executionStep'];
+    actionPayload?.executionStep as NonNullable<ToastVariants>['executionStep'];
   const phase = safeToast.phase === 'hidden' ? 'exited' : safeToast.phase;
 
   return (
     <div
       className={cn(
         toastVariants({
-          type: safeToast.type as ToastVariants['type'],
-          phase: phase as ToastVariants['phase'],
+          type: safeToast.type as NonNullable<ToastVariants>['type'],
+          phase: phase as NonNullable<ToastVariants>['phase'],
           executionStep:
             safeToast.type === 'action' ? executionStep : undefined,
         }),
@@ -146,9 +147,11 @@ const ToastItemComponent = ({ toast }: ToastItemProps): React.JSX.Element => {
         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10 rounded-b-md overflow-hidden">
           <div
             className="h-full bg-white/30 toast-progress-bar"
-            style={{
-              ['--duration' as any]: `${safeToast.duration}ms`,
-            }}
+            style={
+              {
+                '--duration': `${safeToast.duration}ms`,
+              } as React.CSSProperties
+            }
           />
         </div>
       )}

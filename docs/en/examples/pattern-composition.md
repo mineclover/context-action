@@ -128,12 +128,8 @@ export const appStoreConfig = {
         activeSection: 'dashboard'
       }
     },
-    derived: {
-      hasActiveModals: (ui) => ui.modals.active !== null,
-      modalStackSize: (ui) => ui.modals.stack.length,
-      unreadNotifications: (ui) => ui.notifications.filter(n => !n.dismissed).length,
-      isLoading: (ui) => Object.values(ui.loading).some(Boolean)
-    }
+    strategy: 'shallow' as const,
+    description: 'UI modals, notifications, loading, and sidebar state'
   },
   
   // Application domain state
@@ -157,13 +153,8 @@ export const appStoreConfig = {
         environment: process.env.NODE_ENV || 'development'
       }
     },
-    validator: (value) => {
-      return typeof value === 'object' &&
-             value !== null &&
-             'settings' in value &&
-             'features' in value &&
-             'system' in value;
-    }
+    strategy: 'shallow' as const,
+    description: 'Application settings and feature flags'
   },
   
   // Data cache domain
@@ -176,13 +167,8 @@ export const appStoreConfig = {
         sessions: [] as Array<{ id: string; startTime: number; endTime?: number }>
       }
     },
-    derived: {
-      cacheSize: (cache) => Object.keys(cache.userData).length + Object.keys(cache.apiResponses).length,
-      recentEvents: (cache) => cache.analytics.events.filter(e => 
-        Date.now() - e.timestamp < 300000 // Last 5 minutes
-      ),
-      activeSessions: (cache) => cache.analytics.sessions.filter(s => !s.endTime)
-    }
+    strategy: 'shallow' as const,
+    description: 'Cached user responses and session analytics'
   }
 } as const;
 ```
@@ -737,7 +723,7 @@ export function UserDashboard() {
       </div>
       
       {/* Loading indicators */}
-      {ui.isLoading && (
+      {Object.values(ui.loading).some(Boolean) && (
         <div className="loading-banner">
           Loading... 
           {ui.loading.profile && ' Profile'}
@@ -773,15 +759,15 @@ export function UserDashboard() {
           <div className="analytics-stats">
             <div className="stat">
               <label>Recent Events:</label>
-              <span>{cache.recentEvents.length}</span>
+              <span>{cache.analytics.events.slice(-20).length}</span>
             </div>
             <div className="stat">
               <label>Active Sessions:</label>
-              <span>{cache.activeSessions.length}</span>
+              <span>{cache.analytics.sessions.filter(s => !s.endTime).length}</span>
             </div>
             <div className="stat">
               <label>Cache Size:</label>
-              <span>{cache.cacheSize} items</span>
+              <span>{Object.keys(cache.userData).length + Object.keys(cache.apiResponses).length} items</span>
             </div>
           </div>
         </div>
@@ -800,7 +786,7 @@ export function UserDashboard() {
         <div className="dashboard-card recent-activity">
           <h3>Recent Activity</h3>
           <div className="activity-list">
-            {cache.recentEvents.slice(-5).reverse().map((event, index) => (
+            {cache.analytics.events.slice(-5).reverse().map((event, index) => (
               <div key={index} className="activity-item">
                 <div className="activity-type">{event.type}</div>
                 <div className="activity-time">
@@ -840,7 +826,7 @@ export function ModalSystem() {
     }
   };
   
-  if (!ui.hasActiveModals) {
+  if (ui.modals.active === null) {
     return null;
   }
   
@@ -1153,9 +1139,9 @@ export function AppNavigation() {
             <button onClick={openSettings} className="settings-button">
               App Settings
             </button>
-            {ui.unreadNotifications > 0 && (
+            {ui.notifications.filter(n => !n.dismissed).length > 0 && (
               <div className="notification-badge">
-                {ui.unreadNotifications} unread
+                {ui.notifications.filter(n => !n.dismissed).length} unread
               </div>
             )}
           </div>
@@ -1202,7 +1188,9 @@ const invalidStore = useAppStore('invalid'); // ❌ TypeScript error
 
 ## Related
 
+- **[Context-Layered Architecture Guide](../context-layered/context-layered-guide)** - 6-layer domain isolation conventions
+- **[Store Selection & Usage Guide](../context-layered/store-selection-and-usage-guide)** - Choosing stores and React subscription hooks
 - **[Action Only Pattern](./action-only)** - Pure action dispatching examples
 - **[Store Only Pattern](./store-only)** - Pure state management examples
-- **[Main Patterns Guide](../guide/patterns)** - Pattern selection and architecture
-- **[MVVM Architecture Guide](../guide/mvvm-architecture)** - Architectural principles
+- **[Main Patterns Guide](../concept/pattern-guide)** - Pattern selection and architecture
+- **[Architecture Guide](../concept/architecture-guide)** - Architectural principles

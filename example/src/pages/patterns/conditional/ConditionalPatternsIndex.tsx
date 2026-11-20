@@ -19,7 +19,7 @@ const conditionalPatterns: ConditionalPattern[] = [
     title: '🔒 Permission-Based Execution',
     description:
       'Security-first handlers that validate permissions before execution. Clean separation of authorization logic.',
-    path: '/actionguard/conditional/permissions',
+    path: '/patterns/conditional/permissions',
     coreconcept: 'Security Guard Pattern',
     features: [
       'Permission validation before handler logic',
@@ -36,7 +36,7 @@ const conditionalPatterns: ConditionalPattern[] = [
     title: '📝 Form Validation Pattern',
     description:
       'Real-time field validation with conditional submission. Clear visual feedback and error handling.',
-    path: '/actionguard/conditional/form-validation',
+    path: '/patterns/conditional/form-validation',
     coreconcept: 'Conditional Validation',
     features: [
       'Real-time field validation',
@@ -53,7 +53,7 @@ const conditionalPatterns: ConditionalPattern[] = [
     title: '⚡ Sequential Workflow Pattern',
     description:
       'Multi-step processes where each step conditionally triggers the next. Visual progress tracking.',
-    path: '/actionguard/conditional/workflow-steps',
+    path: '/patterns/conditional/workflow-steps',
     coreconcept: 'Conditional Sequencing',
     features: [
       'Step-by-step conditional execution',
@@ -70,7 +70,7 @@ const conditionalPatterns: ConditionalPattern[] = [
     title: '🎛️ Feature Toggle Pattern',
     description:
       'Environment and user-based conditional feature execution. Dynamic feature management.',
-    path: '/actionguard/conditional/feature-toggle',
+    path: '/patterns/conditional/feature-toggle',
     coreconcept: 'Conditional Features',
     features: [
       'Environment-based execution',

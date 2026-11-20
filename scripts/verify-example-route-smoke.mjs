@@ -142,11 +142,28 @@ function collectExampleSourceFiles(directory) {
   return files;
 }
 
+function isNavigationConfigFile(sourcePath) {
+  const relativePath = path
+    .relative(path.join(exampleDirectory, 'src'), sourcePath)
+    .replaceAll(path.sep, '/');
+  return (
+    relativePath === 'components/Layout.tsx' ||
+    relativePath === 'pages/HomePage.tsx' ||
+    relativePath === 'pages/DemosIndexPage.tsx' ||
+    relativePath === 'pages/performance/action-guard/ActionGuardIndexPage.tsx' ||
+    relativePath === 'pages/performance/mouse-events/MouseEventsIndexPage.tsx' ||
+    relativePath === 'pages/patterns/conditional/ConditionalPatternsIndex.tsx' ||
+    relativePath.startsWith('pages/catalog/')
+  );
+}
+
 function assertInternalLinksMatchRoutes(routes) {
   const routePaths = new Set(routes.map((route) => route.path));
   const missing = [];
   const internalLinkPattern =
     /(?<![-\w])(?:to|href)\s*=\s*["'](\/[A-Za-z0-9._/-]+)["']/g;
+  const navObjectPathPattern =
+    /\bpath\s*:\s*["'](\/[A-Za-z0-9._/-]+)["']/g;
 
   for (const sourcePath of collectExampleSourceFiles(path.join(exampleDirectory, 'src'))) {
     const source = fs.readFileSync(sourcePath, 'utf8');
@@ -159,6 +176,16 @@ function assertInternalLinksMatchRoutes(routes) {
         missing.push(
           `${routePath} (${path.relative(rootDirectory, sourcePath)})`
         );
+      }
+    }
+    if (isNavigationConfigFile(sourcePath)) {
+      for (const match of sourceWithoutComments.matchAll(navObjectPathPattern)) {
+        const routePath = match[1];
+        if (!routePaths.has(routePath)) {
+          missing.push(
+            `${routePath} [nav path] (${path.relative(rootDirectory, sourcePath)})`
+          );
+        }
       }
     }
   }

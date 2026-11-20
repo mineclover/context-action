@@ -6,7 +6,7 @@
  */
 
 import React, { useEffect, useCallback, useState } from 'react';
-import { createRefContext } from '../../src/refs/createRefContext';
+import { createRefContext } from '@context-action/react';
 
 // Three.js 목 타입들 (실제로는 three 패키지를 사용)
 interface ThreeObject {
@@ -52,35 +52,39 @@ export function GameUIExample() {
     // DOM 요소들
     gameContainer: {
       name: 'gameContainer',
-      objectType: 'dom' as const,
-      autoCleanup: true
+      autoCleanup: true,
+      validator: (target: unknown): target is HTMLDivElement =>
+        target instanceof HTMLDivElement
     },
     canvas: {
       name: 'canvas',
-      objectType: 'dom' as const,
       autoCleanup: true,
-      mountTimeout: 5000
+      mountTimeout: 5000,
+      validator: (target: unknown): target is HTMLCanvasElement =>
+        target instanceof HTMLCanvasElement
     },
     uiOverlay: {
       name: 'uiOverlay',
-      objectType: 'dom' as const,
-      autoCleanup: true
+      autoCleanup: true,
+      validator: (target: unknown): target is HTMLDivElement =>
+        target instanceof HTMLDivElement
     },
     scoreDisplay: {
       name: 'scoreDisplay',
-      objectType: 'dom' as const,
-      autoCleanup: true
+      autoCleanup: true,
+      validator: (target: unknown): target is HTMLDivElement =>
+        target instanceof HTMLDivElement
     },
     controlPanel: {
       name: 'controlPanel',
-      objectType: 'dom' as const,
-      autoCleanup: true
+      autoCleanup: true,
+      validator: (target: unknown): target is HTMLDivElement =>
+        target instanceof HTMLDivElement
     },
     
     // Three.js 객체들
     scene: {
       name: 'scene',
-      objectType: 'custom' as const,
       autoCleanup: true,
       cleanup: (scene: ThreeScene) => {
         // Scene cleanup
@@ -92,7 +96,6 @@ export function GameUIExample() {
     },
     camera: {
       name: 'camera',
-      objectType: 'custom' as const,
       autoCleanup: true,
       cleanup: (camera: ThreeCamera) => {
         camera.dispose?.();
@@ -101,7 +104,6 @@ export function GameUIExample() {
     },
     renderer: {
       name: 'renderer',
-      objectType: 'custom' as const,
       autoCleanup: true,
       cleanup: (renderer: ThreeRenderer) => {
         renderer.dispose();
@@ -110,7 +112,6 @@ export function GameUIExample() {
     },
     playerMesh: {
       name: 'playerMesh',
-      objectType: 'custom' as const,
       autoCleanup: true,
       cleanup: (mesh: ThreeMesh) => {
         mesh.dispose?.();

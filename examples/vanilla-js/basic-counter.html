@@ -88,38 +88,12 @@
   </div>
 
   <script type="module">
-    // Import from CDN (or use local build)
-    import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+    // Import pinned versions from CDN (or use local workspace build)
+    import { ActionRegister } from 'https://esm.sh/@context-action/core@1.3.1';
+    import { createStateStore } from 'https://esm.sh/@context-action/store-core@0.1.4';
 
-    // Simple store implementation
-    class Store {
-      constructor(initialState) {
-        this.state = initialState;
-        this.listeners = new Set();
-      }
-
-      getValue() {
-        return this.state;
-      }
-
-      setValue(newState) {
-        this.state = newState;
-        this.notify();
-      }
-
-      subscribe(listener) {
-        this.listeners.add(listener);
-        listener(this.state); // Call immediately
-        return () => this.listeners.delete(listener);
-      }
-
-      notify() {
-        this.listeners.forEach(listener => listener(this.state));
-      }
-    }
-
-    // Create store
-    const counterStore = new Store({ count: 0 });
+    // Create framework-neutral reference store via @context-action/store-core
+    const counterStore = createStateStore('counter', { count: 0 });
 
     // Create action register
     const actions = new ActionRegister({
@@ -182,10 +156,12 @@
       controller.setResult({ count: current.count + 10 });
     }, { priority: 100 });
 
-    // Subscribe to store changes
-    counterStore.subscribe((state) => {
-      document.getElementById('counter').textContent = state.count;
-    });
+    // Subscribe to store changes and render initial state
+    function renderCounter() {
+      document.getElementById('counter').textContent = String(counterStore.getValue().count);
+    }
+    counterStore.subscribe(renderCounter);
+    renderCounter();
 
     // Wire up buttons
     document.getElementById('increment').addEventListener('click', () => {

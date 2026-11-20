@@ -5,9 +5,11 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { createStore } from '../../../src/stores/core/Store';
-import { useStoreValue, useStoreValues } from '../../../src/stores/hooks/useStoreValue';
-import { shallowEqual } from '../../../src/stores/hooks/useStoreSelector';
+import { createStore, useStoreValue, useStoreSelector } from '@context-action/react';
+import { compareValues } from '@context-action/react/utils';
+
+const shallowEqual = <T,>(a: T, b: T): boolean =>
+  compareValues(a, b, { strategy: 'shallow' });
 
 // Create example stores
 const counterStore = createStore('counter', 0);
@@ -141,24 +143,32 @@ function UserStatsOptimized() {
   );
 }
 
-// Example 4: useStoreValues for multiple selections
+// Example 4: Selective slice subscriptions with useStoreSelector
 function UserDashboard() {
-  const userInfo = useStoreValues(userStore, {
-    name: user => user.name,
-    email: user => user.email,
-    postsCount: user => user.stats.posts,
-    followersCount: user => user.stats.followers
-  });
+  const userInfo = useStoreSelector(
+    userStore,
+    user => ({
+      name: user.name,
+      email: user.email,
+      postsCount: user.stats.posts,
+      followersCount: user.stats.followers
+    }),
+    shallowEqual
+  );
   
-  const settings = useStoreValues(settingsStore, {
-    language: s => s.language,
-    timezone: s => s.timezone,
-    showEmail: s => s.privacy.showEmail
-  });
+  const settings = useStoreSelector(
+    settingsStore,
+    s => ({
+      language: s.language,
+      timezone: s.timezone,
+      showEmail: s.privacy.showEmail
+    }),
+    shallowEqual
+  );
   
   return (
     <div className="example-section">
-      <h3>useStoreValues - Multiple Selections</h3>
+      <h3>useStoreSelector - Multiple Derived Selections</h3>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         <div>
           <h4>User Info</h4>
@@ -202,10 +212,10 @@ function UserProfileShallow() {
     { equalityFn: shallowEqual }
   );
   
-  // Count renders
+  // Track changes to the subscribed profile object (bounded dependency avoids infinite loops)
   React.useEffect(() => {
     setRenderCount(count => count + 1);
-  });
+  }, [profile]);
   
   return (
     <div className="example-section">
@@ -286,7 +296,7 @@ export function UseStoreValueExamples() {
           <li>✅ Selector functions for performance optimization</li>
           <li>✅ Custom equality functions for complex comparisons</li>
           <li>✅ Safe handling of null/undefined stores</li>
-          <li>✅ Multiple value selection with useStoreValues</li>
+          <li>✅ Multiple derived selections with useStoreSelector + shallow equality</li>
           <li>✅ TypeScript support with automatic type inference</li>
         </ul>
       </div>

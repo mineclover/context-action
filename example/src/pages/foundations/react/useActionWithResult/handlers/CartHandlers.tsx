@@ -1,5 +1,5 @@
 /**
- * Handler Logic Layer (5-Layer Architecture)
+ * Handler Logic Layer (6-Layer Context-Layered Architecture)
  *
  * This layer:
  * - Implements action handlers with dependency injection

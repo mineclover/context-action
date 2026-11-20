@@ -12,7 +12,7 @@ export function MouseEventsIndexPage() {
   // 메인 아키텍처 패턴 비교 (핵심 3가지)
   const mainPatterns = [
     {
-      path: '/actionguard/mouse-events/legacy',
+      path: '/performance/mouse-events/legacy',
       title: '📜 Legacy Pattern',
       description:
         'Action Context + useState - Simple action dispatching with local state',
@@ -27,7 +27,7 @@ export function MouseEventsIndexPage() {
       color: 'purple',
     },
     {
-      path: '/actionguard/mouse-events/reactive',
+      path: '/performance/mouse-events/reactive',
       title: '🔔 Reactive Pattern',
       description:
         'MVVM + Store Context + useStoreValue - Traditional React rendering with Store subscriptions',
@@ -42,7 +42,7 @@ export function MouseEventsIndexPage() {
       color: 'purple',
     },
     {
-      path: '/actionguard/mouse-events/non-reactive',
+      path: '/performance/mouse-events/non-reactive',
       title: '🚀 Non-Reactive Pattern',
       description:
         'MVVM + Store Context + RefContext - Zero React re-renders with direct DOM manipulation',
@@ -61,7 +61,7 @@ export function MouseEventsIndexPage() {
   // 추가 구현 예시들 (특화된 데모들)
   const additionalExamples = [
     {
-      path: '/actionguard/mouse-events/context-store-action',
+      path: '/performance/mouse-events/context-store-action',
       title: '⚡ Action-Based Store Demo',
       description: 'Action-driven state management with Store integration',
       features: [
@@ -75,7 +75,7 @@ export function MouseEventsIndexPage() {
       color: 'indigo',
     },
     {
-      path: '/actionguard/mouse-events/canvas-ref-demo',
+      path: '/performance/mouse-events/canvas-ref-demo',
       title: '🎨 Canvas RefContext Demo',
       description:
         'Advanced RefContext with Canvas API for maximum performance',
@@ -90,7 +90,7 @@ export function MouseEventsIndexPage() {
       color: 'emerald',
     },
     {
-      path: '/actionguard/mouse-events/context-store',
+      path: '/performance/mouse-events/context-store',
       title: '🏪 Context Store Demo',
       description: 'Traditional context-based store management',
       features: [

@@ -41,6 +41,8 @@
   "metadata": {
     "description": "This example shows the fundamental setup of Context-Action framework with both Action Only and Store Only patterns.",
     "language": "en",
-    "created_at": "2025-08-21T02:13:42.319Z"
+    "created_at": "2025-08-21T02:13:42.319Z",
+    "last_updated": "2026-11-19T23:42:54.562Z",
+    "source_last_modified": "2026-11-19T23:37:51.034Z"
   }
 }

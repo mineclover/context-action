@@ -21,10 +21,12 @@ src/
 ├── contexts/
 │   ├── actions.tsx          # Action contexts
 │   └── stores.tsx           # Store patterns
+├── handlers/
+│   └── AppActionHandlers.tsx # Action handler orchestration
 ├── components/
 │   ├── App.tsx              # Main application
-│   ├── UserProfile.tsx      # User profile component
-│   └── EventLogger.tsx      # Event logging component
+│   ├── UserProfile.tsx      # Pure UI presentation view
+│   └── EventLogger.tsx      # Event logging view
 └── types/
     └── actions.ts           # Action type definitions
 ```
@@ -97,125 +99,126 @@ export const {
     notification: null as { message: string; type: 'success' | 'error' | 'info' } | null
   },
   
-  // Application settings
+  // Application settings (use pure helper functions for validation)
   settings: {
-    initialValue: { theme: 'light', language: 'en' },
-    validator: (value) => 
-      typeof value === 'object' && 
-      'theme' in value && 
-      'language' in value
+    initialValue: { theme: 'light' as 'light' | 'dark', language: 'en' as 'en' | 'ko' },
+    strategy: 'shallow' as const,
+    description: 'User UI preferences',
   }
 });
+
+export function isValidSettings(value: { theme: string; language: string }): boolean {
+  return ['light', 'dark'].includes(value.theme) && ['en', 'ko'].includes(value.language);
+}
 ```
 
 ## Step 4: Main Application Setup
 
-Combine both patterns in your main app component:
+Combine both providers and mount dedicated action handlers cleanly above the presentation views:
 
 ```typescript
 // src/components/App.tsx
 import React from 'react';
 import { AppActionProvider } from '../contexts/actions';
 import { withAppStoreProvider } from '../contexts/stores';
+import { AppActionHandlers } from '../handlers/AppActionHandlers';
 import { UserProfile } from './UserProfile';
 import { EventLogger } from './EventLogger';
 
 // Use HOC pattern to automatically wrap with store provider
 const App = withAppStoreProvider(() => (
   <AppActionProvider>
-    <div className="app">
-      <header>
-        <h1>Context-Action Example</h1>
-      </header>
-      
-      <main>
-        <UserProfile />
-        <EventLogger />
-      </main>
-    </div>
+    <AppActionHandlers>
+      <div className="app">
+        <header>
+          <h1>Context-Action Example</h1>
+        </header>
+        
+        <main>
+          <UserProfile />
+          <EventLogger />
+        </main>
+      </div>
+    </AppActionHandlers>
   </AppActionProvider>
 ));
 
 export default App;
 ```
 
-## Step 5: User Profile Component
+## Step 5: Action Handler Layer & Presentation View
 
-Example component using both patterns:
+Keep handler orchestration (`useAppActionHandler`, reading/writing stores) separated from pure UI components (`useStoreValue` + `dispatch`):
 
 ```typescript
-// src/components/UserProfile.tsx
+// src/handlers/AppActionHandlers.tsx
 import React, { useCallback } from 'react';
-import { useStoreValue } from '@context-action/react';
 import { useAppAction, useAppActionHandler } from '../contexts/actions';
-import { useAppStore } from '../contexts/stores';
+import { isValidSettings, useAppStore } from '../contexts/stores';
 
-export function UserProfile() {
+export function AppActionHandlers({ children }: { children: React.ReactNode }) {
   const dispatch = useAppAction();
   const userStore = useAppStore('user');
   const uiStore = useAppStore('ui');
-  
-  // Subscribe to store values
-  const user = useStoreValue(userStore);
-  const ui = useStoreValue(uiStore);
-  
-  // Register action handlers
+  const settingsStore = useAppStore('settings');
+
+  // Register profile update handler
   useAppActionHandler('updateProfile', useCallback(async (payload, controller) => {
     try {
       // Set loading state
       uiStore.update(current => ({ ...current, loading: true }));
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Update user store
       userStore.update(current => ({
         ...current,
         name: payload.name,
         email: payload.email
       }));
-      
+
+      // Validate preferences before updating
+      const currentSettings = settingsStore.getValue();
+      if (isValidSettings(currentSettings)) {
+        settingsStore.setValue(currentSettings);
+      }
+
       // Show success notification
       dispatch('showNotification', {
         message: 'Profile updated successfully!',
         type: 'success'
       });
-      
     } catch (error) {
-      // Handle error
       dispatch('logError', {
         error: (error as Error).message,
-        context: { component: 'UserProfile', action: 'updateProfile' }
+        context: { component: 'AppActionHandlers', action: 'updateProfile' }
       });
-      
+
       controller.abort('Profile update failed');
     } finally {
-      // Clear loading state
       uiStore.update(current => ({ ...current, loading: false }));
     }
-  }, [dispatch, userStore, uiStore]));
-  
+  }, [dispatch, userStore, uiStore, settingsStore]));
+
   // Login handler
   useAppActionHandler('login', useCallback(async (payload) => {
     uiStore.update(current => ({ ...current, loading: true }));
-    
+
     try {
-      // Simulate login API call
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Update user state
+
       userStore.setValue({
         id: '123',
         name: 'John Doe',
         email: payload.username + '@example.com',
         isAuthenticated: true
       });
-      
+
       dispatch('trackEvent', {
         event: 'user_login',
         data: { username: payload.username, timestamp: Date.now() }
       });
-      
     } catch (error) {
       dispatch('showNotification', {
         message: 'Login failed. Please try again.',
@@ -225,25 +228,44 @@ export function UserProfile() {
       uiStore.update(current => ({ ...current, loading: false }));
     }
   }, [dispatch, userStore, uiStore]));
-  
-  // Notification handler
+
+  // Notification handlers
   useAppActionHandler('showNotification', useCallback((payload) => {
     uiStore.update(current => ({
       ...current,
       notification: { message: payload.message, type: payload.type }
     }));
-    
-    // Auto-hide notification after 3 seconds
+
     setTimeout(() => {
       dispatch('hideNotification');
     }, 3000);
   }, [dispatch, uiStore]));
-  
+
   useAppActionHandler('hideNotification', useCallback(() => {
     uiStore.update(current => ({ ...current, notification: null }));
   }, [uiStore]));
-  
-  // Event handlers
+
+  return <>{children}</>;
+}
+```
+
+```typescript
+// src/components/UserProfile.tsx
+import React from 'react';
+import { useStoreValue } from '@context-action/react';
+import { useAppAction } from '../contexts/actions';
+import { useAppStore } from '../contexts/stores';
+
+export function UserProfile() {
+  const dispatch = useAppAction();
+  const userStore = useAppStore('user');
+  const uiStore = useAppStore('ui');
+
+  // Subscribe to reactive store values
+  const user = useStoreValue(userStore);
+  const ui = useStoreValue(uiStore);
+
+  // Dispatch actions from UI interactions
   const handleUpdateProfile = () => {
     dispatch('updateProfile', {
       name: 'John Doe Updated',
@@ -526,13 +548,13 @@ This example demonstrates several key Context-Action concepts:
 - **Store Only Pattern** for state management
 - Clear separation between actions and state
 
-### 2. MVVM Architecture
-- **View Layer**: React components (`UserProfile`, `EventLogger`)
-- **ViewModel Layer**: Action handlers with business logic
-- **Model Layer**: Store pattern for data management
+### 2. Context-Layered Separation
+- **View Layer**: Pure React presentation components (`UserProfile`, `EventLogger`)
+- **Action/Handler Layer**: `AppActionHandlers` registering `useAppActionHandler` pipelines
+- **Model Layer**: Store pattern for reactive state management
 
 ### 3. Handler Registration
-- Handlers registered in components using `useAppActionHandler`
+- Handlers registered in dedicated handler components (`AppActionHandlers`) using `useAppActionHandler`
 - Priority-based execution (implicit default priority)
 - Proper cleanup with `useCallback` dependencies
 
@@ -560,15 +582,17 @@ This example demonstrates several key Context-Action concepts:
 5. Start the development server
 
 ```bash
-npm create react-app context-action-example --template typescript
+pnpm create vite@latest context-action-example -- --template react-ts
 cd context-action-example
-npm install @context-action/core @context-action/react
-# Copy the files above
-npm start
+pnpm add @context-action/core @context-action/react
+# Copy the files above into src/
+pnpm dev
 ```
 
 ## Next Steps
 
+- **[Context-Layered Architecture Guide](../context-layered/context-layered-guide)** - 6-layer domain isolation conventions
+- **[Store Selection & Usage Guide](../context-layered/store-selection-and-usage-guide)** - Choosing the right store primitive and React hook
 - **[Action Only Pattern](./action-only)** - Deep dive into pure action dispatching
 - **[Store Only Pattern](./store-only)** - Focus on state management patterns
 - **[Pattern Composition](./pattern-composition)** - Advanced pattern combinations

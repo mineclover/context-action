@@ -1,7 +1,7 @@
 /**
- * Integration Point - UseActionWithResultPage (5-Layer Architecture)
+ * Integration Point - UseActionWithResultPage (6-Layer Context-Layered Architecture)
  *
- * This demonstrates the complete 5-layer architecture implementation
+ * This demonstrates the complete 6-layer Context-Layered architecture implementation
  * with useActionWithResult integration:
  * 1. Sets up all Context Providers
  * 2. Injects dependencies into Handlers via props (DI Pattern)
@@ -359,8 +359,8 @@ function UseActionWithResultUI() {
               useActionWithResult Demo
             </h1>
             <p className="text-sm text-gray-600">
-              5-Layer Architecture with Action Result Collection & Handler
-              Injection Pattern
+              6-Layer Context-Layered Architecture with Action Result Collection
+              &amp; Handler Injection Pattern
             </p>
           </div>
 
@@ -619,7 +619,7 @@ function UseActionWithResultUI() {
           <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200 p-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <span>✨</span>
-              5-Layer Architecture Features
+              6-Layer Context-Layered Architecture Features
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>

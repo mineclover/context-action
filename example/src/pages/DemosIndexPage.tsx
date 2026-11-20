@@ -140,7 +140,7 @@ const demos: DemoItem[] = [
 
   // === Business Examples ===
   {
-    path: '/demos/chat',
+    path: '/integrations/business/chat',
     title: 'Real-time Chat',
     emoji: '💬',
     description:
@@ -176,7 +176,7 @@ const demos: DemoItem[] = [
 
   // === Performance ===
   {
-    path: '/demos/action-priority',
+    path: '/performance/priority/demo',
     title: 'Action Priority',
     emoji: '⚡',
     description: '우선순위 기반 액션 실행 시스템 with performance metrics',
@@ -284,7 +284,7 @@ const demos: DemoItem[] = [
 
   // === React Integration ===
   {
-    path: '/react/useActionWithResult',
+    path: '/foundations/react/useActionWithResult',
     title: 'useActionWithResult Hook',
     emoji: '✨',
     description:
@@ -301,7 +301,7 @@ const demos: DemoItem[] = [
     estimatedTime: '5-10분',
   },
   {
-    path: '/react/imperativeRef',
+    path: '/foundations/react/imperativeRef',
     title: 'Imperative Ref Pattern',
     emoji: '🎯',
     description:
@@ -415,9 +415,9 @@ export default function DemosIndexPage() {
                         선택 구독과 history 학습
                       </li>
                       <li>
-                        • <strong>업무 흐름</strong>: Usecase Boundary Lab에서
-                        Facade·Recipe를 익힌 뒤 Implementation Playbook과
-                        ToolContext AI로 심화
+                        • <strong>업무 흐름</strong>: Implementation
+                        Playbook에서 6-Layer Canonical Order Form과 시나리오
+                        라이브러리를 학습한 뒤 Action Lifecycle Workbench로 심화
                       </li>
                       <li>
                         • <strong>개발자</strong>: 코드 분석과 커스터마이징
@@ -492,7 +492,7 @@ export default function DemosIndexPage() {
                   Open lifecycle workbench →
                 </Link>
                 <a
-                  href="https://mineclover.github.io/context-action/ko/examples/canonical-order-form"
+                  href="https://mineclover.github.io/context-action/en/examples/canonical-order-form"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 hover:border-slate-400 hover:bg-slate-50"
@@ -511,10 +511,16 @@ export default function DemosIndexPage() {
                 const categoryDemos = demos.filter(
                   (demo) => demo.category === category.key
                 );
+                const categoryCardClasses: Record<string, string> = {
+                  blue: 'border-blue-200 bg-blue-50 hover:bg-blue-100',
+                  green: 'border-green-200 bg-green-50 hover:bg-green-100',
+                  purple: 'border-purple-200 bg-purple-50 hover:bg-purple-100',
+                  orange: 'border-orange-200 bg-orange-50 hover:bg-orange-100',
+                };
                 return (
                   <div
                     key={category.key}
-                    className={`p-4 rounded-lg border-2 border-${category.color}-200 bg-${category.color}-50 hover:bg-${category.color}-100 transition-colors`}
+                    className={`p-4 rounded-lg border-2 ${categoryCardClasses[category.color] ?? 'border-gray-200 bg-gray-50 hover:bg-gray-100'} transition-colors`}
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-2xl">{category.emoji}</span>
