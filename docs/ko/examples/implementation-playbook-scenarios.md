@@ -121,7 +121,7 @@
 
 - `renewalDraft.ts`
 - `renewalValidation.ts`
-- `renewalRiskScore.ts`
+- `renewalRiskPacket.ts`
 - `renewalStateMachine.ts`
 - `renewalActivity.ts`
 

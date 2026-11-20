@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "noEmit": true,
+    "rootDir": ".",
+    "paths": {
+      "@context-action/react": ["./src/index.ts"],
+      "@context-action/react/advanced": ["./src/advanced.ts"],
+      "@context-action/react/utils": ["./src/utils.ts"]
+    },
+    "types": ["react", "node"]
+  },
+  "include": ["examples/**/*.ts", "examples/**/*.tsx"],
+  "exclude": ["dist", "node_modules", "__tests__"]
+}

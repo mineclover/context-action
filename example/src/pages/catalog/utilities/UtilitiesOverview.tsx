@@ -47,7 +47,7 @@ export default function UtilitiesOverview() {
             </span>
             <div>
               <Link
-                to="/demos/store-scenarios"
+                to="/utilities/dev-tools/store-scenarios"
                 className="text-orange-600 hover:text-orange-800 font-medium text-lg"
               >
                 스토어 시나리오
@@ -87,7 +87,7 @@ export default function UtilitiesOverview() {
             </li>
             <li>
               <Link
-                to="/demos/store-scenarios"
+                to="/utilities/dev-tools/store-scenarios"
                 className="text-orange-600 hover:underline"
               >
                 🏪 Store Scenarios

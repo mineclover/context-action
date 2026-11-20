@@ -8,7 +8,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { createRefContext } from '../../src/refs/createRefContext';
+import { createRefContext } from '@context-action/react';
 
 // Three.js 목 타입들 (실제로는 three 패키지의 타입을 사용)
 interface ThreeObject {
@@ -137,13 +137,13 @@ export function DeclarativeRefExample() {
   const GameRefs = createRefContext('DeclarativeGameRefs', {
     canvas: {
       name: 'canvas',
-      objectType: 'dom' as const,
       autoCleanup: true,
-      mountTimeout: 5000
+      mountTimeout: 5000,
+      validator: (target: unknown): target is HTMLCanvasElement =>
+        target instanceof HTMLCanvasElement
     },
     scene: {
       name: 'scene',
-      objectType: 'custom' as const,
       autoCleanup: true,
       cleanup: (scene: ThreeScene) => {
         // Three.js Scene cleanup
@@ -155,7 +155,6 @@ export function DeclarativeRefExample() {
     },
     mesh: {
       name: 'mesh',
-      objectType: 'custom' as const,
       autoCleanup: true,
       cleanup: (mesh: ThreeMesh) => {
         mesh.dispose?.();
@@ -164,9 +163,10 @@ export function DeclarativeRefExample() {
     },
     controls: {
       name: 'controls',
-      objectType: 'dom' as const,
       autoCleanup: true,
-      mountTimeout: 3000
+      mountTimeout: 3000,
+      validator: (target: unknown): target is HTMLDivElement =>
+        target instanceof HTMLDivElement
     }
   });
 
@@ -341,25 +341,27 @@ export function FormManagementExample() {
   const FormRefs = createRefContext('FormRefs', {
     form: {
       name: 'form',
-      objectType: 'dom' as const,
-      autoCleanup: true
+      autoCleanup: true,
+      validator: (target: unknown): target is HTMLFormElement =>
+        target instanceof HTMLFormElement
     },
     nameInput: {
       name: 'nameInput',
-      objectType: 'dom' as const,
       autoCleanup: true,
-      validator: (target: unknown): target is HTMLInputElement => 
+      validator: (target: unknown): target is HTMLInputElement =>
         target instanceof HTMLInputElement
     },
     emailInput: {
       name: 'emailInput',
-      objectType: 'dom' as const,
-      autoCleanup: true
+      autoCleanup: true,
+      validator: (target: unknown): target is HTMLInputElement =>
+        target instanceof HTMLInputElement
     },
     submitButton: {
       name: 'submitButton',
-      objectType: 'dom' as const,
-      autoCleanup: true
+      autoCleanup: true,
+      validator: (target: unknown): target is HTMLButtonElement =>
+        target instanceof HTMLButtonElement
     }
   });
 

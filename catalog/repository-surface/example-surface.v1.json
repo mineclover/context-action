@@ -783,12 +783,11 @@
       "path": "demos/bolt-style-editor",
       "status": "verified",
       "explains": {
-        "en": "Standalone Bolt-style Tool-Calling Web Studio combining @context-action/tool-protocol, @context-action/ai-sdk, @context-action/tool-durable-operations, IndexedDB persistence, approval queues, bounded trace projection, and sandboxed iframe preview.",
-        "ko": "tool-protocol, ai-sdk, tool-durable-operations, IndexedDB 영속화, 승인 큐, 제한된 트레이스 프로젝션 및 샌드박스 iframe 미리보기를 통합한 독립 Bolt 스타일 Tool-Calling Web Studio입니다."
+        "en": "Standalone Bolt-style Tool-Calling Web Studio combining @context-action/tool-protocol, @context-action/tool-durable-operations, @context-action/live-code-editor, IndexedDB persistence, approval queues, bounded trace projection, and sandboxed iframe preview.",
+        "ko": "tool-protocol, tool-durable-operations, live-code-editor, IndexedDB 영속화, 승인 큐, 제한된 트레이스 프로젝션 및 샌드박스 iframe 미리보기를 통합한 독립 Bolt 스타일 Tool-Calling Web Studio입니다."
       },
       "primaryApis": [
         "@context-action/tool-protocol",
-        "@context-action/ai-sdk",
         "@context-action/tool-durable-operations",
         "@context-action/live-code-editor",
         "@context-action/react"
@@ -800,13 +799,14 @@
       "path": "examples/vanilla-js",
       "status": "reference",
       "explains": {
-        "en": "Framework-free HTML/JavaScript counter and todo examples using @context-action/core directly without React or a bundler.",
-        "ko": "React나 번들러 없이 @context-action/core를 직접 사용하는 순수 HTML/JavaScript 카운터 및 Todo 예제입니다."
+        "en": "Framework-free HTML/JavaScript counter and XSS-safe DOM todo examples combining @context-action/core ActionRegister with @context-action/store-core createStateStore without React or a bundler.",
+        "ko": "React나 번들러 없이 @context-action/core의 ActionRegister와 @context-action/store-core의 createStateStore를 결합한 순수 HTML/JavaScript 카운터 및 XSS-safe Todo 예제입니다."
       },
       "primaryApis": [
-        "ActionRegister"
+        "ActionRegister",
+        "createStateStore"
       ],
-      "verificationGate": "pnpm build:core"
+      "verificationGate": "pnpm build:core && pnpm --filter @context-action/store-core build"
     }
   ],
   "packageExamples": [
@@ -848,15 +848,14 @@
       "path": "packages/llms-generator/examples",
       "status": "reference",
       "explains": {
-        "en": "TypeScript and JavaScript programmatic API usage examples for LLMSGenerator and CategoryMinimumGenerator.",
-        "ko": "LLMSGenerator 및 CategoryMinimumGenerator의 TypeScript/JavaScript 프로그래밍 API 사용 예제입니다."
+        "en": "TypeScript and JavaScript programmatic configuration and preset examples using EnhancedConfigManager, DEFAULT_CONFIG, and @context-action/llms-generator CLI commands.",
+        "ko": "EnhancedConfigManager, DEFAULT_CONFIG 및 CLI 워크플로우를 활용하는 TypeScript/JavaScript 설정·프리셋 사용 예제입니다."
       },
       "primaryApis": [
-        "LLMSGenerator",
-        "CategoryMinimumGenerator",
-        "EnhancedConfigManager"
+        "EnhancedConfigManager",
+        "DEFAULT_CONFIG"
       ],
-      "verificationGate": "pnpm --filter @context-action/llms-generator test"
+      "verificationGate": "pnpm build:llms-generator && node packages/llms-generator/examples/library-usage.js"
     },
     {
       "id": "ex-pkg-mutative",
@@ -905,9 +904,11 @@
         "createStoreContext",
         "createRefContext",
         "useStoreValue",
-        "useStoreSelector"
+        "useStoreSelector",
+        "useStorePath",
+        "useLocalStore"
       ],
-      "verificationGate": "pnpm --filter @context-action/react test"
+      "verificationGate": "pnpm --filter @context-action/react exec tsc --noEmit -p tsconfig.examples.json && pnpm --filter @context-action/react test"
     },
     {
       "id": "ex-pkg-typedoc-vitepress-sync",

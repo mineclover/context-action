@@ -60,7 +60,7 @@ function HomePage() {
                 Open canonical example →
               </Link>
               <a
-                href="https://mineclover.github.io/context-action/ko/examples/canonical-order-form"
+                href="https://mineclover.github.io/context-action/en/examples/canonical-order-form"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
@@ -228,14 +228,14 @@ function HomePage() {
             </Link>{' '}
             to understand the fundamental concepts, then explore{' '}
             <Link
-              to="/performance/action-guard"
+              to="/foundations/store/basics"
               className="text-primary-600 hover:text-primary-700 font-medium"
             >
               Store System
             </Link>{' '}
             for state management, and finally see how it all comes together with{' '}
             <Link
-              to="/react/provider"
+              to="/foundations/react/provider"
               className="text-primary-600 hover:text-primary-700 font-medium"
             >
               React Integration

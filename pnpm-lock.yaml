@@ -200,6 +200,9 @@ importers:
       '@context-action/live-code-editor':
         specifier: workspace:*
         version: link:../packages/live-code-editor
+      '@context-action/mutative':
+        specifier: workspace:*
+        version: link:../packages/mutative
       '@context-action/openrouter-browser-storage':
         specifier: workspace:*
         version: link:../packages/openrouter-browser-storage
@@ -233,9 +236,6 @@ importers:
       dexie:
         specifier: 4.4.6
         version: 4.4.6
-      immer:
-        specifier: 11.1.18
-        version: 11.1.18
       lit:
         specifier: 3.3.3
         version: 3.3.3
@@ -5276,9 +5276,6 @@ packages:
   ignore@7.0.6:
     resolution: {integrity: sha512-BAg6QkE8W+TuQLrrw0Ugr7HegXduRuuj8/ti2kSOc+jz1dmx8/WNcjr6XGnq5YpDWxFwwaavqD0+jIUOKelTsw==}
     engines: {node: '>= 4'}
-
-  immer@11.1.18:
-    resolution: {integrity: sha512-EQyQtLiYW029lyoczMl/Hh4Xu7cDecSc58JRYpHyL4tIAu3eqd1yJzQX04d2BZHDkzFFvm6qJEJWOtfDSWAXbQ==}
 
   import-fresh@3.3.1:
     resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
@@ -11775,8 +11772,6 @@ snapshots:
       minimatch: 11.0.1
 
   ignore@7.0.6: {}
-
-  immer@11.1.18: {}
 
   import-fresh@3.3.1:
     dependencies:

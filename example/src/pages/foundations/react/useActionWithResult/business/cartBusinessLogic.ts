@@ -1,5 +1,5 @@
 /**
- * Business Logic Layer (5-Layer Architecture)
+ * Business Logic Layer (6-Layer Context-Layered Architecture)
  *
  * This layer contains pure business functions with no side effects:
  * - Cart validation logic

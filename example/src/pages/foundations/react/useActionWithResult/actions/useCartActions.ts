@@ -1,5 +1,5 @@
 /**
- * Action Dispatch & Callbacks Layer (5-Layer Architecture)
+ * Action Dispatch & Callbacks Layer (6-Layer Context-Layered Architecture)
  *
  * This layer:
  * - Provides action dispatching functions

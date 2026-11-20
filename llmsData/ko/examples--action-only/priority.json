@@ -37,6 +37,8 @@
   "metadata": {
     "description": "상태 관리 없이 순수 액션 디스패칭을 위한 Action Only 패턴의 실제 사용 예제입니다.",
     "language": "ko",
-    "created_at": "2025-08-21T02:13:42.333Z"
+    "created_at": "2025-08-21T02:13:42.333Z",
+    "last_updated": "2026-11-19T23:42:54.578Z",
+    "source_last_modified": "2026-11-19T23:37:56.018Z"
   }
 }

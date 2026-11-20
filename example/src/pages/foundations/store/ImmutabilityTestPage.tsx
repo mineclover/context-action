@@ -1,5 +1,5 @@
+import { produce } from '@context-action/mutative';
 import { createStore } from '@context-action/react';
-import { produce } from 'immer';
 import { useState } from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { Button, CodeBlock, DemoCard } from '@/components/ui';
@@ -76,12 +76,14 @@ function StoreImmutabilityTestPage() {
         addResult('❌ 실패: Store 원본이 수정되었습니다!');
       }
     } catch (error) {
-      addResult(`⚠️ Immer 보호 동작: ${error}`);
-      addResult('ℹ️ 이는 Immer가 불변성을 강제로 보장하는 정상적인 동작입니다.');
+      addResult(`⚠️ Mutative 보호 동작: ${error}`);
+      addResult(
+        'ℹ️ 이는 Mutative가 불변성을 강제로 보장하는 정상적인 동작입니다.'
+      );
 
       // Store 값이 여전히 원본과 같은지 확인
       if (userStore.getValue().name === originalName) {
-        addResult('✅ 성공: Immer가 getValue() 결과도 완벽하게 보호합니다!');
+        addResult('✅ 성공: Mutative가 getValue() 결과도 완벽하게 보호합니다!');
       } else {
         addResult('❌ 예상치 못한 결과가 발생했습니다.');
       }
@@ -128,12 +130,14 @@ function StoreImmutabilityTestPage() {
         addResult('❌ 실패: Store가 외부 수정에 영향받았습니다!');
       }
     } catch (error) {
-      addResult(`⚠️ Immer 보호 동작: ${error}`);
-      addResult('ℹ️ 이는 Immer가 불변성을 강제로 보장하는 정상적인 동작입니다.');
+      addResult(`⚠️ Mutative 보호 동작: ${error}`);
+      addResult(
+        'ℹ️ 이는 Mutative가 불변성을 강제로 보장하는 정상적인 동작입니다.'
+      );
 
       // Store 값이 여전히 원본과 같은지 확인
       if (userStore.getValue().name === 'Jane Smith') {
-        addResult('✅ 성공: Immer가 완벽하게 불변성을 보장합니다!');
+        addResult('✅ 성공: Mutative가 완벽하게 불변성을 보장합니다!');
       } else {
         addResult('❌ 예상치 못한 결과가 발생했습니다.');
       }
@@ -189,15 +193,15 @@ function StoreImmutabilityTestPage() {
 
         if (modificationSucceeded && !errorOccurred) {
           addResult(
-            'ℹ️ 의도된 동작: 일시적 수정 허용됨 (Immer draft 상태에서만 적용)'
+            'ℹ️ 의도된 동작: 일시적 수정 허용됨 (Mutative draft 상태에서만 적용)'
           );
           addResult('ℹ️ 실제 Store에는 return 값만 반영되므로 문제없음');
         } else if (errorOccurred) {
-          addResult('⚠️ Immer Proxy가 직접 수정을 차단함 (read-only 속성)');
+          addResult('⚠️ Mutative Proxy가 직접 수정을 차단함 (read-only 속성)');
           addResult(
-            'ℹ️ 이는 update 함수 내에서도 Immer가 불변성을 보장하는 정상적인 동작입니다.'
+            'ℹ️ 이는 update 함수 내에서도 Mutative가 불변성을 보장하는 정상적인 동작입니다.'
           );
-          addResult('✅ 성공: Immer가 update 함수 내에서도 보호합니다!');
+          addResult('✅ 성공: Mutative가 update 함수 내에서도 보호합니다!');
         }
 
         // 정상적인 업데이트 반환
@@ -284,9 +288,9 @@ function StoreImmutabilityTestPage() {
         addResult('❌ 실패: 중첩 객체나 배열이 수정되었습니다!');
       }
     } catch (error) {
-      addResult(`⚠️ Immer 보호 동작: ${error}`);
+      addResult(`⚠️ Mutative 보호 동작: ${error}`);
       addResult(
-        'ℹ️ 이는 Immer가 깊은 객체까지 완벽하게 보호하는 정상적인 동작입니다.'
+        'ℹ️ 이는 Mutative가 깊은 객체까지 완벽하게 보호하는 정상적인 동작입니다.'
       );
 
       // Store 값이 여전히 원본과 같은지 확인
@@ -300,7 +304,9 @@ function StoreImmutabilityTestPage() {
         !finalValue.profile.hobbies.includes('hacking');
 
       if (isAddressProtected && isHobbiesProtected) {
-        addResult('✅ 성공: Immer가 중첩 객체와 배열을 완벽하게 보호합니다!');
+        addResult(
+          '✅ 성공: Mutative가 중첩 객체와 배열을 완벽하게 보호합니다!'
+        );
       } else {
         addResult('❌ 예상치 못한 결과가 발생했습니다.');
       }
@@ -309,13 +315,13 @@ function StoreImmutabilityTestPage() {
     updateCurrentValue();
   };
 
-  // 테스트 5: Immer Copy-on-Write 최적화 테스트
-  const testImmerCopyOnWrite = () => {
-    addResult('🧪 테스트 5: Immer Copy-on-Write 최적화');
+  // 테스트 5: Mutative Copy-on-Write 최적화 테스트
+  const testMutativeCopyOnWrite = () => {
+    addResult('🧪 테스트 5: Mutative Copy-on-Write 최적화');
 
     const testUser: User = {
       id: '4',
-      name: 'Immer Test User',
+      name: 'Mutative Test User',
       profile: {
         age: 28,
         address: {
@@ -374,7 +380,7 @@ function StoreImmutabilityTestPage() {
 
   // 테스트 6: 성능 비교 테스트
   const testPerformanceComparison = () => {
-    addResult('🧪 테스트 6: Immer vs JSON 성능 비교');
+    addResult('🧪 테스트 6: Mutative vs JSON 성능 비교');
 
     const largeObject: User = {
       id: 'perf-test',
@@ -391,14 +397,14 @@ function StoreImmutabilityTestPage() {
 
     const iterations = 1000;
 
-    // Immer 성능 측정
-    const immerStart = performance.now();
+    // Mutative 성능 측정
+    const mutativeStart = performance.now();
     for (let i = 0; i < iterations; i++) {
       const _result = produce(largeObject, (_draft) => {
         // 변경 없음 - Copy-on-Write 최적화
       });
     }
-    const immerTime = performance.now() - immerStart;
+    const mutativeTime = performance.now() - mutativeStart;
 
     // JSON 방식 성능 측정
     const jsonStart = performance.now();
@@ -407,35 +413,37 @@ function StoreImmutabilityTestPage() {
     }
     const jsonTime = performance.now() - jsonStart;
 
-    addResult(`Immer (변경 없음): ${immerTime.toFixed(2)}ms`);
+    addResult(`Mutative (변경 없음): ${mutativeTime.toFixed(2)}ms`);
     addResult(`JSON 복사: ${jsonTime.toFixed(2)}ms`);
-    addResult(`성능 개선: ${(jsonTime / immerTime - 1).toFixed(1)}x 더 빠름`);
+    addResult(
+      `성능 개선: ${mutativeTime > 0 ? `${(jsonTime / mutativeTime - 1).toFixed(1)}x 더 빠름` : '측정 불가 (매우 빠름)'}`
+    );
 
     // 변경 있는 경우
-    const immerChangeStart = performance.now();
+    const mutativeChangeStart = performance.now();
     for (let i = 0; i < iterations; i++) {
       const _result = produce(largeObject, (draft) => {
         draft.name = `Changed-${i}`;
       });
     }
-    const immerChangeTime = performance.now() - immerChangeStart;
+    const mutativeChangeTime = performance.now() - mutativeChangeStart;
 
-    addResult(`Immer (변경 있음): ${immerChangeTime.toFixed(2)}ms`);
+    addResult(`Mutative (변경 있음): ${mutativeChangeTime.toFixed(2)}ms`);
     addResult(
-      `변경 시 JSON 대비: ${(jsonTime / immerChangeTime - 1).toFixed(1)}x 더 빠름`
+      `변경 시 JSON 대비: ${mutativeChangeTime > 0 ? `${(jsonTime / mutativeChangeTime - 1).toFixed(1)}x 더 빠름` : '측정 불가 (매우 빠름)'}`
     );
   };
 
   const runAllTests = () => {
     setTestResults([]);
-    addResult('🚀 Store 불변성 테스트 시작 - Immer 기반');
+    addResult('🚀 Store 불변성 테스트 시작 - Mutative 기반');
 
     // 순차적으로 테스트 실행
     setTimeout(() => testDirectModification(), 100);
     setTimeout(() => testSetValueProtection(), 500);
     setTimeout(() => testUpdateProtection(), 900);
     setTimeout(() => testDeepObjectProtection(), 1300);
-    setTimeout(() => testImmerCopyOnWrite(), 1700);
+    setTimeout(() => testMutativeCopyOnWrite(), 1700);
     setTimeout(() => testPerformanceComparison(), 2100);
     setTimeout(() => addResult('🏁 모든 테스트 완료'), 2500);
   };
@@ -450,13 +458,13 @@ function StoreImmutabilityTestPage() {
       <div className="space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Store 불변성(Immutability) 테스트 - Immer 기반
+            Store 불변성(Immutability) 테스트 - Mutative 기반
           </h1>
           <p className="text-gray-600 mb-2">
             Store에 객체를 넣고 수정했을 때 원본이 보호되는지 테스트합니다.
           </p>
           <p className="text-sm text-blue-600 bg-blue-50 px-4 py-2 rounded">
-            ✨ <strong>Immer Copy-on-Write 최적화</strong>: 변경사항이 없으면
+            ✨ <strong>Mutative Copy-on-Write 최적화</strong>: 변경사항이 없으면
             원본 객체를 그대로 반환하여 성능을 최적화합니다.
           </p>
         </div>
@@ -479,7 +487,7 @@ function StoreImmutabilityTestPage() {
             <Button onClick={testDeepObjectProtection} variant="outline">
               테스트 4: 깊은 복사
             </Button>
-            <Button onClick={testImmerCopyOnWrite} variant="outline">
+            <Button onClick={testMutativeCopyOnWrite} variant="outline">
               테스트 5: Copy-on-Write
             </Button>
             <Button onClick={testPerformanceComparison} variant="outline">
@@ -594,7 +602,7 @@ function StoreImmutabilityTestPage() {
               </div>
               <div className="bg-blue-50 border-l-4 border-blue-400 p-2 mt-1">
                 <p className="text-blue-700 text-xs">
-                  <strong>ℹ️ Immer 동작:</strong> <code>draft</code> 객체는
+                  <strong>ℹ️ Mutative 동작:</strong> <code>draft</code> 객체는
                   Proxy로 변경을 추적하거나 차단
                   <br />
                   <strong>중요:</strong> 직접 수정이 허용되더라도 실제 Store에는{' '}
@@ -648,27 +656,27 @@ function StoreImmutabilityTestPage() {
             <div>
               <strong>테스트 6: 성능 비교</strong>
               <p className="text-gray-600 mb-2">
-                1000회 반복으로 Immer Copy-on-Write vs{' '}
+                1000회 반복으로 Mutative Copy-on-Write vs{' '}
                 <code>JSON.parse(JSON.stringify())</code> 방식의 실행 시간 측정
               </p>
               <div className="bg-green-50 border-l-4 border-green-400 p-2">
                 <p className="text-green-700 text-xs">
-                  <strong>✅ 예상 결과:</strong> Immer(변경 없음)가 JSON
+                  <strong>✅ 예상 결과:</strong> Mutative(변경 없음)가 JSON
                   방식보다 현저히 빠른 성능 (수십 배 차이)
                 </p>
               </div>
               <div className="bg-red-50 border-l-4 border-red-400 p-2 mt-1">
                 <p className="text-red-700 text-xs">
-                  <strong>❌ 문제 상황:</strong> Immer가 더 느리거나 비슷한 성능
-                  (최적화 실패)
+                  <strong>❌ 문제 상황:</strong> Mutative가 더 느리거나 비슷한
+                  성능 (최적화 실패)
                 </p>
               </div>
             </div>
           </div>
         </DemoCard>
 
-        {/* Immer 개념 설명 */}
-        <DemoCard title="🎯 Immer Copy-on-Write 개념" variant="info">
+        {/* Mutative 개념 설명 */}
+        <DemoCard title="🎯 Mutative Copy-on-Write 개념" variant="info">
           <div className="space-y-3 text-sm">
             <div className="bg-blue-50 p-3 rounded">
               <strong className="text-blue-800">Copy-on-Write 최적화</strong>

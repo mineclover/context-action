@@ -6,7 +6,7 @@ interface ExampleUtility {
   title: string;
   description: string;
   path: string;
-  category: 'practical' | 'utilities' | 'specialized';
+  category: 'utilities' | 'specialized';
   features: string[];
   difficulty: 'Basic' | 'Intermediate' | 'Advanced';
   status: 'Complete' | 'Preview' | 'Coming Soon';
@@ -20,7 +20,7 @@ const examplesUtilities: ExampleUtility[] = [
     title: 'Toast Configuration',
     description:
       'Complete toast notification system with configuration and theming',
-    path: '/examples/toast-config',
+    path: '/utilities/dev-tools/toast-config',
     category: 'utilities',
     features: [
       'Multiple toast types',
@@ -37,7 +37,7 @@ const examplesUtilities: ExampleUtility[] = [
     title: 'Concurrent Actions Test',
     description:
       'Testing concurrent action execution and race condition handling',
-    path: '/examples/concurrent-actions',
+    path: '/integrations/advanced/concurrent-actions',
     category: 'utilities',
     features: [
       'Concurrency testing',
@@ -54,7 +54,7 @@ const examplesUtilities: ExampleUtility[] = [
     title: 'Enhanced Abortable Search',
     description:
       'Advanced search with abort capabilities and request management',
-    path: '/examples/enhanced-search',
+    path: '/utilities/testing/enhanced-search',
     category: 'utilities',
     features: [
       'Abortable requests',
@@ -71,7 +71,7 @@ const examplesUtilities: ExampleUtility[] = [
     title: 'Logger System',
     description:
       'Comprehensive logging system with multiple levels and formatting',
-    path: '/logger/demo',
+    path: '/utilities/dev-tools/logger',
     category: 'utilities',
     features: [
       'Multiple log levels',
@@ -83,14 +83,13 @@ const examplesUtilities: ExampleUtility[] = [
     status: 'Complete',
     icon: '📝',
   },
-  // Practical Examples
   // Specialized Features
   {
     id: 'refs-management',
     title: 'Refs Management',
     description:
       'Comprehensive ref management patterns and performance optimization',
-    path: '/refs',
+    path: '/patterns/refs',
     category: 'specialized',
     features: [
       'Ref patterns',
@@ -106,7 +105,7 @@ const examplesUtilities: ExampleUtility[] = [
     id: 'canvas-ref',
     title: 'Canvas Ref Demo',
     description: 'Advanced canvas manipulation using ref patterns',
-    path: '/refs/canvas',
+    path: '/patterns/refs/canvas',
     category: 'specialized',
     features: [
       'Canvas API',
@@ -122,7 +121,7 @@ const examplesUtilities: ExampleUtility[] = [
     id: 'form-builder',
     title: 'Form Builder Ref Demo',
     description: 'Dynamic form building with ref-based field management',
-    path: '/refs/form-builder',
+    path: '/integrations/advanced/form-builder',
     category: 'specialized',
     features: [
       'Dynamic forms',
@@ -139,7 +138,7 @@ const examplesUtilities: ExampleUtility[] = [
     title: 'useWaitForRefs Performance',
     description:
       'Performance verification and optimization for ref waiting patterns',
-    path: '/refs/waitforrefs-performance',
+    path: '/patterns/refs/waitforrefs-performance',
     category: 'specialized',
     features: [
       'Performance verification',
@@ -156,7 +155,7 @@ const examplesUtilities: ExampleUtility[] = [
     title: 'Pipeline Flow Control',
     description:
       'Interactive pipeline control with priority jumping and complex branching',
-    path: '/pipeline/flow-control',
+    path: '/patterns/pipeline/flow-control',
     category: 'specialized',
     features: [
       'Priority jumping',
@@ -186,23 +185,8 @@ function ExamplesUtilitiesOverview() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Complete':
-        return 'bg-green-100 text-green-800';
-      case 'Preview':
-        return 'bg-blue-100 text-blue-800';
-      case 'Coming Soon':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'practical':
-        return 'border-l-orange-500';
       case 'utilities':
         return 'border-l-teal-500';
       case 'specialized':
@@ -214,8 +198,6 @@ function ExamplesUtilitiesOverview() {
 
   const _getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'practical':
-        return '🛠️';
       case 'utilities':
         return '🔧';
       case 'specialized':
@@ -226,9 +208,6 @@ function ExamplesUtilitiesOverview() {
   };
 
   const categoryGroups = {
-    practical: examplesUtilities.filter(
-      (item) => item.category === 'practical'
-    ),
     utilities: examplesUtilities.filter(
       (item) => item.category === 'utilities'
     ),
@@ -299,58 +278,6 @@ function ExamplesUtilitiesOverview() {
 
       {/* Category Sections */}
       <div className="space-y-10">
-        {/* Practical Examples */}
-        <section>
-          <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-            <span className="w-4 h-4 bg-orange-500 rounded"></span>
-            🛠️ Practical Examples
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Real-world examples ready for production use and integration
-          </p>
-          <div className={gridVariants({ cols: 1 })}>
-            {categoryGroups.practical.map((item) => (
-              <Link
-                key={item.id}
-                to={item.path}
-                className={`${cardVariants({ variant: 'outlined', hover: true })} ${getCategoryColor(item.category)} border-l-4 block`}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{item.icon}</span>
-                    <h3 className="text-lg font-semibold">{item.title}</h3>
-                  </div>
-                  <div className="flex gap-2">
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${getDifficultyColor(item.difficulty)}`}
-                    >
-                      {item.difficulty}
-                    </span>
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${getStatusColor(item.status)}`}
-                    >
-                      {item.status}
-                    </span>
-                  </div>
-                </div>
-
-                <p className="text-gray-700 mb-4">{item.description}</p>
-
-                <div className="flex flex-wrap gap-2">
-                  {item.features.map((feature, index) => (
-                    <span
-                      key={index}
-                      className="text-xs bg-gray-100 px-2 py-1 rounded"
-                    >
-                      {feature}
-                    </span>
-                  ))}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
         {/* Utilities */}
         <section>
           <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
@@ -446,19 +373,7 @@ function ExamplesUtilitiesOverview() {
       {/* Usage Guides */}
       <div className="mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
         <h2 className="text-2xl font-semibold mb-4">📋 Usage Guidelines</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          <div>
-            <h3 className="font-medium text-orange-700 mb-3 flex items-center">
-              <span className="text-lg mr-2">🛠️</span> Practical Examples
-            </h3>
-            <ul className="text-sm text-gray-700 space-y-1">
-              <li>• Ready for production integration</li>
-              <li>• Copy and customize patterns</li>
-              <li>• Well-documented implementation</li>
-              <li>• Performance optimized</li>
-            </ul>
-          </div>
-
+        <div className="grid md:grid-cols-2 gap-6">
           <div>
             <h3 className="font-medium text-teal-700 mb-3 flex items-center">
               <span className="text-lg mr-2">🔧</span> Development Utilities

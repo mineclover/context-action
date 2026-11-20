@@ -28,7 +28,7 @@ export const userStoreConfig = {
     lastLogin: null as Date | null
   },
   
-  // 검증이 포함된 설정 객체
+  // 비교 전략(strategy)이 지정된 설정 객체
   preferences: {
     initialValue: {
       theme: 'light' as 'light' | 'dark',
@@ -44,42 +44,19 @@ export const userStoreConfig = {
         showLastLogin: false
       }
     },
-    validator: (value) => {
-      if (typeof value !== 'object' || value === null) return false;
-      if (!['light', 'dark'].includes(value.theme)) return false;
-      if (!['ko', 'en', 'es', 'fr', 'de'].includes(value.language)) return false;
-      return true;
-    }
+    strategy: 'shallow' as const,
+    description: '사용자 UI 설정'
   },
   
-  // 파생 상태 설정
+  // 애널리틱스 상태 (useStoreSelector 또는 computeAnalyticsSummary 순수 함수로 파생 값 계산)
   analytics: {
     initialValue: {
       sessions: [] as Array<{ id: string; startTime: number; endTime?: number }>,
       pageViews: [] as Array<{ page: string; timestamp: number; duration?: number }>,
-      events: [] as Array<{ type: string; data: any; timestamp: number }>
+      events: [] as Array<{ type: string; data: unknown; timestamp: number }>
     },
-    derived: {
-      // 자동으로 업데이트되는 계산된 속성
-      totalSessions: (analytics) => analytics.sessions.length,
-      activeSessions: (analytics) => analytics.sessions.filter(s => !s.endTime).length,
-      avgSessionDuration: (analytics) => {
-        const completedSessions = analytics.sessions.filter(s => s.endTime);
-        if (completedSessions.length === 0) return 0;
-        
-        const totalDuration = completedSessions.reduce((acc, session) => 
-          acc + (session.endTime! - session.startTime), 0
-        );
-        return totalDuration / completedSessions.length;
-      },
-      recentEvents: (analytics) => 
-        analytics.events.filter(e => Date.now() - e.timestamp < 300000), // 최근 5분
-      eventsByType: (analytics) => 
-        analytics.events.reduce((acc, event) => {
-          acc[event.type] = (acc[event.type] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>)
-    }
+    strategy: 'shallow' as const,
+    description: '세션 및 이벤트 로그'
   },
   
   // 폼 상태 설정
@@ -117,6 +94,37 @@ export const {
 } = createStoreContext('User', userStoreConfig);
 
 export type UserStores = typeof userStoreConfig;
+
+export function isValidPreferences(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    ['light', 'dark'].includes(String(candidate.theme)) &&
+    ['ko', 'en', 'es', 'fr', 'de'].includes(String(candidate.language))
+  );
+}
+
+export function computeAnalyticsSummary(
+  analytics: typeof userStoreConfig.analytics.initialValue
+) {
+  const completedSessions = analytics.sessions.filter(s => s.endTime);
+  const avgSessionDuration =
+    completedSessions.length === 0
+      ? 0
+      : completedSessions.reduce((acc, s) => acc + ((s.endTime ?? s.startTime) - s.startTime), 0) /
+        completedSessions.length;
+
+  return {
+    totalSessions: analytics.sessions.length,
+    activeSessions: analytics.sessions.filter(s => !s.endTime).length,
+    avgSessionDuration,
+    recentEvents: analytics.events.slice(-20),
+    eventsByType: analytics.events.reduce((acc, event) => {
+      acc[event.type] = (acc[event.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>)
+  };
+}
 ```
 
 ### 3. 프로필 관리 컴포넌트
@@ -508,12 +516,12 @@ export function UserPreferences() {
 ```typescript
 // components/AnalyticsDashboard.tsx
 import React, { useEffect } from 'react';
-import { useStoreValue } from '@context-action/react';
-import { useUserStore } from '../stores/UserStores';
+import { useStoreSelector } from '@context-action/react';
+import { computeAnalyticsSummary, useUserStore } from '../stores/UserStores';
 
 export function AnalyticsDashboard() {
   const analyticsStore = useUserStore('analytics');
-  const analytics = useStoreValue(analyticsStore);
+  const analyticsSummary = useStoreSelector(analyticsStore, computeAnalyticsSummary);
   
   // 애널리틱스 데이터 추가 시뮬레이션
   useEffect(() => {
@@ -601,16 +609,16 @@ export function AnalyticsDashboard() {
         <h3>세션</h3>
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="stat-value">{analytics.totalSessions}</div>
+            <div className="stat-value">{analyticsSummary.totalSessions}</div>
             <div className="stat-label">총 세션 수</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value">{analytics.activeSessions}</div>
+            <div className="stat-value">{analyticsSummary.activeSessions}</div>
             <div className="stat-label">활성 세션</div>
           </div>
           <div className="stat-card">
             <div className="stat-value">
-              {Math.round(analytics.avgSessionDuration / 1000)}초
+              {Math.round(analyticsSummary.avgSessionDuration / 1000)}초
             </div>
             <div className="stat-label">평균 지속시간</div>
           </div>
@@ -619,9 +627,9 @@ export function AnalyticsDashboard() {
       
       {/* 최근 이벤트 */}
       <div className="analytics-section">
-        <h3>최근 이벤트 ({analytics.recentEvents.length})</h3>
+        <h3>최근 이벤트 ({analyticsSummary.recentEvents.length})</h3>
         <div className="events-list">
-          {analytics.recentEvents.slice(-10).reverse().map((event, index) => (
+          {analyticsSummary.recentEvents.slice(-10).reverse().map((event, index) => (
             <div key={index} className="event-item">
               <div className="event-type">{event.type}</div>
               <div className="event-data">{JSON.stringify(event.data)}</div>
@@ -637,7 +645,7 @@ export function AnalyticsDashboard() {
       <div className="analytics-section">
         <h3>타입별 이벤트</h3>
         <div className="event-types">
-          {Object.entries(analytics.eventsByType).map(([type, count]) => (
+          {Object.entries(analyticsSummary.eventsByType).map(([type, count]) => (
             <div key={type} className="event-type-stat">
               <span className="type-name">{type}</span>
               <span className="type-count">{count}</span>
@@ -899,7 +907,10 @@ export function usePersistence() {
   // localStorage에 자동 저장
   useEffect(() => {
     const saveInterval = setInterval(() => {
-      const state = storeManager.getAllValues();
+      const state = {
+        profile: storeManager.getStore('profile').getValue(),
+        preferences: storeManager.getStore('preferences').getValue(),
+      };
       localStorage.setItem('user-app-state', JSON.stringify(state));
     }, 5000); // 5초마다 저장
     
@@ -938,45 +949,47 @@ export function usePersistence() {
 // components/ComputedState.tsx
 import React from 'react';
 import { useStoreValue } from '@context-action/react';
-import { useUserStore } from '../stores/UserStores';
+import { useComputedStore } from '@context-action/react/advanced';
+import { computeAnalyticsSummary, useUserStore } from '../stores/UserStores';
 
 export function ComputedStateDemo() {
   const analyticsStore = useUserStore('analytics');
   const preferencesStore = useUserStore('preferences');
   
-  const analytics = useStoreValue(analyticsStore);
+  const analyticsSummary = useComputedStore(analyticsStore, computeAnalyticsSummary);
   const preferences = useStoreValue(preferencesStore);
+  const maxEventCount = Math.max(1, ...Object.values(analyticsSummary.eventsByType));
   
-  // 계산된 값들은 기본 상태가 변경될 때 자동으로 업데이트됨
+  // 기본 스토어가 바뀔 때 파생 값이 자동으로 재계산됩니다
   return (
     <div className="computed-state">
       <h2>계산된 상태 예제</h2>
       
       <div className="computed-values">
         <div className="computed-item">
-          <strong>총 세션 수:</strong> {analytics.totalSessions}
+          <strong>총 세션 수:</strong> {analyticsSummary.totalSessions}
         </div>
         <div className="computed-item">
-          <strong>활성 세션:</strong> {analytics.activeSessions}
+          <strong>활성 세션:</strong> {analyticsSummary.activeSessions}
         </div>
         <div className="computed-item">
-          <strong>평균 세션 지속시간:</strong> {Math.round(analytics.avgSessionDuration / 1000)}초
+          <strong>평균 세션 지속시간:</strong> {Math.round(analyticsSummary.avgSessionDuration / 1000)}초
         </div>
         <div className="computed-item">
-          <strong>최근 이벤트 수:</strong> {analytics.recentEvents.length}
+          <strong>최근 이벤트 수:</strong> {analyticsSummary.recentEvents.length}
         </div>
       </div>
       
       <div className="event-types-breakdown">
         <h3>이벤트 타입별 분석</h3>
-        {Object.entries(analytics.eventsByType).map(([type, count]) => (
+        {Object.entries(analyticsSummary.eventsByType).map(([type, count]) => (
           <div key={type} className="event-type-row">
             <span>{type}:</span>
             <span>{count} 이벤트</span>
             <div 
               className="event-bar" 
               style={{ 
-                width: `${(count / Math.max(...Object.values(analytics.eventsByType))) * 100}%` 
+                width: `${(count / maxEventCount) * 100}%` 
               }}
             />
           </div>
@@ -1049,7 +1062,10 @@ export function useServerSync() {
   useEffect(() => {
     const syncInterval = setInterval(async () => {
       try {
-        const currentState = storeManager.getAllValues();
+        const currentState = {
+          profile: storeManager.getStore('profile').getValue(),
+          preferences: storeManager.getStore('preferences').getValue(),
+        };
         
         // 현재 상태를 서버로 전송
         const response = await fetch('/api/sync-user-state', {
@@ -1061,9 +1077,12 @@ export function useServerSync() {
         if (response.ok) {
           const serverState = await response.json();
           
-          // 서버 상태와 다르면 업데이트
-          if (JSON.stringify(currentState) !== JSON.stringify(serverState)) {
-            storeManager.setAllValues(serverState);
+          // 서버 상태와 다르면 스토어별 업데이트
+          if (serverState.profile && JSON.stringify(currentState.profile) !== JSON.stringify(serverState.profile)) {
+            storeManager.getStore('profile').setValue(serverState.profile);
+          }
+          if (serverState.preferences && JSON.stringify(currentState.preferences) !== JSON.stringify(serverState.preferences)) {
+            storeManager.getStore('preferences').setValue(serverState.preferences);
           }
         }
       } catch (error) {
@@ -1080,22 +1099,26 @@ export function useServerSync() {
 
 ✅ **타입 안전성**: 수동 타입 주석 없이 자동 타입 추론  
 ✅ **반응형 업데이트**: 상태 변경 시 컴포넌트 자동 재렌더링  
-✅ **파생 상태**: 기본 상태가 변경될 때 계산된 속성 자동 업데이트  
-✅ **검증**: 커스텀 검증 함수가 있는 내장 검증 지원  
+✅ **파생 상태**: `useStoreSelector` 및 `useComputedStore` 기반 메모이제이션 파생 값  
+✅ **비교 전략**: `reference`, `shallow`, `deep` 동등성 비교 전략 선택  
 ✅ **HOC 패턴**: `withProvider()`를 사용한 깔끔한 프로바이더 통합  
-✅ **스토어 매니저**: 재설정, 내보내기, 벌크 작업을 위한 중앙화된 관리
+✅ **스토어 매니저**: `getStore()`, `getInfo()`, `clear()`를 통한 타입 안전 접근
 
 ## 베스트 프랙티스
 
 1. **직접 값**: 단순한 타입에는 직접 값 설정 사용
-2. **설정 객체**: 복잡한 검증과 파생 상태에 사용
+2. **설정 객체**: `initialValue`, `strategy`, `description` 등 실제 `StoreConfig` 옵션 사용
 3. **HOC 패턴**: 자동 프로바이더 감싸기를 위해 `withProvider()` 선호
-4. **반응형 구독**: 컴포넌트 업데이트를 위해 항상 `useStoreValue()` 사용
-5. **벌크 작업**: 재설정과 벌크 작업에 스토어 매니저 사용
+4. **선택적 구독**: 파생 값 및 성능 최적화에는 `useStoreSelector`, `useStorePath`, `useComputedStore` 사용
+5. **검증과 일괄 제어**: 순수 검증 헬퍼 함수와 `storeManager.getStore(name)` 조합 사용
 6. **상태 구조**: 관련된 상태를 논리적 그룹으로 함께 유지
 
 ## 관련 자료
 
-- **[Action Only 패턴](./action-only.md)** - 순수 액션 디스패치 패턴
-- **[패턴 조합](./pattern-composition.md)** - Action 패턴과 결합하기
-- **[기본 설정](./basic-setup.md)** - 두 패턴을 모두 사용한 기본 설정
+- **[Store 선택 및 사용 가이드](../context-layered/store-selection-and-usage-guide)** - Store 기본 요소와 React 구독 훅 선택 기준
+- **[Store 패턴 기본 가이드](../guide/patterns/store/basic-usage)** - Store Only 패턴 기본 사용법
+- **[Store Manager API](../guide/patterns/store/useStoreManager-api)** - `getStore()`, `getInfo()` 및 생명주기 메서드
+- **[메인 패턴 가이드](../concept/pattern-guide)** - 패턴 비교 및 선택
+- **[Action Only 패턴](./action-only)** - 순수 액션 디스패치 패턴
+- **[패턴 조합](./pattern-composition)** - Action 패턴과 결합하기
+- **[기본 설정](./basic-setup)** - 두 패턴을 모두 사용한 기본 설정

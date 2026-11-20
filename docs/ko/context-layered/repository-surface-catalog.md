@@ -138,14 +138,14 @@
 
 | 구분 | 경로 | 상태 | 설명하는 내용 | 검증 게이트 |
 | --- | --- | --- | --- | --- |
-| 독립 데모 | `demos/bolt-style-editor` | `verified` | Tool-Calling Web Studio (`tool-protocol`, `ai-sdk`, `tool-durable-operations`, IndexedDB, 승인 큐, 제한된 트레이스, iframe 미리보기) | `pnpm web-coding:verify` |
-| 독립 데모 | `examples/vanilla-js` | `reference` | React나 번들러 없이 `@context-action/core`를 사용하는 순수 HTML/JS 카운터·Todo 예제 | `pnpm build:core` |
+| 독립 데모 | `demos/bolt-style-editor` | `verified` | Tool-Calling Web Studio (`tool-protocol`, `tool-durable-operations`, `live-code-editor`, IndexedDB, 승인 큐, 제한된 트레이스, iframe 미리보기) | `pnpm web-coding:verify` |
+| 독립 데모 | `examples/vanilla-js` | `reference` | React나 번들러 없이 `@context-action/core` + `@context-action/store-core`를 사용하는 순수 HTML/JS 카운터·XSS-safe Todo 예제 | `pnpm build:core && pnpm --filter @context-action/store-core build` |
 | 패키지 예제 | `packages/core/examples` | `verified` | 코어 `ActionRegister` 데모 및 `./element` 기반 Vue·Svelte·Angular 호스트 복사형 예제 | `pnpm verify:element-hosts && pnpm verify:element-interop` |
 | 패키지 예제 | `packages/lit-ui/examples` | `verified` | DSD SSR 하이드레이션 검증 하네스 및 ElementInternals FACE 예외 진단 플레이그라운드 | `pnpm --filter @context-action/lit-ui test:browser` |
 | 패키지 예제 | `packages/preact-ui/examples` | `verified` | Projected Order 6계층 워크스페이스, Layer Panel 계약 재사용, 모듈형 Signals 웹 컴포넌트, SSR | `pnpm --filter @context-action/preact-ui test:browser` |
-| 패키지 예제 | `packages/react/examples` | `verified` | 패키지 수준 훅, RefContext(`GameUI`/`SimpleForm`), 선언적/통합 Store 패턴 예제 | `pnpm --filter @context-action/react test` |
+| 패키지 예제 | `packages/react/examples` | `verified` | 패키지 수준 훅, RefContext(`GameUI`/`SimpleForm`), 선언적/통합 Store 패턴 예제 | `pnpm --filter @context-action/react exec tsc --noEmit -p tsconfig.examples.json && pnpm --filter @context-action/react test` |
 | 패키지 예제 | `packages/mutative/examples` | `experimental` | 워크스페이스 전용 `travels@3` + `mutative@2` 호환성 프로토타입 (`travels-v3`) | `pnpm --filter @context-action/mutative test:travels-v3` |
-| 패키지 예제 | `packages/llms-generator/examples` | `reference` | `LLMSGenerator` 및 `CategoryMinimumGenerator` TS/JS 프로그래밍 API 사용 예제 | `pnpm --filter @context-action/llms-generator test` |
+| 패키지 예제 | `packages/llms-generator/examples` | `reference` | `EnhancedConfigManager`, `DEFAULT_CONFIG` 및 CLI 워크플로우 사용 예제 | `pnpm build:llms-generator && node packages/llms-generator/examples/library-usage.js` |
 | 패키지 예제 | `packages/typedoc-vitepress-sync/examples` | `reference` | `TypeDocVitePressSync` Node.js 기본·고급 설정 예제 | `pnpm --filter @context-action/typedoc-vitepress-sync test` |
 
 ### 4.3 내러티브 예제 가이드 (`docs/{en,ko}/examples/*.md`, 한영 9쌍)

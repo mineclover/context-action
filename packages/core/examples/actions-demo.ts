@@ -1,10 +1,9 @@
 /**
  * Action-based dispatching demonstration
- * Run: pnpm tsx actions-demo.ts
+ * Run: npx tsx packages/core/examples/actions-demo.ts
  */
 
-import { ActionRegister } from '../src/ActionRegister';
-import { ActionPayloadMap } from '../src/types';
+import { ActionRegister, type ActionPayloadMap } from '../src/index.js';
 
 interface AppActions extends ActionPayloadMap {
   userLogin: { userId: string; email: string };
@@ -14,9 +13,9 @@ interface AppActions extends ActionPayloadMap {
   resetApp: void;
 }
 
-async function demonstrateProtoc() {
+async function demonstrateProtocol() {
   const registry = new ActionRegister<AppActions>({
-    name: 'ProtocDemo',
+    name: 'ProtocolDemo',
     registry: { debug: true }
   });
 
@@ -50,7 +49,7 @@ async function demonstrateProtoc() {
   }, { id: 'reset-handler', priority: 90 });
 
   // Demo 1: Basic actions usage
-  console.log('\\n📋 Demo 1: Basic Action Dispatching');
+  console.log('\n📋 Demo 1: Basic Action Dispatching');
   console.log('-'.repeat(40));
   
   // Function-based dispatching with payload
@@ -70,7 +69,7 @@ async function demonstrateProtoc() {
   await registry.actions.resetApp();
 
   // Demo 2: Actions with options
-  console.log('\\n📋 Demo 2: Action Dispatching with Options');
+  console.log('\n📋 Demo 2: Action Dispatching with Options');
   console.log('-'.repeat(40));
   
   // With execution options
@@ -86,7 +85,7 @@ async function demonstrateProtoc() {
   );
 
   // Demo 3: Type safety demonstration
-  console.log('\\n📋 Demo 3: Type Safety Features');
+  console.log('\n📋 Demo 3: Type Safety Features');
   console.log('-'.repeat(40));
   console.log('✅ TypeScript will enforce correct payload types');
   console.log('✅ Auto-completion works for all action methods');
@@ -96,11 +95,11 @@ async function demonstrateProtoc() {
   // await registry.actions.userLogin({ wrongField: 'value' }); // ❌ Type error
   // await registry.actions.userLogout({ payload: 'should not exist' }); // ❌ Type error
 
-  console.log('\\n🎉 Action-based dispatching demonstration completed!');
+  console.log('\n🎉 Action-based dispatching demonstration completed!');
   console.log('='.repeat(60));
 
   // Demo 4: 🆕 Actions with Result Collection
-  console.log('\\n📋 Demo 4: Actions with Result Collection');
+  console.log('\n📋 Demo 4: Actions with Result Collection');
   console.log('-'.repeat(40));
   console.log('Using registry.actionsWithResult for detailed execution results');
   
@@ -109,7 +108,7 @@ async function demonstrateProtoc() {
     userId: '456', 
     email: 'result@example.com' 
   });
-  console.log('\\n🔍 Login Result:');
+  console.log('\n🔍 Login Result:');
   console.log(`  Success: ${loginResult.success}`);
   console.log(`  Duration: ${loginResult.execution.duration}ms`);
   console.log(`  Handlers Executed: ${loginResult.execution.handlersExecuted}`);
@@ -119,7 +118,7 @@ async function demonstrateProtoc() {
     { data: { name: 'result-test' }, type: 'json' },
     { executionMode: 'parallel' }
   );
-  console.log('\\n🔍 Process Data Result:');
+  console.log('\n🔍 Process Data Result:');
   console.log(`  Success: ${processResult.success}`);
   console.log(`  Duration: ${processResult.execution.duration}ms`);
   console.log(`  Handlers Executed: ${processResult.execution.handlersExecuted}`);
@@ -127,11 +126,11 @@ async function demonstrateProtoc() {
 
   // Show registry stats
   const stats = registry.getRegistryInfo();
-  console.log('\\n📊 Registry Statistics:');
+  console.log('\n📊 Registry Statistics:');
   console.log(`  Total Actions: ${stats.totalActions}`);
   console.log(`  Total Handlers: ${stats.totalHandlers}`);
   console.log(`  Registered Actions:`, stats.registeredActions);
 }
 
 // Run the demo
-demonstrateProtoc().catch(console.error);
+demonstrateProtocol().catch(console.error);

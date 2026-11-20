@@ -1,5 +1,5 @@
 /**
- * Store Subscriptions Layer (5-Layer Architecture)
+ * Store Subscriptions Layer (6-Layer Context-Layered Architecture)
  *
  * This layer:
  * - Provides store value subscriptions

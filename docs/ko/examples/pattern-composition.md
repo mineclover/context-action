@@ -128,12 +128,8 @@ export const appStoreConfig = {
         activeSection: 'dashboard'
       }
     },
-    derived: {
-      hasActiveModals: (ui) => ui.modals.active !== null,
-      modalStackSize: (ui) => ui.modals.stack.length,
-      unreadNotifications: (ui) => ui.notifications.filter(n => !n.dismissed).length,
-      isLoading: (ui) => Object.values(ui.loading).some(Boolean)
-    }
+    strategy: 'shallow' as const,
+    description: '모달, 알림, 로딩, 사이드바 UI 상태'
   },
   
   // 애플리케이션 도메인 상태
@@ -157,13 +153,8 @@ export const appStoreConfig = {
         environment: process.env.NODE_ENV || 'development'
       }
     },
-    validator: (value) => {
-      return typeof value === 'object' &&
-             value !== null &&
-             'settings' in value &&
-             'features' in value &&
-             'system' in value;
-    }
+    strategy: 'shallow' as const,
+    description: '애플리케이션 설정 및 피처 플래그'
   },
   
   // 데이터 캐시 도메인
@@ -176,13 +167,8 @@ export const appStoreConfig = {
         sessions: [] as Array<{ id: string; startTime: number; endTime?: number }>
       }
     },
-    derived: {
-      cacheSize: (cache) => Object.keys(cache.userData).length + Object.keys(cache.apiResponses).length,
-      recentEvents: (cache) => cache.analytics.events.filter(e => 
-        Date.now() - e.timestamp < 300000 // 최근 5분
-      ),
-      activeSessions: (cache) => cache.analytics.sessions.filter(s => !s.endTime)
-    }
+    strategy: 'shallow' as const,
+    description: '캐시된 사용자 응답 및 세션 분석 로그'
   }
 } as const;
 ```
@@ -737,7 +723,7 @@ export function UserDashboard() {
       </div>
       
       {/* 로딩 표시기 */}
-      {ui.isLoading && (
+      {Object.values(ui.loading).some(Boolean) && (
         <div className="loading-banner">
           로딩 중... 
           {ui.loading.profile && ' 프로필'}
@@ -773,15 +759,15 @@ export function UserDashboard() {
           <div className="analytics-stats">
             <div className="stat">
               <label>최근 이벤트:</label>
-              <span>{cache.recentEvents.length}</span>
+              <span>{cache.analytics.events.slice(-20).length}</span>
             </div>
             <div className="stat">
               <label>활성 세션:</label>
-              <span>{cache.activeSessions.length}</span>
+              <span>{cache.analytics.sessions.filter(s => !s.endTime).length}</span>
             </div>
             <div className="stat">
               <label>캐시 크기:</label>
-              <span>{cache.cacheSize} 항목</span>
+              <span>{Object.keys(cache.userData).length + Object.keys(cache.apiResponses).length} 항목</span>
             </div>
           </div>
         </div>
@@ -800,7 +786,7 @@ export function UserDashboard() {
         <div className="dashboard-card recent-activity">
           <h3>최근 활동</h3>
           <div className="activity-list">
-            {cache.recentEvents.slice(-5).reverse().map((event, index) => (
+            {cache.analytics.events.slice(-5).reverse().map((event, index) => (
               <div key={index} className="activity-item">
                 <div className="activity-type">{event.type}</div>
                 <div className="activity-time">
@@ -840,7 +826,7 @@ export function ModalSystem() {
     }
   };
   
-  if (!ui.hasActiveModals) {
+  if (ui.modals.active === null) {
     return null;
   }
   
@@ -1153,9 +1139,9 @@ export function AppNavigation() {
             <button onClick={openSettings} className="settings-button">
               앱 설정
             </button>
-            {ui.unreadNotifications > 0 && (
+            {ui.notifications.filter(n => !n.dismissed).length > 0 && (
               <div className="notification-badge">
-                {ui.unreadNotifications} 읽지 않음
+                {ui.notifications.filter(n => !n.dismissed).length} 읽지 않음
               </div>
             )}
           </div>
@@ -1202,7 +1188,10 @@ const invalidStore = useAppStore('invalid'); // ❌ TypeScript 에러
 
 ## 관련 자료
 
-- **[Action Only 패턴](./action-only.md)** - 순수 액션 디스패치 예제
-- **[Store Only 패턴](./store-only.md)** - 순수 상태 관리 예제
-- **[기본 설정](./basic-setup.md)** - 두 패턴을 모두 사용한 기본 설정
-- **[아키텍처 가이드](../concept/architecture-guide.md)** - MVVM 아키텍처 원칙
+- **[Context-Layered 아키텍처 가이드](../context-layered/context-layered-guide)** - 6계층 도메인 격리 규칙
+- **[Store 선택 및 사용 가이드](../context-layered/store-selection-and-usage-guide)** - Store 기본 요소와 React 구독 훅 선택 기준
+- **[Action Only 패턴](./action-only)** - 순수 액션 디스패치 예제
+- **[Store Only 패턴](./store-only)** - 순수 상태 관리 예제
+- **[기본 설정](./basic-setup)** - 두 패턴을 모두 사용한 기본 설정
+- **[패턴 가이드](../concept/pattern-guide)** - 패턴 선택 및 아키텍처
+- **[아키텍처 가이드](../concept/architecture-guide)** - 아키텍처 원칙

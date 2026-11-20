@@ -19,7 +19,7 @@ const actionGuardDemos: ActionGuardDemo[] = [
     title: 'Advanced Search',
     description:
       'Real-time search with debouncing, error handling, and result caching',
-    path: '/actionguard/search',
+    path: '/performance/action-guard/search',
     category: 'advanced',
     features: [
       'Debounced input',
@@ -35,7 +35,7 @@ const actionGuardDemos: ActionGuardDemo[] = [
     id: 'scroll',
     title: 'Advanced Scroll',
     description: 'Infinite scroll implementation with performance optimization',
-    path: '/actionguard/scroll',
+    path: '/performance/action-guard/scroll',
     category: 'advanced',
     features: [
       'Infinite scroll',
@@ -51,7 +51,7 @@ const actionGuardDemos: ActionGuardDemo[] = [
     id: 'api-blocking',
     title: 'API Blocking',
     description: 'Demonstration of request blocking and deduplication patterns',
-    path: '/actionguard/api-blocking',
+    path: '/performance/action-guard/api-blocking',
     category: 'advanced',
     features: [
       'Request deduplication',
@@ -68,7 +68,7 @@ const actionGuardDemos: ActionGuardDemo[] = [
     title: 'Conditional Patterns',
     description:
       'Complete collection of conditional execution patterns for enterprise applications',
-    path: '/actionguard/conditional',
+    path: '/patterns/conditional',
     category: 'conditional',
     features: [
       'Environment-based execution',
@@ -87,7 +87,7 @@ const actionGuardDemos: ActionGuardDemo[] = [
     title: 'Throttle Comparison',
     description:
       'Compare different throttling strategies and their performance characteristics',
-    path: '/actionguard/throttle-comparison',
+    path: '/performance/action-guard/throttle-comparison',
     category: 'performance',
     features: [
       'Throttle strategies',
@@ -104,7 +104,7 @@ const actionGuardDemos: ActionGuardDemo[] = [
     title: 'Mouse Events Collection',
     description:
       'Comprehensive mouse event handling patterns and optimizations',
-    path: '/actionguard/mouse-events',
+    path: '/performance/mouse-events',
     category: 'basic',
     features: [
       'Event optimization',
@@ -120,7 +120,7 @@ const actionGuardDemos: ActionGuardDemo[] = [
     id: 'priority-advanced',
     title: 'Advanced Priority Performance',
     description: 'Multi-instance priority testing with comprehensive analytics',
-    path: '/actionguard/priority-performance-advanced',
+    path: '/performance/priority/advanced',
     category: 'performance',
     features: [
       'Multi-instance testing',

@@ -45,17 +45,17 @@ const hookCategories = {
         complexity: 'Intermediate'
       },
       {
-        name: 'useStoreActions',
-        description: 'Memoized store action methods',
-        component: () => <div>Coming soon...</div>,
-        frequency: 'Low (<20%)',
-        complexity: 'Simple'
+        name: 'useStorePath',
+        description: 'Patch-aware subscription for nested object paths',
+        component: UseStoreSelectorExamples,
+        frequency: 'Medium (20-80%)',
+        complexity: 'Intermediate'
       },
       {
-        name: 'usePersistedStore',
-        description: 'Browser storage synchronization',
-        component: () => <div>Coming soon...</div>,
-        frequency: 'Low (<20%)',
+        name: 'useComputedStore',
+        description: 'Derived store computation exported from @context-action/react/advanced',
+        component: () => <div>See @context-action/react/advanced (useComputedStore)</div>,
+        frequency: 'Low (&lt;20%)',
         complexity: 'Intermediate'
       }
     ]
@@ -67,15 +67,15 @@ const hookCategories = {
       {
         name: 'createStoreContext',
         description: 'Type-safe store pattern factory',
-        component: () => <div>Coming soon...</div>,
-        frequency: 'High (>80%)',
+        component: () => <div>See stores/patterns/declarative-examples.tsx</div>,
+        frequency: 'High (&gt;80%)',
         complexity: 'Simple'
       },
       {
         name: 'createActionContext',
         description: 'Action context factory for business logic',
-        component: () => <div>Coming soon...</div>,
-        frequency: 'High (>80%)',
+        component: () => <div>See docs/en/context-layered/context-layered-guide.md</div>,
+        frequency: 'High (&gt;80%)',
         complexity: 'Intermediate'
       }
     ]
@@ -236,9 +236,9 @@ function HooksOverview() {
         <div>
           <h3>📊 Usage Guidelines</h3>
           <ul>
-            <li><span style={{ color: '#28a745' }}>■</span> <strong>High Frequency:</strong> Used in >80% of components</li>
+            <li><span style={{ color: '#28a745' }}>■</span> <strong>High Frequency:</strong> Used in &gt;80% of components</li>
             <li><span style={{ color: '#ffc107' }}>■</span> <strong>Medium Frequency:</strong> Used in 20-80% of components</li>
-            <li><span style={{ color: '#6c757d' }}>■</span> <strong>Low Frequency:</strong> Used in <20% of components</li>
+            <li><span style={{ color: '#6c757d' }}>■</span> <strong>Low Frequency:</strong> Used in &lt;20% of components</li>
           </ul>
         </div>
       </div>
@@ -307,8 +307,8 @@ export function HookExamplesIndex() {
         }}>
           <h3>Need Help?</h3>
           <p>
-            Check out the <strong>HOOKS_REFERENCE.md</strong> for complete documentation, 
-            or visit the <strong>PATTERN_GUIDE.md</strong> for architectural guidance.
+            See the Store Selection &amp; Usage Guide and Context-Layered Architecture
+            guides in <code>docs/en/context-layered/</code> for API selection and architecture rules.
           </p>
           <p>
             All examples are interactive and include TypeScript types for better understanding.

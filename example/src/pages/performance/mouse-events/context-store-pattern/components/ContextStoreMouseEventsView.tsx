@@ -396,8 +396,8 @@ interface MouseEventsStateData {
   hasActivity: boolean;
 }
 
-// Store Schema with Computed Integration
-const mouseEventsStoreSchema: StoreSchema<MouseEventsStores> = {
+// Initial Stores with Computed Integration
+const mouseEventsStoreConfig = {
   mouseState: {
     initialValue: {
       mousePosition: { x: -999, y: -999 },

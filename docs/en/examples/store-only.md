@@ -28,7 +28,7 @@ export const userStoreConfig = {
     lastLogin: null as Date | null
   },
   
-  // Configuration object with validation
+  // Configuration object with explicit comparison strategy
   preferences: {
     initialValue: {
       theme: 'light' as 'light' | 'dark',
@@ -44,42 +44,19 @@ export const userStoreConfig = {
         showLastLogin: false
       }
     },
-    validator: (value) => {
-      if (typeof value !== 'object' || value === null) return false;
-      if (!['light', 'dark'].includes(value.theme)) return false;
-      if (!['en', 'es', 'fr', 'de'].includes(value.language)) return false;
-      return true;
-    }
+    strategy: 'shallow' as const,
+    description: 'User UI preferences'
   },
   
-  // Derived state configuration
+  // Analytics state (derive summaries with useStoreSelector or computeAnalyticsSummary)
   analytics: {
     initialValue: {
       sessions: [] as Array<{ id: string; startTime: number; endTime?: number }>,
       pageViews: [] as Array<{ page: string; timestamp: number; duration?: number }>,
-      events: [] as Array<{ type: string; data: any; timestamp: number }>
+      events: [] as Array<{ type: string; data: unknown; timestamp: number }>
     },
-    derived: {
-      // Computed properties that update automatically
-      totalSessions: (analytics) => analytics.sessions.length,
-      activeSessions: (analytics) => analytics.sessions.filter(s => !s.endTime).length,
-      avgSessionDuration: (analytics) => {
-        const completedSessions = analytics.sessions.filter(s => s.endTime);
-        if (completedSessions.length === 0) return 0;
-        
-        const totalDuration = completedSessions.reduce((acc, session) => 
-          acc + (session.endTime! - session.startTime), 0
-        );
-        return totalDuration / completedSessions.length;
-      },
-      recentEvents: (analytics) => 
-        analytics.events.filter(e => Date.now() - e.timestamp < 300000), // Last 5 minutes
-      eventsByType: (analytics) => 
-        analytics.events.reduce((acc, event) => {
-          acc[event.type] = (acc[event.type] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>)
-    }
+    strategy: 'shallow' as const,
+    description: 'Session and event analytics log'
   },
   
   // Form state configuration
@@ -117,6 +94,37 @@ export const {
 } = createStoreContext('User', userStoreConfig);
 
 export type UserStores = typeof userStoreConfig;
+
+export function isValidPreferences(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    ['light', 'dark'].includes(String(candidate.theme)) &&
+    ['en', 'es', 'fr', 'de'].includes(String(candidate.language))
+  );
+}
+
+export function computeAnalyticsSummary(
+  analytics: typeof userStoreConfig.analytics.initialValue
+) {
+  const completedSessions = analytics.sessions.filter(s => s.endTime);
+  const avgSessionDuration =
+    completedSessions.length === 0
+      ? 0
+      : completedSessions.reduce((acc, s) => acc + ((s.endTime ?? s.startTime) - s.startTime), 0) /
+        completedSessions.length;
+
+  return {
+    totalSessions: analytics.sessions.length,
+    activeSessions: analytics.sessions.filter(s => !s.endTime).length,
+    avgSessionDuration,
+    recentEvents: analytics.events.slice(-20),
+    eventsByType: analytics.events.reduce((acc, event) => {
+      acc[event.type] = (acc[event.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>)
+  };
+}
 ```
 
 ### 3. Profile Management Component
@@ -507,12 +515,12 @@ export function UserPreferences() {
 ```typescript
 // components/AnalyticsDashboard.tsx
 import React, { useEffect } from 'react';
-import { useStoreValue } from '@context-action/react';
-import { useUserStore } from '../stores/UserStores';
+import { useStoreSelector } from '@context-action/react';
+import { computeAnalyticsSummary, useUserStore } from '../stores/UserStores';
 
 export function AnalyticsDashboard() {
   const analyticsStore = useUserStore('analytics');
-  const analytics = useStoreValue(analyticsStore);
+  const analyticsSummary = useStoreSelector(analyticsStore, computeAnalyticsSummary);
   
   // Simulate adding analytics data
   useEffect(() => {
@@ -600,16 +608,16 @@ export function AnalyticsDashboard() {
         <h3>Sessions</h3>
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="stat-value">{analytics.totalSessions}</div>
+            <div className="stat-value">{analyticsSummary.totalSessions}</div>
             <div className="stat-label">Total Sessions</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value">{analytics.activeSessions}</div>
+            <div className="stat-value">{analyticsSummary.activeSessions}</div>
             <div className="stat-label">Active Sessions</div>
           </div>
           <div className="stat-card">
             <div className="stat-value">
-              {Math.round(analytics.avgSessionDuration / 1000)}s
+              {Math.round(analyticsSummary.avgSessionDuration / 1000)}s
             </div>
             <div className="stat-label">Avg Duration</div>
           </div>
@@ -618,9 +626,9 @@ export function AnalyticsDashboard() {
       
       {/* Recent Events */}
       <div className="analytics-section">
-        <h3>Recent Events ({analytics.recentEvents.length})</h3>
+        <h3>Recent Events ({analyticsSummary.recentEvents.length})</h3>
         <div className="events-list">
-          {analytics.recentEvents.slice(-10).reverse().map((event, index) => (
+          {analyticsSummary.recentEvents.slice(-10).reverse().map((event, index) => (
             <div key={index} className="event-item">
               <div className="event-type">{event.type}</div>
               <div className="event-data">{JSON.stringify(event.data)}</div>
@@ -636,7 +644,7 @@ export function AnalyticsDashboard() {
       <div className="analytics-section">
         <h3>Events by Type</h3>
         <div className="event-types">
-          {Object.entries(analytics.eventsByType).map(([type, count]) => (
+          {Object.entries(analyticsSummary.eventsByType).map(([type, count]) => (
             <div key={type} className="event-type-stat">
               <span className="type-name">{type}</span>
               <span className="type-count">{count}</span>
@@ -849,14 +857,23 @@ export function ContactForm() {
 ```typescript
 // components/StoreManager.tsx
 import React, { useState } from 'react';
+import { userStoreConfig } from '../stores/UserStoreConfig';
 import { useUserStoreManager } from '../stores/UserStores';
 
 export function StoreManagerPanel() {
   const storeManager = useUserStoreManager();
   const [exportData, setExportData] = useState<string>('');
+  const storeInfo = storeManager.getInfo();
+
+  const snapshotAllStores = () => ({
+    profile: storeManager.getStore('profile').getValue(),
+    preferences: storeManager.getStore('preferences').getValue(),
+    analytics: storeManager.getStore('analytics').getValue(),
+    forms: storeManager.getStore('forms').getValue(),
+  });
   
   const exportState = () => {
-    const allValues = storeManager.getAllValues();
+    const allValues = snapshotAllStores();
     const dataStr = JSON.stringify(allValues, null, 2);
     setExportData(dataStr);
   };
@@ -864,29 +881,49 @@ export function StoreManagerPanel() {
   const importState = () => {
     try {
       const data = JSON.parse(exportData);
-      storeManager.setAllValues(data);
+      if (data.profile) storeManager.getStore('profile').setValue(data.profile);
+      if (data.preferences) storeManager.getStore('preferences').setValue(data.preferences);
+      if (data.analytics) storeManager.getStore('analytics').setValue(data.analytics);
+      if (data.forms) storeManager.getStore('forms').setValue(data.forms);
       alert('State imported successfully!');
-    } catch (error) {
+    } catch {
       alert('Invalid JSON data');
     }
   };
   
   const resetAllStores = () => {
     if (confirm('Are you sure you want to reset all stores to their initial values?')) {
-      storeManager.resetAll();
+      storeManager.getStore('profile').setValue(userStoreConfig.profile);
+      storeManager.getStore('preferences').setValue(userStoreConfig.preferences.initialValue);
+      storeManager.getStore('analytics').setValue(userStoreConfig.analytics.initialValue);
+      storeManager.getStore('forms').setValue(userStoreConfig.forms.initialValue);
     }
   };
   
-  const resetSpecificStore = (storeName: string) => {
+  const resetSpecificStore = (storeName: keyof typeof userStoreConfig) => {
     if (confirm(`Reset ${storeName} store to initial value?`)) {
-      storeManager.reset(storeName as any);
+      switch (storeName) {
+        case 'profile':
+          storeManager.getStore('profile').setValue(userStoreConfig.profile);
+          break;
+        case 'preferences':
+          storeManager.getStore('preferences').setValue(userStoreConfig.preferences.initialValue);
+          break;
+        case 'analytics':
+          storeManager.getStore('analytics').setValue(userStoreConfig.analytics.initialValue);
+          break;
+        case 'forms':
+          storeManager.getStore('forms').setValue(userStoreConfig.forms.initialValue);
+          break;
+      }
     }
   };
   
   const logStoreInfo = () => {
-    console.log('Store Names:', storeManager.getStoreNames());
-    console.log('Store Count:', storeManager.getStoreCount());
-    console.log('All Values:', storeManager.getAllValues());
+    console.log('Store Registry Name:', storeInfo.name);
+    console.log('Available Stores:', storeInfo.availableStores);
+    console.log('Initialized Store Count:', storeInfo.storeCount);
+    console.log('All Values:', snapshotAllStores());
   };
   
   return (
@@ -896,8 +933,8 @@ export function StoreManagerPanel() {
       {/* Store Information */}
       <div className="manager-section">
         <h3>Store Information</h3>
-        <p>Total Stores: {storeManager.getStoreCount()}</p>
-        <p>Available Stores: {storeManager.getStoreNames().join(', ')}</p>
+        <p>Initialized Stores: {storeInfo.storeCount}</p>
+        <p>Available Stores: {storeInfo.availableStores.join(', ')}</p>
         <button onClick={logStoreInfo}>Log Store Info to Console</button>
       </div>
       
@@ -905,13 +942,13 @@ export function StoreManagerPanel() {
       <div className="manager-section">
         <h3>Reset Operations</h3>
         <div className="reset-buttons">
-          {storeManager.getStoreNames().map(storeName => (
+          {storeInfo.availableStores.map(storeName => (
             <button
-              key={String(storeName)}
-              onClick={() => resetSpecificStore(String(storeName))}
+              key={storeName}
+              onClick={() => resetSpecificStore(storeName as keyof typeof userStoreConfig)}
               className="reset-store-button"
             >
-              Reset {String(storeName)}
+              Reset {storeName}
             </button>
           ))}
         </div>
@@ -1014,7 +1051,10 @@ export function usePersistence() {
   // Auto-save to localStorage
   useEffect(() => {
     const saveInterval = setInterval(() => {
-      const state = storeManager.getAllValues();
+      const state = {
+        profile: storeManager.getStore('profile').getValue(),
+        preferences: storeManager.getStore('preferences').getValue(),
+      };
       localStorage.setItem('user-app-state', JSON.stringify(state));
     }, 5000); // Save every 5 seconds
     
@@ -1053,45 +1093,47 @@ export function usePersistence() {
 // components/ComputedState.tsx
 import React from 'react';
 import { useStoreValue } from '@context-action/react';
-import { useUserStore } from '../stores/UserStores';
+import { useComputedStore } from '@context-action/react/advanced';
+import { computeAnalyticsSummary, useUserStore } from '../stores/UserStores';
 
 export function ComputedStateDemo() {
   const analyticsStore = useUserStore('analytics');
   const preferencesStore = useUserStore('preferences');
   
-  const analytics = useStoreValue(analyticsStore);
+  const analyticsSummary = useComputedStore(analyticsStore, computeAnalyticsSummary);
   const preferences = useStoreValue(preferencesStore);
+  const maxEventCount = Math.max(1, ...Object.values(analyticsSummary.eventsByType));
   
-  // Computed values are automatically updated when base state changes
+  // Computed values automatically recalculate when base store changes
   return (
     <div className="computed-state">
       <h2>Computed State Examples</h2>
       
       <div className="computed-values">
         <div className="computed-item">
-          <strong>Total Sessions:</strong> {analytics.totalSessions}
+          <strong>Total Sessions:</strong> {analyticsSummary.totalSessions}
         </div>
         <div className="computed-item">
-          <strong>Active Sessions:</strong> {analytics.activeSessions}
+          <strong>Active Sessions:</strong> {analyticsSummary.activeSessions}
         </div>
         <div className="computed-item">
-          <strong>Average Session Duration:</strong> {Math.round(analytics.avgSessionDuration / 1000)}s
+          <strong>Average Session Duration:</strong> {Math.round(analyticsSummary.avgSessionDuration / 1000)}s
         </div>
         <div className="computed-item">
-          <strong>Recent Events Count:</strong> {analytics.recentEvents.length}
+          <strong>Recent Events Count:</strong> {analyticsSummary.recentEvents.length}
         </div>
       </div>
       
       <div className="event-types-breakdown">
         <h3>Event Types Breakdown</h3>
-        {Object.entries(analytics.eventsByType).map(([type, count]) => (
+        {Object.entries(analyticsSummary.eventsByType).map(([type, count]) => (
           <div key={type} className="event-type-row">
             <span>{type}:</span>
             <span>{count} events</span>
             <div 
               className="event-bar" 
               style={{ 
-                width: `${(count / Math.max(...Object.values(analytics.eventsByType))) * 100}%` 
+                width: `${(count / maxEventCount) * 100}%` 
               }}
             />
           </div>
@@ -1164,7 +1206,10 @@ export function useServerSync() {
   useEffect(() => {
     const syncInterval = setInterval(async () => {
       try {
-        const currentState = storeManager.getAllValues();
+        const currentState = {
+          profile: storeManager.getStore('profile').getValue(),
+          preferences: storeManager.getStore('preferences').getValue(),
+        };
         
         // Send current state to server
         const response = await fetch('/api/sync-user-state', {
@@ -1176,9 +1221,12 @@ export function useServerSync() {
         if (response.ok) {
           const serverState = await response.json();
           
-          // Update with server state if different
-          if (JSON.stringify(currentState) !== JSON.stringify(serverState)) {
-            storeManager.setAllValues(serverState);
+          // Update individual stores if server state differs
+          if (serverState.profile && JSON.stringify(currentState.profile) !== JSON.stringify(serverState.profile)) {
+            storeManager.getStore('profile').setValue(serverState.profile);
+          }
+          if (serverState.preferences && JSON.stringify(currentState.preferences) !== JSON.stringify(serverState.preferences)) {
+            storeManager.getStore('preferences').setValue(serverState.preferences);
           }
         }
       } catch (error) {
@@ -1341,23 +1389,24 @@ export function useServerSync() {
 
 ✅ **Type Safety**: Automatic type inference without manual type annotations  
 ✅ **Reactive Updates**: Components automatically re-render on state changes  
-✅ **Derived State**: Computed properties update automatically when base state changes  
-✅ **Validation**: Built-in validation support with custom validator functions  
+✅ **Derived State**: Memoized computation via `useStoreSelector` and `useComputedStore`  
+✅ **Comparison Strategies**: Explicit `reference`, `shallow`, and `deep` equality control  
 ✅ **HOC Pattern**: Clean provider integration with `withProvider()`  
-✅ **Store Manager**: Centralized management for reset, export, and bulk operations
+✅ **Store Manager**: Centralized typed access (`getStore()`, `getInfo()`, `clear()`)
 
 ## Best Practices
 
 1. **Direct Values**: Use direct value configuration for simple types
-2. **Configuration Objects**: Use for complex validation and derived state
+2. **Configuration Objects**: Use `initialValue`, `strategy`, and `description` for complex objects
 3. **HOC Pattern**: Prefer `withProvider()` for automatic provider wrapping
-4. **Reactive Subscriptions**: Always use `useStoreValue()` for component updates
-5. **Bulk Operations**: Use Store Manager for reset and bulk operations
+4. **Selective Subscriptions**: Use `useStoreSelector`, `useStorePath`, or `useComputedStore` for derived views
+5. **Typed Store Manager Access**: Use `storeManager.getStore(name)` and pure helper validators around mutations
 6. **State Structure**: Keep related state together in logical groupings
 
 ## Related
 
-- **[Store Pattern API](../api/react/store-pattern)** - Store Pattern API reference
-- **[Store Manager API](../api/react/store-manager)** - Store Manager documentation  
-- **[Main Patterns Guide](../guide/patterns)** - Pattern comparison and selection
+- **[Store Selection & Usage Guide](../context-layered/store-selection-and-usage-guide)** - Choosing stores and React subscription hooks
+- **[Store Pattern Guide](../guide/patterns/store/basic-usage)** - Store Only pattern setup and usage
+- **[Store Manager API](../guide/patterns/store/useStoreManager-api)** - `getStore()`, `getInfo()`, and lifecycle methods
+- **[Main Patterns Guide](../concept/pattern-guide)** - Pattern comparison and selection
 - **[Pattern Composition Example](./pattern-composition)** - Combining with Action Pattern

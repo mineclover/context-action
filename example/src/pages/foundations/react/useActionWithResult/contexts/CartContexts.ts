@@ -1,5 +1,5 @@
 /**
- * Context Definitions & Types Layer (5-Layer Architecture)
+ * Context Definitions & Types Layer (6-Layer Context-Layered Architecture)
  *
  * This layer defines:
  * - TypeScript interfaces and types

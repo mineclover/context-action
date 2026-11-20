@@ -17,8 +17,8 @@ async function advancedExample() {
     packageMapping: {
       'core': 'core',
       'react': 'react',
-      'utils': 'utilities',
-      'types': 'type-definitions'
+      'store-core': 'store-core',
+      'mutative': 'mutative'
     },
     cache: {
       enabled: true,

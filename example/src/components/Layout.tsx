@@ -73,7 +73,7 @@ function Layout({
     // === Main Navigation ===
     { path: '/', label: 'Home', category: 'main' },
 
-    // === 5-Layer Architecture (최우선 표시) ===
+    // === 6-Layer Context-Layered Architecture (최우선 표시) ===
     {
       path: '/patterns/layered-architecture',
       label: '🏗️ Layered Architecture',
@@ -170,13 +170,25 @@ function Layout({
     },
 
     // === Core Concepts (기초 개념) ===
-    { path: '/core/basics', label: '1. Core Basics', category: 'core' },
-    { path: '/core/advanced', label: '2. Core Advanced', category: 'core' },
+    {
+      path: '/foundations/core/basics',
+      label: '1. Core Basics',
+      category: 'core',
+    },
+    {
+      path: '/foundations/core/advanced',
+      label: '2. Core Advanced',
+      category: 'core',
+    },
 
     // === Store System (상태 관리) ===
-    { path: '/store/basics', label: '3. Store Basics', category: 'store' },
     {
-      path: '/store/immutability-test',
+      path: '/foundations/store/basics',
+      label: '3. Store Basics',
+      category: 'store',
+    },
+    {
+      path: '/foundations/store/immutability-test',
       label: '4. 🔒 Immutability Test',
       category: 'store',
     },
@@ -195,20 +207,28 @@ function Layout({
 
     // === React Integration (리액트 통합) ===
     {
-      path: '/react/provider',
-      label: '5. 🔧 Unified Provider',
-      category: 'react',
-    },
-    { path: '/react/context', label: '6. 🏗️ React Context', category: 'react' },
-    { path: '/react/hooks', label: '7. React Hooks', category: 'react' },
-    {
-      path: '/react/useActionWithResult',
-      label: '8. ✨ useActionWithResult',
+      path: '/foundations/react/provider',
+      label: '7. 🔧 Unified Provider',
       category: 'react',
     },
     {
-      path: '/react/imperativeRef',
-      label: '9. 🎯 useImperativeHandle + Ref Context',
+      path: '/foundations/react/context',
+      label: '8. 🏗️ React Context',
+      category: 'react',
+    },
+    {
+      path: '/foundations/react/hooks',
+      label: '9. React Hooks',
+      category: 'react',
+    },
+    {
+      path: '/foundations/react/useActionWithResult',
+      label: '10. ✨ useActionWithResult',
+      category: 'react',
+    },
+    {
+      path: '/foundations/react/imperativeRef',
+      label: '11. 🎯 useImperativeHandle + Ref Context',
       category: 'react',
     },
 
@@ -222,10 +242,16 @@ function Layout({
 
     // Individual Store Demos
     {
-      path: '/demos/chat',
+      path: '/integrations/business/chat',
       label: '💬 Chat Demo',
       category: 'demos',
       description: 'Real-time messaging and auto-scroll features',
+    },
+    {
+      path: '/integrations/advanced/form-builder',
+      label: '📝 Form Builder Demo',
+      category: 'demos',
+      description: 'Dynamic form building with ref-based field management',
     },
     {
       path: '/catalog/integrations/mcp-function-calling',
@@ -236,7 +262,7 @@ function Layout({
 
     // === Advanced Demos (고급 데모) ===
     {
-      path: '/action-guard',
+      path: '/performance/action-guard',
       label: '🛡️ ActionGuard (Standardized)',
       category: 'actionguard',
       isIndex: true,
@@ -244,24 +270,24 @@ function Layout({
         'New standardized ActionGuard demonstrations with unified structure',
     },
     {
-      path: '/actionguard/search',
+      path: '/performance/action-guard/search',
       label: '🔍 Advanced Search Demo',
       category: 'actionguard',
     },
     {
-      path: '/actionguard/scroll',
+      path: '/performance/action-guard/scroll',
       label: '📜 Advanced Scroll Demo',
       category: 'actionguard',
     },
     {
-      path: '/actionguard/api-blocking',
+      path: '/performance/action-guard/api-blocking',
       label: '🚫 API Blocking Demo',
       category: 'actionguard',
       description: 'Working demo with unified structure',
     },
     // === Conditional Execution Patterns (조건부 실행 패턴) ===
     {
-      path: '/actionguard/conditional',
+      path: '/patterns/conditional',
       label: '🎯 Conditional Patterns',
       category: 'conditional',
       isIndex: true,
@@ -269,55 +295,55 @@ function Layout({
       description: 'Complete conditional execution pattern collection',
     },
     {
-      path: '/actionguard/conditional/permissions',
+      path: '/patterns/conditional/permissions',
       label: '🔒 Permission-Based',
       category: 'conditional',
       section: 'intermediate',
       description: 'Role-based access control with audit logging',
     },
     {
-      path: '/actionguard/conditional/form-validation',
+      path: '/patterns/conditional/form-validation',
       label: '📝 Form Validation',
       category: 'conditional',
       section: 'basic',
       description: 'Real-time validation with conditional submission',
     },
     {
-      path: '/actionguard/conditional/workflow-steps',
+      path: '/patterns/conditional/workflow-steps',
       label: '⚡ Sequential Workflow',
       category: 'conditional',
       section: 'intermediate',
       description: 'Multi-step conditional execution with progress tracking',
     },
     {
-      path: '/actionguard/conditional/feature-toggle',
+      path: '/patterns/conditional/feature-toggle',
       label: '🎛️ Feature Toggle',
       category: 'conditional',
       section: 'basic',
       description: 'Environment and user-based conditional features',
     },
     {
-      path: '/actionguard/advanced-filtering',
+      path: '/performance/action-guard/advanced-filtering',
       label: '🎛️ Advanced Filtering Demo',
       category: 'actionguard',
       description:
         'Sophisticated handler filtering strategies with result collection',
     },
     {
-      path: '/actionguard/priority-performance-advanced',
+      path: '/performance/priority/advanced',
       label: '🚀 Priority Performance Advanced',
       category: 'actionguard',
       description: 'Multi-instance advanced priority testing system',
     },
     {
-      path: '/actionguard/throttle-comparison',
+      path: '/performance/action-guard/throttle-comparison',
       label: '⚖️ Throttle Comparison Demo',
       category: 'actionguard',
     },
 
     // === Pipeline Features (파이프라인 기능) ===
     {
-      path: '/pipeline/flow-control',
+      path: '/patterns/pipeline/flow-control',
       label: '🔀 Flow Control Playground',
       category: 'pipeline',
       description:
@@ -326,26 +352,30 @@ function Layout({
 
     // === Specialized Features (전문 기능) ===
     {
-      path: '/refs',
+      path: '/patterns/refs',
       label: '🎯 Refs Management',
       category: 'refs',
       isIndex: true,
     },
-    { path: '/refs/canvas', label: '🎨 Canvas Ref Demo', category: 'refs' },
     {
-      path: '/actionguard/mouse-events',
+      path: '/patterns/refs/canvas',
+      label: '🎨 Canvas Ref Demo',
+      category: 'refs',
+    },
+    {
+      path: '/performance/mouse-events',
       label: '🖱️ Mouse Events Demo',
       category: 'refs',
     },
     {
-      path: '/refs/waitforrefs-performance',
+      path: '/patterns/refs/waitforrefs-performance',
       label: '⚡ useWaitForRefs Performance',
       category: 'refs',
       description:
         'Performance verification demo for useWaitForRefs optimization',
     },
     {
-      path: '/refs/use-ref-mount-state-test',
+      path: '/patterns/refs/use-ref-mount-state-test',
       label: '🎯 useRefMountState Test',
       category: 'refs',
       description: 'Isolated test page for useRefMountState hook functionality',
@@ -397,19 +427,30 @@ function Layout({
       category: 'utilities',
       description: 'Test Context-Action warning message features',
     },
-    { path: '/logger/demo', label: 'Logger System', category: 'utilities' },
     {
-      path: '/examples/toast-config',
+      path: '/utilities/dev-tools/store-scenarios',
+      label: '🏪 Store Scenarios & Comparison Strategies',
+      category: 'utilities',
+      description:
+        'Compare reference/shallow/deep store comparison strategies and live chat state',
+    },
+    {
+      path: '/utilities/dev-tools/logger',
+      label: 'Logger System',
+      category: 'utilities',
+    },
+    {
+      path: '/utilities/dev-tools/toast-config',
       label: '🍞 Toast Config Example',
       category: 'utilities',
     },
     {
-      path: '/examples/concurrent-actions',
+      path: '/integrations/advanced/concurrent-actions',
       label: '🔄 Concurrent Actions Test',
       category: 'utilities',
     },
     {
-      path: '/examples/enhanced-search',
+      path: '/utilities/testing/enhanced-search',
       label: '🔍 Enhanced Abortable Search',
       category: 'utilities',
     },

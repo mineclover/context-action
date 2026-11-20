@@ -6,7 +6,7 @@
  */
 
 import React, { useCallback, useState, useEffect } from 'react';
-import { createRefContext } from '../../src/refs/createRefContext';
+import { createRefContext } from '@context-action/react';
 
 // DOM 요소 타입 정의 (방법 1: 심플한 타입 사용)
 interface FormElements {

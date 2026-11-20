@@ -1,5 +1,5 @@
 import { type ActionPayloadMap, ActionRegister } from '@context-action/core';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Container } from '../components/ui/Container';
@@ -15,6 +15,7 @@ interface DemoActions extends ActionPayloadMap {
 const WarningDemoPage: React.FC = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const [counter, setCounter] = useState(0);
+  const counterRef = useRef(0);
   const [registry] = useState(
     () =>
       new ActionRegister<DemoActions>({
@@ -49,11 +50,13 @@ const WarningDemoPage: React.FC = () => {
       registry.register(
         'typeOnlyAction',
         (payload) => {
-          setCounter((prev) => prev + 1);
+          const nextCounter = counterRef.current + 1;
+          counterRef.current = nextCounter;
+          setCounter(nextCounter);
           addLog(
-            `🎯 Handler executed: Counter increased to ${counter + 1} (payload: ${payload.value})`
+            `🎯 Handler executed: Counter increased to ${nextCounter} (payload: ${payload.value})`
           );
-          return { success: true, counter: counter + 1 };
+          return { success: true, counter: nextCounter };
         },
         { id: 'counter-handler', priority: 100 }
       );
@@ -70,6 +73,7 @@ const WarningDemoPage: React.FC = () => {
   };
 
   const resetCounter = () => {
+    counterRef.current = 0;
     setCounter(0);
     addLog('🔄 Counter reset to 0');
   };

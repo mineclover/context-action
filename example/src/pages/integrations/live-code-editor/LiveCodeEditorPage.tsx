@@ -124,19 +124,19 @@ export function App() {
     label: 'Store selector',
     file: 'cart-store.ts',
     description: '선택 구독으로 필요한 값만 렌더링합니다.',
-    code: `import { createStore } from '@context-action/react';
+    code: `import { createStore, useStoreSelector } from '@context-action/react';
 
-const cartStore = createStore({
-  items: [],
-  coupon: null,
+const cartStore = createStore('cart', {
+  items: [] as Array<{ price: number; qty: number }>,
+  coupon: null as string | null,
 });
 
 const total = useStoreSelector(
   cartStore,
-  (state) => state.items.reduce(sumItems, 0),
+  (state) => state.items.reduce((sum, item) => sum + item.price * item.qty, 0),
 );
 
-cartStore.setState((state) => ({
+cartStore.update((state) => ({
   ...state,
   coupon: 'WELCOME10',
 }));`,

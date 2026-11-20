@@ -20,7 +20,7 @@ const coreConcepts: CoreConcept[] = [
     title: 'Core Basics',
     description:
       'Fundamental concepts of the Context-Action framework including createActionContext pattern and handler registration',
-    path: '/core/basics',
+    path: '/foundations/core/basics',
     category: 'foundation',
     concepts: [
       'createActionContext',
@@ -37,7 +37,7 @@ const coreConcepts: CoreConcept[] = [
     title: 'Core Advanced',
     description:
       'Advanced action pipeline features including priority management, result handling, and complex workflows',
-    path: '/core/advanced',
+    path: '/foundations/core/advanced',
     category: 'foundation',
     concepts: [
       'Priority System',
@@ -54,7 +54,7 @@ const coreConcepts: CoreConcept[] = [
     title: 'Store Basics',
     description:
       'State management fundamentals with reactive store patterns and declarative store integration',
-    path: '/store/basics',
+    path: '/foundations/store/basics',
     category: 'integration',
     concepts: [
       'Store Creation',
@@ -71,7 +71,7 @@ const coreConcepts: CoreConcept[] = [
     title: 'Store Immutability Test',
     description:
       'Deep dive into immutability patterns and state safety verification with performance analysis',
-    path: '/store/immutability-test',
+    path: '/foundations/store/immutability-test',
     category: 'integration',
     concepts: [
       'Immutable Updates',
@@ -88,7 +88,7 @@ const coreConcepts: CoreConcept[] = [
     title: 'React Provider',
     description:
       'React integration with unified provider patterns and context management architecture',
-    path: '/react/provider',
+    path: '/foundations/react/provider',
     category: 'integration',
     concepts: [
       'Provider Patterns',
@@ -105,7 +105,7 @@ const coreConcepts: CoreConcept[] = [
     title: 'React Context',
     description:
       'React Context API integration with Context-Action framework patterns and best practices',
-    path: '/react/context',
+    path: '/foundations/react/context',
     category: 'integration',
     concepts: [
       'Context API',
@@ -122,7 +122,7 @@ const coreConcepts: CoreConcept[] = [
     title: 'React Hooks',
     description:
       'Essential React hooks for Context-Action integration and comprehensive state management',
-    path: '/react/hooks',
+    path: '/foundations/react/hooks',
     category: 'integration',
     concepts: [
       'useActionDispatch',
@@ -139,7 +139,7 @@ const coreConcepts: CoreConcept[] = [
     title: 'useActionWithResult',
     description:
       'Advanced hook for action execution with result handling, loading states, and complex workflow orchestration',
-    path: '/react/useActionWithResult',
+    path: '/foundations/react/useActionWithResult',
     category: 'patterns',
     concepts: [
       'Result Collection',
@@ -293,19 +293,29 @@ function CoreConceptsOverview() {
             </div>
 
             <div className="bg-white/50 p-4 rounded-lg">
-              <h3 className="font-medium text-blue-900 mb-2">🏗️ 4계층 구조</h3>
+              <h3 className="font-medium text-blue-900 mb-2">
+                🏗️ 6계층 Context-Layered 구조
+              </h3>
               <ul className="text-sm text-blue-700 space-y-1">
                 <li>
-                  • <strong>contexts/:</strong> 컨텍스트 정의 및 타입 선언
+                  • <strong>contexts/:</strong> 컨텍스트 정의 및 타입 경계 선언
                 </li>
                 <li>
-                  • <strong>handlers/:</strong> Props 기반 핸들러 로직
+                  • <strong>business/:</strong> 프레임워크 비의존 순수 비즈니스
+                  로직
+                </li>
+                <li>
+                  • <strong>handlers/:</strong> 상태 읽기·로직 실행·쓰기
+                  오케스트레이션
                 </li>
                 <li>
                   • <strong>actions/:</strong> 디스패치 및 콜백 관리
                 </li>
                 <li>
-                  • <strong>views/:</strong> 순수 UI 컴포넌트
+                  • <strong>hooks/:</strong> Store 구독 및 파생 상태 훅
+                </li>
+                <li>
+                  • <strong>views/:</strong> 순수 UI 프레젠테이션 컴포넌트
                 </li>
               </ul>
             </div>

@@ -845,7 +845,8 @@ function SequentialProcessor() {
 
 ## Related
 
-- **[Action Pipeline Guide](../guide/action-pipeline)** - Comprehensive action pipeline documentation
-- **[ActionRegister API](../api/core/action-register)** - Core action system
-- **[PipelineController API](../api/core/pipeline-controller)** - Pipeline control methods
+- **[Context-Layered Architecture Guide](../context-layered/context-layered-guide)** - 6-layer separation between handlers, business logic, and views
+- **[Action Pipeline Guide](../concept/action-pipeline-guide)** - Comprehensive action pipeline documentation
+- **[Core API Overview](../api/core/src/README)** - Core `ActionRegister` and pipeline APIs
+- **[Pipeline Guide](../guide/pipeline/index)** - Pipeline priority, filtering, and dispatch controls
 - **[Pattern Composition Example](./pattern-composition)** - Combining with Store Pattern

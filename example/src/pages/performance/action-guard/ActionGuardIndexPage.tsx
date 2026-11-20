@@ -6,62 +6,56 @@ import { Link } from 'react-router-dom';
 
 const actionGuardDemos = [
   {
-    path: '/actionguard/showcase',
+    path: '/performance/action-guard/showcase',
     title: '🧪 ActionGuard Runtime Showcase',
     description: 'priority command 실행과 API·검색·throttle usecase 모음',
     tags: ['Registry', 'Priority', 'Usecase'],
   },
   {
-    path: '/actionguard/search',
+    path: '/performance/action-guard/search',
     title: '🔍 Advanced Search Demo',
     description: '고급 검색 기능과 abort 가능한 검색 시스템',
     tags: ['Search', 'Abort', 'Performance'],
   },
   {
-    path: '/actionguard/scroll',
+    path: '/performance/action-guard/scroll',
     title: '📜 Advanced Scroll Demo',
     description: '무한 스크롤과 가상화된 스크롤링 시스템',
     tags: ['Scroll', 'Virtualization', 'Performance'],
   },
   {
-    path: '/actionguard/api-blocking',
+    path: '/performance/action-guard/api-blocking',
     title: '🚫 API Blocking Demo',
     description: 'API 요청 차단 및 중복 요청 방지 시스템',
     tags: ['API', 'Blocking', 'Optimization'],
   },
   {
-    path: '/actionguard/mouse-events',
+    path: '/performance/mouse-events',
     title: '🖱️ Mouse Events Demo',
     description: '고급 마우스 이벤트 처리 및 최적화',
     tags: ['Mouse', 'Events', 'Interaction'],
   },
   {
-    path: '/actionguard/priority-performance-advanced',
+    path: '/performance/priority/advanced',
     title: '🚀 Priority Performance Advanced',
     description: '다중 인스턴스 우선순위 성능 테스트 (고급)',
     tags: ['Priority', 'Multi-Instance', 'Advanced'],
   },
   {
-    path: '/actionguard/throttle-comparison',
+    path: '/performance/action-guard/throttle-comparison',
     title: '⚖️ Throttle Comparison Demo',
     description: '다양한 쓰로틀링 방법 비교 분석',
     tags: ['Throttle', 'Performance', 'Comparison'],
   },
   {
-    path: '/actionguard/conditional-execution',
-    title: '🔄 Conditional Execution (All-in-One)',
-    description: '통합 조건부 실행 데모 - 모든 패턴을 한 페이지에서',
-    tags: ['Conditional', 'All-in-One', 'Legacy'],
-  },
-  {
-    path: '/actionguard/conditional',
+    path: '/patterns/conditional',
     title: '🎯 Conditional Execution Patterns',
     description:
       '패턴별 분리된 조건부 실행 데모 - 환경, 기능플래그, 권한, 비즈니스룰',
     tags: ['Conditional', 'Patterns', 'Focused'],
   },
   {
-    path: '/actionguard/advanced-filtering',
+    path: '/performance/action-guard/advanced-filtering',
     title: '🎛️ Advanced Filtering Demo',
     description:
       '고급 필터링 패턴 - 핸들러 ID, 우선순위, 커스텀 로직, 결합 필터링',

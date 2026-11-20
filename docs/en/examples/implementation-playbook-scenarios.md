@@ -121,7 +121,7 @@ This scenario is now promoted to a full interactive example.
 
 - `renewalDraft.ts`
 - `renewalValidation.ts`
-- `renewalRiskScore.ts`
+- `renewalRiskPacket.ts`
 - `renewalStateMachine.ts`
 - `renewalActivity.ts`
 

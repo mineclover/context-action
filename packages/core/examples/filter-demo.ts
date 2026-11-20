@@ -1,10 +1,9 @@
 /**
  * Filter functionality demonstration
- * Run: pnpm tsx filter-demo.ts
+ * Run: npx tsx packages/core/examples/filter-demo.ts
  */
 
-import { ActionRegister } from '../src/ActionRegister';
-import { ActionPayloadMap } from '../src/types';
+import { ActionRegister, type ActionPayloadMap } from '../src/index.js';
 
 interface DemoActions extends ActionPayloadMap {
   processData: { userId: string; data: any };

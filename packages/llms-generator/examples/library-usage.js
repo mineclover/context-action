@@ -1,106 +1,80 @@
 #!/usr/bin/env node
 
 /**
- * CategoryMinimumGenerator 라이브러리 사용 예시
- * TypeScript로 빌드된 라이브러리를 JavaScript에서 사용하는 방법 데모
+ * @context-action/llms-generator programmatic configuration example.
+ *
+ * Build the package first (`pnpm build:llms-generator`), then run:
+ *   node packages/llms-generator/examples/library-usage.js
  */
 
-import { CategoryMinimumGenerator } from './dist/index.js';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { DEFAULT_CONFIG, EnhancedConfigManager } from '../dist/index.js';
 
 async function demonstrateLibraryUsage() {
-  console.log('🔧 CategoryMinimumGenerator 라이브러리 사용 예시\n');
+  console.log('@context-action/llms-generator Library Usage Example\n');
 
-  // 1. 생성기 초기화
-  console.log('📋 1. 생성기 초기화');
-  const generator = new CategoryMinimumGenerator({
-    dataDir: './data',
-    outputDir: './test/outputs'
-  });
-
-  // 2. 사용 가능한 카테고리 확인
-  console.log('📂 2. 사용 가능한 카테고리 확인');
-  const categories = generator.getAvailableCategories();
-  console.log(`사용 가능한 카테고리: ${categories.join(', ')}`);
-
-  for (const category of categories) {
-    const patterns = generator.getCategoryPatterns(category);
-    console.log(`  - ${category}: ${patterns.join(', ')}`);
-  }
+  // 1. Inspect built-in DEFAULT_CONFIG
+  console.log('1. Default configuration snapshot:');
+  console.log('   docsDir:', DEFAULT_CONFIG.paths.docsDir);
+  console.log('   llmContentDir:', DEFAULT_CONFIG.paths.llmContentDir);
+  console.log('   outputDir:', DEFAULT_CONFIG.paths.outputDir);
+  console.log(
+    '   languages:',
+    DEFAULT_CONFIG.generation.supportedLanguages.join(', ')
+  );
+  console.log(
+    '   characterLimits:',
+    DEFAULT_CONFIG.generation.characterLimits.join(', ')
+  );
   console.log('');
 
-  // 3. 언어별 문서 통계 확인
-  console.log('📊 3. 언어별 문서 통계 확인');
-  const languages = ['en', 'ko'];
-  
-  for (const language of languages) {
-    console.log(`\n${language.toUpperCase()} 언어:`);
-    const availableDocs = generator.getAvailableDocuments(language);
-    availableDocs.forEach(({ category, count }) => {
-      console.log(`  - ${category}: ${count}개 문서`);
-    });
-    
-    // 상세 통계
-    const stats = generator.getAllStats(language);
-    stats.forEach(stat => {
-      console.log(`  📈 ${stat.category} 상세:`);
-      console.log(`     총 문서: ${stat.totalDocuments}개`);
-      console.log(`     평균 우선순위: ${stat.averagePriorityScore}`);
-      console.log(`     티어별: ${JSON.stringify(stat.tierBreakdown)}`);
-    });
-  }
-
-  // 4. 단일 카테고리 생성 테스트
-  console.log('\n🎯 4. 단일 카테고리 생성 테스트');
+  // 2. Initialize, validate, save, and reload an enhanced config in a temp directory
+  const workDir = await mkdtemp(join(tmpdir(), 'llms-generator-example-'));
   try {
-    const result = await generator.generateSingle('api-spec', 'en');
-    
-    if (result.success) {
-      console.log(`✅ 성공: ${result.filePath}`);
-      console.log(`   문서 수: ${result.documentCount}개`);
-      console.log(`   카테고리: ${result.category}`);
-      console.log(`   언어: ${result.language}`);
-    } else {
-      console.log(`❌ 실패: ${result.error}`);
-    }
-  } catch (error) {
-    console.log(`💥 오류: ${error.message}`);
-  }
-  console.log('');
+    const configPath = join(workDir, 'llms-generator.config.json');
+    const manager = new EnhancedConfigManager(configPath);
 
-  // 5. 배치 생성 테스트
-  console.log('\n🚀 5. 배치 생성 테스트');
-  try {
-    const results = await generator.generateBatch({
-      languages: ['en', 'ko'],
-      categories: ['api-spec', 'guide']
-    });
+    const standardPreset = manager.getConfigPreset('standard');
+    console.log('2. Selected preset:', standardPreset.name);
+    console.log('   Description:', standardPreset.description);
+    console.log(
+      '   Preset limits:',
+      standardPreset.characterLimits.join(', ')
+    );
 
-    console.log(`총 ${results.length}개의 생성 작업 완료:`);
-    
-    let successCount = 0;
-    let failureCount = 0;
-    
-    results.forEach(result => {
-      if (result.success) {
-        successCount++;
-        console.log(`  ✅ ${result.category} (${result.language}): ${result.documentCount}개 문서`);
-      } else {
-        failureCount++;
-        console.log(`  ❌ ${result.category} (${result.language}): ${result.error}`);
-      }
-    });
-    
-    console.log(`\n📊 결과 요약: 성공 ${successCount}개, 실패 ${failureCount}개`);
-    
-  } catch (error) {
-    console.log(`💥 배치 생성 오류: ${error.message}`);
+    const initialized = await manager.initializeConfig('standard');
+    manager.validateConfig(initialized);
+    const reloaded = await manager.loadConfig();
+    const active = manager.getConfig();
+
+    console.log('   Saved config path:', configPath);
+    console.log(
+      '   Categories loaded:',
+      Object.keys(reloaded.categories).join(', ')
+    );
+    console.log(
+      '   Active config validated:',
+      Boolean(active && active.generation.characterLimits.length > 0)
+    );
+    console.log('');
+  } finally {
+    await rm(workDir, { recursive: true, force: true });
   }
 
-  console.log('\n🎉 라이브러리 사용 예시 완료!');
-  console.log('📁 생성된 파일들은 ./test/outputs/ 디렉토리에서 확인하세요.');
+  // 3. CLI commands for generating templates & combined LLMS bundles
+  console.log('3. CLI workflows (via @context-action/llms-generator/cli):');
+  console.log(
+    '   Sync changed docs (comma-separated): pnpm llms:sync-docs --changed-files docs/en/guide/getting-started.md,docs/ko/guide/getting-started.md'
+  );
+  console.log(
+    '   Combine LLMS output: node packages/llms-generator/dist/cli/index.js llms-generate --character-limit 1000 --pattern standard'
+  );
+  console.log('   Check priority health: pnpm llms:priority-health');
 }
 
-// 실행
-if (import.meta.url === `file://${process.argv[1]}`) {
-  demonstrateLibraryUsage().catch(console.error);
-}
+demonstrateLibraryUsage().catch((error) => {
+  console.error('Example failed:', error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
+});

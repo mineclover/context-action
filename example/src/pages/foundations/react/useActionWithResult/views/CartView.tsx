@@ -1,5 +1,5 @@
 /**
- * Pure UI Components Layer (5-Layer Architecture)
+ * Pure UI Components Layer (6-Layer Context-Layered Architecture)
  *
  * This layer:
  * - Contains pure presentational components
