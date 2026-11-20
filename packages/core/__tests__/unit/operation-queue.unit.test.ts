@@ -793,5 +793,29 @@ describe('OperationQueue Unit Tests', () => {
       expect(results[1]).toBeNull();
       expect(results[2]).toBe(false);
     });
+
+    it('drains re-entrant enqueues iteratively without dropping work', async () => {
+      const seen: number[] = [];
+      const pending: Array<Promise<void>> = [];
+      const schedule = (index: number) => {
+        pending.push(
+          queue.enqueue(() => {
+            seen.push(index);
+            if (index < 200) {
+              schedule(index + 1);
+            }
+          }),
+        );
+      };
+
+      schedule(1);
+      while (seen.length < 200) {
+        await Promise.all([...pending]);
+      }
+
+      expect(seen).toHaveLength(200);
+      expect(seen[0]).toBe(1);
+      expect(seen[199]).toBe(200);
+    });
   });
 });

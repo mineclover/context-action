@@ -20,6 +20,7 @@ import type {
 import {
   type ActorRefLike,
   type BoundActorController,
+  type BoundActorHandle,
   isActorTerminated,
   resolveMappedActions,
   type StatechartEventLike,
@@ -258,7 +259,16 @@ export function fromStandardSchema<TInput = unknown, TOutput = TInput>(
           success: false as const,
           error: {
             message: formatStandardIssues(result.issues),
-            issues: result.issues.map((issue) => ({ message: issue.message })),
+            issues: result.issues.map((issue) => {
+              const path = issue.path?.map((segment) =>
+                typeof segment === 'object' && segment !== null && 'key' in segment
+                  ? segment.key
+                  : segment,
+              );
+              return path === undefined
+                ? { message: issue.message }
+                : { message: issue.message, path };
+            }),
           },
         };
       }
@@ -472,7 +482,20 @@ export function bindEffectActorToActionRegister<
     );
   }
 
-  const boundHandle = bindActorToActionRegister(register, actor, options);
+  let boundHandle: BoundActorHandle<TActions, TSnapshot>;
+  try {
+    boundHandle = bindActorToActionRegister(register, actor, options);
+  } catch (error) {
+    for (const unregister of disposalGuards) {
+      try {
+        unregister();
+      } catch {
+        // Best-effort rollback of earlier guards.
+      }
+    }
+    disposalGuards.length = 0;
+    throw error;
+  }
 
   const unbind = (): void => {
     if (unbound) return;
@@ -554,6 +577,12 @@ export function bindActionDispatchTransactions(
   };
 }
 
+function toTransactionAbortError(signal: AbortSignal, fallback: string): Error {
+  const reason = signal.reason;
+  if (reason instanceof Error) return reason;
+  return new Error(typeof reason === 'string' && reason.length > 0 ? reason : fallback);
+}
+
 /**
  * Coordinates a multi-store `@context-action/store-core` transaction across async Effect/Promise
  * execution: commits on normal completion and guarantees idempotent `rollback()` on error or
@@ -568,10 +597,7 @@ export async function runInTransactionScope<TResult>(
   const { signal, ...txOptions } = options;
 
   if (signal?.aborted) {
-    const reason = signal.reason;
-    throw reason instanceof Error
-      ? reason
-      : new Error(typeof reason === 'string' && reason.length > 0 ? reason : 'Transaction aborted before start');
+    throw toTransactionAbortError(signal, 'Transaction aborted before start');
   }
 
   const tx = coordinator.begin(participants, txOptions);
@@ -597,13 +623,12 @@ export async function runInTransactionScope<TResult>(
 
   return new Promise<TResult>((resolve, reject) => {
     const onAbort = (): void => {
-      rollbackOnce();
-      const reason = signal.reason;
-      reject(
-        reason instanceof Error
-          ? reason
-          : new Error(typeof reason === 'string' && reason.length > 0 ? reason : 'Transaction aborted by signal'),
-      );
+      try {
+        rollbackOnce();
+      } catch {
+        // Ensure the returned promise still rejects with the abort reason.
+      }
+      reject(toTransactionAbortError(signal, 'Transaction aborted by signal'));
     };
 
     signal.addEventListener('abort', onAbort, { once: true });
@@ -614,7 +639,12 @@ export async function runInTransactionScope<TResult>(
         (result) => {
           signal.removeEventListener('abort', onAbort);
           if (settled || signal.aborted) {
-            rollbackOnce();
+            try {
+              rollbackOnce();
+            } catch {
+              // Ensure the returned promise still rejects with the abort reason.
+            }
+            reject(toTransactionAbortError(signal, 'Transaction aborted by signal'));
             return;
           }
           settled = true;
@@ -628,7 +658,11 @@ export async function runInTransactionScope<TResult>(
         (error) => {
           signal.removeEventListener('abort', onAbort);
           if (settled) return;
-          rollbackOnce();
+          try {
+            rollbackOnce();
+          } catch {
+            // Preserve the task rejection if rollback also throws.
+          }
           reject(error);
         },
       );

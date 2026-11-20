@@ -809,5 +809,46 @@ describe('TimeTravelStore', () => {
         });
       });
     });
+
+    it('preserves accumulated patches across deferred notifications and avoids leaking hold depth on beginBatch failure', () => {
+      const deferredStore = createTimeTravelStore(
+        'deferred-tt',
+        { a: 0, b: 0 },
+        { notificationMode: 'immediate' },
+      );
+      const patchListener = jest.fn();
+      const listener = jest.fn();
+      deferredStore.subscribe(listener);
+      deferredStore.subscribeWithPatches(patchListener);
+
+      deferredStore.beginBatch(undefined, { deferNotification: true });
+      deferredStore.update(draft => { draft.a = 1; });
+      deferredStore.endBatch();
+
+      deferredStore.beginBatch(undefined, { deferNotification: true });
+      deferredStore.update(draft => { draft.b = 2; });
+      deferredStore.endBatch();
+
+      expect(listener).not.toHaveBeenCalled();
+      expect(patchListener).not.toHaveBeenCalled();
+
+      deferredStore.resumeNotifications();
+      deferredStore.resumeNotifications();
+      deferredStore.flushNotifications();
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(patchListener).toHaveBeenCalledTimes(1);
+      expect(patchListener.mock.calls[0]?.[0]).toHaveLength(2);
+      expect(deferredStore.getValue()).toEqual({ a: 1, b: 2 });
+
+      // Simulate beginBatch throwing on TimeTravel: hold depth must stay unchanged
+      (deferredStore as unknown as { timeTravel: { beginBatch: () => void } }).timeTravel.beginBatch = () => {
+        throw new Error('forced beginBatch error');
+      };
+      expect(() => deferredStore.beginBatch(undefined, { deferNotification: true })).toThrow('forced beginBatch error');
+      expect((deferredStore as unknown as { notificationHoldDepth: number }).notificationHoldDepth).toBe(0);
+
+      deferredStore.dispose();
+    });
   });
 });

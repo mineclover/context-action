@@ -236,6 +236,14 @@ function logError(error: ContextActionError): void {
 
 
 
+function safeStringifyContext(context?: Record<string, unknown>): string {
+  try {
+    return JSON.stringify(context, null, 2) ?? 'undefined';
+  } catch {
+    return '[Unserializable context]';
+  }
+}
+
 /**
  * 특정 에러 타입에 대한 전용 핸들러들
  */
@@ -244,7 +252,7 @@ export const ErrorHandlers = {
    * Store 관련 에러 처리
    */
   store: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
-    const enhancedMessage = `[Store Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    const enhancedMessage = `[Store Error] ${message}\nContext: ${safeStringifyContext(context)}`;
     return handleError(ContextActionErrorType.STORE_ERROR, enhancedMessage, context, originalError);
   },
   
@@ -252,7 +260,7 @@ export const ErrorHandlers = {
    * Action 관련 에러 처리
    */
   action: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
-    const enhancedMessage = `[Action Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    const enhancedMessage = `[Action Error] ${message}\nContext: ${safeStringifyContext(context)}`;
     return handleError(ContextActionErrorType.ACTION_ERROR, enhancedMessage, context, originalError);
   },
   
@@ -260,7 +268,7 @@ export const ErrorHandlers = {
    * Ref 관련 에러 처리
    */
   ref: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
-    const enhancedMessage = `[Ref Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    const enhancedMessage = `[Ref Error] ${message}\nContext: ${safeStringifyContext(context)}`;
     return handleError(ContextActionErrorType.REF_ERROR, enhancedMessage, context, originalError);
   },
   
@@ -268,7 +276,7 @@ export const ErrorHandlers = {
    * 검증 관련 에러 처리
    */
   validation: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
-    const enhancedMessage = `[Validation Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    const enhancedMessage = `[Validation Error] ${message}\nContext: ${safeStringifyContext(context)}`;
     return handleError(ContextActionErrorType.VALIDATION_ERROR, enhancedMessage, context, originalError);
   },
   
@@ -276,7 +284,7 @@ export const ErrorHandlers = {
    * 초기화 관련 에러 처리
    */
   initialization: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
-    const enhancedMessage = `[Initialization Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    const enhancedMessage = `[Initialization Error] ${message}\nContext: ${safeStringifyContext(context)}`;
     return handleError(ContextActionErrorType.INITIALIZATION_ERROR, enhancedMessage, context, originalError);
   },
   
@@ -284,7 +292,7 @@ export const ErrorHandlers = {
    * 타임아웃 관련 에러 처리
    */
   timeout: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
-    const enhancedMessage = `[Timeout Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    const enhancedMessage = `[Timeout Error] ${message}\nContext: ${safeStringifyContext(context)}`;
     return handleError(ContextActionErrorType.TIMEOUT_ERROR, enhancedMessage, context, originalError);
   },
   

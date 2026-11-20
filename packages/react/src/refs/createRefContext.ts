@@ -189,7 +189,7 @@ export function createRefContext<T extends object | RefDefinitions>(
         refState.isMounted = false;
         
         // 알림
-        refState.listeners.forEach(listener => listener());
+        [...refState.listeners].forEach(listener => listener());
       } else {
         // Mount
         refState.target = target;
@@ -202,7 +202,7 @@ export function createRefContext<T extends object | RefDefinitions>(
         refState.mountPromise = null;
         
         // 마운트 콜백들 실행
-        refState.mountCallbacks.forEach(callback => {
+        [...refState.mountCallbacks].forEach(callback => {
           try {
             callback(target);
           } catch (error) {
@@ -219,7 +219,7 @@ export function createRefContext<T extends object | RefDefinitions>(
         });
         
         // 알림
-        refState.listeners.forEach(listener => listener());
+        [...refState.listeners].forEach(listener => listener());
       }
     }, []);
     

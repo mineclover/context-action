@@ -6,7 +6,12 @@
  */
 
 import React, { Component, ReactNode, ErrorInfo } from 'react';
-import { ContextActionError, ErrorHandlers, getErrorStatistics } from '../utils/error-handling';
+import {
+  ContextActionError,
+  ContextActionErrorType,
+  ErrorHandlers,
+  getErrorStatistics,
+} from '../utils/error-handling';
 
 /**
  * Store Error Boundary Props
@@ -37,8 +42,6 @@ export interface StoreErrorBoundaryState {
  * 사용자 친화적인 메시지를 보여줍니다.
  */
 export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, StoreErrorBoundaryState> {
-  private resetTimeoutId: number | null = null;
-
   constructor(props: StoreErrorBoundaryProps) {
     super(props);
 
@@ -72,15 +75,29 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
       this.props.onError?.(contextActionError, errorInfo);
     } else {
       // 일반 에러를 ContextActionError로 변환
-      const contextActionError = ErrorHandlers.store(
-        `Unhandled error in Store component: ${error.message}`,
-        {
-          component: 'StoreErrorBoundary',
-          stack: error.stack,
-          componentStack: errorInfo.componentStack
-        },
-        error
-      );
+      const errorContext = {
+        component: 'StoreErrorBoundary',
+        stack: error.stack,
+        componentStack: errorInfo.componentStack
+      };
+      let contextActionError: ContextActionError;
+      try {
+        contextActionError = ErrorHandlers.store(
+          `Unhandled error in Store component: ${error.message}`,
+          errorContext,
+          error
+        );
+      } catch (caughtError) {
+        contextActionError =
+          caughtError instanceof ContextActionError
+            ? caughtError
+            : new ContextActionError(
+                ContextActionErrorType.STORE_ERROR,
+                `Unhandled error in Store component: ${error.message}`,
+                errorContext,
+                error
+              );
+      }
 
       this.setState({ 
         error: contextActionError,
@@ -114,17 +131,7 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
     }
   }
 
-  componentWillUnmount() {
-    if (this.resetTimeoutId) {
-      clearTimeout(this.resetTimeoutId);
-    }
-  }
-
   resetErrorBoundary = () => {
-    if (this.resetTimeoutId) {
-      clearTimeout(this.resetTimeoutId);
-    }
-    
     this.setState({
       hasError: false,
       error: null,
@@ -141,7 +148,10 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
       // 사용자 정의 fallback이 있는 경우
       if (fallback) {
         if (typeof fallback === 'function') {
-          return fallback(error!, errorInfo!);
+          if (!error || !errorInfo) {
+            return null;
+          }
+          return fallback(error, errorInfo);
         }
         return fallback;
       }

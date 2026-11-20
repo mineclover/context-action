@@ -205,4 +205,62 @@ describe('StoreTransactionCoordinator', () => {
     expect(store.getValue()).toEqual({ value: 1 });
     store.dispose();
   });
+
+  it('publishes updated coordinator undo/redo state to synchronous subscribers during flush and cleans up surviving batches when a participant throws', async () => {
+    const first = createTimeTravelStore('first', { value: 0 });
+    const second = createTimeTravelStore('second', { value: 0 });
+    const coordinator = new StoreTransactionCoordinator();
+
+    const subscriberSawCanUndo: boolean[] = [];
+    first.subscribe(() => {
+      subscriberSawCanUndo.push(coordinator.canUndo());
+    });
+
+    await coordinator.run(
+      [
+        { name: 'first', store: first },
+        { name: 'second', store: second },
+      ],
+      () => {
+        first.setValue({ value: 1 });
+        second.setValue({ value: 2 });
+      },
+    );
+    expect(subscriberSawCanUndo).toEqual([true]);
+
+    subscriberSawCanUndo.length = 0;
+    coordinator.undo();
+    expect(subscriberSawCanUndo).toEqual([false]);
+
+    // Simulate failure inside applyPositions() while second also throws during rollback cleanup:
+    // surviving participant (first) must still cancel its batch cleanly and resume/flush notifications.
+    coordinator.redo();
+    coordinator.undo();
+    const firstResetListener = jest.fn();
+    first.subscribe(firstResetListener);
+    const mutableSecond = second as unknown as {
+      goToHistoryEntry: () => void;
+      cancelBatch: () => void;
+    };
+    const origGoTo = mutableSecond.goToHistoryEntry;
+    const origCancel = mutableSecond.cancelBatch;
+    mutableSecond.goToHistoryEntry = () => {
+      throw new Error('redo step failed');
+    };
+    mutableSecond.cancelBatch = () => {
+      throw new Error('cleanup throw');
+    };
+
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(() => coordinator.redo()).toThrow('redo step failed');
+      expect(() => first.setValue({ value: 9 })).not.toThrow();
+    } finally {
+      mutableSecond.goToHistoryEntry = origGoTo;
+      mutableSecond.cancelBatch = origCancel;
+      errorSpy.mockRestore();
+      first.dispose();
+      second.dispose();
+    }
+  });
 });

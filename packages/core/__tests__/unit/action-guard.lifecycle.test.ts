@@ -64,4 +64,22 @@ describe('ActionGuard lifecycle', () => {
     expect(guard.getAllGuardStates().size).toBe(0);
     guard.destroy();
   });
+
+  it('clears stale throttleTimer when elapsed time exceeds throttleMs', () => {
+    const guard = new ActionGuard(false);
+    jest.setSystemTime(1000);
+
+    expect(guard.throttle('search', 50)).toBe(true);
+    expect(jest.getTimerCount()).toBe(0);
+
+    jest.setSystemTime(1010);
+    expect(guard.throttle('search', 50)).toBe(false);
+    expect(jest.getTimerCount()).toBe(1);
+
+    jest.setSystemTime(1060);
+    expect(guard.throttle('search', 50)).toBe(true);
+    expect(jest.getTimerCount()).toBe(0);
+
+    guard.destroy();
+  });
 });

@@ -141,5 +141,32 @@ describe('Comparison utilities', () => {
       )).toBe(false);
     });
 
+    it('distinguishes array vs object in shallowEqual and compares cycles, Dates, Maps, and Sets accurately in deepEqual', () => {
+      expect(shallowEqual([], {})).toBe(false);
+      expect(shallowEqual({}, [])).toBe(false);
+
+      const cycleA: Record<string, unknown> = { label: 'node' };
+      cycleA.self = cycleA;
+      const cycleB: Record<string, unknown> = { label: 'node' };
+      cycleB.self = cycleB;
+      expect(deepEqual(cycleA, cycleB)).toBe(true);
+
+      const cycleC: Record<string, unknown> = { label: 'other' };
+      cycleC.self = cycleC;
+      expect(deepEqual(cycleA, cycleC)).toBe(false);
+
+      expect(deepEqual<unknown>(new Date(0), {})).toBe(false);
+      expect(deepEqual<unknown>({}, new Date(0))).toBe(false);
+      expect(deepEqual(new Date(10), new Date(10))).toBe(true);
+
+      expect(deepEqual<unknown>(new Map([['a', 1]]), {})).toBe(false);
+      expect(deepEqual(new Map([['a', { x: 1 }]]), new Map([['a', { x: 1 }]]))).toBe(true);
+      expect(deepEqual(new Map([['a', { x: 1 }]]), new Map([['a', { x: 2 }]]))).toBe(false);
+
+      expect(deepEqual<unknown>(new Set([{ x: 1 }]), {})).toBe(false);
+      expect(deepEqual(new Set([{ x: 1 }]), new Set([{ x: 1 }]))).toBe(true);
+      expect(deepEqual(new Set([{ x: 1 }]), new Set([{ x: 2 }]))).toBe(false);
+    });
+
   });
 });

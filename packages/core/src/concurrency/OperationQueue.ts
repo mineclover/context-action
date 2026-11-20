@@ -39,6 +39,7 @@ export class OperationQueue {
   // 🆕 Concurrency control
   private activeOperations = 0;
   private readonly maxConcurrency: number;
+  private needsReprocess = false;
   
   constructor(
     private name: string = 'OperationQueue', 
@@ -121,21 +122,19 @@ export class OperationQueue {
    */
   private async processQueue(): Promise<void> {
     if (this.processingPromise) {
-      // Wait for current processing to complete, then check if we need to process more
-      await this.processingPromise;
-      // After waiting, check if there are new items to process
-      if (this.queue.length > 0 && !this.processingPromise) {
-        return this.processQueue();
-      }
+      this.needsReprocess = true;
       return;
     }
 
-    this.processingPromise = this._doProcess();
-    try {
-      await this.processingPromise;
-    } finally {
-      this.processingPromise = null;
-    }
+    do {
+      this.needsReprocess = false;
+      this.processingPromise = this._doProcess();
+      try {
+        await this.processingPromise;
+      } finally {
+        this.processingPromise = null;
+      }
+    } while (this.needsReprocess || (this.queue.length > 0 && this.activeOperations < this.maxConcurrency));
   }
   
   private async _doProcess(): Promise<void> {

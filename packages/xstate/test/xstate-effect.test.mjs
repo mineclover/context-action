@@ -718,3 +718,226 @@ test('standardized interfaces: bindActor universal handle, bindActorEmissions, a
   ]);
   detachTx();
 });
+
+test('bindActorToActionRegister defaults blocking to true when waitFor is provided', async () => {
+  let snapshot = { value: 'idle', status: 'active' };
+  const listeners = new Set();
+  const actor = {
+    getSnapshot: () => snapshot,
+    subscribe(observer) {
+      listeners.add(observer);
+      return { unsubscribe: () => listeners.delete(observer) };
+    },
+    send() {
+      setTimeout(() => {
+        snapshot = { value: 'done', status: 'active' };
+        for (const obs of [...listeners]) {
+          obs.next?.(snapshot);
+        }
+      }, 20);
+    },
+  };
+
+  const recordedConfigs = [];
+  const register = new ActionRegister();
+  const originalRegister = register.register.bind(register);
+  register.register = (action, handler, config) => {
+    recordedConfigs.push({ action, config });
+    return originalRegister(action, handler, config);
+  };
+
+  bindActorToActionRegister(register, actor, {
+    map: { submit: () => ({ type: 'SUBMIT' }) },
+    waitFor: (snap) => snap.value === 'done',
+  });
+  assert.equal(recordedConfigs[0]?.config?.blocking, true);
+
+  await register.dispatch('submit', undefined);
+  assert.equal(actor.getSnapshot().value, 'done');
+
+  bindActorToActionRegister(register, actor, {
+    map: { ping: () => ({ type: 'PING' }) },
+  });
+  assert.equal(recordedConfigs[1]?.config?.blocking, undefined);
+  register.destroy();
+});
+
+test('binding helpers roll back partial registrations when setup throws', () => {
+  const brokenEmitterActor = {
+    getSnapshot: () => ({ value: 'ready', status: 'active' }),
+    subscribe: () => ({ unsubscribe: () => {} }),
+    send: () => {},
+    on() {
+      throw new Error('emission attach failed');
+    },
+  };
+
+  const pipeline = createSyncActionPipeline('rollback-sync');
+  assert.throws(
+    () =>
+      bindActorToSyncPipeline(pipeline, brokenEmitterActor, {
+        map: { ping: () => ({ type: 'PING' }) },
+        emissions: [{ event: 'OUT', toAction: () => ({ action: 'done' }) }],
+      }),
+    /emission attach failed/,
+  );
+
+  const reg = new ActionRegister();
+  assert.throws(
+    () =>
+      bindActorToActionRegister(reg, brokenEmitterActor, {
+        map: { ping: () => ({ type: 'PING' }) },
+        emissions: [{ event: 'OUT', toAction: () => ({ action: 'done' }) }],
+      }),
+    /emission attach failed/,
+  );
+  assert.equal(reg.getHandlerCount('ping'), 0);
+
+  assert.throws(
+    () =>
+      bindEffectActorToActionRegister(reg, brokenEmitterActor, {
+        map: { ping: () => ({ type: 'PING' }) },
+        emissions: [{ event: 'OUT', toAction: () => ({ action: 'done' }) }],
+      }),
+    /emission attach failed/,
+  );
+  assert.equal(reg.getHandlerCount('ping'), 0);
+  reg.destroy();
+});
+
+test('waitForActorSnapshot cleans up abort listener and rejects when actor.subscribe throws synchronously', async () => {
+  const controller = new AbortController();
+  let removed = false;
+  const originalRemove = controller.signal.removeEventListener.bind(controller.signal);
+  controller.signal.removeEventListener = (...args) => {
+    removed = true;
+    return originalRemove(...args);
+  };
+
+  const failingActor = {
+    getSnapshot: () => ({ value: 'idle', status: 'active' }),
+    subscribe() {
+      throw new Error('subscribe exploded');
+    },
+  };
+
+  await assert.rejects(
+    () =>
+      waitForActorSnapshot(failingActor, () => false, {
+        signal: controller.signal,
+        timeoutMs: 5000,
+      }),
+    /subscribe exploded/,
+  );
+  assert.equal(removed, true);
+});
+
+test('fromStandardSchema preserves issue paths into ActionValidationError.errorPaths', async () => {
+  const schema = {
+    '~standard': {
+      version: 1,
+      vendor: 'test',
+      validate: () => ({
+        issues: [{ message: 'Invalid email', path: ['user', { key: 'email' }] }],
+      }),
+    },
+  };
+
+  const register = new ActionRegister({
+    id: 'schema-path-reg',
+    registry: {
+      schema: { save: fromStandardSchema(schema) },
+      validateOnDispatch: true,
+      validationMode: 'strict',
+    },
+  });
+  register.register('save', () => {});
+
+  let caught;
+  try {
+    await register.dispatch('save', {});
+  } catch (error) {
+    caught = error;
+  }
+
+  assert.equal(caught instanceof ActionValidationError, true);
+  assert.deepEqual(caught.errorPaths, ['user.email']);
+  register.destroy();
+});
+
+test('runInTransactionScope rejects cleanly when rollback throws or signal aborts before resolution', async () => {
+  const throwingRollbackCoordinator = {
+    begin() {
+      return {
+        meta: { id: 'tx_throw' },
+        commit() {},
+        rollback() {
+          throw new Error('rollback boom');
+        },
+      };
+    },
+  };
+
+  await assert.rejects(
+    () =>
+      runInTransactionScope(
+        throwingRollbackCoordinator,
+        [{ name: 'a', store: {} }],
+        async () => {
+          throw new Error('task failed');
+        },
+        { signal: new AbortController().signal },
+      ),
+    /task failed/,
+  );
+
+  const ac1 = new AbortController();
+  await assert.rejects(
+    () =>
+      runInTransactionScope(
+        throwingRollbackCoordinator,
+        [{ name: 'a', store: {} }],
+        () => new Promise(() => {}),
+        { signal: (queueMicrotask(() => ac1.abort('user aborted')), ac1.signal) },
+      ),
+    /user aborted/,
+  );
+
+  // Signal whose aborted flag becomes true without firing listener before task resolves.
+  let rollbackCalls = 0;
+  let forceAborted = false;
+  const silentAbortSignal = {
+    get aborted() {
+      return forceAborted;
+    },
+    reason: 'silent abort',
+    addEventListener() {},
+    removeEventListener() {},
+  };
+  await assert.rejects(
+    () =>
+      runInTransactionScope(
+        {
+          begin() {
+            return {
+              meta: { id: 'tx_silent' },
+              commit() {
+                throw new Error('commit must not run');
+              },
+              rollback() {
+                rollbackCalls += 1;
+              },
+            };
+          },
+        },
+        [{ name: 'a', store: {} }],
+        async () => {
+          forceAborted = true;
+          return 'ok';
+        },
+        { signal: silentAbortSignal },
+      ),
+    /silent abort/,
+  );
+  assert.equal(rollbackCalls, 1);
+});

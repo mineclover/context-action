@@ -105,4 +105,17 @@ describe('dispatch trace contract', () => {
     expect(() => register.subscribeDispatchTrace(null as never)).toThrow(TypeError);
     register.destroy();
   });
+
+  it('rejects invalid dispatch timeouts before emitting a started trace', () => {
+    const register = new ActionRegister<Actions>();
+    register.register('save', () => undefined);
+    const events: ActionDispatchTrace[] = [];
+    register.subscribeDispatchTrace(event => events.push(event));
+
+    expect(() => register.dispatch('save', { id: 'bad-1' }, { timeout: -1 })).toThrow(RangeError);
+    expect(() => register.dispatchWithResult('save', { id: 'bad-2' }, { timeout: Number.NaN })).toThrow(RangeError);
+    expect(() => register.dispatchWithResult('save', { id: 'bad-3' }, { timeout: Number.POSITIVE_INFINITY })).toThrow(RangeError);
+    expect(events).toEqual([]);
+    register.destroy();
+  });
 });

@@ -27,4 +27,21 @@ describe('useStoreTransactionInspector', () => {
     expect(JSON.parse(coordinator.serializeHistory())[0].participants[0].store).toBeUndefined();
     store.dispose();
   });
+
+  it('keeps a stable store subscription across component re-renders', () => {
+    const coordinator = new StoreTransactionCoordinator();
+    const subscribeSpy = jest.spyOn(coordinator, 'subscribe');
+
+    function Inspector({ tick }: { tick: number }) {
+      const snapshot = useStoreTransactionInspector(coordinator);
+      return <output data-testid="stable-inspector">{`${tick}:${snapshot.version}`}</output>;
+    }
+
+    const { rerender } = render(<Inspector tick={1} />);
+    rerender(<Inspector tick={2} />);
+    rerender(<Inspector tick={3} />);
+
+    expect(subscribeSpy).toHaveBeenCalledTimes(1);
+    subscribeSpy.mockRestore();
+  });
 });

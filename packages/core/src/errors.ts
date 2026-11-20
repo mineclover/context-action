@@ -164,7 +164,7 @@ export class ActionValidationError extends Error {
    */
   get errorPaths(): string[] {
     return this.issues.map((issue) =>
-      issue.path.map((p) => String(p)).join('.')
+      (issue.path ?? []).map((p) => String(p)).join('.')
     );
   }
 

@@ -1064,4 +1064,55 @@ describe('Manual Path Notification (notifyPath/notifyPaths)', () => {
       });
     });
   });
+
+  describe('Structural Fix Regressions', () => {
+    it('deepFreeze handles cyclic objects inside getValue without overflowing the stack', () => {
+      const cyclic: Record<string, unknown> = { count: 1 };
+      cyclic.self = cyclic;
+
+      const cyclicStore = createStore('cyclic-freeze', cyclic);
+      const frozen = cyclicStore.getValue();
+
+      expect(Object.isFrozen(frozen)).toBe(true);
+      expect((frozen as { self: unknown }).self).toBe(frozen);
+      cyclicStore.dispose();
+    });
+
+    it('keeps duplicate subscriptions of the same listener callback independent', async () => {
+      const target = createStore('dup-sub', 0);
+      const shared = jest.fn();
+
+      const unsub1 = target.subscribe(shared);
+      const unsub2 = target.subscribe(shared);
+      unsub1();
+
+      target.setValue(1);
+      await new Promise(resolve => setTimeout(resolve, 30));
+      expect(shared).toHaveBeenCalledTimes(1);
+
+      unsub2();
+      target.setValue(2);
+      await new Promise(resolve => setTimeout(resolve, 30));
+      expect(shared).toHaveBeenCalledTimes(1);
+      target.dispose();
+    });
+
+    it('does not invoke a listener added during an active notification cycle in that same cycle', async () => {
+      const target = createStore('reentrant-sub', 0);
+      const lateListener = jest.fn();
+
+      target.subscribe(() => {
+        target.subscribe(lateListener);
+      });
+
+      target.setValue(1);
+      await new Promise(resolve => setTimeout(resolve, 30));
+      expect(lateListener).not.toHaveBeenCalled();
+
+      target.setValue(2);
+      await new Promise(resolve => setTimeout(resolve, 30));
+      expect(lateListener).toHaveBeenCalledTimes(1);
+      target.dispose();
+    });
+  });
 });

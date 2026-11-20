@@ -168,6 +168,7 @@ export async function executeSequential<T, R = void>(
 
     const registration = context.handlers[i];
     if (!registration) {
+      i++;
       continue; // Skip if handler not found
     }
     context.currentIndex = i;
@@ -255,6 +256,7 @@ export async function executeSequential<T, R = void>(
               // 🆕 Non-blocking async handler error collection
               const handlerError = handleExecutionError(error, registration);
               errors.push(handlerError);
+              (context.collectedErrors ??= []).push(handlerError);
               finishOutcome(
                 outcome,
                 startedAt,

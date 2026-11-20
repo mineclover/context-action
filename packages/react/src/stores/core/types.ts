@@ -52,36 +52,11 @@ import type { DependencyList } from 'react';
 /** Change notification callback function */
 export type Listener = () => void;
 
-/** Enhanced listener with error handling context */
-export type EnhancedListener = {
-  /** The actual listener function */
-  listener: Listener;
-  /** Error count for this listener */
-  errorCount: number;
-  /** Last error timestamp */
-  lastError?: number;
-  /** Component name for debugging */
-  componentName?: string;
-};
-
 /** Enhanced unsubscribe function with metadata */
 export type Unsubscribe = () => void;
 
 /** Subscribe function signature for observer pattern */
 export type Subscribe = (listener: Listener) => Unsubscribe;
-
-/** Enhanced subscribe function with options */
-export type EnhancedSubscribe = (
-  listener: Listener,
-  options?: {
-    /** Enable error recovery for this subscription */
-    enableRetry?: boolean;
-    /** Maximum retry attempts */
-    maxRetries?: number;
-    /** Component name for debugging */
-    componentName?: string;
-  }
-) => Unsubscribe;
 
 /**
  * Enhanced store snapshot with metadata and validation
@@ -350,36 +325,6 @@ export interface StoreSetValueOptions<T> {
 }
 
 /**
- * Subscription metadata for enhanced error tracking
- */
-export interface SubscriptionMetadata {
-  /** When the subscription was created */
-  subscribedAt: number;
-  /** Number of errors encountered by this subscription */
-  errorCount: number;
-  /** Enhanced listener with error handling */
-  enhancedListener: () => void;
-  /** Component name or identifier (optional) */
-  componentName?: string;
-}
-
-/**
- * Resource monitoring interface for memory management
- */
-export interface ResourceMonitor {
-  /** Current memory usage estimate */
-  memoryUsage: number;
-  /** Number of active subscriptions */
-  activeSubscriptions: number;
-  /** Number of pending operations */
-  pendingOperations: number;
-  /** Last activity timestamp */
-  lastActivity: number;
-  /** Cleanup monitor resources */
-  dispose(): void;
-}
-
-/**
  * Store performance metrics
  */
 export interface StoreMetrics {
@@ -397,20 +342,6 @@ export interface StoreMetrics {
   peakListenerCount: number;
   /** Total errors encountered */
   totalErrors: number;
-}
-
-/**
- * Enhanced cleanup task interface
- */
-export interface CleanupTask {
-  /** The cleanup function */
-  task: () => void;
-  /** Task identifier for debugging */
-  id?: string;
-  /** Priority level (higher = more important) */
-  priority?: number;
-  /** Optional timeout for task execution (ms) */
-  timeout?: number;
 }
 
 /**
@@ -451,28 +382,6 @@ export interface StoreMetadata {
   name?: string;
   /** Custom metadata fields */
   [key: string]: unknown;
-}
-
-/**
- * Strict store registry map with enhanced type safety
- */
-export type StrictStoreDefinitions<T extends Record<string, unknown>> = {
-  [K in keyof T]: {
-    initialValue: T[K];
-  } | T[K];
-};
-
-/**
- * Context return type with strict typing
- */
-export interface StrictStoreContextReturn<T extends Record<string, unknown>> {
-  Provider: React.ComponentType<{ children: React.ReactNode }>;
-  useStore: <K extends keyof T>(name: K) => IStore<T[K]>;
-  useStoreManager?: () => {
-    getStore: <K extends keyof T>(name: K) => IStore<T[K]> | undefined;
-    getAllStores: () => Map<string, IStore>;
-    hasStore: (name: string) => boolean;
-  };
 }
 
 /**

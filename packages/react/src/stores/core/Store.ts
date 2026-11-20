@@ -17,16 +17,22 @@ export type PatchAwareListener = (patches: Patches | null) => void;
  * Deep freeze an object to make it immutable
  * Prevents modifications to the returned value from affecting cached state
  */
-function deepFreeze<T>(obj: T): T {
+function deepFreeze<T>(obj: T, seen = new WeakSet<object>()): T {
   if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  if (seen.has(obj)) {
     return obj;
   }
 
   // Don't freeze non-plain objects (DOM elements, class instances with methods, etc.)
   const proto = Object.getPrototypeOf(obj);
-  if (proto !== Object.prototype && proto !== Array.prototype) {
+  if (proto !== Object.prototype && proto !== Array.prototype && proto !== null) {
     return obj;
   }
+
+  seen.add(obj);
 
   // Freeze the object itself
   Object.freeze(obj);
@@ -35,7 +41,7 @@ function deepFreeze<T>(obj: T): T {
   for (const key of Object.keys(obj)) {
     const value = (obj as Record<string, unknown>)[key];
     if (value !== null && typeof value === 'object') {
-      deepFreeze(value);
+      deepFreeze(value, seen);
     }
   }
 
@@ -116,10 +122,9 @@ export class Store<T = unknown> implements IStore<T> {
   private readonly ERROR_RESET_TIME = 60000; // 1 minute
   
   // 🎯 Subscription Management
-  private subscriptionRegistry = new WeakMap<Listener, {
+  private subscriptionRegistry = new WeakMap<() => void, {
     subscribedAt: number;
     errorCount: number;
-    enhancedListener: () => void;
   }>();
 
   public readonly name: string;
@@ -178,15 +183,14 @@ export class Store<T = unknown> implements IStore<T> {
           this.errorCount = 0;
         }
       } catch (error) {
-        this._handleListenerError(error, listener);
+        this._handleListenerError(error, enhancedListener);
       }
     };
     
-    // Store subscription metadata
-    this.subscriptionRegistry.set(listener, {
+    // Store subscription metadata per registration so duplicate callbacks stay independent
+    this.subscriptionRegistry.set(enhancedListener, {
       subscribedAt: Date.now(),
       errorCount: 0,
-      enhancedListener
     });
     
     // Set에 enhanced listener 추가
@@ -195,7 +199,7 @@ export class Store<T = unknown> implements IStore<T> {
     // 구독 해제 함수 반환 - cleanup과 metadata 제거
     return () => {
       this.listeners.delete(enhancedListener);
-      this.subscriptionRegistry.delete(listener);
+      this.subscriptionRegistry.delete(enhancedListener);
     };
   };
 
@@ -936,7 +940,7 @@ export class Store<T = unknown> implements IStore<T> {
   /**
    * Handle listener execution errors with recovery strategies
    */
-  private _handleListenerError(error: unknown, listener: Listener): void {
+  private _handleListenerError(error: unknown, enhancedListener: () => void): void {
     const now = Date.now();
     
     // Reset error count if enough time has passed
@@ -948,29 +952,34 @@ export class Store<T = unknown> implements IStore<T> {
     this.lastErrorTime = now;
     
     // Get subscription metadata for enhanced error reporting
-    const metadata = this.subscriptionRegistry.get(listener);
+    const metadata = this.subscriptionRegistry.get(enhancedListener);
     if (metadata) {
       metadata.errorCount++;
     }
     
-    ErrorHandlers.store(
-      'Error in store listener execution',
-      { 
-        storeName: this.name,
-        listenerCount: this.listeners.size,
-        errorCount: this.errorCount,
-        subscriptionAge: metadata ? now - metadata.subscribedAt : 'unknown'
-      },
-      error instanceof Error ? error : undefined
-    );
+    try {
+      ErrorHandlers.store(
+        'Error in store listener execution',
+        { 
+          storeName: this.name,
+          listenerCount: this.listeners.size,
+          errorCount: this.errorCount,
+          subscriptionAge: metadata ? now - metadata.subscribedAt : 'unknown'
+        },
+        error instanceof Error ? error : undefined
+      );
+    } catch {
+      // Error reporting in dev throwOnError mode must not abort listener cleanup
+      // or skip subsequent subscribers.
+    }
     
     // Auto-remove problematic listeners after too many errors
     if (metadata && metadata.errorCount >= 3) {
       console.warn(
         `Removing problematic listener from store "${this.name}" after ${metadata.errorCount} errors`
       );
-      this.listeners.delete(metadata.enhancedListener);
-      this.subscriptionRegistry.delete(listener);
+      this.listeners.delete(enhancedListener);
+      this.subscriptionRegistry.delete(enhancedListener);
     }
     
     // Disable store if too many total errors
@@ -990,25 +999,32 @@ export class Store<T = unknown> implements IStore<T> {
     // payload delivered to patch-aware listeners for the current transition.
     const notifiedPatches = this._lastPatches;
 
-    // Notify regular listeners
-    this.listeners.forEach(listener => {
-      if (this.isDisposed) return; // Double-check during iteration
+    // Notify regular listeners from a snapshot so listeners added during notification
+    // are not invoked within the same notification cycle.
+    for (const listener of [...this.listeners]) {
+      if (this.isDisposed) return;
+      if (!this.listeners.has(listener)) continue;
       listener(); // Enhanced listeners handle their own errors
-    });
+    }
 
     // Notify patch-aware listeners with last patches
-    this.patchAwareListeners.forEach(listener => {
+    for (const listener of [...this.patchAwareListeners]) {
       if (this.isDisposed) return;
+      if (!this.patchAwareListeners.has(listener)) continue;
       try {
         listener(notifiedPatches);
       } catch (error) {
-        ErrorHandlers.store(
-          'Error in patch-aware listener execution',
-          { storeName: this.name },
-          error instanceof Error ? error : undefined
-        );
+        try {
+          ErrorHandlers.store(
+            'Error in patch-aware listener execution',
+            { storeName: this.name },
+            error instanceof Error ? error : undefined
+          );
+        } catch {
+          // Listener reporting must not abort remaining patch-aware listeners.
+        }
       }
-    });
+    }
   }
 }
 

@@ -298,10 +298,13 @@ export class ActionGuard {
     /** If throttle period has elapsed, allow immediate execution */
     if (timeSinceLastExecution >= throttleMs) {
       /** Update execution timestamp and clear throttled state */
+      if (state.throttleTimer) {
+        clearTimeout(state.throttleTimer);
+        state.throttleTimer = undefined;
+      }
       state.lastThrottleExecutedAt = now;
       state.isThrottled = false;
-      
-      
+
       return true;
     }
 

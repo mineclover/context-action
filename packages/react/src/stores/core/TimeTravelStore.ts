@@ -114,23 +114,27 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.timeTravel = createTimeTravel(initialValue, timeTravelOptions);
 
     // Subscribe to TimeTravel changes with patches
-    this.unsubscribeTimeTravel = this.timeTravel.subscribe((state, travelPatches, _position, changedPatches, metadata) => {
+    this.unsubscribeTimeTravel = this.timeTravel.subscribe((_state, travelPatches, _position, changedPatches, metadata) => {
       // Use only the patches from the transition that triggered this
       // notification. The full history remains available through the
       // TimeTravel controls and must not drive path-aware subscriptions.
-      this._lastPatches = (changedPatches ?? travelPatches.patches.flat()) as Patches;
+      const transitionPatches = (changedPatches ?? travelPatches.patches.flat()) as Patches;
+      this._lastPatches = transitionPatches;
       this._lastTransitionMeta = metadata;
 
       if (process.env.NODE_ENV === 'development') {
-        console.log(`[TimeTravelStore:${this.name}] TimeTravel notified - patches:`, this._lastPatches.length, 'listeners:', this.listeners.size);
+        console.log(`[TimeTravelStore:${this.name}] TimeTravel notified - patches:`, transitionPatches.length, 'listeners:', this.listeners.size);
       }
 
       this._updateSnapshot();
       if (this.notificationHoldDepth > 0) {
+        this.pendingPatches = this.pendingPatches
+          ? this.pendingPatches.concat(transitionPatches)
+          : transitionPatches;
         this.notificationDeferred = true;
         return;
       }
-      this._scheduleNotification();
+      this._scheduleNotification(transitionPatches);
     });
 
     // Create initial snapshot
@@ -256,8 +260,8 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   /** Group multiple updates into one timeline entry and notification. */
   beginBatch(metadata?: TimeTravelTransitionMeta, options: { deferNotification?: boolean } = {}): void {
     if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
-    if (options.deferNotification) this.notificationHoldDepth += 1;
     this.timeTravel.beginBatch(metadata);
+    if (options.deferNotification) this.notificationHoldDepth += 1;
   }
 
   endBatch(): void {
@@ -468,13 +472,22 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     if (this.isDisposed) return;
 
     const currentValue = this._getValueAtPath(path);
-    this._lastPatches = [{
+    const patch = [{
       op: 'replace',
       path: path,
       value: currentValue
     }] as Patches;
+    this._lastPatches = patch;
 
-    this._scheduleNotification();
+    if (this.notificationHoldDepth > 0) {
+      this.pendingPatches = this.pendingPatches
+        ? this.pendingPatches.concat(patch)
+        : patch;
+      this.notificationDeferred = true;
+      return;
+    }
+
+    this._scheduleNotification(patch);
   }
 
   /**
@@ -486,13 +499,22 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     if (this.isDisposed) return;
     if (paths.length === 0) return;
 
-    this._lastPatches = paths.map(path => ({
+    const patches = paths.map(path => ({
       op: 'replace' as const,
       path: path,
       value: this._getValueAtPath(path)
     })) as Patches;
+    this._lastPatches = patches;
 
-    this._scheduleNotification();
+    if (this.notificationHoldDepth > 0) {
+      this.pendingPatches = this.pendingPatches
+        ? this.pendingPatches.concat(patches)
+        : patches;
+      this.notificationDeferred = true;
+      return;
+    }
+
+    this._scheduleNotification(patches);
   }
 
   /**
@@ -548,18 +570,18 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this._snapshot = this._createSnapshot();
   }
 
-  private _scheduleNotification(): void {
+  private _scheduleNotification(patches?: Patches): void {
     if (this.isDisposed) return;
+
+    if (patches) {
+      this.pendingPatches = this.pendingPatches
+        ? this.pendingPatches.concat(patches)
+        : patches;
+    }
 
     if (this.notificationMode === 'immediate') {
       this._executeNotification();
       return;
-    }
-
-    if (this._lastPatches) {
-      this.pendingPatches = this.pendingPatches
-        ? this.pendingPatches.concat(this._lastPatches)
-        : this._lastPatches;
     }
 
     // RAF batching
@@ -585,23 +607,36 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     // before patch-aware listeners are reached.
     const notifiedPatches = this._lastPatches;
 
-    // Notify regular listeners
-    this.listeners.forEach((listener) => {
+    // Notify regular listeners from a snapshot so re-entrant additions are
+    // deferred to the following transition.
+    for (const listener of [...this.listeners]) {
+      if (this.isDisposed) return;
+      if (!this.listeners.has(listener)) continue;
       try {
         listener();
       } catch {
-        ErrorHandlers.store('Listener error', { storeName: this.name });
+        try {
+          ErrorHandlers.store('Listener error', { storeName: this.name });
+        } catch {
+          // Listener failure reporting must not abort remaining subscribers.
+        }
       }
-    });
+    }
 
     // Notify patch-aware listeners
-    this.patchAwareListeners.forEach((listener) => {
+    for (const listener of [...this.patchAwareListeners]) {
+      if (this.isDisposed) return;
+      if (!this.patchAwareListeners.has(listener)) continue;
       try {
         listener(notifiedPatches);
       } catch {
-        ErrorHandlers.store('Patch-aware listener error', { storeName: this.name });
+        try {
+          ErrorHandlers.store('Patch-aware listener error', { storeName: this.name });
+        } catch {
+          // Listener failure reporting must not abort remaining subscribers.
+        }
       }
-    });
+    }
   }
 
   private _areEqual(a: T, b: T): boolean {
