@@ -346,6 +346,14 @@ export default function PatternsOverview() {
             </li>
             <li>
               <Link
+                to="/patterns/refs/use-ref-mount-state-test"
+                className="text-purple-600 hover:underline"
+              >
+                Ref Mount State Test
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/patterns/refs/canvas"
                 className="text-purple-600 hover:underline"
               >

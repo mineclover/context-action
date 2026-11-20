@@ -118,6 +118,27 @@ function Layout({
         'Lit 3 Web Components with StoreController, ActionController, FACE and W3C Context Protocol',
     },
     {
+      path: '/integrations/xstate-statechart',
+      label: '🔀 XState & Effect Adapter',
+      category: 'architecture',
+      description:
+        'Actor binding with enforceCanGuard, Standard Schema validation, and ActorStateReader',
+    },
+    {
+      path: '/integrations/webmcp-scope',
+      label: '🌐 WebMCP Tool Scope',
+      category: 'architecture',
+      description:
+        'Scoped browser capability registration via useWebMCPToolScope with AbortSignal teardown',
+    },
+    {
+      path: '/integrations/ai-sdk-tools',
+      label: '🤖 AI SDK Tool Scope',
+      category: 'architecture',
+      description:
+        'AI SDK v7 toolApproval queue, createAISDKToolScope, and redacted observability sink',
+    },
+    {
       path: '/patterns/implementation-playbook/scenarios',
       label: '🗂️ Playbook Scenarios',
       category: 'architecture',
@@ -204,31 +225,38 @@ function Layout({
       category: 'store',
       description: 'Context pattern with patch-based optimization',
     },
+    {
+      path: '/foundations/store/backend-transactions',
+      label: '7. 🏦 Backend & Transactions',
+      category: 'store',
+      description:
+        'createStateStore adapter and multi-store atomic StoreTransactionCoordinator',
+    },
 
     // === React Integration (리액트 통합) ===
     {
       path: '/foundations/react/provider',
-      label: '7. 🔧 Unified Provider',
+      label: '8. 🔧 Unified Provider',
       category: 'react',
     },
     {
       path: '/foundations/react/context',
-      label: '8. 🏗️ React Context',
+      label: '9. 🏗️ React Context',
       category: 'react',
     },
     {
       path: '/foundations/react/hooks',
-      label: '9. React Hooks',
+      label: '10. React Hooks',
       category: 'react',
     },
     {
       path: '/foundations/react/useActionWithResult',
-      label: '10. ✨ useActionWithResult',
+      label: '11. ✨ useActionWithResult',
       category: 'react',
     },
     {
       path: '/foundations/react/imperativeRef',
-      label: '11. 🎯 useImperativeHandle + Ref Context',
+      label: '12. 🎯 useImperativeHandle + Ref Context',
       category: 'react',
     },
 

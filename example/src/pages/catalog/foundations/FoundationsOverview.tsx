@@ -102,6 +102,30 @@ export default function FoundationsOverview() {
                 Immutability Test
               </Link>
             </li>
+            <li>
+              <Link
+                to="/foundations/store/time-travel"
+                className="text-blue-600 hover:underline"
+              >
+                Time Travel Store
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/foundations/store/time-travel-context"
+                className="text-blue-600 hover:underline"
+              >
+                Time Travel Context
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/foundations/store/backend-transactions"
+                className="text-blue-600 hover:underline"
+              >
+                Backend &amp; Transactions
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -130,6 +154,22 @@ export default function FoundationsOverview() {
                 className="text-blue-600 hover:underline"
               >
                 Hooks Usage
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/foundations/react/useActionWithResult"
+                className="text-blue-600 hover:underline"
+              >
+                useActionWithResult
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/foundations/react/imperativeRef"
+                className="text-blue-600 hover:underline"
+              >
+                ImperativeRef + Ref Context
               </Link>
             </li>
           </ul>

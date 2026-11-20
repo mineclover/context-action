@@ -47,6 +47,9 @@ const TimeTravelTestPage = lazy(
 const TimeTravelContextTestPage = lazy(
   () => import('./pages/foundations/store/TimeTravelContextTestPage')
 );
+const StoreBackendTransactionsPage = lazy(
+  () => import('./pages/foundations/store/StoreBackendTransactionsPage')
+);
 
 // React foundations - Separate chunk for React-specific features
 const ReactProviderPage = lazy(
@@ -258,6 +261,15 @@ const PreactWebComponentsPage = lazy(
 const LitWebComponentsPage = lazy(
   () => import('./pages/integrations/lit-web-components/LitWebComponentsPage')
 );
+const XStateStatechartPage = lazy(
+  () => import('./pages/integrations/xstate/XStateStatechartPage')
+);
+const WebMCPScopePage = lazy(
+  () => import('./pages/integrations/webmcp/WebMCPScopePage')
+);
+const AISDKToolsPage = lazy(
+  () => import('./pages/integrations/ai-sdk/AISDKToolsPage')
+);
 
 // Integrations - Advanced (separate chunk for advanced features)
 const FormBuilderDemoPage = lazy(() =>
@@ -442,6 +454,10 @@ function AppContent() {
             <Route
               path="/foundations/store/time-travel-context"
               element={<TimeTravelContextTestPage />}
+            />
+            <Route
+              path="/foundations/store/backend-transactions"
+              element={<StoreBackendTransactionsPage />}
             />
             <Route
               path="/foundations/react/provider"
@@ -635,6 +651,18 @@ function AppContent() {
             <Route
               path="/integrations/lit-web-components"
               element={<LitWebComponentsPage />}
+            />
+            <Route
+              path="/integrations/xstate-statechart"
+              element={<XStateStatechartPage />}
+            />
+            <Route
+              path="/integrations/webmcp-scope"
+              element={<WebMCPScopePage />}
+            />
+            <Route
+              path="/integrations/ai-sdk-tools"
+              element={<AISDKToolsPage />}
             />
             <Route path="/integrations/business/chat" element={<ChatPage />} />
             <Route

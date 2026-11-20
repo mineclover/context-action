@@ -94,6 +94,24 @@ export default function UtilitiesOverview() {
               </Link>
               <span className="text-xs text-gray-500 ml-2">State Testing</span>
             </li>
+            <li>
+              <Link
+                to="/utilities/dev-tools/warning-demo"
+                className="text-orange-600 hover:underline"
+              >
+                ⚠️ Warning Demo
+              </Link>
+              <span className="text-xs text-gray-500 ml-2">Diagnostics</span>
+            </li>
+            <li>
+              <Link
+                to="/utilities/source-directory"
+                className="text-orange-600 hover:underline"
+              >
+                📂 Source Directory
+              </Link>
+              <span className="text-xs text-gray-500 ml-2">Code Mapping</span>
+            </li>
           </ul>
         </div>
 
