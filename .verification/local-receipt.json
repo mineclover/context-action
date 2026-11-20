@@ -1,31 +1,31 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-20T08:57:59.139Z",
-  "commitSha": "c5b7a3402508d8e74c242386da1d2ee1e8f96250",
-  "branch": "fix/tooling-llms-typedoc-scripts",
+  "timestamp": "2026-11-20T09:26:50.314Z",
+  "commitSha": "d6aa0e4df91c7c8d8aafdea89f9880c1986bd585",
+  "branch": "fix/example-bugs-deadcode-cleanup",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
     "platform": "darwin",
     "arch": "arm64"
   },
-  "inputDigest": "sha256:a37595821829135ceebc9c3d4667a25e3bfee119b04d320b46e7a8346bf114c1",
+  "inputDigest": "sha256:621519fa31059e82e485d4979b6a3063f11b0d8543e8f6d1e9911ccb774d5566",
   "workingTree": "clean",
-  "treeDigest": "sha256:163cfc11b59bb7cb95208725dd1c140e72d38e9642b2f8768ee52e577bd3a85a",
+  "treeDigest": "sha256:8f0636335b864f04e8992e216aa94a1808725479eb322047e0a26d4fbe3da04b",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 18.2,
+      "durationSec": 19.05,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.87,
+      "durationSec": 0.88,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 3.03,
+      "durationSec": 2.84,
       "status": "passed"
     },
     {
@@ -45,20 +45,20 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.31,
+      "durationSec": 0.29,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.48,
+      "durationSec": 1.8,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.41,
+      "durationSec": 0.42,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:1e29b514f9df0e6f5d95875b075e43a69a8052145a4daf5d99872ec419882c64"
+  "receiptDigest": "sha256:9cea1666eef99f9ce01d28304d8f8f3dda858bd2c4f378f51ae5497e60d96463"
 }
