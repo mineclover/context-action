@@ -3,37 +3,8 @@
  * Following Context-Action framework patterns
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { LogLevel } from '@/utils/logger';
-import type { LogEntry, PerformanceMetrics } from './types';
-
-// Helper to get log level name
-const getLogLevelName = (level: LogLevel): string => {
-  return LogLevel[level] || 'UNKNOWN';
-};
-
-// Common logging hook pattern
-export function useLogger(source?: string) {
-  return useCallback(
-    (level: LogEntry['level'], message: string, data?: any) => {
-      const entry: LogEntry = {
-        id: Math.random().toString(36).substr(2, 9),
-        timestamp: Date.now(),
-        level,
-        message,
-        data,
-        ...(source !== undefined && { source }),
-      };
-
-      console.log(
-        `[${source || 'App'}] ${getLogLevelName(level)}: ${message}`,
-        data || ''
-      );
-      return entry;
-    },
-    [source]
-  );
-}
+import { useCallback, useEffect, useRef } from 'react';
+import type { PerformanceMetrics } from './types';
 
 // Performance monitoring hook
 export function usePerformanceMonitor() {
@@ -72,82 +43,6 @@ export function usePerformanceMonitor() {
   return { startTimer, endTimer, recordError, getMetrics };
 }
 
-// Debounced state hook
-export function useDebouncedState<T>(initialValue: T, delay: number) {
-  const [value, setValue] = useState(initialValue);
-  const [debouncedValue, setDebouncedValue] = useState(initialValue);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return [debouncedValue, setValue] as const;
-}
-
-// Async state management hook
-export function useAsyncState<T>(initialValue: T) {
-  const [state, setState] = useState<{
-    data: T;
-    loading: boolean;
-    error: Error | null;
-  }>({
-    data: initialValue,
-    loading: false,
-    error: null,
-  });
-
-  const setData = useCallback((data: T) => {
-    setState((prev) => ({ ...prev, data, error: null }));
-  }, []);
-
-  const setLoading = useCallback((loading: boolean) => {
-    setState((prev) => ({ ...prev, loading }));
-  }, []);
-
-  const setError = useCallback((error: Error | null) => {
-    setState((prev) => ({ ...prev, error, loading: false }));
-  }, []);
-
-  const execute = useCallback(
-    async <R>(
-      asyncFn: () => Promise<R>,
-      onSuccess?: (result: R) => T
-    ): Promise<R | null> => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const result = await asyncFn();
-
-        if (onSuccess) {
-          setData(onSuccess(result));
-        }
-
-        setLoading(false);
-        return result;
-      } catch (error) {
-        setError(error as Error);
-        return null;
-      }
-    },
-    [setData, setError, setLoading]
-  );
-
-  return {
-    ...state,
-    setData,
-    setLoading,
-    setError,
-    execute,
-  };
-}
-
 // Safe timeout hook
 export function useSafeTimeout() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -173,32 +68,4 @@ export function useSafeTimeout() {
   }, [clearSafeTimeout]);
 
   return { setSafeTimeout, clearSafeTimeout };
-}
-
-// Local storage hook with type safety
-export function useLocalStorage<T>(key: string, defaultValue: T) {
-  const [storedValue, setValue] = useState<T>(() => {
-    try {
-      const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : defaultValue;
-    } catch {
-      return defaultValue;
-    }
-  });
-
-  const setStoredValue = useCallback(
-    (value: T | ((val: T) => T)) => {
-      try {
-        const valueToStore =
-          value instanceof Function ? value(storedValue) : value;
-        setValue(valueToStore);
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
-      } catch (error) {
-        console.error(`Error saving to localStorage:`, error);
-      }
-    },
-    [key]
-  );
-
-  return [storedValue, setStoredValue] as const;
 }

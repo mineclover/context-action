@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Badge } from '@/components/ui';
 import {
   mcpExecutionStages,
@@ -65,10 +65,25 @@ function DisabledCatalogSection({
 
 export default function McpFunctionCallingCatalog() {
   const [commandFeedback, setCommandFeedback] = useState<string | null>(null);
+  const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeoutRef.current !== null) {
+        clearTimeout(feedbackTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const showCommandFeedback = (feedback: string) => {
     setCommandFeedback(feedback);
-    window.setTimeout(() => setCommandFeedback(null), 1600);
+    if (feedbackTimeoutRef.current !== null) {
+      clearTimeout(feedbackTimeoutRef.current);
+    }
+    feedbackTimeoutRef.current = setTimeout(() => {
+      setCommandFeedback(null);
+      feedbackTimeoutRef.current = null;
+    }, 1600);
   };
 
   const copyCommand = async (commandId: string, prompt: string) => {

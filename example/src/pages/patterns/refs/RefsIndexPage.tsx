@@ -176,7 +176,7 @@ function Component() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Canvas Demo */}
               <Link
-                to="/refs/canvas"
+                to="/patterns/refs/canvas"
                 className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-purple-300"
               >
                 <div className="flex items-start gap-4">
@@ -212,7 +212,7 @@ function Component() {
 
               {/* Mouse Events Demo */}
               <Link
-                to="/actionguard/mouse-events"
+                to="/performance/mouse-events"
                 className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300"
               >
                 <div className="flex items-start gap-4">
@@ -284,7 +284,7 @@ function Component() {
 
               {/* useWaitForRefs Performance Demo */}
               <Link
-                to="/refs/waitforrefs-performance"
+                to="/patterns/refs/waitforrefs-performance"
                 className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-orange-300"
               >
                 <div className="flex items-start gap-4">
@@ -321,7 +321,7 @@ function Component() {
 
               {/* useRefMountState Test Demo */}
               <Link
-                to="/refs/use-ref-mount-state-test"
+                to="/patterns/refs/use-ref-mount-state-test"
                 className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300"
               >
                 <div className="flex items-start gap-4">

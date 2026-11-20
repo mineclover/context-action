@@ -1,6 +1,46 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+function hasControlCharacter(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code <= 0x1f || code === 0x7f) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Validate internal redirect paths from query parameters to prevent open redirects.
+ */
+export function sanitizeInternalRedirectPath(
+  rawPath: string | null
+): string | null {
+  if (!rawPath) return null;
+
+  const trimmed = rawPath.trim();
+  if (
+    trimmed.length === 0 ||
+    !trimmed.startsWith('/') ||
+    trimmed.startsWith('//') ||
+    trimmed.includes('\\') ||
+    hasControlCharacter(trimmed)
+  ) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(trimmed, 'http://localhost');
+    if (parsed.origin !== 'http://localhost') {
+      return null;
+    }
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * VitePress에서 전달된 리디렉션 경로를 처리하는 훅
  *
@@ -13,16 +53,10 @@ export function useVitePressRedirect() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    const redirectPath = urlParams.get('redirect');
+    const safePath = sanitizeInternalRedirectPath(urlParams.get('redirect'));
 
-    if (redirectPath) {
-      console.log('🔄 Processing VitePress redirect:', redirectPath);
-      console.log('📍 From:', window.location.href);
-
-      // React Router를 통해 원래 경로로 이동
-      navigate(redirectPath, { replace: true });
-
-      console.log('✅ Redirected to:', redirectPath);
+    if (safePath) {
+      navigate(safePath, { replace: true });
     }
   }, [location.search, navigate]);
 }

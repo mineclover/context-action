@@ -21,7 +21,7 @@ const DemoPage: React.FC = () => {
               </li>
               <li>
                 <Link
-                  to="/performance"
+                  to="/catalog/performance"
                   className="text-gray-500 hover:text-gray-700"
                 >
                   Performance
@@ -29,7 +29,7 @@ const DemoPage: React.FC = () => {
               </li>
               <li>
                 <Link
-                  to="/performance/memoization"
+                  to="/performance"
                   className="text-gray-500 hover:text-gray-700"
                 >
                   Memoization

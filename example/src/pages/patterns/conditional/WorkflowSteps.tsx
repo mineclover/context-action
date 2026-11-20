@@ -262,7 +262,7 @@ function WorkflowStepsContent() {
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-4">
           <Link
-            to="/actionguard/conditional"
+            to="/patterns/conditional"
             className="text-blue-600 hover:text-blue-800 underline text-sm"
           >
             ← Back to Conditional Patterns

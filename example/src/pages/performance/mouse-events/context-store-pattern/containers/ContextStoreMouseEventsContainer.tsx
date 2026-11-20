@@ -18,11 +18,6 @@ import { MouseEventsProvider } from '../providers/MouseEventsProvider';
  * Context Store 기반 마우스 이벤트 Container 내부 로직
  */
 const ContextStoreMouseEventsContainerInner = () => {
-  console.log(
-    '🏪 ContextStoreMouseEventsContainer render at',
-    new Date().toISOString()
-  );
-
   const isInitialized = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const moveEndTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -50,34 +45,38 @@ const ContextStoreMouseEventsContainerInner = () => {
 
   // DOM 요소 설정 및 이벤트 바인딩
   useEffect(() => {
+    let cancelled = false;
+    let activeCleanup: (() => void) | null = null;
+
     const timer = setTimeout(() => {
+      if (cancelled) return;
       const container = document.getElementById('context-mouse-area');
       if (!container || isInitialized.current) return;
 
-      console.log(
-        '🔧 Initializing Context Store Mouse Events with DOM elements'
-      );
-
       // DOM 요소들 생성 및 설정
-      const _elements = setupDOMElements(container);
+      const elements = setupDOMElements(container);
 
       // 이벤트 리스너 바인딩
       const cleanup = bindEventListeners(container);
 
       isInitialized.current = true;
 
-      return () => {
-        // 정리 작업
+      activeCleanup = () => {
         cleanup();
+        elements.cleanup();
         if (moveEndTimeout.current) {
           clearTimeout(moveEndTimeout.current);
+          moveEndTimeout.current = null;
         }
         isInitialized.current = false;
       };
     }, 100); // DOM이 완전히 렌더링될 때까지 기다림
 
     return () => {
+      cancelled = true;
       clearTimeout(timer);
+      activeCleanup?.();
+      activeCleanup = null;
     };
   }, [dispatch]);
 
@@ -315,5 +314,11 @@ function setupDOMElements(container: HTMLElement) {
     trail,
     pathSvg: path,
     clickContainer,
+    cleanup: () => {
+      cursor.remove();
+      trail.remove();
+      svg.remove();
+      clickContainer.remove();
+    },
   };
 }

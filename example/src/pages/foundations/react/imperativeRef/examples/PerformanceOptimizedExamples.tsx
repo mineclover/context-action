@@ -253,8 +253,11 @@ export function WeakMapCleanupExample({
   // 🔑 WeakMap for automatic garbage collection
   const handlerMap = useRef(new WeakMap());
   const resourceMap = useRef(new Map<string, any>());
+  const isMountedRef = useRef(true);
+  const timeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   const addLog = (message: string) => {
+    if (!isMountedRef.current) return;
     const timestamp = new Date().toLocaleTimeString();
     setLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
   };
@@ -262,10 +265,13 @@ export function WeakMapCleanupExample({
   // 🔑 Resource creation with automatic cleanup tracking
   const createResource = (id: string) => {
     // Simulate resource creation (e.g., event listener, subscription)
+    let cleaned = false;
     const resource = {
       id,
       createdAt: Date.now(),
       cleanup: () => {
+        if (cleaned) return;
+        cleaned = true;
         addLog(`🗑️ Resource ${id} cleaned up`);
         resourceMap.current.delete(id);
       },
@@ -293,13 +299,20 @@ export function WeakMapCleanupExample({
     handler();
 
     // Schedule cleanup after 3 seconds
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      timeoutsRef.current.delete(timeoutId);
       resource.cleanup();
     }, 3000);
+    timeoutsRef.current.add(timeoutId);
   };
 
   // 🔑 Manual cleanup all resources
   const cleanupAllResources = () => {
+    for (const timeoutId of timeoutsRef.current) {
+      clearTimeout(timeoutId);
+    }
+    timeoutsRef.current.clear();
+
     const resourceCount = resourceMap.current.size;
 
     for (const [, resource] of resourceMap.current) {
@@ -311,7 +324,9 @@ export function WeakMapCleanupExample({
 
   // Cleanup on unmount
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       cleanupAllResources();
     };
   }, []);

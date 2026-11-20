@@ -423,7 +423,9 @@ function SearchDemoInterface() {
                   onClick={() => handleSearch(historyQuery)}
                   className="px-3 py-1 bg-white text-gray-700 rounded-full text-sm hover:bg-gray-50 transition-colors border"
                 >
-                  <span className="w-3 h-3 inline mr-1" />
+                  <span aria-hidden="true" className="inline mr-1">
+                    🕒
+                  </span>
                   {historyQuery}
                 </button>
               ))}
@@ -545,7 +547,9 @@ function SearchDemoInterface() {
                     onClick={() => addFilter('tag', tag)}
                     className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors"
                   >
-                    <span className="w-3 h-3 inline mr-1" />
+                    <span aria-hidden="true" className="inline mr-1">
+                      #
+                    </span>
                     {tag}
                   </button>
                 ))}
@@ -583,7 +587,12 @@ function SearchDemoInterface() {
             <div className="space-y-4">
               {results.length === 0 ? (
                 <div className="text-center text-gray-400 py-12">
-                  <span className="w-12 h-12 mx-auto mb-4" />
+                  <div
+                    aria-hidden="true"
+                    className="mx-auto mb-3 text-4xl leading-none"
+                  >
+                    🔍
+                  </div>
                   <div className="text-lg mb-2">검색 결과가 없습니다</div>
                   <div className="text-sm text-gray-500">
                     다른 키워드로 검색해보거나 필터를 조정해보세요

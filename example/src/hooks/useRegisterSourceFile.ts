@@ -1,5 +1,5 @@
 import { useStoreValue } from '@context-action/react';
-import { useEffect, useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { GITHUB_CONFIG } from '../constants/github';
 import { useSourceLinkRegistry } from '../stores/SourceLinkRegistry';
 
@@ -26,6 +26,8 @@ export function useRegisterSourceFile(
     tags?: string[];
     /** 우선순위 (높을수록 먼저 표시) */
     priority?: number;
+    /** 카테고리 (기본값: filePath의 첫 번째 경로 세그먼트) */
+    category?: string;
   }
 ) {
   const entriesStore = useSourceLinkRegistry('entries');
@@ -34,8 +36,12 @@ export function useRegisterSourceFile(
 
   // useId를 사용하여 각 인스턴스를 고유하게 식별
   const instanceId = useId();
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+  const tagsKey = options?.tags ? options.tags.join('\u0000') : '';
 
   useEffect(() => {
+    const currentOptions = optionsRef.current;
     // 파일 경로에서 정보 추출
     const pathParts = filePath.split('/');
     const fileName = pathParts[pathParts.length - 1];
@@ -43,8 +49,8 @@ export function useRegisterSourceFile(
       ? fileName.replace(/\.(tsx?|jsx?|ts|js)$/, '')
       : 'unknown';
 
-    // 카테고리 자동 감지
-    const category = pathParts[0] || 'general';
+    // 카테고리 자동 감지 (옵션 우선)
+    const category = currentOptions?.category || pathParts[0] || 'general';
 
     // Store 업데이트
     const currentEntries = entriesStore.getValue();
@@ -66,22 +72,26 @@ export function useRegisterSourceFile(
           instances: updatedInstances,
           lastUpdatedAt: new Date(),
           // 옵션이 제공되면 업데이트 (마지막 등록된 값으로)
-          name: options?.name || existingEntry.name,
-          description: options?.description || existingEntry.description,
-          tags: options?.tags || existingEntry.tags,
-          priority: options?.priority ?? existingEntry.priority,
+          name: currentOptions?.name || existingEntry.name,
+          description:
+            currentOptions?.description !== undefined
+              ? currentOptions.description
+              : existingEntry.description,
+          tags: currentOptions?.tags ?? existingEntry.tags,
+          priority: currentOptions?.priority ?? existingEntry.priority,
+          category: currentOptions?.category || existingEntry.category,
         },
       });
     } else {
       // 새로운 엔트리 생성
       const newEntry = {
         filePath,
-        name: options?.name || fileNameWithoutExt,
+        name: currentOptions?.name || fileNameWithoutExt,
         githubPath: GITHUB_CONFIG.getExampleUrl(filePath),
         category,
-        description: options?.description,
-        tags: options?.tags || [],
-        priority: options?.priority || 0,
+        description: currentOptions?.description,
+        tags: currentOptions?.tags ?? [],
+        priority: currentOptions?.priority ?? 0,
         instances: [instanceId],
         firstRegisteredAt: new Date(),
         lastUpdatedAt: new Date(),
@@ -119,15 +129,10 @@ export function useRegisterSourceFile(
 
           // 카테고리 정리
           const remainingEntries = Object.values(remaining);
-          const hasCategory = remainingEntries.some(
-            (e) => e.category === category
+          const remainingCategories = Array.from(
+            new Set(remainingEntries.map((e) => e.category))
           );
-          if (!hasCategory) {
-            const categories = categoriesStore.getValue();
-            categoriesStore.setValue(
-              categories.filter((cat) => cat !== category)
-            );
-          }
+          categoriesStore.setValue(remainingCategories);
         } else {
           // 아직 다른 인스턴스가 있으면 인스턴스만 제거
           entriesStore.setValue({
@@ -141,7 +146,75 @@ export function useRegisterSourceFile(
         }
       }
     };
-  }, [filePath, instanceId]); // instanceId는 변하지 않으므로 안전
+  }, [categoriesStore, entriesStore, filePath, instanceId, totalCountStore]);
+
+  useEffect(() => {
+    const currentEntries = entriesStore.getValue();
+    const existingEntry = currentEntries[filePath];
+    if (!existingEntry) return;
+
+    const currentOptions = optionsRef.current;
+    const pathParts = filePath.split('/');
+    const fileName = pathParts[pathParts.length - 1];
+    const fileNameWithoutExt = fileName
+      ? fileName.replace(/\.(tsx?|jsx?|ts|js)$/, '')
+      : 'unknown';
+
+    const nextName = currentOptions?.name || fileNameWithoutExt;
+    const nextDescription = currentOptions?.description;
+    const nextTags = currentOptions?.tags ?? [];
+    const nextPriority = currentOptions?.priority ?? 0;
+    const nextCategory = currentOptions?.category || pathParts[0] || 'general';
+
+    const currentTags = existingEntry.tags ?? [];
+    const tagsChanged =
+      currentTags.length !== nextTags.length ||
+      currentTags.some((tag, index) => tag !== nextTags[index]);
+
+    if (
+      existingEntry.name === nextName &&
+      existingEntry.description === nextDescription &&
+      !tagsChanged &&
+      (existingEntry.priority ?? 0) === nextPriority &&
+      existingEntry.category === nextCategory
+    ) {
+      return;
+    }
+
+    const updatedEntries = {
+      ...currentEntries,
+      [filePath]: {
+        ...existingEntry,
+        name: nextName,
+        description: nextDescription,
+        tags: nextTags,
+        priority: nextPriority,
+        category: nextCategory,
+        lastUpdatedAt: new Date(),
+      },
+    };
+    entriesStore.setValue(updatedEntries);
+
+    const remainingCategories = Array.from(
+      new Set(Object.values(updatedEntries).map((entry) => entry.category))
+    );
+    const currentCategories = categoriesStore.getValue();
+    if (
+      remainingCategories.length !== currentCategories.length ||
+      remainingCategories.some((cat, index) => cat !== currentCategories[index])
+    ) {
+      categoriesStore.setValue(remainingCategories);
+    }
+  }, [
+    categoriesStore,
+    entriesStore,
+    filePath,
+    options?.category,
+    options?.description,
+    options?.name,
+    options?.priority,
+    tagsKey,
+  ]);
 }
 
 /**

@@ -1,5 +1,5 @@
 import { useStoreValue } from '@context-action/react';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToastSystem } from './ToastContext';
 import type { ToastPosition } from './types';
 import { useActionToast } from './useActionToast';
@@ -9,6 +9,16 @@ export function ToastControlPanel() {
   const config = useStoreValue(toastSystem.stores.config);
   const { showToast, clearAllToasts } = useActionToast();
   const [isExpanded, setIsExpanded] = useState(false);
+  const stressTimeoutsRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+
+  const clearStressTimeouts = useCallback(() => {
+    for (const timeoutId of stressTimeoutsRef.current) {
+      clearTimeout(timeoutId);
+    }
+    stressTimeoutsRef.current = [];
+  }, []);
+
+  useEffect(() => clearStressTimeouts, [clearStressTimeouts]);
 
   const handlePositionChange = (position: ToastPosition) => {
     toastSystem.updateConfig({ position });
@@ -71,7 +81,6 @@ export function ToastControlPanel() {
       <div className="p-2 border-t border-gray-200">
         <button
           onClick={() => {
-            console.log('🍞 Quick test button clicked');
             showToast(
               'success',
               '✅ Quick Test',
@@ -85,7 +94,7 @@ export function ToastControlPanel() {
       </div>
 
       {isExpanded && (
-        <div className="p-4 space-y-4 w-80">
+        <div className="p-4 space-y-4 w-80 max-h-[75vh] overflow-y-auto">
           {/* 빠른 테스트 버튼들 */}
           <div>
             <h4 className="text-sm font-semibold text-gray-700 mb-2">
@@ -129,18 +138,24 @@ export function ToastControlPanel() {
           </div>
 
           {/* 설정 섹션 */}
-          <div className="toast-settings">
-            <h4>⚙️ Settings</h4>
+          <div className="space-y-3 border-t border-gray-200 pt-3">
+            <h4 className="text-sm font-semibold text-gray-700">⚙️ Settings</h4>
 
             {/* 위치 설정 */}
-            <div className="toast-setting-group">
-              <label className="toast-setting-label">Position:</label>
-              <div className="toast-position-buttons">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-gray-600">
+                Position:
+              </label>
+              <div className="grid grid-cols-2 gap-1.5">
                 {positions.map(({ value, label }) => (
                   <button
                     key={value}
                     onClick={() => handlePositionChange(value)}
-                    className={`toast-position-btn ${config?.position === value ? 'active' : ''}`}
+                    className={`px-2 py-1.5 text-xs font-medium rounded border transition-colors ${
+                      config?.position === value
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    }`}
                     title={`Set position to ${label}`}
                   >
                     {label}
@@ -150,19 +165,23 @@ export function ToastControlPanel() {
             </div>
 
             {/* 최대 토스트 수 */}
-            <div className="toast-setting-group">
-              <label className="toast-setting-label">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-gray-600">
                 Max Toasts:
                 <span className="text-xs text-gray-500 ml-1">
                   (화면에 표시될 최대 개수)
                 </span>
               </label>
-              <div className="toast-number-controls">
+              <div className="flex flex-wrap gap-1.5">
                 {[3, 4, 5, 6].map((num) => (
                   <button
                     key={num}
                     onClick={() => handleMaxToastsChange(num)}
-                    className={`toast-number-btn ${config?.maxToasts === num ? 'active' : ''}`}
+                    className={`px-2.5 py-1 text-xs font-medium rounded border transition-colors ${
+                      config?.maxToasts === num
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    }`}
                   >
                     {num}
                   </button>
@@ -174,14 +193,20 @@ export function ToastControlPanel() {
             </div>
 
             {/* 기본 지속 시간 */}
-            <div className="toast-setting-group">
-              <label className="toast-setting-label">Duration (ms):</label>
-              <div className="toast-number-controls">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-gray-600">
+                Duration (ms):
+              </label>
+              <div className="flex flex-wrap gap-1.5">
                 {[2000, 3000, 4000, 5000, 8000].map((duration) => (
                   <button
                     key={duration}
                     onClick={() => handleDurationChange(duration)}
-                    className={`toast-number-btn ${config?.defaultDuration === duration ? 'active' : ''}`}
+                    className={`px-2 py-1 text-xs font-medium rounded border transition-colors ${
+                      config?.defaultDuration === duration
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    }`}
                   >
                     {duration}
                   </button>
@@ -191,13 +216,16 @@ export function ToastControlPanel() {
           </div>
 
           {/* 스트레스 테스트 */}
-          <div className="toast-stress-test">
-            <h4>🚀 Stress Test</h4>
-            <div className="toast-stress-buttons">
+          <div className="space-y-2 border-t border-gray-200 pt-3">
+            <h4 className="text-sm font-semibold text-gray-700">
+              🚀 Stress Test
+            </h4>
+            <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => {
+                  clearStressTimeouts();
                   for (let i = 0; i < 8; i++) {
-                    setTimeout(() => {
+                    const timeoutId = setTimeout(() => {
                       const types: ('info' | 'success' | 'error' | 'system')[] =
                         ['info', 'success', 'error', 'system'];
                       const selectedType = types[i % types.length];
@@ -209,15 +237,17 @@ export function ToastControlPanel() {
                         );
                       }
                     }, i * 300);
+                    stressTimeoutsRef.current.push(timeoutId);
                   }
                 }}
-                className="toast-stress-btn"
+                className="px-2.5 py-1.5 text-xs font-medium rounded-md border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
               >
                 🔄 Overflow Test (8개)
               </button>
 
               <button
                 onClick={() => {
+                  clearStressTimeouts();
                   const actionTypes = [
                     'updateProfile',
                     'addToCart',
@@ -225,12 +255,13 @@ export function ToastControlPanel() {
                     'sendMessage',
                   ];
                   actionTypes.forEach((actionType, i) => {
-                    setTimeout(() => {
+                    const timeoutId = setTimeout(() => {
                       toastSystem.showActionToast(actionType, 'success');
                     }, i * 300);
+                    stressTimeoutsRef.current.push(timeoutId);
                   });
                 }}
-                className="toast-stress-btn"
+                className="px-2.5 py-1.5 text-xs font-medium rounded-md border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
               >
                 ⚡ Action Sequence
               </button>
@@ -238,20 +269,28 @@ export function ToastControlPanel() {
           </div>
 
           {/* 현재 설정 표시 */}
-          <div className="toast-current-config">
-            <h4>📊 Current Config</h4>
-            <div className="config-display">
-              <div className="config-item">
-                <span className="config-key">Position:</span>
-                <code>{config?.position}</code>
+          <div className="space-y-2 border-t border-gray-200 pt-3">
+            <h4 className="text-sm font-semibold text-gray-700">
+              📊 Current Config
+            </h4>
+            <div className="space-y-1 rounded-md bg-gray-50 p-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-600">Position:</span>
+                <code className="rounded bg-white px-1.5 py-0.5 border border-gray-200">
+                  {config?.position}
+                </code>
               </div>
-              <div className="config-item">
-                <span className="config-key">Max Toasts:</span>
-                <code>{config?.maxToasts}</code>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-600">Max Toasts:</span>
+                <code className="rounded bg-white px-1.5 py-0.5 border border-gray-200">
+                  {config?.maxToasts}
+                </code>
               </div>
-              <div className="config-item">
-                <span className="config-key">Duration:</span>
-                <code>{config?.defaultDuration}ms</code>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-600">Duration:</span>
+                <code className="rounded bg-white px-1.5 py-0.5 border border-gray-200">
+                  {config?.defaultDuration}ms
+                </code>
               </div>
             </div>
           </div>

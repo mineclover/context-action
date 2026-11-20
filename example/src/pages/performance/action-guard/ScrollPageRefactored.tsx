@@ -54,8 +54,8 @@ function ArchitectureSection() {
   return (
     <section className="bg-white rounded-2xl shadow-xl p-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl">
-          <span className="w-8 h-8 text-white" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-2xl text-white">
+          <span aria-hidden="true">📜</span>
         </div>
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
@@ -105,29 +105,29 @@ function ArchitectureSection() {
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2 text-green-800">
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4" />
+                  <span aria-hidden="true">🎯</span>
                   <span>실시간 스크롤 감지</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4" />
+                  <span aria-hidden="true">🧱</span>
                   <span>가상화된 렌더링</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4" />
+                  <span aria-hidden="true">♾️</span>
                   <span>무한 스크롤 로딩</span>
                 </div>
               </div>
               <div className="space-y-2 text-green-800">
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4" />
+                  <span aria-hidden="true">📊</span>
                   <span>성능 메트릭스 추적</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4" />
+                  <span aria-hidden="true">▶️</span>
                   <span>자동 스크롤 애니메이션</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-4 h-4" />
+                  <span aria-hidden="true">✨</span>
                   <span>부드러운 스크롤</span>
                 </div>
               </div>
@@ -142,21 +142,21 @@ function ArchitectureSection() {
             </h3>
             <div className="space-y-3 text-sm text-blue-800">
               <div className="flex items-center gap-2">
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">🖱️</span>
                 <span>User Scroll</span>
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">→</span>
                 <span>Detection</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">📍</span>
                 <span>Position Update</span>
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">→</span>
                 <span>Store</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">⚡</span>
                 <span>Virtualization</span>
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">→</span>
                 <span>Render</span>
               </div>
             </div>
@@ -300,7 +300,7 @@ function ScrollDemoInterface() {
       {/* Control Panel */}
       <div className="p-6 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl">
         <h3 className="text-xl font-semibold text-purple-900 mb-4 flex items-center gap-2">
-          <span className="w-5 h-5" />
+          <span aria-hidden="true">🎛️</span>
           스크롤 컨트롤 패널
         </h3>
 
@@ -308,14 +308,14 @@ function ScrollDemoInterface() {
           {/* Quick Navigation */}
           <div>
             <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <span className="w-4 h-4" />퀵 네비게이션
+              <span aria-hidden="true">🧭</span>퀵 네비게이션
             </h4>
             <div className="space-y-2">
               <button
                 onClick={() => smoothScrollTo(0)}
                 className="w-full px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm flex items-center justify-center gap-1"
               >
-                <span className="w-4 h-4" />맨 위로
+                <span aria-hidden="true">⬆️</span>맨 위로
               </button>
               <button
                 onClick={() => {
@@ -341,7 +341,7 @@ function ScrollDemoInterface() {
                 }}
                 className="w-full px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors text-sm flex items-center justify-center gap-1"
               >
-                <span className="w-4 h-4" />맨 아래로
+                <span aria-hidden="true">⬇️</span>맨 아래로
               </button>
             </div>
           </div>
@@ -349,7 +349,7 @@ function ScrollDemoInterface() {
           {/* Auto Scroll */}
           <div>
             <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <span className="w-4 h-4" />
+              <span aria-hidden="true">🔄</span>
               자동 스크롤
             </h4>
             <div className="space-y-2">
@@ -379,12 +379,12 @@ function ScrollDemoInterface() {
               >
                 {autoScrolling ? (
                   <>
-                    <span className="w-4 h-4" />
+                    <span aria-hidden="true">⏸️</span>
                     정지
                   </>
                 ) : (
                   <>
-                    <span className="w-4 h-4" />
+                    <span aria-hidden="true">▶️</span>
                     시작
                   </>
                 )}
@@ -395,7 +395,7 @@ function ScrollDemoInterface() {
           {/* Content Management */}
           <div>
             <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <span className="w-4 h-4" />
+              <span aria-hidden="true">📦</span>
               컨텐츠 관리
             </h4>
             <div className="space-y-2">
@@ -406,12 +406,15 @@ function ScrollDemoInterface() {
               >
                 {loading ? (
                   <>
-                    <span className="w-4 h-4 animate-spin" />
+                    <span
+                      aria-hidden="true"
+                      className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                    />
                     로딩...
                   </>
                 ) : (
                   <>
-                    <span className="w-4 h-4" />더 로드
+                    <span aria-hidden="true">➕</span>더 로드
                   </>
                 )}
               </button>
@@ -420,7 +423,7 @@ function ScrollDemoInterface() {
                 onClick={resetScroll}
                 className="w-full px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm flex items-center justify-center gap-1"
               >
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">🔄</span>
                 리셋
               </button>
             </div>
@@ -429,7 +432,7 @@ function ScrollDemoInterface() {
           {/* Performance Info */}
           <div>
             <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <span className="w-4 h-4" />
+              <span aria-hidden="true">⚡</span>
               성능 정보
             </h4>
             <div className="space-y-1 text-xs text-gray-600">
@@ -482,7 +485,7 @@ function ScrollDemoInterface() {
       <div className="bg-gray-50 rounded-xl p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-            <span className="w-5 h-5" />
+            <span aria-hidden="true">📜</span>
             가상화된 스크롤 컨테이너
           </h3>
           <div className="text-sm text-gray-600">자동 로딩 활성화됨</div>
@@ -563,7 +566,10 @@ function ScrollDemoInterface() {
             {loading && (
               <div className="flex justify-center items-center py-8">
                 <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 animate-spin text-purple-500" />
+                  <span
+                    aria-hidden="true"
+                    className="inline-block w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"
+                  />
                   <span className="text-gray-600">
                     새로운 컨텐츠를 로드하는 중...
                   </span>
@@ -592,8 +598,8 @@ function StatusSection() {
   return (
     <section className="bg-white rounded-2xl shadow-xl p-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl">
-          <span className="w-8 h-8 text-white" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-2xl text-white">
+          <span aria-hidden="true">📊</span>
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
@@ -608,7 +614,7 @@ function StatusSection() {
           {/* Scroll Metrics */}
           <div className="p-6 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl">
             <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5" />
+              <span aria-hidden="true">📈</span>
               스크롤 메트릭스
             </h3>
             <div className="space-y-3">
@@ -636,7 +642,7 @@ function StatusSection() {
           {/* Virtualization Stats */}
           <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
             <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5" />
+              <span aria-hidden="true">🧱</span>
               가상화 통계
             </h3>
             <div className="space-y-3">
@@ -673,7 +679,7 @@ function StatusSection() {
           {/* Performance */}
           <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
             <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5" />
+              <span aria-hidden="true">⚡</span>
               성능 지표
             </h3>
             <div className="space-y-3">
@@ -772,8 +778,8 @@ function CodeSection() {
   return (
     <section className="bg-white rounded-2xl shadow-xl p-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl">
-          <span className="w-8 h-8 text-white" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-2xl text-white">
+          <span aria-hidden="true">💻</span>
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">

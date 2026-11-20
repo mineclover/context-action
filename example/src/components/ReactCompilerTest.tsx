@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
 
+function computeDerivedMetric(seed: number): number {
+  let result = 0;
+  const iterations = 10000;
+  for (let i = 1; i <= iterations; i++) {
+    result += ((seed + i) % 97) / 97;
+  }
+  return result;
+}
+
 // React 컴파일러 테스트를 위한 컴포넌트
 // 이 컴포넌트는 수동 메모이제이션 없이도 자동으로 최적화되어야 합니다
 export function ReactCompilerTest() {
@@ -19,17 +28,8 @@ export function ReactCompilerTest() {
     setName(e.target.value);
   };
 
-  // 비싼 계산 - React 컴파일러가 자동으로 메모이제이션해야 함
-  const expensiveCalculation = () => {
-    console.log('Expensive calculation running...');
-    let result = 0;
-    for (let i = 0; i < 1000000; i++) {
-      result += Math.random();
-    }
-    return result;
-  };
-
-  const calculationResult = expensiveCalculation();
+  // 결정적(pure) 계산 - React 컴파일러가 안전하게 메모이제이션 가능
+  const calculationResult = computeDerivedMetric(count);
 
   return (
     <div className="p-6 max-w-md mx-auto bg-white rounded-lg shadow-lg">

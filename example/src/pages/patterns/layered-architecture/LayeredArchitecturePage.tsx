@@ -1,6 +1,7 @@
 // import React from 'react';
 
 import { useStoreValue } from '@context-action/react';
+import { Link } from 'react-router-dom';
 import { Container } from '../../../components/ui';
 import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
 import { useSourceLinkRegistry } from '../../../stores/SourceLinkRegistry';
@@ -354,12 +355,12 @@ export default function LayeredArchitecturePage() {
           </h2>
           <p className="text-sm text-gray-600 mb-6">
             실제 구현된 파일들을 6-Layer 구조별로 분류하여 표시합니다. 각 파일은{' '}
-            <a
-              href="/utilities/source-directory"
+            <Link
+              to="/utilities/source-directory"
               className="text-blue-600 hover:underline"
             >
               Source Directory
-            </a>{' '}
+            </Link>{' '}
             시스템에 의해 자동으로 등록되며, GitHub에서 실제 소스 코드를 확인할
             수 있습니다.
           </p>

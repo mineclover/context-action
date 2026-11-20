@@ -38,7 +38,16 @@ export function ScrollHandlerRegistry({
 
   const autoScrolling = useStoreValue(autoScrollingStore);
   const scrollSpeed = useStoreValue(scrollSpeedStore) || 2;
-  const container = containerRef.target;
+  const rafIdRef = useRef<number | null>(null);
+
+  const cancelScrollAnimation = useCallback(() => {
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => cancelScrollAnimation, [cancelScrollAnimation]);
 
   useScrollActionHandler(
     'updateScrollPosition',
@@ -117,7 +126,10 @@ export function ScrollHandlerRegistry({
     'smoothScrollTo',
     useCallback(
       async (payload) => {
+        const container = containerRef.target;
         if (!container) return;
+
+        cancelScrollAnimation();
 
         const start =
           payload.direction === 'y'
@@ -130,6 +142,12 @@ export function ScrollHandlerRegistry({
 
         let startTime: number | null = null;
         const animateScroll = (currentTime: number) => {
+          const activeContainer = containerRef.target;
+          if (!activeContainer) {
+            rafIdRef.current = null;
+            return;
+          }
+
           if (startTime === null) startTime = currentTime;
           const timeElapsed = currentTime - startTime;
           const progress = Math.min(timeElapsed / duration, 1);
@@ -140,25 +158,28 @@ export function ScrollHandlerRegistry({
           const currentPosition = start + distance * easeInOutCubic;
 
           if (payload.direction === 'y') {
-            container.scrollTop = currentPosition;
+            activeContainer.scrollTop = currentPosition;
           } else {
-            container.scrollLeft = currentPosition;
+            activeContainer.scrollLeft = currentPosition;
           }
 
           if (progress < 1) {
-            requestAnimationFrame(animateScroll);
+            rafIdRef.current = requestAnimationFrame(animateScroll);
+          } else {
+            rafIdRef.current = null;
           }
         };
 
-        requestAnimationFrame(animateScroll);
+        rafIdRef.current = requestAnimationFrame(animateScroll);
       },
-      [container]
+      [cancelScrollAnimation, containerRef]
     )
   );
 
   useScrollActionHandler(
     'resetScroll',
     useCallback(async () => {
+      cancelScrollAnimation();
       contentStore.setValue(generateScrollContent(0, 15, 0));
       scrollDataStore.setValue(initialScrollData);
       currentPageStore.setValue(0);
@@ -174,6 +195,7 @@ export function ScrollHandlerRegistry({
       });
     }, [
       autoScrollingStore,
+      cancelScrollAnimation,
       containerRef,
       contentStore,
       currentPageStore,
@@ -207,9 +229,12 @@ export function ScrollHandlerRegistry({
   );
 
   useEffect(() => {
-    if (!autoScrolling || !container) return;
+    if (!autoScrolling) return;
 
     const interval = setInterval(() => {
+      const container = containerRef.target;
+      if (!container) return;
+
       const newScrollTop = container.scrollTop + scrollSpeed;
       const maxScroll = container.scrollHeight - container.clientHeight;
 
@@ -221,7 +246,7 @@ export function ScrollHandlerRegistry({
     }, 16);
 
     return () => clearInterval(interval);
-  }, [autoScrolling, container, dispatch, scrollSpeed]);
+  }, [autoScrolling, containerRef, dispatch, scrollSpeed]);
 
   return <>{children}</>;
 }

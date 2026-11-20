@@ -11,6 +11,7 @@
 
 import { useStoreValue } from '@context-action/react';
 import React, { useCallback, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { CodeBlock } from '@/components/ui';
 import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
 import { useSourceLinkRegistry } from '../../../stores/SourceLinkRegistry';
@@ -854,14 +855,14 @@ function SourceDirectorySection() {
         <div className="mt-4 p-3 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-700">
             💡 <strong>Tip:</strong> Visit{' '}
-            <a
-              href="/utilities/source-directory"
+            <Link
+              to="/utilities/source-directory"
               className="underline hover:text-blue-900 font-medium"
               target="_blank"
               rel="noopener noreferrer"
             >
               /utilities/source-directory
-            </a>{' '}
+            </Link>{' '}
             to see all registered source files across the entire application
           </p>
         </div>

@@ -60,7 +60,7 @@ function PermissionBasedExecutionContent() {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-6">
             <Link
-              to="/actionguard/conditional"
+              to="/patterns/conditional"
               className="text-blue-600 hover:text-blue-800 underline text-sm font-medium transition-colors"
             >
               ← Back to Conditional Execution

@@ -155,19 +155,19 @@ function ArchitectureSection() {
             </h3>
             <div className="space-y-3 text-sm text-green-800">
               <div className="flex items-center gap-2">
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">📤</span>
                 <span>API Request</span>
                 <span>→</span>
                 <span>Validation</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">🛡️</span>
                 <span>Block Check</span>
                 <span>→</span>
                 <span>Rate Limit</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-4 h-4" />
+                <span aria-hidden="true">⚡</span>
                 <span>Process/Block</span>
                 <span>→</span>
                 <span>Response</span>
@@ -247,7 +247,7 @@ function ApiBlockingDemoInterface() {
       {/* Configuration Panel */}
       <div className="p-6 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl">
         <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <span className="w-5 h-5" />
+          <span aria-hidden="true">⚙️</span>
           차단 시스템 설정
         </h3>
 
@@ -331,7 +331,7 @@ function ApiBlockingDemoInterface() {
               disabled={currentlyBlocked || (rateLimit?.enabled && rateLimited)}
               className="w-full px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <span className="w-4 h-4" />
+              <span aria-hidden="true">🚀</span>
               {endpoint.method}
             </button>
           </div>
@@ -343,7 +343,9 @@ function ApiBlockingDemoInterface() {
         <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-200 rounded-xl">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="w-5 h-5 text-orange-600" />
+              <span aria-hidden="true" className="text-orange-600">
+                ⏳
+              </span>
               <span className="font-semibold text-orange-800">
                 API 요청 차단 중 ({Math.ceil(remainingBlockTime / 1000)}초 남음)
               </span>
@@ -399,14 +401,14 @@ function ApiBlockingDemoInterface() {
       <div className="bg-gray-50 rounded-xl p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-            <span className="w-5 h-5" />
+            <span aria-hidden="true">📜</span>
             최근 API 요청 기록
           </h3>
           <button
             onClick={clearHistory}
             className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors text-sm flex items-center gap-2"
           >
-            <span className="w-4 h-4" />
+            <span aria-hidden="true">🗑️</span>
             기록 지우기
           </button>
         </div>
@@ -434,13 +436,21 @@ function ApiBlockingDemoInterface() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       {call.status === 'success' ? (
-                        <span className="w-4 h-4 text-green-600" />
+                        <span aria-hidden="true" className="text-green-600">
+                          ✅
+                        </span>
                       ) : call.status === 'blocked' ? (
-                        <span className="w-4 h-4 text-red-600" />
+                        <span aria-hidden="true" className="text-red-600">
+                          🚫
+                        </span>
                       ) : call.status === 'error' ? (
-                        <span className="w-4 h-4 text-orange-600" />
+                        <span aria-hidden="true" className="text-orange-600">
+                          ⚠️
+                        </span>
                       ) : (
-                        <span className="w-4 h-4 text-blue-600" />
+                        <span aria-hidden="true" className="text-blue-600">
+                          ⏳
+                        </span>
                       )}
                       <span className="font-mono font-medium">
                         {call.endpoint}
@@ -503,8 +513,8 @@ function StatusSection() {
   return (
     <section className="bg-white rounded-2xl shadow-xl p-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl">
-          <span className="w-8 h-8 text-white" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-2xl text-white">
+          <span aria-hidden="true">📊</span>
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
@@ -519,7 +529,7 @@ function StatusSection() {
           {/* Request Metrics */}
           <div className="p-6 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl">
             <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5" />
+              <span aria-hidden="true">📈</span>
               요청 메트릭스
             </h3>
             <div className="space-y-3">
@@ -547,7 +557,7 @@ function StatusSection() {
           {/* Blocking Efficiency */}
           <div className="p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl">
             <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5" />
+              <span aria-hidden="true">🛡️</span>
               차단 효율성
             </h3>
             <div className="space-y-3">
@@ -577,7 +587,7 @@ function StatusSection() {
           {/* Load Level */}
           <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
             <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5" />
+              <span aria-hidden="true">🔥</span>
               시스템 부하
             </h3>
             <div className="space-y-3">
@@ -712,8 +722,8 @@ function CodeSection() {
   return (
     <section className="bg-white rounded-2xl shadow-xl p-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl">
-          <span className="w-8 h-8 text-white" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-2xl text-white">
+          <span aria-hidden="true">💻</span>
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">

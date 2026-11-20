@@ -78,7 +78,7 @@ export function useTestExecution(options: TestExecutionOptions = {}) {
       console.log('🚀 Starting priority test...');
 
       // 테스트 실행 - autoAbort 사용
-      const _result = await actionRegister.dispatchWithResult(
+      const result = await actionRegister.dispatchWithResult(
         'priorityTest',
         { testId: `test-${testStartTime}`, delay: 0 },
         {
@@ -95,6 +95,18 @@ export function useTestExecution(options: TestExecutionOptions = {}) {
 
       const testEndTime = Date.now();
       const totalTime = testEndTime - testStartTime;
+
+      if (result.aborted || !result.success) {
+        const reason = result.abortReason || 'Test did not complete';
+        console.log(`⛔ Test stopped: ${reason}`);
+        onTestComplete?.({
+          success: false,
+          totalTime,
+          handlerCount: 0,
+          errorMessage: reason,
+        });
+        return;
+      }
 
       console.log(`✅ Test completed in ${totalTime}ms`);
 
