@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionAttemptSupersededError
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionAttemptSupersededError
 
 # Class: ActionAttemptSupersededError
 
@@ -30,7 +30,7 @@ Defined in: [packages/core/src/errors.ts:45](https://github.com/mineclover/conte
 
 #### Returns
 
-Type parameter **ActionAttemptSupersededError**
+`ActionAttemptSupersededError`
 
 #### Overrides
 

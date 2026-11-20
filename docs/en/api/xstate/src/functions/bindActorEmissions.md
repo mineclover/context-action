@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / bindActorEmissions
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / bindActorEmissions
 
 # Function: bindActorEmissions()
 
@@ -10,7 +10,7 @@
 
 > **bindActorEmissions**\<`TActions`, `TResultMap`, `TEmitted`\>(`actor`, `target`, `emissions`, `options?`): () => `void`
 
-Defined in: [packages/xstate/src/pipeline-binding.ts:389](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L389)
+Defined in: [packages/xstate/src/pipeline-binding.ts:393](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L393)
 
 Routes outbound XState v5/v6 `emit()` events (`actor.on(type, handler)`) directly into
 a Context-Action `ActionRegister` or `SyncActionPipeline`.
@@ -55,7 +55,7 @@ a Context-Action `ActionRegister` or `SyncActionPipeline`.
 
 > **bindActorEmissions**\<`TActions`, `TEmitted`\>(`actor`, `target`, `emissions`, `options?`): () => `void`
 
-Defined in: [packages/xstate/src/pipeline-binding.ts:399](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L399)
+Defined in: [packages/xstate/src/pipeline-binding.ts:403](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L403)
 
 Routes outbound XState v5/v6 `emit()` events (`actor.on(type, handler)`) directly into
 a Context-Action `ActionRegister` or `SyncActionPipeline`.

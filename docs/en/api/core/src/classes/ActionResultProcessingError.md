@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionResultProcessingError
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionResultProcessingError
 
 # Class: ActionResultProcessingError
 
@@ -30,7 +30,7 @@ Defined in: [packages/core/src/errors.ts:35](https://github.com/mineclover/conte
 
 #### Returns
 
-Type parameter **ActionResultProcessingError**
+`ActionResultProcessingError`
 
 #### Overrides
 

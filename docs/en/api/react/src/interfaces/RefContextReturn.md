@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / RefContextReturn
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / RefContextReturn
 
 # Interface: RefContextReturn\<T\>
 
@@ -82,7 +82,7 @@ Type parameter **K**
 
 ###### Result
 
-Type parameter **Result**
+`Result`
 
 ###### Parameters
 
@@ -128,7 +128,7 @@ Type parameter **Result**
 
 ###### Result
 
-Type parameter **Result**
+`Result`
 
 ###### Parameters
 

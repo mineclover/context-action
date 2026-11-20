@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/mutative/src](../README.md) / TimeTravel
+[context-action-monorepo](../../../README.md) / [packages/mutative/src](../README.md) / TimeTravel
 
 # Class: TimeTravel\<S, F, A, P\>
 
@@ -50,7 +50,7 @@ Type parameter **S**
 
 > **new TimeTravel**\<`S`, `F`, `A`, `P`\>(`initialState`, `options?`): `TimeTravel`\<`S`, `F`, `A`, `P`\>
 
-Defined in: [packages/mutative/src/time-travel.ts:158](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L158)
+Defined in: [packages/mutative/src/time-travel.ts:159](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L159)
 
 #### Parameters
 
@@ -72,7 +72,7 @@ Type parameter **S**
 
 > **subscribe**(`listener`): () => `void`
 
-Defined in: [packages/mutative/src/time-travel.ts:337](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L337)
+Defined in: [packages/mutative/src/time-travel.ts:338](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L338)
 
 Subscribe to state changes
 
@@ -92,7 +92,7 @@ Subscribe to state changes
 
 > **getState**(): `S`
 
-Defined in: [packages/mutative/src/time-travel.ts:348](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L348)
+Defined in: [packages/mutative/src/time-travel.ts:349](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L349)
 
 Get current state
 
@@ -106,7 +106,7 @@ Type parameter **S**
 
 > **setState**(`updater`): `void`
 
-Defined in: [packages/mutative/src/time-travel.ts:353](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L353)
+Defined in: [packages/mutative/src/time-travel.ts:354](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L354)
 
 Update state with new value or updater function
 
@@ -144,7 +144,7 @@ Defined in: [packages/mutative/src/time-travel.ts:455](https://github.com/minecl
 
 > **endBatch**(): `void`
 
-Defined in: [packages/mutative/src/time-travel.ts:473](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L473)
+Defined in: [packages/mutative/src/time-travel.ts:475](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L475)
 
 #### Returns
 
@@ -156,7 +156,7 @@ Defined in: [packages/mutative/src/time-travel.ts:473](https://github.com/minecl
 
 > **cancelBatch**(): `void`
 
-Defined in: [packages/mutative/src/time-travel.ts:524](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L524)
+Defined in: [packages/mutative/src/time-travel.ts:532](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L532)
 
 Restore the active batch without archiving its rejected changes.
 
@@ -170,7 +170,7 @@ Restore the active batch without archiving its rejected changes.
 
 > **batch**&lt;`R`&gt;(`callback`, `metadata?`): `R`
 
-Defined in: [packages/mutative/src/time-travel.ts:578](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L578)
+Defined in: [packages/mutative/src/time-travel.ts:591](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L591)
 
 Group synchronous or asynchronous updates into one history entry.
 
@@ -200,7 +200,7 @@ Type parameter **R**
 
 > **archive**(): `void`
 
-Defined in: [packages/mutative/src/time-travel.ts:696](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L696)
+Defined in: [packages/mutative/src/time-travel.ts:712](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L712)
 
 Archive temporary patches (manual mode only)
 
@@ -214,7 +214,7 @@ Archive temporary patches (manual mode only)
 
 > **getHistory**(): readonly `S`[]
 
-Defined in: [packages/mutative/src/time-travel.ts:735](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L735)
+Defined in: [packages/mutative/src/time-travel.ts:751](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L751)
 
 Get complete history of states
 
@@ -228,7 +228,7 @@ readonly `S`[]
 
 > **go**(`nextPosition`, `metadata?`): `void`
 
-Defined in: [packages/mutative/src/time-travel.ts:802](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L802)
+Defined in: [packages/mutative/src/time-travel.ts:818](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L818)
 
 Go to specific position in history
 
@@ -252,7 +252,7 @@ Go to specific position in history
 
 > **back**(`amount?`, `metadata?`): `void`
 
-Defined in: [packages/mutative/src/time-travel.ts:868](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L868)
+Defined in: [packages/mutative/src/time-travel.ts:882](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L882)
 
 Go back in history
 
@@ -276,7 +276,7 @@ Go back in history
 
 > **forward**(`amount?`, `metadata?`): `void`
 
-Defined in: [packages/mutative/src/time-travel.ts:881](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L881)
+Defined in: [packages/mutative/src/time-travel.ts:895](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L895)
 
 Go forward in history
 
@@ -300,7 +300,7 @@ Go forward in history
 
 > **reset**(`metadata?`): `void`
 
-Defined in: [packages/mutative/src/time-travel.ts:891](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L891)
+Defined in: [packages/mutative/src/time-travel.ts:905](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L905)
 
 Reset to initial state
 
@@ -320,7 +320,7 @@ Reset to initial state
 
 > **canBack**(): `boolean`
 
-Defined in: [packages/mutative/src/time-travel.ts:932](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L932)
+Defined in: [packages/mutative/src/time-travel.ts:949](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L949)
 
 Check if can go back
 
@@ -334,7 +334,7 @@ Check if can go back
 
 > **canForward**(): `boolean`
 
-Defined in: [packages/mutative/src/time-travel.ts:939](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L939)
+Defined in: [packages/mutative/src/time-travel.ts:956](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L956)
 
 Check if can go forward
 
@@ -348,7 +348,7 @@ Check if can go forward
 
 > **canArchive**(): `boolean`
 
-Defined in: [packages/mutative/src/time-travel.ts:950](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L950)
+Defined in: [packages/mutative/src/time-travel.ts:967](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L967)
 
 Check if can archive (manual mode)
 
@@ -362,7 +362,7 @@ Check if can archive (manual mode)
 
 > **getPosition**(): `number`
 
-Defined in: [packages/mutative/src/time-travel.ts:957](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L957)
+Defined in: [packages/mutative/src/time-travel.ts:974](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L974)
 
 Get current position
 
@@ -376,7 +376,7 @@ Get current position
 
 > **getHistoryLength**(): `number`
 
-Defined in: [packages/mutative/src/time-travel.ts:962](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L962)
+Defined in: [packages/mutative/src/time-travel.ts:979](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L979)
 
 Query retained history size without replaying states or cloning patches.
 
@@ -390,7 +390,7 @@ Query retained history size without replaying states or cloning patches.
 
 > **getHistoryEntryId**(): `number`
 
-Defined in: [packages/mutative/src/time-travel.ts:971](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L971)
+Defined in: [packages/mutative/src/time-travel.ts:988](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L988)
 
 Stable identity of the current entry, independent of a bounded cursor.
 
@@ -404,7 +404,7 @@ Stable identity of the current entry, independent of a bounded cursor.
 
 > **hasHistoryEntry**(`entryId`): `boolean`
 
-Defined in: [packages/mutative/src/time-travel.ts:976](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L976)
+Defined in: [packages/mutative/src/time-travel.ts:993](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L993)
 
 Whether an entry remains available in the retained timeline.
 
@@ -424,7 +424,7 @@ Whether an entry remains available in the retained timeline.
 
 > **goToHistoryEntry**(`entryId`, `metadata?`): `void`
 
-Defined in: [packages/mutative/src/time-travel.ts:981](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L981)
+Defined in: [packages/mutative/src/time-travel.ts:998](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L998)
 
 Replay an exact retained entry; reject trimmed or replaced branches.
 
@@ -448,7 +448,7 @@ Replay an exact retained entry; reject trimmed or replaced branches.
 
 > **getPatches**(): [`TravelPatches`](../type-aliases/TravelPatches.md)&lt;`P`&gt;
 
-Defined in: [packages/mutative/src/time-travel.ts:990](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L990)
+Defined in: [packages/mutative/src/time-travel.ts:1010](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L1010)
 
 Get all patches
 
@@ -462,7 +462,7 @@ Get all patches
 
 > **getControls**(): `A` *extends* `true` ? [`TimeTravelControls`](../interfaces/TimeTravelControls.md)\<`S`, `F`, `P`\> : [`ManualTimeTravelControls`](../interfaces/ManualTimeTravelControls.md)\<`S`, `F`, `P`\>
 
-Defined in: [packages/mutative/src/time-travel.ts:1006](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L1006)
+Defined in: [packages/mutative/src/time-travel.ts:1026](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L1026)
 
 Get controls object for external use
 

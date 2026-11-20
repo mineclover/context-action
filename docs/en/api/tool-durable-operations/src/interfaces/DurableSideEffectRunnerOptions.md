@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / DurableSideEffectRunnerOptions
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / DurableSideEffectRunnerOptions
 
 # Interface: DurableSideEffectRunnerOptions\<TResult, TDiagnostic\>
 
@@ -12,7 +12,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:114](https://gi
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ### TDiagnostic
 

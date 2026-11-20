@@ -93,8 +93,10 @@ export class PriorityTasksCommand {
       }
     }
 
-    // Also check for missing priority.json files in source docs
-    await this.checkMissingPriorityFiles(tasks, languages, options);
+    // Also check for missing priority.json files in source docs when requested
+    if (!options.taskType || options.taskType === 'missing') {
+      await this.checkMissingPriorityFiles(tasks, languages, options);
+    }
 
     // Sort by priority (high to low) and task severity
     tasks.sort((a, b) => {
@@ -270,6 +272,18 @@ export class PriorityTasksCommand {
         const relativeSourcePath = normalizeDocumentPath(
           path.relative(this.config.paths.docsDir, fullPath)
         );
+        const excludePatterns = this.config.paths.excludePatterns ?? [];
+        const docsPrefixedPath = `docs/${relativeSourcePath}`;
+        if (
+          excludePatterns.some(
+            pattern =>
+              path.posix.matchesGlob(relativeSourcePath, pattern) ||
+              path.posix.matchesGlob(docsPrefixedPath, pattern),
+          )
+        ) {
+          continue;
+        }
+
         const identity = getCanonicalDocumentIdentity(relativeSourcePath);
 
         if (!identity || identity.language !== language) {
@@ -588,14 +602,15 @@ export class PriorityTasksCommand {
         `in the Context-Action framework.`;
     }
     
-    // Enhance keywords
-    if (!data.keywords?.technical || data.keywords.technical.length < 2) {
-      data.keywords = data.keywords || {};
-      data.keywords.technical = ['typescript', 'react', 'state-management', 'context-api', 'hooks'];
+    // Enhance keywords in data.metadata.keywords (matching needsMetadataUpdate check)
+    data.metadata = data.metadata || {};
+    data.metadata.keywords = data.metadata.keywords || {};
+    if (!data.metadata.keywords.technical || data.metadata.keywords.technical.length < 2) {
+      data.metadata.keywords.technical = ['typescript', 'react', 'state-management', 'context-api', 'hooks'];
     }
     
-    if (!data.keywords?.functional || data.keywords.functional.length < 2) {
-      data.keywords.functional = [task.category, 'documentation', 'guide', 'reference', 'framework'];
+    if (!data.metadata.keywords.functional || data.metadata.keywords.functional.length < 2) {
+      data.metadata.keywords.functional = [task.category, 'documentation', 'guide', 'reference', 'framework'];
     }
     
     await fs.writeFile(priorityPath, JSON.stringify(data, null, 2));

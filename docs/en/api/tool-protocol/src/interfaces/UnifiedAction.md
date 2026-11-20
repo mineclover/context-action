@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-protocol/src](../README.md) / UnifiedAction
+[context-action-monorepo](../../../README.md) / [packages/tool-protocol/src](../README.md) / UnifiedAction
 
 # Interface: UnifiedAction\<TPayload, TOutput, TInputSchema\>
 
@@ -141,7 +141,7 @@ Payload 검증 (strict mode)
 
 #### Returns
 
-Type parameter **TPayload**
+`TPayload`
 
 #### Throws
 

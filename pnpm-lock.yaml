@@ -520,9 +520,6 @@ importers:
         specifier: 4.0.3
         version: 4.0.3
     devDependencies:
-      '@context-action/react':
-        specifier: workspace:*
-        version: link:../react
       '@swc/core':
         specifier: 1.16.13
         version: 1.16.13(@swc/helpers@0.5.23)

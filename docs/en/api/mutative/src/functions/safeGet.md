@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/mutative/src](../README.md) / safeGet
+[context-action-monorepo](../../../README.md) / [packages/mutative/src](../README.md) / safeGet
 
 # Function: safeGet()
 
 > **safeGet**&lt;`T`&gt;(`value`, `enableCloning?`): `T`
 
-Defined in: [packages/mutative/src/immutable.ts:217](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/immutable.ts#L217)
+Defined in: [packages/mutative/src/immutable.ts:148](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/immutable.ts#L148)
 
 Safely get a value with immutability guarantee
 

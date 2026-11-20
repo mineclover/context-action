@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../README.md)
+[**context-action-monorepo v1.0.1**](../../README.md)
 
 ***
 
-[context-action-monorepo](../../../README.md) / packages/webmcp/src
+[context-action-monorepo](../../README.md) / packages/webmcp/src
 
 # packages/webmcp/src
 

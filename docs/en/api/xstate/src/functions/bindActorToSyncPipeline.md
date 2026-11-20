@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / bindActorToSyncPipeline
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / bindActorToSyncPipeline
 
 # Function: bindActorToSyncPipeline()
 
 > **bindActorToSyncPipeline**\<`TActions`, `TEvent`, `TSnapshot`, `TEmitted`\>(`pipeline`, `actor`, `options`): [`BoundActorHandle`](../type-aliases/BoundActorHandle.md)\<`TActions`, `TSnapshot`\>
 
-Defined in: [packages/xstate/src/pipeline-binding.ts:426](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L426)
+Defined in: [packages/xstate/src/pipeline-binding.ts:430](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L430)
 
 Mounts an XState v5/v6 `ActorRefLike` onto a synchronous `SyncActionPipeline`
 (`@context-action/core/element`) for 0ms DOM interaction gating and dispatch.

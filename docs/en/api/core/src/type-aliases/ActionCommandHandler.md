@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionCommandHandler
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionCommandHandler
 
 # Type Alias: ActionCommandHandler\<T\>
 
 > **ActionCommandHandler**&lt;`T`&gt; = (`payload`, `controller`) => `void` \| `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:430](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L430)
+Defined in: [packages/core/src/types.ts:279](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L279)
 
 Void Phase 2 command handler that mutates stores or performs side effects
 without publishing or arbitrating action results.

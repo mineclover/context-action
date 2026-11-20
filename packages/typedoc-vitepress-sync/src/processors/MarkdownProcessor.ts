@@ -12,29 +12,226 @@ export class MarkdownProcessor {
   }
 
   /**
+   * Transform outside fenced code blocks so TypeScript/markdown samples stay intact.
+   */
+  private transformOutsideCodeFences(
+    content: string,
+    transform: (segment: string) => string
+  ): string {
+    const lines = content.split('\n')
+    const result: string[] = []
+    let buffer: string[] = []
+    let activeFence: string | null = null
+
+    const flushBuffer = () => {
+      if (buffer.length > 0) {
+        result.push(transform(buffer.join('\n')))
+        buffer = []
+      }
+    }
+
+    for (const line of lines) {
+      const trimmed = line.trimStart()
+      const fenceMatch = trimmed.match(/^(```+|~~~+)/)
+
+      if (fenceMatch?.[1]) {
+        const marker = fenceMatch[1]
+        if (!activeFence) {
+          flushBuffer()
+          activeFence = marker[0]!
+          result.push(line)
+          continue
+        }
+        if (marker[0] === activeFence && trimmed.slice(marker.length).trim() === '') {
+          activeFence = null
+          result.push(line)
+          continue
+        }
+      }
+
+      if (activeFence) {
+        result.push(line)
+      } else {
+        buffer.push(line)
+      }
+    }
+
+    flushBuffer()
+    return result.join('\n')
+  }
+
+  private normalizePosixPath(inputPath: string): string {
+    const posix = inputPath.replace(/\\/g, '/').replace(/\/+$/, '') || '.'
+    const isAbsolute = posix.startsWith('/')
+    const stack: string[] = []
+
+    for (const segment of posix.split('/')) {
+      if (!segment || segment === '.') continue
+      if (segment === '..') {
+        if (stack.length > 0 && stack[stack.length - 1] !== '..') {
+          stack.pop()
+        } else if (!isAbsolute) {
+          stack.push('..')
+        }
+      } else {
+        stack.push(segment)
+      }
+    }
+
+    if (isAbsolute) {
+      return `/${stack.join('/')}`
+    }
+    return stack.join('/') || '.'
+  }
+
+  private resolvePosixPath(baseDir: string, relativeTarget: string): string {
+    if (relativeTarget.startsWith('/')) {
+      return this.normalizePosixPath(relativeTarget)
+    }
+    const cleanBase = baseDir === '.' ? '' : baseDir.replace(/\/+$/, '')
+    return this.normalizePosixPath(cleanBase ? `${cleanBase}/${relativeTarget}` : relativeTarget)
+  }
+
+  private relativePosixPath(fromDir: string, toPath: string): string {
+    const normFrom = this.normalizePosixPath(fromDir)
+    const normTo = this.normalizePosixPath(toPath)
+    if (normFrom === normTo) {
+      return '.'
+    }
+
+    const fromParts = normFrom === '/' || normFrom === '.' ? [] : normFrom.split('/')
+    const toParts = normTo === '/' || normTo === '.' ? [] : normTo.split('/')
+
+    let common = 0
+    while (common < fromParts.length && common < toParts.length && fromParts[common] === toParts[common]) {
+      common++
+    }
+
+    const upMoves = new Array<string>(fromParts.length - common).fill('..')
+    const downMoves = toParts.slice(common)
+    return [...upMoves, ...downMoves].join('/') || '.'
+  }
+
+  private dirnamePosix(filePath: string): string {
+    const normalized = this.normalizePosixPath(filePath)
+    const idx = normalized.lastIndexOf('/')
+    if (idx < 0) return '.'
+    if (idx === 0) return '/'
+    return normalized.slice(0, idx)
+  }
+
+  /**
+   * Rewrite relative TypeDoc links so flattened package directories under targetDir resolve cleanly.
+   */
+  rewriteFlattenedLinks(
+    content: string,
+    options: {
+      sourcePath: string
+      targetPath: string
+      sourceDir: string
+      targetDir: string
+      packageMapping: Record<string, string>
+    }
+  ): string {
+    const sourceRoot = this.normalizePosixPath(options.sourceDir)
+    const targetRoot = this.normalizePosixPath(options.targetDir)
+    const sourceFile = this.normalizePosixPath(options.sourcePath)
+    const targetFile = this.normalizePosixPath(options.targetPath)
+    const sourceFileDir = this.dirnamePosix(sourceFile)
+    const targetFileDir = this.dirnamePosix(targetFile)
+
+    const mappedPackages = Object.keys(options.packageMapping)
+      .sort((a, b) => b.length - a.length)
+
+    const resolveMappedTarget = (relFromSourceRoot: string): string | null => {
+      const cleanRel = relFromSourceRoot === '.' ? '' : relFromSourceRoot
+      if (cleanRel === '' || !cleanRel.startsWith('packages/')) {
+        return cleanRel ? `${targetRoot}/${cleanRel}` : targetRoot
+      }
+
+      const afterPackages = cleanRel.slice('packages/'.length)
+      for (const pkgKey of mappedPackages) {
+        if (afterPackages === pkgKey || afterPackages.startsWith(`${pkgKey}/`)) {
+          const targetPkg = options.packageMapping[pkgKey]!
+          const suffix = afterPackages.slice(pkgKey.length)
+          return this.resolvePosixPath(targetRoot, `${targetPkg}${suffix}`)
+        }
+      }
+
+      return null
+    }
+
+    return this.transformOutsideCodeFences(content, (segment) =>
+      segment.replace(/(`[^`\n]+`|!?\[[^\]\n]*\]\(([^)\n]+)\))/g, (fullMatch, _whole, rawTarget: string | undefined) => {
+        if (!rawTarget || fullMatch.startsWith('`')) {
+          return fullMatch
+        }
+
+        const trimmedTarget = rawTarget.trim()
+        if (
+          !trimmedTarget ||
+          trimmedTarget.startsWith('#') ||
+          trimmedTarget.startsWith('/') ||
+          /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmedTarget)
+        ) {
+          return fullMatch
+        }
+
+        const suffixMatch = trimmedTarget.match(/^([^?#\s]+)([?#][^\s]*)?(\s+["'][^"']*["'])?$/)
+        if (!suffixMatch?.[1]) {
+          return fullMatch
+        }
+
+        const linkPath = suffixMatch[1]
+        const queryOrHash = suffixMatch[2] || ''
+        const titleSuffix = suffixMatch[3] || ''
+        const hadTrailingSlash = linkPath.endsWith('/')
+
+        const resolvedSourceTarget = this.resolvePosixPath(sourceFileDir, linkPath)
+        const relFromRoot = this.relativePosixPath(sourceRoot, resolvedSourceTarget)
+        if (relFromRoot === '..' || relFromRoot.startsWith('../')) {
+          return fullMatch
+        }
+
+        const mappedTarget = resolveMappedTarget(relFromRoot)
+        if (!mappedTarget) {
+          return fullMatch
+        }
+
+        let rewrittenPath = this.relativePosixPath(targetFileDir, mappedTarget)
+        if (hadTrailingSlash && !rewrittenPath.endsWith('/')) {
+          rewrittenPath = `${rewrittenPath}/`
+        }
+
+        const rebuiltTarget = `${rewrittenPath}${queryOrHash}${titleSuffix}`
+        const targetStart = fullMatch.lastIndexOf(`(${rawTarget})`)
+        if (targetStart === -1) {
+          return fullMatch
+        }
+        return `${fullMatch.slice(0, targetStart)}(${rebuiltTarget})`
+      })
+    )
+  }
+
+  /**
    * Post-process markdown content for Vue/VitePress compatibility
    */
   postProcessMarkdown(content: string): string {
-    return content
-      // Vue 컴파일러가 HTML 태그로 인식하는 패턴들을 완전히 제거
-      // 제네릭 타입 파라미터 \<T\> -> &lt;T&gt;
-      .replace(/\\<`([A-Z])`\\>/g, '&lt;`$1`&gt;')
-      // 다른 제네릭 패턴들도 처리
-      .replace(/\\<`([A-Z][A-Za-z0-9]*)`\\>/g, '&lt;`$1`&gt;')
-      // 복잡한 제네릭 타입도 처리 (예: \<T, K\>)
-      .replace(/\\<`([^`]+)`\\>/g, '&lt;`$1`&gt;')
-      // Vue가 문제를 일으키는 일반적인 제네릭 타입 패턴들 처리
-      .replace(/([A-Za-z]+)<([A-Z])>/g, '$1&lt;$2&gt;')
-      // Vue가 문제를 일으키는 단일 타입 파라미터 헤더들을 안전한 형태로 변경
-      .replace(/^### ([A-Z])$/gm, '### Generic type $1')
-      // 백틱이 있는 단일 대문자를 완전히 안전한 형태로 변경
-      .replace(/Type parameter `([A-Z])`/g, 'Type parameter **$1**')
-      // 단일 줄에 단일 대문자만 있는 경우 (예: `T`)
-      .replace(/^`([A-Z])`$/gm, 'Type parameter **$1**')
-      // 단일 줄에 제네릭 타입만 있는 경우 (예: `T extends Something`)
-      .replace(/^`([A-Z][A-Za-z0-9 =<>[\]]*)`$/gm, 'Type parameter **$1**')
-      // 타입 파라미터 설명 라인들을 안전하게 처리
-      .replace(/^Generic type parameter ([A-Z])$/gm, 'Type parameter **$1**')
+    return this.transformOutsideCodeFences(content, (segment) =>
+      segment
+        // Escape Vue-incompatible generic syntax in markdown headers and body
+        .replace(/\\<`([A-Z])`\\>/g, '&lt;`$1`&gt;')
+        .replace(/\\<`([A-Z][A-Za-z0-9]*)`\\>/g, '&lt;`$1`&gt;')
+        .replace(/\\<`([^`]+)`\\>/g, '&lt;`$1`&gt;')
+        // Handle unescaped generic types
+        .replace(/([A-Za-z]+)<([A-Z])>/g, '$1&lt;$2&gt;')
+        // Convert standalone single-letter generic headings to safe text
+        .replace(/^### ([A-Z])$/gm, '### Generic type $1')
+        .replace(/Type parameter `([A-Z])`/g, 'Type parameter **$1**')
+        // Narrow to single-letter type parameters (with optional constraint) so PascalCase type names stay untouched
+        .replace(/^`([A-Z](?:\s+extends\s+[^`\n]+)?)`$/gm, 'Type parameter **$1**')
+        .replace(/^Generic type parameter ([A-Z])$/gm, 'Type parameter **$1**')
+    )
   }
 
   /**
@@ -86,136 +283,55 @@ export class MarkdownProcessor {
    */
   private getDefaultDisplayNameMappings(): Record<string, string> {
     return {
-      // Core API terms
+      // Core & Action API terms
       'ActionRegister': 'Action Register',
       'ActionDispatcher': 'Action Dispatcher',
-      'ActionMetrics': 'Action Metrics',
       'ActionPayloadMap': 'Action Payload Map',
       'ActionRegisterConfig': 'Action Register Config',
-      'ActionRegisterEvents': 'Action Register Events',
-      'EventEmitter': 'Event Emitter',
       'HandlerConfig': 'Handler Config',
-      'HandlerRegistration': 'Handler Registration',
       'PipelineController': 'Pipeline Controller',
-      'PipelineContext': 'Pipeline Context',
       'ActionHandler': 'Action Handler',
-      'EventHandler': 'Event Handler',
       'UnregisterFunction': 'Unregister Function',
       'ExecutionMode': 'Execution Mode',
       'ExecutionResult': 'Execution Result',
       'DispatchOptions': 'Dispatch Options',
-      
-      // Function names
+
+      // Core functions
       'executeParallel': 'Execute Parallel',
       'executeRace': 'Execute Race',
       'executeSequential': 'Execute Sequential',
       'createActionContext': 'createActionContext',
-      'createStoreContext': 'Create Store Context',
-      'createComputedStore': 'createComputedStore',
-      'createLogger': 'createLogger',
-      'createRegistrySync': 'createRegistrySync',
+      'createStoreContext': 'createStoreContext',
+      'createRefContext': 'createRefContext',
+      'createTimeTravelStoreContext': 'createTimeTravelStoreContext',
+      'createTimeTravelStore': 'createTimeTravelStore',
       'createStore': 'createStore',
-      
-      // Store and Event System
-      'ConsoleLogger': 'Console Logger',
-      'EventBus': 'Event Bus',
-      'NumericStore': 'Numeric Store',
-      'RegistryUtils': 'Registry Utils',
-      'ScopedEventBus': 'Scoped Event Bus',
+
+      // Store system
       'Store': 'Store',
-      'StoreRegistry': 'Store Registry',
-      'StoreUtils': 'Store Utils',
-      'LogLevel': 'Log Level',
-      
-      // React Integration
-      'ActionProvider': 'Action Provider',
-      'StoreProvider': 'Store Provider',
-      'useActionDispatch': 'useActionDispatch',
-      'useActionRegister': 'useActionRegister',
-      'useActionWithStores': 'useActionWithStores',
-      'useBatchStoreSync': 'useBatchStoreSync',
-      'useComputedStore': 'useComputedStore',
-      'useComputedValue': 'useComputedValue',
-      'useDynamicStore': 'useDynamicStore',
-      'useLocalState': 'useLocalState',
-      'useLocalStore': 'useLocalStore',
-      'useMVVMStore': 'useMVVMStore',
-      'useMultiMVVMStore': 'useMultiMVVMStore',
-      'useMultiStoreAction': 'useMultiStoreAction',
-      'usePersistedStore': 'usePersistedStore',
-      'useRegistry': 'useRegistry',
-      'useRegistryStore': 'useRegistryStore',
-      'useStore': 'useStore',
-      'useStoreActions': 'useStoreActions',
-      'useStoreQuery': 'useStoreQuery',
-      'useStoreSync': 'useStoreSync',
+      'IStore': 'IStore',
+      'StoreConfig': 'Store Config',
+      'StoreManager': 'Store Manager',
+      'TimeTravelStore': 'Time Travel Store',
+      'TimeTravelStoreManager': 'Time Travel Store Manager',
+
+      // React integration & hooks
       'useStoreValue': 'useStoreValue',
-      'useStoreValues': 'useStoreValues',
-      'useTransactionAction': 'useTransactionAction',
-      
-      // Interface and Type names
+      'useStoreSelector': 'useStoreSelector',
+      'useStoreSelectorWithPaths': 'useStoreSelectorWithPaths',
+      'useStorePath': 'useStorePath',
+      'useStoreTransactionInspector': 'useStoreTransactionInspector',
+      'useTimeTravelControls': 'useTimeTravelControls',
+      'useTimeTravelPath': 'useTimeTravelPath',
+      'useTimeTravelSelector': 'useTimeTravelSelector',
+
+      // Interfaces & Type aliases
       'ActionContextConfig': 'Action Context Config',
       'ActionContextReturn': 'Action Context Return',
       'ActionContextType': 'Action Context Type',
-      'ActionProviderProps': 'Action Provider Props',
-      'DynamicStoreOptions': 'Dynamic Store Options',
-      'HookOptions': 'Hook Options',
-      'IEventBus': 'IEventBus',
-      'IStore': 'IStore',
-      'IStoreRegistry': 'IStoreRegistry',
-      'RegistryStoreMap': 'Registry Store Map',
-      'StoreContextReturn': 'Store Context Return',
-      'StoreContextType': 'Store Context Type',
-      'StoreProviderContextType': 'Store Provider Context Type',
-      'StoreProviderProps': 'Store Provider Props',
-      'StoreSyncConfig': 'Store Sync Config',
-      
-      // Utility functions
-      'assertStoreValue': 'Assert Store Value',
-      'compareValues': 'Compare Values',
-      'deepClone': 'Deep Clone',
-      'deepEqual': 'Deep Equal',
-      'defaultEqualityFn': 'Default Equality Fn',
-      'getGlobalComparisonOptions': 'Get Global Comparison Options',
-      'getGlobalImmutabilityOptions': 'Get Global Immutability Options',
-      'performantSafeGet': 'Performant Safe Get',
-      'safeGet': 'Safe Get',
-      'safeSet': 'Safe Set',
-      'setGlobalComparisonOptions': 'Set Global Comparison Options',
-      'shallowEqual': 'Shallow Equal',
-      'useAsyncComputedStore': 'Use Async Computed Store',
-      'useComputedStoreInstance': 'Use Computed Store Instance',
-      'useMultiComputedStore': 'Use Multi Computed Store',
-      'useMultiStoreSelector': 'Use Multi Store Selector',
-      'useStorePathSelector': 'Use Store Path Selector',
-      'useStoreSelector': 'Use Store Selector',
-      
-      // Type aliases
-      'Listener': 'Listener',
-      'Subscribe': 'Subscribe',
-      'Unsubscribe': 'Unsubscribe',
-      'ComparisonOptions': 'Comparison Options',
       'Snapshot': 'Snapshot',
-      'StoreConfig': 'Store Config',
-      'StoreEventHandler': 'Store Event Handler',
-      'WithProviderConfig': 'With Provider Config',
-      'ComparisonStrategy': 'Comparison Strategy',
-      'CustomComparator': 'Custom Comparator',
-      'InferInitialStores': 'Infer Initial Stores',
-      'InferStoreTypes': 'Infer Store Types',
       'InitialStores': 'Initial Stores',
-      'StoreDefinitions': 'Store Definitions',
-      'StoreValues': 'Store Values',
-      
-      // Additional utility functions
-      'useDynamicStoreSnapshot': 'useDynamicStoreSnapshot',
-      'useDynamicStoreWithDefault': 'useDynamicStoreWithDefault',
-      'useDynamicStores': 'useDynamicStores',
-      'createAtomContext': 'createAtomContext',
-      'AtomContextConfig': 'Atom Context Config',
-      'NoopLogger': 'Noop Logger',
-      'getDebugFromEnv': 'getDebugFromEnv',
-      'getLoggerNameFromEnv': 'getLoggerNameFromEnv'
+      'WithProviderConfig': 'With Provider Config'
     }
   }
 

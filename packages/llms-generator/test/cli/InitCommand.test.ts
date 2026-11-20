@@ -429,5 +429,21 @@ describe('InitCommand', () => {
         consoleSpy.mockRestore();
       }
     });
+
+    it('uses canonical nested document IDs and honors skipDiscovery', async () => {
+      const nested = path.join(testDataDir, 'docs', 'en', 'guide', 'patterns', 'setup.md');
+      await fs.mkdir(path.dirname(nested), { recursive: true });
+      await fs.writeFile(nested, '# Nested Setup\n\nBody.');
+
+      await initCommand.execute({ language: 'en', skipDiscovery: true, skipTemplates: true, quiet: true });
+      await expect(
+        fs.access(path.join(testDataDir, 'llmsData', 'en', 'guide--patterns--setup', 'priority.json'))
+      ).rejects.toThrow();
+
+      await initCommand.execute({ language: 'en', skipTemplates: true, quiet: true });
+      await expect(
+        fs.access(path.join(testDataDir, 'llmsData', 'en', 'guide--patterns--setup', 'priority.json'))
+      ).resolves.toBeUndefined();
+    });
   });
 });

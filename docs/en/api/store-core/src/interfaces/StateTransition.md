@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/store-core/src](../README.md) / StateTransition
+[context-action-monorepo](../../../README.md) / [packages/store-core/src](../README.md) / StateTransition
 
 # Interface: StateTransition\<T\>
 

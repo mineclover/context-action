@@ -24,11 +24,23 @@ export class ConsoleLogger implements Logger {
     return levels[level] >= levels[this.level]
   }
 
+  private formatArg(arg: unknown): string {
+    if (arg instanceof Error) {
+      return arg.stack || `${arg.name}: ${arg.message}`
+    }
+    if (arg !== null && typeof arg === 'object') {
+      try {
+        return JSON.stringify(arg, null, 2)
+      } catch {
+        return String(arg)
+      }
+    }
+    return String(arg)
+  }
+
   private formatMessage(level: LogLevel, message: string, ...args: unknown[]): string {
     const prefix = this.useColors ? this.getColoredPrefix(level) : `[${level.toUpperCase()}]`
-    const formattedArgs = args.length > 0 ? ` ${args.map(arg =>
-      typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-    ).join(' ')}` : ''
+    const formattedArgs = args.length > 0 ? ` ${args.map(arg => this.formatArg(arg)).join(' ')}` : ''
     
     return `${prefix} ${message}${formattedArgs}`
   }

@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ProxyActionKey
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ProxyActionKey
 
 # Type Alias: ProxyActionKey\<T\>
 
 > **ProxyActionKey**&lt;`T`&gt; = `Exclude`\<[`ActionNames`](ActionNames.md)&lt;`T`&gt;, [`ReservedActionKey`](ReservedActionKey.md)\>
 
-Defined in: [packages/core/src/types.ts:1329](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1329)
+Defined in: [packages/core/src/types.ts:1165](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1165)
 
 Action keys that can be exposed through `register.actions` proxies.
 

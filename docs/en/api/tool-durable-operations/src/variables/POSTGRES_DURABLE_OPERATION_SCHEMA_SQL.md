@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / POSTGRES\_DURABLE\_OPERATION\_SCHEMA\_SQL
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / POSTGRES\_DURABLE\_OPERATION\_SCHEMA\_SQL
 
 # Variable: POSTGRES\_DURABLE\_OPERATION\_SCHEMA\_SQL
 

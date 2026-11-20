@@ -1121,4 +1121,66 @@ describe('SyncDocsCommand', () => {
       }
     });
   });
+
+  describe('summary budget and corrupted template repair', () => {
+    it('generates meaningful non-ellipsis summaries for 100/200/300 limits and repairs collapsed templates', async () => {
+      const sourcePath = path.join(testDataDir, 'docs', 'en', 'guide', 'getting-started.md');
+      await fs.writeFile(
+        sourcePath,
+        '# Getting Started Guide\n\nThis comprehensive walkthrough explains Context-Action state and pipeline patterns in detail.'
+      );
+
+      const docDir = path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started');
+      await fs.mkdir(docDir, { recursive: true });
+      await fs.writeFile(
+        path.join(docDir, 'guide--getting-started-100.md'),
+        [
+          '---',
+          'document_id: guide--getting-started',
+          'category: guide',
+          'source_path: en/guide/getting-started.md',
+          'character_limit: 100',
+          'update_status: auto_generated',
+          '---',
+          '...'
+        ].join('\n')
+      );
+
+      const command = new SyncDocsCommand({
+        ...config,
+        generation: {
+          ...config.generation,
+          characterLimits: [100, 200, 300]
+        }
+      });
+
+      await command.execute({
+        changedFiles: ['docs/en/guide/getting-started.md'],
+        quiet: true
+      });
+
+      for (const limit of [100, 200, 300]) {
+        const content = await fs.readFile(path.join(docDir, `guide--getting-started-${limit}.md`), 'utf-8');
+        const body = content.replace(/^---[\s\S]*?---\n?/, '').trim();
+        expect(body).not.toBe('...');
+        expect(body).toContain('Getting Started Guide');
+        expect(body.length).toBeLessThanOrEqual(limit);
+      }
+    });
+
+    it('rejects normally in quiet mode without exiting the process on fatal errors', async () => {
+      const spyExit = jest.spyOn(process, 'exit').mockImplementation((() => {
+        throw new Error('process.exit called');
+      }) as never);
+
+      try {
+        await expect(
+          syncDocsCommand.execute({ changedFiles: null as unknown as string[], quiet: true })
+        ).rejects.toThrow();
+        expect(spyExit).not.toHaveBeenCalled();
+      } finally {
+        spyExit.mockRestore();
+      }
+    });
+  });
 });

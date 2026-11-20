@@ -92,38 +92,33 @@ export class ArgumentParser {
 
   extractNumberFlag(args: string[], shortFlag: string, longFlag?: string): number | undefined {
     const value = this.extractFlag(args, shortFlag, longFlag);
-    return value ? parseInt(value, 10) : undefined;
+    if (value === undefined) return undefined;
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) ? undefined : parsed;
   }
 
   hasFlag(args: string[], ...flags: string[]): boolean {
     return flags.some(flag => args.includes(flag));
   }
 
-  extractMultipleFlags(args: string[], shortFlag: string, longFlag?: string): string[] {
-    const flags = longFlag ? [shortFlag, longFlag] : [shortFlag];
+  extractPositionalArgs(args: string[], valueFlags: string[] = []): string[] {
+    const valueFlagSet = new Set(valueFlags);
+    const positional: string[] = [];
 
-    const results: string[] = [];
     for (let i = 0; i < args.length; i++) {
       const token = args[i];
       if (!token) continue;
 
-      for (const flag of flags) {
-        if (token === flag && i + 1 < args.length) {
-          const nextArg = args[i + 1];
-          if (nextArg !== undefined && !nextArg.startsWith('-')) {
-            results.push(stripMatchingQuotes(nextArg));
-            i += 1;
-            break;
-          }
+      if (token.startsWith('-')) {
+        if (!token.includes('=') && valueFlagSet.has(token) && i + 1 < args.length && !args[i + 1]?.startsWith('-')) {
+          i += 1;
         }
-
-        const prefix = `${flag}=`;
-        if (token.startsWith(prefix)) {
-          results.push(stripMatchingQuotes(token.slice(prefix.length)));
-          break;
-        }
+        continue;
       }
+
+      positional.push(stripMatchingQuotes(token));
     }
-    return results;
+
+    return positional;
   }
 }

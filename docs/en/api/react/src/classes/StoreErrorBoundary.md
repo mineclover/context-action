@@ -1,12 +1,12 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / StoreErrorBoundary
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / StoreErrorBoundary
 
 # Class: StoreErrorBoundary
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:39](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L39)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:44](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L44)
 
 Store 시스템을 위한 에러 경계 컴포넌트
 
@@ -24,7 +24,7 @@ Store 관련 에러들을 캐치하고 적절한 fallback UI를 제공합니다.
 
 > **new StoreErrorBoundary**(`props`): `StoreErrorBoundary`
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:42](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L42)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:45](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L45)
 
 #### Parameters
 
@@ -34,7 +34,7 @@ Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:42](htt
 
 #### Returns
 
-Type parameter **StoreErrorBoundary**
+`StoreErrorBoundary`
 
 #### Overrides
 
@@ -46,13 +46,13 @@ Type parameter **StoreErrorBoundary**
 
 > `static` **getDerivedStateFromError**(`error`): `Partial`&lt;`StoreErrorBoundaryState`&gt;
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:53](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L53)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:56](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L56)
 
 #### Parameters
 
 ##### error
 
-Type parameter **Error**
+`Error`
 
 #### Returns
 
@@ -64,7 +64,7 @@ Type parameter **Error**
 
 > **componentDidCatch**(`error`, `errorInfo`): `void`
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:64](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L64)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:67](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L67)
 
 Catches exceptions generated in descendant components. Unhandled exceptions will cause
 the entire component tree to unmount.
@@ -73,11 +73,11 @@ the entire component tree to unmount.
 
 ##### error
 
-Type parameter **Error**
+`Error`
 
 ##### errorInfo
 
-Type parameter **ErrorInfo**
+`ErrorInfo`
 
 #### Returns
 
@@ -93,7 +93,7 @@ Type parameter **ErrorInfo**
 
 > **componentDidUpdate**(`prevProps`): `void`
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:95](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L95)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:112](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L112)
 
 Called immediately after updating occurs. Not called for the initial render.
 
@@ -115,30 +115,11 @@ The snapshot is only present if [getSnapshotBeforeUpdate](#) is present and retu
 
 ***
 
-### componentWillUnmount()
-
-> **componentWillUnmount**(): `void`
-
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:117](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L117)
-
-Called immediately before a component is destroyed. Perform any necessary cleanup in this method, such as
-cancelled network requests, or cleaning up any DOM elements created in `componentDidMount`.
-
-#### Returns
-
-`void`
-
-#### Overrides
-
-`Component.componentWillUnmount`
-
-***
-
 ### resetErrorBoundary()
 
 > **resetErrorBoundary**(): `void`
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:123](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L123)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:134](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L134)
 
 #### Returns
 
@@ -150,11 +131,11 @@ Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:123](ht
 
 > **render**(): `ReactNode`
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:136](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L136)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:143](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L143)
 
 #### Returns
 
-Type parameter **ReactNode**
+`ReactNode`
 
 #### Overrides
 

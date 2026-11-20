@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / createDurableSideEffectRunner
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / createDurableSideEffectRunner
 
 # Function: createDurableSideEffectRunner()
 
@@ -19,7 +19,7 @@ persist a second state machine and it never retries an ambiguous effect.
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ### TDiagnostic
 

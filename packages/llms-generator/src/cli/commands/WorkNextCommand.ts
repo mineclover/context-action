@@ -1,5 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { getRelativeSourcePathFromDocumentId } from '../../core/DocumentIdentity.js';
 import { EnhancedLLMSConfig } from '../../types/config.js';
 
 export interface WorkItem {
@@ -48,9 +49,9 @@ export class WorkNextCommand {
       return;
     }
 
-    // If limit is specified and greater than 1, show list format
+    // If limit is specified and greater than 1, pass all filtered items so grouping happens per document before slicing
     if (options.limit && options.limit > 1) {
-      this.displayPriorityList(filteredItems.slice(0, options.limit), options);
+      this.displayPriorityList(filteredItems, options);
       this.displaySummaryStats(workItems);
       return;
     }
@@ -112,15 +113,34 @@ export class WorkNextCommand {
     characterLimit: number
   ): Promise<WorkItem | null> {
     const basePath = path.join(this.config.paths.llmContentDir, language, documentId);
-    const sourceDocPath = this.resolveSourceDocumentPath(documentId, language);
     const priorityJsonPath = path.join(basePath, 'priority.json');
     const templatePath = path.join(basePath, `${documentId}-${characterLimit}.md`);
 
     try {
+      const priorityExists = await this.fileExists(priorityJsonPath);
+      let priority = this.config.categories?.[category]?.priority || 50;
+      let preferredSourcePath: string | undefined;
+
+      if (priorityExists) {
+        try {
+          const priorityData = JSON.parse(await fs.readFile(priorityJsonPath, 'utf-8'));
+          priority = priorityData.priority?.score || priority;
+          if (typeof priorityData.document?.source_path === 'string' && priorityData.document.source_path) {
+            preferredSourcePath = path.join(
+              this.config.paths.docsDir,
+              ...priorityData.document.source_path.replace(/\\/g, '/').split('/')
+            );
+          }
+        } catch {
+          // Use default priority and derived source path if JSON is malformed
+        }
+      }
+
+      const sourceDocPath = preferredSourcePath || this.resolveSourceDocumentPath(documentId, language);
+
       // Check file existence
-      const [sourceExists, priorityExists, templateExists] = await Promise.all([
+      const [sourceExists, templateExists] = await Promise.all([
         this.fileExists(sourceDocPath),
-        this.fileExists(priorityJsonPath),
         this.fileExists(templatePath)
       ]);
 
@@ -156,17 +176,6 @@ export class WorkNextCommand {
         status = 'completed';
       }
 
-      // Get priority from config or priority.json
-      let priority = this.config.categories?.[category]?.priority || 50;
-      if (priorityExists) {
-        try {
-          const priorityData = JSON.parse(await fs.readFile(priorityJsonPath, 'utf-8'));
-          priority = priorityData.priority?.score || priority;
-        } catch {
-          // Use default priority if JSON is malformed
-        }
-      }
-
       return {
         documentId,
         category,
@@ -188,18 +197,11 @@ export class WorkNextCommand {
   }
 
   private resolveSourceDocumentPath(documentId: string, language: string): string {
-    // Convert document ID back to file path
-    // api--action-only -> api/action-only.md
-    // concept--architecture-guide -> concept/architecture-guide.md
-    
-    const parts = documentId.split('--');
-    if (parts.length >= 2) {
-      const [category, ...nameParts] = parts;
-      if (!category) return '';
-      const fileName = `${nameParts.join('-')}.md`;
-      return path.join(this.config.paths.docsDir, language, category, fileName);
+    const canonicalRelative = getRelativeSourcePathFromDocumentId(language, documentId);
+    if (canonicalRelative) {
+      return path.join(this.config.paths.docsDir, ...canonicalRelative.split('/'));
     }
-    
+
     // Fallback: try direct mapping
     return path.join(this.config.paths.docsDir, language, `${documentId}.md`);
   }
@@ -345,13 +347,13 @@ export class WorkNextCommand {
     switch (item.status) {
       case 'missing_priority':
         console.log('   1. Generate priority.json:');
-        console.log(`      npx @context-action/llms-generator priority-generate ${item.language} --document-id ${item.documentId}`);
+        console.log(`      npx @context-action/llms-generator priority-tasks --task-type missing --fix --language ${item.language}`);
         console.log('   2. Then re-run work-next to see next steps');
         break;
       
       case 'missing_template':
-        console.log('   1. Generate template file:');
-        console.log(`      npx @context-action/llms-generator template-generate --document-id ${item.documentId} --character-limit ${item.characterLimit}`);
+        console.log('   1. Generate template files:');
+        console.log(`      npx @context-action/llms-generator generate-templates --language ${item.language} --category ${item.category}`);
         console.log('   2. Then edit the template content');
         break;
       

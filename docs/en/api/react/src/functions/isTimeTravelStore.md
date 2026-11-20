@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / isTimeTravelStore
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / isTimeTravelStore
 
 # Function: isTimeTravelStore()
 
 > **isTimeTravelStore**&lt;`T`&gt;(`store`): `store is TimeTravelStore&lt;T&gt;`
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:629](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L629)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:664](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L664)
 
 Type guard to check if a store is a TimeTravelStore
 

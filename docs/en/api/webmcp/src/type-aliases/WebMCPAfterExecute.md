@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/webmcp/src](../README.md) / WebMCPAfterExecute
+[context-action-monorepo](../../../README.md) / [packages/webmcp/src](../README.md) / WebMCPAfterExecute
 
 # Type Alias: WebMCPAfterExecute
 
@@ -24,7 +24,7 @@ retryable to an agent.
 
 #### result
 
-Type parameter **ToolCallResult**
+`ToolCallResult`
 
 ## Returns
 

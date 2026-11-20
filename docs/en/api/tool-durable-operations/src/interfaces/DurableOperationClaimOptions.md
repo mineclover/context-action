@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / DurableOperationClaimOptions
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / DurableOperationClaimOptions
 
 # Interface: DurableOperationClaimOptions
 

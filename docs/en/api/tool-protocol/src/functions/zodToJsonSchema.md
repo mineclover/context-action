@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-protocol/src](../README.md) / zodToJsonSchema
+[context-action-monorepo](../../../README.md) / [packages/tool-protocol/src](../README.md) / zodToJsonSchema
 
 # Function: zodToJsonSchema()
 
@@ -16,7 +16,7 @@ Zod 스키마를 JSON Schema로 변환 (Zod 4 네이티브 API)
 
 ### schema
 
-Type parameter **ZodTypeAny**
+`ZodTypeAny`
 
 Zod 스키마
 

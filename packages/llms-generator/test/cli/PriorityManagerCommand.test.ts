@@ -454,6 +454,34 @@ describe('PriorityManagerCommand', () => {
         consoleSpy.mockRestore();
       }
     });
+
+    it('preserves new-format priority.json with document field and does not modify files in quiet mode without --force', async () => {
+      const priorityPath = path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started', 'priority.json');
+      const modernPriority = {
+        document: { id: 'guide--getting-started', category: 'guide', language: 'en' },
+        priority: { score: 95, tier: 'high' }
+      };
+      await fs.writeFile(priorityPath, JSON.stringify(modernPriority, null, 2));
+
+      const oldPriorityPath = path.join(testDataDir, 'llmsData', 'en', 'api--core', 'priority.json');
+      await fs.mkdir(path.dirname(oldPriorityPath), { recursive: true });
+      const oldPayload = JSON.stringify({ document: { id: 'api--core', category: 'api' }, priority: 85 }, null, 2);
+      await fs.writeFile(oldPriorityPath, oldPayload);
+
+      // quiet without force must NOT overwrite oldPayload
+      await priorityManager.execute({ mode: 'upgrade', quiet: true, force: false });
+      expect(await fs.readFile(oldPriorityPath, 'utf-8')).toBe(oldPayload);
+
+      // quiet WITH force upgrades ONLY true legacy file and leaves modernPriority intact
+      await priorityManager.execute({ mode: 'upgrade', quiet: true, force: true });
+      const stillModern = JSON.parse(await fs.readFile(priorityPath, 'utf-8'));
+      expect(stillModern.document.id).toBe('guide--getting-started');
+      expect(stillModern.priority.score).toBe(95);
+
+      const upgraded = JSON.parse(await fs.readFile(oldPriorityPath, 'utf-8'));
+      expect(upgraded.priority).toEqual(expect.objectContaining({ score: 85 }));
+      expect(upgraded.metadata.category).toBe('api');
+    });
   });
 
   describe('error handling', () => {

@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../README.md)
+[**context-action-monorepo v1.0.1**](../../README.md)
 
 ***
 
-[context-action-monorepo](../../../README.md) / packages/tool-protocol/src
+[context-action-monorepo](../../README.md) / packages/tool-protocol/src
 
 # packages/tool-protocol/src
 

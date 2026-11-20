@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/ai-sdk/src](../README.md) / createAISDKTools
+[context-action-monorepo](../../../README.md) / [packages/ai-sdk/src](../README.md) / createAISDKTools
 
 # Function: createAISDKTools()
 
@@ -16,7 +16,7 @@ Convenience form for callers that do not need to pass `activeTools` separately.
 
 ### manager
 
-Type parameter **ToolManagementInterface**
+`ToolManagementInterface`
 
 ### options
 
@@ -24,4 +24,4 @@ Type parameter **ToolManagementInterface**
 
 ## Returns
 
-Type parameter **ToolSet**
+`ToolSet`

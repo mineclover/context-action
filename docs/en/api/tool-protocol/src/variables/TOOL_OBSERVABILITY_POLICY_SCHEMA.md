@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-protocol/src](../README.md) / TOOL\_OBSERVABILITY\_POLICY\_SCHEMA
+[context-action-monorepo](../../../README.md) / [packages/tool-protocol/src](../README.md) / TOOL\_OBSERVABILITY\_POLICY\_SCHEMA
 
 # Variable: TOOL\_OBSERVABILITY\_POLICY\_SCHEMA
 

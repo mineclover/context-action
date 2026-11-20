@@ -4,7 +4,7 @@
 
 import fs from 'fs'
 import path from 'path'
-import { TypeDocVitePressSync } from '../src/index.js'
+import { TypeDocVitePressSync, ConsoleLogger } from '../src/index.js'
 import type { SyncConfig } from '../src/types/index.js'
 
 describe('TypeDocVitePressSync', () => {
@@ -16,6 +16,7 @@ describe('TypeDocVitePressSync', () => {
   const config: SyncConfig = {
     sourceDir,
     targetDir,
+    sidebarConfigPath: path.join(testDir, 'api-spec.ts'),
     packageMapping: {
       'test-package': 'test'
     },
@@ -159,13 +160,13 @@ describe('TypeDocVitePressSync', () => {
 
     it('should track file-level events', async () => {
       const sync = createSync(config)
-      const fileEvents: { event: string; file: string }[] = []
+      const fileEvents: { event: string; file: string; fullPath: string }[] = []
       
       sync.on('fileStart', (filePath) => {
-        fileEvents.push({ event: 'start', file: path.basename(filePath) })
+        fileEvents.push({ event: 'start', file: path.basename(filePath), fullPath: filePath })
       })
       sync.on('fileComplete', (filePath, result) => {
-        fileEvents.push({ event: 'complete', file: path.basename(filePath) })
+        fileEvents.push({ event: 'complete', file: path.basename(filePath), fullPath: filePath })
         expect(result).toHaveProperty('success')
         expect(result).toHaveProperty('cached')
       })
@@ -173,9 +174,36 @@ describe('TypeDocVitePressSync', () => {
       await sync.sync()
       
       expect(fileEvents.length).toBeGreaterThan(0)
-      expect(fileEvents.filter(e => e.event === 'start').length).toBe(
-        fileEvents.filter(e => e.event === 'complete').length
+      const starts = fileEvents.filter(e => e.event === 'start')
+      const completes = fileEvents.filter(e => e.event === 'complete')
+      expect(starts.length).toBe(completes.length)
+      // Root README.md must emit fileStart/fileComplete exactly once (not duplicated with package README)
+      const rootReadmePath = path.join(sourceDir, 'README.md')
+      expect(starts.filter(e => e.fullPath === rootReadmePath)).toHaveLength(1)
+      expect(completes.filter(e => e.fullPath === rootReadmePath)).toHaveLength(1)
+    })
+
+    it('rewrites flattened links and preserves PascalCase types during sync', async () => {
+      const nestedSourceDir = path.join(sourceDir, 'packages', 'test-package', 'src', 'interfaces')
+      fs.mkdirSync(nestedSourceDir, { recursive: true })
+      fs.writeFileSync(
+        path.join(sourceDir, 'README.md'),
+        '# Root\n\n- [Test](packages/test-package/README.md)\n'
       )
+      fs.writeFileSync(
+        path.join(nestedSourceDir, 'Sample.md'),
+        '[Back](../../../../README.md)\n\n#### Returns\n\n`ActionDispatchTrace`\n'
+      )
+
+      const sync = createSync(config)
+      await sync.sync()
+
+      const syncedRoot = fs.readFileSync(path.join(targetDir, 'README.md'), 'utf8')
+      const syncedNested = fs.readFileSync(path.join(targetDir, 'test', 'src', 'interfaces', 'Sample.md'), 'utf8')
+      expect(syncedRoot).toContain('[Test](test/README.md)')
+      expect(syncedNested).toContain('[Back](../../../README.md)')
+      expect(syncedNested).toContain('`ActionDispatchTrace`')
+      expect(syncedNested).not.toContain('Type parameter **ActionDispatchTrace**')
     })
 
     it('should handle errors and warnings', async () => {
@@ -268,6 +296,30 @@ describe('TypeDocVitePressSync', () => {
       // Verify files are removed
       expect(fs.existsSync(targetDir)).toBe(false)
       expect(fs.existsSync(cacheDir)).toBe(false)
+    })
+
+    it('should clear cache without removing generated target files via clearCache()', async () => {
+      const sync = createSync(config)
+      expect(fs.existsSync(targetDir)).toBe(true)
+      expect(fs.existsSync(cacheDir)).toBe(true)
+
+      await sync.clearCache()
+
+      expect(fs.existsSync(cacheDir)).toBe(false)
+      expect(fs.existsSync(targetDir)).toBe(true)
+    })
+
+    it('formats Error instances and circular objects safely in ConsoleLogger', () => {
+      const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
+      const logger = new ConsoleLogger('debug', false)
+      const circular: Record<string, unknown> = { name: 'loop' }
+      circular.self = circular
+
+      expect(() => {
+        logger.error('failure', new Error('boom'), circular)
+      }).not.toThrow()
+      expect(spy).toHaveBeenCalledWith(expect.stringContaining('boom'))
+      spy.mockRestore()
     })
   })
 

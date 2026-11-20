@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / bindActorToActionRegister
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / bindActorToActionRegister
 
 # Function: bindActorToActionRegister()
 
 > **bindActorToActionRegister**\<`TActions`, `TResultMap`, `TEvent`, `TSnapshot`, `TEmitted`\>(`register`, `actor`, `options`): [`BoundActorHandle`](../type-aliases/BoundActorHandle.md)\<`TActions`, `TSnapshot`\>
 
-Defined in: [packages/xstate/src/pipeline-binding.ts:505](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L505)
+Defined in: [packages/xstate/src/pipeline-binding.ts:522](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L522)
 
 Mounts an XState v5/v6 or `@xstate/effect` `ActorRefLike` directly onto an
 `@context-action/core` `ActionRegister` using Guard admission (`snapshot.can`)

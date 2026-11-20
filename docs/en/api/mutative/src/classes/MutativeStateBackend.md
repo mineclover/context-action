@@ -1,12 +1,12 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/mutative/src](../README.md) / MutativeStateBackend
+[context-action-monorepo](../../../README.md) / [packages/mutative/src](../README.md) / MutativeStateBackend
 
 # Class: MutativeStateBackend\<T\>
 
-Defined in: [packages/mutative/src/backend.ts:341](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L341)
+Defined in: [packages/mutative/src/backend.ts:349](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L349)
 
 A framework-neutral Mutative state backend without timeline history.
 
@@ -29,7 +29,7 @@ intentionally has no React dependency and can be wrapped by any UI layer.
 
 > **new MutativeStateBackend**&lt;`T`&gt;(`name`, `initialValue`, `options?`): `MutativeStateBackend`&lt;`T`&gt;
 
-Defined in: [packages/mutative/src/backend.ts:360](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L360)
+Defined in: [packages/mutative/src/backend.ts:368](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L368)
 
 #### Parameters
 
@@ -55,7 +55,7 @@ Type parameter **T**
 
 > **getSnapshot**(): `ReadonlyStateSnapshot`&lt;`T`&gt;
 
-Defined in: [packages/mutative/src/backend.ts:382](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L382)
+Defined in: [packages/mutative/src/backend.ts:390](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L390)
 
 #### Returns
 
@@ -71,7 +71,7 @@ Defined in: [packages/mutative/src/backend.ts:382](https://github.com/mineclover
 
 > **subscribe**(`listener`): () => `void`
 
-Defined in: [packages/mutative/src/backend.ts:384](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L384)
+Defined in: [packages/mutative/src/backend.ts:392](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L392)
 
 #### Parameters
 
@@ -93,7 +93,7 @@ Defined in: [packages/mutative/src/backend.ts:384](https://github.com/mineclover
 
 > **subscribeWithPatches**(`listener`): () => `void`
 
-Defined in: [packages/mutative/src/backend.ts:390](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L390)
+Defined in: [packages/mutative/src/backend.ts:398](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L398)
 
 #### Parameters
 
@@ -115,7 +115,7 @@ Defined in: [packages/mutative/src/backend.ts:390](https://github.com/mineclover
 
 > **getLastPatches**(): readonly (`IPatch` & `object` \| `IPatch` & `object` \| `IPatch` & `object`)[] \| `null`
 
-Defined in: [packages/mutative/src/backend.ts:398](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L398)
+Defined in: [packages/mutative/src/backend.ts:406](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L406)
 
 #### Returns
 
@@ -131,7 +131,7 @@ readonly (`IPatch` & `object` \| `IPatch` & `object` \| `IPatch` & `object`)[] \
 
 > **getSafeValue**(): `T`
 
-Defined in: [packages/mutative/src/backend.ts:400](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L400)
+Defined in: [packages/mutative/src/backend.ts:408](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L408)
 
 #### Returns
 
@@ -147,7 +147,7 @@ Type parameter **T**
 
 > **setValue**(`value`, `_meta?`): `void`
 
-Defined in: [packages/mutative/src/backend.ts:402](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L402)
+Defined in: [packages/mutative/src/backend.ts:410](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L410)
 
 #### Parameters
 
@@ -157,7 +157,7 @@ Type parameter **T**
 
 ##### \_meta?
 
-Type parameter **StateMutationMeta**
+`StateMutationMeta`
 
 #### Returns
 
@@ -173,7 +173,7 @@ Type parameter **StateMutationMeta**
 
 > **update**(`updater`, `_meta?`): `void`
 
-Defined in: [packages/mutative/src/backend.ts:417](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L417)
+Defined in: [packages/mutative/src/backend.ts:425](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L425)
 
 #### Parameters
 
@@ -183,7 +183,7 @@ Defined in: [packages/mutative/src/backend.ts:417](https://github.com/mineclover
 
 ##### \_meta?
 
-Type parameter **StateMutationMeta**
+`StateMutationMeta`
 
 #### Returns
 
@@ -199,7 +199,7 @@ Type parameter **StateMutationMeta**
 
 > **isStoreDisposed**(): `boolean`
 
-Defined in: [packages/mutative/src/backend.ts:434](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L434)
+Defined in: [packages/mutative/src/backend.ts:442](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L442)
 
 #### Returns
 
@@ -211,7 +211,7 @@ Defined in: [packages/mutative/src/backend.ts:434](https://github.com/mineclover
 
 > **dispose**(): `void`
 
-Defined in: [packages/mutative/src/backend.ts:436](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L436)
+Defined in: [packages/mutative/src/backend.ts:444](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L444)
 
 #### Returns
 
@@ -227,7 +227,7 @@ Defined in: [packages/mutative/src/backend.ts:436](https://github.com/mineclover
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/mutative/src/backend.ts:344](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L344)
+Defined in: [packages/mutative/src/backend.ts:352](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L352)
 
 #### Implementation of
 
@@ -239,7 +239,7 @@ Defined in: [packages/mutative/src/backend.ts:344](https://github.com/mineclover
 
 > `readonly` **capabilities**: `object`
 
-Defined in: [packages/mutative/src/backend.ts:345](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L345)
+Defined in: [packages/mutative/src/backend.ts:353](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L353)
 
 #### patches
 

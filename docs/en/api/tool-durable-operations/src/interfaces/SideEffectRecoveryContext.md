@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / SideEffectRecoveryContext
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / SideEffectRecoveryContext
 
 # Interface: SideEffectRecoveryContext\<TResult, TDiagnostic\>
 
@@ -12,7 +12,7 @@ Defined in: [packages/tool-durable-operations/src/side-effect.ts:77](https://git
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ### TDiagnostic
 

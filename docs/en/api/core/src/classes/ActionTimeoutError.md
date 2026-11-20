@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionTimeoutError
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionTimeoutError
 
 # Class: ActionTimeoutError
 
@@ -37,7 +37,7 @@ Defined in: [packages/core/src/errors.ts:193](https://github.com/mineclover/cont
 
 #### Returns
 
-Type parameter **ActionTimeoutError**
+`ActionTimeoutError`
 
 #### Overrides
 

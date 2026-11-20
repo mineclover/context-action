@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/webmcp/src](../README.md) / createWebMCPToolScope
+[context-action-monorepo](../../../README.md) / [packages/webmcp/src](../README.md) / createWebMCPToolScope
 
 # Function: createWebMCPToolScope()
 
@@ -24,7 +24,7 @@ non-browser consumers.
 
 ### manager
 
-Type parameter **ToolManagementInterface**
+`ToolManagementInterface`
 
 ### options
 

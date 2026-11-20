@@ -20,6 +20,6 @@ export default {
   sourcemap: false,
   // Optimize external dependencies
   deps: {
-    neverBundle: ['commander', 'gray-matter'],
+    neverBundle: ['commander', 'glob', 'gray-matter'],
   },
 };

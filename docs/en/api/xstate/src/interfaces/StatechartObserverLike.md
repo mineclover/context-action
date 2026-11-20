@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / StatechartObserverLike
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / StatechartObserverLike
 
 # Interface: StatechartObserverLike\<TSnapshot\>
 
@@ -12,7 +12,7 @@ Defined in: [packages/xstate/src/contracts.ts:20](https://github.com/mineclover/
 
 ### TSnapshot
 
-Type parameter **TSnapshot**
+`TSnapshot`
 
 ## Methods
 
@@ -26,7 +26,7 @@ Defined in: [packages/xstate/src/contracts.ts:21](https://github.com/mineclover/
 
 ##### snapshot
 
-Type parameter **TSnapshot**
+`TSnapshot`
 
 #### Returns
 

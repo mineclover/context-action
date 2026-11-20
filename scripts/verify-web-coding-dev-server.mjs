@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import net from 'node:net';
 import path from 'node:path';
+import { stripVTControlCharacters } from 'node:util';
 
 const rootDirectory = path.resolve(import.meta.dirname, '..');
 const demoDirectory = path.join(rootDirectory, 'demos/bolt-style-editor');
@@ -59,12 +60,11 @@ async function stopServer() {
 }
 
 const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-const ansiEscapePattern = /\u001B(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007]*(?:\u0007|\u001B\\))/g;
 
 async function waitForAdvertisedPort(readOutput, timeoutMs = 20_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    const normalizedOutput = readOutput().replace(ansiEscapePattern, '');
+    const normalizedOutput = stripVTControlCharacters(readOutput());
     const match = normalizedOutput.match(
       /Local:\s+http:\/\/(?:127\.0\.0\.1|localhost):(\d+)\//
     );

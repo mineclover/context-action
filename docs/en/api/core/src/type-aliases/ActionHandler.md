@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionHandler
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionHandler
 
 # Type Alias: ActionHandler\<T, R\>
 
 > **ActionHandler**\<`T`, `R`\> = (`payload`, `controller`) => `R` \| `Promise`&lt;`R`&gt; \| `void` \| `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:503](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L503)
+Defined in: [packages/core/src/types.ts:352](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L352)
 
 Action handler function type for processing actions within the pipeline
 

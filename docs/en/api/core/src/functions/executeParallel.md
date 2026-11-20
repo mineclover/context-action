@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / executeParallel
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / executeParallel
 
 # Function: executeParallel()
 
 > **executeParallel**\<`T`, `R`\>(`context`, `createController`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/execution-modes.ts:376](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L376)
+Defined in: [packages/core/src/execution-modes.ts:378](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L378)
 
 Execute handlers in parallel mode (all at once)
 

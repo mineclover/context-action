@@ -127,7 +127,7 @@ async function handleWorkNext(args: string[], argumentParser: ArgumentParser): P
     language: argumentParser.extractFlag(args, '-l', '--language') || config.generation?.defaultLanguage || 'en',
     showCompleted: argumentParser.hasFlag(args, '--show-completed'),
     verbose: argumentParser.hasFlag(args, '-v', '--verbose'),
-    limit: argumentParser.extractNumberFlag(args, '-n', '--limit') || argumentParser.extractNumberFlag(args, '--top'),
+    limit: argumentParser.extractNumberFlag(args, '-n', '--limit') ?? argumentParser.extractNumberFlag(args, '--top'),
     sortBy: argumentParser.extractFlag(args, '--sort-by') as 'priority' | 'category' | 'status' | 'modified' | undefined,
     category: argumentParser.extractFlag(args, '--category'),
     characterLimit: argumentParser.extractNumberFlag(args, '-c', '--character-limit')
@@ -140,10 +140,16 @@ async function handleGenerateTemplates(args: string[], argumentParser: ArgumentP
   const config = await loadConfig();
   const generateTemplatesCommand = new GenerateTemplatesCommand(config);
   
+  const parsedLimits = argumentParser
+    .extractFlag(args, '--character-limits')
+    ?.split(',')
+    .map(v => Number.parseInt(v.trim(), 10))
+    .filter(n => Number.isFinite(n) && n > 0);
+
   const options = {
     language: argumentParser.extractFlag(args, '-l', '--language') || config.generation?.defaultLanguage || 'en',
     category: argumentParser.extractFlag(args, '--category'),
-    characterLimits: argumentParser.extractFlag(args, '--character-limits')?.split(',').map(Number) || config.generation?.characterLimits,
+    characterLimits: parsedLimits && parsedLimits.length > 0 ? parsedLimits : config.generation?.characterLimits,
     overwrite: argumentParser.hasFlag(args, '--overwrite'),
     dryRun: argumentParser.hasFlag(args, '--dry-run'),
     verbose: argumentParser.hasFlag(args, '-v', '--verbose')
@@ -215,6 +221,7 @@ async function handleInit(args: string[], argumentParser: ArgumentParser): Promi
     dryRun: argumentParser.hasFlag(args, '--dry-run'),
     overwrite: argumentParser.hasFlag(args, '--overwrite'),
     quiet: argumentParser.hasFlag(args, '--quiet'),
+    skipDiscovery: argumentParser.hasFlag(args, '--skip-discovery'),
     skipPriority: argumentParser.hasFlag(args, '--skip-priority'),
     skipTemplates: argumentParser.hasFlag(args, '--skip-templates'),
     language: argumentParser.extractFlag(args, '-l', '--language')
@@ -378,8 +385,8 @@ async function handleDetectMismatches(args: string[], argumentParser: ArgumentPa
 async function handleCodeMode(args: string[], argumentParser: ArgumentParser): Promise<void> {
   const codeModeCommand = new CodeModeCommand();
   
-  // Parse targets from arguments (e.g., code-mode core react ./src/utils)
-  const targets = args.filter(arg => !arg.startsWith('-'));
+  // Parse positional targets while skipping flag values such as --extensions .ts,.tsx
+  const targets = argumentParser.extractPositionalArgs(args, ['--extensions']);
   
   // Parse extension flags
   const extensionFlag = argumentParser.extractFlag(args, '--extensions');
@@ -407,8 +414,14 @@ async function handleCombineReferences(args: string[], argumentParser: ArgumentP
   const config = await loadConfig();
   const combineReferencesCommand = new CombineReferencesCommand(config);
   
-  // Get source document from first argument
-  const sourceDocument = args.find(arg => !arg.startsWith('-'));
+  // Get source document from positional args (excluding values passed to -o/--output/--max-depth/-p/--pattern)
+  const [sourceDocument] = argumentParser.extractPositionalArgs(args, [
+    '-o',
+    '--output',
+    '--max-depth',
+    '-p',
+    '--pattern'
+  ]);
   if (!sourceDocument) {
     throw new Error('Source document path is required. Usage: combine-references <source-document> [options]');
   }
@@ -417,7 +430,7 @@ async function handleCombineReferences(args: string[], argumentParser: ArgumentP
     sourceDocument,
     outputPath: argumentParser.extractFlag(args, '-o', '--output'),
     includeSource: !argumentParser.hasFlag(args, '--exclude-source'),
-    maxDepth: argumentParser.extractNumberFlag(args, '--max-depth') || 1,
+    maxDepth: argumentParser.extractNumberFlag(args, '--max-depth') ?? 1,
     pattern: (argumentParser.extractFlag(args, '-p', '--pattern') || 'standard') as 'standard' | 'clean' | 'minimal',
     dryRun: argumentParser.hasFlag(args, '--dry-run'),
     verbose: argumentParser.hasFlag(args, '-v', '--verbose'),

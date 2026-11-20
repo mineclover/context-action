@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / BoundActorController
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / BoundActorController
 
 # Interface: BoundActorController\<TActions, TSnapshot\>
 
@@ -42,7 +42,7 @@ Defined in: [packages/xstate/src/contracts.ts:83](https://github.com/mineclover/
 
 #### Returns
 
-Type parameter **TSnapshot**
+`TSnapshot`
 
 ***
 

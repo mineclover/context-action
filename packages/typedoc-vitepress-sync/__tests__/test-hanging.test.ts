@@ -12,6 +12,7 @@ describe('Test Hanging Issue', () => {
   const config: SyncConfig = {
     sourceDir,
     targetDir,
+    sidebarConfigPath: path.join(testDir, 'api-spec.ts'),
     packageMapping: {
       'test-package': 'test'
     },
@@ -19,6 +20,10 @@ describe('Test Hanging Issue', () => {
       enabled: true,
       dir: cacheDir,
       ttl: 60000
+    },
+    metrics: {
+      enabled: true,
+      outputFile: path.join(testDir, 'metrics.json')
     }
   }
 

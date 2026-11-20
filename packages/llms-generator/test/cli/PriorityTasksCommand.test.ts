@@ -872,5 +872,43 @@ describe('PriorityTasksCommand', () => {
         }
       }
     });
+
+    it('respects excludePatterns, honors taskType filter, and writes data.metadata.keywords when fixing needs_update', async () => {
+      const excludedDir = path.join(testDataDir, 'docs', 'en', 'api', 'core', 'src');
+      await fs.mkdir(excludedDir, { recursive: true });
+      await fs.writeFile(path.join(excludedDir, 'Excluded.md'), '# Excluded');
+
+      await fs.writeFile(
+        path.join(testDataDir, 'docs', 'en', 'guide', 'update-me.md'),
+        '# Update Me\n\nNeeds metadata update.'
+      );
+      const priorityDir = path.join(testDataDir, 'llmsData', 'en', 'guide--update-me');
+      await fs.mkdir(priorityDir, { recursive: true });
+      const priorityFile = path.join(priorityDir, 'priority.json');
+      await fs.writeFile(priorityFile, JSON.stringify({
+        document: { id: 'guide--update-me', category: 'guide', source_path: 'en/guide/update-me.md' },
+        priority: { score: 85 },
+        metadata: { description: 'Short' }
+      }, null, 2));
+
+      await fs.writeFile(
+        path.join(testDataDir, 'docs', 'en', 'guide', 'missing-one.md'),
+        '# Missing'
+      );
+
+      await priorityTasksCommand.execute({ taskType: 'needs_update', fix: true });
+
+      const updated = JSON.parse(await fs.readFile(priorityFile, 'utf-8'));
+      expect(updated.metadata.keywords.technical.length).toBeGreaterThanOrEqual(2);
+      expect(updated.metadata.keywords.functional.length).toBeGreaterThanOrEqual(2);
+      // Missing task must not be auto-created when filtering taskType: needs_update
+      await expect(
+        fs.access(path.join(testDataDir, 'llmsData', 'en', 'guide--missing-one', 'priority.json'))
+      ).rejects.toThrow();
+      // Excluded file must not be treated as missing
+      await expect(
+        fs.access(path.join(testDataDir, 'llmsData', 'en', 'api--core--src--Excluded', 'priority.json'))
+      ).rejects.toThrow();
+    });
   });
 });

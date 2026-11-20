@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / bindActionTransactions
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / bindActionTransactions
 
 # Function: bindActionTransactions()
 
@@ -21,7 +21,7 @@ Core remains Store-agnostic; this adapter owns the integration policy.
 
 ### coordinator
 
-Type parameter **TransactionCoordinatorPort**
+`TransactionCoordinatorPort`
 
 ### options
 

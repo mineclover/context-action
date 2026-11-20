@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / executeRace
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / executeRace
 
 # Function: executeRace()
 
 > **executeRace**\<`T`, `R`\>(`context`, `createController`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/execution-modes.ts:523](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L523)
+Defined in: [packages/core/src/execution-modes.ts:525](https://github.com/mineclover/context-action/blob/main/packages/core/src/execution-modes.ts#L525)
 
 Execute handlers in race mode (first to complete wins)
 

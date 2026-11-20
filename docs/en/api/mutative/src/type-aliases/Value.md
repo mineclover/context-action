@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/mutative/src](../README.md) / Value
+[context-action-monorepo](../../../README.md) / [packages/mutative/src](../README.md) / Value
 
 # Type Alias: Value\<S, F\>
 

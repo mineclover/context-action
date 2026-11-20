@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/ai-sdk/src](../README.md) / AISDKToolExecutionError
+[context-action-monorepo](../../../README.md) / [packages/ai-sdk/src](../README.md) / AISDKToolExecutionError
 
 # Class: AISDKToolExecutionError
 
@@ -34,11 +34,11 @@ Defined in: [packages/ai-sdk/src/index.ts:27](https://github.com/mineclover/cont
 
 ##### result
 
-Type parameter **ToolCallResult**
+`ToolCallResult`
 
 #### Returns
 
-Type parameter **AISDKToolExecutionError**
+`AISDKToolExecutionError`
 
 #### Overrides
 

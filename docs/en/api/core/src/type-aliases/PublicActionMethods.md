@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / PublicActionMethods
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / PublicActionMethods
 
 # Type Alias: PublicActionMethods\<Actions, PublicKeys, ReturnMap\>
 

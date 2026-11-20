@@ -95,6 +95,17 @@ export class FileProcessor {
       // Read and process file content
       let content = fs.readFileSync(sourcePath, 'utf8')
       
+      // Rewrite TypeDoc relative links after package directory flattening
+      if (options.linkMapping) {
+        content = this.markdownProcessor.rewriteFlattenedLinks(content, {
+          sourcePath: path.resolve(sourcePath),
+          targetPath: path.resolve(targetPath),
+          sourceDir: path.resolve(options.linkMapping.sourceDir),
+          targetDir: path.resolve(options.linkMapping.targetDir),
+          packageMapping: options.linkMapping.packageMapping
+        })
+      }
+
       // Apply markdown processing
       if (options.vueCompatibility !== false) {
         content = this.markdownProcessor.postProcessMarkdown(content)

@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / SideEffectRecoveryResolution
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / SideEffectRecoveryResolution
 
 # Type Alias: SideEffectRecoveryResolution\<TResult, TDiagnostic\>
 
@@ -16,7 +16,7 @@ Application-facing resolution returned by an unknown-outcome resolver.
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ### TDiagnostic
 

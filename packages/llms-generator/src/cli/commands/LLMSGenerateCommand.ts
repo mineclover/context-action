@@ -5,7 +5,7 @@
  * supporting existing minimum and origin patterns.
  */
 
-import { promises as fs } from 'node:fs';
+import { accessSync, promises as fs, readFileSync } from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
 import { CLIConfig } from '../types/CLITypes.js';
@@ -101,7 +101,9 @@ export class LLMSGenerateCommand {
       pattern: validatedOptions.pattern,
       totalDocuments: sortedDocuments.length,
       totalCharacters: content.length,
-      averageCharacters: Math.round(sortedDocuments.reduce((sum, doc) => sum + doc.metadata.content_length, 0) / sortedDocuments.length),
+      averageCharacters: sortedDocuments.length > 0
+        ? Math.round(sortedDocuments.reduce((sum, doc) => sum + doc.metadata.content_length, 0) / sortedDocuments.length)
+        : 0,
       filters: {
         characterLimit: validatedOptions.characterLimit,
         category: validatedOptions.category,
@@ -604,8 +606,8 @@ export class LLMSGenerateCommand {
   private filterDocuments(documents: DocumentContent[], options: LLMSGenerateOptions): DocumentContent[] {
     let filtered = documents;
 
-    // Filter by character limit
-    if (options.characterLimit) {
+    // Filter by character limit (skip for origin pattern which collects one representative doc per source)
+    if (options.characterLimit && options.pattern !== 'origin') {
       filtered = filtered.filter(doc => doc.characterLimit === options.characterLimit);
     }
 
@@ -621,7 +623,7 @@ export class LLMSGenerateCommand {
         try {
           const priorityPath = this.getPriorityJsonPath(doc);
           if (this.fileExistsSync(priorityPath)) {
-            const priorityData = require('node:fs').readFileSync(priorityPath, 'utf-8');
+            const priorityData = readFileSync(priorityPath, 'utf-8');
             const priority = JSON.parse(priorityData);
             
             if (priority.tags?.secondary) {
@@ -646,7 +648,7 @@ export class LLMSGenerateCommand {
 
   private fileExistsSync(filePath: string): boolean {
     try {
-      require('node:fs').accessSync(filePath);
+      accessSync(filePath);
       return true;
     } catch {
       return false;
@@ -879,7 +881,7 @@ export class LLMSGenerateCommand {
     try {
       // Construct the full path to the original source file
       const fullPath = path.join(this.config.paths.docsDir, relativePath);
-      const fileContent = require('node:fs').readFileSync(fullPath, 'utf-8');
+      const fileContent = readFileSync(fullPath, 'utf-8');
       
       // Remove frontmatter if present
       const { content } = matter(fileContent);

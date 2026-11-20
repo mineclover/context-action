@@ -29,19 +29,3 @@ export const DEFAULT_CONFIG: AppConfig = {
     strictMode: false
   }
 };
-
-export const PRODUCTION_CONFIG: Partial<AppConfig> = {
-  quality: {
-    minCompletenessThreshold: 0.9,
-    enableValidation: true,
-    strictMode: true
-  }
-};
-
-export const DEVELOPMENT_CONFIG: Partial<AppConfig> = {
-  quality: {
-    minCompletenessThreshold: 0.7,
-    enableValidation: false,
-    strictMode: false
-  }
-};

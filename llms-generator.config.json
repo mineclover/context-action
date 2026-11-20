@@ -1,11 +1,8 @@
 {
-  "$schema": "./packages/llms-generator/src/types/config.schema.json",
   "paths": {
     "docsDir": "./docs",
     "llmContentDir": "./llmsData",
     "outputDir": "./llms",
-    "templatesDir": "./packages/llms-generator/templates",
-    "instructionsDir": "./packages/llms-generator/instructions",
     "excludePatterns": [
       "**/llms/**",
       "**/api/**"

@@ -143,10 +143,12 @@ export class CodeModeCommand {
       }
     }
 
-    // Process collected files
+    // Process collected files using the true source directory as baseDir
+    const baseDir = stats.isDirectory() ? resolvedPath : path.dirname(resolvedPath);
     await this.processFiles(
       path.basename(targetPath).replace(/[^a-zA-Z0-9-_]/g, '_'), // Safe name for output
       files,
+      baseDir,
       options
     );
   }
@@ -178,12 +180,13 @@ export class CodeModeCommand {
     const files = await this.collectFilesFromPath(packagePath, options.excludeTests, options.extensions);
     
     // Process collected files
-    await this.processFiles(packageName, files, options);
+    await this.processFiles(packageName, files, packagePath, options);
   }
 
   private async processFiles(
     targetName: string,
     files: string[],
+    baseDir: string,
     options: {
       excludeTests: boolean;
       stripComments: boolean;
@@ -228,6 +231,7 @@ export class CodeModeCommand {
       await this.generateSingleFile(
         targetName,
         [...typeFiles, ...codeFiles],
+        baseDir,
         options
       );
     } else {
@@ -281,26 +285,24 @@ export class CodeModeCommand {
   }
 
   private stripComments(content: string): string {
-    // Remove single-line comments
-    let stripped = content.replace(/\/\/.*$/gm, '');
-    
-    // Remove multi-line comments
-    stripped = stripped.replace(/\/\*[\s\S]*?\*\//g, '');
-    
-    // Remove JSDoc comments
-    stripped = stripped.replace(/\/\*\*[\s\S]*?\*\//g, '');
-    
+    // Strip single-line, multi-line, and JSDoc comments in one pass while preserving
+    // string and template literals (e.g. "https://example.com") intact.
+    const stripped = content.replace(
+      /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)|(\/\*[\s\S]*?\*\/|\/\/[^\n]*)/g,
+      (match, literal: string | undefined) => (literal ? match : '')
+    );
+
     // Remove empty lines created by comment removal
-    stripped = stripped.split('\n')
+    return stripped
+      .split('\n')
       .filter(line => line.trim() !== '')
       .join('\n');
-    
-    return stripped;
   }
 
   private async generateSingleFile(
     packageName: string,
     files: CodeFile[],
+    baseDir: string,
     options: {
       dryRun?: boolean;
       quiet?: boolean;
@@ -326,7 +328,7 @@ export class CodeModeCommand {
     if (typeFiles.length > 0) {
       sections.push('## Type Definitions\n');
       for (const file of typeFiles) {
-        const relativePath = path.relative(path.join(this.packageBasePath, packageName, 'src'), file.path);
+        const relativePath = path.relative(baseDir, file.path);
         sections.push(`### ${relativePath}\n`);
         sections.push('```typescript');
         sections.push(file.content);
@@ -339,7 +341,7 @@ export class CodeModeCommand {
     if (codeFiles.length > 0) {
       sections.push('## Implementation Code\n');
       for (const file of codeFiles) {
-        const relativePath = path.relative(path.join(this.packageBasePath, packageName, 'src'), file.path);
+        const relativePath = path.relative(baseDir, file.path);
         sections.push(`### ${relativePath}\n`);
         sections.push('```typescript');
         sections.push(file.content);
@@ -372,7 +374,7 @@ export class CodeModeCommand {
     }
     
     // Also generate metadata JSON
-    await this.generateMetadata(packageName, files, options);
+    await this.generateMetadata(packageName, files, baseDir, options);
   }
 
   private async generateMultipleFiles(
@@ -391,6 +393,7 @@ export class CodeModeCommand {
   private async generateMetadata(
     packageName: string,
     files: CodeFile[],
+    baseDir: string,
     options: {
       dryRun?: boolean;
       quiet?: boolean;
@@ -411,7 +414,7 @@ export class CodeModeCommand {
         codeLines: files.filter(f => !f.isType).reduce((sum, f) => sum + f.lines, 0)
       },
       files: files.map(f => ({
-        path: path.relative(path.join(this.packageBasePath, packageName, 'src'), f.path),
+        path: path.relative(baseDir, f.path),
         isType: f.isType,
         lines: f.lines
       }))

@@ -1,12 +1,12 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ResolvedHandlerConfig
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ResolvedHandlerConfig
 
 # Interface: ResolvedHandlerConfig\<T\>
 
-Defined in: [packages/core/src/types.ts:615](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L615)
+Defined in: [packages/core/src/types.ts:464](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L464)
 
 Internal handler configuration with defaults resolved.
 
@@ -25,7 +25,7 @@ does not synthesize them when they are omitted at runtime.
 
 > **priority**: `number`
 
-Defined in: [packages/core/src/types.ts:616](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L616)
+Defined in: [packages/core/src/types.ts:465](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L465)
 
 ***
 
@@ -33,7 +33,7 @@ Defined in: [packages/core/src/types.ts:616](https://github.com/mineclover/conte
 
 > **id**: `string`
 
-Defined in: [packages/core/src/types.ts:617](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L617)
+Defined in: [packages/core/src/types.ts:466](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L466)
 
 ***
 
@@ -41,7 +41,7 @@ Defined in: [packages/core/src/types.ts:617](https://github.com/mineclover/conte
 
 > **blocking**: `boolean`
 
-Defined in: [packages/core/src/types.ts:618](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L618)
+Defined in: [packages/core/src/types.ts:467](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L467)
 
 ***
 
@@ -49,7 +49,7 @@ Defined in: [packages/core/src/types.ts:618](https://github.com/mineclover/conte
 
 > **scheduling**: [`HandlerScheduling`](../type-aliases/HandlerScheduling.md)
 
-Defined in: [packages/core/src/types.ts:619](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L619)
+Defined in: [packages/core/src/types.ts:468](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L468)
 
 ***
 
@@ -57,7 +57,7 @@ Defined in: [packages/core/src/types.ts:619](https://github.com/mineclover/conte
 
 > **errorPolicy**: [`HandlerErrorPolicy`](../type-aliases/HandlerErrorPolicy.md)
 
-Defined in: [packages/core/src/types.ts:620](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L620)
+Defined in: [packages/core/src/types.ts:469](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L469)
 
 ***
 
@@ -65,7 +65,7 @@ Defined in: [packages/core/src/types.ts:620](https://github.com/mineclover/conte
 
 > **once**: `boolean`
 
-Defined in: [packages/core/src/types.ts:621](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L621)
+Defined in: [packages/core/src/types.ts:470](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L470)
 
 ***
 
@@ -73,7 +73,7 @@ Defined in: [packages/core/src/types.ts:621](https://github.com/mineclover/conte
 
 > **replaceExisting**: `boolean`
 
-Defined in: [packages/core/src/types.ts:622](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L622)
+Defined in: [packages/core/src/types.ts:471](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L471)
 
 ***
 
@@ -81,7 +81,7 @@ Defined in: [packages/core/src/types.ts:622](https://github.com/mineclover/conte
 
 > `optional` **debounce?**: `number`
 
-Defined in: [packages/core/src/types.ts:623](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L623)
+Defined in: [packages/core/src/types.ts:472](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L472)
 
 ***
 
@@ -89,7 +89,7 @@ Defined in: [packages/core/src/types.ts:623](https://github.com/mineclover/conte
 
 > `optional` **throttle?**: `number`
 
-Defined in: [packages/core/src/types.ts:624](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L624)
+Defined in: [packages/core/src/types.ts:473](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L473)
 
 ***
 
@@ -97,7 +97,7 @@ Defined in: [packages/core/src/types.ts:624](https://github.com/mineclover/conte
 
 > `optional` **cleanup?**: () => `void`
 
-Defined in: [packages/core/src/types.ts:625](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L625)
+Defined in: [packages/core/src/types.ts:474](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L474)
 
 #### Returns
 
@@ -109,7 +109,7 @@ Defined in: [packages/core/src/types.ts:625](https://github.com/mineclover/conte
 
 > `optional` **condition?**: (`payload`) => `boolean`
 
-Defined in: [packages/core/src/types.ts:626](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L626)
+Defined in: [packages/core/src/types.ts:475](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L475)
 
 #### Parameters
 
@@ -127,4 +127,4 @@ Type parameter **T**
 
 > `optional` **metadata?**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/core/src/types.ts:627](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L627)
+Defined in: [packages/core/src/types.ts:476](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L476)

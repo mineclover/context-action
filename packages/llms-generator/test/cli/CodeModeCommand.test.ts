@@ -67,6 +67,37 @@ describe('CodeModeCommand', () => {
     }
   });
 
+  it('preserves URL literals during comment stripping and resolves relative paths cleanly for custom paths', async () => {
+    const previousCwd = process.cwd();
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'llms-code-mode-urls-'));
+
+    try {
+      const customSrc = path.join(root, 'custom-src');
+      await fs.mkdir(path.join(customSrc, 'nested'), { recursive: true });
+      await fs.writeFile(
+        path.join(customSrc, 'nested', 'links.ts'),
+        '// strip this comment\nexport const DOC_URL = "https://context-action.dev/guide"; /* block comment */\nexport const tpl = `http://localhost:3000/test`;\n'
+      );
+
+      process.chdir(root);
+      await new CodeModeCommand().execute({ paths: [customSrc], quiet: true });
+
+      const output = await fs.readFile(path.join(root, 'llmsData', 'code', 'custom-src-complete.md'), 'utf8');
+      const metadata = JSON.parse(
+        await fs.readFile(path.join(root, 'llmsData', 'code', 'custom-src-metadata.json'), 'utf8')
+      ) as { files: Array<{ path: string }> };
+
+      expect(output).toContain('https://context-action.dev/guide');
+      expect(output).toContain('http://localhost:3000/test');
+      expect(output).not.toContain('strip this comment');
+      expect(output).not.toContain('block comment');
+      expect(metadata.files.map(f => f.path)).toEqual([path.join('nested', 'links.ts')]);
+    } finally {
+      process.chdir(previousCwd);
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
+
   it('keeps dry-run generation side-effect free and reports the planned output', async () => {
     const previousCwd = process.cwd();
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'llms-code-mode-dry-'));

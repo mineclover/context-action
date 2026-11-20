@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-protocol/src](../README.md) / createToolCallSuccess
+[context-action-monorepo](../../../README.md) / [packages/tool-protocol/src](../README.md) / createToolCallSuccess
 
 # Function: createToolCallSuccess()
 
@@ -16,7 +16,7 @@ Create a successful result while preserving the handler's structured value.
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ## Parameters
 

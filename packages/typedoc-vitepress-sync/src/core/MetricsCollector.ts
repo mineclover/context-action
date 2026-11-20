@@ -37,19 +37,11 @@ export class MetricsCollector {
   /**
    * Record a processed file
    */
-  recordFile(filePath: string, skipped: boolean = false): void {
+  recordFile(_filePath: string, skipped: boolean = false): void {
     if (skipped) {
       this.metrics.filesSkipped = (this.metrics.filesSkipped || 0) + 1
     } else {
       this.metrics.filesProcessed = (this.metrics.filesProcessed || 0) + 1
-      
-      // Record file size for statistics
-      try {
-        fs.statSync(filePath)
-        // Store additional file metrics if needed
-      } catch (error) {
-        this.logger?.debug(`Could not get stats for ${filePath}:`, error)
-      }
     }
   }
 
@@ -174,7 +166,7 @@ export class MetricsCollector {
     const filesWithIssues = qualityStats.totalIssues
     const qualityPercentage = ((totalFiles - filesWithIssues) / totalFiles) * 100
     
-    return Math.round(qualityPercentage)
+    return Math.max(0, Math.min(100, Math.round(qualityPercentage)))
   }
 
   /**

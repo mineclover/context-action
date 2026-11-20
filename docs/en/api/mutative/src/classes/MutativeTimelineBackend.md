@@ -1,12 +1,12 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/mutative/src](../README.md) / MutativeTimelineBackend
+[context-action-monorepo](../../../README.md) / [packages/mutative/src](../README.md) / MutativeTimelineBackend
 
 # Class: MutativeTimelineBackend\<T\>
 
-Defined in: [packages/mutative/src/backend.ts:466](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L466)
+Defined in: [packages/mutative/src/backend.ts:474](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L474)
 
 A framework-neutral Mutative timeline backend with undo/redo and batches.
 
@@ -29,7 +29,7 @@ StateBackend/TransactionBackend contract used by UI integrations.
 
 > **new MutativeTimelineBackend**&lt;`T`&gt;(`name`, `initialValue`, `options?`): `MutativeTimelineBackend`&lt;`T`&gt;
 
-Defined in: [packages/mutative/src/backend.ts:495](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L495)
+Defined in: [packages/mutative/src/backend.ts:503](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L503)
 
 #### Parameters
 
@@ -55,7 +55,7 @@ Type parameter **T**
 
 > **getSnapshot**(): `ReadonlyStateSnapshot`&lt;`T`&gt;
 
-Defined in: [packages/mutative/src/backend.ts:543](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L543)
+Defined in: [packages/mutative/src/backend.ts:555](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L555)
 
 #### Returns
 
@@ -71,7 +71,7 @@ Defined in: [packages/mutative/src/backend.ts:543](https://github.com/mineclover
 
 > **subscribe**(`listener`): () => `void`
 
-Defined in: [packages/mutative/src/backend.ts:545](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L545)
+Defined in: [packages/mutative/src/backend.ts:557](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L557)
 
 #### Parameters
 
@@ -93,7 +93,7 @@ Defined in: [packages/mutative/src/backend.ts:545](https://github.com/mineclover
 
 > **subscribeWithPatches**(`listener`): () => `void`
 
-Defined in: [packages/mutative/src/backend.ts:551](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L551)
+Defined in: [packages/mutative/src/backend.ts:563](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L563)
 
 #### Parameters
 
@@ -115,7 +115,7 @@ Defined in: [packages/mutative/src/backend.ts:551](https://github.com/mineclover
 
 > **getLastPatches**(): readonly (`IPatch` & `object` \| `IPatch` & `object` \| `IPatch` & `object`)[] \| `null`
 
-Defined in: [packages/mutative/src/backend.ts:559](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L559)
+Defined in: [packages/mutative/src/backend.ts:571](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L571)
 
 #### Returns
 
@@ -131,7 +131,7 @@ readonly (`IPatch` & `object` \| `IPatch` & `object` \| `IPatch` & `object`)[] \
 
 > **getSafeValue**(): `T`
 
-Defined in: [packages/mutative/src/backend.ts:561](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L561)
+Defined in: [packages/mutative/src/backend.ts:573](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L573)
 
 #### Returns
 
@@ -147,7 +147,7 @@ Type parameter **T**
 
 > **getLastTransitionMeta**(): [`TimeTravelTransitionMeta`](../interfaces/TimeTravelTransitionMeta.md) \| `undefined`
 
-Defined in: [packages/mutative/src/backend.ts:563](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L563)
+Defined in: [packages/mutative/src/backend.ts:575](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L575)
 
 #### Returns
 
@@ -159,7 +159,7 @@ Defined in: [packages/mutative/src/backend.ts:563](https://github.com/mineclover
 
 > **setValue**(`value`, `meta?`): `void`
 
-Defined in: [packages/mutative/src/backend.ts:566](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L566)
+Defined in: [packages/mutative/src/backend.ts:578](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L578)
 
 #### Parameters
 
@@ -169,7 +169,7 @@ Type parameter **T**
 
 ##### meta?
 
-Type parameter **StateMutationMeta**
+`StateMutationMeta`
 
 #### Returns
 
@@ -185,7 +185,7 @@ Type parameter **StateMutationMeta**
 
 > **update**(`updater`, `meta?`): `void`
 
-Defined in: [packages/mutative/src/backend.ts:572](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L572)
+Defined in: [packages/mutative/src/backend.ts:584](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L584)
 
 #### Parameters
 
@@ -195,7 +195,7 @@ Defined in: [packages/mutative/src/backend.ts:572](https://github.com/mineclover
 
 ##### meta?
 
-Type parameter **StateMutationMeta**
+`StateMutationMeta`
 
 #### Returns
 
@@ -211,11 +211,11 @@ Type parameter **StateMutationMeta**
 
 > **getHistoryEntryId**(): `HistoryEntryId`
 
-Defined in: [packages/mutative/src/backend.ts:582](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L582)
+Defined in: [packages/mutative/src/backend.ts:594](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L594)
 
 #### Returns
 
-Type parameter **HistoryEntryId**
+`HistoryEntryId`
 
 #### Implementation of
 
@@ -227,13 +227,13 @@ Type parameter **HistoryEntryId**
 
 > **hasHistoryEntry**(`entryId`): `boolean`
 
-Defined in: [packages/mutative/src/backend.ts:584](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L584)
+Defined in: [packages/mutative/src/backend.ts:596](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L596)
 
 #### Parameters
 
 ##### entryId
 
-Type parameter **HistoryEntryId**
+`HistoryEntryId`
 
 #### Returns
 
@@ -249,7 +249,7 @@ Type parameter **HistoryEntryId**
 
 > **canUndo**(): `boolean`
 
-Defined in: [packages/mutative/src/backend.ts:587](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L587)
+Defined in: [packages/mutative/src/backend.ts:599](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L599)
 
 #### Returns
 
@@ -265,7 +265,7 @@ Defined in: [packages/mutative/src/backend.ts:587](https://github.com/mineclover
 
 > **canRedo**(): `boolean`
 
-Defined in: [packages/mutative/src/backend.ts:589](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L589)
+Defined in: [packages/mutative/src/backend.ts:601](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L601)
 
 #### Returns
 
@@ -281,7 +281,7 @@ Defined in: [packages/mutative/src/backend.ts:589](https://github.com/mineclover
 
 > **getPosition**(): `number`
 
-Defined in: [packages/mutative/src/backend.ts:591](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L591)
+Defined in: [packages/mutative/src/backend.ts:603](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L603)
 
 #### Returns
 
@@ -297,7 +297,7 @@ Defined in: [packages/mutative/src/backend.ts:591](https://github.com/mineclover
 
 > **getHistoryLength**(): `number`
 
-Defined in: [packages/mutative/src/backend.ts:593](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L593)
+Defined in: [packages/mutative/src/backend.ts:605](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L605)
 
 #### Returns
 
@@ -313,7 +313,7 @@ Defined in: [packages/mutative/src/backend.ts:593](https://github.com/mineclover
 
 > **getHistory**(): readonly `T`[]
 
-Defined in: [packages/mutative/src/backend.ts:595](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L595)
+Defined in: [packages/mutative/src/backend.ts:607](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L607)
 
 #### Returns
 
@@ -329,7 +329,7 @@ readonly `T`[]
 
 > **goTo**(`position`, `meta?`): `void`
 
-Defined in: [packages/mutative/src/backend.ts:597](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L597)
+Defined in: [packages/mutative/src/backend.ts:609](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L609)
 
 #### Parameters
 
@@ -339,7 +339,7 @@ Defined in: [packages/mutative/src/backend.ts:597](https://github.com/mineclover
 
 ##### meta?
 
-Type parameter **StateMutationMeta**
+`StateMutationMeta`
 
 #### Returns
 
@@ -355,7 +355,7 @@ Type parameter **StateMutationMeta**
 
 > **undo**(`steps?`, `meta?`): `void`
 
-Defined in: [packages/mutative/src/backend.ts:602](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L602)
+Defined in: [packages/mutative/src/backend.ts:614](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L614)
 
 #### Parameters
 
@@ -365,7 +365,7 @@ Defined in: [packages/mutative/src/backend.ts:602](https://github.com/mineclover
 
 ##### meta?
 
-Type parameter **StateMutationMeta**
+`StateMutationMeta`
 
 #### Returns
 
@@ -381,7 +381,7 @@ Type parameter **StateMutationMeta**
 
 > **redo**(`steps?`, `meta?`): `void`
 
-Defined in: [packages/mutative/src/backend.ts:607](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L607)
+Defined in: [packages/mutative/src/backend.ts:619](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L619)
 
 #### Parameters
 
@@ -391,7 +391,7 @@ Defined in: [packages/mutative/src/backend.ts:607](https://github.com/mineclover
 
 ##### meta?
 
-Type parameter **StateMutationMeta**
+`StateMutationMeta`
 
 #### Returns
 
@@ -407,17 +407,17 @@ Type parameter **StateMutationMeta**
 
 > **goToHistoryEntry**(`entryId`, `meta?`): `void`
 
-Defined in: [packages/mutative/src/backend.ts:612](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L612)
+Defined in: [packages/mutative/src/backend.ts:624](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L624)
 
 #### Parameters
 
 ##### entryId
 
-Type parameter **HistoryEntryId**
+`HistoryEntryId`
 
 ##### meta?
 
-Type parameter **StateMutationMeta**
+`StateMutationMeta`
 
 #### Returns
 
@@ -433,13 +433,13 @@ Type parameter **StateMutationMeta**
 
 > **reset**(`meta?`): `void`
 
-Defined in: [packages/mutative/src/backend.ts:620](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L620)
+Defined in: [packages/mutative/src/backend.ts:632](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L632)
 
 #### Parameters
 
 ##### meta?
 
-Type parameter **StateMutationMeta**
+`StateMutationMeta`
 
 #### Returns
 
@@ -455,13 +455,13 @@ Type parameter **StateMutationMeta**
 
 > **beginBatch**(`meta?`, `options?`): `void`
 
-Defined in: [packages/mutative/src/backend.ts:625](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L625)
+Defined in: [packages/mutative/src/backend.ts:637](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L637)
 
 #### Parameters
 
 ##### meta?
 
-Type parameter **StateMutationMeta**
+`StateMutationMeta`
 
 ##### options?
 
@@ -483,7 +483,7 @@ Type parameter **StateMutationMeta**
 
 > **endBatch**(): `void`
 
-Defined in: [packages/mutative/src/backend.ts:636](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L636)
+Defined in: [packages/mutative/src/backend.ts:648](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L648)
 
 #### Returns
 
@@ -499,7 +499,7 @@ Defined in: [packages/mutative/src/backend.ts:636](https://github.com/mineclover
 
 > **cancelBatch**(): `void`
 
-Defined in: [packages/mutative/src/backend.ts:641](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L641)
+Defined in: [packages/mutative/src/backend.ts:653](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L653)
 
 #### Returns
 
@@ -515,7 +515,7 @@ Defined in: [packages/mutative/src/backend.ts:641](https://github.com/mineclover
 
 > **resumeNotifications**(): `void`
 
-Defined in: [packages/mutative/src/backend.ts:646](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L646)
+Defined in: [packages/mutative/src/backend.ts:658](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L658)
 
 #### Returns
 
@@ -531,7 +531,7 @@ Defined in: [packages/mutative/src/backend.ts:646](https://github.com/mineclover
 
 > **flushNotifications**(): `void`
 
-Defined in: [packages/mutative/src/backend.ts:650](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L650)
+Defined in: [packages/mutative/src/backend.ts:662](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L662)
 
 #### Returns
 
@@ -547,7 +547,7 @@ Defined in: [packages/mutative/src/backend.ts:650](https://github.com/mineclover
 
 > **isStoreDisposed**(): `boolean`
 
-Defined in: [packages/mutative/src/backend.ts:658](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L658)
+Defined in: [packages/mutative/src/backend.ts:670](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L670)
 
 #### Returns
 
@@ -563,7 +563,7 @@ Defined in: [packages/mutative/src/backend.ts:658](https://github.com/mineclover
 
 > **dispose**(): `void`
 
-Defined in: [packages/mutative/src/backend.ts:660](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L660)
+Defined in: [packages/mutative/src/backend.ts:672](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L672)
 
 #### Returns
 
@@ -579,7 +579,7 @@ Defined in: [packages/mutative/src/backend.ts:660](https://github.com/mineclover
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/mutative/src/backend.ts:469](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L469)
+Defined in: [packages/mutative/src/backend.ts:477](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L477)
 
 #### Implementation of
 
@@ -591,7 +591,7 @@ Defined in: [packages/mutative/src/backend.ts:469](https://github.com/mineclover
 
 > `readonly` **capabilities**: `object`
 
-Defined in: [packages/mutative/src/backend.ts:470](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L470)
+Defined in: [packages/mutative/src/backend.ts:478](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L478)
 
 #### patches
 

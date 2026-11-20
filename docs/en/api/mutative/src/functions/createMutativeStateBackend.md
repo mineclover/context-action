@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/mutative/src](../README.md) / createMutativeStateBackend
+[context-action-monorepo](../../../README.md) / [packages/mutative/src](../README.md) / createMutativeStateBackend
 
 # Function: createMutativeStateBackend()
 
 > **createMutativeStateBackend**&lt;`T`&gt;(`name`, `initialValue`, `options?`): `StateBackend`\<`T`, `IPatch` & `object` \| `IPatch` & `object` \| `IPatch` & `object`\>
 
-Defined in: [packages/mutative/src/backend.ts:733](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L733)
+Defined in: [packages/mutative/src/backend.ts:745](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/backend.ts#L745)
 
 ## Type Parameters
 

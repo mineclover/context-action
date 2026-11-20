@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionDispatcher
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionDispatcher
 
 # Type Alias: ActionDispatcher\<T\>
 
 > **ActionDispatcher**&lt;`T`&gt; = &lt;`K`&gt;(`action`, ...`args`) => `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:1376](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1376)
+Defined in: [packages/core/src/types.ts:1212](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1212)
 
 Dispatch an action with the payload contract defined by its action key.
 

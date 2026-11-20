@@ -1,12 +1,12 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionGuardController
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionGuardController
 
 # Interface: ActionGuardController\<T\>
 
-Defined in: [packages/core/src/types.ts:374](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L374)
+Defined in: [packages/core/src/types.ts:223](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L223)
 
 Controller available to preflight guards. Guards may reject or normalize input,
 but cannot publish a result or terminate a result pipeline.
@@ -27,7 +27,7 @@ but cannot publish a result or terminate a result pipeline.
 
 > **getPayload**(): `T`
 
-Defined in: [packages/core/src/types.ts:363](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L363)
+Defined in: [packages/core/src/types.ts:212](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L212)
 
 #### Returns
 
@@ -43,7 +43,7 @@ Type parameter **T**
 
 > **abort**(`reason?`): `void`
 
-Defined in: [packages/core/src/types.ts:375](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L375)
+Defined in: [packages/core/src/types.ts:224](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L224)
 
 #### Parameters
 
@@ -61,7 +61,7 @@ Defined in: [packages/core/src/types.ts:375](https://github.com/mineclover/conte
 
 > **modifyPayload**(`modifier`): `void`
 
-Defined in: [packages/core/src/types.ts:376](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L376)
+Defined in: [packages/core/src/types.ts:225](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L225)
 
 #### Parameters
 
@@ -79,7 +79,7 @@ Defined in: [packages/core/src/types.ts:376](https://github.com/mineclover/conte
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/core/src/types.ts:362](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L362)
+Defined in: [packages/core/src/types.ts:211](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L211)
 
 #### Inherited from
 

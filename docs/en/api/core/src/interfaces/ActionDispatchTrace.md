@@ -1,12 +1,12 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionDispatchTrace
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionDispatchTrace
 
 # Interface: ActionDispatchTrace
 
-Defined in: [packages/core/src/types.ts:1079](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1079)
+Defined in: [packages/core/src/types.ts:928](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L928)
 
 Lifecycle trace emitted around a public dispatch operation.
 
@@ -16,7 +16,7 @@ Lifecycle trace emitted around a public dispatch operation.
 
 > `readonly` **dispatchId**: `string`
 
-Defined in: [packages/core/src/types.ts:1080](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1080)
+Defined in: [packages/core/src/types.ts:929](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L929)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/core/src/types.ts:1080](https://github.com/mineclover/cont
 
 > `readonly` **action**: `string`
 
-Defined in: [packages/core/src/types.ts:1081](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1081)
+Defined in: [packages/core/src/types.ts:930](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L930)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/core/src/types.ts:1081](https://github.com/mineclover/cont
 
 > `readonly` **phase**: `"started"` \| `"settled"`
 
-Defined in: [packages/core/src/types.ts:1082](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1082)
+Defined in: [packages/core/src/types.ts:931](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L931)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [packages/core/src/types.ts:1082](https://github.com/mineclover/cont
 
 > `readonly` `optional` **status?**: `"completed"` \| `"completed_with_errors"` \| `"failed"` \| `"cancelled"` \| `"debounced"` \| `"throttled"`
 
-Defined in: [packages/core/src/types.ts:1083](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1083)
+Defined in: [packages/core/src/types.ts:932](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L932)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [packages/core/src/types.ts:1083](https://github.com/mineclover/cont
 
 > `readonly` `optional` **transactionId?**: `string`
 
-Defined in: [packages/core/src/types.ts:1090](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1090)
+Defined in: [packages/core/src/types.ts:939](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L939)
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: [packages/core/src/types.ts:1090](https://github.com/mineclover/cont
 
 > `readonly` `optional` **origin?**: `"user"` \| `"system"` \| `"network"` \| `"undo"` \| `"redo"` \| `"reset"`
 
-Defined in: [packages/core/src/types.ts:1091](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1091)
+Defined in: [packages/core/src/types.ts:940](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L940)
 
 ***
 
@@ -64,7 +64,7 @@ Defined in: [packages/core/src/types.ts:1091](https://github.com/mineclover/cont
 
 > `readonly` `optional` **label?**: `string`
 
-Defined in: [packages/core/src/types.ts:1092](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1092)
+Defined in: [packages/core/src/types.ts:941](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L941)
 
 ***
 
@@ -72,7 +72,7 @@ Defined in: [packages/core/src/types.ts:1092](https://github.com/mineclover/cont
 
 > `readonly` **startedAt**: `number`
 
-Defined in: [packages/core/src/types.ts:1093](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1093)
+Defined in: [packages/core/src/types.ts:942](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L942)
 
 ***
 
@@ -80,4 +80,4 @@ Defined in: [packages/core/src/types.ts:1093](https://github.com/mineclover/cont
 
 > `readonly` `optional` **endedAt?**: `number`
 
-Defined in: [packages/core/src/types.ts:1094](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1094)
+Defined in: [packages/core/src/types.ts:943](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L943)

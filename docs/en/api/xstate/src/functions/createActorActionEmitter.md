@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / createActorActionEmitter
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / createActorActionEmitter
 
 # Function: createActorActionEmitter()
 
@@ -10,7 +10,7 @@
 
 > **createActorActionEmitter**\<`TActions`, `TResultMap`\>(`register`, `options?`): `object`
 
-Defined in: [packages/xstate/src/pipeline-binding.ts:681](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L681)
+Defined in: [packages/xstate/src/pipeline-binding.ts:712](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L712)
 
 Creates a bidirectional typed emitter enabling XState v5 actions, XState v6 `enq`
 transitions, or `@xstate/effect` handlers to dispatch back into Context-Action.
@@ -95,7 +95,7 @@ Type parameter **K**
 
 > **createActorActionEmitter**&lt;`TActions`&gt;(`pipeline`, `options?`): `object`
 
-Defined in: [packages/xstate/src/pipeline-binding.ts:695](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L695)
+Defined in: [packages/xstate/src/pipeline-binding.ts:726](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L726)
 
 Creates a bidirectional typed emitter enabling XState v5 actions, XState v6 `enq`
 transitions, or `@xstate/effect` handlers to dispatch back into Context-Action.

@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / ReactActionError
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / ReactActionError
 
 # Class: ReactActionError
 
@@ -40,11 +40,11 @@ Defined in: [packages/react/src/actions/react-helpers.ts:101](https://github.com
 
 ##### originalError?
 
-Type parameter **Error**
+`Error`
 
 #### Returns
 
-Type parameter **ReactActionError**
+`ReactActionError`
 
 #### Overrides
 
@@ -62,7 +62,7 @@ Defined in: [packages/react/src/actions/react-helpers.ts:113](https://github.com
 
 ##### originalError
 
-Type parameter **Error**
+`Error`
 
 ##### action
 
@@ -78,7 +78,7 @@ Type parameter **Error**
 
 #### Returns
 
-Type parameter **ReactActionError**
+`ReactActionError`
 
 ## Properties
 

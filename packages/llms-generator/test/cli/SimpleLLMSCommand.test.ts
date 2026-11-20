@@ -781,5 +781,28 @@ describe('SimpleLLMSCommand', () => {
       
       expect(aDocIndex).toBeLessThan(bDocIndex);
     });
+
+    it('handles minimum pattern and defaults language fallback to en when unconfigured', async () => {
+      await fs.mkdir(path.join(testDataDir, 'llmsData', 'en', 'guide--intro'), { recursive: true });
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'guide--intro', 'guide--intro-300.md'),
+        '---\ncompletion_status: completed\npriority_score: 90\ndocument_id: guide--intro\n---\n\n# Intro\n\nEnglish intro content.'
+      );
+
+      const enFallbackCommand = new SimpleLLMSCommand({
+        ...config,
+        generation: {
+          ...config.generation,
+          defaultLanguage: undefined as unknown as string
+        }
+      });
+
+      await enFallbackCommand.execute({
+        pattern: 'minimum'
+      });
+
+      const minOutput = await fs.readFile(path.join(testDataDir, 'output', 'en', 'llms', 'llms-minimum.txt'), 'utf-8');
+      expect(minOutput).toContain('**[Intro](');
+    });
   });
 });

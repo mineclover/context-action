@@ -73,4 +73,20 @@ describe('ArgumentParser', () => {
       expect(parser.extractListFlag(['--changed-files='], '--changed-files')).toEqual([]);
     });
   });
+
+  describe('extractNumberFlag & extractPositionalArgs', () => {
+    it('returns undefined for non-numeric number flags instead of NaN', () => {
+      expect(parser.extractNumberFlag(['--limit', 'abc'], '-n', '--limit')).toBeUndefined();
+      expect(parser.extractNumberFlag(['--limit', '0'], '-n', '--limit')).toBe(0);
+    });
+
+    it('extracts positional args while excluding value tokens consumed by flags', () => {
+      expect(
+        parser.extractPositionalArgs(['--extensions', '.ts,.tsx', 'core', 'react', '--quiet'], ['--extensions'])
+      ).toEqual(['core', 'react']);
+      expect(
+        parser.extractPositionalArgs(['-o', 'out.md', 'docs/en/guide.md', '--max-depth', '2'], ['-o', '--output', '--max-depth'])
+      ).toEqual(['docs/en/guide.md']);
+    });
+  });
 });

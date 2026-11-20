@@ -70,17 +70,17 @@ export class SimpleLLMSCommand {
     const {
       characterLimit,
       category,
-      language = this.config.generation?.defaultLanguage || 'ko',
-      pattern = 'clean',
+      language = this.config.generation?.defaultLanguage || 'en',
       patterns,
       generateAll = false,
       outputDir = this.config.paths?.outputDir || './docs/llms',
       dryRun = false,
       verbose = false
     } = options;
+    const pattern = options.pattern ?? 'clean';
 
     // Default behavior: generate origin, minimum, and default character limit files
-    if (generateAll || (!pattern && !patterns && !characterLimit)) {
+    if (generateAll || (!options.pattern && !patterns && !characterLimit)) {
       return this.executeMultipleGeneration({
         ...options,
         language,
@@ -325,8 +325,9 @@ export class SimpleLLMSCommand {
     let content = '';
 
     switch (pattern) {
+      case 'minimum':
       case 'minimal':
-        // Minimal format: All available documents with standard link format
+        // Minimal/minimum format: All available documents with standard link format
         content = this.generateMinimumLinkContent(documents);
         break;
         
@@ -362,7 +363,7 @@ export class SimpleLLMSCommand {
   private async executeMultipleGeneration(options: SimpleLLMSOptions): Promise<void> {
     const {
       category,
-      language = this.config.generation?.defaultLanguage || 'ko',
+      language = this.config.generation?.defaultLanguage || 'en',
       outputDir,
       dryRun = false,
       verbose = false
@@ -464,7 +465,7 @@ export class SimpleLLMSCommand {
     const {
       characterLimit,
       category,
-      language = this.config.generation?.defaultLanguage || 'ko',
+      language = this.config.generation?.defaultLanguage || 'en',
       pattern = 'clean',
       outputDir = this.config.paths?.outputDir || './docs/llms',
       dryRun = false

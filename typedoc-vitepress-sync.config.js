@@ -1,9 +1,6 @@
 /**
  * @fileoverview TypeDoc VitePress Sync Configuration
  * Enhanced configuration for the Context-Action framework documentation sync
- * 
- * Based on TypeDoc VitePress Sync best practices guide:
- * @see docs/TYPEDOC_VITEPRESS_SYNC_GUIDE.md
  */
 
 import { cpus } from 'os'

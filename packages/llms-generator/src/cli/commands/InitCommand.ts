@@ -8,6 +8,7 @@
 
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { getCanonicalDocumentIdentity, normalizeDocumentPath } from '../../core/DocumentIdentity.js';
 import { CLIConfig } from '../types/CLITypes.js';
 import { GenerateTemplatesCommand } from './GenerateTemplatesCommand.js';
 
@@ -15,6 +16,7 @@ export interface InitOptions {
   dryRun?: boolean;
   overwrite?: boolean;
   quiet?: boolean;
+  skipDiscovery?: boolean;
   skipPriority?: boolean;
   skipTemplates?: boolean;
   language?: string;
@@ -37,8 +39,8 @@ export class InitCommand {
     let totalPriorityFiles = 0;
     let totalTemplateFiles = 0;
 
-    // Step 1: Create priority.json files
-    if (!options.skipPriority) {
+    // Step 1: Create priority.json files (skipped if discovery or priority step is disabled)
+    if (!options.skipPriority && !options.skipDiscovery) {
       if (!quiet) {
         console.log('📊 Step 1: Creating priority.json files for all documents');
       }
@@ -277,16 +279,8 @@ export class InitCommand {
   }
 
   private getDocumentId(filePath: string, docsDir: string): string | null {
-    const relativePath = path.relative(docsDir, filePath);
-    const pathParts = relativePath.split(path.sep);
-    
-    if (pathParts.length < 3) return null;
-    
-    const category = pathParts[1]; // guide, concept, api, etc
-    const fileName = path.basename(filePath, '.md');
-    
-    // Create document ID in format: category--filename
-    return `${category}--${fileName}`;
+    const relativePath = normalizeDocumentPath(path.relative(docsDir, filePath));
+    return getCanonicalDocumentIdentity(relativePath)?.documentId ?? null;
   }
 
   private getSourcePath(filePath: string, docsDir: string): string {

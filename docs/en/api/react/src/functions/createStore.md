@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / createStore
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / createStore
 
 # Function: createStore()
 
 > **createStore**&lt;`T`&gt;(`name`, `initialValue`): [`Store`](../classes/Store.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/Store.ts:1037](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L1037)
+Defined in: [packages/react/src/stores/core/Store.ts:1053](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/Store.ts#L1053)
 
 Factory function for creating type-safe Store instances
 

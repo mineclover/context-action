@@ -44,13 +44,18 @@ describe('QualityValidator', () => {
     })
 
     it('should allow TypeDoc signatures containing undefined and union pipes', async () => {
+      const markdownOnlyValidator = new QualityValidator({
+        validateMarkdown: true,
+        validateLinks: false,
+        checkAccessibility: false
+      })
       const testFile = path.join(testDir, 'typedoc.md')
       fs.writeFileSync(
         testFile,
         '[**package v0.8.8**](../../README.md)\n\n***\n\n> **get** **value**(): string | undefined\n'
       )
 
-      const result = await validator.validateFile(testFile)
+      const result = await markdownOnlyValidator.validateFile(testFile)
 
       expect(result).toBeNull()
     })
@@ -114,24 +119,49 @@ describe('QualityValidator', () => {
       expect(result).toBeNull()
     })
 
-    it('should detect broken internal links', async () => {
+    it('should detect broken internal links including bare relative paths', async () => {
       const testFile = path.join(testDir, 'test.md')
-      fs.writeFileSync(testFile, '[Broken](./nonexistent.md)')
+      fs.writeFileSync(testFile, '[Broken](./nonexistent.md)\n[Bare](interfaces/Missing.md)')
       
       const result = await validator.validateFile(testFile)
       
-      // Test passes if no exception is thrown and result is processed
-      expect(typeof result === 'object' || result === null).toBe(true)
+      expect(result).not.toBeNull()
+      expect(result?.issues.some(issue => issue.includes('Broken link: "./nonexistent.md"'))).toBe(true)
+      expect(result?.issues.some(issue => issue.includes('Broken link: "interfaces/Missing.md"'))).toBe(true)
+    })
+
+    it('should ignore markdown syntax, escaped table pipes, and links inside fenced code blocks', async () => {
+      const testFile = path.join(testDir, 'fences.md')
+      fs.writeFileSync(
+        testFile,
+        [
+          '# Title',
+          '',
+          '| Prop | Type |',
+          '| --- | --- |',
+          '| value | `string \\| undefined` |',
+          '',
+          '```md',
+          '**unclosed bold inside code fence',
+          '[Broken](./missing-inside-fence.md)',
+          '```'
+        ].join('\n')
+      )
+
+      const result = await validator.validateFile(testFile)
+      expect(result).toBeNull()
     })
 
     it('should detect empty link text', async () => {
       const testFile = path.join(testDir, 'test.md')
+      const targetFile = path.join(testDir, 'some-file.md')
+      fs.writeFileSync(targetFile, '# Target')
       fs.writeFileSync(testFile, '[](./some-file.md)')
       
       const result = await validator.validateFile(testFile)
       
-      // Test passes if validation runs without error
-      expect(typeof result === 'object' || result === null).toBe(true)
+      expect(result).not.toBeNull()
+      expect(result?.issues).toContain('Empty link text for: ./some-file.md')
     })
   })
 

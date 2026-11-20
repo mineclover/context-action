@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / ActorStateReader
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / ActorStateReader
 
 # Interface: ActorStateReader\<TSelected\>
 
@@ -16,7 +16,7 @@ Defined in: [packages/xstate/src/actor-state-reader.ts:21](https://github.com/mi
 
 ### TSelected
 
-Type parameter **TSelected**
+`TSelected`
 
 ## Methods
 
@@ -28,7 +28,7 @@ Defined in: [packages/store-core/dist/index.d.ts:28](https://github.com/mineclov
 
 #### Returns
 
-Type parameter **ReadonlyStateSnapshot**
+`ReadonlyStateSnapshot`
 
 #### Inherited from
 
@@ -66,7 +66,7 @@ Defined in: [packages/xstate/src/actor-state-reader.ts:22](https://github.com/mi
 
 #### Returns
 
-Type parameter **TSelected**
+`TSelected`
 
 #### Overrides
 

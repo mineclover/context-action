@@ -89,16 +89,23 @@ describe('SidebarGenerator', () => {
       expect(structure.empty.items).toHaveLength(0)
     })
 
-    it('should create structure for existing directories', () => {
+    it('should create structure for existing directories recursively in deterministic order', () => {
       const coreDir = path.join(testDir, 'core', 'src')
-      fs.mkdirSync(coreDir, { recursive: true })
-      fs.writeFileSync(path.join(coreDir, 'test.md'), '# Test\n\nTest file')
+      const nestedDir = path.join(coreDir, 'webmcp', 'interfaces')
+      fs.mkdirSync(nestedDir, { recursive: true })
+      fs.writeFileSync(path.join(coreDir, 'zeta.md'), '# Zeta')
+      fs.writeFileSync(path.join(coreDir, 'alpha.md'), '# Alpha')
+      fs.writeFileSync(path.join(nestedDir, 'ToolConfig.md'), '# ToolConfig')
 
       const structure = generator.parseApiStructure(testDir, { 'core': 'core' })
 
       expect(structure.core).toBeDefined()
       expect(structure.core.text).toBe('Core API')
-      expect(structure.core.items.length).toBeGreaterThan(0)
+      expect(structure.core.items.map(i => i.path)).toEqual([
+        '/core/src/alpha',
+        '/core/src/webmcp/interfaces/ToolConfig',
+        '/core/src/zeta'
+      ])
     })
   })
 
@@ -166,17 +173,37 @@ describe('SidebarGenerator', () => {
       expect(content.length).toBeGreaterThan(0)
     })
 
-    it('should generate valid TypeScript syntax', () => {
-      const apiStructure = createTestApiStructure()
+    it('should generate valid TypeScript syntax with /api prefix and zero any annotations', () => {
+      const apiStructure = generator.parseApiStructure(testDir, { 'core': 'core' })
+      if (!apiStructure.core) {
+        apiStructure.core = createTestApiStructure().core!
+      }
       
-      generator.generateConfigFile(outputFile, apiStructure)
+      generator.generateConfigFile(outputFile, {
+        core: {
+          text: 'Core API',
+          items: [{ text: 'Action Register', path: '/core/src/ActionRegister' }]
+        }
+      })
       
       const content = fs.readFileSync(outputFile, 'utf8')
       
-      // Check for valid TypeScript patterns
       expect(content).toContain('export')
-      expect(content).toMatch(/text:/)
-      expect(content).toMatch(/items:/)
+      expect(content).not.toContain(': any')
+      expect(content).toContain('Record<string, ApiSection>')
+      const sections = generator.generateSidebarSections({
+        core: {
+          text: 'Core API',
+          items: [
+            { text: 'Action Register', path: '/core/src/ActionRegister' },
+            { text: 'Prefixed', path: '/api/core/Prefixed' }
+          ]
+        }
+      }, 'en')
+      expect(sections[0]?.items.map(i => i.link)).toEqual([
+        '/en/api/core/src/ActionRegister',
+        '/en/api/core/Prefixed'
+      ])
     })
 
     it('should handle special characters in paths and names', () => {
@@ -218,6 +245,15 @@ describe('SidebarGenerator', () => {
       const structure = generator.parseApiStructure('./nonexistent', { 'test': 'test' })
       
       expect(structure).toEqual({})
+    })
+
+    it('should throw when sidebar config output path cannot be written', () => {
+      const dirAsFile = path.join(testDir, 'existing-dir')
+      fs.mkdirSync(dirAsFile, { recursive: true })
+
+      expect(() => {
+        generator.generateConfigFile(dirAsFile, createTestApiStructure())
+      }).toThrow()
     })
 
     it('should handle empty structures', () => {

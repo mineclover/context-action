@@ -226,6 +226,67 @@ const EXAMPLES_STRUCTURE = {
 }
 
 // Concept 문서 구조
+const CONTEXT_LAYERED_ITEMS = {
+  en: [
+    { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
+    { text: 'Convention Index', link: '/en/context-layered/convention-index' },
+    { text: 'Repository Surface Catalog', link: '/en/context-layered/repository-surface-catalog' },
+    { text: 'Store Selection and Usage Guide', link: '/en/context-layered/store-selection-and-usage-guide' },
+    { text: 'Package Boundary and Codebase Management', link: '/en/context-layered/package-boundary-convention' },
+    { text: 'Mutative Core History and Upstream References', link: '/en/context-layered/mutative-core-history' },
+    { text: 'Specification, Issue, and Documentation Management', link: '/en/context-layered/change-management-convention' },
+    { text: 'Interaction Intent Contract (IIC)', link: '/en/context-layered/interaction-intent-contract' },
+    { text: 'Interaction Intent to Implementation Flow', link: '/en/context-layered/interaction-intent-implementation-flow' },
+    { text: 'Architecture Decision Records', link: '/en/context-layered/decisions/' },
+    { text: 'Unified Triad Self-Serve Sync Guide', link: '/en/context-layered/triad-evidence-sync-guide' },
+    { text: 'Usecase and Recipe Profile', link: '/en/context-layered/usecase-recipe-profile' },
+    { text: 'Integration Profiles', link: '/en/context-layered/integration-profiles' },
+    { text: 'Tool-Calling Web Studio Convention', link: '/en/context-layered/usecase-tool-calling-web-studio' },
+    { text: 'Panel Layout Preference Convention', link: '/en/context-layered/usecase-panel-layout' },
+    { text: 'Convention Alignment Plan', link: '/en/context-layered/convention-alignment-plan' },
+    { text: 'v1.0 Release Roadmap', link: '/en/context-layered/v1-release-roadmap' },
+    { text: 'v1.0 Release Documents', link: '/releases/v1.0.0/' },
+    { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
+    { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
+    { text: 'Durable Operation Operations Runbook', link: '/en/context-layered/architecture/durable-operation-operations' },
+    { text: 'PostgreSQL Durable Operation Adapter', link: '/en/context-layered/architecture/postgres-durable-operation-adapter' },
+    { text: 'Next Work and Documentation Ownership', link: '/en/context-layered/next-work' },
+    { text: 'Migration Guide', link: '/en/context-layered/migration-guide' },
+    { text: 'Implementation Convention', link: '/en/context-layered/implementation-convention' },
+    { text: 'Explicit State Machine', link: '/en/context-layered/patterns/explicit-state-machine' },
+    { text: 'Stability Test Cycle', link: '/en/context-layered/stability-test-cycle' }
+  ],
+  ko: [
+    { text: '개요', link: '/ko/context-layered/context-layered-guide' },
+    { text: '개발 컨벤션 인덱스', link: '/ko/context-layered/convention-index' },
+    { text: '저장소 표면 카탈로그', link: '/ko/context-layered/repository-surface-catalog' },
+    { text: 'Store별 선택 및 사용법 가이드', link: '/ko/context-layered/store-selection-and-usage-guide' },
+    { text: '패키지 경계 및 코드베이스 관리', link: '/ko/context-layered/package-boundary-convention' },
+    { text: 'Mutative Core 히스토리 및 원본 참조', link: '/ko/context-layered/mutative-core-history' },
+    { text: '스펙·이슈·문서 관리', link: '/ko/context-layered/change-management-convention' },
+    { text: '상호작용 의도 계약(IIC)', link: '/ko/context-layered/interaction-intent-contract' },
+    { text: '상호작용 의도 계약에서 구현까지의 흐름', link: '/ko/context-layered/interaction-intent-implementation-flow' },
+    { text: '아키텍처 결정 기록', link: '/ko/context-layered/decisions/' },
+    { text: '통합 트라이어드 자율 동기화 가이드', link: '/ko/context-layered/triad-evidence-sync-guide' },
+    { text: 'Usecase 및 Recipe Profile', link: '/ko/context-layered/usecase-recipe-profile' },
+    { text: 'Integration Profile', link: '/ko/context-layered/integration-profiles' },
+    { text: 'Tool Calling Web Studio 컨벤션', link: '/ko/context-layered/usecase-tool-calling-web-studio' },
+    { text: '패널 레이아웃 Preference 컨벤션', link: '/ko/context-layered/usecase-panel-layout' },
+    { text: '컨벤션 정합성 계획', link: '/ko/context-layered/convention-alignment-plan' },
+    { text: 'v1.0 릴리스 로드맵', link: '/ko/context-layered/v1-release-roadmap' },
+    { text: 'v1.0 릴리스 문서', link: '/ko/releases/v1.0.0/' },
+    { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
+    { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },
+    { text: 'Durable Operation 운영 Runbook', link: '/ko/context-layered/architecture/durable-operation-operations' },
+    { text: 'PostgreSQL Durable Operation Adapter 결정', link: '/ko/context-layered/architecture/postgres-durable-operation-adapter' },
+    { text: '다음 작업과 문서 소유권', link: '/ko/context-layered/next-work' },
+    { text: '마이그레이션 가이드', link: '/ko/context-layered/migration-guide' },
+    { text: '표준 컨벤션', link: '/ko/context-layered/implementation-convention' },
+    { text: '명시적 상태 머신', link: '/ko/context-layered/patterns/explicit-state-machine' },
+    { text: '안정성 테스트 사이클', link: '/ko/context-layered/stability-test-cycle' }
+  ]
+}
+
 const CONCEPT_STRUCTURE = {
   en: {
     concepts: {
@@ -241,35 +302,7 @@ const CONCEPT_STRUCTURE = {
         {
           text: '🏗️ Context-Layered',
           collapsed: true,
-          items: [
-            { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
-            { text: 'Convention Index', link: '/en/context-layered/convention-index' },
-            { text: 'Repository Surface Catalog', link: '/en/context-layered/repository-surface-catalog' },
-            { text: 'Store Selection and Usage Guide', link: '/en/context-layered/store-selection-and-usage-guide' },
-            { text: 'Package Boundary and Codebase Management', link: '/en/context-layered/package-boundary-convention' },
-            { text: 'Mutative Core History and Upstream References', link: '/en/context-layered/mutative-core-history' },
-            { text: 'Specification, Issue, and Documentation Management', link: '/en/context-layered/change-management-convention' },
-            { text: 'Interaction Intent Contract (IIC)', link: '/en/context-layered/interaction-intent-contract' },
-            { text: 'Interaction Intent to Implementation Flow', link: '/en/context-layered/interaction-intent-implementation-flow' },
-            { text: 'Architecture Decision Records', link: '/en/context-layered/decisions/' },
-            { text: 'Unified Triad Self-Serve Sync Guide', link: '/en/context-layered/triad-evidence-sync-guide' },
-            { text: 'Usecase and Recipe Profile', link: '/en/context-layered/usecase-recipe-profile' },
-            { text: 'Integration Profiles', link: '/en/context-layered/integration-profiles' },
-            { text: 'Tool-Calling Web Studio Convention', link: '/en/context-layered/usecase-tool-calling-web-studio' },
-            { text: 'Panel Layout Preference Convention', link: '/en/context-layered/usecase-panel-layout' },
-            { text: 'Convention Alignment Plan', link: '/en/context-layered/convention-alignment-plan' },
-            { text: 'v1.0 Release Roadmap', link: '/en/context-layered/v1-release-roadmap' },
-            { text: 'v1.0 Release Documents', link: '/releases/v1.0.0/' },
-            { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
-            { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
-            { text: 'Durable Operation Operations Runbook', link: '/en/context-layered/architecture/durable-operation-operations' },
-            { text: 'PostgreSQL Durable Operation Adapter', link: '/en/context-layered/architecture/postgres-durable-operation-adapter' },
-            { text: 'Next Work and Documentation Ownership', link: '/en/context-layered/next-work' },
-            { text: 'Migration Guide', link: '/en/context-layered/migration-guide' },
-            { text: 'Implementation Convention', link: '/en/context-layered/implementation-convention' },
-            { text: 'Explicit State Machine', link: '/en/context-layered/patterns/explicit-state-machine' },
-            { text: 'Stability Test Cycle', link: '/en/context-layered/stability-test-cycle' }
-          ]
+          items: CONTEXT_LAYERED_ITEMS.en
         }
       ]
     }
@@ -288,35 +321,7 @@ const CONCEPT_STRUCTURE = {
         {
           text: '🏗️ Context-Layered',
           collapsed: true,
-          items: [
-            { text: '개요', link: '/ko/context-layered/context-layered-guide' },
-            { text: '개발 컨벤션 인덱스', link: '/ko/context-layered/convention-index' },
-            { text: '저장소 표면 카탈로그', link: '/ko/context-layered/repository-surface-catalog' },
-            { text: 'Store별 선택 및 사용법 가이드', link: '/ko/context-layered/store-selection-and-usage-guide' },
-            { text: '패키지 경계 및 코드베이스 관리', link: '/ko/context-layered/package-boundary-convention' },
-            { text: 'Mutative Core 히스토리 및 원본 참조', link: '/ko/context-layered/mutative-core-history' },
-            { text: '스펙·이슈·문서 관리', link: '/ko/context-layered/change-management-convention' },
-            { text: '상호작용 의도 계약(IIC)', link: '/ko/context-layered/interaction-intent-contract' },
-            { text: '상호작용 의도 계약에서 구현까지의 흐름', link: '/ko/context-layered/interaction-intent-implementation-flow' },
-            { text: '아키텍처 결정 기록', link: '/ko/context-layered/decisions/' },
-            { text: '통합 트라이어드 자율 동기화 가이드', link: '/ko/context-layered/triad-evidence-sync-guide' },
-            { text: 'Usecase 및 Recipe Profile', link: '/ko/context-layered/usecase-recipe-profile' },
-            { text: 'Integration Profile', link: '/ko/context-layered/integration-profiles' },
-            { text: 'Tool Calling Web Studio 컨벤션', link: '/ko/context-layered/usecase-tool-calling-web-studio' },
-            { text: '패널 레이아웃 Preference 컨벤션', link: '/ko/context-layered/usecase-panel-layout' },
-            { text: '컨벤션 정합성 계획', link: '/ko/context-layered/convention-alignment-plan' },
-            { text: 'v1.0 릴리스 로드맵', link: '/ko/context-layered/v1-release-roadmap' },
-            { text: 'v1.0 릴리스 문서', link: '/ko/releases/v1.0.0/' },
-            { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
-            { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },
-            { text: 'Durable Operation 운영 Runbook', link: '/ko/context-layered/architecture/durable-operation-operations' },
-            { text: 'PostgreSQL Durable Operation Adapter 결정', link: '/ko/context-layered/architecture/postgres-durable-operation-adapter' },
-            { text: '다음 작업과 문서 소유권', link: '/ko/context-layered/next-work' },
-            { text: '마이그레이션 가이드', link: '/ko/context-layered/migration-guide' },
-            { text: '표준 컨벤션', link: '/ko/context-layered/implementation-convention' },
-            { text: '명시적 상태 머신', link: '/ko/context-layered/patterns/explicit-state-machine' },
-            { text: '안정성 테스트 사이클', link: '/ko/context-layered/stability-test-cycle' }
-          ]
+          items: CONTEXT_LAYERED_ITEMS.ko
         }
       ]
     }
@@ -353,68 +358,12 @@ const CONTEXT_LAYERED_SIDEBAR = {
   en: {
     text: '🏗️ Context-Layered Architecture',
     collapsed: false,
-    items: [
-      { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
-      { text: 'Convention Index', link: '/en/context-layered/convention-index' },
-      { text: 'Repository Surface Catalog', link: '/en/context-layered/repository-surface-catalog' },
-      { text: 'Store Selection and Usage Guide', link: '/en/context-layered/store-selection-and-usage-guide' },
-      { text: 'Package Boundary and Codebase Management', link: '/en/context-layered/package-boundary-convention' },
-      { text: 'Mutative Core History and Upstream References', link: '/en/context-layered/mutative-core-history' },
-      { text: 'Specification, Issue, and Documentation Management', link: '/en/context-layered/change-management-convention' },
-      { text: 'Interaction Intent Contract (IIC)', link: '/en/context-layered/interaction-intent-contract' },
-      { text: 'Interaction Intent to Implementation Flow', link: '/en/context-layered/interaction-intent-implementation-flow' },
-      { text: 'Architecture Decision Records', link: '/en/context-layered/decisions/' },
-      { text: 'Unified Triad Self-Serve Sync Guide', link: '/en/context-layered/triad-evidence-sync-guide' },
-      { text: 'Usecase and Recipe Profile', link: '/en/context-layered/usecase-recipe-profile' },
-      { text: 'Integration Profiles', link: '/en/context-layered/integration-profiles' },
-      { text: 'Tool-Calling Web Studio Convention', link: '/en/context-layered/usecase-tool-calling-web-studio' },
-      { text: 'Panel Layout Preference Convention', link: '/en/context-layered/usecase-panel-layout' },
-      { text: 'Convention Alignment Plan', link: '/en/context-layered/convention-alignment-plan' },
-      { text: 'v1.0 Release Roadmap', link: '/en/context-layered/v1-release-roadmap' },
-      { text: 'v1.0 Release Documents', link: '/releases/v1.0.0/' },
-      { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
-      { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
-      { text: 'Durable Operation Operations Runbook', link: '/en/context-layered/architecture/durable-operation-operations' },
-      { text: 'PostgreSQL Durable Operation Adapter', link: '/en/context-layered/architecture/postgres-durable-operation-adapter' },
-      { text: 'Next Work and Documentation Ownership', link: '/en/context-layered/next-work' },
-      { text: 'Migration Guide', link: '/en/context-layered/migration-guide' },
-      { text: 'Implementation Convention', link: '/en/context-layered/implementation-convention' },
-      { text: 'Explicit State Machine', link: '/en/context-layered/patterns/explicit-state-machine' },
-      { text: 'Stability Test Cycle', link: '/en/context-layered/stability-test-cycle' }
-    ]
+    items: CONTEXT_LAYERED_ITEMS.en
   },
   ko: {
     text: '🏗️ Context-Layered Architecture',
     collapsed: false,
-    items: [
-      { text: '개요', link: '/ko/context-layered/context-layered-guide' },
-      { text: '개발 컨벤션 인덱스', link: '/ko/context-layered/convention-index' },
-      { text: '저장소 표면 카탈로그', link: '/ko/context-layered/repository-surface-catalog' },
-      { text: 'Store별 선택 및 사용법 가이드', link: '/ko/context-layered/store-selection-and-usage-guide' },
-      { text: '패키지 경계 및 코드베이스 관리', link: '/ko/context-layered/package-boundary-convention' },
-      { text: 'Mutative Core 히스토리 및 원본 참조', link: '/ko/context-layered/mutative-core-history' },
-      { text: '스펙·이슈·문서 관리', link: '/ko/context-layered/change-management-convention' },
-      { text: '상호작용 의도 계약(IIC)', link: '/ko/context-layered/interaction-intent-contract' },
-      { text: '상호작용 의도 계약에서 구현까지의 흐름', link: '/ko/context-layered/interaction-intent-implementation-flow' },
-      { text: '아키텍처 결정 기록', link: '/ko/context-layered/decisions/' },
-      { text: '통합 트라이어드 자율 동기화 가이드', link: '/ko/context-layered/triad-evidence-sync-guide' },
-      { text: 'Usecase 및 Recipe Profile', link: '/ko/context-layered/usecase-recipe-profile' },
-      { text: 'Integration Profile', link: '/ko/context-layered/integration-profiles' },
-      { text: 'Tool Calling Web Studio 컨벤션', link: '/ko/context-layered/usecase-tool-calling-web-studio' },
-      { text: '패널 레이아웃 Preference 컨벤션', link: '/ko/context-layered/usecase-panel-layout' },
-      { text: '컨벤션 정합성 계획', link: '/ko/context-layered/convention-alignment-plan' },
-      { text: 'v1.0 릴리스 로드맵', link: '/ko/context-layered/v1-release-roadmap' },
-      { text: 'v1.0 릴리스 문서', link: '/ko/releases/v1.0.0/' },
-      { text: '폴더 구조', link: '/ko/context-layered/architecture/folder-structure' },
-      { text: '핸들러 레지스트리', link: '/ko/context-layered/architecture/handler-registry' },
-      { text: 'Durable Operation 운영 Runbook', link: '/ko/context-layered/architecture/durable-operation-operations' },
-      { text: 'PostgreSQL Durable Operation Adapter 결정', link: '/ko/context-layered/architecture/postgres-durable-operation-adapter' },
-      { text: '다음 작업과 문서 소유권', link: '/ko/context-layered/next-work' },
-      { text: '마이그레이션 가이드', link: '/ko/context-layered/migration-guide' },
-      { text: '표준 컨벤션', link: '/ko/context-layered/implementation-convention' },
-      { text: '명시적 상태 머신', link: '/ko/context-layered/patterns/explicit-state-machine' },
-      { text: '안정성 테스트 사이클', link: '/ko/context-layered/stability-test-cycle' }
-    ]
+    items: CONTEXT_LAYERED_ITEMS.ko
   }
 }
 

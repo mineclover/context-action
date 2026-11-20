@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / bindStatechartToSyncPipeline
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / bindStatechartToSyncPipeline
 
 # Variable: bindStatechartToSyncPipeline
 
 > `const` **bindStatechartToSyncPipeline**: \<`TActions`, `TEvent`, `TSnapshot`, `TEmitted`\>(`pipeline`, `actor`, `options`) => [`BoundActorHandle`](../type-aliases/BoundActorHandle.md)\<`TActions`, `TSnapshot`\> = `bindActorToSyncPipeline`
 
-Defined in: [packages/xstate/src/pipeline-binding.ts:498](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L498)
+Defined in: [packages/xstate/src/pipeline-binding.ts:515](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L515)
 
 Compatibility alias preserving earlier draft terminology.
 

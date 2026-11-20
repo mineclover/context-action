@@ -3,11 +3,16 @@ document_id: guide--patterns--action--dispatch-patterns
 category: guide
 source_path: en/guide/patterns/action/dispatch-patterns.md
 character_limit: 200
-last_update: '2026-07-24T05:15:02.191Z'
+last_update: '2026-11-20T08:50:10.620Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
 completion_status: completed
 workflow_stage: content_generated
 ---
-Dispatch...
+Dispatch Patterns
+
+Dispatch Patterns Core action dispatching patterns for the Context-Action framework, including execution modes, filtering, and performance optimizatio
+
+Key points:
+• Type...

@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / StoreWriter
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / StoreWriter
 
 # Interface: StoreWriter\<T\>
 
@@ -30,7 +30,7 @@ Type parameter **T**
 
 ##### meta?
 
-Type parameter **StateMutationMeta**
+`StateMutationMeta`
 
 #### Returns
 
@@ -52,7 +52,7 @@ Defined in: [packages/react/src/stores/core/contracts.ts:21](https://github.com/
 
 ##### meta?
 
-Type parameter **StateMutationMeta**
+`StateMutationMeta`
 
 #### Returns
 

@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / EmitArgs
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / EmitArgs
 
 # Type Alias: EmitArgs\<TPayload\>
 
@@ -14,4 +14,4 @@ Defined in: [packages/xstate/src/contracts.ts:55](https://github.com/mineclover/
 
 ### TPayload
 
-Type parameter **TPayload**
+`TPayload`

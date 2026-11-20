@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / useStoreSelector
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / useStoreSelector
 
 # Function: useStoreSelector()
 
 > **useStoreSelector**\<`T`, `R`\>(`store`, `selector`, `equalityFn?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:41](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStoreSelector.ts#L41)
+Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:40](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/hooks/useStoreSelector.ts#L40)
 
 Hook for selective store subscription with performance optimization
 
