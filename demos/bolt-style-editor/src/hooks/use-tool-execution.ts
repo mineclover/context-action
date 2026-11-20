@@ -127,12 +127,25 @@ export function useToolExecution({
       }
       executionInFlightRef.current = true;
       try {
+        let resolvedArguments = call.arguments;
         if (!options.skipDraftFlush && call.name !== 'workspace.writeFile') {
+          const revisionBeforeFlush = workspace.getSnapshot().revision;
           const draftsFlushed = await flushEditorDraftsRef.current?.();
           if (draftsFlushed === false) {
             return {
               ok: false,
               message: 'Pending editor changes could not be committed.',
+            };
+          }
+          const revisionAfterFlush = workspace.getSnapshot().revision;
+          if (
+            revisionAfterFlush !== revisionBeforeFlush &&
+            typeof resolvedArguments?.expectedRevision === 'number' &&
+            resolvedArguments.expectedRevision === revisionBeforeFlush
+          ) {
+            resolvedArguments = {
+              ...resolvedArguments,
+              expectedRevision: revisionAfterFlush,
             };
           }
         }
@@ -148,7 +161,7 @@ export function useToolExecution({
             toToolCallRequest({
               id: `palette-${sessionId}`,
               name: call.name,
-              arguments: call.arguments,
+              arguments: resolvedArguments,
             }),
             {
               context: { source: 'local', mode: 'direct', sessionId },

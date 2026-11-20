@@ -24,6 +24,7 @@ type FileSystemFileHandleLike = {
 type FileSystemWritableFileStreamLike = {
   write(data: string | Blob): Promise<void>;
   close(): Promise<void>;
+  abort?: (reason?: unknown) => Promise<void>;
 };
 
 type DirectoryHandleOptions = { create?: boolean };
@@ -129,8 +130,25 @@ function assetMimeTypeForPath(path: string): string | null {
   return assetMimeTypeByExtension[extension] ?? null;
 }
 
+const TEXT_APPLICATION_MIME_TYPES = new Set([
+  'application/json',
+  'application/javascript',
+  'application/x-javascript',
+  'application/ecmascript',
+  'application/typescript',
+  'application/xml',
+  'image/svg+xml',
+]);
+
 function isLikelyText(file: File): boolean {
-  return file.type.startsWith('text/') || file.type === 'application/json';
+  const normalizedType = file.type.split(';', 1)[0]?.trim().toLowerCase() ?? '';
+  if (!normalizedType) {
+    return languageForPath(file.name) !== null;
+  }
+  return (
+    normalizedType.startsWith('text/') ||
+    TEXT_APPLICATION_MIME_TYPES.has(normalizedType)
+  );
 }
 
 const selectActivePath = selectWorkspaceActivePath;
@@ -722,10 +740,15 @@ export class BrowserWorkspaceFileSystemAdapter
       throw new Error('The selected browser does not support folder writes.');
     }
     const writable = await fileHandle.createWritable();
-    await writable.write(
-      file.kind === 'asset' && file.blob ? file.blob : file.source
-    );
-    await writable.close();
+    try {
+      await writable.write(
+        file.kind === 'asset' && file.blob ? file.blob : file.source
+      );
+      await writable.close();
+    } catch (error) {
+      await writable.abort?.(error).catch(() => {});
+      throw error;
+    }
   }
 
   private async removeFile(
@@ -834,6 +857,12 @@ export class BrowserWorkspaceFileSystemAdapter
   }
 
   private notify(): void {
-    for (const listener of this.listeners) listener();
+    for (const listener of [...this.listeners]) {
+      try {
+        listener();
+      } catch {
+        // Isolate subscriber failures so remaining observers still receive notifications.
+      }
+    }
   }
 }

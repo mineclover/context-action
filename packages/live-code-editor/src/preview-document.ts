@@ -474,6 +474,14 @@ function inlineCssImports(
   return rewriteCssAssetUrls(withImports, cssPath, assetUrls);
 }
 
+function escapeStyleTagContent(source: string): string {
+  return source.replace(/<\/(style)/gi, '<\\/$1');
+}
+
+function escapeScriptTagContent(source: string): string {
+  return source.replace(/<\/(script)/gi, '<\\/$1');
+}
+
 function inlineStylesheets(
   html: string,
   htmlPath: string,
@@ -492,7 +500,7 @@ function inlineStylesheets(
 
     const css = findReferencedFile(files, htmlPath, href, 'css');
     return css
-      ? `<style data-workspace-source="${css.path}">${inlineCssImports(css.source, css.path, files, assetUrls, new Set([css.path]), { count: 0 })}</style>`
+      ? `<style data-workspace-source="${css.path}">${escapeStyleTagContent(inlineCssImports(css.source, css.path, files, assetUrls, new Set([css.path]), { count: 0 }))}</style>`
       : '';
   });
 }
@@ -502,6 +510,7 @@ function inlineScripts(
   htmlPath: string,
   files: readonly WorkspaceFile[]
 ): string {
+  let inlineModuleIndex = 0;
   return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (tag) => {
     const src = attributeValue(tag, 'src');
     const isModule =
@@ -514,7 +523,7 @@ function inlineScripts(
         inlineSource,
         htmlPath,
         files,
-        `__context-action-inline-module:${htmlPath}`
+        `__context-action-inline-module:${htmlPath}#${inlineModuleIndex++}`
       );
     }
 
@@ -533,7 +542,7 @@ function inlineScripts(
         files
       );
     }
-    return `<script${attributes}>${javascript.source}</script>`;
+    return `<script${attributes}>${escapeScriptTagContent(javascript.source)}</script>`;
   });
 }
 

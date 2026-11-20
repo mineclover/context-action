@@ -32,11 +32,12 @@ function downloadTextFile(
 async function writeClipboardText(value: string): Promise<void> {
   const clipboard = navigator.clipboard;
   if (clipboard?.writeText) {
+    let timeoutId: number | undefined;
     try {
       await Promise.race([
         clipboard.writeText(value),
         new Promise<never>((_, reject) => {
-          window.setTimeout(
+          timeoutId = window.setTimeout(
             () => reject(new Error('Clipboard access timed out.')),
             800
           );
@@ -45,6 +46,8 @@ async function writeClipboardText(value: string): Promise<void> {
       return;
     } catch {
       // Fall through to the synchronous browser copy path.
+    } finally {
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
     }
   }
 
@@ -104,9 +107,12 @@ export function useStudioExportActions({
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [previewExporting, setPreviewExporting] = useState(false);
   const copyFeedbackTimerRef = useRef<number | null>(null);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       if (copyFeedbackTimerRef.current !== null) {
         window.clearTimeout(copyFeedbackTimerRef.current);
       }
@@ -114,13 +120,16 @@ export function useStudioExportActions({
   }, []);
 
   const showCopyFeedback = (message: string) => {
+    if (!isMountedRef.current) return;
     if (copyFeedbackTimerRef.current !== null) {
       window.clearTimeout(copyFeedbackTimerRef.current);
     }
     setCopyFeedback(message);
     copyFeedbackTimerRef.current = window.setTimeout(() => {
       copyFeedbackTimerRef.current = null;
-      setCopyFeedback(null);
+      if (isMountedRef.current) {
+        setCopyFeedback(null);
+      }
     }, 1800);
   };
 

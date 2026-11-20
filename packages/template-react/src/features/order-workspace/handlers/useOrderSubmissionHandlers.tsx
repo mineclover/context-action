@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useOrderActionHandler, useOrderStore } from '../contexts/OrderContexts';
 import { validateOrderDraft } from '../business/orderValidation';
 import { transitionOrderState } from '../business/orderStateMachine';
@@ -8,14 +8,46 @@ export function useOrderSubmissionHandlers() {
   const validationStore = useOrderStore('validationIssues');
   const submissionStore = useOrderStore('submission');
   const activityStore = useOrderStore('activityLog');
+  const submissionEpochRef = useRef(0);
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelPendingSubmission = useCallback(() => {
+    submissionEpochRef.current += 1;
+    if (timeoutIdRef.current !== null) {
+      clearTimeout(timeoutIdRef.current);
+      timeoutIdRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      cancelPendingSubmission();
+    };
+  }, [cancelPendingSubmission]);
 
   useOrderActionHandler(
     'submitOrder',
     useCallback(async () => {
+      const currentSubmission = submissionStore.getValue();
+      if (
+        currentSubmission.phase === 'validating' ||
+        currentSubmission.phase === 'submitting' ||
+        currentSubmission.phase === 'success'
+      ) {
+        return;
+      }
+
+      const epoch = submissionEpochRef.current + 1;
+      submissionEpochRef.current = epoch;
+      if (timeoutIdRef.current !== null) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
+
       const draft = draftStore.getValue();
 
       // 1. 상태 머신 전이: validating
-      let state = transitionOrderState(submissionStore.getValue(), { type: 'submit_requested' });
+      let state = transitionOrderState(currentSubmission, { type: 'submit_requested' });
       submissionStore.setValue(state);
 
       // 2. 순수 검증 함수 호출
@@ -41,11 +73,19 @@ export function useOrderSubmissionHandlers() {
       activityStore.setValue([...logs, `[서버 전송] 주문 요청을 처리 중입니다... (수량: ${draft.quantity})`]);
 
       // 4. 모의 서버 비동기 지연 (600ms)
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      const completed = await new Promise<boolean>((resolve) => {
+        timeoutIdRef.current = setTimeout(() => {
+          timeoutIdRef.current = null;
+          resolve(submissionEpochRef.current === epoch);
+        }, 600);
+      });
+      if (!completed || submissionEpochRef.current !== epoch) {
+        return;
+      }
 
       // 5. 성공 처리
       const generatedOrderId = `ORD-${Date.now().toString(36).toUpperCase()}`;
-      state = transitionOrderState(state, {
+      state = transitionOrderState(submissionStore.getValue(), {
         type: 'server_succeeded',
         orderId: generatedOrderId,
       });
@@ -59,9 +99,21 @@ export function useOrderSubmissionHandlers() {
   useOrderActionHandler(
     'retrySubmission',
     useCallback(() => {
+      cancelPendingSubmission();
       const state = transitionOrderState(submissionStore.getValue(), { type: 'reset' });
       submissionStore.setValue(state);
       validationStore.setValue([]);
-    }, [submissionStore, validationStore])
+    }, [cancelPendingSubmission, submissionStore, validationStore])
+  );
+
+  useOrderActionHandler(
+    'resetDraft',
+    useCallback(() => {
+      cancelPendingSubmission();
+      const current = submissionStore.getValue();
+      if (current.phase !== 'idle') {
+        submissionStore.setValue(transitionOrderState(current, { type: 'reset' }));
+      }
+    }, [cancelPendingSubmission, submissionStore])
   );
 }

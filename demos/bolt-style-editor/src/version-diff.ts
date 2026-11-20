@@ -43,7 +43,7 @@ export type WorkspaceVersion = {
 const MAX_DIFF_MATRIX_CELLS = 250_000;
 
 function splitSource(source: string): string[] {
-  return source.split('\n');
+  return source.length === 0 ? [] : source.split('\n');
 }
 
 function lineCount(source: string): number {

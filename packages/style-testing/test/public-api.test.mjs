@@ -6,6 +6,8 @@ import test from 'node:test';
 import { transformSync } from '@babel/core';
 import {
   DiffEngine,
+  Reporter,
+  resolveTailwindClasses,
   StyleExtractor,
   styleTestPlugin,
 } from '../dist/index.js';
@@ -65,4 +67,34 @@ test('the extractor and diff engine agree on Tailwind-derived styles', async () 
   } finally {
     await rm(directory, { force: true, recursive: true });
   }
+});
+
+test('reports shorthand mismatches, preserves transparent alpha colors, avoids NaN% and NaNrem', () => {
+  const engine = new DiffEngine({ tolerance: 0 });
+  const shorthandMismatch = engine.compare(
+    { padding: '2rem', backgroundColor: '#FFF', color: 'rgba(0, 0, 0, 0)' },
+    {
+      paddingTop: '16px',
+      paddingRight: '16px',
+      paddingBottom: '16px',
+      paddingLeft: '16px',
+      backgroundColor: 'rgb(255, 255, 255)',
+      color: 'rgb(0, 0, 0)',
+    },
+    'box:1'
+  );
+  assert.equal(shorthandMismatch.passed, false);
+  assert.deepEqual(
+    shorthandMismatch.differences.map((d) => d.property),
+    ['padding', 'color']
+  );
+
+  const md = new Reporter().toMarkdown([]);
+  assert.equal(md.includes('Pass Rate: 0.0%'), true);
+  assert.equal(md.includes('NaN'), false);
+
+  const resolved = resolveTailwindClasses('p-px p-[12px] p-auto m-foo');
+  assert.equal(resolved.padding, '12px');
+  assert.equal(resolved.margin, undefined);
+  assert.equal(JSON.stringify(resolved).includes('NaN'), false);
 });

@@ -5,6 +5,7 @@ export const OPENROUTER_API_KEY_STORAGE_KEY =
 const subscribers = new Set<() => void>();
 let storageListenerAttached = false;
 let sessionFallbackKey = '';
+let storageWriteFailed = false;
 
 function getLocalStorage(): Storage | null {
   if (typeof window === 'undefined') return null;
@@ -16,19 +17,36 @@ function getLocalStorage(): Storage | null {
 }
 
 function notifySubscribers(): void {
-  for (const subscriber of subscribers) subscriber();
+  for (const subscriber of [...subscribers]) {
+    try {
+      subscriber();
+    } catch {
+      // Isolate subscriber errors so sibling subscribers still update.
+    }
+  }
 }
 
-function ensureStorageListener(): void {
+function handleStorageEvent(event: StorageEvent): void {
+  const currentStorage = getLocalStorage();
+  if (event.storageArea && currentStorage && event.storageArea !== currentStorage) {
+    return;
+  }
+  if (event.key === OPENROUTER_API_KEY_STORAGE_KEY || event.key === null) {
+    storageWriteFailed = false;
+    notifySubscribers();
+  }
+}
+
+function attachStorageListener(): void {
   if (storageListenerAttached || typeof window === 'undefined') return;
-  const storage = getLocalStorage();
-  window.addEventListener('storage', (event) => {
-    if (event.storageArea && event.storageArea !== storage) return;
-    if (event.key === OPENROUTER_API_KEY_STORAGE_KEY || event.key === null) {
-      notifySubscribers();
-    }
-  });
+  window.addEventListener?.('storage', handleStorageEvent);
   storageListenerAttached = true;
+}
+
+function detachStorageListener(): void {
+  if (!storageListenerAttached || typeof window === 'undefined') return;
+  window.removeEventListener?.('storage', handleStorageEvent);
+  storageListenerAttached = false;
 }
 
 /** Subscribe to same-origin changes from this tab or another browser tab. */
@@ -36,14 +54,22 @@ export function subscribeStoredOpenRouterApiKey(
   listener: () => void
 ): () => void {
   if (typeof window === 'undefined') return () => {};
-  ensureStorageListener();
   subscribers.add(listener);
-  return () => subscribers.delete(listener);
+  if (subscribers.size === 1) {
+    attachStorageListener();
+  }
+  return () => {
+    subscribers.delete(listener);
+    if (subscribers.size === 0) {
+      detachStorageListener();
+    }
+  };
 }
 
 /** Read the user-owned key without ever consulting a server-side secret. */
 export function getStoredOpenRouterApiKey(): string {
   if (typeof window === 'undefined') return '';
+  if (storageWriteFailed) return sessionFallbackKey;
   const storage = getLocalStorage();
   if (!storage) return sessionFallbackKey;
   try {
@@ -60,14 +86,20 @@ export function saveOpenRouterApiKey(apiKey: string): string {
 
   sessionFallbackKey = normalizedKey;
   const storage = getLocalStorage();
-  try {
-    if (normalizedKey) {
-      storage?.setItem(OPENROUTER_API_KEY_STORAGE_KEY, normalizedKey);
-    } else {
-      storage?.removeItem(OPENROUTER_API_KEY_STORAGE_KEY);
+  if (!storage) {
+    storageWriteFailed = true;
+  } else {
+    try {
+      if (normalizedKey) {
+        storage.setItem(OPENROUTER_API_KEY_STORAGE_KEY, normalizedKey);
+      } else {
+        storage.removeItem(OPENROUTER_API_KEY_STORAGE_KEY);
+      }
+      storageWriteFailed = false;
+    } catch {
+      // Keep the current tab usable when browser storage is blocked or full.
+      storageWriteFailed = true;
     }
-  } catch {
-    // Keep the current tab usable when browser storage is blocked or full.
   }
 
   notifySubscribers();
@@ -78,10 +110,17 @@ export function saveOpenRouterApiKey(apiKey: string): string {
 export function clearStoredOpenRouterApiKey(): void {
   sessionFallbackKey = '';
   if (typeof window === 'undefined') return;
-  try {
-    getLocalStorage()?.removeItem(OPENROUTER_API_KEY_STORAGE_KEY);
-  } catch {
-    // The in-memory fallback is already cleared.
+  const storage = getLocalStorage();
+  if (!storage) {
+    storageWriteFailed = true;
+  } else {
+    try {
+      storage.removeItem(OPENROUTER_API_KEY_STORAGE_KEY);
+      storageWriteFailed = false;
+    } catch {
+      // The in-memory fallback is already cleared.
+      storageWriteFailed = true;
+    }
   }
   notifySubscribers();
 }

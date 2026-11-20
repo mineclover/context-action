@@ -75,3 +75,39 @@ test('accepts a same-origin storage event from another tab', () => {
   assert.equal(notificationCount, 1);
   unsubscribe();
 });
+
+test('falls back to session key when storage writes throw and detaches listener when empty', () => {
+  const originalRemove = globalThis.window.removeEventListener;
+  let removed = 0;
+  globalThis.window.removeEventListener = (type, listener) => {
+    removed += 1;
+    if (listeners.get(type) === listener) listeners.delete(type);
+  };
+  const origSetItem = storage.setItem;
+  try {
+    storage.clear();
+    let called = 0;
+    const unsub = subscribeStoredOpenRouterApiKey(() => {
+      called += 1;
+    });
+    const unsubThrowing = subscribeStoredOpenRouterApiKey(() => {
+      throw new Error('broken listener');
+    });
+
+    storage.setItem = () => {
+      throw new Error('QuotaExceededError');
+    };
+    saveOpenRouterApiKey('sk-or-fallback');
+    assert.equal(getStoredOpenRouterApiKey(), 'sk-or-fallback');
+    assert.equal(called, 1);
+
+    unsub();
+    unsubThrowing();
+    assert.equal(removed, 1);
+  } finally {
+    storage.setItem = origSetItem;
+    clearStoredOpenRouterApiKey();
+    if (originalRemove === undefined) delete globalThis.window.removeEventListener;
+    else globalThis.window.removeEventListener = originalRemove;
+  }
+});

@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   assertWorkspaceTextSourceLength,
   BrowserWorkspaceFileSystemAdapter,
+  buildPreviewDocument,
   createWorkspaceSavePlan,
   createWorkspaceSaveUnknownDetails,
   hashWorkspaceSource,
@@ -469,4 +470,97 @@ test('persists a destination scope across folder restore and clears it on discon
   await restoredAdapter.disconnectFolder();
   assert.equal(restoredAdapter.folderScopeId, undefined);
   assert.equal(persistedScopeId, undefined);
+});
+
+test('accepts application/javascript files, aborts failed writes, normalizes deleted path cleanup, and isolates preview tags', async () => {
+  const adapter = new BrowserWorkspaceFileSystemAdapter();
+  const jsFile = new File(['export const value = 1;'], 'app.js', {
+    type: 'application/javascript',
+  });
+  const imported = await adapter.importFileList([jsFile]);
+  assert.equal(imported.skipped.length, 0);
+  assert.equal(imported.files[0]?.path, 'app.js');
+
+  let aborted = false;
+  const dirHandle = {
+    kind: 'directory',
+    name: 'root',
+    async *entries() {
+      yield [
+        'app.js',
+        {
+          kind: 'file',
+          name: 'app.js',
+          async getFile() {
+            return jsFile;
+          },
+        },
+      ];
+    },
+    async getDirectoryHandle() {
+      return dirHandle;
+    },
+    async getFileHandle() {
+      return {
+        kind: 'file',
+        name: 'app.js',
+        async getFile() {
+          return jsFile;
+        },
+        async createWritable() {
+          return {
+            async write() {
+              throw new Error('disk full');
+            },
+            async close() {},
+            async abort() {
+              aborted = true;
+            },
+          };
+        },
+      };
+    },
+  };
+  await adapter.importDirectoryHandle(dirHandle);
+  await assert.rejects(
+    adapter.writeFiles([
+      {
+        path: 'app.js',
+        language: 'javascript',
+        source: 'export const next = 2;',
+      },
+    ]),
+    /disk full/
+  );
+  assert.equal(aborted, true);
+
+  const repository = createMemoryRepository();
+  const manager = new WorkspaceDocumentManager({
+    repository,
+    rootName: 'norm-test',
+    seedFiles: [
+      { path: 'index.html', language: 'html', source: '<h1>Hi</h1>' },
+      { path: 'extra.js', language: 'javascript', source: 'console.log(1);' },
+    ],
+  });
+  await manager.ready;
+  manager.deleteFile('extra.js');
+  const rev = manager.getSnapshot().revision;
+  assert.equal(await manager.markDeletedPathSavedIfRevision('./extra.js', rev), true);
+  assert.deepEqual(manager.getDeletedPaths(), []);
+
+  const previewHtml = buildPreviewDocument([
+    {
+      path: 'index.html',
+      language: 'html',
+      source:
+        '<link rel="stylesheet" href="app.css"><script src="classic.js"></script><script type="module">console.log("a")</script><script type="module">console.log("b")</script>',
+    },
+    { path: 'app.css', language: 'css', source: 'body::after { content: "</style><script>alert(1)</script>"; }' },
+    { path: 'classic.js', language: 'javascript', source: 'const x = "</script>oops";' },
+  ]);
+  assert.equal(previewHtml.includes('<\\/style>'), true);
+  assert.equal(previewHtml.includes('<\\/script>oops'), true);
+  assert.equal(previewHtml.includes('inline-module:index.html#0'), true);
+  assert.equal(previewHtml.includes('inline-module:index.html#1'), true);
 });

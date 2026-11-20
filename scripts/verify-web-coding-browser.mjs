@@ -61,6 +61,18 @@ async function waitForNewLocatorMatch(locator, previousCount, timeoutMs = 30_000
   );
 }
 
+async function waitForEnabledTab(page, tabText) {
+  await page.waitForFunction(
+    (expectedTab) =>
+      Array.from(document.querySelectorAll('button[role="tab"]')).some(
+        (button) =>
+          button.textContent?.includes(expectedTab) &&
+          !(button instanceof HTMLButtonElement && button.disabled)
+      ),
+    tabText
+  );
+}
+
 async function startServer() {
   const port = await reservePort();
   const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
@@ -650,6 +662,7 @@ async function runBrowserProof(url) {
     }
     await page.getByRole('tab', { name: /index\.html/ }).click();
     await page.getByLabel('Edit index.html').waitFor();
+    await waitForEnabledTab(page, 'index.html');
     await page.getByLabel('Edit index.html').focus();
     await page.keyboard.press('Control+P');
     await quickOpenDialog.waitFor();
@@ -659,14 +672,7 @@ async function runBrowserProof(url) {
     await editorTabs.filter({ hasText: 'index.html' }).focus();
     await page.keyboard.press('ArrowRight');
     await page.getByLabel('Edit styles.css').waitFor();
-    await page.waitForFunction(
-      () =>
-        Array.from(document.querySelectorAll('button[role="tab"]')).some(
-          (button) =>
-            button.textContent?.includes('styles.css') &&
-            !(button instanceof HTMLButtonElement && button.disabled)
-        )
-    );
+    await waitForEnabledTab(page, 'styles.css');
     if (
       (await page
         .getByRole('tab', { name: /styles\.css/ })
@@ -677,14 +683,7 @@ async function runBrowserProof(url) {
     await page.getByRole('tab', { name: /styles\.css/ }).focus();
     await page.keyboard.press('End');
     await page.getByLabel('Edit README.md').waitFor();
-    await page.waitForFunction(
-      () =>
-        Array.from(document.querySelectorAll('button[role="tab"]')).some(
-          (button) =>
-            button.textContent?.includes('README.md') &&
-            !(button instanceof HTMLButtonElement && button.disabled)
-        )
-    );
+    await waitForEnabledTab(page, 'README.md');
     await page.getByRole('tab', { name: /README\.md/ }).focus();
     await page.keyboard.press('Home');
     await page.getByLabel('Edit index.html').waitFor();
@@ -986,6 +985,7 @@ async function runBrowserProof(url) {
 
     await page.locator('button[title="styles.css"]').click();
     await page.getByLabel('Edit styles.css').waitFor();
+    await waitForEnabledTab(page, 'styles.css');
     if (
       (await page
         .getByRole('tab', { name: /styles\.css/ })
@@ -1133,6 +1133,7 @@ async function runBrowserProof(url) {
       .getByRole('button', { name: 'tab-18.md', exact: true })
       .click();
     await page.getByLabel('Edit tab-18.md').waitFor();
+    await waitForEnabledTab(page, 'tab-18.md');
     const activeTabBounds = await page
       .getByRole('tab', { name: 'tab-18.md', exact: true })
       .evaluate((element) => {

@@ -178,7 +178,13 @@ export function createToolApprovalQueue(
   };
 
   const notify = (): void => {
-    for (const listener of listeners) listener();
+    for (const listener of [...listeners]) {
+      try {
+        listener();
+      } catch {
+        // Keep other approval subscribers notified and promise resolution intact.
+      }
+    }
   };
 
   const resolve = (id: string, decision: ToolApprovalDecision): void => {
@@ -188,8 +194,8 @@ export function createToolApprovalQueue(
     pending = pending.filter(
       (approval) => approval !== pendingApproval.approval
     );
-    notify();
     pendingApproval.settle(decision);
+    notify();
   };
 
   const request = (

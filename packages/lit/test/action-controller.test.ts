@@ -322,5 +322,41 @@ describe('ActionController', () => {
       await expect(dispatchPromise).rejects.toThrow();
       expect(controller.isPending).toBe(false);
     });
+
+    it('cleans up fallback merged signal listeners on normal completion and detaches on dispose()', async () => {
+      const originalAny = AbortSignal.any;
+      Object.defineProperty(AbortSignal, 'any', { configurable: true, value: undefined });
+
+      try {
+        const host = new MockReactiveControllerHost();
+        const register = new ActionRegister<TestActions, TestResults>();
+        const controller = new ActionController(host, register);
+        const userSignal = new AbortController().signal;
+        const removeEventListener = vi.spyOn(userSignal, 'removeEventListener');
+
+        register.register('voidAction', () => {});
+
+        await controller.dispatch('voidAction', undefined, { signal: userSignal });
+        expect(removeEventListener).toHaveBeenCalledWith('abort', expect.any(Function));
+
+        register.register('slowAsync', async (_payload, pipelineCtrl) => {
+          return new Promise<void>((_resolve, reject) => {
+            pipelineCtrl.signal?.addEventListener('abort', () => {
+              reject(new Error('Disposed'));
+            });
+          });
+        });
+
+        const pendingDispatch = controller.dispatch('slowAsync', { delayMs: 50 });
+        expect(host.controllers).toContain(controller);
+        controller.dispose();
+
+        expect(host.controllers).not.toContain(controller);
+        await expect(pendingDispatch).rejects.toThrow();
+        expect(controller.isPending).toBe(false);
+      } finally {
+        Object.defineProperty(AbortSignal, 'any', { configurable: true, value: originalAny });
+      }
+    });
   });
 });

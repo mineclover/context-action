@@ -14,7 +14,6 @@ export function useOrderData() {
 
   const isSubmitting = submission.phase === 'validating' || submission.phase === 'submitting';
   const isSuccess = submission.phase === 'success';
-  const hasErrors = validationIssues.length > 0;
 
   return {
     draft,
@@ -23,6 +22,5 @@ export function useOrderData() {
     activityLog,
     isSubmitting,
     isSuccess,
-    hasErrors,
   };
 }

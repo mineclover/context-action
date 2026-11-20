@@ -258,7 +258,7 @@ export async function createWebMCPToolScope<TDocument = WebMCPDocument>(
 
   return {
     supported: true,
-    activeTools: registeredNames,
+    activeTools: controller.signal.aborted ? [] : registeredNames,
     dispose,
   };
 }

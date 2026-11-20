@@ -34,6 +34,7 @@ const DATA_POLICY_STORAGE_KEY = 'context-action.openrouter.data-policy';
 export const OPENROUTER_REQUEST_TIMEOUT_MS = 20_000;
 const settingsSubscribers = new Set<() => void>();
 let storageListenerAttached = false;
+let suppressApiKeySyncNotification = false;
 const sessionFallback = new Map<string, string>();
 
 function getLocalStorage(): Storage | null {
@@ -46,23 +47,38 @@ function getLocalStorage(): Storage | null {
 }
 
 function notifySettingsSubscribers(): void {
-  for (const subscriber of settingsSubscribers) subscriber();
+  for (const subscriber of [...settingsSubscribers]) {
+    try {
+      subscriber();
+    } catch {
+      // Isolate failing settings subscribers.
+    }
+  }
 }
 
-function ensureStorageListener(): void {
-  if (storageListenerAttached || typeof window === 'undefined') return;
+function handleSettingsStorageEvent(event: StorageEvent): void {
   const storage = getLocalStorage();
-  window.addEventListener('storage', (event) => {
-    if (event.storageArea && event.storageArea !== storage) return;
-    if (
-      event.key === MODEL_STORAGE_KEY ||
-      event.key === ENDPOINT_STORAGE_KEY ||
-      event.key === DATA_POLICY_STORAGE_KEY
-    ) {
-      notifySettingsSubscribers();
-    }
-  });
+  if (event.storageArea && storage && event.storageArea !== storage) return;
+  if (
+    event.key === null ||
+    event.key === MODEL_STORAGE_KEY ||
+    event.key === ENDPOINT_STORAGE_KEY ||
+    event.key === DATA_POLICY_STORAGE_KEY
+  ) {
+    notifySettingsSubscribers();
+  }
+}
+
+function attachStorageListener(): void {
+  if (storageListenerAttached || typeof window === 'undefined') return;
+  window.addEventListener?.('storage', handleSettingsStorageEvent);
   storageListenerAttached = true;
+}
+
+function detachStorageListener(): void {
+  if (!storageListenerAttached || typeof window === 'undefined') return;
+  window.removeEventListener?.('storage', handleSettingsStorageEvent);
+  storageListenerAttached = false;
 }
 
 export type OpenRouterSettings = {
@@ -208,11 +224,20 @@ export function readOpenRouterSettings(): OpenRouterSettings {
 /** Subscribe to same-origin provider setting changes from this or another tab. */
 export function subscribeOpenRouterSettings(listener: () => void): () => void {
   if (typeof window === 'undefined') return () => {};
-  ensureStorageListener();
   settingsSubscribers.add(listener);
-  const unsubscribeApiKey = subscribeStoredOpenRouterApiKey(listener);
+  if (settingsSubscribers.size === 1) {
+    attachStorageListener();
+  }
+  const unsubscribeApiKey = subscribeStoredOpenRouterApiKey(() => {
+    if (!suppressApiKeySyncNotification) {
+      listener();
+    }
+  });
   return () => {
     settingsSubscribers.delete(listener);
+    if (settingsSubscribers.size === 0) {
+      detachStorageListener();
+    }
     unsubscribeApiKey();
   };
 }
@@ -231,7 +256,13 @@ export function saveOpenRouterSettings(
     writeStorage(MODEL_STORAGE_KEY, next.model);
     writeStorage(ENDPOINT_STORAGE_KEY, next.endpoint);
     writeStorage(DATA_POLICY_STORAGE_KEY, next.dataPolicy);
-    saveOpenRouterApiKey(next.apiKey);
+    suppressApiKeySyncNotification = true;
+    try {
+      saveOpenRouterApiKey(next.apiKey);
+    } finally {
+      suppressApiKeySyncNotification = false;
+    }
+    notifySettingsSubscribers();
   }
 
   return next;

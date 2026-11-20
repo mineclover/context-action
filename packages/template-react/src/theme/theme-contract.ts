@@ -2,7 +2,6 @@
  * Astryx Theme Contract & Theme Definitions
  */
 
-import { brandPrimitives } from './primitives';
 import { brandSemanticsLight, brandSemanticsDark, type CompanySemantics } from './semantics';
 import { toAstryxTokens } from './astryx-mapping';
 
@@ -24,5 +23,3 @@ export function createBrandTheme(name: string, mode: ThemeMode): BrandTheme {
     tokens: toAstryxTokens(semantics),
   };
 }
-
-export const defaultTheme = createBrandTheme('astryx-brand-default', 'light');

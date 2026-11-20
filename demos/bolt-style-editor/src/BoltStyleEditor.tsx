@@ -279,20 +279,19 @@ function EditorWorkbench({
       snapshot.files.some(
         (file) => file.path !== activeFile.path && file.language === 'html'
       ));
-  const assetUrls = useMemo(() => {
+  const [assetUrls, setAssetUrls] = useState<Record<string, string>>({});
+  useEffect(() => {
     const urls: Record<string, string> = {};
     for (const file of snapshot.files) {
       if (file.kind === 'asset' && file.blob) {
         urls[file.path] = URL.createObjectURL(file.blob);
       }
     }
-    return urls;
-  }, [snapshot.files]);
-  useEffect(() => {
+    setAssetUrls(urls);
     return () => {
-      for (const url of Object.values(assetUrls)) URL.revokeObjectURL(url);
+      for (const url of Object.values(urls)) URL.revokeObjectURL(url);
     };
-  }, [assetUrls]);
+  }, [snapshot.files]);
   const previewDocument = useMemo(
     () => buildPreviewDocument(snapshot.files, assetUrls, snapshot.revision),
     [assetUrls, snapshot.files, snapshot.revision]

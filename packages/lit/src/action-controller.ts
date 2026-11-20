@@ -32,12 +32,18 @@ export type ActionControllerOptions = Record<never, never>;
  * @param userSignal - Optional abort signal passed via dispatch options.
  * @returns An AbortSignal that aborts if either input signal aborts.
  */
-function mergeSignals(controllerSignal: AbortSignal, userSignal?: AbortSignal): AbortSignal {
+function mergeSignals(
+  controllerSignal: AbortSignal,
+  userSignal?: AbortSignal
+): { signal: AbortSignal; cleanup: () => void } {
   if (!userSignal) {
-    return controllerSignal;
+    return { signal: controllerSignal, cleanup: () => {} };
   }
   if (typeof AbortSignal.any === 'function') {
-    return AbortSignal.any([controllerSignal, userSignal]);
+    return {
+      signal: AbortSignal.any([controllerSignal, userSignal]),
+      cleanup: () => {},
+    };
   }
 
   const merged = new AbortController();
@@ -55,12 +61,12 @@ function mergeSignals(controllerSignal: AbortSignal, userSignal?: AbortSignal): 
 
   if (controllerSignal.aborted || userSignal.aborted) {
     onAbort();
-    return merged.signal;
+    return { signal: merged.signal, cleanup };
   }
 
   controllerSignal.addEventListener('abort', onAbort);
   userSignal.addEventListener('abort', onAbort);
-  return merged.signal;
+  return { signal: merged.signal, cleanup };
 }
 
 /**
@@ -184,6 +190,19 @@ export class ActionController<
   }
 
   /**
+   * Disposes the controller, aborting any in-flight dispatches and unregistering from the host.
+   */
+  dispose(): void {
+    if (!this.#abortController.signal.aborted) {
+      this.#abortController.abort(new DOMException('Controller disposed', 'AbortError'));
+    }
+    this.#activeCount = 0;
+    if (typeof this.#host.removeController === 'function') {
+      this.#host.removeController(this);
+    }
+  }
+
+  /**
    * Manually aborts all currently active in-flight dispatches and resets the controller.
    *
    * @param reason - Optional cancellation reason.
@@ -208,7 +227,10 @@ export class ActionController<
     ...args: DispatchArgs<A[K]>
   ): Promise<void> {
     const [payload, options] = args as [A[K] | undefined, DispatchOptions | undefined];
-    const mergedSignal = mergeSignals(this.#abortController.signal, options?.signal);
+    const { signal: mergedSignal, cleanup } = mergeSignals(
+      this.#abortController.signal,
+      options?.signal
+    );
     const mergedOptions: DispatchOptions = {
       ...options,
       signal: mergedSignal,
@@ -227,6 +249,7 @@ export class ActionController<
         );
       }
     } finally {
+      cleanup();
       this.#decrementPending();
     }
   }
@@ -254,7 +277,10 @@ export class ActionController<
     ...args: DispatchArgs<A[K]>
   ): Promise<ExecutionResult<R>> {
     const [payload, options] = args as [A[K] | undefined, DispatchOptions | undefined];
-    const mergedSignal = mergeSignals(this.#abortController.signal, options?.signal);
+    const { signal: mergedSignal, cleanup } = mergeSignals(
+      this.#abortController.signal,
+      options?.signal
+    );
     const mergedOptions: DispatchOptions = {
       ...options,
       signal: mergedSignal,
@@ -274,6 +300,7 @@ export class ActionController<
       }
       return result;
     } finally {
+      cleanup();
       this.#decrementPending();
     }
   }

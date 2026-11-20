@@ -357,10 +357,13 @@ export class LitCartBadge extends LitElement {
 
     // Sync direct action controller when register property changes
     if (changedProperties.has('register')) {
+      if (this.#directActionController) {
+        this.#directActionController.dispose();
+        this.#directActionController = null;
+      }
+
       if (this.register) {
         this.#directActionController = new ActionController(this, this.register);
-      } else {
-        this.#directActionController = null;
       }
     }
     // Track count and pulse animation
@@ -382,12 +385,16 @@ export class LitCartBadge extends LitElement {
       return this.#directStoreController.value;
     }
     if (this.store) {
-      const raw =
-        typeof this.store.getValue === 'function'
-          ? this.store.getValue()
-          : typeof this.store.getSnapshot === 'function'
-          ? this.store.getSnapshot()
-          : undefined;
+      let raw: unknown;
+      if (typeof this.store.getValue === 'function') {
+        raw = this.store.getValue();
+      } else if (typeof this.store.getSnapshot === 'function') {
+        const snap = this.store.getSnapshot();
+        raw =
+          snap !== null && typeof snap === 'object' && 'value' in snap
+            ? (snap as { value: unknown }).value
+            : snap;
+      }
       return this.selector ? this.selector(raw) : defaultCartCountSelector(raw);
     }
     if (

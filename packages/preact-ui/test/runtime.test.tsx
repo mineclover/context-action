@@ -97,6 +97,20 @@ describe('owned runtime roots', () => {
     expect(() => mountTemplate(host, template, view, 'x')).toThrow('exactly one');
     expect(host.childNodes.length).toBe(0);
   });
+  it('removes cloned template shell if update fails and destroys the mount', () => {
+    const host = root();
+    const template = document.createElement('template');
+    template.innerHTML = '<section data-shell><div data-preact-root></div></section>';
+    function FailingUpdateView({ input }: { input: boolean }) {
+      if (input) throw new Error('update render boom');
+      return <span>ok</span>;
+    }
+    const instance = mountTemplate<boolean>(host, template, FailingUpdateView, false);
+    expect(host.querySelector('[data-shell]')).not.toBeNull();
+    expect(() => instance.update(true)).toThrow('update render boom');
+    expect(instance.destroyed).toBe(true);
+    expect(host.querySelector('[data-shell]')).toBeNull();
+  });
   it('requires a dispatch Provider and preserves the borrowed dispatcher', () => {
     const context = createDispatchContext<{ increment: void }>('Counter');
     let observed: unknown;

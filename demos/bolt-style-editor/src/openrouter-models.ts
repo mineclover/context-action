@@ -29,8 +29,11 @@ function isModel(value: unknown): value is OpenRouterModel {
 
 export function isFreeOpenRouterModel(model: OpenRouterModel): boolean {
   if (model.id.endsWith(':free')) return true;
-  const prompt = Number(model.pricing?.prompt);
-  const completion = Number(model.pricing?.completion);
+  const promptRaw = model.pricing?.prompt?.trim() ?? '';
+  const completionRaw = model.pricing?.completion?.trim() ?? '';
+  if (!promptRaw || !completionRaw) return false;
+  const prompt = Number(promptRaw);
+  const completion = Number(completionRaw);
   return (
     Number.isFinite(prompt) &&
     Number.isFinite(completion) &&

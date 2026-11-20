@@ -174,4 +174,58 @@ describe('IndexedDB durable operation backend', () => {
       updatedAt: 1,
     })).toThrow('record key must match');
   });
+
+  it('recovers from transient open failures and closes cleanly after a rejected open', async () => {
+    const workingFactory = createFakeIndexedDbFactory();
+    let failOpen = true;
+    const flakyFactory: IDBFactory = {
+      open(name: string, version?: number) {
+        if (failOpen) {
+          const request = {} as IDBOpenDBRequest;
+          queueMicrotask(() => {
+            Object.defineProperty(request, 'error', {
+              value: new Error('transient open failure'),
+              configurable: true,
+            });
+            request.onerror?.(new Event('error'));
+          });
+          return request;
+        }
+        return workingFactory.open(name, version);
+      },
+      deleteDatabase:
+        typeof workingFactory.deleteDatabase === 'function'
+          ? workingFactory.deleteDatabase.bind(workingFactory)
+          : (() => ({}) as IDBOpenDBRequest),
+      cmp:
+        typeof workingFactory.cmp === 'function'
+          ? workingFactory.cmp.bind(workingFactory)
+          : (() => 0),
+      databases: async () => [],
+    };
+
+    const backend = createIndexedDbDurableOperationBackend({
+      databaseName: 'test-flaky-open',
+      indexedDB: flakyFactory,
+    });
+
+    await expect(backend.read('missing')).rejects.toThrow('transient open failure');
+
+    failOpen = false;
+    await expect(backend.read('missing')).resolves.toBeUndefined();
+
+    const failingOnlyBackend = createIndexedDbDurableOperationBackend({
+      databaseName: 'test-close-after-failure',
+      indexedDB: {
+        ...flakyFactory,
+        open() {
+          failOpen = true;
+          return flakyFactory.open('test-close-after-failure');
+        },
+      },
+    });
+    await expect(failingOnlyBackend.read('missing')).rejects.toThrow('transient open failure');
+    await expect(failingOnlyBackend.close()).resolves.toBeUndefined();
+    await backend.close();
+  });
 });

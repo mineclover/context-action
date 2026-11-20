@@ -226,7 +226,7 @@ export function OrderWorkspaceView() {
           <div style={{ display: 'flex', gap: '12px', marginTop: '28px' }}>
             <button
               onClick={submitOrder}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isSuccess}
               style={{
                 flex: 2,
                 padding: '12px',
@@ -236,11 +236,11 @@ export function OrderWorkspaceView() {
                 borderRadius: '8px',
                 fontSize: '15px',
                 fontWeight: '600',
-                cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                opacity: isSubmitting ? 0.7 : 1,
+                cursor: isSubmitting || isSuccess ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting || isSuccess ? 0.7 : 1,
               }}
             >
-              {isSubmitting ? '주문 처리 중...' : '주문서 제출'}
+              {isSubmitting ? '주문 처리 중...' : isSuccess ? '주문 완료' : '주문서 제출'}
             </button>
 
             <button

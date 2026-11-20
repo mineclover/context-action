@@ -10,8 +10,9 @@
  *   - Downstream consumers subscribed to the projected signal only update when
  *     the projected value changes (`Object.is` equality in `@preact/signals`).
  */
-import { useComputed } from '@preact/signals';
+import { computed } from '@preact/signals';
 import type { ReadonlySignal } from '@preact/signals';
+import { useMemo, useRef } from 'preact/hooks';
 
 /**
  * Projects a slice of state from a source signal into a memoized, fine-grained ReadonlySignal.
@@ -21,5 +22,7 @@ export function useProjection<State, Projected>(
   sourceSignal: ReadonlySignal<State>,
   selector: (state: State) => Projected,
 ): ReadonlySignal<Projected> {
-  return useComputed(() => selector(sourceSignal.value));
+  const selectorRef = useRef(selector);
+  selectorRef.current = selector;
+  return useMemo(() => computed(() => selectorRef.current(sourceSignal.value)), [sourceSignal]);
 }

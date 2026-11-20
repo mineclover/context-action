@@ -86,6 +86,10 @@ describe('tool observability policy', () => {
     );
     expect(new TextEncoder().encode(JSON.stringify(diagnostic.error?.details)).byteLength)
       .toBeLessThanOrEqual(1);
+
+    expect(
+      serializeToolObservabilityValue({}, createToolObservabilityPolicy({ maxBytes: 2 })),
+    ).toBe('{}');
   });
 
   it('marks retention expiry at the configured boundary', () => {
