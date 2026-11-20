@@ -2,7 +2,13 @@
  * Edge case tests - Boundary conditions and unusual scenarios
  */
 
-import { ActionRegister, type ActionPayloadMap } from '../../src';
+import {
+  ActionRegister,
+  ActionRegisterDestroyedError,
+  ActionValidationError,
+  executeSequential,
+  type ActionPayloadMap,
+} from '../../src';
 
 interface EdgeCaseActions extends ActionPayloadMap {
   normalAction: { value: string };
@@ -609,6 +615,158 @@ describe('ActionRegister - Edge Cases and Boundary Conditions', () => {
       expect(() => {
         actionRegister.removeActionExecutionMode('nonExistentAction' as any);
       }).not.toThrow();
+    });
+  });
+
+  describe('Structural Fix Regressions', () => {
+    it('pushes mergeResult into empty results array instead of assigning negative index', async () => {
+      const register = new ActionRegister<EdgeCaseActions>();
+      register.register('normalAction', (_payload, controller) => {
+        controller.mergeResult((previous, current) => ({
+          prevCount: previous.length,
+          current,
+        }));
+      });
+
+      const execution = await register.dispatchWithResult(
+        'normalAction',
+        { value: 'ok' },
+        { result: { collect: true } },
+      );
+
+      expect(execution.results).toEqual([{ prevCount: 0, current: undefined }]);
+      expect('-1' in execution.results).toBe(false);
+      register.destroy();
+    });
+
+    it('allocates distinct observer IDs for empty id and enforces string keys and active lifecycle', async () => {
+      const register = new ActionRegister<EdgeCaseActions>();
+      const observed: string[] = [];
+
+      register.registerObserver('normalAction', () => {
+        observed.push('first');
+      }, { id: '' });
+      register.registerObserver('normalAction', () => {
+        observed.push('second');
+      }, { id: '' });
+
+      await register.dispatch('normalAction', { value: 'hello' });
+      expect(observed).toEqual(['first', 'second']);
+
+      expect(() => register.registerObserver(Symbol('bad') as any, () => {})).toThrow(TypeError);
+
+      let releaseInFlight!: () => void;
+      const inFlight = new Promise<void>(resolve => {
+        releaseInFlight = resolve;
+      });
+      register.register('voidAction', async () => {
+        await inFlight;
+      });
+
+      const pendingDispatch = register.dispatch('voidAction');
+      const closing = register.destroyAsync();
+      expect(() => register.registerObserver('normalAction', () => {})).toThrow(
+        ActionRegisterDestroyedError,
+      );
+
+      releaseInFlight();
+      await pendingDispatch;
+      await closing;
+    });
+
+    it('handles validation issues without a path array in ActionValidationError.errorPaths', () => {
+      const error = new ActionValidationError('normalAction', {
+        issues: [{ message: 'Root validation failure' }],
+      });
+
+      expect(error.errorPaths).toEqual(['']);
+      expect(error.firstError).toBe('Root validation failure');
+    });
+
+    it('skips sparse holes in executeSequential and preserves start-and-continue rejections before a fatal throw', async () => {
+      const executed: string[] = [];
+      const sparseHandlers: any[] = [];
+      sparseHandlers[1] = {
+        id: 'hole-survivor',
+        handler: async () => {
+          executed.push('hole-survivor');
+        },
+        config: {
+          priority: 1,
+          blocking: true,
+          scheduling: 'await-before-next',
+          errorPolicy: 'fatal',
+        },
+      };
+
+      await executeSequential(
+        {
+          action: 'sparse',
+          payload: undefined,
+          handlers: sparseHandlers,
+          executedHandlers: [],
+          handlerOutcomes: [],
+          signal: new AbortController().signal,
+          aborted: false,
+          abortReason: undefined,
+          currentIndex: 0,
+          jumpToPriority: undefined,
+          jumpCount: 0,
+          maxJumps: 10,
+          executionMode: 'sequential',
+          results: [],
+          terminated: false,
+          terminationResult: undefined,
+        },
+        () => ({
+          abort: () => {},
+          modifyPayload: () => {},
+          getPayload: () => undefined,
+          setResult: () => {},
+          getResults: () => [],
+          mergeResult: () => {},
+          return: () => {},
+          jumpToPriority: () => {},
+        }),
+      );
+      expect(executed).toEqual(['hole-survivor']);
+
+      let nonBlockingSettled!: () => void;
+      const nonBlockingDone = new Promise<void>(resolve => {
+        nonBlockingSettled = resolve;
+      });
+      const register = new ActionRegister<EdgeCaseActions>();
+      register.register(
+        'normalAction',
+        async () => {
+          await Promise.resolve();
+          try {
+            throw new Error('async-non-blocking-failure');
+          } finally {
+            queueMicrotask(nonBlockingSettled);
+          }
+        },
+        { priority: 20, scheduling: 'start-and-continue', errorPolicy: 'collect' },
+      );
+      register.register(
+        'normalAction',
+        async () => {
+          await nonBlockingDone;
+          await Promise.resolve();
+          throw new Error('fatal-failure');
+        },
+        { priority: 10, scheduling: 'await-before-next', errorPolicy: 'fatal' },
+      );
+
+      const execution = await register.dispatchWithResult('normalAction', { value: 'err' });
+      expect(execution.success).toBe(false);
+      expect(execution.failedResults.map(entry => entry.error.message)).toEqual(
+        expect.arrayContaining(['async-non-blocking-failure', 'fatal-failure']),
+      );
+      expect(execution.errors.map(entry => entry.error.message)).toEqual(
+        expect.arrayContaining(['fatal-failure']),
+      );
+      register.destroy();
     });
   });
 });

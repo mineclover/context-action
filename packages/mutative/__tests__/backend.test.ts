@@ -234,4 +234,78 @@ describe('Mutative backend adapters', () => {
     expect(backend.getSnapshot().value).toEqual({ count: 2 });
     expect(backend.getLastPatches()).toHaveLength(2);
   });
+
+  it('does not freeze uncloned class instances inside safe snapshots', () => {
+    class CyclicCustom {
+      public self: CyclicCustom;
+      public count = 1;
+      constructor() {
+        this.self = this;
+      }
+    }
+
+    const instance = new CyclicCustom();
+    const backend = createMutativeStateBackend(
+      'custom-class',
+      { instance },
+      { cloneOnSet: false, readMode: 'safe' },
+    );
+
+    const snapshot = backend.getSnapshot().value;
+    expect(snapshot.instance).toBe(instance);
+    expect(Object.isFrozen(instance)).toBe(false);
+    instance.count = 2;
+    expect(snapshot.instance.count).toBe(2);
+  });
+
+  it('replaces state with undefined via MutativeStateBackend.setValue(undefined)', () => {
+    const backend = createMutativeStateBackend<{ value: number } | undefined>(
+      'nullable',
+      { value: 1 },
+    );
+
+    backend.setValue(undefined);
+    expect(backend.getSnapshot().value).toBeUndefined();
+    expect(backend.getSafeValue()).toBeUndefined();
+  });
+
+  it.each(['immediate', 'batched'] as const)(
+    'retains all intermediate patches across deferred transitions in %s mode',
+    async (notificationMode) => {
+      const backend = createMutativeTimelineBackend(
+        `deferred-${notificationMode}`,
+        { a: 0, b: 0 },
+        { notificationMode },
+      );
+      const listener = vi.fn();
+      const patchListener = vi.fn();
+      backend.subscribe(listener);
+      backend.subscribeWithPatches?.(patchListener);
+
+      backend.beginBatch(undefined, { deferNotification: true });
+      backend.update(draft => { draft.a = 1; });
+      backend.endBatch();
+
+      backend.beginBatch(undefined, { deferNotification: true });
+      backend.update(draft => { draft.b = 2; });
+      backend.endBatch();
+
+      expect(listener).not.toHaveBeenCalled();
+      expect(patchListener).not.toHaveBeenCalled();
+
+      backend.resumeNotifications();
+      backend.resumeNotifications();
+      backend.flushNotifications();
+
+      if (notificationMode === 'batched') {
+        await Promise.resolve();
+      }
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(patchListener).toHaveBeenCalledTimes(1);
+      expect(patchListener.mock.calls[0]?.[0]).toHaveLength(2);
+      expect(backend.getLastPatches()).toHaveLength(2);
+      expect(backend.getSnapshot().value).toEqual({ a: 1, b: 2 });
+    },
+  );
 });

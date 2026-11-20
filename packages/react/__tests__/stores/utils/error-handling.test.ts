@@ -437,4 +437,24 @@ describe('환경별 에러 처리', () => {
     process.env.NODE_ENV = originalEnv;
   });
 
+  test('ErrorHandlers handle circular context objects without throwing from JSON.stringify', () => {
+    const previous = getErrorHandlingConfig();
+    setErrorHandlingConfig({
+      throwOnError: false,
+      logLevel: ErrorLogLevel.SILENT,
+      suppressRepeatedErrors: false,
+    });
+
+    try {
+      const circular: Record<string, unknown> = { label: 'loop' };
+      circular.self = circular;
+
+      const err = ErrorHandlers.store('Circular context check', circular);
+      expect(err).toBeInstanceOf(ContextActionError);
+      expect(err.message).toContain('[Unserializable context]');
+    } finally {
+      setErrorHandlingConfig(previous);
+    }
+  });
+
 });

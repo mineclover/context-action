@@ -162,7 +162,55 @@ function validateRetryOptions(options?: DispatchOptions): void {
 function validateDispatchTimingOptions(options?: DispatchOptions): void {
   validateNonNegativeFiniteNumber(options?.debounce, 'debounce');
   validateNonNegativeFiniteNumber(options?.throttle, 'throttle');
+  validateNonNegativeFiniteNumber(options?.timeout, 'timeout');
   validateRetryOptions(options);
+}
+
+function mergeAbortSignals(signals: AbortSignal[]): {
+  signal: AbortSignal;
+  cleanup: () => void;
+} {
+  if (signals.length === 1) {
+    return { signal: signals[0]!, cleanup: () => {} };
+  }
+
+  const abortSignalAny = (
+    AbortSignal as typeof AbortSignal & {
+      any?: (signals: AbortSignal[]) => AbortSignal;
+    }
+  ).any;
+
+  if (typeof abortSignalAny === 'function') {
+    return { signal: abortSignalAny(signals), cleanup: () => {} };
+  }
+
+  const mergedController = new AbortController();
+  const cleanups: Array<() => void> = [];
+  const forwardAbort = (source: AbortSignal) => {
+    if (!mergedController.signal.aborted) {
+      mergedController.abort(source.reason);
+    }
+  };
+
+  for (const source of signals) {
+    if (source.aborted) {
+      forwardAbort(source);
+      break;
+    }
+    const listener = () => forwardAbort(source);
+    source.addEventListener('abort', listener, { once: true });
+    cleanups.push(() => source.removeEventListener('abort', listener));
+  }
+
+  const cleanup = () => {
+    for (const remove of cleanups) {
+      remove();
+    }
+    cleanups.length = 0;
+  };
+  mergedController.signal.addEventListener('abort', cleanup, { once: true });
+
+  return { signal: mergedController.signal, cleanup };
 }
 
 function getAbortReason(signal?: AbortSignal): string {
@@ -515,7 +563,9 @@ export class ActionRegister<
     handler: H & (ReturnType<H> extends void | Promise<void> ? unknown : never),
     config: ObserverConfig<T[K]> = {},
   ): UnregisterFunction {
-    const handlerId = config.id ?? this.generateHandlerId(action);
+    this.assertStringActionKey(action);
+    this.assertAcceptingWork();
+    const handlerId = config.id || this.generateHandlerId(action);
     const existing = this.pipelines.get(action)?.find(item => item.id === handlerId);
     if (existing && (existing.role ?? 'legacy') !== 'observer') {
       throw new Error(
@@ -700,63 +750,23 @@ export class ActionRegister<
     () => void
   ] {
     const signals: AbortSignal[] = [];
-    const cleanups: (() => void)[] = [];
     let autoAbortController: AbortController | undefined;
 
-    // Add existing signal if provided
     if (options?.signal) {
       signals.push(options.signal);
     }
 
-    // Create auto-abort controller if enabled
     if (options?.autoAbort?.enabled) {
       autoAbortController = new AbortController();
       signals.push(autoAbortController.signal);
     }
 
-    // No signals to merge
     if (signals.length === 0) {
       return [undefined, autoAbortController, () => {}];
     }
 
-    // Single signal - no merge needed
-    if (signals.length === 1) {
-      return [signals[0], autoAbortController, () => cleanups.forEach(c => c())];
-    }
-
-    // Multiple signals - use AbortSignal.any() if available, fallback to manual merge
-    let effectiveSignal: AbortSignal;
-    
-    if (typeof (AbortSignal as any).any === 'function') {
-      // Modern browsers with AbortSignal.any()
-      effectiveSignal = (AbortSignal as any).any(signals);
-    } else {
-      // Fallback: Create controller and link all signals
-      const mergedController = new AbortController();
-      effectiveSignal = mergedController.signal;
-      
-      signals.forEach(signal => {
-        if (signal.aborted) {
-          mergedController.abort();
-        } else {
-          const abortHandler = () => mergedController.abort();
-          signal.addEventListener('abort', abortHandler, { once: true });
-          cleanups.push(() => signal.removeEventListener('abort', abortHandler));
-        }
-      });
-    }
-
-    const cleanup = () => {
-      cleanups.forEach(c => {
-        try {
-          c();
-        } catch (error) {
-          this.log('Cleanup error during AbortSignal cleanup', error, 'warn');
-        }
-      });
-    };
-
-    return [effectiveSignal, autoAbortController, cleanup];
+    const { signal, cleanup } = mergeAbortSignals(signals);
+    return [signal, autoAbortController, cleanup];
   }
 
   /**
@@ -1293,22 +1303,8 @@ export class ActionRegister<
   ): AttemptDispatchOptions {
     const outerSignal = options?.signal;
     if (!outerSignal) return { ...options, signal: attemptSignal };
-    if (typeof AbortSignal.any === 'function') {
-      return { ...options, signal: AbortSignal.any([outerSignal, attemptSignal]) };
-    }
-    const controller = new AbortController();
-    const forwardOuter = () => controller.abort(outerSignal.reason);
-    const forwardAttempt = () => controller.abort(attemptSignal.reason);
-    if (outerSignal.aborted) forwardOuter();
-    else outerSignal.addEventListener('abort', forwardOuter, { once: true });
-    if (attemptSignal.aborted) forwardAttempt();
-    else attemptSignal.addEventListener('abort', forwardAttempt, { once: true });
-    const cleanup = () => {
-      outerSignal.removeEventListener('abort', forwardOuter);
-      attemptSignal.removeEventListener('abort', forwardAttempt);
-    };
-    controller.signal.addEventListener('abort', cleanup, { once: true });
-    return { ...options, signal: controller.signal, [ATTEMPT_SIGNAL_CLEANUP]: cleanup };
+    const { signal, cleanup } = mergeAbortSignals([outerSignal, attemptSignal]);
+    return { ...options, signal, [ATTEMPT_SIGNAL_CLEANUP]: cleanup };
   }
 
   private shouldDrainBeforeRetry(
@@ -1366,50 +1362,16 @@ export class ActionRegister<
     cleanup: () => void;
     cleanupSignals: () => void;
   } {
-    const configuredTimeout = options?.timeout;
-    if (
-      configuredTimeout !== undefined &&
-      (!Number.isFinite(configuredTimeout) || configuredTimeout < 0)
-    ) {
-      throw new RangeError('timeout must be a non-negative finite number.');
-    }
-    const hasTimeout = configuredTimeout !== undefined;
-    const timeout = configuredTimeout;
-    const timeoutController = hasTimeout ? new AbortController() : undefined;
-    const signalCleanups: Array<() => void> = [];
+    validateNonNegativeFiniteNumber(options?.timeout, 'timeout');
+    const timeout = options?.timeout;
+    const timeoutController = timeout !== undefined ? new AbortController() : undefined;
     const timeoutCallbacks = new Set<(error: ActionTimeoutError) => void>();
     const signals = [
       this.lifecycleController.signal,
       options?.signal,
       timeoutController?.signal,
     ].filter((candidate): candidate is AbortSignal => Boolean(candidate));
-    let signal = signals[0]!;
-
-    if (signals.length > 1) {
-      if (typeof (AbortSignal as typeof AbortSignal & {
-        any?: (signals: AbortSignal[]) => AbortSignal;
-      }).any === 'function') {
-        signal = (AbortSignal as typeof AbortSignal & {
-          any: (signals: AbortSignal[]) => AbortSignal;
-        }).any(signals);
-      } else {
-        const mergedController = new AbortController();
-        const forwardAbort = (source: AbortSignal) => {
-          if (!mergedController.signal.aborted) mergedController.abort(source.reason);
-        };
-
-        for (const source of signals) {
-          if (source.aborted) {
-            forwardAbort(source);
-            break;
-          }
-          const listener = () => forwardAbort(source);
-          source.addEventListener('abort', listener, { once: true });
-          signalCleanups.push(() => source.removeEventListener('abort', listener));
-        }
-        signal = mergedController.signal;
-      }
-    }
+    const { signal, cleanup: cleanupSignals } = mergeAbortSignals(signals);
 
     let timer: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise = timeoutController && timeout !== undefined
@@ -1431,7 +1393,7 @@ export class ActionRegister<
         if (timer !== undefined) clearTimeout(timer);
         timeoutCallbacks.clear();
       },
-      cleanupSignals: () => signalCleanups.forEach(cleanup => cleanup()),
+      cleanupSignals,
     };
   }
 
@@ -2363,14 +2325,23 @@ export class ActionRegister<
     
     // 🔧 Improved AbortSignal handling with cleaner merge logic (same as dispatch)
     const [effectiveSignal, autoAbortController, cleanup] = this.createAbortSignal(options);
-    
-    if (options?.autoAbort?.onControllerCreated && autoAbortController) {
-      options.autoAbort.onControllerCreated(autoAbortController);
+    const cleanupDispatchSignals = () => {
+      cleanup();
+      (options as AttemptDispatchOptions | undefined)?.[ATTEMPT_SIGNAL_CLEANUP]?.();
+    };
+
+    try {
+      if (options?.autoAbort?.onControllerCreated && autoAbortController) {
+        options.autoAbort.onControllerCreated(autoAbortController);
+      }
+    } catch (error) {
+      cleanupDispatchSignals();
+      throw error;
     }
-    
+
     // Check if dispatch is aborted before starting
     if (effectiveSignal?.aborted) {
-      cleanup();
+      cleanupDispatchSignals();
       return this.createAbortedExecutionResult<R>(
         _startTime,
         plan.results,
@@ -2378,9 +2349,9 @@ export class ActionRegister<
         getAbortReason(effectiveSignal),
       );
     }
-    
+
     const pipeline = plan.pipelineSnapshot;
-    
+
     if (!pipeline || pipeline.length === 0) {
       this.log(`Pipeline lookup for '${String(action)}'`, {
         pipelineExists: false,
@@ -2389,15 +2360,15 @@ export class ActionRegister<
       });
       // 🚨 경고: 핸들러가 등록되지 않은 액션 실행
       const warningMessage = `⚠️ Action '${String(action)}' has no registered handlers. This action will be ignored.`;
-      
+
       if (this.isDebugMode) {
         console.warn(warningMessage);
         console.warn('💡 Tip: Register a handler using registry.register() before dispatching this action.');
         console.warn('📋 Available actions:', Array.from(this.pipelines.keys()));
       }
       this.log(`No handlers found for action '${String(action)}', dispatch cancelled`, {}, 'warn');
-      
-      cleanup();
+
+      cleanupDispatchSignals();
       return {
         success: true,
         aborted: false,
@@ -2501,10 +2472,7 @@ export class ActionRegister<
       if (effectiveSignal && abortHandler) {
         effectiveSignal.removeEventListener('abort', abortHandler);
       }
-      this.cleanupSignalsAfterStartedHandlers(() => {
-        cleanup();
-        (options as AttemptDispatchOptions | undefined)?.[ATTEMPT_SIGNAL_CLEANUP]?.();
-      }, dispatchHandlerPromises);
+      this.cleanupSignalsAfterStartedHandlers(cleanupDispatchSignals, dispatchHandlerPromises);
     }
 
     const endTime = Date.now();
@@ -2664,7 +2632,11 @@ export class ActionRegister<
       const currentResult = state.results[state.results.length - 1];
       const previousResults = state.results.slice(0, -1);
       const mergedResult = merger(previousResults, currentResult);
-      state.results[state.results.length - 1] = mergedResult;
+      if (state.results.length === 0) {
+        state.results.push(mergedResult);
+      } else {
+        state.results[state.results.length - 1] = mergedResult;
+      }
     };
 
     return controller;
@@ -2896,14 +2868,6 @@ export class ActionRegister<
         throw new Error(`Unknown execution mode: ${context.executionMode}`);
     }
     context.handlers = originalHandlers;
-
-    if (!context.deferOnceCleanup) {
-      this.cleanupOneTimeHandlers(
-        context.action as K,
-        context.executedHandlers ?? [],
-        dispatchHandlerPromises
-      );
-    }
   }
 
   private cleanupOneTimeHandlers<K extends keyof T>(

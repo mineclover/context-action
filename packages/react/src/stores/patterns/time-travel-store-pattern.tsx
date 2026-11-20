@@ -198,6 +198,10 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
       });
     } else {
       store = createStore(String(storeName), initialValue);
+      store.setComparisonOptions({
+        strategy,
+        ...comparisonOptions,
+      });
     }
 
     const metadata = {

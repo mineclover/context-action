@@ -654,5 +654,48 @@ describe('createTimeTravelStoreContext', () => {
 
       expect(screen.getByTestId('error').textContent).toContain('must be used within');
     });
+
+    it('honors strategy and comparisonOptions when timeTravel is false', () => {
+      const { Provider, useStore } = createTimeTravelStoreContext('NonTTComparison', {
+        nonTimeTravel: {
+          initialValue: { count: 1, nested: { flag: true } },
+          timeTravel: false,
+          strategy: 'deep',
+        },
+      });
+
+      const listener = jest.fn();
+      let latestRef!: { count: number; nested: { flag: boolean } };
+
+      function Reader() {
+        const store = useStore('nonTimeTravel');
+        React.useEffect(() => {
+          return store.subscribe(listener);
+        }, [store]);
+        return (
+          <button
+            data-testid="same-deep-update"
+            onClick={() => {
+              latestRef = { count: 1, nested: { flag: true } };
+              store.setValue(latestRef);
+            }}
+          >
+            update
+          </button>
+        );
+      }
+
+      render(
+        <Provider>
+          <Reader />
+        </Provider>,
+      );
+
+      act(() => {
+        fireEvent.click(screen.getByTestId('same-deep-update'));
+      });
+
+      expect(listener).not.toHaveBeenCalled();
+    });
   });
 });

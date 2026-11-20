@@ -65,27 +65,48 @@ export function hasOnlyArrayIndices(value: unknown): value is unknown[] {
 /**
  * Deep clone a value
  */
-export function deepCloneValue(value: unknown): unknown {
+export function deepCloneValue(
+  value: unknown,
+  seen = new WeakMap<object, unknown>(),
+): unknown {
   if (value === null || typeof value !== 'object') {
     return value;
   }
 
+  if (isNonCloneableType(value)) {
+    return value;
+  }
+
+  const existing = seen.get(value);
+  if (existing !== undefined) {
+    return existing;
+  }
+
   if (Array.isArray(value)) {
-    return value.map(deepCloneValue);
+    const cloned: unknown[] = new Array(value.length);
+    seen.set(value, cloned);
+    for (let i = 0; i < value.length; i++) {
+      if (i in value) {
+        cloned[i] = deepCloneValue(value[i], seen);
+      }
+    }
+    return cloned;
   }
 
   if (value instanceof Map) {
     const cloned = new Map<unknown, unknown>();
+    seen.set(value, cloned);
     value.forEach((entryValue, key) => {
-      cloned.set(key, deepCloneValue(entryValue));
+      cloned.set(key, deepCloneValue(entryValue, seen));
     });
     return cloned;
   }
 
   if (value instanceof Set) {
     const cloned = new Set<unknown>();
+    seen.set(value, cloned);
     value.forEach((entryValue) => {
-      cloned.add(deepCloneValue(entryValue));
+      cloned.add(deepCloneValue(entryValue, seen));
     });
     return cloned;
   }
@@ -98,14 +119,25 @@ export function deepCloneValue(value: unknown): unknown {
     return new RegExp(value.source, value.flags);
   }
 
-  const cloned: Record<string, unknown> = {};
-  for (const key in value) {
-    if (Object.getOwnPropertyDescriptor(value, key) !== undefined) {
-      cloned[key] = deepCloneValue((value as Record<string, unknown>)[key]);
+  if (isPlainObject(value)) {
+    const proto = Object.getPrototypeOf(value);
+    const cloned: Record<string, unknown> =
+      proto === null ? Object.create(null) : {};
+    seen.set(value, cloned);
+    for (const key of Object.keys(value)) {
+      cloned[key] = deepCloneValue(
+        (value as Record<string, unknown>)[key],
+        seen,
+      );
     }
+    return cloned;
   }
 
-  return cloned;
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch {
+    return value;
+  }
 }
 
 /**
@@ -113,12 +145,12 @@ export function deepCloneValue(value: unknown): unknown {
  */
 export function deepClone<T>(source: T, target?: unknown): T {
   if (target && source && typeof source === 'object') {
-    for (const key in source) {
-      if (Object.getOwnPropertyDescriptor(source, key) !== undefined) {
-        (target as Record<string, unknown>)[key] = deepCloneValue(
-          source[key as keyof T]
-        );
-      }
+    const seen = new WeakMap<object, unknown>([[source, target]]);
+    for (const key of Object.keys(source)) {
+      (target as Record<string, unknown>)[key] = deepCloneValue(
+        (source as Record<string, unknown>)[key],
+        seen,
+      );
     }
     return target as T;
   }
@@ -130,14 +162,12 @@ export function deepClone<T>(source: T, target?: unknown): T {
  * Check if value is non-cloneable type (DOM elements, functions, etc.)
  */
 export function isNonCloneableType(value: unknown): boolean {
+  if (typeof value === 'function') return true;
   if (!value || typeof value !== 'object') return false;
 
   // DOM Elements
   if (typeof Element !== 'undefined' && value instanceof Element) return true;
   if (typeof Node !== 'undefined' && value instanceof Node) return true;
-
-  // Functions
-  if (typeof value === 'function') return true;
 
   // Promises
   if (value instanceof Promise) return true;

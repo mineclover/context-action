@@ -380,20 +380,17 @@ export function createActionContext<
   };
 
   /**
-   * Optimized hook to get stable dispatch functions
+   * Optimized hook to get the stable dispatch function
    * 
-   * Returns stable dispatch functions that prevent re-renders and maintain
+   * Returns a stable dispatch function that prevents re-renders and maintains
    * reference equality across component renders.
-   * 
-   * @returns Object with dispatch and dispatchWithResult functions
    * 
    * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-access
    */
-  const useActionDispatcher = () => {
+  const useAction = (): ActionRegister<T, TResultMap>['dispatch'] => {
     const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
-    
-    // Stable dispatch function with useCallback optimization
-    const dispatch = useCallback(<K extends ActionNames<T>>(
+
+    return useCallback(<K extends ActionNames<T>>(
       action: K,
       ...args: DispatchArgs<T[K]>
     ): Promise<void> => {
@@ -405,7 +402,7 @@ export function createActionContext<
           timestamp: new Date().toISOString()
         });
       }
-      
+
       const register = actionRegisterRef.current;
       if (!register) {
         throw new Error(
@@ -413,7 +410,7 @@ export function createActionContext<
           'Make sure the ActionContext Provider is properly set up.'
         );
       }
-      
+
       return dispatchLifecycle.run(
         [options?.signal],
         signal => register.dispatch(
@@ -422,42 +419,6 @@ export function createActionContext<
         )
       );
     }, [actionRegisterRef, dispatchLifecycle]);
-
-    // Stable dispatchWithResult function
-    const dispatchWithResult = useCallback(<K extends ActionNames<T>, R = void>(
-      action: K,
-      ...args: DispatchArgs<T[K]>
-    ): Promise<ExecutionResult<R>> => {
-      const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
-      const register = actionRegisterRef.current;
-      if (!register) {
-        throw new Error('ActionRegister not initialized');
-      }
-      
-      const dispatchResult = register.dispatchWithResult.bind(register) as unknown as <
-        ActionKey extends ActionNames<T>,
-        Result = void,
-      >(
-        action: ActionKey,
-        ...dispatchArgs: DispatchArgs<T[ActionKey]>
-      ) => Promise<ExecutionResult<Result>>;
-
-      return dispatchLifecycle.run(
-        [options?.signal],
-        signal => dispatchResult<K, R>(
-          action,
-          ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
-        )
-      );
-    }, [actionRegisterRef, dispatchLifecycle]);
-
-    return { dispatch, dispatchWithResult };
-  };
-
-  // Legacy hook for backwards compatibility
-  const useAction = (): ActionRegister<T, TResultMap>['dispatch'] => {
-    const { dispatch } = useActionDispatcher();
-    return dispatch;
   };
 
   // Hook to register action handlers with automatic cleanup and ref optimization

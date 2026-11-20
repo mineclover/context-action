@@ -339,6 +339,31 @@ describe('framework-neutral element binding', () => {
     expect(trace).toEqual(['guard-high:5', 'obs-failure:locked']);
   });
 
+  it('retains once observers whose when filter did not match', () => {
+    const pipeline = createSyncActionPipeline<{ submit: { ok: boolean } }>('once-filter');
+    const calls: string[] = [];
+
+    pipeline.registerGuard('submit', (payload, controller) => {
+      if (!payload.ok) controller.abort('validation failed');
+    });
+    pipeline.register('submit', () => 'done');
+    pipeline.registerObserver('submit', (_payload, meta) => {
+      calls.push(`success:${String(meta.result)}`);
+    }, { when: 'success', once: true });
+
+    const aborted = pipeline.dispatch('submit', { ok: false });
+    expect(aborted.aborted).toBe(true);
+    expect(calls).toEqual([]);
+
+    const succeeded = pipeline.dispatch('submit', { ok: true });
+    expect(succeeded.success).toBe(true);
+    expect(calls).toEqual(['success:done']);
+
+    const secondSuccess = pipeline.dispatch('submit', { ok: true });
+    expect(secondSuccess.success).toBe(true);
+    expect(calls).toEqual(['success:done']);
+  });
+
   it('navigates items with createRovingFocusController while skipping disabled items', () => {
     let activeId = 'tab-1';
     const roving = createRovingFocusController({

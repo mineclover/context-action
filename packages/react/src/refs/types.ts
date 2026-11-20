@@ -120,23 +120,3 @@ export type RefDefinitions = Record<string, RefInitConfig<any>>;
 export type InferRefTypes<T extends RefDefinitions> = {
   [K in keyof T]: T[K] extends RefInitConfig<infer R> ? R : RefTarget;
 };
-
-
-/**
- * 참조 이벤트 타입
- */
-export interface RefEvent<T extends RefTarget = RefTarget> {
-  type: 'mount' | 'unmount' | 'error' | 'ready' | 'cleanup';
-  refName: string;
-  target?: T;
-  error?: Error;
-  timestamp: number;
-  metadata?: Record<string, unknown>;
-}
-
-/**
- * 참조 이벤트 리스너
- */
-export type RefEventListener<T extends RefTarget = RefTarget> = (
-  event: RefEvent<T>
-) => void;

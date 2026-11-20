@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import type {
   StoreTransactionCoordinator,
   StoreTransactionInspectorSnapshot,
@@ -8,9 +8,13 @@ import type {
 export function useStoreTransactionInspector(
   coordinator: StoreTransactionCoordinator,
 ): StoreTransactionInspectorSnapshot {
-  return useSyncExternalStore(
-    callback => coordinator.subscribe(() => callback()),
-    () => coordinator.getInspectorSnapshot(),
-    () => coordinator.getInspectorSnapshot(),
+  const subscribe = useCallback(
+    (callback: () => void) => coordinator.subscribe(() => callback()),
+    [coordinator],
   );
+  const getSnapshot = useCallback(
+    () => coordinator.getInspectorSnapshot(),
+    [coordinator],
+  );
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

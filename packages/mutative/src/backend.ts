@@ -1,5 +1,5 @@
 import type { Patches } from '@context-action/mutative-core';
-import { create } from '@context-action/mutative-core';
+import { create, rawReturn } from '@context-action/mutative-core';
 import type {
   HistoryEntryId,
   ReadonlyStateSnapshot,
@@ -14,7 +14,7 @@ import type {
   TimeTravelOptions,
   TimeTravelTransitionMeta,
 } from './types';
-import { isNonCloneableType } from './utils';
+import { isNonCloneableType, isPlainObject } from './utils';
 
 export type MutativeReadMode = 'reference' | 'safe';
 export type MutativeNotificationMode = 'immediate' | 'batched';
@@ -317,6 +317,14 @@ function freezeSnapshot<T>(value: T): T {
       return guarded;
     }
 
+    if (
+      !Array.isArray(current) &&
+      !(current instanceof RegExp) &&
+      !isPlainObject(current)
+    ) {
+      return current;
+    }
+
     seen.set(objectValue, current);
     for (const key of Reflect.ownKeys(objectValue)) {
       const descriptor = Object.getOwnPropertyDescriptor(objectValue, key);
@@ -404,7 +412,7 @@ export class MutativeStateBackend<T = unknown>
     const nextValue = this.options.cloneOnSet ? safeSet(value, true) : value;
     const [nextState, patches] = create(
       this.value,
-      () => nextValue,
+      () => (nextValue === undefined ? (rawReturn(undefined) as T) : nextValue),
       {
         enablePatches: this.options.patchesOptions ?? true,
         strict: this.options.strict,
@@ -522,7 +530,8 @@ export class MutativeTimelineBackend<T = unknown>
           this.suppressNextTransitionNotification = false;
           return;
         }
-        this.lastPatches = (changedPatches ?? travelPatches.patches.flat()) as Patches;
+        const transitionPatches = (changedPatches ?? travelPatches.patches.flat()) as Patches;
+        this.lastPatches = transitionPatches;
         this.lastTransitionMeta = metadata;
         this.version += 1;
         this.snapshot = snapshotOf(
@@ -532,10 +541,13 @@ export class MutativeTimelineBackend<T = unknown>
           this.options.readMode,
         );
         if (this.notificationHoldDepth > 0) {
+          this.pendingPatches = this.pendingPatches
+            ? this.pendingPatches.concat(transitionPatches)
+            : transitionPatches;
           this.notificationDeferred = true;
           return;
         }
-        this.scheduleNotification();
+        this.scheduleNotification(transitionPatches);
       },
     );
   }
@@ -693,16 +705,16 @@ export class MutativeTimelineBackend<T = unknown>
     }
   }
 
-  private scheduleNotification(): void {
+  private scheduleNotification(patches?: Patches): void {
     if (this.disposed) return;
+    if (patches) {
+      this.pendingPatches = this.pendingPatches
+        ? this.pendingPatches.concat(patches)
+        : patches;
+    }
     if (this.options.notificationMode === 'immediate') {
       this.notifyNow();
       return;
-    }
-    if (this.lastPatches) {
-      this.pendingPatches = this.pendingPatches
-        ? this.pendingPatches.concat(this.lastPatches)
-        : this.lastPatches;
     }
     if (this.pendingNotification) return;
     this.pendingNotification = true;

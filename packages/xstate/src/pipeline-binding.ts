@@ -242,25 +242,29 @@ export function waitForActorSnapshot<TSnapshot extends StatechartSnapshotPort>(
       }, timeoutMs);
     }
 
-    subscription = actor.subscribe({
-      next(nextSnapshot) {
-        inspectSnapshot(nextSnapshot);
-      },
-      error(err) {
-        settleReject(err);
-      },
-      complete() {
-        inspectSnapshot(actor.getSnapshot());
-        if (!settled) {
-          settleReject(new Error('Actor completed before satisfying predicate'));
-        }
-      },
-    });
+    try {
+      subscription = actor.subscribe({
+        next(nextSnapshot) {
+          inspectSnapshot(nextSnapshot);
+        },
+        error(err) {
+          settleReject(err);
+        },
+        complete() {
+          inspectSnapshot(actor.getSnapshot());
+          if (!settled) {
+            settleReject(new Error('Actor completed before satisfying predicate'));
+          }
+        },
+      });
 
-    if (settled) {
-      cleanup();
-    } else {
-      inspectSnapshot(actor.getSnapshot());
+      if (settled) {
+        cleanup();
+      } else {
+        inspectSnapshot(actor.getSnapshot());
+      }
+    } catch (error) {
+      settleReject(error);
     }
   });
 }
@@ -439,51 +443,64 @@ export function bindActorToSyncPipeline<
   const bindings = resolveMappedActions(options);
   const toEventByAction = new Map(bindings.map((entry) => [entry.action, entry.toEvent] as const));
   const unregisters: Array<() => void> = [];
+  let detachEmissions: () => void = () => {};
 
-  for (const { action, toEvent } of bindings) {
-    if (enforceCanGuard) {
+  try {
+    for (const { action, toEvent } of bindings) {
+      if (enforceCanGuard) {
+        unregisters.push(
+          pipeline.registerGuard(
+            action,
+            (payload, controller) => {
+              const event = toEvent(payload);
+              const snapshot = actor.getSnapshot();
+              if (isActorTerminated(snapshot)) {
+                controller.abort(
+                  `Transition "${event.type}" denied because actor status is "${snapshot.status}"`,
+                );
+                return;
+              }
+              if (typeof snapshot.can === 'function' && !snapshot.can(event)) {
+                controller.abort(
+                  `Transition "${event.type}" denied in state "${String(snapshot.value)}"`,
+                );
+              }
+            },
+            { priority: guardPriority, id: `statechart-can-${action}` },
+          ),
+        );
+      }
+
       unregisters.push(
-        pipeline.registerGuard(
+        pipeline.register(
           action,
-          (payload, controller) => {
+          (payload) => {
             const event = toEvent(payload);
-            const snapshot = actor.getSnapshot();
-            if (isActorTerminated(snapshot)) {
-              controller.abort(
-                `Transition "${event.type}" denied because actor status is "${snapshot.status}"`,
-              );
-              return;
-            }
-            if (typeof snapshot.can === 'function' && !snapshot.can(event)) {
-              controller.abort(
-                `Transition "${event.type}" denied in state "${String(snapshot.value)}"`,
-              );
-            }
+            actor.send(event);
+            return actor.getSnapshot();
           },
-          { priority: guardPriority, id: `statechart-can-${action}` },
+          { priority: handlerPriority, id: `statechart-send-${action}` },
         ),
       );
     }
 
-    unregisters.push(
-      pipeline.register(
-        action,
-        (payload) => {
-          const event = toEvent(payload);
-          actor.send(event);
-          return actor.getSnapshot();
-        },
-        { priority: handlerPriority, id: `statechart-send-${action}` },
-      ),
+    detachEmissions = attachEmissionsIfPresent(
+      actor,
+      pipeline as SyncActionPipeline<Record<string, unknown>>,
+      options.emissions,
+      options.onEmissionError,
     );
+  } catch (error) {
+    for (const unregister of unregisters) {
+      try {
+        unregister();
+      } catch {
+        // Best-effort rollback of earlier registrations.
+      }
+    }
+    unregisters.length = 0;
+    throw error;
   }
-
-  const detachEmissions = attachEmissionsIfPresent(
-    actor,
-    pipeline as SyncActionPipeline<Record<string, unknown>>,
-    options.emissions,
-    options.onEmissionError,
-  );
 
   return createBoundActorHandle(actor, toEventByAction, () => {
     detachEmissions();
@@ -520,77 +537,91 @@ export function bindActorToActionRegister<
   const bindings = resolveMappedActions(options);
   const toEventByAction = new Map(bindings.map((entry) => [entry.action, entry.toEvent] as const));
   const unregisters: UnregisterFunction[] = [];
+  let detachEmissions: () => void = () => {};
 
-  for (const { action, toEvent } of bindings) {
-    if (enforceCanGuard) {
+  try {
+    for (const { action, toEvent } of bindings) {
+      if (enforceCanGuard) {
+        unregisters.push(
+          registrar.registerGuard(
+            action,
+            (payload, controller) => {
+              const event = toEvent(payload);
+              const snapshot = actor.getSnapshot();
+              if (isActorTerminated(snapshot)) {
+                controller.abort(
+                  `Transition "${event.type}" denied because actor status is "${snapshot.status}"`,
+                );
+                return;
+              }
+              if (typeof snapshot.can === 'function' && !snapshot.can(event)) {
+                controller.abort(
+                  `Transition "${event.type}" denied in state "${String(snapshot.value)}"`,
+                );
+              }
+            },
+            { priority: guardPriority, id: `xstate-can-${action}` },
+          ),
+        );
+      }
+
+      const actionWaitFor = options.waitForByAction?.[action];
+      const hasWaitFor = actionWaitFor !== undefined || options.waitFor !== undefined;
+      const blocking = options.blocking ?? (hasWaitFor ? true : undefined);
+
       unregisters.push(
-        registrar.registerGuard(
+        registrar.register(
           action,
-          (payload, controller) => {
+          async (payload, controller) => {
             const event = toEvent(payload);
-            const snapshot = actor.getSnapshot();
-            if (isActorTerminated(snapshot)) {
-              controller.abort(
-                `Transition "${event.type}" denied because actor status is "${snapshot.status}"`,
-              );
-              return;
+            actor.send(event);
+
+            if (!hasWaitFor) {
+              const nextSnapshot = actor.getSnapshot();
+              controller.setResult(nextSnapshot);
+              return nextSnapshot;
             }
-            if (typeof snapshot.can === 'function' && !snapshot.can(event)) {
-              controller.abort(
-                `Transition "${event.type}" denied in state "${String(snapshot.value)}"`,
-              );
-            }
+
+            const predicate = (snapshot: TSnapshot): boolean => {
+              if (actionWaitFor) {
+                return actionWaitFor(snapshot, event, payload);
+              }
+              return options.waitFor ? options.waitFor(snapshot, event) : true;
+            };
+
+            const settledSnapshot = await waitForActorSnapshot(actor, predicate, {
+              signal: controller.signal,
+              timeoutMs: options.timeoutMs,
+            });
+            controller.setResult(settledSnapshot);
+            return settledSnapshot;
           },
-          { priority: guardPriority, id: `xstate-can-${action}` },
+          {
+            priority: handlerPriority,
+            id: `xstate-send-${action}`,
+            ...(blocking !== undefined ? { blocking } : {}),
+          },
         ),
       );
     }
 
-    const actionWaitFor = options.waitForByAction?.[action];
-    const hasWaitFor = actionWaitFor !== undefined || options.waitFor !== undefined;
-
-    unregisters.push(
-      registrar.register(
-        action,
-        async (payload, controller) => {
-          const event = toEvent(payload);
-          actor.send(event);
-
-          if (!hasWaitFor) {
-            const nextSnapshot = actor.getSnapshot();
-            controller.setResult(nextSnapshot);
-            return nextSnapshot;
-          }
-
-          const predicate = (snapshot: TSnapshot): boolean => {
-            if (actionWaitFor) {
-              return actionWaitFor(snapshot, event, payload);
-            }
-            return options.waitFor ? options.waitFor(snapshot, event) : true;
-          };
-
-          const settledSnapshot = await waitForActorSnapshot(actor, predicate, {
-            signal: controller.signal,
-            timeoutMs: options.timeoutMs,
-          });
-          controller.setResult(settledSnapshot);
-          return settledSnapshot;
-        },
-        {
-          priority: handlerPriority,
-          id: `xstate-send-${action}`,
-          ...(options.blocking !== undefined ? { blocking: options.blocking } : {}),
-        },
-      ),
+    detachEmissions = attachEmissionsIfPresent(
+      actor,
+      register as unknown as ActionRegister<TActions, ActionResultMap<TActions>>,
+      options.emissions,
+      options.onEmissionError,
     );
+  } catch (error) {
+    for (const unregister of unregisters) {
+      try {
+        unregister();
+      } catch {
+        // Best-effort rollback of earlier registrations.
+      }
+    }
+    unregisters.length = 0;
+    throw error;
   }
-
-  const detachEmissions = attachEmissionsIfPresent(
-    actor,
-    register as unknown as ActionRegister<TActions, ActionResultMap<TActions>>,
-    options.emissions,
-    options.onEmissionError,
-  );
 
   return createBoundActorHandle(actor, toEventByAction, () => {
     detachEmissions();

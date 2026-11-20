@@ -124,8 +124,7 @@ export class StoreTransactionCoordinator implements TransactionCoordinatorPort {
     } catch {}
   }
 
-  private emit(phase: StoreTransactionEventPhase, record: StoreTransactionRecord): void {
-    const snapshot = this.snapshot(record);
+  private updateInspectorSnapshot(): void {
     this.inspectorVersion += 1;
     const latest = this.history[this.history.length - 1];
     this.inspectorSnapshot = {
@@ -136,7 +135,18 @@ export class StoreTransactionCoordinator implements TransactionCoordinatorPort {
       canRedo: this.canRedo(),
       ...(latest && { latest: this.snapshot(latest) }),
     };
-    for (const listener of this.listeners) {
+  }
+
+  private emit(
+    phase: StoreTransactionEventPhase,
+    record: StoreTransactionRecord,
+    snapshotAlreadyUpdated = false,
+  ): void {
+    const snapshot = this.snapshot(record);
+    if (!snapshotAlreadyUpdated) {
+      this.updateInspectorSnapshot();
+    }
+    for (const listener of [...this.listeners]) {
       try {
         listener({ phase, record: snapshot });
       } catch (error) {
@@ -226,8 +236,20 @@ export class StoreTransactionCoordinator implements TransactionCoordinatorPort {
       }
     };
     const flushBatches = () => {
-      for (const participant of unique) participant.batchControl.resumeNotifications();
-      for (const participant of unique) participant.batchControl.flushNotifications();
+      for (const participant of unique) {
+        try {
+          participant.batchControl.resumeNotifications();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
+      }
+      for (const participant of unique) {
+        try {
+          participant.batchControl.flushNotifications();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
+      }
     };
     return {
       meta,
@@ -240,7 +262,6 @@ export class StoreTransactionCoordinator implements TransactionCoordinatorPort {
           const disposed = unique.find(participant => participant.store.isStoreDisposed());
           if (disposed) throw new Error(`Store "${disposed.store.name}" is disposed`);
           endBatches();
-          flushBatches();
           const record = {
             meta,
             participants: before.map(participant => ({
@@ -253,11 +274,16 @@ export class StoreTransactionCoordinator implements TransactionCoordinatorPort {
                 changed: participant.beforeEntryId !== participant.store.getHistoryEntryId(),
               })),
           };
-          if (record.participants.some(participant => participant.changed)) {
+          const hasChanged = record.participants.some(participant => participant.changed);
+          if (hasChanged) {
             this.history = this.history.slice(0, this.position);
             this.history.push(record);
             this.position += 1;
-            this.emit('committed', record);
+            this.updateInspectorSnapshot();
+          }
+          flushBatches();
+          if (hasChanged) {
+            this.emit('committed', record, true);
           }
         } catch (error) {
           // A participant may be disposed while the callback is running. The
@@ -318,23 +344,28 @@ export class StoreTransactionCoordinator implements TransactionCoordinatorPort {
     if (!this.canUndo()) return;
     const record = this.history[this.position - 1]!;
     this.assertAtPositions(record, 'after');
-    this.applyPositions(record, 'undo');
-    this.position -= 1;
-    this.emit('undone', record);
+    this.applyPositions(record, 'undo', () => {
+      this.position -= 1;
+      this.updateInspectorSnapshot();
+    });
+    this.emit('undone', record, true);
   }
 
   redo(): void {
     if (!this.canRedo()) return;
     const record = this.history[this.position]!;
     this.assertAtPositions(record, 'before');
-    this.applyPositions(record, 'redo');
-    this.position += 1;
-    this.emit('redone', record);
+    this.applyPositions(record, 'redo', () => {
+      this.position += 1;
+      this.updateInspectorSnapshot();
+    });
+    this.emit('redone', record, true);
   }
 
   private applyPositions(
     record: StoredStoreTransactionRecord,
     origin: 'undo' | 'redo',
+    onApplied: () => void,
   ): void {
     const participants = record.participants.map(({ store }) => store);
     const metadata = { ...record.meta, origin } satisfies TimeTravelTransitionMeta;
@@ -345,14 +376,29 @@ export class StoreTransactionCoordinator implements TransactionCoordinatorPort {
         started.push(store);
       }
     } catch (error) {
-      for (const store of [...started].reverse()) store.cancelBatch();
+      for (const store of [...started].reverse()) {
+        try {
+          store.cancelBatch();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
+      }
       for (const store of started) {
-        store.resumeNotifications();
-        store.flushNotifications();
+        try {
+          store.resumeNotifications();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
+        try {
+          store.flushNotifications();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
       }
       throw error;
     }
     let applied = false;
+    let ended = false;
     try {
       for (const participant of participants) {
         const participantRecord = record.participants.find(({ store }) => store === participant)!;
@@ -367,14 +413,33 @@ export class StoreTransactionCoordinator implements TransactionCoordinatorPort {
         participant.goToHistoryEntry(targetEntryId, metadata);
       }
       applied = true;
-    } finally {
       for (const store of [...participants].reverse()) {
-        if (applied) store.endBatch();
-        else store.cancelBatch();
+        store.endBatch();
+      }
+      ended = true;
+      onApplied();
+    } finally {
+      if (!ended) {
+        for (const store of [...participants].reverse()) {
+          try {
+            if (applied) store.endBatch();
+            else if (!store.isStoreDisposed()) store.cancelBatch();
+          } catch (cleanupError) {
+            this.reportListenerError(cleanupError);
+          }
+        }
       }
       for (const store of participants) {
-        store.resumeNotifications();
-        store.flushNotifications();
+        try {
+          store.resumeNotifications();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
+        try {
+          store.flushNotifications();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
       }
     }
   }

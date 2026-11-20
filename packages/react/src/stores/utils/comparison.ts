@@ -52,6 +52,10 @@ export function shallowEquals<T>(oldValue: T, newValue: T, ignoreKeys: string[] 
   }
 
   // 배열 처리
+  if (Array.isArray(oldValue) !== Array.isArray(newValue)) {
+    return false;
+  }
+
   if (Array.isArray(oldValue) && Array.isArray(newValue)) {
     if (oldValue.length !== newValue.length) {
       return false;
@@ -133,7 +137,7 @@ export function deepEquals<T>(
       if (visitedPairs.has(a)) {
         const pairedSet = visitedPairs.get(a)!;
         if (pairedSet.has(b)) {
-          return Object.is(a, b);
+          return true;
         }
       }
       
@@ -151,13 +155,68 @@ export function deepEquals<T>(
     }
 
     // Date 객체 처리
+    if ((a instanceof Date) !== (b instanceof Date)) {
+      return false;
+    }
     if (a instanceof Date && b instanceof Date) {
       return a.getTime() === b.getTime();
     }
 
     // RegExp 객체 처리
+    if ((a instanceof RegExp) !== (b instanceof RegExp)) {
+      return false;
+    }
     if (a instanceof RegExp && b instanceof RegExp) {
       return a.toString() === b.toString();
+    }
+
+    // Map 객체 처리
+    if ((a instanceof Map) !== (b instanceof Map)) {
+      return false;
+    }
+    if (a instanceof Map && b instanceof Map) {
+      if (a.size !== b.size) {
+        return false;
+      }
+      for (const [key, value] of a) {
+        if (!b.has(key) || !deepCompare(value, b.get(key), depth + 1, `${path}[Map]`)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // Set 객체 처리
+    if ((a instanceof Set) !== (b instanceof Set)) {
+      return false;
+    }
+    if (a instanceof Set && b instanceof Set) {
+      if (a.size !== b.size) {
+        return false;
+      }
+      const bItems = [...b];
+      const matched = new Array<boolean>(bItems.length).fill(false);
+      for (const item of a) {
+        if (b.has(item)) {
+          const exactIdx = bItems.findIndex((candidate, idx) => !matched[idx] && Object.is(candidate, item));
+          if (exactIdx !== -1) {
+            matched[exactIdx] = true;
+            continue;
+          }
+        }
+        let found = false;
+        for (let idx = 0; idx < bItems.length; idx++) {
+          if (!matched[idx] && deepCompare(item, bItems[idx], depth + 1, `${path}[Set]`)) {
+            matched[idx] = true;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          return false;
+        }
+      }
+      return true;
     }
 
     // 배열 처리

@@ -3,6 +3,9 @@ import { render, screen } from '@testing-library/react';
 import {
   ContextActionError,
   ContextActionErrorType,
+  ErrorLogLevel,
+  getErrorHandlingConfig,
+  setErrorHandlingConfig,
 } from '../../../src/stores/utils/error-handling';
 import {
   StoreErrorBoundary,
@@ -93,5 +96,41 @@ describe('StoreErrorBoundary', () => {
 
     expect(screen.getByTestId('hoc-fallback')).toBeInTheDocument();
     consoleError.mockRestore();
+  });
+
+  it('renders function fallbacks without crashing even when ErrorHandlers throwOnError is enabled', () => {
+    const previousConfig = getErrorHandlingConfig();
+    setErrorHandlingConfig({
+      throwOnError: true,
+      logLevel: ErrorLogLevel.SILENT,
+      suppressRepeatedErrors: false,
+    });
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const onError = jest.fn();
+
+    const ThrowingComponent = (): React.ReactElement => {
+      throw new Error('plain render boom');
+    };
+
+    try {
+      render(
+        <StoreErrorBoundary
+          onError={onError}
+          fallback={(error, errorInfo) => (
+            <div data-testid="fn-fallback">
+              {error.message}::{String(Boolean(errorInfo.componentStack))}
+            </div>
+          )}
+        >
+          <ThrowingComponent />
+        </StoreErrorBoundary>,
+      );
+
+      expect(screen.getByTestId('fn-fallback')).toHaveTextContent(/plain render boom[\s\S]*::true/);
+      expect(onError).toHaveBeenCalledTimes(1);
+    } finally {
+      consoleError.mockRestore();
+      setErrorHandlingConfig(previousConfig);
+    }
   });
 });

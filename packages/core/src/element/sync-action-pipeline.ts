@@ -224,9 +224,9 @@ export function createSyncActionPipeline<
 
       // Phase 3: Observers
       for (const entry of [...(observers.get(action) ?? [])]) {
-        consumeOnce(observers, action, entry);
         if (entry.when === 'success' && !success) continue;
         if (entry.when === 'failure' && success) continue;
+        consumeOnce(observers, action, entry);
         try {
           entry.handler(currentPayload, {
             success,

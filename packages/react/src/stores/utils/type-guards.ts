@@ -35,7 +35,7 @@ export function isRefState(value: unknown): value is RefState {
  * DOM Event 객체인지 확인하는 타입 가드
  */
 export function isDOMEvent(value: unknown): value is Event {
-  return value instanceof Event;
+  return typeof Event !== 'undefined' && value instanceof Event;
 }
 
 /**
@@ -66,7 +66,7 @@ export function hasTargetProperty(value: unknown): value is { target: unknown } 
  * DOM Element인지 확인하는 타입 가드
  */
 export function isDOMElement(value: unknown): value is Element {
-  return value instanceof Element;
+  return typeof Element !== 'undefined' && value instanceof Element;
 }
 
 /**

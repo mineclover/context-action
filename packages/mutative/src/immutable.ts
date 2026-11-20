@@ -19,7 +19,7 @@ import type { ImmutabilityOptions, ProduceOptions } from './types';
 import {
   isPrimitive,
   isNonCloneableType,
-  isPlainObject,
+  deepCloneValue,
   createLogger,
 } from './utils';
 
@@ -135,76 +135,7 @@ export function produceWithPatches<T, F extends boolean = false>(
  * to guarantee immutability when the returned value is modified externally.
  */
 export function deepClone<T>(value: T): T {
-  // Fast path: primitives (immutable by nature)
-  if (isPrimitive(value)) {
-    return value;
-  }
-
-  // Skip non-cloneable types (DOM elements, functions, etc.)
-  if (isNonCloneableType(value) || typeof value === 'function') {
-    return value;
-  }
-
-  // Always create a true clone (new reference) for immutability guarantee
-  return manualDeepClone(value);
-}
-
-/**
- * Manual deep clone fallback
- * Handles nested non-cloneable types (DOM elements, etc.) by preserving references
- */
-function manualDeepClone<T>(value: T): T {
-  if (value === null || typeof value !== 'object') {
-    return value;
-  }
-
-  // Skip non-cloneable types at any level (DOM elements, functions, etc.)
-  if (isNonCloneableType(value) || typeof value === 'function') {
-    return value;
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(manualDeepClone) as T;
-  }
-
-  if (value instanceof Map) {
-    const cloned = new Map();
-    value.forEach((entryValue, key) => {
-      cloned.set(key, manualDeepClone(entryValue));
-    });
-    return cloned as T;
-  }
-
-  if (value instanceof Set) {
-    const cloned = new Set();
-    value.forEach((entryValue) => {
-      cloned.add(manualDeepClone(entryValue));
-    });
-    return cloned as T;
-  }
-
-  if (value instanceof Date) {
-    return new Date(value.getTime()) as T;
-  }
-
-  if (value instanceof RegExp) {
-    return new RegExp(value.source, value.flags) as T;
-  }
-
-  if (isPlainObject(value)) {
-    const cloned: Record<string, unknown> = {};
-    for (const [key, val] of Object.entries(value)) {
-      cloned[key] = manualDeepClone(val);
-    }
-    return cloned as T;
-  }
-
-  // For class instances, try JSON round-trip
-  try {
-    return JSON.parse(JSON.stringify(value));
-  } catch {
-    return value;
-  }
+  return deepCloneValue(value) as T;
 }
 
 // ============================================================================

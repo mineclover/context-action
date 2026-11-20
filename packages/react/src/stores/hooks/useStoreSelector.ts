@@ -16,7 +16,6 @@ import { equalityFunctions } from '../utils/sync-external-store-utils';
 export const defaultEqualityFn = equalityFunctions.smart; // 똑똑한 자동 동등성 함수
 export const shallowEqual = equalityFunctions.shallow;
 export const deepEqual = equalityFunctions.deep;
-export const smartEqual = equalityFunctions.smart;
 
 /**
  * Hook for selective store subscription with performance optimization
@@ -44,26 +43,6 @@ export function useStoreSelector<T, R>(
   equalityFn: (a: R, b: R) => boolean = defaultEqualityFn
 ): R {
   "use memo";
-  // Selector를 안정적으로 유지
-  const stableSelector = useCallback(selector, [selector]);
-  
-  // EqualityFn을 안정적으로 유지
-  const stableEqualityFn = useCallback(equalityFn, [equalityFn]);
-  
-  // 개발 모드에서 selector 변경 경고
-  const selectorWarningShownRef = useRef(false);
-  
-  if (process.env.NODE_ENV === 'development') {
-    if (selector !== stableSelector && !selectorWarningShownRef.current) {
-      console.warn(
-        'useStoreSelector: selector function changed. ' +
-        'Consider wrapping it with useCallback to avoid unnecessary recalculations.',
-        'Store:', store.name
-      );
-      selectorWarningShownRef.current = true;
-    }
-  }
-  
   // 동등성 비교를 위한 이전 값 추적
   const previousValueRef = useRef<{ store: Store<T>; value: R } | undefined>(undefined);
   
@@ -75,11 +54,11 @@ export function useStoreSelector<T, R>(
   const getSnapshot = useCallback((): R => {
     try {
       const storeValue = store.getSnapshot().value;
-      const selectedValue = stableSelector(storeValue);
+      const selectedValue = selector(storeValue);
       
       // 동등성 비교를 위한 최적화
       const previous = previousValueRef.current;
-      if (previous?.store === store && stableEqualityFn(previous.value, selectedValue)) {
+      if (previous?.store === store && equalityFn(previous.value, selectedValue)) {
         return previous.value;
       }
       
@@ -91,7 +70,7 @@ export function useStoreSelector<T, R>(
       }
       throw error;
     }
-  }, [store, stableSelector, stableEqualityFn]);
+  }, [store, selector, equalityFn]);
   
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
