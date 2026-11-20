@@ -1,21 +1,21 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-20T08:16:12.686Z",
-  "commitSha": "53968bfeb75a2b18529b9970c505bedec87318a1",
-  "branch": "fix/runtime-core-mutative-react-xstate",
+  "timestamp": "2026-11-20T08:57:59.139Z",
+  "commitSha": "c5b7a3402508d8e74c242386da1d2ee1e8f96250",
+  "branch": "fix/tooling-llms-typedoc-scripts",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
     "platform": "darwin",
     "arch": "arm64"
   },
-  "inputDigest": "sha256:584fbe08f17d63a6daa7d63eee6c23d1f79a1e969516a8a88e2562e14bb4cf53",
+  "inputDigest": "sha256:a37595821829135ceebc9c3d4667a25e3bfee119b04d320b46e7a8346bf114c1",
   "workingTree": "clean",
-  "treeDigest": "sha256:3ee03de16b450fb74ac4060e2fc72741698acdb03ddffc6e42867aafcb26b997",
+  "treeDigest": "sha256:163cfc11b59bb7cb95208725dd1c140e72d38e9642b2f8768ee52e577bd3a85a",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 18.32,
+      "durationSec": 18.2,
       "status": "passed"
     },
     {
@@ -25,7 +25,7 @@
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 3.65,
+      "durationSec": 3.03,
       "status": "passed"
     },
     {
@@ -45,12 +45,12 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.32,
+      "durationSec": 0.31,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.66,
+      "durationSec": 1.48,
       "status": "passed"
     },
     {
@@ -60,5 +60,5 @@
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:f92640e4f7cb6d3a8149246875375ad48afe4ac9f7019d434dbd0164b2149953"
+  "receiptDigest": "sha256:1e29b514f9df0e6f5d95875b075e43a69a8052145a4daf5d99872ec419882c64"
 }
