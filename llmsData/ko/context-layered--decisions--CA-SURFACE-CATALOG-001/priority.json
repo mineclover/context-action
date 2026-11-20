@@ -2,7 +2,7 @@
   "document": {
     "id": "context-layered--decisions--CA-SURFACE-CATALOG-001",
     "title": "CA-SURFACE-CATALOG-001: 저장소 API·예제·문서 표면 카탈로그 거버넌스",
-    "category": "concept",
+    "category": "context-layered",
     "source_path": "ko/context-layered/decisions/CA-SURFACE-CATALOG-001.md",
     "lastModified": "2026-11-19T21:49:40.822Z",
     "wordCount": 437
@@ -191,7 +191,7 @@
     "version": "1.0.0",
     "original_size": 5540,
     "created_at": "2026-11-19T21:52:06.058Z",
-    "source_last_modified": "2026-11-19T21:49:40.822Z",
+    "source_last_modified": "2026-11-20T01:56:49.667Z",
     "keywords": {
       "primary": [
         "context-layered",
@@ -209,6 +209,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-11-20T01:57:42.558Z"
   }
 }

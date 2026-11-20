@@ -2,7 +2,7 @@
   "document": {
     "id": "context-layered--decisions--CA-SURFACE-CATALOG-001",
     "title": "CA-SURFACE-CATALOG-001: Repository API, Example, and Document Surface Catalog Governance",
-    "category": "concept",
+    "category": "context-layered",
     "source_path": "en/context-layered/decisions/CA-SURFACE-CATALOG-001.md",
     "lastModified": "2026-11-19T21:49:39.512Z",
     "wordCount": 512
@@ -191,7 +191,7 @@
     "version": "1.0.0",
     "original_size": 5486,
     "created_at": "2026-11-19T21:52:05.479Z",
-    "source_last_modified": "2026-11-19T21:49:39.512Z",
+    "source_last_modified": "2026-11-20T01:56:45.004Z",
     "keywords": {
       "primary": [
         "context-layered",
@@ -209,6 +209,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-11-20T01:57:42.556Z"
   }
 }

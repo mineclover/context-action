@@ -6,7 +6,7 @@
 
 ## 맥락
 
-현재 저장소는 20개 워크스페이스 패키지(`packages/*`), `example/` 앱 내 72개 정식 라우트(레거시 리다이렉트 포함 총 116개), 독립 데모(`demos/bolt-style-editor`, `examples/vanilla-js`), 7개 패키지 로컬 `examples/`, 9개 내러티브 예제 가이드, 13개 루트 마크다운 파일, 한영 문서 트리, 릴리스 매니페스트, 파생 TypeDoc/LLMS 산출물로 구성되어 있습니다.
+현재 저장소는 20개 워크스페이스 패키지(`packages/*`), `example/` 앱 내 76개 정식 라우트(레거시 리다이렉트 포함 총 120개), 독립 데모(`demos/bolt-style-editor`, `examples/vanilla-js`), 7개 패키지 로컬 `examples/`, 9개 내러티브 예제 가이드, 13개 루트 마크다운 파일, 한영 문서 트리, 릴리스 매니페스트, 파생 TypeDoc/LLMS 산출물로 구성되어 있습니다.
 
 기존에는 이러한 표면이 `package.json`, `typedoc.json`, `example/src/App.tsx`, `sidebars.ts`, `package-boundary-convention.md` 등에 흩어져 있어(`@context-action/lit`, `@context-action/lit-ui`, `@context-action/webmcp`, `@context-action/template-react`가 패키지 맵 표에서 누락되는 등), 새 패키지나 예제 라우트·미번역 문서가 추가될 때 조용한 드리프트가 발생했습니다.
 
@@ -21,7 +21,7 @@
 `catalog/repository-surface/` 아래 3개 버전 관리 카탈로그와 한영 기본 규격 문서를 도입합니다.
 
 - `catalog/repository-surface/api-surface.v1.json`: 20개 전체 워크스페이스 패키지의 `layer`, `visibility`, `stability`, `exports` 서브패스, 워크스페이스 의존성/피어, `typedocEntryPoints`, `readme`, `authoritativeDocs`, `verificationGate`를 나열·고정합니다.
-- `catalog/repository-surface/example-surface.v1.json`: `example/` 내 13개 의미 그룹(72개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 7개 `packages/*/examples` 스위트, 9개 한영 내러티브 예제 문서(`docs/{en,ko}/examples/*.md`)가 무엇을 설명하는지 나열합니다.
+- `catalog/repository-surface/example-surface.v1.json`: `example/` 내 13개 의미 그룹(76개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 7개 `packages/*/examples` 스위트, 9개 한영 내러티브 예제 문서(`docs/{en,ko}/examples/*.md`)가 무엇을 설명하는지 나열합니다.
 - `catalog/repository-surface/document-surface.v1.json`: 13개 루트 마크다운 파일, 관리 영역별 `authorityClass` 및 `pairingPolicy`(`strict-paired`, `tracked-partial`, `single-locale`, `derived`, `not-applicable`), 파생 TypeDoc/LLMS 산출물을 나열합니다.
 - `scripts/verify-repository-surface-catalog.mjs`(`pnpm verify:surface-catalog`) 및 `scripts/verify-repository-surface-catalog.test.mjs`를 `pnpm convention:check`에 연결해 fail-closed로 드리프트를 차단합니다.
 

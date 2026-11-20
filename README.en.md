@@ -519,7 +519,7 @@ dispatch('updateProfile', { name: 'John', email: 'john@example.com' });
 ## 🎮 Examples & Demos
 
 ### 🚀 Live Interactive Examples
-**[Explore 72 canonical example routes →](https://mineclover.github.io/context-action/example/)** ([Catalog Inventory](./catalog/repository-surface/example-surface.v1.json))
+**[Explore 76 canonical example routes →](https://mineclover.github.io/context-action/example/)** ([Catalog Inventory](./catalog/repository-surface/example-surface.v1.json))
 
 #### 🏪 **Store System**
 - [Store Basics](https://mineclover.github.io/context-action/example/foundations/store/basics) - Fundamental store creation, updates, and subscriptions
@@ -566,7 +566,7 @@ interface UserActions extends ActionPayloadMap {
 - **[🚀 Getting Started Guide](https://mineclover.github.io/context-action/en/guide/getting-started)** - 5-minute setup
 - **[🏗️ Context-Layered Architecture](https://mineclover.github.io/context-action/en/context-layered/context-layered-guide)** - Practical 6-layer implementation guide
 - **[🧭 Convention Index](https://mineclover.github.io/context-action/en/context-layered/convention-index)** - Central task-based index for standards & gates
-- **[📦 Repository Surface Catalog](https://mineclover.github.io/context-action/en/context-layered/repository-surface-catalog)** - All 20 packages, 72 canonical routes, and managed docs (`CA-SURFACE-CATALOG-001`)
+- **[📦 Repository Surface Catalog](https://mineclover.github.io/context-action/en/context-layered/repository-surface-catalog)** - All 20 packages, 76 canonical routes, and managed docs (`CA-SURFACE-CATALOG-001`)
 - **[🏪 Store Selection and Usage Guide](https://mineclover.github.io/context-action/en/context-layered/store-selection-and-usage-guide)** - Decision matrix across all store/state packages
 - **[📋 Architecture Overview](https://mineclover.github.io/context-action/en/concept/architecture-guide)** - Framework concepts
 - **[⚡ Best Practices](https://mineclover.github.io/context-action/en/guide/best-practices)** - Production patterns

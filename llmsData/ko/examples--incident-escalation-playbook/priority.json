@@ -2,7 +2,7 @@
   "document": {
     "id": "examples--incident-escalation-playbook",
     "title": "Incident Escalation Playbook 예제",
-    "category": "example",
+    "category": "examples",
     "source_path": "ko/examples/incident-escalation-playbook.md",
     "lastModified": "2026-03-29T23:20:46.463Z",
     "wordCount": 276
@@ -195,7 +195,7 @@
     "version": "1.0.0",
     "original_size": 2924,
     "created_at": "2026-07-24T05:15:02.534Z",
-    "source_last_modified": "2026-03-29T23:20:46.463Z",
+    "source_last_modified": "2026-11-20T01:57:18.111Z",
     "keywords": {
       "primary": [
         "examples",
@@ -215,6 +215,7 @@
         "documentation",
         "framework"
       ]
-    }
+    },
+    "last_updated": "2026-11-20T01:57:42.567Z"
   }
 }

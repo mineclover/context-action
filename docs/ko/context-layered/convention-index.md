@@ -30,7 +30,7 @@ PR 전 로컬 우선 검증 및 영수증 발급([Local-First Verification Polic
 - [패키지 경계 및 코드베이스 관리](/ko/context-layered/package-boundary-convention)
   - package ownership, dependency 방향, package lifecycle, cleanup 규칙
 - [저장소 표면 카탈로그](/ko/context-layered/repository-surface-catalog)
-  - 20개 패키지 API, 72개 정식 예제 라우트·데모, 관리 문서 체계 기본 규격 및 전체 목록 ([CA-SURFACE-CATALOG-001](/ko/context-layered/decisions/CA-SURFACE-CATALOG-001))
+  - 20개 패키지 API, 76개 정식 예제 라우트·데모, 관리 문서 체계 기본 규격 및 전체 목록 ([CA-SURFACE-CATALOG-001](/ko/context-layered/decisions/CA-SURFACE-CATALOG-001))
 - [Mutative Core 히스토리 및 원본 참조](/ko/context-layered/mutative-core-history)
   - Mutative 소스 계보, 반영한 upstream 수정, 라이선스, 동기화 규칙
 - [Implementation Convention](/ko/context-layered/implementation-convention)
