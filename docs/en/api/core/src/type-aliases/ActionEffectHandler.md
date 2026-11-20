@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionEffectHandler
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionEffectHandler
 
 # Type Alias: ActionEffectHandler\<T\>
 
 > **ActionEffectHandler**&lt;`T`&gt; = (`payload`, `controller`) => `void` \| `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:509](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L509)
+Defined in: [packages/core/src/types.ts:358](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L358)
 
 A side-effect observer. Its return value and result APIs are intentionally unavailable.
 

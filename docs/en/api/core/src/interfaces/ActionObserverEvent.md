@@ -1,12 +1,12 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionObserverEvent
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionObserverEvent
 
 # Interface: ActionObserverEvent\<T, R\>
 
-Defined in: [packages/core/src/types.ts:394](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L394)
+Defined in: [packages/core/src/types.ts:243](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L243)
 
 Immutable terminal event delivered to observer handlers.
 
@@ -26,7 +26,7 @@ Immutable terminal event delivered to observer handlers.
 
 > `readonly` **action**: `string`
 
-Defined in: [packages/core/src/types.ts:395](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L395)
+Defined in: [packages/core/src/types.ts:244](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L244)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [packages/core/src/types.ts:395](https://github.com/mineclover/conte
 
 > `readonly` **payload**: `Readonly`&lt;`T`&gt;
 
-Defined in: [packages/core/src/types.ts:396](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L396)
+Defined in: [packages/core/src/types.ts:245](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L245)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [packages/core/src/types.ts:396](https://github.com/mineclover/conte
 
 > `readonly` **outcome**: `"completed"` \| `"completed_with_errors"` \| `"failed"` \| `"cancelled"` \| `"debounced"` \| `"throttled"`
 
-Defined in: [packages/core/src/types.ts:397](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L397)
+Defined in: [packages/core/src/types.ts:246](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L246)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [packages/core/src/types.ts:397](https://github.com/mineclover/conte
 
 > `readonly` **result**: `R` \| readonly `R`[] \| `undefined`
 
-Defined in: [packages/core/src/types.ts:398](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L398)
+Defined in: [packages/core/src/types.ts:247](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L247)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [packages/core/src/types.ts:398](https://github.com/mineclover/conte
 
 > `readonly` **errors**: readonly [`HandlerError`](HandlerError.md)[]
 
-Defined in: [packages/core/src/types.ts:399](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L399)
+Defined in: [packages/core/src/types.ts:248](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L248)
 
 ***
 
@@ -66,4 +66,4 @@ Defined in: [packages/core/src/types.ts:399](https://github.com/mineclover/conte
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/core/src/types.ts:400](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L400)
+Defined in: [packages/core/src/types.ts:249](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L249)

@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / ActorStateReaderOptions
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / ActorStateReaderOptions
 
 # Interface: ActorStateReaderOptions\<TSnapshot, TSelected\>
 
@@ -32,11 +32,11 @@ Optional projection selector to avoid broadcasting unrelated context changes.
 
 ##### snapshot
 
-Type parameter **TSnapshot**
+`TSnapshot`
 
 #### Returns
 
-Type parameter **TSelected**
+`TSelected`
 
 ***
 
@@ -52,11 +52,11 @@ Equality comparator for projected values. Defaults to `Object.is`.
 
 ##### previous
 
-Type parameter **TSelected**
+`TSelected`
 
 ##### next
 
-Type parameter **TSelected**
+`TSelected`
 
 #### Returns
 

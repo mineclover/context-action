@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / bindActor
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / bindActor
 
 # Function: bindActor()
 
@@ -10,7 +10,7 @@
 
 > **bindActor**\<`TActions`, `TResultMap`, `TEvent`, `TSnapshot`, `TEmitted`\>(`target`, `actor`, `options`): [`BoundActorHandle`](../type-aliases/BoundActorHandle.md)\<`TActions`, `TSnapshot`\>
 
-Defined in: [packages/xstate/src/pipeline-binding.ts:608](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L608)
+Defined in: [packages/xstate/src/pipeline-binding.ts:639](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L639)
 
 Standardized universal entrypoint mounting an `ActorRefLike` onto either an async
 `ActionRegister` or a synchronous DOM `SyncActionPipeline`.
@@ -59,7 +59,7 @@ Standardized universal entrypoint mounting an `ActorRefLike` onto either an asyn
 
 > **bindActor**\<`TActions`, `TEvent`, `TSnapshot`, `TEmitted`\>(`target`, `actor`, `options`): [`BoundActorHandle`](../type-aliases/BoundActorHandle.md)\<`TActions`, `TSnapshot`\>
 
-Defined in: [packages/xstate/src/pipeline-binding.ts:619](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L619)
+Defined in: [packages/xstate/src/pipeline-binding.ts:650](https://github.com/mineclover/context-action/blob/main/packages/xstate/src/pipeline-binding.ts#L650)
 
 Standardized universal entrypoint mounting an `ActorRefLike` onto either an async
 `ActionRegister` or a synchronous DOM `SyncActionPipeline`.

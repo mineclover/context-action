@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / ActionToEventEntry
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / ActionToEventEntry
 
 # Type Alias: ActionToEventEntry\<TPayload, TEvent\>
 
@@ -16,7 +16,7 @@ Declarative mapping entry from a Context-Action action key/payload to an XState 
 
 ### TPayload
 
-Type parameter **TPayload**
+`TPayload`
 
 ### TEvent
 

@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / SideEffectRecordPayload
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / SideEffectRecordPayload
 
 # Interface: SideEffectRecordPayload\<TResult, TDiagnostic\>
 
@@ -14,7 +14,7 @@ The payload persisted in a durable operation record.
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ### TDiagnostic
 

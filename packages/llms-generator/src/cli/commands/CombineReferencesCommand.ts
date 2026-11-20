@@ -91,8 +91,8 @@ export class CombineReferencesCommand {
     let outputPath = options.outputPath;
     if (!outputPath) {
       const sourceBasename = path.basename(options.sourceDocument, '.md');
-      // Use llms/ directory with -combined suffix
-      const llmsDir = 'llms';
+      // Use configured outputDir with -combined suffix
+      const llmsDir = this.config.paths?.outputDir || 'llms';
       outputPath = path.join(llmsDir, `${sourceBasename}-combined.md`);
     }
 
@@ -204,6 +204,7 @@ export class CombineReferencesCommand {
 
   private parseReferences(content: string, _sourcePath: string): ParsedReference[] {
     const references: ParsedReference[] = [];
+    const seenUrls = new Set<string>();
     
     // Parse markdown links: [text](url)
     const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
@@ -216,17 +217,24 @@ export class CombineReferencesCommand {
       if (!url || !text) {
         continue;
       }
+
+      const trimmedUrl = url.trim();
       
       // Skip external URLs, anchors, and email links
-      if (url.startsWith('http') || url.startsWith('#') || url.startsWith('mailto:')) {
+      if (trimmedUrl.startsWith('http') || trimmedUrl.startsWith('#') || trimmedUrl.startsWith('mailto:')) {
         continue;
       }
 
+      if (seenUrls.has(trimmedUrl)) {
+        continue;
+      }
+      seenUrls.add(trimmedUrl);
+
       // Classify reference type
       let type: 'local' | 'relative' | 'absolute' = 'relative';
-      if (url.startsWith('/')) {
+      if (trimmedUrl.startsWith('/')) {
         type = 'absolute';
-      } else if (url.includes('/')) {
+      } else if (trimmedUrl.includes('/')) {
         type = 'relative';
       } else {
         type = 'local';
@@ -234,38 +242,9 @@ export class CombineReferencesCommand {
 
       references.push({
         text: text.trim(),
-        url: url.trim(),
+        url: trimmedUrl,
         type
       });
-    }
-
-    // Parse additional patterns (if needed)
-    // Example: **[Pattern Name](path/to/file.md)** - Description
-    const patternRegex = /\*\*\[([^\]]+)\]\(([^)]+)\)\*\*\s*-\s*([^.\n]*)/g;
-    while ((match = patternRegex.exec(content)) !== null) {
-      const [, text, url] = match;
-      
-      // Skip if url or text is undefined
-      if (!url || !text) {
-        continue;
-      }
-      
-      if (!url.startsWith('http') && !url.startsWith('#') && !url.startsWith('mailto:')) {
-        let type: 'local' | 'relative' | 'absolute' = 'relative';
-        if (url.startsWith('/')) {
-          type = 'absolute';
-        } else if (url.includes('/')) {
-          type = 'relative';
-        } else {
-          type = 'local';
-        }
-
-        references.push({
-          text: text.trim(),
-          url: url.trim(),
-          type
-        });
-      }
     }
 
     return references;
@@ -277,12 +256,34 @@ export class CombineReferencesCommand {
   ): Promise<ParsedReference[]> {
     const resolved: ParsedReference[] = [];
 
+    const probeExistingFile = async (candidateBase: string): Promise<string | null> => {
+      const candidates = [candidateBase];
+      if (!candidateBase.endsWith('.md')) {
+        candidates.push(
+          `${candidateBase}.md`,
+          path.join(candidateBase, 'index.md'),
+          path.join(candidateBase, 'README.md')
+        );
+      }
+
+      for (const candidate of candidates) {
+        try {
+          const stat = await fs.stat(candidate);
+          if (stat.isFile()) {
+            return candidate;
+          }
+        } catch {
+          // Probe next candidate
+        }
+      }
+
+      return null;
+    };
+
     for (const ref of references) {
       const resolvedRef = { ...ref };
       
       try {
-        let resolvedPath: string;
-        
         // Ensure we have the absolute source doc path
         let absoluteSourcePath = sourceDocPath;
         if (!path.isAbsolute(absoluteSourcePath)) {
@@ -290,28 +291,28 @@ export class CombineReferencesCommand {
         }
         
         const sourceDir = path.dirname(absoluteSourcePath);
+        const urlWithoutQueryOrHash = ref.url.split('#')[0]?.split('?')[0]?.trim() || '';
+        const cleanUrl = urlWithoutQueryOrHash.replace(/\/+$/, '');
 
+        if (!cleanUrl) {
+          resolvedRef.exists = false;
+          resolved.push(resolvedRef);
+          continue;
+        }
+
+        let baseResolvedPath: string;
         if (ref.type === 'absolute') {
           // Absolute path from docs root
           const docsDir = path.resolve(process.cwd(), this.config.paths.docsDir);
-          resolvedPath = path.resolve(docsDir, ref.url.substring(1));
-        } else if (ref.type === 'relative') {
-          // Relative to source document directory
-          resolvedPath = path.resolve(sourceDir, ref.url);
+          baseResolvedPath = path.resolve(docsDir, cleanUrl.substring(1));
         } else {
-          // Local (same directory as source)
-          resolvedPath = path.resolve(sourceDir, ref.url);
+          // Relative or local path resolved from source document directory
+          baseResolvedPath = path.resolve(sourceDir, cleanUrl);
         }
 
-        resolvedRef.resolvedPath = resolvedPath;
-        
-        // Check if file exists
-        try {
-          await fs.access(resolvedPath);
-          resolvedRef.exists = true;
-        } catch {
-          resolvedRef.exists = false;
-        }
+        const existingPath = await probeExistingFile(baseResolvedPath);
+        resolvedRef.resolvedPath = existingPath ?? baseResolvedPath;
+        resolvedRef.exists = existingPath !== null;
       } catch {
         resolvedRef.exists = false;
       }

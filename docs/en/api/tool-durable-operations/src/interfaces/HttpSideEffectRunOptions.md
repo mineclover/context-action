@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / HttpSideEffectRunOptions
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / HttpSideEffectRunOptions
 
 # Interface: HttpSideEffectRunOptions\<TResult, TDiagnostic\>
 
@@ -16,7 +16,7 @@ Defined in: [packages/tool-durable-operations/src/http-side-effect.ts:29](https:
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ### TDiagnostic
 

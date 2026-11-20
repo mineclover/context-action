@@ -4,7 +4,8 @@
 
 import fs from 'fs'
 import path from 'path'
-import { spawn, ChildProcess } from 'child_process'
+import { spawn } from 'child_process'
+import { stripVTControlCharacters } from 'node:util'
 import type { CliOptions } from '../src/types/index.js'
 
 describe('CLI Interface', () => {
@@ -34,6 +35,7 @@ describe('CLI Interface', () => {
 export default {
   sourceDir: '${sourceDir}',
   targetDir: '${targetDir}',
+  sidebarConfigPath: '${path.join(testDir, 'api-spec.ts')}',
   packageMapping: {
     'test-package': 'test'
   },
@@ -161,6 +163,39 @@ export default {
         })
       }).not.toThrow()
     })
+
+    it('honors --no-cache, cache stats, and preserves target files during cache clear', async () => {
+      const cacheDir = path.join(testDir, 'cache')
+
+      // --no-cache must prevent creating the cache directory
+      const noCacheRun = await runCLI([
+        'sync',
+        '--config', configFile,
+        '--no-cache',
+        '--no-parallel',
+        '--no-quality',
+        '--no-metrics'
+      ])
+      expect(noCacheRun.exitCode).toBe(0)
+      expect(fs.existsSync(cacheDir)).toBe(false)
+      expect(fs.existsSync(path.join(targetDir, 'test', 'TestClass.md'))).toBe(true)
+
+      // Regular sync populates cache manifest
+      const cachedRun = await runCLI(['sync', '--config', configFile])
+      expect(cachedRun.exitCode).toBe(0)
+      expect(fs.existsSync(cacheDir)).toBe(true)
+
+      // cache stats loads existing manifest entries from disk
+      const statsRun = await runCLI(['cache', 'stats', '--config', configFile])
+      expect(statsRun.exitCode).toBe(0)
+      expect(stripVTControlCharacters(statsRun.stdout)).toMatch(/Cached Entries:\s+[1-9]/)
+
+      // cache clear removes cache directory without wiping generated target docs
+      const clearRun = await runCLI(['cache', 'clear', '--config', configFile])
+      expect(clearRun.exitCode).toBe(0)
+      expect(fs.existsSync(cacheDir)).toBe(false)
+      expect(fs.existsSync(path.join(targetDir, 'test', 'TestClass.md'))).toBe(true)
+    }, 15000)
   })
 
 })

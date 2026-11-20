@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / ActorEmissionEntry
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / ActorEmissionEntry
 
 # Type Alias: ActorEmissionEntry\<TActions, TEmitted\>
 

@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / runQueueSideEffect
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / runQueueSideEffect
 
 # Function: runQueueSideEffect()
 
@@ -21,15 +21,15 @@ an SDK return shape; the runner owns claim, replay, unknown, and recovery.
 
 ### TMessage
 
-Type parameter **TMessage**
+`TMessage`
 
 ### TAcknowledgement
 
-Type parameter **TAcknowledgement**
+`TAcknowledgement`
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ### TDiagnostic
 

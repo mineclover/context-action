@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / executeSequential
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / executeSequential
 
 # Function: executeSequential()
 

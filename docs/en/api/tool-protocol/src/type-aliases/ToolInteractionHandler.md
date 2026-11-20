@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-protocol/src](../README.md) / ToolInteractionHandler
+[context-action-monorepo](../../../README.md) / [packages/tool-protocol/src](../README.md) / ToolInteractionHandler
 
 # Type Alias: ToolInteractionHandler
 

@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / useTimeTravelPath
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / useTimeTravelPath
 
 # Function: useTimeTravelPath()
 
@@ -33,7 +33,7 @@ Type parameter **T**
 
 ### path
 
-Type parameter **StorePath**
+`StorePath`
 
 ### options?
 

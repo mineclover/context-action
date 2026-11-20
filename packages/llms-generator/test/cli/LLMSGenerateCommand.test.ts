@@ -1351,5 +1351,34 @@ Content with malformed priority.json.`;
         consoleErrorSpy.mockRestore();
       }
     });
+
+    it('ignores characterLimit filter when pattern is origin so source docs are included', async () => {
+      await fs.mkdir(path.join(testDataDir, 'docs', 'en', 'guide'), { recursive: true });
+      await fs.writeFile(
+        path.join(testDataDir, 'docs', 'en', 'guide', 'getting-started.md'),
+        '# Origin Guide\n\nFull source content for origin pattern test.'
+      );
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started', 'priority.json'),
+        JSON.stringify({
+          document: {
+            id: 'guide--getting-started',
+            category: 'guide',
+            language: 'en',
+            source_path: 'en/guide/getting-started.md'
+          },
+          priority: { score: 90, tier: 'high' }
+        }, null, 2)
+      );
+
+      await llmsGenerateCommand.execute({
+        pattern: 'origin',
+        characterLimit: 300
+      });
+
+      const outPath = path.join(testDataDir, 'output', 'en', 'llms', 'llms-300chars-origin.txt');
+      const output = await fs.readFile(outPath, 'utf-8');
+      expect(output).toContain('Full source content for origin pattern test');
+    });
   });
 });

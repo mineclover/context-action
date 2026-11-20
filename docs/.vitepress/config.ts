@@ -1,15 +1,8 @@
 import { defineConfig } from 'vitepress'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 
 // 새로운 구조적 nav와 sidebar 설정
 import { createNavigation } from './config/navigation'
 import { createSidebars } from './config/sidebars'
-
-// 패키지 정보 로드
-const packageJson = JSON.parse(
-  readFileSync(resolve(__dirname, '../../package.json'), 'utf-8')
-)
 
 export default defineConfig({
   title: 'Context Action',

@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/store-core/src](../README.md) / StateReader
+[context-action-monorepo](../../../README.md) / [packages/store-core/src](../README.md) / StateReader
 
 # Interface: StateReader\<T, Snapshot\>
 
@@ -33,7 +33,7 @@ Defined in: [packages/store-core/src/contracts.ts:38](https://github.com/mineclo
 
 #### Returns
 
-Type parameter **Snapshot**
+`Snapshot`
 
 ***
 

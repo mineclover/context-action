@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / createActionContext
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / createActionContext
 
 # Function: createActionContext()
 

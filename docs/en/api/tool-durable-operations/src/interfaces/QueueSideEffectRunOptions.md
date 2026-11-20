@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / QueueSideEffectRunOptions
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / QueueSideEffectRunOptions
 
 # Interface: QueueSideEffectRunOptions\<TMessage, TAcknowledgement, TResult, TDiagnostic\>
 
@@ -16,15 +16,15 @@ Defined in: [packages/tool-durable-operations/src/queue-side-effect.ts:25](https
 
 ### TMessage
 
-Type parameter **TMessage**
+`TMessage`
 
 ### TAcknowledgement
 
-Type parameter **TAcknowledgement**
+`TAcknowledgement`
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ### TDiagnostic
 

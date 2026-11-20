@@ -3,11 +3,16 @@ document_id: context-layered--change-management-convention
 category: context-layered
 source_path: ko/context-layered/change-management-convention.md
 character_limit: 200
-last_update: '2026-11-02T04:46:11.765Z'
+last_update: '2026-11-20T08:50:10.722Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
 completion_status: completed
 workflow_stage: content_generated
 ---
-...
+스펙·이슈·문서 관리 컨벤션
+
+스펙·이슈·문서 관리 컨벤션 상태: Active 최종 검토: 2026-11-20 범위: 기능 개발, 아키텍처 변경, 버그 수정, 공개 문서 이 문서는 요청을 검증된 변경으로 연결하는 운영 계층을 정의합니다. 구현 컨벤션, 패키지 경계 및 코드베이스 관리 컨벤션, 문서
+
+Key points:
+• `contexts`,...

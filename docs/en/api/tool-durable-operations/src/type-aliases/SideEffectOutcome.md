@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / SideEffectOutcome
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / SideEffectOutcome
 
 # Type Alias: SideEffectOutcome\<TResult, TDiagnostic\>
 
@@ -21,7 +21,7 @@ happened.
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ### TDiagnostic
 

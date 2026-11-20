@@ -65,6 +65,39 @@ export class QualityValidator {
   }
 
   /**
+   * Replace fenced code block contents with blank lines so line numbers stay accurate
+   * while syntax checks ignore code examples.
+   */
+  private stripCodeBlocks(content: string): string {
+    const lines = content.split('\n')
+    const result: string[] = []
+    let activeFence: string | null = null
+
+    for (const line of lines) {
+      const trimmed = line.trimStart()
+      const fenceMatch = trimmed.match(/^(```+|~~~+)/)
+
+      if (fenceMatch?.[1]) {
+        const marker = fenceMatch[1]
+        if (!activeFence) {
+          activeFence = marker[0]!
+          result.push('')
+          continue
+        }
+        if (marker[0] === activeFence && trimmed.slice(marker.length).trim() === '') {
+          activeFence = null
+          result.push('')
+          continue
+        }
+      }
+
+      result.push(activeFence ? '' : line)
+    }
+
+    return result.join('\n')
+  }
+
+  /**
    * Validate markdown syntax and content
    */
   private async validateMarkdown(filePath: string): Promise<string[]> {
@@ -72,15 +105,16 @@ export class QualityValidator {
 
     try {
       const content = fs.readFileSync(filePath, 'utf8')
+      const strippedContent = this.stripCodeBlocks(content)
 
       // Only flag explicit template placeholders. TypeDoc signatures commonly
       // contain the legitimate TypeScript value/type `undefined`.
-      if (/\{\{\s*undefined\s*\}\}|<%=?\s*undefined\s*%>/.test(content)) {
+      if (/\{\{\s*undefined\s*\}\}|<%=?\s*undefined\s*%>/.test(strippedContent)) {
         issues.push('Contains unresolved undefined template placeholder')
       }
 
       // Check for empty links
-      const emptyLinks = content.match(/\[.*?\]\(\s*\)/g)
+      const emptyLinks = strippedContent.match(/\[.*?\]\(\s*\)/g)
       if (emptyLinks) {
         issues.push(`${emptyLinks.length} empty link(s) found`)
       }
@@ -95,13 +129,13 @@ export class QualityValidator {
 
       // Check for broken markdown syntax. TypeDoc emits `***` horizontal rules;
       // those are structural markdown, not an unmatched bold marker.
-      const emphasisContent = content
+      const emphasisContent = strippedContent
         .split('\n')
         .filter(line => !/^\s*\*{3,}\s*$/.test(line))
         .join('\n')
       const unclosedBold = (emphasisContent.match(/(?<!\\)\*\*/g) || []).length % 2 !== 0
       if (unclosedBold) {
-        issues.push('Unclosed bold markdown syntax (**)') 
+        issues.push('Unclosed bold markdown syntax (**)')
       }
 
       const unclosedItalic = (emphasisContent.match(/(?<!\\)(?<!\*)\*(?!\*)/g) || []).length % 2 !== 0
@@ -111,12 +145,12 @@ export class QualityValidator {
 
       // Check malformed pipe tables only after finding a real separator row.
       // This avoids treating TypeScript unions (`A | B`) as tables.
-      const tableLines = content.split('\n')
+      const tableLines = strippedContent.split('\n')
       const isTableRow = (line: string): boolean => /^\s*\|.*\|\s*$/.test(line)
       const isTableSeparator = (line: string): boolean =>
         /^\s*\|(?:\s*:?-{3,}:?\s*\|)+\s*$/.test(line)
       const countTableColumns = (line: string): number =>
-        line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').length
+        line.trim().replace(/^\|/, '').replace(/(?<!\\)\|$/, '').split(/(?<!\\)\|/).length
 
       for (let i = 0; i < tableLines.length - 1; i++) {
         if (!isTableRow(tableLines[i] ?? '') || !isTableSeparator(tableLines[i + 1] ?? '')) {
@@ -133,14 +167,13 @@ export class QualityValidator {
       }
 
       // Check for very long lines (readability)
-      const lines = content.split('\n')
+      const lines = strippedContent.split('\n')
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const trimmedLine = line?.trimStart() ?? ''
         if (
           line &&
           line.length > 200 &&
-          !line.startsWith('```') &&
           !trimmedLine.startsWith('>') &&
           !trimmedLine.startsWith('|') &&
           !trimmedLine.startsWith('Defined in:') &&
@@ -165,54 +198,50 @@ export class QualityValidator {
     const issues: string[] = []
 
     try {
-      const content = fs.readFileSync(filePath, 'utf8')
-      const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+      const rawContent = fs.readFileSync(filePath, 'utf8')
+      const content = this.stripCodeBlocks(rawContent)
+      const linkRegex = /(?<!!)\[([^\]]*)\]\(([^)]+)\)/g
       let match: RegExpExecArray | null
 
       while ((match = linkRegex.exec(content)) !== null) {
-        const linkText = match[1]
-        const linkPath = match[2]
-        
-        if (!linkText || !linkPath) {
-          continue;
-        }
-        
-        // Skip external links
-        if (linkPath.startsWith('http://') || linkPath.startsWith('https://')) {
+        const linkText = match[1] ?? ''
+        const rawTarget = match[2]
+
+        if (!rawTarget) {
           continue
         }
 
-        // Skip anchor links within the same document
-        if (linkPath.startsWith('#')) {
+        const trimmedTarget = rawTarget.trim()
+
+        // Skip external protocols and same-document anchors
+        if (
+          !trimmedTarget ||
+          trimmedTarget.startsWith('#') ||
+          /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmedTarget)
+        ) {
           continue
-        }
-
-        // Check internal links
-        if (linkPath.startsWith('/') || linkPath.startsWith('./') || linkPath.startsWith('../')) {
-          let absolutePath: string
-
-          if (linkPath.startsWith('/')) {
-            // Absolute path from project root
-            absolutePath = path.join(process.cwd(), linkPath.substring(1))
-          } else {
-            // Relative path
-            absolutePath = path.resolve(path.dirname(filePath), linkPath)
-          }
-
-          // Remove anchor part if present
-          const cleanPath = absolutePath.split('#')[0]
-
-          if (cleanPath && !fs.existsSync(cleanPath)) {
-            // Try with .md extension if not present
-            if (!cleanPath.endsWith('.md') && !fs.existsSync(`${cleanPath}.md`)) {
-              issues.push(`Broken link: "${linkPath}" -> ${cleanPath}`)
-            }
-          }
         }
 
         // Check for empty link text
         if (!linkText.trim()) {
-          issues.push(`Empty link text for: ${linkPath}`)
+          issues.push(`Empty link text for: ${trimmedTarget}`)
+        }
+
+        const pathToken = trimmedTarget.split(/\s+/)[0] ?? trimmedTarget
+        const cleanTarget = pathToken.split('#')[0]?.split('?')[0] ?? ''
+        if (!cleanTarget) {
+          continue
+        }
+
+        const absolutePath = cleanTarget.startsWith('/')
+          ? path.join(process.cwd(), cleanTarget.substring(1))
+          : path.resolve(path.dirname(filePath), cleanTarget)
+
+        const targetExists = fs.existsSync(absolutePath)
+          || (!cleanTarget.endsWith('.md') && fs.existsSync(`${absolutePath}.md`))
+
+        if (!targetExists) {
+          issues.push(`Broken link: "${trimmedTarget}" -> ${absolutePath}`)
         }
       }
 
@@ -230,7 +259,7 @@ export class QualityValidator {
     const issues: string[] = []
 
     try {
-      const content = fs.readFileSync(filePath, 'utf8')
+      const content = this.stripCodeBlocks(fs.readFileSync(filePath, 'utf8'))
 
       // Check images for alt text
       const imgRegex = /!\[([^\]]*)\]/g
@@ -300,7 +329,7 @@ export class QualityValidator {
       const tables = content.match(/\|.*\|\s*\n\s*\|[-\s:|]+\|/g) || []
       for (const table of tables) {
         const headerRow = table.split('\n')[0]
-        if (headerRow && (!headerRow.includes('|') || headerRow.split('|').length < 3)) {
+        if (headerRow && (!headerRow.includes('|') || headerRow.split(/(?<!\\)\|/).length < 3)) {
           issues.push('Table with insufficient header structure found')
         }
       }

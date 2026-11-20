@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../../README.md) / [packages/react/src/webmcp](../README.md) / useWebMCPToolScope
+[context-action-monorepo](../../../../README.md) / [packages/react/src/webmcp](../README.md) / useWebMCPToolScope
 
 # Function: useWebMCPToolScope()
 

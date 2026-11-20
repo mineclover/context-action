@@ -6,13 +6,13 @@
 
 ## Modules
 
-- [packages/ai-sdk/src](packages/ai-sdk/src/README.md)
-- [packages/core/src](packages/core/src/README.md)
-- [packages/mutative/src](packages/mutative/src/README.md)
-- [packages/react/src](packages/react/src/README.md)
-- [packages/react/src/webmcp](packages/react/src/webmcp/README.md)
-- [packages/store-core/src](packages/store-core/src/README.md)
-- [packages/tool-durable-operations/src](packages/tool-durable-operations/src/README.md)
-- [packages/tool-protocol/src](packages/tool-protocol/src/README.md)
-- [packages/webmcp/src](packages/webmcp/src/README.md)
-- [packages/xstate/src](packages/xstate/src/README.md)
+- [packages/ai-sdk/src](ai-sdk/src/README.md)
+- [packages/core/src](core/src/README.md)
+- [packages/mutative/src](mutative/src/README.md)
+- [packages/react/src](react/src/README.md)
+- [packages/react/src/webmcp](react/src/webmcp/README.md)
+- [packages/store-core/src](store-core/src/README.md)
+- [packages/tool-durable-operations/src](tool-durable-operations/src/README.md)
+- [packages/tool-protocol/src](tool-protocol/src/README.md)
+- [packages/webmcp/src](webmcp/src/README.md)
+- [packages/xstate/src](xstate/src/README.md)

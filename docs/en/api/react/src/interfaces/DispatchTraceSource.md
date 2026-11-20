@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / DispatchTraceSource
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / DispatchTraceSource
 
 # Interface: DispatchTraceSource
 
@@ -20,7 +20,7 @@ Defined in: [packages/react/src/stores/core/ActionTransactionBridge.ts:9](https:
 
 ##### listener
 
-Type parameter **ActionDispatchTraceListener**
+`ActionDispatchTraceListener`
 
 #### Returns
 

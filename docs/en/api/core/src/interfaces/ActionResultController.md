@@ -1,12 +1,12 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionResultController
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionResultController
 
 # Interface: ActionResultController\<T, R\>
 
-Defined in: [packages/core/src/types.ts:381](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L381)
+Defined in: [packages/core/src/types.ts:230](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L230)
 
 Controller for a result-producing handler. Concurrent result handlers do
 not receive payload mutation or priority-jump capabilities.
@@ -31,7 +31,7 @@ not receive payload mutation or priority-jump capabilities.
 
 > **getPayload**(): `T`
 
-Defined in: [packages/core/src/types.ts:363](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L363)
+Defined in: [packages/core/src/types.ts:212](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L212)
 
 #### Returns
 
@@ -47,7 +47,7 @@ Type parameter **T**
 
 > **abort**(`reason?`): `void`
 
-Defined in: [packages/core/src/types.ts:383](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L383)
+Defined in: [packages/core/src/types.ts:232](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L232)
 
 #### Parameters
 
@@ -65,7 +65,7 @@ Defined in: [packages/core/src/types.ts:383](https://github.com/mineclover/conte
 
 > **return**(`result`): `R`
 
-Defined in: [packages/core/src/types.ts:384](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L384)
+Defined in: [packages/core/src/types.ts:233](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L233)
 
 #### Parameters
 
@@ -83,7 +83,7 @@ Type parameter **R**
 
 > **setResult**(`result`): `void`
 
-Defined in: [packages/core/src/types.ts:385](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L385)
+Defined in: [packages/core/src/types.ts:234](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L234)
 
 #### Parameters
 
@@ -101,7 +101,7 @@ Type parameter **R**
 
 > **getResults**(): readonly `R`[]
 
-Defined in: [packages/core/src/types.ts:386](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L386)
+Defined in: [packages/core/src/types.ts:235](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L235)
 
 #### Returns
 
@@ -113,7 +113,7 @@ readonly `R`[]
 
 > **mergeResult**(`merger`): `void`
 
-Defined in: [packages/core/src/types.ts:387](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L387)
+Defined in: [packages/core/src/types.ts:236](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L236)
 
 #### Parameters
 
@@ -131,7 +131,7 @@ Defined in: [packages/core/src/types.ts:387](https://github.com/mineclover/conte
 
 > `readonly` `optional` **signal?**: `AbortSignal`
 
-Defined in: [packages/core/src/types.ts:362](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L362)
+Defined in: [packages/core/src/types.ts:211](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L211)
 
 #### Inherited from
 

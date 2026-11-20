@@ -256,18 +256,8 @@ const fullSteps = [
   },
   {
     name: '17. Release Safety Regression Suite (current test set)',
-    command: 'node',
-    args: [
-      '--test',
-      '--test-concurrency=1',
-      'scripts/maintenance-release-safety.test.mjs',
-      'scripts/publish-packages.test.mjs',
-      'scripts/verify-published-tool-consumers.test.cjs',
-      'scripts/coordinated-stable-release.test.mjs',
-      'scripts/verify-v1-release-workflows.test.mjs',
-      'scripts/verify-v1-supply-chain.test.mjs',
-      'scripts/verify-preact-public-release.test.mjs',
-    ],
+    command: 'pnpm',
+    args: ['run', 'test:release-safety'],
   },
 ];
 

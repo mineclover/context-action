@@ -333,8 +333,8 @@ Context-Action framework getting started guide with comprehensive installation a
         
         const output = consoleSpy.mock.calls.map(call => call.join(' ')).join('\n');
         
-        // Should suggest priority generation
-        expect(output).toContain('priority-generate') || expect(output).toContain('Priority');
+        // Should suggest priority tasks command
+        expect(output).toContain('priority-tasks') || expect(output).toContain('Priority');
         
       } finally {
         consoleSpy.mockRestore();
@@ -438,6 +438,27 @@ Context-Action framework getting started guide with comprehensive installation a
       } finally {
         consoleSpy.mockRestore();
         consoleWarnSpy.mockRestore();
+      }
+    });
+
+    it('applies --limit per document after grouping and resolves nested source_path entries', async () => {
+      const nestedDocPath = path.join(testDataDir, 'docs', 'en', 'guide', 'patterns', 'basic.md');
+      await fs.mkdir(path.dirname(nestedDocPath), { recursive: true });
+      await fs.writeFile(nestedDocPath, '# Nested Pattern\n\nContent.');
+      await fs.writeFile(
+        path.join(testDataDir, 'docs', 'en', 'guide', 'getting-started.md'),
+        '# Getting Started\n\nGuide.'
+      );
+      await fs.mkdir(path.join(testDataDir, 'data', 'en', 'guide--patterns--basic'), { recursive: true });
+
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      try {
+        await workNextCommand.execute({ limit: 2, language: 'en' });
+        const output = consoleSpy.mock.calls.map(c => c.join(' ')).join('\n');
+        expect(output).toContain('guide--getting-started');
+        expect(output).toContain('guide--patterns--basic');
+      } finally {
+        consoleSpy.mockRestore();
       }
     });
   });

@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
@@ -94,10 +94,15 @@ for (const readiness of productionReadinessDocs) {
 async function collectMarkdownFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
+  const dirName = basename(directory);
   for (const entry of entries) {
     const path = join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...await collectMarkdownFiles(path));
-    else if (entry.isFile() && entry.name.endsWith('.md')) files.push(path);
+    if (entry.isDirectory()) {
+      if (entry.name === '.vitepress' || (dirName === 'api' && entry.name === 'generated')) {
+        continue;
+      }
+      files.push(...await collectMarkdownFiles(path));
+    } else if (entry.isFile() && entry.name.endsWith('.md')) files.push(path);
   }
   return files;
 }

@@ -177,11 +177,22 @@ export interface FileProcessResult {
   error?: string
 }
 
+export interface FlattenLinkOptions {
+  /** Source root directory (e.g. docs/api/generated) */
+  sourceDir: string
+  /** Target root directory (e.g. docs/en/api) */
+  targetDir: string
+  /** Package directory mapping (source package name -> target folder name) */
+  packageMapping: Record<string, string>
+}
+
 export interface ProcessorOptions {
   /** Enable Vue compatibility processing */
   vueCompatibility?: boolean
   /** Custom display name mappings */
   displayNameMappings?: Record<string, string>
+  /** Optional mapping context to rewrite relative links for flattened packages */
+  linkMapping?: FlattenLinkOptions
 }
 
 // =============================

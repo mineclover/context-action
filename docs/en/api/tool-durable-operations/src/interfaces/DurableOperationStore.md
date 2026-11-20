@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / DurableOperationStore
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / DurableOperationStore
 
 # Interface: DurableOperationStore\<TResult\>
 
@@ -67,7 +67,7 @@ Defined in: [packages/tool-durable-operations/src/durable-operation.ts:160](http
 
 ##### result
 
-Type parameter **TResult**
+`TResult`
 
 ##### expectedFence
 

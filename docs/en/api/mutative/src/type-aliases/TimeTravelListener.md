@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/mutative/src](../README.md) / TimeTravelListener
+[context-action-monorepo](../../../README.md) / [packages/mutative/src](../README.md) / TimeTravelListener
 
 # Type Alias: TimeTravelListener\<S, P\>
 

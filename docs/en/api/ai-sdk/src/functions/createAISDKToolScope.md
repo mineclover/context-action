@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/ai-sdk/src](../README.md) / createAISDKToolScope
+[context-action-monorepo](../../../README.md) / [packages/ai-sdk/src](../README.md) / createAISDKToolScope
 
 # Function: createAISDKToolScope()
 
@@ -20,7 +20,7 @@ caller cannot accidentally advertise a broader catalog than it executes.
 
 ### manager
 
-Type parameter **ToolManagementInterface**
+`ToolManagementInterface`
 
 ### options
 

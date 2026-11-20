@@ -12,6 +12,8 @@ const repositoryRoot = path.resolve(scriptDirectory, '..');
 const execFileAsync = promisify(execFile);
 const processlessRuntimePackages = new Set([
   '@context-action/core',
+  '@context-action/lit',
+  '@context-action/lit-ui',
   '@context-action/mutative',
   '@context-action/mutative-core',
   '@context-action/preact',
@@ -19,8 +21,14 @@ const processlessRuntimePackages = new Set([
   '@context-action/store-core',
   '@context-action/tool-protocol',
   '@context-action/webmcp',
+  '@context-action/xstate',
 ]);
 const processlessExportSkips = new Map([
+  [
+    '@context-action/lit-ui',
+    // React's own CJS entrypoint reads process.env.NODE_ENV when loaded via Node require().
+    new Set(['./react-bridge']),
+  ],
   [
     '@context-action/preact-ui',
     // React's own CJS entrypoint reads process.env.NODE_ENV when loaded via Node require().

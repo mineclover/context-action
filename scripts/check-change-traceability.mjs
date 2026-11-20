@@ -2,7 +2,6 @@
 
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
-import path from 'node:path';
 import process from 'node:process';
 
 const REFERENCE_PATTERN = /(?:#[0-9]+|CA-[A-Z0-9]+(?:-[A-Z0-9]+)*)/i;

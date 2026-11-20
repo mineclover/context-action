@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / createTimeTravelStore
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / createTimeTravelStore
 
 # Function: createTimeTravelStore()
 
 > **createTimeTravelStore**&lt;`T`&gt;(`name`, `initialValue`, `options?`): [`TimeTravelStore`](../classes/TimeTravelStore.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:618](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L618)
+Defined in: [packages/react/src/stores/core/TimeTravelStore.ts:653](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/TimeTravelStore.ts#L653)
 
 Factory function to create a TimeTravelStore
 

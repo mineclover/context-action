@@ -301,6 +301,16 @@ function canonicalToolCallId(value: string): string {
   return canonicalVisibleIdentifier(value, 'toolCallId');
 }
 
+function hasControlCharacter(value: string): boolean {
+  for (let i = 0; i < value.length; i += 1) {
+    const code = value.charCodeAt(i);
+    if (code <= 0x1f || (code >= 0x7f && code <= 0x9f)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function canonicalVisibleIdentifier(value: string, label: string): string {
   if (typeof value !== 'string') {
     throw new TypeError(`AI SDK ${label} must be visible text within 256 characters.`);
@@ -309,7 +319,7 @@ function canonicalVisibleIdentifier(value: string, label: string): string {
   if (
     normalized.length === 0 ||
     normalized.length > 256 ||
-    /[\u0000-\u001F\u007F-\u009F]/u.test(normalized)
+    hasControlCharacter(normalized)
   ) {
     throw new TypeError(`AI SDK ${label} must be visible text within 256 characters.`);
   }

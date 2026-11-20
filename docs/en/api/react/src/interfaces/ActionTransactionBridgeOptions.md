@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / ActionTransactionBridgeOptions
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / ActionTransactionBridgeOptions
 
 # Interface: ActionTransactionBridgeOptions
 
@@ -20,7 +20,7 @@ Defined in: [packages/react/src/stores/core/ActionTransactionBridge.ts:13](https
 
 ##### event
 
-Type parameter **ActionDispatchTrace**
+`ActionDispatchTrace`
 
 #### Returns
 

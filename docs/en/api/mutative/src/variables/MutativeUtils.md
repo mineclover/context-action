@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/mutative/src](../README.md) / MutativeUtils
+[context-action-monorepo](../../../README.md) / [packages/mutative/src](../README.md) / MutativeUtils
 
 # Variable: MutativeUtils
 
 > `const` **MutativeUtils**: `object`
 
-Defined in: [packages/mutative/src/immutable.ts:270](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/immutable.ts#L270)
+Defined in: [packages/mutative/src/immutable.ts:201](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/immutable.ts#L201)
 
 ## Type Declaration
 

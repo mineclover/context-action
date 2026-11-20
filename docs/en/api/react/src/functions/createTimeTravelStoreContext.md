@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / createTimeTravelStoreContext
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / createTimeTravelStoreContext
 
 # Function: createTimeTravelStoreContext()
 
 > **createTimeTravelStoreContext**&lt;`T`&gt;(`contextName`, `initialStores`, `options?`): `object`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:336](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L336)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:340](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L340)
 
 Create a time travel store context with undo/redo capabilities
 
@@ -46,7 +46,7 @@ Create a time travel store context with undo/redo capabilities
 
 ###### children
 
-Type parameter **ReactNode**
+`ReactNode`
 
 ###### registryId?
 
@@ -54,7 +54,7 @@ Type parameter **ReactNode**
 
 #### Returns
 
-Type parameter **Element**
+`Element`
 
 ### useStore
 
@@ -124,7 +124,7 @@ Type parameter **K**
 
 ##### path
 
-Type parameter **StorePath**
+`StorePath`
 
 #### Returns
 

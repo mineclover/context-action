@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / createActionHandler
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / createActionHandler
 
 # Function: createActionHandler()
 
@@ -48,7 +48,7 @@ Type parameter **K**
 
 #### Returns
 
-Type parameter **UnregisterFunction**
+`UnregisterFunction`
 
 ### unregister
 

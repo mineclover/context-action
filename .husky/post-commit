@@ -41,7 +41,7 @@ if [ -d "llmsData" ]; then
     echo "🔍 Checking for documentation/LLMS mismatches..."
     
     # Run mismatch detection with check-only mode (no file generation)
-    if node packages/llms-generator/dist/cli/index.js detect-mismatches --check-only --quiet 2>/dev/null; then
+    if node packages/llms-generator/dist/cli/index.js detect-mismatches --check-only --fail-on-mismatch --quiet 2>/dev/null; then
       MISMATCH_COUNT=0
     else
       MISMATCH_COUNT=$?

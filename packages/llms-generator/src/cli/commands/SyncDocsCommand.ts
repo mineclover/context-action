@@ -131,10 +131,6 @@ export class SyncDocsCommand {
       if (!options.quiet) {
         console.error('❌ Error during documentation sync:', error instanceof Error ? error.message : error);
       }
-      // pre-commit에서 실패해도 커밋을 차단하지 않도록 조용히 종료
-      if (options.quiet) {
-        process.exit(0);
-      }
       throw error;
     }
   }
@@ -386,7 +382,7 @@ export class SyncDocsCommand {
             document: {
               ...existingPriority.document,
               id: change.documentId,
-              category: change.category,
+              category: this.getPriorityDocumentCategory(change.category),
               source_path: change.sourcePath,
             },
             metadata: {
@@ -714,17 +710,22 @@ export class SyncDocsCommand {
   }
   
   private isTemplateEmpty(content: string): boolean {
-    // Check if template is empty or just a placeholder
-    const trimmed = content.trim();
-    return trimmed.length === 0 || 
-           trimmed === 'TODO' || 
-           trimmed.includes('placeholder') ||
-           trimmed.includes('PLACEHOLDER');
+    const body = content
+      .replace(/^---[\r\n][\s\S]*?[\r\n]---(?:\r?\n|$)/, '')
+      .trim();
+    return body.length === 0 ||
+           body === '...' ||
+           (content.includes('update_status: auto_generated') && body.length < 25 && body.endsWith('...')) ||
+           body === 'TODO' ||
+           body.includes('placeholder') ||
+           body.includes('PLACEHOLDER');
   }
   
   private generateSummary(content: string, characterLimit: number, change: DocumentChange): string {
+    const contentWithoutFrontmatter = content.replace(/^---[\r\n][\s\S]*?[\r\n]---(?:\r?\n|$)/, '');
+
     // Extract title
-    const titleMatch = content.match(/^#\s+(.+)$/m);
+    const titleMatch = contentWithoutFrontmatter.match(/^#\s+(.+)$/m);
     const title = titleMatch?.[1] ? titleMatch[1].trim() : 'Document';
     
     // Generate YAML frontmatter
@@ -742,7 +743,7 @@ workflow_stage: content_generated
 ---`;
 
     // Remove markdown formatting for summary
-    const plainText = content
+    const plainText = contentWithoutFrontmatter
       .replace(/```[\s\S]*?```/g, '') // Remove code blocks
       .replace(/#{1,6}\s+/g, '') // Remove headers
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links but keep text
@@ -752,25 +753,25 @@ workflow_stage: content_generated
       .replace(/[ \t]+/g, ' ') // Normalize source spacing before truncation
       .trim();
     
-    // Generate content summary based on character limit
-    const availableChars = characterLimit - frontmatter.length - 20; // Reserve some space
+    // characterLimit governs the summary body length independently of YAML frontmatter
+    const contentBudget = Math.max(1, characterLimit);
     let contentSummary: string;
     
-    if (availableChars <= 100) {
+    if (contentBudget <= 100) {
       // Very short summary - just title and brief description
       contentSummary = `${title}\n\n${this.getFirstSentence(plainText)}`;
-    } else if (availableChars <= 300) {
+    } else if (contentBudget <= 300) {
       // Short summary - title and main points
-      const mainPoints = this.extractMainPoints(content, 2);
+      const mainPoints = this.extractMainPoints(contentWithoutFrontmatter, 2);
       contentSummary = `${title}\n\n${plainText.slice(0, 150)}${mainPoints.length > 0 ? `\n\nKey points:\n${mainPoints.join('\n')}` : ''}`;
     } else {
       // Longer summary - include more detail
-      const mainPoints = this.extractMainPoints(content, Math.floor(availableChars / 100));
-      contentSummary = `${title}\n\n${plainText.slice(0, availableChars * 0.6)}${mainPoints.length > 0 ? `\n\nKey points:\n${mainPoints.join('\n')}` : ''}`;
+      const mainPoints = this.extractMainPoints(contentWithoutFrontmatter, Math.floor(contentBudget / 100));
+      contentSummary = `${title}\n\n${plainText.slice(0, Math.floor(contentBudget * 0.6))}${mainPoints.length > 0 ? `\n\nKey points:\n${mainPoints.join('\n')}` : ''}`;
     }
     
-    // Truncate content to fit within remaining character limit
-    contentSummary = this.truncateText(contentSummary, availableChars);
+    // Truncate summary content to fit within its character budget
+    contentSummary = this.truncateText(contentSummary, contentBudget);
     
     const normalizedSummary = contentSummary
       .replace(/[ \t]+\n/g, '\n')
@@ -807,8 +808,16 @@ workflow_stage: content_generated
   }
   
   private truncateText(text: string, limit: number): string {
+    if (limit <= 0) {
+      return '';
+    }
+
     if (text.length <= limit) {
       return text;
+    }
+
+    if (limit <= 3) {
+      return text.slice(0, limit);
     }
     
     // Try to cut at a word boundary

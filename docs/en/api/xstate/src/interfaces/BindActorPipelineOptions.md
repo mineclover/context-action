@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / BindActorPipelineOptions
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / BindActorPipelineOptions
 
 # Interface: BindActorPipelineOptions\<TActions, TEvent, TEmitted\>
 
@@ -52,7 +52,7 @@ Type parameter **K**
 
 #### Returns
 
-Type parameter **TEvent**
+`TEvent`
 
 ## Properties
 

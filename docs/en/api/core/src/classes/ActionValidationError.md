@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionValidationError
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionValidationError
 
 # Class: ActionValidationError
 
@@ -135,7 +135,7 @@ Zod 검증 에러 객체 (ZodError compatible)
 
 #### Returns
 
-Type parameter **ActionValidationError**
+`ActionValidationError`
 
 #### Overrides
 

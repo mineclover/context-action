@@ -44,7 +44,6 @@ export class TypeDocVitePressSync {
   private processor: FileProcessor
   private sidebarGenerator: SidebarGenerator
   private logger: Logger
-  private events: Partial<SyncEvents> = {}
   private eventListeners: { [K in keyof SyncEvents]?: SyncEvents[K][] } = {}
 
   constructor(config: SyncConfig, logger?: Logger) {
@@ -126,7 +125,6 @@ export class TypeDocVitePressSync {
   async sync(): Promise<SyncResult> {
     this.logger.info('🚀 TypeDoc VitePress Sync starting...')
     this.emit('start', this.config)
-    this.events.start?.(this.config)
 
     try {
       // Initialize cache system
@@ -137,7 +135,13 @@ export class TypeDocVitePressSync {
         fs.mkdirSync(this.config.targetDir, { recursive: true })
       }
 
-      const allProcessedFiles: string[] = []
+      const processorOptions = {
+        linkMapping: {
+          sourceDir: this.config.sourceDir,
+          targetDir: this.config.targetDir,
+          packageMapping: this.config.packageMapping
+        }
+      }
 
       // Process each package
       for (const [packageName, targetName] of Object.entries(this.config.packageMapping)) {
@@ -153,30 +157,19 @@ export class TypeDocVitePressSync {
 
         this.logger.info(`📦 Processing package: ${packageName}`)
         this.removeStaleTargetFiles(sourcePackagePath, targetPackagePath)
-        const packageFiles = await this.processor.processDirectory(
+        await this.processor.processDirectory(
           sourcePackagePath,
-          targetPackagePath
+          targetPackagePath,
+          processorOptions
         )
-        
-        // Note: File-level events are emitted within the processor
-
-        allProcessedFiles.push(...packageFiles.filter(f => f.success).map(f => f.toString()))
       }
 
-      // Process root README if exists
+      // Process root README if exists (FileProcessor emits fileStart/fileComplete)
       const sourceReadme = path.join(this.config.sourceDir, 'README.md')
       const targetReadme = path.join(this.config.targetDir, 'README.md')
 
       if (fs.existsSync(sourceReadme)) {
-        this.emit('fileStart', sourceReadme)
-        const result = await this.processor.processFile(sourceReadme, targetReadme)
-        if (result.success) {
-          allProcessedFiles.push(targetReadme)
-          this.emit('fileComplete', sourceReadme, {
-            success: result.success,
-            cached: result.cached || false
-          })
-        }
+        await this.processor.processFile(sourceReadme, targetReadme, processorOptions)
       }
 
       // Generate sidebar configuration
@@ -204,13 +197,11 @@ export class TypeDocVitePressSync {
       this.logger.info(`\n${this.metrics.createConsoleSummary(result)}`)
       
       this.emit('complete', result)
-      this.events.complete?.(result)
       return result
 
     } catch (error) {
       const syncError = error instanceof Error ? error : new Error(String(error))
       this.emit('error', syncError, 'sync')
-      this.events.error?.(syncError, 'sync')
       this.errorHandler.handleError(syncError, 'sync')
       throw syncError
     }
@@ -363,6 +354,27 @@ export class TypeDocVitePressSync {
   }
 
   /**
+   * Initialize cache manifest from disk without running a full sync
+   */
+  async initializeCache(): Promise<void> {
+    await this.cache.initialize()
+  }
+
+  /**
+   * Clear cache without deleting generated target documentation
+   */
+  async clearCache(): Promise<void> {
+    await this.cache.clear()
+  }
+
+  /**
+   * Get number of entries currently in the cache manifest
+   */
+  getCacheSize(): number {
+    return this.cache.getSize()
+  }
+
+  /**
    * Get cache statistics
    */
   getCacheStats() {
@@ -470,9 +482,6 @@ export class TypeDocVitePressSync {
   async destroy(): Promise<void> {
     // Remove all event listeners
     this.removeAllListeners()
-    
-    // Clear any internal state
-    this.events = {}
     
     // Clean up components that may have pending operations
     if (this.processor && typeof this.processor.destroy === 'function') {

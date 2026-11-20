@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / HttpSideEffectResponseHandler
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / HttpSideEffectResponseHandler
 
 # Type Alias: HttpSideEffectResponseHandler\<TResult, TDiagnostic\>
 
@@ -22,7 +22,7 @@ confirmed pre-effect rejection as `failed`, or an ambiguous response as
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ### TDiagnostic
 
@@ -32,7 +32,7 @@ Type parameter **TResult**
 
 ### response
 
-Type parameter **Response**
+`Response`
 
 ### context
 

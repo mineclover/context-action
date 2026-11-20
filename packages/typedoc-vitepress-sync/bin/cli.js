@@ -140,10 +140,13 @@ program
         const config = await loadConfig(options)
         const logger = new ConsoleLogger('info')
         const sync = new TypeDocVitePressSync(config, logger)
+        await sync.initializeCache()
         
         const stats = sync.getCacheStats()
+        const cacheSize = sync.getCacheSize()
         
         console.log(chalk.blue('\n📊 Cache Statistics:'))
+        console.log(`  Cached Entries: ${chalk.green(cacheSize)}`)
         console.log(`  Hit Rate: ${chalk.green(stats.hitRate)}`)
         console.log(`  Cache Hits: ${chalk.cyan(stats.hits)}`)
         console.log(`  Cache Misses: ${chalk.yellow(stats.misses)}`)
@@ -161,7 +164,7 @@ program
         const sync = new TypeDocVitePressSync(config, logger)
         
         const spinner = ora('Clearing cache...').start()
-        await sync.clean()
+        await sync.clearCache()
         spinner.succeed('Cache cleared!')
       })
   )
@@ -240,27 +243,32 @@ async function loadConfig(options) {
   if (options.target) config.targetDir = options.target
   if (options.sidebar) config.sidebarConfigPath = options.sidebar
 
-  // Handle disable flags
-  if (options.noCache) {
-    config.cache = { enabled: false }
+  // Handle disable flags (--no-cache sets options.cache = false in commander)
+  if (options.cache === false) {
+    config.cache = { ...(config.cache ?? {}), enabled: false }
   }
-  if (options.noParallel) {
-    config.parallel = { enabled: false }
+  if (options.parallel === false) {
+    config.parallel = { ...(config.parallel ?? {}), enabled: false }
   }
-  if (options.noQuality) {
-    config.quality = { 
+  if (options.quality === false) {
+    config.quality = {
+      ...(config.quality ?? {}),
       validateLinks: false,
       validateMarkdown: false,
       checkAccessibility: false
     }
   }
-  if (options.noMetrics) {
-    config.metrics = { enabled: false }
+  if (options.metrics === false) {
+    config.metrics = { ...(config.metrics ?? {}), enabled: false }
   }
 
-  // Force mode
-  if (options.force && config.cache) {
-    config.cache.ttl = 0 // Force cache expiration
+  // Force mode (expire cached entries unless caching is explicitly disabled)
+  if (options.force && options.cache !== false) {
+    config.cache = {
+      ...(config.cache ?? {}),
+      enabled: config.cache?.enabled ?? true,
+      ttl: 0
+    }
   }
 
   return config

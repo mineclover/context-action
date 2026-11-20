@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / runHttpSideEffect
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / runHttpSideEffect
 
 # Function: runHttpSideEffect()
 
@@ -22,7 +22,7 @@ that wins while the request is in flight is retained as `unknown`.
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ### TDiagnostic
 

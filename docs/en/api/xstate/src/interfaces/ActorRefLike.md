@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / ActorRefLike
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / ActorRefLike
 
 # Interface: ActorRefLike\<TEvent, TSnapshot\>
 
@@ -31,7 +31,7 @@ Defined in: [packages/xstate/src/contracts.ts:36](https://github.com/mineclover/
 
 #### Returns
 
-Type parameter **TSnapshot**
+`TSnapshot`
 
 ***
 
@@ -45,7 +45,7 @@ Defined in: [packages/xstate/src/contracts.ts:37](https://github.com/mineclover/
 
 ##### event
 
-Type parameter **TEvent**
+`TEvent`
 
 #### Returns
 

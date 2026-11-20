@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / ActionToEventMap
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / ActionToEventMap
 
 # Type Alias: ActionToEventMap\<TActions, TEvent\>
 

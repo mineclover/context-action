@@ -1,12 +1,12 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionRegistryInfo
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionRegistryInfo
 
 # Interface: ActionRegistryInfo\<T\>
 
-Defined in: [packages/core/src/types.ts:1402](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1402)
+Defined in: [packages/core/src/types.ts:1238](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1238)
 
 Registry information interface for ActionRegister introspection
 
@@ -39,7 +39,7 @@ The action payload map interface
 
 > **name**: `string`
 
-Defined in: [packages/core/src/types.ts:1404](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1404)
+Defined in: [packages/core/src/types.ts:1240](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1240)
 
 Registry name
 
@@ -49,7 +49,7 @@ Registry name
 
 > **totalActions**: `number`
 
-Defined in: [packages/core/src/types.ts:1407](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1407)
+Defined in: [packages/core/src/types.ts:1243](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1243)
 
 Total number of registered actions
 
@@ -59,7 +59,7 @@ Total number of registered actions
 
 > **totalHandlers**: `number`
 
-Defined in: [packages/core/src/types.ts:1410](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1410)
+Defined in: [packages/core/src/types.ts:1246](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1246)
 
 Total number of registered handlers across all actions
 
@@ -69,7 +69,7 @@ Total number of registered handlers across all actions
 
 > **registeredActions**: keyof `T`[]
 
-Defined in: [packages/core/src/types.ts:1413](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1413)
+Defined in: [packages/core/src/types.ts:1249](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1249)
 
 List of all registered actions
 
@@ -79,7 +79,7 @@ List of all registered actions
 
 > **actionExecutionModes**: `Map`\<keyof `T`, [`ExecutionMode`](../type-aliases/ExecutionMode.md)\>
 
-Defined in: [packages/core/src/types.ts:1416](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1416)
+Defined in: [packages/core/src/types.ts:1252](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1252)
 
 Execution mode settings per action
 
@@ -89,6 +89,6 @@ Execution mode settings per action
 
 > **defaultExecutionMode**: [`ExecutionMode`](../type-aliases/ExecutionMode.md)
 
-Defined in: [packages/core/src/types.ts:1419](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1419)
+Defined in: [packages/core/src/types.ts:1255](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L1255)
 
 Default execution mode

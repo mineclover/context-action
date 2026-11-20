@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / QueueSideEffectAcknowledgementHandler
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / QueueSideEffectAcknowledgementHandler
 
 # Type Alias: QueueSideEffectAcknowledgementHandler\<TAcknowledgement, TResult, TDiagnostic\>
 
@@ -16,11 +16,11 @@ Provider-owned acknowledgement classifier for a queue publish.
 
 ### TAcknowledgement
 
-Type parameter **TAcknowledgement**
+`TAcknowledgement`
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ### TDiagnostic
 
@@ -30,7 +30,7 @@ Type parameter **TResult**
 
 ### acknowledgement
 
-Type parameter **TAcknowledgement**
+`TAcknowledgement`
 
 ### context
 

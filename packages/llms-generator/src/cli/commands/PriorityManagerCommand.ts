@@ -198,6 +198,22 @@ export class PriorityManagerCommand {
       byLanguage[language] = (byLanguage[language] || 0) + 1;
     }
 
+    if (priorities.length === 0 || scores.length === 0) {
+      return {
+        total: priorities.length,
+        byTier,
+        byCategory,
+        byLanguage,
+        averageScore: 0,
+        distribution: {
+          min: 0,
+          max: 0,
+          median: 0,
+          stdDev: 0
+        }
+      };
+    }
+
     const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
     const sortedScores = [...scores].sort((a, b) => a - b);
     const median = sortedScores[Math.floor(sortedScores.length / 2)] ?? 0;
@@ -211,8 +227,8 @@ export class PriorityManagerCommand {
       byLanguage,
       averageScore,
       distribution: {
-        min: Math.min(...scores),
-        max: Math.max(...scores),
+        min: sortedScores[0] ?? 0,
+        max: sortedScores[sortedScores.length - 1] ?? 0,
         median,
         stdDev
       }
@@ -415,10 +431,13 @@ export class PriorityManagerCommand {
   }
 
   private getPriorityCategory(priority: PriorityData | LegacyPriorityData): string {
-    // New format: priority.metadata.category
-    const newFormat = priority as PriorityData;
+    // New format: priority.metadata.category or priority.document.category
+    const newFormat = priority as PriorityData & { document?: { category?: string } };
     if (newFormat.metadata?.category) {
       return newFormat.metadata.category;
+    }
+    if (newFormat.document?.category) {
+      return newFormat.document.category;
     }
     // Check if it has category property directly (legacy or unknown format)
     if ('category' in priority && priority.category) {
@@ -428,10 +447,13 @@ export class PriorityManagerCommand {
   }
 
   private getPriorityLanguage(priority: PriorityData | LegacyPriorityData): string {
-    // New format: priority.metadata.language
-    const newFormat = priority as PriorityData;
+    // New format: priority.metadata.language or priority.document.language
+    const newFormat = priority as PriorityData & { document?: { language?: string } };
     if (newFormat.metadata?.language) {
       return newFormat.metadata.language;
+    }
+    if (newFormat.document?.language) {
+      return newFormat.document.language;
     }
     // Old format: priority.language
     if ('language' in priority && priority.language) {
@@ -463,7 +485,7 @@ export class PriorityManagerCommand {
   }
 
   private async calculatePriorityScore(priority: PriorityData | LegacyPriorityData, criteria: PriorityCriteria): Promise<number> {
-    // Simplified priority calculation
+    // Deterministic priority calculation based on configured category weights
     let score = 50; // Base score
 
     // Category-based scoring
@@ -472,9 +494,6 @@ export class PriorityManagerCommand {
       const categoryScore = criteria.category.values[category] || 50;
       score += (categoryScore - 50) * criteria.category.weight;
     }
-
-    // Random variation to simulate real calculation
-    score += Math.random() * 20 - 10;
 
     return Math.round(Math.max(0, Math.min(100, score)));
   }
@@ -543,10 +562,12 @@ export class PriorityManagerCommand {
       return;
     }
 
-    if (!force && !quiet) {
-      console.log('⚠️  This will modify the following files:');
-      oldFormatFiles.forEach(file => console.log(`   - ${path.relative(process.cwd(), file)}`));
-      console.log('\n💡 Use --force to proceed with the upgrade');
+    if (!force) {
+      if (!quiet) {
+        console.log('⚠️  This will modify the following files:');
+        oldFormatFiles.forEach(file => console.log(`   - ${path.relative(process.cwd(), file)}`));
+        console.log('\n💡 Use --force to proceed with the upgrade');
+      }
       return;
     }
 
@@ -589,20 +610,24 @@ export class PriorityManagerCommand {
   private isOldFormat(priority: PriorityData | LegacyPriorityData | Record<string, unknown>): boolean {
     // Old format characteristics:
     // 1. Has priority as a number (not an object)
-    // 2. Has category at root level (not in metadata object)  
-    // 3. Missing metadata structure or has old document structure
-    const hasNumericPriority = priority && typeof (priority as Record<string, unknown>).priority === 'number';
-    const hasOldStructure = priority && !!(priority as Record<string, unknown>).category && !(priority as Record<string, unknown>).metadata;
-    const hasDocumentField = priority && 'document' in priority && !!(priority as Record<string, unknown>).document;
-    
-    return hasNumericPriority || hasOldStructure || hasDocumentField;
+    // 2. Has category at root level without modern metadata or document structures
+    const record = priority as Record<string, unknown>;
+    const hasNumericPriority = !!priority && typeof record.priority === 'number';
+    const hasOldStructure = !!priority && !!record.category && !record.metadata && !record.document;
+
+    return hasNumericPriority || hasOldStructure;
   }
 
   private convertToNewFormat(oldData: Record<string, unknown>): PriorityData {
     const score = typeof oldData.priority === 'number' ? oldData.priority : 50;
-    const category = oldData.category || 'guide';
-    const title = oldData.title || 'Document Title';
-    const language = oldData.language || 'en';
+    const doc = (oldData.document && typeof oldData.document === 'object')
+      ? oldData.document as Record<string, unknown>
+      : undefined;
+    const category = oldData.category || doc?.category || 'guide';
+    const title = oldData.title || doc?.title || 'Document Title';
+    const language = oldData.language || doc?.language || 'en';
+    const sourcePath = (typeof oldData.source_path === 'string' && oldData.source_path)
+      || (typeof doc?.source_path === 'string' ? doc.source_path : undefined);
 
     return {
       priority: {
@@ -616,7 +641,7 @@ export class PriorityManagerCommand {
         category: (category as string),
         tags: (oldData.tags as string[]) || ['documentation']
       },
-      ...(oldData.source_path && typeof oldData.source_path === 'string' ? { source_path: oldData.source_path } : {}),
+      ...(sourcePath ? { source_path: sourcePath } : {}),
       ...(oldData.purpose && typeof oldData.purpose === 'string' ? { purpose: oldData.purpose } : {}),
       ...(oldData.keywords && Array.isArray(oldData.keywords) ? { keywords: oldData.keywords } : {})
     };

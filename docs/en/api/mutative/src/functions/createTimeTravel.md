@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/mutative/src](../README.md) / createTimeTravel
+[context-action-monorepo](../../../README.md) / [packages/mutative/src](../README.md) / createTimeTravel
 
 # Function: createTimeTravel()
 
@@ -12,7 +12,7 @@ Create a TimeTravel instance
 
 > **createTimeTravel**\<`S`, `F`, `P`\>(`initialState`, `options?`): [`TimeTravel`](../classes/TimeTravel.md)\<`S`, `F`, `true`, `P`\>
 
-Defined in: [packages/mutative/src/time-travel.ts:1045](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L1045)
+Defined in: [packages/mutative/src/time-travel.ts:1065](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L1065)
 
 Create a TimeTravel instance with auto archive mode
 
@@ -48,7 +48,7 @@ Type parameter **S**
 
 > **createTimeTravel**\<`S`, `F`, `P`\>(`initialState`, `options`): [`TimeTravel`](../classes/TimeTravel.md)\<`S`, `F`, `false`, `P`\>
 
-Defined in: [packages/mutative/src/time-travel.ts:1059](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L1059)
+Defined in: [packages/mutative/src/time-travel.ts:1079](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/time-travel.ts#L1079)
 
 Create a TimeTravel instance with manual archive mode
 

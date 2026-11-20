@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/mutative/src](../README.md) / applyPatches
+[context-action-monorepo](../../../README.md) / [packages/mutative/src](../README.md) / applyPatches
 
 # Function: applyPatches()
 
@@ -10,7 +10,7 @@
 
 > **applyPatches**&lt;`T`&gt;(`state`, `patches`, `options`): `void`
 
-Defined in: [packages/mutative/src/immutable.ts:246](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/immutable.ts#L246)
+Defined in: [packages/mutative/src/immutable.ts:177](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/immutable.ts#L177)
 
 Apply patches to a state
 
@@ -53,7 +53,7 @@ The new state with patches applied, or `undefined` when
 
 > **applyPatches**&lt;`T`&gt;(`state`, `patches`, `options?`): `T`
 
-Defined in: [packages/mutative/src/immutable.ts:251](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/immutable.ts#L251)
+Defined in: [packages/mutative/src/immutable.ts:182](https://github.com/mineclover/context-action/blob/main/packages/mutative/src/immutable.ts#L182)
 
 Apply patches to a state
 

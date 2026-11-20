@@ -38,10 +38,6 @@ export class HelpDisplay {
     console.log('                                   [-l, --language <lang>] [--category <cat>] [--character-limits <nums>]');
     console.log('                                   [--overwrite] [--dry-run] [-v, --verbose]');
     console.log('');
-    console.log('  fill-templates [options]         Fill empty template files with content from source documents');
-    console.log('                                   [-l, --language <lang>] [--category <cat>] [-c, --character-limit <num>]');
-    console.log('                                   [--dry-run] [--overwrite] [-v, --verbose]');
-    console.log('');
     console.log('LLMS GENERATION:');
     console.log('  clean-llms-generate [char-limit] [options]');
     console.log('                                   Generate clean LLMS files for LLM training (no metadata)');
@@ -102,10 +98,6 @@ export class HelpDisplay {
     console.log('  llms generate-templates --language en');
     console.log('  llms generate-templates --category api --character-limits 100,300,500');
     console.log('  llms generate-templates --overwrite --dry-run');
-    console.log('');
-    console.log('  # Fill empty templates with content');
-    console.log('  llms fill-templates --language en');
-    console.log('  llms fill-templates --category api --character-limit 100 --dry-run');
     console.log('');
     console.log('  # Generate clean LLMS for LLM training (recommended)');
     console.log('  llms clean-llms-generate 300 --language ko --pattern clean');

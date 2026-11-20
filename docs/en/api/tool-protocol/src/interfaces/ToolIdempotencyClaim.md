@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-protocol/src](../README.md) / ToolIdempotencyClaim
+[context-action-monorepo](../../../README.md) / [packages/tool-protocol/src](../README.md) / ToolIdempotencyClaim
 
 # Interface: ToolIdempotencyClaim\<TResult\>
 
@@ -12,7 +12,7 @@ Defined in: [packages/tool-protocol/src/idempotency.ts:21](https://github.com/mi
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ## Properties
 

@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/xstate/src](../README.md) / BindActorActionRegisterOptions
+[context-action-monorepo](../../../README.md) / [packages/xstate/src](../README.md) / BindActorActionRegisterOptions
 
 # Interface: BindActorActionRegisterOptions\<TActions, TEvent, TSnapshot, TEmitted\>
 
@@ -56,7 +56,7 @@ Type parameter **K**
 
 #### Returns
 
-Type parameter **TEvent**
+`TEvent`
 
 #### Inherited from
 
@@ -176,11 +176,11 @@ Optional global predicate for waiting until the actor settles after `send(event)
 
 ##### snapshot
 
-Type parameter **TSnapshot**
+`TSnapshot`
 
 ##### event
 
-Type parameter **TEvent**
+`TEvent`
 
 #### Returns
 

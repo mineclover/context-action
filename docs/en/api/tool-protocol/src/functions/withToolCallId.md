@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-protocol/src](../README.md) / withToolCallId
+[context-action-monorepo](../../../README.md) / [packages/tool-protocol/src](../README.md) / withToolCallId
 
 # Function: withToolCallId()
 
@@ -14,7 +14,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:718](https://github.com
 
 ### TResult
 
-Type parameter **TResult**
+`TResult`
 
 ## Parameters
 

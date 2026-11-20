@@ -2,10 +2,6 @@
  * CLI Types - Common types for CLI system
  */
 
-export interface CLICommand {
-  execute(args: string[]): Promise<void>;
-}
-
 export interface CLIConfig {
   paths: {
     docsDir: string;

@@ -1,8 +1,8 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/tool-durable-operations/src](../README.md) / QueueSideEffectEnqueue
+[context-action-monorepo](../../../README.md) / [packages/tool-durable-operations/src](../README.md) / QueueSideEffectEnqueue
 
 # Type Alias: QueueSideEffectEnqueue\<TMessage, TAcknowledgement\>
 
@@ -16,17 +16,17 @@ Injected queue publish/enqueue boundary.
 
 ### TMessage
 
-Type parameter **TMessage**
+`TMessage`
 
 ### TAcknowledgement
 
-Type parameter **TAcknowledgement**
+`TAcknowledgement`
 
 ## Parameters
 
 ### message
 
-Type parameter **TMessage**
+`TMessage`
 
 ### context
 

@@ -1,12 +1,12 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / Snapshot
+[context-action-monorepo](../../../README.md) / [packages/react/src](../README.md) / Snapshot
 
 # Interface: Snapshot\<T\>
 
-Defined in: [packages/react/src/stores/core/types.ts:97](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L97)
+Defined in: [packages/react/src/stores/core/types.ts:72](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L72)
 
 Enhanced store snapshot with metadata and validation
 
@@ -39,7 +39,7 @@ The type of the stored value
 
 > **value**: `T`
 
-Defined in: [packages/react/src/stores/core/types.ts:99](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L99)
+Defined in: [packages/react/src/stores/core/types.ts:74](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L74)
 
 The current value of the store
 
@@ -49,7 +49,7 @@ The current value of the store
 
 > **name**: `string`
 
-Defined in: [packages/react/src/stores/core/types.ts:102](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L102)
+Defined in: [packages/react/src/stores/core/types.ts:77](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L77)
 
 Unique identifier for the store
 
@@ -59,7 +59,7 @@ Unique identifier for the store
 
 > **lastUpdate**: `number`
 
-Defined in: [packages/react/src/stores/core/types.ts:105](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L105)
+Defined in: [packages/react/src/stores/core/types.ts:80](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L80)
 
 Timestamp of the last update
 
@@ -69,7 +69,7 @@ Timestamp of the last update
 
 > `optional` **version?**: `number`
 
-Defined in: [packages/react/src/stores/core/types.ts:108](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L108)
+Defined in: [packages/react/src/stores/core/types.ts:83](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L83)
 
 Snapshot version for optimistic updates
 
@@ -79,7 +79,7 @@ Snapshot version for optimistic updates
 
 > `optional` **isValid?**: `boolean`
 
-Defined in: [packages/react/src/stores/core/types.ts:111](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L111)
+Defined in: [packages/react/src/stores/core/types.ts:86](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L86)
 
 Validation status of the current value
 
@@ -89,7 +89,7 @@ Validation status of the current value
 
 > `optional` **validationError?**: `string`
 
-Defined in: [packages/react/src/stores/core/types.ts:114](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L114)
+Defined in: [packages/react/src/stores/core/types.ts:89](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L89)
 
 Error message if validation failed
 
@@ -99,7 +99,7 @@ Error message if validation failed
 
 > `optional` **metrics?**: `object`
 
-Defined in: [packages/react/src/stores/core/types.ts:117](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L117)
+Defined in: [packages/react/src/stores/core/types.ts:92](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L92)
 
 Performance metrics for this snapshot
 
@@ -127,7 +127,7 @@ Number of listeners notified
 
 > `optional` **security?**: `object`
 
-Defined in: [packages/react/src/stores/core/types.ts:127](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L127)
+Defined in: [packages/react/src/stores/core/types.ts:102](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/core/types.ts#L102)
 
 Security metadata
 

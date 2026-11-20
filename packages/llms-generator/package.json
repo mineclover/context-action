@@ -31,8 +31,6 @@
     "test:cli:priority": "jest test/cli/PriorityManagerCommand.test.ts test/cli/PriorityTasksCommand.test.ts",
     "test:cli:generate": "jest test/cli/GenerateTemplatesCommand.test.ts test/cli/LLMSGenerateCommand.test.ts",
     "test:cli:sync": "jest test/cli/SyncDocsCommand.test.ts test/cli/MismatchDetectionCommand.test.ts",
-    "test:adaptive": "jest test/integration/AdaptiveComposer.test.ts",
-    "test:legacy": "jest test/cli/generate-all.test.ts test/cli/new-cli.test.ts",
     "lint": "pnpm --workspace-root exec biome lint packages/llms-generator/src",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
@@ -43,9 +41,6 @@
     "security:check": "pnpm security:audit && pnpm security:outdated",
     "size": "pnpm build:prod && node -e \"const fs=require('fs');const path=require('path');const distPath='./dist';const files=fs.readdirSync(distPath).filter(f=>f.endsWith('.js'));console.log('Bundle sizes:');files.forEach(f=>{const size=fs.statSync(path.join(distPath,f)).size;console.log(f+': '+(size/1024).toFixed(1)+'KB');});\"",
     "prepublishOnly": "pnpm run build",
-    "test:llms": "npx tsx test/scripts/test-llms.ts",
-    "test:category": "npx tsx test/scripts/test-category.ts",
-    "test:save-results": "npx tsx test/scripts/save-results.ts",
     "demo": "npx tsx examples/demo.ts",
     "demo:verbose": "npx tsx examples/demo.ts --verbose",
     "cli": "npx tsx src/cli/index.ts"
@@ -74,7 +69,6 @@
     "gray-matter": "4.0.3"
   },
   "devDependencies": {
-    "@context-action/react": "workspace:*",
     "@swc/core": "1.16.13",
     "@swc/helpers": "0.5.23",
     "@swc/jest": "0.2.39",
@@ -98,6 +92,5 @@
     "CONFIG.md",
     "CLI_SETUP_GUIDE.md",
     "LICENSE"
-  ],
-  "gitHead": "d044f181a22b8f1fc5ad3362afd30d117fedebdd"
+  ]
 }

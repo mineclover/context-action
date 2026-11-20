@@ -3,11 +3,15 @@ document_id: context-layered--usecase-panel-layout
 category: context-layered
 source_path: en/context-layered/usecase-panel-layout.md
 character_limit: 200
-last_update: '2026-07-24T05:15:02.275Z'
+last_update: '2026-11-20T08:50:10.596Z'
 update_status: auto_generated
 priority_score: 85
 priority_tier: high
 completion_status: completed
 workflow_stage: content_generated
 ---
-Panel...
+Panel Layout Preference Convention
+
+Panel Layout Preference Convention This document defines the Context-Action convention for collapsible and resizable editor panels. It is the specific
+
+Key...

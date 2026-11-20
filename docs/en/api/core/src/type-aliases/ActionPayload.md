@@ -1,14 +1,14 @@
-[**context-action-monorepo v1.0.1**](../../../../README.md)
+[**context-action-monorepo v1.0.1**](../../../README.md)
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/core/src](../README.md) / ActionPayload
+[context-action-monorepo](../../../README.md) / [packages/core/src](../README.md) / ActionPayload
 
 # Type Alias: ActionPayload\<T, K\>
 
 > **ActionPayload**\<`T`, `K`\> = `T`\[`K`\]
 
-Defined in: [packages/core/src/types.ts:215](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L215)
+Defined in: [packages/core/src/types.ts:64](https://github.com/mineclover/context-action/blob/main/packages/core/src/types.ts#L64)
 
 Utility type to extract payload type for a specific action
 
