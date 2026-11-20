@@ -176,6 +176,32 @@ export default function ImplementationScenarioLibraryPage() {
             </ul>
           </div>
 
+          <div
+            className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+            data-testid="triad-contract-summary"
+          >
+            <div className="text-sm font-semibold text-slate-900">
+              Unified Triad &amp; v1 Action Hook 계약
+            </div>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+              <li>
+                <code>BusinessActionIntent</code> vs{' '}
+                <code>LayoutActionIntent</code> 분리: 도메인 액션/스토어와 Tier
+                3 UI 탭 상태(<code>setInspectorTab</code>)를 독립 컨텍스트로
+                유지
+              </li>
+              <li>
+                v1 role-specific hooks: <code>useActionGuard</code> (busy
+                guard), <code>useActionEffectHandler</code>,{' '}
+                <code>useActionObserver</code> 적용
+              </li>
+              <li>
+                Tier 3 view 면제: <code>@evidenceExclude</code> 주석으로
+                presentation 레이어 분리
+              </li>
+            </ul>
+          </div>
+
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
               className="inline-flex items-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white hover:bg-slate-800"

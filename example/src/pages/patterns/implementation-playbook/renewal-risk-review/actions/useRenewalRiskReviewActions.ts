@@ -3,12 +3,17 @@ import type {
   RenewalReviewDraft,
   RenewalWindow,
 } from '../business/renewalBusiness';
-import { useRenewalRiskReviewDispatch } from '../contexts/RenewalRiskReviewContexts';
+import {
+  type RenewalRiskReviewInspectorTab,
+  useRenewalRiskReviewDispatch,
+  useRenewalRiskReviewLayoutDispatch,
+} from '../contexts/RenewalRiskReviewContexts';
 
 type DraftStringField = 'accountName' | 'riskNotes';
 
 export function useRenewalRiskReviewActions() {
   const dispatch = useRenewalRiskReviewDispatch();
+  const layoutDispatch = useRenewalRiskReviewLayoutDispatch();
 
   const updateTextField = React.useCallback(
     (field: DraftStringField, value: string) => {
@@ -48,6 +53,12 @@ export function useRenewalRiskReviewActions() {
 
   const resetDemo = React.useCallback(() => dispatch('resetDemo'), [dispatch]);
 
+  const setInspectorTab = React.useCallback(
+    (tab: RenewalRiskReviewInspectorTab) =>
+      layoutDispatch('setInspectorTab', { tab }),
+    [layoutDispatch]
+  );
+
   return {
     updateTextField,
     updateRenewalWindow,
@@ -56,5 +67,6 @@ export function useRenewalRiskReviewActions() {
     submitReview,
     prefillExample,
     resetDemo,
+    setInspectorTab,
   };
 }

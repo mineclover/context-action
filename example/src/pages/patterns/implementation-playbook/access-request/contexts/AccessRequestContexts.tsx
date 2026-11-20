@@ -27,11 +27,23 @@ export interface AccessRequestStores {
   activity: AccessActivityEvent[];
 }
 
-export interface AccessRequestActions extends ActionPayloadMap {
+export interface AccessRequestBusinessActions extends ActionPayloadMap {
   updateDraft: Partial<AccessRequestDraft>;
   submitReview: void;
   prefillExample: void;
   resetDemo: void;
+}
+
+export type AccessRequestActions = AccessRequestBusinessActions;
+
+export type AccessRequestInspectorTab = 'activity' | 'contract';
+
+export interface AccessRequestLayoutActions extends ActionPayloadMap {
+  setInspectorTab: { tab: AccessRequestInspectorTab };
+}
+
+export interface AccessRequestLayoutStores {
+  inspectorTab: AccessRequestInspectorTab;
 }
 
 export interface AccessRequestRefs {
@@ -86,7 +98,27 @@ export const {
   Provider: AccessRequestActionProvider,
   useActionDispatch: useAccessRequestDispatch,
   useActionHandler: useAccessRequestActionHandler,
-} = createActionContext<AccessRequestActions>('AccessRequestActions');
+  useActionGuard: useAccessRequestActionGuard,
+  useActionEffectHandler: useAccessRequestEffectHandler,
+  useActionObserver: useAccessRequestActionObserver,
+} = createActionContext<AccessRequestBusinessActions>('AccessRequestActions');
+
+export const {
+  Provider: AccessRequestLayoutActionProvider,
+  useActionDispatch: useAccessRequestLayoutDispatch,
+  useActionEffectHandler: useAccessRequestLayoutEffectHandler,
+} = createActionContext<AccessRequestLayoutActions>(
+  'AccessRequestLayoutActions'
+);
+
+export const {
+  Provider: AccessRequestLayoutStoreProvider,
+  useStore: useAccessRequestLayoutStore,
+} = createStoreContext<AccessRequestLayoutStores>('AccessRequestLayoutStores', {
+  inspectorTab: {
+    initialValue: 'activity' as AccessRequestInspectorTab,
+  },
+});
 
 export const {
   Provider: AccessRequestRefProvider,

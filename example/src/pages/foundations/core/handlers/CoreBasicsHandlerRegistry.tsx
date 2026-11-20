@@ -9,7 +9,10 @@ import {
 import {
   CoreActionProvider,
   CoreStoreProvider,
+  useCoreActionEffectHandler,
+  useCoreActionGuard,
   useCoreActionHandler,
+  useCoreActionObserver,
   useCoreStoreManager,
 } from '../contexts/CoreBasicsContexts';
 
@@ -21,27 +24,39 @@ function CoreBasicsHandlerRegistry({
   const storeManager = useCoreStoreManager();
   const { logAction } = useActionLoggerWithToast();
 
-  useCoreActionHandler(
+  useCoreActionGuard(
+    'setCount',
+    React.useCallback((value, controller) => {
+      if (!Number.isFinite(value)) {
+        controller.abort('Count must be a finite number');
+      }
+    }, []),
+    { id: 'core-basics-set-count-guard', priority: 100 }
+  );
+
+  useCoreActionEffectHandler(
     'increment',
     React.useCallback(() => {
       storeManager
         .getStore('count')
         .update((current) => updateCount(current, 1));
       logAction('increment', undefined);
-    }, [logAction, storeManager])
+    }, [logAction, storeManager]),
+    { effectKind: 'observer' }
   );
 
-  useCoreActionHandler(
+  useCoreActionEffectHandler(
     'decrement',
     React.useCallback(() => {
       storeManager
         .getStore('count')
         .update((current) => updateCount(current, -1));
       logAction('decrement', undefined);
-    }, [logAction, storeManager])
+    }, [logAction, storeManager]),
+    { effectKind: 'observer' }
   );
 
-  useCoreActionHandler(
+  useCoreActionEffectHandler(
     'setCount',
     React.useCallback(
       (value) => {
@@ -49,22 +64,38 @@ function CoreBasicsHandlerRegistry({
         logAction('setCount', value);
       },
       [logAction, storeManager]
-    )
+    ),
+    { effectKind: 'observer' }
   );
 
-  useCoreActionHandler(
+  useCoreActionObserver(
+    'setCount',
+    React.useCallback(
+      (event) => {
+        if (event.outcome === 'cancelled') {
+          logAction('setCount', 'Rejected non-finite count value');
+        }
+      },
+      [logAction]
+    ),
+    { id: 'core-basics-set-count-observer', when: 'always', priority: 10 }
+  );
+
+  useCoreActionEffectHandler(
     'reset',
     React.useCallback(() => {
       storeManager.getStore('count').setValue(0);
       logAction('reset', undefined);
-    }, [logAction, storeManager])
+    }, [logAction, storeManager]),
+    { effectKind: 'observer' }
   );
 
-  useCoreActionHandler(
+  useCoreActionEffectHandler(
     'generateLog',
     React.useCallback(() => {
       logAction('generateLog', createRandomLogMessage());
-    }, [logAction])
+    }, [logAction]),
+    { effectKind: 'observer' }
   );
 
   useCoreActionHandler(

@@ -1,3 +1,6 @@
+/**
+ * @evidenceExclude Tier 3 volatile presentation view — renders subscribed stores and dispatches separated intents only.
+ */
 import { SourceLink } from '../../../../../components/ui/SourceLink';
 import { GITHUB_CONFIG } from '../../../../../constants/github';
 import { useAccessRequestActions } from '../actions/useAccessRequestActions';
@@ -35,6 +38,7 @@ export function AccessRequestView() {
     reviewView,
     livePacket,
     activity,
+    inspectorTab,
     isBusy,
     hasErrors,
   } = useAccessRequestData();
@@ -45,6 +49,7 @@ export function AccessRequestView() {
     submitReview,
     prefillExample,
     resetDemo,
+    setInspectorTab,
   } = useAccessRequestActions();
   const {
     requesterNameRef,
@@ -370,10 +375,33 @@ export function AccessRequestView() {
           </article>
 
           <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-slate-900">
-                실행 로그
-              </h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                    inspectorTab === 'activity'
+                      ? 'bg-slate-900 text-white'
+                      : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  }`}
+                  data-testid="access-inspector-tab-activity"
+                  onClick={() => void setInspectorTab('activity')}
+                  type="button"
+                >
+                  실행 로그
+                </button>
+                <button
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                    inspectorTab === 'contract'
+                      ? 'bg-slate-900 text-white'
+                      : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  }`}
+                  data-testid="access-inspector-tab-contract"
+                  onClick={() => void setInspectorTab('contract')}
+                  type="button"
+                >
+                  Triad 계약
+                </button>
+              </div>
               <a
                 className="text-sm font-medium text-slate-500 transition hover:text-slate-700"
                 href="https://mineclover.github.io/context-action/ko/context-layered/patterns/explicit-state-machine"
@@ -383,26 +411,53 @@ export function AccessRequestView() {
                 상태 머신 설명 ↗
               </a>
             </div>
-            <ul className="mt-3 space-y-2" data-testid="access-activity-log">
-              {activity.map((entry) => (
-                <li
-                  key={entry.id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="font-medium text-slate-900">
-                      {entry.step}
+            {inspectorTab === 'activity' ? (
+              <ul className="mt-3 space-y-2" data-testid="access-activity-log">
+                {activity.map((entry) => (
+                  <li
+                    key={entry.id}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="font-medium text-slate-900">
+                        {entry.step}
+                      </div>
+                      <div className="text-xs uppercase tracking-[0.16em] text-slate-500">
+                        {entry.tone}
+                      </div>
                     </div>
-                    <div className="text-xs uppercase tracking-[0.16em] text-slate-500">
-                      {entry.tone}
-                    </div>
-                  </div>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
-                    {entry.detail}
-                  </p>
-                </li>
-              ))}
-            </ul>
+                    <p className="mt-1 text-sm leading-6 text-slate-600">
+                      {entry.detail}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div
+                className="mt-3 space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700"
+                data-testid="access-triad-contract-panel"
+              >
+                <div>
+                  <strong>BusinessActionIntent</strong>:{' '}
+                  <code>updateDraft</code>, <code>submitReview</code>,{' '}
+                  <code>prefillExample</code>, <code>resetDemo</code>
+                </div>
+                <div>
+                  <strong>LayoutActionIntent</strong>:{' '}
+                  <code>setInspectorTab</code> (Tier 3 volatile chrome isolated
+                  from domain stores)
+                </div>
+                <div>
+                  <strong>v1 Role Hooks</strong>: <code>useActionGuard</code>{' '}
+                  (busy guard), <code>useActionEffectHandler</code>,{' '}
+                  <code>useActionObserver</code>
+                </div>
+                <div>
+                  <strong>Waiver</strong>: <code>@evidenceExclude</code> on Tier
+                  3 views
+                </div>
+              </div>
+            )}
           </article>
         </div>
       </section>

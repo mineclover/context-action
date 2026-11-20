@@ -1,6 +1,7 @@
 import { useStoreValue } from '@context-action/react';
 import { buildIncidentEscalationPacket } from '../business/incidentBusiness';
 import {
+  useIncidentEscalationLayoutStore,
   useIncidentEscalationRef,
   useIncidentEscalationStore,
 } from '../contexts/IncidentEscalationContexts';
@@ -15,11 +16,13 @@ export function useIncidentEscalationData() {
   const validationStore = useIncidentEscalationStore('validation');
   const escalationStore = useIncidentEscalationStore('escalation');
   const activityStore = useIncidentEscalationStore('activity');
+  const inspectorTabStore = useIncidentEscalationLayoutStore('inspectorTab');
 
   const draft = useStoreValue(draftStore);
   const validation = useStoreValue(validationStore);
   const escalation = useStoreValue(escalationStore);
   const activity = useStoreValue(activityStore);
+  const inspectorTab = useStoreValue(inspectorTabStore);
   const livePacket = buildIncidentEscalationPacket(draft);
   const escalationView = toEscalationViewState(escalation);
   const activityEntries = activity.map(toActivityEntry);
@@ -31,6 +34,7 @@ export function useIncidentEscalationData() {
     escalationView,
     livePacket,
     activity: activityEntries,
+    inspectorTab,
     isBusy: isEscalationBusy(escalation),
     hasErrors: Object.keys(validation.fieldErrors).length > 0,
   };

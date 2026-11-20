@@ -27,8 +27,8 @@ export function useCartActions() {
   const validateCart = useCallback(
     async (items: CartItem[]) => {
       try {
-        await dispatchWithResult('validateCart', { items });
-        return { success: true };
+        const execution = await dispatchWithResult('validateCart', { items });
+        return { success: true, result: execution.result };
       } catch (error) {
         console.error('Cart validation failed:', error);
         return { success: false, error };
@@ -41,8 +41,11 @@ export function useCartActions() {
   const calculateTotal = useCallback(
     async (items: CartItem[], discountCode?: string) => {
       try {
-        await dispatchWithResult('calculateTotal', { items, discountCode });
-        return { success: true };
+        const execution = await dispatchWithResult('calculateTotal', {
+          items,
+          discountCode,
+        });
+        return { success: true, result: execution.result };
       } catch (error) {
         console.error('Total calculation failed:', error);
         return { success: false, error };
@@ -55,8 +58,11 @@ export function useCartActions() {
   const processOrder = useCallback(
     async (items: CartItem[], paymentMethod: string) => {
       try {
-        await dispatchWithResult('processOrder', { items, paymentMethod });
-        return { success: true };
+        const execution = await dispatchWithResult('processOrder', {
+          items,
+          paymentMethod,
+        });
+        return { success: true, result: execution.result };
       } catch (error) {
         console.error('Order processing failed:', error);
         return { success: false, error };
@@ -68,8 +74,8 @@ export function useCartActions() {
   // 🎯 Clear Cart Action
   const clearCart = useCallback(async () => {
     try {
-      await dispatchWithResult('clearCart');
-      return { success: true };
+      const execution = await dispatchWithResult('clearCart');
+      return { success: true, result: execution.result };
     } catch (error) {
       console.error('Clear cart failed:', error);
       return { success: false, error };

@@ -11,7 +11,7 @@ import {
   initialIncidentActivityState,
   initialIncidentEscalationState,
   initialIncidentValidationState,
-  useIncidentEscalationActionHandler,
+  useIncidentEscalationEffectHandler,
   useIncidentEscalationRef,
   useIncidentEscalationStoreManager,
 } from '../contexts/IncidentEscalationContexts';
@@ -27,7 +27,7 @@ export function useIncidentDraftHandlers({
   const storeManager = useIncidentEscalationStoreManager();
   const incidentTitleRef = useIncidentEscalationRef('incidentTitleInput');
 
-  useIncidentEscalationActionHandler(
+  useIncidentEscalationEffectHandler(
     'updateDraft',
     React.useCallback(
       async (payload) => {
@@ -69,10 +69,11 @@ export function useIncidentDraftHandlers({
         });
       },
       [appendActivity, storeManager]
-    )
+    ),
+    { effectKind: 'observer' }
   );
 
-  useIncidentEscalationActionHandler(
+  useIncidentEscalationEffectHandler(
     'prefillExample',
     React.useCallback(async () => {
       storeManager.getStore('draft').setValue(createExampleIncidentDraft());
@@ -87,10 +88,11 @@ export function useIncidentDraftHandlers({
         })
       );
       appendActivity({ type: 'sample_loaded' });
-    }, [appendActivity, storeManager])
+    }, [appendActivity, storeManager]),
+    { effectKind: 'observer' }
   );
 
-  useIncidentEscalationActionHandler(
+  useIncidentEscalationEffectHandler(
     'resetDemo',
     React.useCallback(async () => {
       storeManager.getStore('draft').setValue(createEmptyIncidentDraft());
@@ -112,6 +114,7 @@ export function useIncidentDraftHandlers({
       incidentTitleRef.executeIfMounted((target) => {
         target.focus();
       });
-    }, [incidentTitleRef, storeManager])
+    }, [incidentTitleRef, storeManager]),
+    { effectKind: 'observer' }
   );
 }

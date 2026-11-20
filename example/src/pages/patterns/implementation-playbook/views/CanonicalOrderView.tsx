@@ -1,3 +1,6 @@
+/**
+ * @evidenceExclude Tier 3 volatile presentation view — renders subscribed stores and dispatches separated intents only.
+ */
 import { SourceLink } from '../../../../components/ui/SourceLink';
 import { GITHUB_CONFIG } from '../../../../constants/github';
 import { useCanonicalOrderActions } from '../actions/useCanonicalOrderActions';
@@ -103,6 +106,7 @@ export function CanonicalOrderView() {
     submission,
     submissionView,
     activity,
+    inspectorTab,
     liveQuote,
     isBusy,
     hasErrors,
@@ -115,6 +119,7 @@ export function CanonicalOrderView() {
     submitOrder,
     prefillExample,
     resetDemo,
+    setInspectorTab,
   } = useCanonicalOrderActions();
   const { customerNameRef, emailRef, quantityRef, statusPanelRef } =
     useCanonicalOrderRefs();
@@ -467,10 +472,33 @@ export function CanonicalOrderView() {
           </article>
 
           <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-slate-900">
-                실행 로그
-              </h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                    inspectorTab === 'activity'
+                      ? 'bg-slate-900 text-white'
+                      : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  }`}
+                  data-testid="inspector-tab-activity"
+                  onClick={() => void setInspectorTab('activity')}
+                  type="button"
+                >
+                  실행 로그
+                </button>
+                <button
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                    inspectorTab === 'contract'
+                      ? 'bg-slate-900 text-white'
+                      : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  }`}
+                  data-testid="inspector-tab-contract"
+                  onClick={() => void setInspectorTab('contract')}
+                  type="button"
+                >
+                  Triad 계약
+                </button>
+              </div>
               <a
                 className="text-sm font-medium text-slate-500 transition hover:text-slate-700"
                 href={docsLinks[1].href}
@@ -480,34 +508,63 @@ export function CanonicalOrderView() {
                 안정성 설명 ↗
               </a>
             </div>
-            <p className="mt-2 text-sm text-slate-600">
-              상태 머신 이벤트를 사람이 읽기 쉬운 로그로 바꿔서 보여줍니다.
-            </p>
-            <ul className="mt-3 space-y-2" data-testid="activity-log">
-              {activity.map((entry) => (
-                <li
-                  key={entry.id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="font-medium text-slate-900">
-                        {entry.step}
+            {inspectorTab === 'activity' ? (
+              <>
+                <p className="mt-2 text-sm text-slate-600">
+                  상태 머신 이벤트를 사람이 읽기 쉬운 로그로 바꿔서 보여줍니다.
+                </p>
+                <ul className="mt-3 space-y-2" data-testid="activity-log">
+                  {activity.map((entry) => (
+                    <li
+                      key={entry.id}
+                      className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <div className="font-medium text-slate-900">
+                            {entry.step}
+                          </div>
+                          <div className="mt-1 text-xs text-slate-500">
+                            {formatOccurredAt(entry.occurredAt)}
+                          </div>
+                        </div>
+                        <div className="text-xs uppercase tracking-[0.16em] text-slate-500">
+                          {entry.tone}
+                        </div>
                       </div>
-                      <div className="mt-1 text-xs text-slate-500">
-                        {formatOccurredAt(entry.occurredAt)}
-                      </div>
-                    </div>
-                    <div className="text-xs uppercase tracking-[0.16em] text-slate-500">
-                      {entry.tone}
-                    </div>
-                  </div>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
-                    {entry.detail}
-                  </p>
-                </li>
-              ))}
-            </ul>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                        {entry.detail}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <div
+                className="mt-3 space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700"
+                data-testid="triad-contract-panel"
+              >
+                <div>
+                  <strong>BusinessActionIntent</strong>:{' '}
+                  <code>updateDraft</code>, <code>submitOrder</code>,{' '}
+                  <code>prefillExample</code>, <code>resetDemo</code>
+                </div>
+                <div>
+                  <strong>LayoutActionIntent</strong>:{' '}
+                  <code>setInspectorTab</code> (Tier 3 volatile chrome isolated
+                  from domain stores)
+                </div>
+                <div>
+                  <strong>v1 Role Hooks</strong>: <code>useActionGuard</code>{' '}
+                  (busy guard), <code>useActionEffectHandler</code>,{' '}
+                  <code>useActionObserver</code>
+                </div>
+                <div>
+                  <strong>Waiver</strong>: <code>@evidenceExclude</code> on Tier
+                  3 views
+                </div>
+              </div>
+            )}
           </article>
         </div>
       </section>

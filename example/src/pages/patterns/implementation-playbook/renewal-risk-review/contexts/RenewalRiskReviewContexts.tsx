@@ -27,11 +27,23 @@ export interface RenewalRiskReviewStores {
   activity: RenewalActivityEvent[];
 }
 
-export interface RenewalRiskReviewActions extends ActionPayloadMap {
+export interface RenewalRiskReviewBusinessActions extends ActionPayloadMap {
   updateDraft: Partial<RenewalReviewDraft>;
   submitReview: void;
   prefillExample: void;
   resetDemo: void;
+}
+
+export type RenewalRiskReviewActions = RenewalRiskReviewBusinessActions;
+
+export type RenewalRiskReviewInspectorTab = 'activity' | 'contract';
+
+export interface RenewalRiskReviewLayoutActions extends ActionPayloadMap {
+  setInspectorTab: { tab: RenewalRiskReviewInspectorTab };
+}
+
+export interface RenewalRiskReviewLayoutStores {
+  inspectorTab: RenewalRiskReviewInspectorTab;
 }
 
 export interface RenewalRiskReviewRefs {
@@ -89,7 +101,32 @@ export const {
   Provider: RenewalRiskReviewActionProvider,
   useActionDispatch: useRenewalRiskReviewDispatch,
   useActionHandler: useRenewalRiskReviewActionHandler,
-} = createActionContext<RenewalRiskReviewActions>('RenewalRiskReviewActions');
+  useActionGuard: useRenewalRiskReviewActionGuard,
+  useActionEffectHandler: useRenewalRiskReviewEffectHandler,
+  useActionObserver: useRenewalRiskReviewActionObserver,
+} = createActionContext<RenewalRiskReviewBusinessActions>(
+  'RenewalRiskReviewActions'
+);
+
+export const {
+  Provider: RenewalRiskReviewLayoutActionProvider,
+  useActionDispatch: useRenewalRiskReviewLayoutDispatch,
+  useActionEffectHandler: useRenewalRiskReviewLayoutEffectHandler,
+} = createActionContext<RenewalRiskReviewLayoutActions>(
+  'RenewalRiskReviewLayoutActions'
+);
+
+export const {
+  Provider: RenewalRiskReviewLayoutStoreProvider,
+  useStore: useRenewalRiskReviewLayoutStore,
+} = createStoreContext<RenewalRiskReviewLayoutStores>(
+  'RenewalRiskReviewLayoutStores',
+  {
+    inspectorTab: {
+      initialValue: 'activity' as RenewalRiskReviewInspectorTab,
+    },
+  }
+);
 
 export const {
   Provider: RenewalRiskReviewRefProvider,

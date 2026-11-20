@@ -1,11 +1,22 @@
 import React from 'react';
 import type { OrderDraft, OrderPlan } from '../business/orderBusiness';
-import { useCanonicalOrderDispatch } from '../contexts/CanonicalOrderContexts';
+import {
+  type CanonicalOrderInspectorTab,
+  useCanonicalOrderDispatch,
+  useCanonicalOrderLayoutDispatch,
+} from '../contexts/CanonicalOrderContexts';
 
 type DraftStringField = 'customerName' | 'email' | 'notes';
 
 export function useCanonicalOrderActions() {
   const dispatch = useCanonicalOrderDispatch();
+  const dispatchLayout = useCanonicalOrderLayoutDispatch();
+
+  const setInspectorTab = React.useCallback(
+    (tab: CanonicalOrderInspectorTab) =>
+      dispatchLayout('setInspectorTab', { tab }),
+    [dispatchLayout]
+  );
 
   const updateTextField = React.useCallback(
     (field: DraftStringField, value: string) => {
@@ -49,5 +60,6 @@ export function useCanonicalOrderActions() {
     submitOrder,
     prefillExample,
     resetDemo,
+    setInspectorTab,
   };
 }

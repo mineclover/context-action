@@ -27,11 +27,23 @@ export interface IncidentEscalationStores {
   activity: IncidentActivityEvent[];
 }
 
-export interface IncidentEscalationActions extends ActionPayloadMap {
+export interface IncidentEscalationBusinessActions extends ActionPayloadMap {
   updateDraft: Partial<IncidentDraft>;
   submitEscalation: void;
   prefillExample: void;
   resetDemo: void;
+}
+
+export type IncidentEscalationActions = IncidentEscalationBusinessActions;
+
+export type IncidentEscalationInspectorTab = 'activity' | 'contract';
+
+export interface IncidentEscalationLayoutActions extends ActionPayloadMap {
+  setInspectorTab: { tab: IncidentEscalationInspectorTab };
+}
+
+export interface IncidentEscalationLayoutStores {
+  inspectorTab: IncidentEscalationInspectorTab;
 }
 
 export interface IncidentEscalationRefs {
@@ -90,7 +102,32 @@ export const {
   Provider: IncidentEscalationActionProvider,
   useActionDispatch: useIncidentEscalationDispatch,
   useActionHandler: useIncidentEscalationActionHandler,
-} = createActionContext<IncidentEscalationActions>('IncidentEscalationActions');
+  useActionGuard: useIncidentEscalationActionGuard,
+  useActionEffectHandler: useIncidentEscalationEffectHandler,
+  useActionObserver: useIncidentEscalationActionObserver,
+} = createActionContext<IncidentEscalationBusinessActions>(
+  'IncidentEscalationActions'
+);
+
+export const {
+  Provider: IncidentEscalationLayoutActionProvider,
+  useActionDispatch: useIncidentEscalationLayoutDispatch,
+  useActionEffectHandler: useIncidentEscalationLayoutEffectHandler,
+} = createActionContext<IncidentEscalationLayoutActions>(
+  'IncidentEscalationLayoutActions'
+);
+
+export const {
+  Provider: IncidentEscalationLayoutStoreProvider,
+  useStore: useIncidentEscalationLayoutStore,
+} = createStoreContext<IncidentEscalationLayoutStores>(
+  'IncidentEscalationLayoutStores',
+  {
+    inspectorTab: {
+      initialValue: 'activity' as IncidentEscalationInspectorTab,
+    },
+  }
+);
 
 export const {
   Provider: IncidentEscalationRefProvider,

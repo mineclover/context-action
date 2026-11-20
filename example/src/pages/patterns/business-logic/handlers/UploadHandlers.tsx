@@ -10,7 +10,10 @@
  */
 
 import { useCallback, useRef } from 'react';
-import { useUploadActionHandler } from '../contexts/UploadActionContext';
+import {
+  useUploadActionEffectHandler,
+  useUploadActionGuard,
+} from '../contexts/UploadActionContext';
 import {
   addFilesToQueue,
   clearProcessedUploads,
@@ -305,15 +308,54 @@ export function UploadHandlers({ children }: { children: React.ReactNode }) {
     [uploadStore, handleStartUpload]
   );
 
-  // Register action handlers
-  useUploadActionHandler('addFiles', handleAddFiles);
-  useUploadActionHandler('clearQueue', handleClearQueue);
-  useUploadActionHandler('clearProcessed', handleClearProcessed);
-  useUploadActionHandler('removeFile', handleRemoveFile);
-  useUploadActionHandler('startUpload', handleStartUpload);
-  useUploadActionHandler('cancelUpload', handleCancelUpload);
-  useUploadActionHandler('retryFailed', handleRetryFailed);
-  useUploadActionHandler('retryFile', handleRetryFile);
+  // Register v1 guards and role-explicit effect handlers
+  useUploadActionGuard(
+    'addFiles',
+    useCallback((payload, controller) => {
+      if (payload.files.length === 0) {
+        controller.abort('No files selected to add to upload queue');
+      }
+    }, []),
+    { id: 'upload-add-files-guard', priority: 100 }
+  );
+
+  useUploadActionGuard(
+    'startUpload',
+    useCallback(
+      (_, controller) => {
+        if (uploadStore.getValue().processing) {
+          controller.abort('Upload already in progress');
+        }
+      },
+      [uploadStore]
+    ),
+    { id: 'upload-start-guard', priority: 100 }
+  );
+
+  useUploadActionEffectHandler('addFiles', handleAddFiles, {
+    effectKind: 'observer',
+  });
+  useUploadActionEffectHandler('clearQueue', handleClearQueue, {
+    effectKind: 'observer',
+  });
+  useUploadActionEffectHandler('clearProcessed', handleClearProcessed, {
+    effectKind: 'observer',
+  });
+  useUploadActionEffectHandler('removeFile', handleRemoveFile, {
+    effectKind: 'observer',
+  });
+  useUploadActionEffectHandler('startUpload', handleStartUpload, {
+    effectKind: 'observer',
+  });
+  useUploadActionEffectHandler('cancelUpload', handleCancelUpload, {
+    effectKind: 'observer',
+  });
+  useUploadActionEffectHandler('retryFailed', handleRetryFailed, {
+    effectKind: 'observer',
+  });
+  useUploadActionEffectHandler('retryFile', handleRetryFile, {
+    effectKind: 'observer',
+  });
 
   return <>{children}</>;
 }

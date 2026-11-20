@@ -7,11 +7,13 @@ import {
   validateOrderDraft,
 } from '../business/orderBusiness';
 import {
-  useCanonicalOrderActionHandler,
+  useCanonicalOrderActionGuard,
+  useCanonicalOrderActionObserver,
+  useCanonicalOrderEffectHandler,
   useCanonicalOrderRef,
   useCanonicalOrderStoreManager,
 } from '../contexts/CanonicalOrderContexts';
-import { toValidationViewState } from './orderHandlerSupport';
+import { isSubmissionBusy, toValidationViewState } from './orderHandlerSupport';
 
 interface SubmissionHandlerOptions {
   appendActivity: (event: OrderActivityEventInput) => void;
@@ -26,7 +28,28 @@ export function useCanonicalOrderSubmissionHandlers({
   const quantityRef = useCanonicalOrderRef('quantityInput');
   const statusPanelRef = useCanonicalOrderRef('statusPanel');
 
-  useCanonicalOrderActionHandler(
+  useCanonicalOrderActionGuard(
+    'submitOrder',
+    React.useCallback(
+      (_, controller) => {
+        if (isSubmissionBusy(storeManager.getStore('submission').getValue())) {
+          controller.abort('Submission already in progress');
+        }
+      },
+      [storeManager]
+    ),
+    { id: 'order-busy-guard', priority: 100 }
+  );
+
+  useCanonicalOrderActionObserver(
+    'submitOrder',
+    React.useCallback(() => {
+      // Detached post-outcome telemetry hook (v1 observer)
+    }, []),
+    { id: 'order-submission-observer', when: 'always', priority: 10 }
+  );
+
+  useCanonicalOrderEffectHandler(
     'submitOrder',
     React.useCallback(async () => {
       const draftStore = storeManager.getStore('draft');
@@ -123,6 +146,7 @@ export function useCanonicalOrderSubmissionHandlers({
       quantityRef,
       statusPanelRef,
       storeManager,
-    ])
+    ]),
+    { effectKind: 'observer' }
   );
 }
