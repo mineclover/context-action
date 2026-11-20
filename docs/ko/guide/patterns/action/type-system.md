@@ -217,5 +217,5 @@ register.register('featureHandler', handler, {
 ## 관련 패턴
 
 - [액션 기본 사용법](./basic-usage.md) - 기본 액션 패턴
-- [등록 위임](./register-delegation.md) - 고급 등록 패턴
+- [등록 위임](./register-patterns.md) - 고급 등록 패턴
 - [스토어 통합](../store/basic-usage.md) - 스토어와 통합

@@ -643,13 +643,13 @@ export {
 
 This setup file provides reusable patterns for:
 
-- **[MVVM Architecture](../architecture/mvvm.md)** - Uses complete MVVM setup
-- **[Domain Context Architecture](../architecture/domain-context.md)** - Uses domain separation
-- **[Context Splitting Patterns](../architecture/context-splitting.md)** - Uses provider composition
-- **[Performance Patterns](../performance/optimization-techniques.md)** - Uses RefContext patterns
+- **[MVVM Architecture](../../../concept/architecture-guide.md)** - Uses complete MVVM setup
+- **[Domain Context Architecture](../../../context-layered/context-layered-guide.md)** - Uses domain separation
+- **[Context Splitting Patterns](../../../context-layered/context-layered-guide.md)** - Uses provider composition
+- **[Performance Patterns](../store/subscription-optimization.md)** - Uses RefContext patterns
 
 ## Related Setup Guides
 
 - **[Basic Action Setup](./basic-action-setup.md)** - Single action context patterns
 - **[Basic Store Setup](./basic-store-setup.md)** - Single store context patterns
-- **[Provider Composition](../store/withProvider-pattern.md)** - Advanced composition techniques
+- **[Provider Composition](./provider-composition-setup.md)** - Advanced composition techniques

@@ -280,14 +280,14 @@ function BestEffortComponent() {
 
 ## Real-World Examples
 
-- [Search Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/SearchPage.tsx) - Debounced search with filtering
-- [Scroll Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/ScrollPage.tsx) - Performance-optimized scroll handling
+- [Search Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/performance/action-guard/SearchPageRefactored.tsx) - Debounced search with filtering
+- [Scroll Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/performance/action-guard/ScrollPageRefactored.tsx) - Performance-optimized scroll handling
 - [Priority Demo](https://github.com/mineclover/context-action/tree/main/example/src/pages/actionguard/priority-performance) - Priority-based execution patterns
 
 ## Related Patterns
 
 - **[Action Basic Usage](./basic-usage.md)** - Fundamental action patterns
-- **[Dispatch with Result](./dispatch-with-result.md)** - Result collection patterns
+- **[Dispatch with Result](./dispatch-patterns.md)** - Result collection patterns
 - **[Register Patterns](./register-patterns.md)** - Handler registration patterns
 - **[Type System](./type-system.md)** - TypeScript integration
 - **[Basic Action Setup](../setup/basic-action-setup.md)** - Setup patterns and type definitions

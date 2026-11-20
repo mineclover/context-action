@@ -91,7 +91,7 @@ Context-Action provides sophisticated handler and trigger management that existi
 
 ## Implementation Documentation
 
-**Note**: Detailed implementation patterns and examples have been moved to the [Patterns section](../guide/patterns/index.md) for better organization.
+**Note**: Detailed implementation patterns and examples have been moved to the [Patterns section](../guide/patterns/setup/index.md) for better organization.
 
 ### Core Patterns
 - **[🎯 Action Only Pattern](../guide/patterns/action/basic-usage.md)** - Pure action dispatching without state management
@@ -99,9 +99,9 @@ Context-Action provides sophisticated handler and trigger management that existi
 - **[🔧 Ref Context Pattern](../guide/patterns/ref/basic-usage.md)** - Direct DOM manipulation with zero re-renders
 
 ### Architecture Patterns
-- **[Pattern Composition](../guide/patterns/architecture/composition.md)** - Combining patterns for complex applications
-- **[Domain Context Architecture](../guide/patterns/architecture/domain-context.md)** - Document-centric context separation
-- **[MVVM Architecture](../guide/patterns/architecture/mvvm.md)** - Complete Model-View-ViewModel implementation
+- **[Pattern Composition](../examples/pattern-composition.md)** - Combining patterns for complex applications
+- **[Domain Context Architecture](../context-layered/context-layered-guide.md)** - Document-centric context separation
+- **[MVVM Architecture](./architecture-guide.md)** - Complete Model-View-ViewModel implementation
 
 ### Implementation Guides
 - **[Real-time State Access](../guide/patterns/async/real-time-state-access.md)** - Avoiding closure traps in handlers
@@ -208,7 +208,7 @@ function HighPerformanceComponent() {
 4. **Debugging Support**: Manual refresh patterns for development tools
 5. **Progressive Enhancement**: Start reactive, optimize selectively where needed
 
-For detailed implementation patterns, see [Selective Subscription Patterns](./selective-subscription-patterns.md).
+For detailed implementation patterns, see [Selective Subscription Patterns](../guide/patterns/store/subscription-optimization.md).
 
 ## Best Practices Summary
 
@@ -288,11 +288,11 @@ export class ErrorFactory {
 
 For detailed implementation examples and step-by-step guides, see:
 
-- **[Pattern Guide Index](../guide/patterns/index.md)** - Complete pattern documentation
+- **[Pattern Guide Index](../guide/patterns/setup/index.md)** - Complete pattern documentation
 - **[Action Only Pattern](../guide/patterns/action/basic-usage.md)** - Start with pure actions
 - **[Store Only Pattern](../guide/patterns/store/basic-usage.md)** - Recommended starting point
-- **[Selective Subscription Patterns](./selective-subscription-patterns.md)** - Pre-memoization performance optimization
-- **[Pattern Composition](../guide/patterns/architecture/composition.md)** - Combining patterns
+- **[Selective Subscription Patterns](../guide/patterns/store/subscription-optimization.md)** - Pre-memoization performance optimization
+- **[Pattern Composition](../examples/pattern-composition.md)** - Combining patterns
 - **[Coding Conventions](./conventions.md)** - Complete coding conventions and best practices including import patterns
 
 For more information and updates, visit the project repository.

@@ -249,8 +249,8 @@ function ComplexApp() {
 - [React Refs Guide](../concept/react-refs-guide.md) - Deep dive into RefContext patterns
 - [Pattern Guide](../concept/pattern-guide.md) - Compare core and advanced patterns with examples
 - [Pipeline System](./pipeline/) - Learn about action processing
-- [MVVM Architecture](./patterns/architecture/mvvm.md) - Understand the overall architecture
-- [Hook Lifecycle](./lifecycle/) - Explore available React hooks
+- [MVVM Architecture](../concept/architecture-guide.md) - Understand the overall architecture
+- [Hook Lifecycle](../concept/action-pipeline-guide.md) - Explore available React hooks
 - [Best Practices](./best-practices.md) - Follow recommended patterns
 
 ## Real-World Examples

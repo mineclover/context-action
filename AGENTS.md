@@ -755,7 +755,7 @@ function EventComponent() {
 
 **Layer Integration Benefits:**
 - **Business Logic** isolated in pure functions for maximum testability
-- **Handlers** orchestrate business logic via [props-based dependency injection](docs/en/context-layered/patterns/props-based-handlers.md)
+- **Handlers** orchestrate business logic via [Handler Registry dependency injection](docs/en/context-layered/architecture/handler-registry.md)
 - **Declarative Store Pattern** manages state with type safety
 - **Components** render UI with clear data flow
 - **Pattern Composition** allows flexible architecture
@@ -763,8 +763,7 @@ function EventComponent() {
 
 **Key Resources:**
 - [Context-Layered Architecture Guide](docs/en/context-layered/context-layered-guide.md) - Complete architectural overview
-- [Props-based Handler Patterns](docs/en/context-layered/patterns/props-based-handlers.md) - Handler implementation guides  
-- [Handler Registry Management](docs/en/context-layered/architecture/handler-registry.md) - ID and priority management
+- [Handler Registry Management](docs/en/context-layered/architecture/handler-registry.md) - ID, priority, and dependency management
 - [Migration Guide](docs/en/context-layered/migration-guide.md) - Migrate from traditional patterns
 
 #### Store Integration 3-Step Process

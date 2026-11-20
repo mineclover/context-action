@@ -696,7 +696,7 @@ function App() {
 - High-frequency animation controls
 - Real-time visual feedback
 
-> **💡 Tip:** For more complex examples with visual effects, animations, and advanced patterns, see the [example application](../../../example/src/pages/performance/mouse-events/).
+> **💡 Tip:** For more complex examples with visual effects, animations, and advanced patterns, see the [example application](https://github.com/mineclover/context-action/tree/main/example/src/pages/performance/mouse-events).
 
 ---
 
@@ -1224,7 +1224,7 @@ function useCanvasControl() {
 }
 ```
 
-For detailed performance optimization strategies, see [Selective Subscription Patterns](./selective-subscription-patterns.md).
+For detailed performance optimization strategies, see [Selective Subscription Patterns](../guide/patterns/store/subscription-optimization.md).
 
 ### RefContext with Store Integration
 
@@ -1252,9 +1252,9 @@ function useHybridPattern() {
 
 ## Further Reading
 
-- [Selective Subscription Patterns](./selective-subscription-patterns.md) - Performance optimization strategies
+- [Selective Subscription Patterns](../guide/patterns/store/subscription-optimization.md) - Performance optimization strategies
 - [Pattern Guide](./pattern-guide.md) - Context-Action architectural patterns
 - [Performance Issues Troubleshooting](../troubleshooting/performance-issues.md#selective-subscription-patterns) - Debugging performance problems
-- [MVVM Architecture](./mvvm-core-architecture.md) - Overall architectural context
+- [MVVM Architecture](./architecture-guide.md) - Overall architectural context
 
 The React Refs Management System provides a powerful, type-safe, and lifecycle-aware approach to managing references in React applications, with seamless integration into the Context-Action framework's architecture patterns.

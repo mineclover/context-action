@@ -451,7 +451,7 @@ Loop Prevention: setValue removed from chain
 
 ## Test Implementation
 
-See [notifyPath-performance.test.tsx](../../packages/react/__tests__/stores/notifyPath-performance.test.tsx) for executable test proofs.
+See [notifyPath-performance.test.tsx](https://github.com/mineclover/context-action/blob/main/packages/react/__tests__/stores/notifyPath-performance.test.tsx) for executable test proofs.
 
 Key test cases:
 1. Re-render count comparison (setValue vs notifyPath)

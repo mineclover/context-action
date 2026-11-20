@@ -90,7 +90,7 @@ Context-Action은 기존 라이브러리에서 부족한 정교한 핸들러 및
 
 ## 구현 문서
 
-**참고**: 자세한 구현 패턴과 예제는 더 나은 구성을 위해 [패턴 섹션](../guide/patterns/index.md)으로 이동되었습니다.
+**참고**: 자세한 구현 패턴과 예제는 더 나은 구성을 위해 [패턴 섹션](../guide/patterns/setup/index.md)으로 이동되었습니다.
 
 ### 핵심 패턴
 - **[🎯 Action Only 패턴](../guide/patterns/action/basic-usage.md)** - 상태 관리 없는 순수 액션 디스패칭
@@ -98,9 +98,9 @@ Context-Action은 기존 라이브러리에서 부족한 정교한 핸들러 및
 - **[🔧 Ref Context 패턴](../guide/patterns/ref/basic-usage.md)** - 제로 리렌더링으로 직접 DOM 조작
 
 ### 아키텍처 패턴
-- **[패턴 조합](../guide/patterns/architecture/composition.md)** - 복잡한 애플리케이션을 위한 패턴 결합
-- **[도메인 컨텍스트 아키텍처](../guide/patterns/architecture/domain-context.md)** - 문서 중심의 컨텍스트 분리
-- **[MVVM 아키텍처](../guide/patterns/architecture/mvvm.md)** - 완전한 Model-View-ViewModel 구현
+- **[패턴 조합](../examples/pattern-composition.md)** - 복잡한 애플리케이션을 위한 패턴 결합
+- **[도메인 컨텍스트 아키텍처](../context-layered/context-layered-guide.md)** - 문서 중심의 컨텍스트 분리
+- **[MVVM 아키텍처](./architecture-guide.md)** - 완전한 Model-View-ViewModel 구현
 
 ### 구현 가이드
 - **[실시간 상태 액세스](../guide/patterns/async/real-time-state-access.md)** - 핸들러에서 클로저 트랩 방지
@@ -224,10 +224,10 @@ export class ErrorFactory {
 
 자세한 구현 예제와 단계별 가이드는 다음을 참조하세요:
 
-- **[패턴 가이드 색인](../guide/patterns/index.md)** - 완전한 패턴 문서
+- **[패턴 가이드 색인](../guide/patterns/setup/index.md)** - 완전한 패턴 문서
 - **[Action Only 패턴](../guide/patterns/action/basic-usage.md)** - 순수 액션으로 시작
 - **[Store Only 패턴](../guide/patterns/store/basic-usage.md)** - 권장 시작점
-- **[패턴 조합](../guide/patterns/architecture/composition.md)** - 패턴 결합
+- **[패턴 조합](../examples/pattern-composition.md)** - 패턴 결합
 - **[코딩 컨벤션](./conventions.md)** - import 패턴을 포함한 완전한 코딩 컨벤션과 베스트 프랙티스
 
 더 많은 정보와 업데이트는 프로젝트 저장소를 방문하세요.

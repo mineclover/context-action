@@ -59,11 +59,11 @@ const validationResult = results.find(r => r.step === 'validation');
 | Feature | Purpose | Documentation |
 |---------|---------|---------------|
 | **[Priority System](./priority.md)** | Control execution order | Priority-based handler execution |
-| **[Blocking Operations](./blocking.md)** | Control execution flow | Blocking vs non-blocking handlers |
-| **[Concurrency Control](./concurrency.md)** | Thread safety & queuing | Pipeline concurrency and race condition prevention |
+| **[Blocking Operations](./dispatch.md)** | Control execution flow | Blocking vs non-blocking handlers |
+| **[Concurrency Control](./dispatch.md)** | Thread safety & queuing | Pipeline concurrency and race condition prevention |
 | **[Dispatch Methods](./dispatch.md)** | Trigger pipelines | Basic dispatch vs result collection |
-| **[Abort Mechanisms](./abort.md)** | Stop execution | Graceful pipeline termination |
-| **[Result Handling](./result-handling.md)** | Collect results | Inter-handler communication |
+| **[Abort Mechanisms](../patterns/action/advanced-patterns.md)** | Stop execution | Graceful pipeline termination |
+| **[Result Handling](./dispatch.md)** | Collect results | Inter-handler communication |
 
 ## Quick Start
 
@@ -465,11 +465,11 @@ actionRegister.register('updateUserData', async (payload, controller) => {
 Explore specific pipeline patterns:
 
 - **[Priority System](./priority.md)** - Priority-based execution order and best practices
-- **[Blocking Operations](./blocking.md)** - Controlling execution flow and performance
-- **[Concurrency Control](./concurrency.md)** - Thread safety, queuing, and race condition prevention
+- **[Blocking Operations](./dispatch.md)** - Controlling execution flow and performance
+- **[Concurrency Control](./dispatch.md)** - Thread safety, queuing, and race condition prevention
 - **[Dispatch Methods](./dispatch.md)** - Different ways to trigger pipelines
-- **[Abort Mechanisms](./abort.md)** - Graceful pipeline termination
-- **[Result Handling](./result-handling.md)** - Comprehensive result collection and usage
+- **[Abort Mechanisms](../patterns/action/advanced-patterns.md)** - Graceful pipeline termination
+- **[Result Handling](./dispatch.md)** - Comprehensive result collection and usage
 
 ## Live Examples from Example App
 
@@ -486,6 +486,6 @@ These examples demonstrate production-ready patterns for common pipeline scenari
 ## Related
 
 - **[Action Patterns](../patterns/action/)** - Action Only pattern implementation
-- **[Store Integration](../patterns/store/)** - Combining pipelines with state management
-- **[MVVM Architecture](../patterns/architecture/mvvm.md)** - Pipeline role in MVVM pattern
-- **[Hook Lifecycle](../lifecycle/)** - How hooks connect to the pipeline system
+- **[Store Integration](../patterns/store/basic-usage.md)** - Combining pipelines with state management
+- **[MVVM Architecture](../../concept/architecture-guide.md)** - Pipeline role in MVVM pattern
+- **[Hook Lifecycle](../../concept/action-pipeline-guide.md)** - How hooks connect to the pipeline system

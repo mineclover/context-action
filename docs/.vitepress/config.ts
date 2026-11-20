@@ -12,8 +12,11 @@ export default defineConfig({
   // Source Directory
   srcDir: '.',
   
-  // 죽은 링크 무시
-  ignoreDeadLinks: true,
+  // 죽은 링크 차단 (외부 배포 앱 경로와 docs/ 바깥 저장소 실파일 경로만 예외)
+  ignoreDeadLinks: [
+    /^\/(?:example|web-coding)\//,
+    /^\.\/(?:\.\.\/){3,}(?:packages|demos|example|releases|\.agents|skills|README\.en)(?:\/|$)/,
+  ],
   
   // TypeDoc 생성 디렉토리 제외 및 LLM 데이터 제외
   srcExclude: [

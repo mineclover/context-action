@@ -363,7 +363,7 @@ This example demonstrates performance tracking with timing measurements to show 
 
 ## Related
 
-- **[Blocking Operations](./blocking.md)** - Control execution flow with blocking
-- **[Abort Mechanisms](./abort.md)** - Stop pipeline execution when needed
-- **[Result Handling](./result-handling.md)** - Collect and use handler results
+- **[Blocking Operations](./dispatch.md)** - Control execution flow with blocking
+- **[Abort Mechanisms](../patterns/action/advanced-patterns.md)** - Stop pipeline execution when needed
+- **[Result Handling](./dispatch.md)** - Collect and use handler results
 - **[Dispatch Methods](./dispatch.md)** - Different ways to trigger pipelines

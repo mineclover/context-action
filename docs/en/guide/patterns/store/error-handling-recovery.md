@@ -203,5 +203,5 @@ class StoreErrorBoundary extends React.Component {
 
 - [Memory Management](./memory-management.md) - Prevent memory leaks in error scenarios
 - [Debugging & Development](./debugging-development.md) - Debug error handling code
-- [Production Debugging](../debug/production-debugging.md) - Production error handling
+- [Production Debugging](./debugging-development.md) - Production error handling
 - [Store Configuration](./store-configuration.md) - Configure error handling behavior

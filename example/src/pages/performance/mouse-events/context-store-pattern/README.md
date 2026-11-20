@@ -29,16 +29,13 @@ React Context with individual stores and selective subscriptions - the most adva
 ## Key Components
 
 ### 📦 Containers (`containers/`)
-- **`EnhancedContextStoreContainer.tsx`**: Advanced container with performance optimization
-- **`ContextStoreMouseEventsContainer.tsx`**: Basic context store container
+- **`ContextStoreMouseEventsContainer.tsx`**: Context-layered container integrating stores and action handlers
 
 ### 🎨 Components (`components/`)
-- **`EnhancedContextStoreView.tsx`**: Main view with individual store panels
-- **`AdvancedMetricsPanel.tsx`**: Real-time performance analytics
-- **`RealTimeDebugger.tsx`**: Interactive debugging console
-- **`ContextStoreMouseEventsView.tsx`**: Basic context store view
+- **`EnhancedContextStoreView.tsx`**: Enhanced view with individual store panels and real-time performance analytics
+- **`ContextStoreMouseEventsView.tsx`**: Context store mouse events view
 
-### 🔄 Context (`context/`)
+### 🔄 Context (`contexts/`)
 - **`contexts/MouseEventsContexts.tsx`**: Canonical Context-Action boundary (legacy aggregate helpers remain behind the compatibility export)
 
 ## Store Architecture

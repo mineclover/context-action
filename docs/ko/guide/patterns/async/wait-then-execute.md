@@ -217,5 +217,5 @@ const renderChart = useCallback(async (data: ChartData) => {
 ## 관련 패턴
 
 - **[RefContext 설정](../setup/ref-context-setup.md#waiting-for-multiple-refs)** - 완전한 대기 패턴
-- **[캔버스 최적화](../ref/canvas-optimization.md)** - 고성능 캔버스 조작
+- **[캔버스 최적화](../ref/basic-usage.md)** - 고성능 캔버스 조작
 - **[Store 통합 패턴](../store/basic-usage.md)** - DOM 조작 후 Store 업데이트

@@ -3067,11 +3067,11 @@ function UnsafeRefOperations() {
 - [Pattern Guide](./pattern-guide.md) - Detailed pattern usage guide
 - [Full Architecture Guide](./architecture-guide.md) - Complete architecture guide
 - [Hooks Reference](./hooks-reference.md) - Hooks reference documentation
-- [API Reference](../../api/) - API documentation
+- [API Reference](../api/README.md) - API documentation
 
 ### Example Projects
-- [Basic Example](../../../example/) - Basic usage examples
-- [Advanced Patterns](../../examples/) - Advanced pattern examples
+- [Basic Example](https://github.com/mineclover/context-action/tree/main/example) - Basic usage examples
+- [Advanced Patterns](../examples/basic-setup.md) - Advanced pattern examples
 
 ### Migration Guide
 - [Legacy Pattern Migration](./pattern-guide.md#migration-guide) - Migration from legacy patterns
@@ -3210,18 +3210,18 @@ Yes, the renaming pattern is a core convention of the Context-Action framework. 
 ## 📚 **Related Documentation**
 
 ### 🏗️ **Architecture Guides**
-- **[MVVM Core Architecture](./mvvm-core-architecture.md)** - Complete MVVM implementation guide with practical examples
+- **[MVVM Core Architecture](./architecture-guide.md)** - Complete MVVM implementation guide with practical examples
 - **[Architecture Guide](./architecture-guide.md)** - Overall framework architecture concepts
 - **[Pattern Guide](./pattern-guide.md)** - Comprehensive pattern usage guide
 
 ### 📋 **Setup & Implementation**
 - **[Setup Patterns](../guide/patterns/setup/index.md)** - Context creation patterns and configurations
-- **[Store Patterns](../guide/patterns/store/index.md)** - State management implementation patterns
+- **[Store Patterns](../guide/patterns/store/basic-usage.md)** - State management implementation patterns
 - **[Action Patterns](../guide/patterns/action/index.md)** - Business logic implementation patterns
-- **[RefContext Patterns](../guide/patterns/ref/index.md)** - DOM manipulation and performance patterns
+- **[RefContext Patterns](../guide/patterns/ref/basic-usage.md)** - DOM manipulation and performance patterns
 
 ### 🎯 **Best Practices**
-- **[Documentation Rules](../../DOCUMENTATION_RULES.md)** - Framework documentation standards
+- **[Documentation Rules](./documentation-development-conventions.md)** - Framework documentation standards
 - **[Getting Started](../guide/getting-started.md)** - Quick start guide for new users
 
 ---

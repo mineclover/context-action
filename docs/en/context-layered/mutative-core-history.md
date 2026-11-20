@@ -16,7 +16,7 @@ package boundary; Context-Action-specific helpers such as time travel remain in
 | Maintained fork | [`mineclover/mutative`](https://github.com/mineclover/mutative) | Fork used for maintenance and upstream-compatible fixes |
 | Imported revision | [`5fd7d56`](https://github.com/mineclover/mutative/commit/5fd7d56b3f88185ef26908df055a9a27be9a2b88) | Revision vendored into `@context-action/mutative-core` |
 | Upstream compatibility baseline | `mutative@1.3.0` | npm tarball and source `gitHead` captured in `upstream-lock.json` |
-| Context-Action package | [`packages/mutative-core`](../../../packages/mutative-core/) | Published core package and synchronization boundary |
+| Context-Action package | [`packages/mutative-core`](https://github.com/mineclover/context-action/tree/main/packages/mutative-core) | Published core package and synchronization boundary |
 
 The imported revision was prepared on 2026-07-18 and includes generated
 distributable output so package consumers do not need an install-time build.

@@ -86,7 +86,7 @@ const requiredRootScripts = {
   'verify:v1-release-manifest': 'node scripts/verify-v1-release-manifest.mjs',
   'verify:v1-release-state-alignment': 'node scripts/verify-v1-release-state-alignment.mjs',
   'verify:coordinated-stable-release-plan': 'node scripts/verify-coordinated-stable-release-plan.mjs',
-  'test:release-safety': 'node --test --test-concurrency=1 scripts/maintenance-release-safety.test.mjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.test.cjs scripts/coordinated-stable-release.test.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-v1-supply-chain.test.mjs scripts/verify-preact-public-release.test.mjs scripts/verify-lit-public-release.test.mjs',
+  'test:release-safety': 'node --test --test-concurrency=1 scripts/maintenance-release-safety.test.mjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.test.cjs scripts/coordinated-stable-release.test.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-v1-supply-chain.test.mjs scripts/verify-preact-public-release.test.mjs scripts/verify-lit-public-release.test.mjs scripts/verify-core-public-provenance.test.mjs scripts/verify-existing-cohort-provenance.test.mjs',
   'verify:v1-release-workflows': 'node scripts/verify-v1-release-workflows.mjs',
   'verify:v1-supply-chain': 'node scripts/verify-v1-supply-chain.mjs',
   'tool-durable:test:evidence': 'node --test scripts/verify-durable-operation-evidence-schema.test.mjs',
@@ -156,8 +156,7 @@ const reviewedInlineInterpreterSteps = new Map([
 ]);
 const reviewedDynamicLauncherSteps = new Map([
   ['ci.yml:Check bundle sizes', '95f01383dbae107eeb64e222fe6bbdb977def33301e9ae2cc57242d394dd1075'],
-  ['ci.yml:Generate CI Report', 'cde66a1b4b244d52588118c07392ef0b1a848466249eba4ff12a267188952549'],
-  ['ci.yml:Update LLMS status', '80b1eb52ea2702b085ae57579947ff64e02e469abc73c593aa64543bd170a460'],
+  ['ci.yml:Generate CI Report', 'bd253dacbab88d22d7d0f873699a2995879b459ba539a530f893c84c292699ff'],
 ]);
 
 function option(name, fallback) {

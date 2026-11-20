@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "files": {
     "includes": [
       "packages/core/src/**/*.ts",
@@ -20,6 +20,7 @@
       "scripts/**/*.cjs",
       "scripts/**/*.mjs",
       "packages/preact/src/**/*.ts",
+      "packages/preact/src/**/*.tsx",
       "packages/preact-ui/src/**/*.ts",
       "packages/preact-ui/examples/**/*.ts",
       "packages/preact-ui/examples/**/*.tsx",

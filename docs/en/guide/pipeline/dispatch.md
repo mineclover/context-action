@@ -472,6 +472,6 @@ This example demonstrates real-world usage of `dispatchWithResult` with comprehe
 ## Related
 
 - **[Priority System](./priority.md)** - Control execution order with priorities
-- **[Blocking Operations](./blocking.md)** - Control execution flow
-- **[Abort Mechanisms](./abort.md)** - Stop pipeline execution when needed
-- **[Result Handling](./result-handling.md)** - Process and use dispatch results
+- **[Blocking Operations](./dispatch.md)** - Control execution flow
+- **[Abort Mechanisms](../patterns/action/advanced-patterns.md)** - Stop pipeline execution when needed
+- **[Result Handling](./dispatch.md)** - Process and use dispatch results

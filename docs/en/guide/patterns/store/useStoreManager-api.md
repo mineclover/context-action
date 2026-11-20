@@ -543,5 +543,5 @@ const preferencesStore = useUserStore('preferences');
 
 - [Basic Store Usage](./basic-usage.md) - Fundamental store patterns
 - [useStoreValue Patterns](./useStoreValue-patterns.md) - Advanced hook patterns
-- [withProvider Pattern](./withProvider-pattern.md) - Higher-order component patterns
+- [withProvider Pattern](../setup/provider-composition-setup.md) - Higher-order component patterns
 - [Action Integration](../action/basic-usage.md) - Integrating with actions

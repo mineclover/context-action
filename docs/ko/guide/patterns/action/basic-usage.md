@@ -22,7 +22,7 @@ import { createActionContext } from '@context-action/react';
 2. **컨텍스트 생성** - 적절한 훅 이름 변경으로 타입화된 액션 컨텍스트 생성
 3. **프로바이더 구성** - 앱 구조에서 액션 프로바이더 설정
 
-자세한 설정 지침은 **[기본 액션 설정](../../setup/basic-action-setup.md)**을 참조하세요.
+자세한 설정 지침은 **[기본 액션 설정](../setup/basic-action-setup.md)**을 참조하세요.
 
 ### 필수 액션 타입
 이 문서는 설정 가이드의 `EventActions` 명세를 사용합니다:
@@ -64,7 +64,7 @@ function App() {
 }
 ```
 
-> **설정 참조**: [기본 액션 설정 가이드](../../setup/basic-action-setup.md#event-actions-ui-interactions)
+> **설정 참조**: [기본 액션 설정 가이드](../setup/basic-action-setup.md)
 
 ## 기본 사용법
 ```tsx
@@ -153,8 +153,8 @@ function AdvancedComponent() {
 - **[채팅 데모](https://github.com/mineclover/context-action/blob/main/example/src/pages/demos/store-scenarios/components/ChatDemo.tsx)** - 실시간 메시지 처리
 - **[사용자 프로필 데모](https://github.com/mineclover/context-action/blob/main/example/src/pages/demos/store-scenarios/components/UserProfileDemo.tsx)** - 사용자 액션 관리
 - **[마우스 이벤트 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/MouseEventsPage.tsx)** - 고빈도 이벤트 처리
-- **[검색 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/SearchPage.tsx)** - 중단 가능한 검색 액션
-- **[API 차단 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/ApiBlockingPage.tsx)** - 차단 액션 패턴
+- **[검색 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/performance/action-guard/SearchPageRefactored.tsx)** - 중단 가능한 검색 액션
+- **[API 차단 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/performance/action-guard/ApiBlockingPageRefactored.tsx)** - 차단 액션 패턴
 
 ## 모범 사례
 
@@ -165,4 +165,4 @@ function AdvancedComponent() {
 4. **에러 처리**: 에러 케이스에 controller.abort() 사용
 5. **비동기 작업**: 적절한 에러 경계로 비동기 작업 처리
 
-> **중요**: 자세한 핸들러 등록 패턴은 [핸들러 등록 가이드](../../conventions.md#handler-registration)를 참조하세요
+> **중요**: 자세한 핸들러 등록 패턴은 [핸들러 등록 가이드](../../../concept/conventions.md)를 참조하세요

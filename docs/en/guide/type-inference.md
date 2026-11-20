@@ -41,12 +41,12 @@ const { Provider, useStore, useStoreManager } = createStoreContext('MyApp', {
 
 ## 📋 Table of Contents
 
-- [Store Type Inference](./type-inference/stores.md)
-- [Action Type Inference](./type-inference/actions.md)
-- [Advanced Type Features](./type-inference/advanced.md)
-- [Type Safety Best Practices](./type-inference/best-practices.md)
-- [IDE Setup and Tips](./type-inference/ide-setup.md)
-- [Practical Examples](./type-inference/examples.md)
+- [Store Type Inference](./patterns/store/basic-usage.md)
+- [Action Type Inference](./patterns/action/type-system.md)
+- [Advanced Type Features](./patterns/action/type-system.md)
+- [Type Safety Best Practices](./best-practices.md)
+- [IDE Setup and Tips](./best-practices.md)
+- [Practical Examples](../examples/basic-setup.md)
 
 ## 🔑 Key Features
 
@@ -72,9 +72,9 @@ const { Provider, useStore, useStoreManager } = createStoreContext('MyApp', {
 
 ## 🚀 Getting Started
 
-1. **[Store Type Inference](./type-inference/stores.md)** - Learn how to create type-safe stores
-2. **[Action Type Inference](./type-inference/actions.md)** - Master action payload typing
-3. **[Advanced Features](./type-inference/advanced.md)** - Explore branded types and utilities
+1. **[Store Type Inference](./patterns/store/basic-usage.md)** - Learn how to create type-safe stores
+2. **[Action Type Inference](./patterns/action/type-system.md)** - Master action payload typing
+3. **[Advanced Features](./patterns/action/type-system.md)** - Explore branded types and utilities
 
 ## 💡 Quick Example
 
@@ -125,9 +125,9 @@ function UserComponent() {
 
 - [Getting Started Guide](./getting-started.md)
 - [Best Practices](./best-practices.md)
-- [API Reference](../api/index.md)
+- [API Reference](../api/README.md)
 - [Architecture Overview](../concept/architecture-guide.md)
 
 ---
 
-**Next Steps**: Start with [Store Type Inference](./type-inference/stores.md) to learn the fundamentals.
+**Next Steps**: Start with [Store Type Inference](./patterns/store/basic-usage.md) to learn the fundamentals.

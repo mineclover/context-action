@@ -120,27 +120,27 @@ These setup guides integrate with pattern documentation as follows:
 
 ### Store Patterns
 - **[Store Basic Usage](../store/basic-usage.md)** → Uses [Basic Store Setup](./basic-store-setup.md)
-- **[Store Performance Patterns](../store/performance-patterns.md)** → Uses [Basic Store Setup](./basic-store-setup.md)
+- **[Store Performance Patterns](../store/subscription-optimization.md)** → Uses [Basic Store Setup](./basic-store-setup.md)
 - **[Store Manager API](../store/useStoreManager-api.md)** → Uses [Basic Store Setup](./basic-store-setup.md)
 
 ### Architecture Patterns
-- **[MVVM Architecture](../architecture/mvvm.md)** → Uses [Multi-Context Setup](./multi-context-setup.md#mvvm-architecture-setup)
-- **[Domain Context Architecture](../architecture/domain-context.md)** → Uses [Multi-Context Setup](./multi-context-setup.md#domain-context-architecture-setup)
-- **[Context Splitting Patterns](../architecture/context-splitting.md)** → Uses [Multi-Context Setup](./multi-context-setup.md)
+- **[MVVM Architecture](../../../concept/architecture-guide.md)** → Uses [Multi-Context Setup](./multi-context-setup.md#mvvm-architecture-setup)
+- **[Domain Context Architecture](../../../context-layered/context-layered-guide.md)** → Uses [Multi-Context Setup](./multi-context-setup.md#domain-context-architecture-setup)
+- **[Context Splitting Patterns](../../../context-layered/context-layered-guide.md)** → Uses [Multi-Context Setup](./multi-context-setup.md)
 
 ### Ref Patterns
 - **[Ref Basic Usage](../ref/basic-usage.md)** → Uses [RefContext Setup](./ref-context-setup.md)
-- **[Canvas Optimization](../ref/canvas-optimization.md)** → Uses [RefContext Setup](./ref-context-setup.md)
-- **[Memory Optimization](../ref/memory-optimization.md)** → Uses [RefContext Setup](./ref-context-setup.md)
+- **[Canvas Optimization](../ref/basic-usage.md)** → Uses [RefContext Setup](./ref-context-setup.md)
+- **[Memory Optimization](../ref/basic-usage.md)** → Uses [RefContext Setup](./ref-context-setup.md)
 
 ### Performance Patterns
-- **[Optimization Techniques](../performance/optimization-techniques.md)** → Uses all setup guides
+- **[Optimization Techniques](../store/subscription-optimization.md)** → Uses all setup guides
 
 ### Provider Management
-- **[withProvider Pattern](../store/withProvider-pattern.md)** → Uses [Provider Composition Setup](./provider-composition-setup.md)
+- **[withProvider Pattern](./provider-composition-setup.md)** → Uses [Provider Composition Setup](./provider-composition-setup.md)
 
 ## Related Guides
 
-- **[Pattern Selection Guide](../index.md)** - Choose the right patterns for your use case
-- **[Best Practices](../../conventions.md)** - General framework best practices
-- **[Architecture Guide](../../concept/architecture-guide.md)** - Overall architecture concepts
+- **[Pattern Selection Guide](./index.md)** - Choose the right patterns for your use case
+- **[Best Practices](../../../concept/conventions.md)** - General framework best practices
+- **[Architecture Guide](../../../concept/architecture-guide.md)** - Overall architecture concepts

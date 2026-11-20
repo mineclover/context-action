@@ -1,60 +1,116 @@
 # Context-Action React Package - Complete Code
 
-Total Files: 43
-Total Lines: 4418
+Total Files: 53
+Total Lines: 8699
 
 ## Type Definitions
 
 ### actions/ActionContext.types.ts
 
 ```typescript
-import { ReactNode } from 'react';
 import {
+  ActionCommandHandler,
+  ActionNames,
   ActionRegister,
-  ActionHandler,
-  HandlerConfig,
   ActionRegisterConfig,
-  DispatchOptions,
-  ExecutionResult
+  ActionEffectHandler,
+  ActionGuardHandler,
+  ActionObserverHandler,
+  CommandConfig,
+  ObserverConfig,
+  ActionResult,
+  ActionResultHandler,
+  ActionResultMap,
+  ActionPayloadMap,
+  HandlerConfig,
+  EffectConfig,
+  GuardConfig,
+  PipelineController,
 } from '@context-action/core';
-export interface ActionContextConfig extends ActionRegisterConfig {
-  name?: string;
+import { ReactNode } from 'react';
+export type ActionContextHandler<T, R = void> = (
+  payload: T,
+  controller: PipelineController<T, R>
+) => R | Promise<R> | void | Promise<void>;
+export interface ActionContextConfig extends Omit<ActionRegisterConfig, 'name'> {
+  schema?: NonNullable<ActionRegisterConfig['registry']>['schema'];
 }
-export interface ActionContextType<T extends {}> {
-  actionRegisterRef: React.RefObject<ActionRegister<T>>;
+export interface ActionContextType<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+> {
+  actionRegisterRef: React.RefObject<ActionRegister<T, TResultMap> | null>;
+  dispatchLifecycle: ProviderDispatchLifecycle;
 }
-export interface ActionContextReturn<T extends {}> {
+export interface ProviderDispatchLifecycle {
+  run<R>(
+    externalSignals: Array<AbortSignal | undefined>,
+    operation: (signal: AbortSignal) => Promise<R>
+  ): Promise<R>;
+  scheduleHandlerCleanup(cleanup: () => void): void;
+  shutdown(register: ActionRegister<any, any>): Promise<void>;
+}
+export interface ActionContextReturn<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+> {
   Provider: React.FC<{ children: ReactNode }>;
-  useActionContext: () => ActionContextType<T>;
-  useActionDispatch: () => ActionRegister<T>['dispatch'];
-  useActionHandler: <K extends keyof T>(
+  useActionContext: () => ActionContextType<T, TResultMap>;
+  useActionDispatch: () => ActionRegister<T, TResultMap>['dispatch'];
+  useActionHandler: <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
     action: K,
-    handler: ActionHandler<T[K]>,
-    config?: HandlerConfig
+    handler: K extends keyof TResultMap
+      ? ActionResultHandler<T[K], ActionResult<TResultMap, K>>
+      : ActionContextHandler<T[K], R>,
+    config?: HandlerConfig<T[K]>
   ) => void;
-  useActionRegister: () => ActionRegister<T> | null;
+  useActionEffectHandler: {
+    <K extends ActionNames<T>>(
+      action: K,
+      handler: ActionGuardHandler<T[K]>,
+      config: EffectConfig<T[K]> & { effectKind: 'guard' },
+    ): void;
+    <K extends ActionNames<T>>(
+      action: K,
+      handler: ActionEffectHandler<T[K]>,
+      config: EffectConfig<T[K]> & { effectKind: 'observer' },
+    ): void;
+  };
+  useActionGuard: <K extends ActionNames<T>>(
+    action: K,
+    handler: ActionGuardHandler<T[K]>,
+    config?: GuardConfig<T[K]>
+  ) => void;
+  useActionCommandHandler: <K extends ActionNames<T>>(
+    action: K,
+    handler: ActionCommandHandler<T[K]>,
+    config?: CommandConfig<T[K]>
+  ) => void;
+  useActionObserver: <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
+    action: K,
+    handler: ActionObserverHandler<T[K], R>,
+    config?: ObserverConfig<T[K]>
+  ) => void;
+  useActionResultHandler: <K extends ActionNames<T> & keyof TResultMap>(
+    action: K,
+    handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
+    config?: HandlerConfig<T[K]>
+  ) => void;
+  useActionRegister: () => ActionRegister<T, TResultMap> | null;
   useActionDispatchWithResult: () => {
-    dispatch: <K extends keyof T>(
-      action: K,
-      payload?: T[K],
-      options?: DispatchOptions
-    ) => Promise<void>;
-    dispatchWithResult: <K extends keyof T, R = void>(
-      action: K,
-      payload?: T[K],
-      options?: DispatchOptions
-    ) => Promise<ExecutionResult<R>>;
+    dispatch: ActionRegister<T, TResultMap>['dispatch'];
+    dispatchWithResult: ActionRegister<T, TResultMap>['dispatchWithResult'];
     abortAll: () => void;
     resetAbortScope: () => void;
   };
-  context: React.Context<ActionContextType<T> | null>;
+  context: React.Context<ActionContextType<T, TResultMap> | null>;
 }
 ```
 
 ### refs/types.ts
 
 ```typescript
-export type RefTarget = any;
+export type RefTarget = unknown;
 export interface RefState<T extends RefTarget = RefTarget> {
   target: T | null;
   isReady: boolean;
@@ -62,9 +118,9 @@ export interface RefState<T extends RefTarget = RefTarget> {
   mountPromise: Promise<T> | null;
   mountedAt?: number;
   error?: Error | null;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
-export interface RefOperationResult<T = any> {
+export interface RefOperationResult<T = unknown> {
   success: boolean;
   result?: T;
   error?: Error;
@@ -77,57 +133,33 @@ export interface RefOperationOptions {
   signal?: AbortSignal;
   priority?: number;
   operationId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
-export type RefOperation<T extends RefTarget, R = any> = (
+export type RefOperation<T extends RefTarget, R = unknown> = (
   target: T,
   options?: RefOperationOptions
 ) => R | Promise<R>;
 export interface RefInitConfig<T extends RefTarget = RefTarget> {
   name: string;
-  initialMetadata?: Record<string, any>;
+  initialMetadata?: Record<string, unknown>;
   mountTimeout?: number;
   autoCleanup?: boolean;
-  validator?: (target: any) => target is T;
+  validator?: (target: unknown) => target is T;
   cleanup?: (target: T) => void | Promise<void>;
 }
 export type RefDefinitions = Record<string, RefInitConfig<any>>;
 export type InferRefTypes<T extends RefDefinitions> = {
   [K in keyof T]: T[K] extends RefInitConfig<infer R> ? R : RefTarget;
 };
-export interface RefEvent<T extends RefTarget = RefTarget> {
-  type: 'mount' | 'unmount' | 'error' | 'ready' | 'cleanup';
-  refName: string;
-  target?: T;
-  error?: Error;
-  timestamp: number;
-  metadata?: Record<string, any>;
-}
-export type RefEventListener<T extends RefTarget = RefTarget> = (
-  event: RefEvent<T>
-) => void;
 ```
 
 ### stores/core/types.ts
 
 ```typescript
+import type { DependencyList } from 'react';
 export type Listener = () => void;
-export type EnhancedListener = {
-  listener: Listener;
-  errorCount: number;
-  lastError?: number;
-  componentName?: string;
-};
 export type Unsubscribe = () => void;
 export type Subscribe = (listener: Listener) => Unsubscribe;
-export type EnhancedSubscribe = (
-  listener: Listener,
-  options?: {
-    enableRetry?: boolean;
-    maxRetries?: number;
-    componentName?: string;
-  }
-) => Unsubscribe;
 export interface Snapshot<T = unknown> {
   value: T;
   name: string;
@@ -151,8 +183,9 @@ export interface IStore<T = unknown> {
   subscribe: Subscribe;
   getSnapshot: () => Snapshot<T>;
   setValue: (value: T, options?: StoreSetValueOptions<T>) => void;
-  update: (updater: (current: T) => T) => void;
+  update: (updater: (current: T) => T | undefined) => void;
   getValue: () => T;
+  getSafeValue?: () => T;
   getListenerCount?: () => number;
   dispose?: () => void;
   registerCleanup?: (task: () => void) => () => void;
@@ -161,12 +194,14 @@ export interface IStore<T = unknown> {
   resetMetrics?: () => void;
   setSecurityOptions?: (options: SecurityOptions) => void;
   getSecurityOptions?: () => SecurityOptions | undefined;
+  notifyPath?: (path: (string | number)[]) => void;
+  notifyPaths?: (paths: (string | number)[][]) => void;
 }
 export interface IStoreRegistry {
   readonly name: string;
   subscribe: Subscribe;
   getSnapshot: () => Array<[string, IStore]>;
-  register: (name: string, store: IStore, metadata?: any) => void;
+  register: (name: string, store: IStore, metadata?: StoreMetadata) => void;
   unregister: (name: string) => boolean;
   getStore: (name: string) => IStore | undefined;
   getAllStores: () => Map<string, IStore>;
@@ -198,8 +233,8 @@ export interface StoreSyncConfig<T, R = Snapshot<T>> {
 }
 export interface HookOptions<T> {
   defaultValue?: T;
-  onError?: (error: Error, retryCount?: number) => void | boolean;
-  dependencies?: React.DependencyList;
+  onError?: (error: Error, retryCount?: number) => undefined | boolean;
+  dependencies?: DependencyList;
   enableRetry?: boolean;
   maxRetries?: number;
   retryDelay?: number;
@@ -211,22 +246,9 @@ export interface StoreSetValueOptions<T> {
   skipClone?: boolean;
   skipComparison?: boolean;
   eventHandling?: 'block' | 'transform' | 'allow';
-  eventTransform?: (event: any) => T;
+  eventTransform?: (event: unknown) => T;
   sanitizer?: (value: T) => T;
   validator?: (value: T) => boolean | string;
-}
-export interface SubscriptionMetadata {
-  subscribedAt: number;
-  errorCount: number;
-  enhancedListener: () => void;
-  componentName?: string;
-}
-export interface ResourceMonitor {
-  memoryUsage: number;
-  activeSubscriptions: number;
-  pendingOperations: number;
-  lastActivity: number;
-  dispose(): void;
 }
 export interface StoreMetrics {
   totalSets: number;
@@ -237,12 +259,6 @@ export interface StoreMetrics {
   peakListenerCount: number;
   totalErrors: number;
 }
-export interface CleanupTask {
-  task: () => void;
-  id?: string;
-  priority?: number;
-  timeout?: number;
-}
 export interface SecurityOptions {
   preventPrototypePollution?: boolean;
   preventXSS?: boolean;
@@ -252,21 +268,12 @@ export interface SecurityOptions {
   blockedProperties?: RegExp;
 }
 export interface RegistryStoreMap {
-  [key: string]: unknown;
+  [key: string]: unknown;  
 }
-export type StrictStoreDefinitions<T extends Record<string, unknown>> = {
-  [K in keyof T]: {
-    initialValue: T[K];
-  } | T[K];
-};
-export interface StrictStoreContextReturn<T extends Record<string, unknown>> {
-  Provider: React.ComponentType<{ children: React.ReactNode }>;
-  useStore: <K extends keyof T>(name: K) => IStore<T[K]>;
-  useStoreManager?: () => {
-    getStore: <K extends keyof T>(name: K) => IStore<T[K]> | undefined;
-    getAllStores: () => Map<string, IStore>;
-    hasStore: (name: string) => boolean;
-  };
+export interface StoreMetadata {
+  registeredAt?: number;
+  name?: string;
+  [key: string]: unknown;
 }
 export interface DynamicStoreOptions<T> {
   defaultValue?: T;
@@ -276,11 +283,242 @@ export interface DynamicStoreOptions<T> {
   autoCleanup?: boolean;
   enableMetrics?: boolean;
 }
-export interface React18Options {
-  enableDeferred?: boolean;
-  enableTransition?: boolean;
-  priorityThreshold?: number;
-  enableConcurrent?: boolean;
+```
+
+### tools/ToolContext.types.ts
+
+```typescript
+import type { DispatchArgs } from '@context-action/core';
+import {
+  ActionHandler,
+  ActionRegister,
+  ActionResultHandler,
+  DispatchOptions,
+  ExecutionResult,
+  HandlerConfig,
+} from '@context-action/core';
+import type {
+  DurableOperationRecord,
+  DurableOperationResolution,
+  DurableOperationFence,
+  DurableOperationStore,
+} from '@context-action/tool-durable-operations';
+import type {
+  ActionSchemaMap,
+  AnthropicToolDefinition,
+  InferActionPayloadMap,
+  InferActionInputMap,
+  InferActionResultMap,
+  MCPToolDefinition,
+  ModelToolCall,
+  OpenAIToolDefinition,
+  ToolApprovalRequestInput,
+  ToolCallContext,
+  ToolCallObserver,
+  ToolCallOptions,
+  ToolCallRequest,
+  ToolCallResult,
+  ToolArguments,
+  ToolIdempotencyRegistryOptions,
+  ToolListRequest,
+  ToolListResult,
+  ToolManagementInterface,
+  ToolObservabilityPolicy,
+} from '@context-action/tool-protocol';
+import { ReactNode } from 'react';
+import type { ProviderDispatchLifecycle } from '../actions/ActionContext.types';
+export type ToolValidationMode = 'strict' | 'warn' | 'silent';
+export type ToolPolicyDecision = 'allow' | 'ask' | 'deny';
+export type ToolPolicyInput = ToolApprovalRequestInput;
+export type ToolPolicy = (
+  input: ToolPolicyInput
+) => ToolPolicyDecision | Promise<ToolPolicyDecision>;
+export type ToolOperationRecoveryResolver = (
+  record: DurableOperationRecord<ToolCallResult>,
+  context?: ToolCallContext
+) => DurableOperationResolution<ToolCallResult> | Promise<DurableOperationResolution<ToolCallResult>>;
+export interface ToolContextConfig<TSchema extends ActionSchemaMap> {
+  schema: TSchema;
+  validationMode?: ToolValidationMode;
+  validateOnDispatch?: boolean;
+  debug?: boolean;
+  allowedToolNames?: readonly string[];
+  toolListPageSize?: number;
+  toolPolicy?: ToolPolicy;
+  onToolCall?: ToolCallObserver;
+  executionOwnerId?: string;
+  idempotency?: ToolIdempotencyRegistryOptions;
+  durableOperationStore?: DurableOperationStore<ToolCallResult>;
+  durableOperationOwnerId?: string;
+  durableOperationLeaseMs?: number;
+  durableDiagnosticPolicy?: ToolObservabilityPolicy;
+}
+type ToolSchemaName<TSchema extends ActionSchemaMap> = Extract<
+  keyof TSchema,
+  string
+>;
+export type SchemaToolCallRequest<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = K extends ToolSchemaName<TSchema>
+  ? Omit<ToolCallRequest, 'params'> & {
+      readonly params: Omit<ToolCallRequest['params'], 'name' | 'arguments'> & {
+        readonly name: K;
+        readonly arguments?: InferActionInputMap<TSchema>[K] & ToolArguments;
+      };
+    }
+  : never;
+export type SchemaModelToolCall<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = K extends ToolSchemaName<TSchema>
+  ? Omit<ModelToolCall, 'name' | 'arguments'> & {
+      readonly name: K;
+      readonly arguments?: InferActionInputMap<TSchema>[K] & ToolArguments;
+    }
+  : never;
+export type SchemaToolCallResult<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = ToolCallResult<InferActionResultMap<TSchema>[K]>;
+export type SchemaDurableOperationRecord<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = DurableOperationRecord<SchemaToolCallResult<TSchema, K>>;
+export type SchemaDurableOperationResolution<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = DurableOperationResolution<SchemaToolCallResult<TSchema, K>>;
+export type SchemaToolOperationRecoveryResolver<
+  TSchema extends ActionSchemaMap,
+  K extends ToolSchemaName<TSchema> = ToolSchemaName<TSchema>,
+> = (
+  record: SchemaDurableOperationRecord<TSchema, K>,
+  context?: ToolCallContext
+) =>
+  | SchemaDurableOperationResolution<TSchema, K>
+  | Promise<SchemaDurableOperationResolution<TSchema, K>>;
+export interface ToolRegistry<TSchema extends ActionSchemaMap>
+  extends ToolManagementInterface<MCPToolDefinition> {
+  readonly tools: TSchema;
+  getTool<K extends keyof TSchema>(name: K): TSchema[K];
+  getToolNames(): (keyof TSchema)[];
+  toMCP(): MCPToolDefinition[];
+  toOpenAI(): OpenAIToolDefinition[];
+  toAnthropic(): AnthropicToolDefinition[];
+  toMCPFiltered<K extends keyof TSchema>(toolNames: K[]): MCPToolDefinition[];
+  toOpenAIFiltered<K extends keyof TSchema>(toolNames: K[]): OpenAIToolDefinition[];
+  toAnthropicFiltered<K extends keyof TSchema>(toolNames: K[]): AnthropicToolDefinition[];
+  listTools(request?: ToolListRequest): ToolListResult<MCPToolDefinition>;
+  getToolDefinition(name: string): MCPToolDefinition | undefined;
+  callTool<K extends ToolSchemaName<TSchema>>(
+    request: SchemaToolCallRequest<TSchema, K>,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult<InferActionResultMap<TSchema>[K]>>;
+  callTool(
+    request: ToolCallRequest,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult>;
+  executeModelToolCall<K extends ToolSchemaName<TSchema>>(
+    call: SchemaModelToolCall<TSchema, K>,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult<InferActionResultMap<TSchema>[K]>>;
+  executeModelToolCall(
+    call: ModelToolCall,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult>;
+  getOperationStatus<K extends ToolSchemaName<TSchema>>(
+    toolName: K,
+    idempotencyKey: string,
+    context?: ToolCallContext
+  ): Promise<SchemaDurableOperationRecord<TSchema, K> | undefined>;
+  getOperationStatus(
+    toolName: string,
+    idempotencyKey: string,
+    context?: ToolCallContext
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined>;
+  reconcileOperation<K extends ToolSchemaName<TSchema>>(
+    toolName: K,
+    idempotencyKey: string,
+    resolution: SchemaDurableOperationResolution<TSchema, K>,
+    context?: ToolCallContext,
+    expectedFence?: DurableOperationFence | number
+  ): Promise<SchemaDurableOperationRecord<TSchema, K> | undefined>;
+  reconcileOperation(
+    toolName: string,
+    idempotencyKey: string,
+    resolution: DurableOperationResolution<ToolCallResult>,
+    context?: ToolCallContext,
+    expectedFence?: DurableOperationFence | number
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined>;
+  recoverOperation<K extends ToolSchemaName<TSchema>>(
+    toolName: K,
+    idempotencyKey: string,
+    resolver: SchemaToolOperationRecoveryResolver<TSchema, K>,
+    context?: ToolCallContext
+  ): Promise<SchemaDurableOperationRecord<TSchema, K> | undefined>;
+  recoverOperation(
+    toolName: string,
+    idempotencyKey: string,
+    resolver: ToolOperationRecoveryResolver,
+    context?: ToolCallContext
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined>;
+}
+export interface ToolExecutionResult<R = void> extends ExecutionResult<R> {
+  validationPassed: boolean;
+  validationErrors?: string[];
+}
+export interface ToolContextType<TSchema extends ActionSchemaMap> {
+  actionRegisterRef: React.RefObject<ActionRegister<InferActionPayloadMap<TSchema>> | null>;
+  registry: ToolRegistry<TSchema>;
+  dispatch: ToolDispatchFunction<InferActionPayloadMap<TSchema>>;
+  dispatchLifecycle: ProviderDispatchLifecycle;
+}
+export type ToolDispatchFunction<TPayloadMap> = <K extends Extract<keyof TPayloadMap, string>>(
+  toolName: K,
+  payload: TPayloadMap[K],
+  options?: DispatchOptions
+) => Promise<void>;
+export interface DirectToolCallOptions extends ToolCallOptions {
+  readonly toolCallId?: ToolCallRequest['id'];
+}
+export type ToolCallFunction<TInputMap, TResultMap = {}> = <K extends Extract<keyof TInputMap, string>>(
+  toolName: K,
+  payload: TInputMap[K],
+  options?: DirectToolCallOptions
+) => Promise<ToolCallResult<K extends keyof TResultMap ? TResultMap[K] : unknown>>;
+export interface ToolDispatchWithResultReturn<TPayloadMap> {
+  dispatch: ToolDispatchFunction<TPayloadMap>;
+  dispatchWithResult: <K extends Extract<keyof TPayloadMap, string>, R = void>(
+    toolName: K,
+    ...args: DispatchArgs<TPayloadMap[K]>
+  ) => Promise<ToolExecutionResult<R>>;
+  abortAll: () => void;
+}
+export interface ToolContextReturn<TSchema extends ActionSchemaMap> {
+  Provider: React.FC<{ children: ReactNode }>;
+  useToolDispatch: () => ToolDispatchFunction<InferActionPayloadMap<TSchema>>;
+  useToolCall: () => ToolCallFunction<
+    InferActionInputMap<TSchema>,
+    InferActionResultMap<TSchema>
+  >;
+  useToolHandler: <K extends Extract<keyof TSchema, string>, R = void>(
+    toolName: K,
+    handler: ActionHandler<InferActionPayloadMap<TSchema>[K], R>,
+    config?: HandlerConfig<InferActionPayloadMap<TSchema>[K]>
+  ) => void;
+  useToolResultHandler: <K extends Extract<keyof TSchema, string>>(
+    toolName: K,
+    handler: ActionResultHandler<
+      InferActionPayloadMap<TSchema>[K],
+      InferActionResultMap<TSchema>[K]
+    >,
+    config?: HandlerConfig<InferActionPayloadMap<TSchema>[K]>
+  ) => void;
+  useToolRegistry: () => ToolRegistry<TSchema>;
+  useToolDispatchWithResult: () => ToolDispatchWithResultReturn<InferActionPayloadMap<TSchema>>;
+  useActionRegister: () => ActionRegister<InferActionPayloadMap<TSchema>> | null;
+  context: React.Context<ToolContextType<TSchema> | null>;
 }
 ```
 
@@ -289,59 +527,299 @@ export interface React18Options {
 ### actions/ActionContext.tsx
 
 ```typescript
-import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo, useCallback } from 'react';
-import {  ActionRegister, ActionHandler, HandlerConfig, DispatchOptions, ExecutionResult } from '@context-action/core';
+import {
+  ActionCommandHandler,
+  ActionEffectHandler,
+  ActionGuardHandler,
+  ActionHandler,
+  ActionNames,
+  ActionObserverHandler,
+  ActionPayloadMap,
+  ActionRegister,
+  ActionRegisterConfig,
+  ActionResult,
+  ActionResultHandler,
+  ActionResultMap,
+  CommandConfig,
+  DispatchArgs,
+  DispatchOptions,
+  EffectConfig,
+  ExecutionResult,
+  GuardConfig,
+  HandlerConfig,
+  ObserverConfig,
+} from '@context-action/core';
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useId,
+  useInsertionEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import type {
   ActionContextConfig,
+  ActionContextReturn,
   ActionContextType,
-  ActionContextReturn
+  ProviderDispatchLifecycle
 } from './ActionContext.types';
-export function createActionContext<T extends {}>(
+const useInsertionCommitEffect = useInsertionEffect;
+function createProviderAbortError(): Error {
+  const error = new Error('Action provider unmounted');
+  error.name = 'AbortError';
+  return error;
+}
+const ABORT_GRACE_MS = 25;
+function mergeAbortSignals(signals: AbortSignal[]): {
+  signal: AbortSignal;
+  cleanup: () => void;
+} {
+  if (signals.length === 1) {
+    return { signal: signals[0]!, cleanup: () => {} };
+  }
+  if (typeof AbortSignal.any === 'function') {
+    return { signal: AbortSignal.any(signals), cleanup: () => {} };
+  }
+  const controller = new AbortController();
+  const cleanups: Array<() => void> = [];
+  for (const signal of signals) {
+    if (signal.aborted) {
+      controller.abort(signal.reason);
+      break;
+    }
+    const forwardAbort = () => controller.abort(signal.reason);
+    signal.addEventListener('abort', forwardAbort, { once: true });
+    cleanups.push(() => signal.removeEventListener('abort', forwardAbort));
+  }
+  return {
+    signal: controller.signal,
+    cleanup: () => cleanups.forEach(cleanup => cleanup()),
+  };
+}
+export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle {
+  private accepting = true;
+  private finalized = false;
+  private activeOperations = new Set<Promise<unknown>>();
+  private activeExposedOperations = new Set<Promise<unknown>>();
+  private controllers = new Set<AbortController>();
+  private pendingHandlerCleanups: Array<() => void> = [];
+  private shutdownPromise: Promise<void> | null = null;
+  private runHandlerCleanup(cleanup: () => void): void {
+    try {
+      cleanup();
+    } catch (error) {
+      console.error('[ContextAction] Action handler cleanup failed.', error);
+    }
+  }
+  run<R>(
+    externalSignals: Array<AbortSignal | undefined>,
+    operation: (signal: AbortSignal) => Promise<R>
+  ): Promise<R> {
+    if (!this.accepting) {
+      const rejectedPromise = Promise.reject<R>(createProviderAbortError());
+      void rejectedPromise.catch(() => {});
+      return rejectedPromise;
+    }
+    const controller = new AbortController();
+    const callerSignals = externalSignals.filter(
+      (candidate): candidate is AbortSignal => Boolean(candidate),
+    );
+    const { signal, cleanup: cleanupSignals } = mergeAbortSignals([
+      controller.signal,
+      ...callerSignals,
+    ]);
+    this.controllers.add(controller);
+    let operationPromise: Promise<R>;
+    try {
+      operationPromise = operation(signal);
+    } catch (error) {
+      operationPromise = Promise.reject(error);
+    }
+    this.activeOperations.add(operationPromise);
+    const abortPromise = new Promise<never>((_, reject) => {
+      let abortHandled = false;
+      let immediateAbort = false;
+      let operationSettled = false;
+      let abortTimer: ReturnType<typeof setTimeout> | undefined;
+      const rejectOnAbort = (immediate: boolean) => {
+        if (immediateAbort) return;
+        if (immediate) {
+          immediateAbort = true;
+          abortHandled = true;
+          if (abortTimer !== undefined) clearTimeout(abortTimer);
+          reject(createProviderAbortError());
+          return;
+        }
+        if (abortHandled) return;
+        abortHandled = true;
+        abortTimer = setTimeout(() => {
+          if (!operationSettled) reject(createProviderAbortError());
+        }, ABORT_GRACE_MS);
+      };
+      const rejectOnProviderAbort = () => rejectOnAbort(true);
+      const rejectOnCallerAbort = () => rejectOnAbort(false);
+      controller.signal.addEventListener('abort', rejectOnProviderAbort, { once: true });
+      callerSignals.forEach((callerSignal) => {
+        callerSignal.addEventListener('abort', rejectOnCallerAbort, { once: true });
+      });
+      const finish = () => {
+        operationSettled = true;
+        if (abortTimer !== undefined) clearTimeout(abortTimer);
+        controller.signal.removeEventListener('abort', rejectOnProviderAbort);
+        callerSignals.forEach((callerSignal) => {
+          callerSignal.removeEventListener('abort', rejectOnCallerAbort);
+        });
+        this.controllers.delete(controller);
+        this.activeOperations.delete(operationPromise);
+        cleanupSignals();
+      };
+      void operationPromise.then(finish, finish);
+      if (controller.signal.aborted) {
+        rejectOnProviderAbort();
+      } else if (callerSignals.some(callerSignal => callerSignal.aborted)) {
+        rejectOnCallerAbort();
+      }
+    });
+    const exposedPromise = Promise.race([operationPromise, abortPromise]);
+    this.activeExposedOperations.add(exposedPromise);
+    void exposedPromise.then(
+      () => this.activeExposedOperations.delete(exposedPromise),
+      () => this.activeExposedOperations.delete(exposedPromise),
+    );
+    void exposedPromise.catch(() => {});
+    return exposedPromise;
+  }
+  scheduleHandlerCleanup(cleanup: () => void): void {
+    queueMicrotask(() => {
+      if (this.finalized) {
+        this.runHandlerCleanup(cleanup);
+      } else if (this.accepting) {
+        this.runHandlerCleanup(cleanup);
+      } else {
+        this.pendingHandlerCleanups.push(cleanup);
+      }
+    });
+  }
+  shutdown(register: ActionRegister<any, any>): Promise<void> {
+    if (this.shutdownPromise) return this.shutdownPromise;
+    this.accepting = false;
+    this.controllers.forEach(controller => {
+      if (!controller.signal.aborted) controller.abort(createProviderAbortError());
+    });
+    const registerShutdown = register.destroyAsync({ deferCleanup: true });
+    this.shutdownPromise = Promise.allSettled([...this.activeExposedOperations])
+      .then(() => undefined);
+    const finalizationPromise = (async () => {
+      while (this.activeOperations.size > 0) {
+        await Promise.allSettled([...this.activeOperations]);
+      }
+      await registerShutdown;
+      const pendingHandlerCleanups = this.pendingHandlerCleanups.splice(0);
+      this.finalized = true;
+      pendingHandlerCleanups.forEach(cleanup => this.runHandlerCleanup(cleanup));
+    })();
+    void finalizationPromise.catch(() => {
+      const pendingHandlerCleanups = this.pendingHandlerCleanups.splice(0);
+      this.finalized = true;
+      pendingHandlerCleanups.forEach(cleanup => this.runHandlerCleanup(cleanup));
+    });
+    return this.shutdownPromise;
+  }
+}
+export function withProviderDispatchSignal(
+  options: DispatchOptions | undefined,
+  signal: AbortSignal
+): DispatchOptions {
+  return {
+    ...options,
+    signal,
+    ...(!options?.signal && !options?.autoAbort
+      ? { autoAbort: { enabled: true, allowHandlerAbort: true } }
+      : {}),
+  };
+}
+export function createActionContext<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+>(
   contextName: string,
   config?: ActionContextConfig
-): ActionContextReturn<T>;
-export function createActionContext<T extends {}>(
-  config: ActionContextConfig
-): ActionContextReturn<T>;
-export function createActionContext<T extends {}>(
-  contextNameOrConfig: string | ActionContextConfig = {},
+): ActionContextReturn<T, TResultMap>;
+export function createActionContext<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+>(
+  contextName: string,
   config?: ActionContextConfig
-): ActionContextReturn<T> {
-  let effectiveConfig: ActionContextConfig;
-  let contextName: string;
-  if (typeof contextNameOrConfig === 'string') {
-    contextName = contextNameOrConfig;
-    effectiveConfig = { ...config, name: config?.name || contextName };
-  } else {
-    effectiveConfig = contextNameOrConfig;
-    contextName = effectiveConfig.name || 'ActionContext';
+): ActionContextReturn<T, TResultMap> {
+  if (typeof contextName !== 'string' || contextName.trim().length === 0) {
+    throw new TypeError(
+      'createActionContext requires a non-empty context name as its first argument.'
+    );
   }
-  const FactoryActionContext = createContext<ActionContextType<T> | null>(null);
+  let effectiveConfig: ActionContextConfig & Pick<ActionRegisterConfig, 'name'> = {
+    ...config,
+    registry: {
+      ...config?.registry,
+      useConcurrencyQueue: config?.registry?.useConcurrencyQueue ?? true,
+    },
+    name: contextName,
+  };
+  if (effectiveConfig.schema && !effectiveConfig.registry?.schema) {
+    effectiveConfig = {
+      ...effectiveConfig,
+      registry: {
+        ...effectiveConfig.registry,
+        schema: effectiveConfig.schema,
+      },
+    };
+  }
+  const FactoryActionContext = createContext<ActionContextType<T, TResultMap> | null>(null);
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const actionRegisterRef = useRef<ActionRegister<T>>(new ActionRegister<T>(effectiveConfig));
+    const actionRegisterRef = useRef<ActionRegister<T, TResultMap> | null>(null);
+    const dispatchLifecycleRef = useRef<ProviderDispatchLifecycleImpl | null>(null);
+    if (!actionRegisterRef.current) {
+      actionRegisterRef.current = new ActionRegister<T, TResultMap>(effectiveConfig);
+    }
+    if (!dispatchLifecycleRef.current) {
+      dispatchLifecycleRef.current = new ProviderDispatchLifecycleImpl();
+    }
+    const dispatchLifecycle = dispatchLifecycleRef.current;
+    useInsertionCommitEffect(() => {
+      const register = actionRegisterRef.current;
+      if (!register) {
+        throw new Error('Action provider resources were not initialized before commit.');
+      }
+      return () => {
+        void dispatchLifecycle.shutdown(register);
+      };
+    }, [dispatchLifecycle]);
     const contextValue = useMemo(() => ({
       actionRegisterRef,
-    }), []);
+      dispatchLifecycle,
+    }), [dispatchLifecycle]);
     return (
       <FactoryActionContext.Provider value={contextValue}>
         {children}
       </FactoryActionContext.Provider>
     );
   };
-  const useFactoryActionContext = (): ActionContextType<T> => {
+  const useFactoryActionContext = (): ActionContextType<T, TResultMap> => {
     const context = useContext(FactoryActionContext);
     if (!context) {
       throw new Error('useFactoryActionContext must be used within a factory ActionContext Provider');
     }
     return context;
   };
-  const useActionDispatcher = () => {
-    const { actionRegisterRef } = useFactoryActionContext();
-    const dispatch = useCallback(<K extends keyof T>(
+  const useAction = (): ActionRegister<T, TResultMap>['dispatch'] => {
+    const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
+    return useCallback(<K extends ActionNames<T>>(
       action: K,
-      payload?: T[K],
-      options?: DispatchOptions
+      ...args: DispatchArgs<T[K]>
     ): Promise<void> => {
+      const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
       if (process.env.NODE_ENV === 'development') {
         console.log(`React dispatch called for '${String(action)}':`, {
           hasPayload: payload !== undefined,
@@ -356,92 +834,190 @@ export function createActionContext<T extends {}>(
           'Make sure the ActionContext Provider is properly set up.'
         );
       }
-      const dispatchOptions: DispatchOptions = {
-        ...options,
-        ...(options?.signal ? {} : {
-          autoAbort: {
-            enabled: true,
-            allowHandlerAbort: true
-          }
-        })
-      };
-      return register.dispatch(action, payload, dispatchOptions);
-    }, [actionRegisterRef]);
-    const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
-      action: K,
-      payload?: T[K],
-      options?: DispatchOptions
-    ): Promise<ExecutionResult<R>> => {
-      const register = actionRegisterRef.current;
-      if (!register) {
-        throw new Error('ActionRegister not initialized');
-      }
-      const dispatchOptions: DispatchOptions = {
-        ...options,
-        ...(options?.signal ? {} : {
-          autoAbort: {
-            enabled: true,
-            allowHandlerAbort: true
-          }
-        })
-      };
-      return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
-    }, [actionRegisterRef]);
-    return { dispatch, dispatchWithResult };
+      return dispatchLifecycle.run(
+        [options?.signal],
+        signal => register.dispatch(
+          action,
+          ...([payload as T[K], withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
+        )
+      );
+    }, [actionRegisterRef, dispatchLifecycle]);
   };
-  const useAction = (): ActionRegister<T>['dispatch'] => {
-    const { dispatch } = useActionDispatcher();
-    return dispatch;
-  };
-  const useActionHandler = <K extends keyof T>(
+  const useActionHandler = <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
     action: K,
-    handler: ActionHandler<T[K]>,
-    config?: HandlerConfig
+    handler: K extends keyof TResultMap
+      ? ActionResultHandler<T[K], ActionResult<TResultMap, K>>
+      : ActionHandler<T[K], R>,
+    config?: HandlerConfig<T[K]> | EffectConfig<T[K]>,
+    registrationRole: 'legacy' | 'effect' | 'guard' | 'command' | 'observer' | 'result' = 'legacy',
   ): void => {
-    const { actionRegisterRef } = useFactoryActionContext();
+    const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
     const actionId = useId();
+    const effectGenerationRef = useRef(0);
+    const registrationRef = useRef<{
+      register: ActionRegister<T, TResultMap>;
+      action: keyof T;
+      config: HandlerConfig<T[K]>;
+      active: boolean;
+      unregister: () => void;
+    } | null>(null);
     const handlerRef = useRef(handler);
-    handlerRef.current = handler;
+    useInsertionCommitEffect(() => {
+      handlerRef.current = handler;
+    }, [handler]);
     const priority = config?.priority ?? 0;
     const id = config?.id || `react_${String(action)}_${actionId}`;
-    const blocking = config?.blocking ?? false;
+    const blocking = config?.blocking;
+    const scheduling = config?.scheduling;
+    const errorPolicy = config?.errorPolicy;
     const once = config?.once ?? false;
     const debounce = config?.debounce;
     const throttle = config?.throttle;
-    const stableConfig = useMemo((): HandlerConfig => ({
+    const cleanup = config?.cleanup;
+    const condition = config?.condition;
+    const metadata = config?.metadata;
+    const when = config?.when;
+    const effectKind = config && 'effectKind' in config ? config.effectKind : undefined;
+    const replaceExisting = config?.replaceExisting ?? true;
+    const deferredCleanup = useMemo(
+      () => cleanup === undefined
+        ? undefined
+        : () => dispatchLifecycle.scheduleHandlerCleanup(cleanup),
+      [cleanup, dispatchLifecycle]
+    );
+    const stableConfig = useMemo((): HandlerConfig<T[K]> => ({
       priority,
       id,
-      blocking,
+      ...(blocking !== undefined && { blocking }),
+      ...(scheduling !== undefined && { scheduling }),
+      ...(errorPolicy !== undefined && { errorPolicy }),
       once,
-      replaceExisting: true,
+      replaceExisting,
+      ...(deferredCleanup !== undefined && { cleanup: deferredCleanup }),
+      ...(condition !== undefined && { condition }),
+      ...(metadata !== undefined && { metadata }),
+      ...(when !== undefined && { when }),
+      ...(effectKind !== undefined && { effectKind }),
       ...(debounce !== undefined && { debounce }),
       ...(throttle !== undefined && { throttle })
-    }), [priority, id, blocking, once, debounce, throttle]);
-    useEffect(() => {
+    }), [priority, id, blocking, scheduling, errorPolicy, once, replaceExisting, deferredCleanup, condition, metadata, when, effectKind, debounce, throttle]);
+    useInsertionCommitEffect(() => {
       const register = actionRegisterRef.current;
       if (!register) return;
-      const wrapperHandler: ActionHandler<T[K]> = (payload, controller) => {
-        return handlerRef.current(payload, controller);
-      };
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`Registering handler for '${String(action)}'`);
+      const generation = ++effectGenerationRef.current;
+      let lease = registrationRef.current;
+      if (lease && (
+        lease.register !== register ||
+        lease.action !== action ||
+        lease.config !== stableConfig
+      )) {
+        lease.active = false;
+        lease.unregister();
+        registrationRef.current = null;
+        lease = null;
       }
-      const unregister = register.register(action, wrapperHandler, stableConfig);
-      return unregister;
-    }, [
-      action,
-      actionRegisterRef,
-      stableConfig
+      if (!lease) {
+        const nextLease = {
+          register,
+          action,
+          config: stableConfig,
+          active: true,
+          unregister: () => {},
+        };
+        const wrapperHandler: ActionHandler<T[K], R> = (payload, controller) => {
+          if (!nextLease.active) return;
+          return (handlerRef.current as ActionHandler<T[K], R>)(payload, controller);
+        };
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Registering handler for '${String(action)}'`);
+        }
+        const registerMethod = registrationRole === 'effect'
+          ? register.registerEffect
+          : registrationRole === 'guard'
+            ? register.registerGuard
+            : registrationRole === 'command'
+              ? register.registerCommand
+              : registrationRole === 'observer'
+                ? register.registerObserver
+                : registrationRole === 'result'
+                  ? register.registerResult
+                  : register.register;
+        const registerHandler = registerMethod.bind(register) as unknown as (
+          action: K,
+          handler: ActionHandler<T[K], R>,
+          config: HandlerConfig<T[K]>,
+        ) => () => void;
+        nextLease.unregister = registerHandler(action, wrapperHandler, stableConfig);
+        registrationRef.current = nextLease;
+        lease = nextLease;
+      } else {
+        lease.active = true;
+      }
+      if (!lease) return;
+      const currentLease = lease;
+      return () => {
+        currentLease.active = false;
+        queueMicrotask(() => {
+          if (effectGenerationRef.current !== generation) return;
+          dispatchLifecycle.scheduleHandlerCleanup(() => {
+            if (registrationRef.current === currentLease) {
+              registrationRef.current = null;
+            }
+            currentLease.unregister();
+          });
+        });
+      };
+      }, [
+        action,
+        actionRegisterRef,
+        dispatchLifecycle,
+        stableConfig, 
+        registrationRole,
     ]);
   };
-  const useFactoryActionRegister = (): ActionRegister<T> | null => {
+  const useFactoryActionRegister = (): ActionRegister<T, TResultMap> | null => {
     const context = useFactoryActionContext();
     return context.actionRegisterRef.current;
+  };
+  const useActionEffectHandler = <K extends ActionNames<T>>(
+    action: K,
+    handler: ActionEffectHandler<T[K]> | ActionGuardHandler<T[K]>,
+    config: EffectConfig<T[K]>,
+  ): void => {
+    useActionHandler(action, handler as never, config, 'effect');
+  };
+  const useActionResultHandler = <K extends ActionNames<T> & keyof TResultMap>(
+    action: K,
+    handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
+    config?: HandlerConfig<T[K]>,
+  ): void => {
+    useActionHandler(action, handler as never, config, 'result');
+  };
+  const useActionGuard = <K extends ActionNames<T>>(
+    action: K,
+    handler: ActionGuardHandler<T[K]>,
+    config?: GuardConfig<T[K]>,
+  ): void => {
+    useActionHandler(action, handler as never, config, 'guard');
+  };
+  const useActionCommandHandler = <K extends ActionNames<T>>(
+    action: K,
+    handler: ActionCommandHandler<T[K]>,
+    config?: CommandConfig<T[K]>,
+  ): void => {
+    useActionHandler(action, handler as never, config, 'command');
+  };
+  const useActionObserver = <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
+    action: K,
+    handler: ActionObserverHandler<T[K], R>,
+    config?: ObserverConfig<T[K]>,
+  ): void => {
+    useActionHandler(action, handler as never, config, 'observer');
   };
   const useFactoryActionDispatchWithResult = () => {
     const context = useFactoryActionContext();
     const activeControllersRef = useRef<Set<AbortController>>(new Set());
-    const dispatch = useCallback(<K extends keyof T>(
+    const dispatch = useCallback(<K extends ActionNames<T>>(
       action: K,
       payload?: T[K],
       options?: DispatchOptions
@@ -450,43 +1026,50 @@ export function createActionContext<T extends {}>(
       if (!register) {
         throw new Error('ActionRegister not initialized');
       }
-      const dispatchOptions: DispatchOptions = {
-        ...options,
-        ...(options?.signal ? {} : {
-          autoAbort: {
-            enabled: true,
-            allowHandlerAbort: true,
-            onControllerCreated: (controller) => {
-              activeControllersRef.current.add(controller);
-            }
-          }
-        })
-      };
-      return register.dispatch(action, payload, dispatchOptions);
-    }, [context.actionRegisterRef]);
-    const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
+      const scopeController = new AbortController();
+      activeControllersRef.current.add(scopeController);
+      const trackedPromise = context.dispatchLifecycle.run(
+        [options?.signal, scopeController.signal],
+        signal => register.dispatch(
+          action,
+          ...([payload as T[K], withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
+        )
+      ).finally(() => {
+        activeControllersRef.current.delete(scopeController);
+      });
+      void trackedPromise.catch(() => {});
+      return trackedPromise;
+    }, [context.actionRegisterRef, context.dispatchLifecycle]);
+    const dispatchWithResult = useCallback(<K extends ActionNames<T>, R = void>(
       action: K,
-      payload?: T[K],
-      options?: DispatchOptions
+      ...args: DispatchArgs<T[K]>
     ): Promise<ExecutionResult<R>> => {
+      const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
       const register = context.actionRegisterRef.current;
       if (!register) {
         throw new Error('ActionRegister not initialized');
       }
-      const dispatchOptions: DispatchOptions = {
-        ...options,
-        ...(options?.signal ? {} : {
-          autoAbort: {
-            enabled: true,
-            allowHandlerAbort: true,
-            onControllerCreated: (controller) => {
-              activeControllersRef.current.add(controller);
-            }
-          }
-        })
-      };
-      return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
-    }, [context.actionRegisterRef]);
+      const scopeController = new AbortController();
+      activeControllersRef.current.add(scopeController);
+      const dispatchResult = register.dispatchWithResult.bind(register) as unknown as <
+        ActionKey extends ActionNames<T>,
+        Result = void,
+      >(
+        action: ActionKey,
+        ...dispatchArgs: DispatchArgs<T[ActionKey]>
+      ) => Promise<ExecutionResult<Result>>;
+      const trackedPromise = context.dispatchLifecycle.run(
+        [options?.signal, scopeController.signal],
+        signal => dispatchResult<K, R>(
+          action,
+          ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
+        )
+      ).finally(() => {
+        activeControllersRef.current.delete(scopeController);
+      });
+      void trackedPromise.catch(() => {});
+      return trackedPromise;
+    }, [context.actionRegisterRef, context.dispatchLifecycle]);
     const abortAll = useCallback(() => {
       activeControllersRef.current.forEach(controller => {
         if (!controller.signal.aborted) {
@@ -498,17 +1081,11 @@ export function createActionContext<T extends {}>(
     const resetAbortScope = useCallback(() => {
       abortAll();
     }, [abortAll]);
-    useEffect(() => {
-      const controllers = activeControllersRef;
+    useInsertionCommitEffect(() => {
       return () => {
-        controllers.current.forEach(controller => {
-          if (!controller.signal.aborted) {
-            controller.abort();
-          }
-        });
-        controllers.current.clear();
+        queueMicrotask(abortAll);
       };
-    }, []);
+    }, [abortAll]);
     return {
       dispatch,
       dispatchWithResult,
@@ -521,17 +1098,22 @@ export function createActionContext<T extends {}>(
     useActionContext: useFactoryActionContext,
     useActionDispatch: useAction,
     useActionHandler,
+    useActionEffectHandler,
+    useActionGuard,
+    useActionCommandHandler,
+    useActionObserver,
+    useActionResultHandler,
     useActionRegister: useFactoryActionRegister,
     useActionDispatchWithResult: useFactoryActionDispatchWithResult,
     context: FactoryActionContext,
-  };
+  } satisfies ActionContextReturn<T, TResultMap>;
 }
 ```
 
 ### actions/index.ts
 
 ```typescript
-export {
+export { 
   createActionContext
 } from './ActionContext';
 export type {
@@ -548,11 +1130,133 @@ export type {
 } from '@context-action/core';
 ```
 
+### actions/react-helpers.ts
+
+```typescript
+import type {
+  ActionHandler,
+  ActionNames,
+  ActionPayloadMap,
+  ActionRegister,
+  HandlerConfig,
+  ResolvedHandlerConfig,
+  UnregisterFunction,
+} from '@context-action/core';
+import { resolveHandlerConfig } from '@context-action/core';
+export function createActionHandler<T extends ActionPayloadMap, K extends ActionNames<T>>(
+  registry: ActionRegister<T>,
+  action: K,
+  handler: ActionHandler<T[K]>,
+  config?: HandlerConfig<T[K]>,
+): {
+  register: () => UnregisterFunction;
+  unregister: () => void;
+  registerWithCleanup: () => () => void;
+  config: ResolvedHandlerConfig<T[K]>;
+} {
+  const handlerId = config?.id
+    ?? `react_${String(action)}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const registrationConfig: HandlerConfig<T[K]> = { ...config, id: handlerId };
+  const finalConfig: ResolvedHandlerConfig<T[K]> = resolveHandlerConfig(
+    registrationConfig,
+    handlerId,
+  );
+  let unregister: UnregisterFunction | undefined;
+  const unregisterCurrent = (): void => {
+    unregister?.();
+    unregister = undefined;
+  };
+  return {
+    register: () => {
+      unregisterCurrent();
+      unregister = registry.register(action, handler, registrationConfig);
+      return unregister;
+    },
+    unregister: unregisterCurrent,
+    registerWithCleanup: () => {
+      unregisterCurrent();
+      unregister = registry.register(action, handler, registrationConfig);
+      return unregisterCurrent;
+    },
+    config: finalConfig,
+  };
+}
+export const ReactDevUtils = {
+  enableDebugMode(): void {
+    if (typeof window !== 'undefined') {
+      (window as typeof window & { __CONTEXT_ACTION_REACT_DEBUG__?: boolean })
+        .__CONTEXT_ACTION_REACT_DEBUG__ = true;
+    }
+  },
+  disableDebugMode(): void {
+    if (typeof window !== 'undefined') {
+      (window as typeof window & { __CONTEXT_ACTION_REACT_DEBUG__?: boolean })
+        .__CONTEXT_ACTION_REACT_DEBUG__ = false;
+    }
+  },
+  isDebugMode(): boolean {
+    return typeof window !== 'undefined'
+      && Boolean((window as typeof window & { __CONTEXT_ACTION_REACT_DEBUG__?: boolean })
+        .__CONTEXT_ACTION_REACT_DEBUG__);
+  },
+  log(component: string, action: string, message: string, data?: unknown): void {
+    if (this.isDebugMode()) console.log(`🎯 [React-ActionRegister] [${component}] ${action}: ${message}`, data ?? '');
+  },
+  getStats<T extends ActionPayloadMap>(registry: ActionRegister<T>): {
+    totalHandlers: number;
+    reactHandlers: number;
+    registryInfo: ReturnType<ActionRegister<T>['getRegistryInfo']>;
+  } {
+    const registryInfo = registry.getRegistryInfo();
+    let reactHandlers = 0;
+    registry.getRegisteredActions().forEach((action) => {
+      registry.getActionStats(action as ActionNames<T>)?.handlersByPriority.forEach((group) => {
+        group.handlers.forEach((handler) => {
+          if (handler.id.includes('react')) reactHandlers += 1;
+        });
+      });
+    });
+    return { totalHandlers: registryInfo.totalHandlers, reactHandlers, registryInfo };
+  },
+};
+export class ReactActionError extends Error {
+  public readonly timestamp = Date.now();
+  public constructor(
+    message: string,
+    public readonly action: string,
+    public readonly payload?: unknown,
+    public readonly handlerId?: string,
+    originalError?: Error,
+  ) {
+    super(message);
+    this.name = 'ReactActionError';
+    if (originalError?.stack) this.stack = originalError.stack;
+  }
+  static fromActionError(
+    originalError: Error,
+    action: string,
+    payload?: unknown,
+    handlerId?: string,
+  ): ReactActionError {
+    return new ReactActionError(
+      `Action '${action}' failed: ${originalError.message}`,
+      action,
+      payload,
+      handlerId,
+      originalError,
+    );
+  }
+}
+export function isReactActionError(error: unknown): error is ReactActionError {
+  return error instanceof ReactActionError;
+}
+```
+
 ### advanced.ts
 
 ```typescript
 export { StoreRegistry } from './stores/core/StoreRegistry';
-export type {
+export type { 
   DynamicStoreOptions,
   HookOptions,
   StoreSyncConfig
@@ -576,175 +1280,100 @@ export type {
 } from './stores/components/StoreErrorBoundary';
 export { createActionContext } from './actions/ActionContext';
 export type { ActionContextConfig, ActionContextReturn } from './actions/ActionContext.types';
-export type { React18Options } from './stores/core/types';
 ```
 
-### config/debug-config.ts
+### backend.ts
 
 ```typescript
-export interface DebugConfig {
-  enabled: boolean;
-  features: {
-    actions: boolean;
-    stores: boolean;
-    computed: boolean;
-    performance: boolean;
-    errors: boolean;
-    refs: boolean;
-    immutability: boolean;
-  };
-  logLevel: 'error' | 'warn' | 'info' | 'debug' | 'trace';
-  logger?: {
-    error: (...args: any[]) => void;
-    warn: (...args: any[]) => void;
-    info: (...args: any[]) => void;
-    debug: (...args: any[]) => void;
-    trace: (...args: any[]) => void;
-  };
-}
-const defaultConfig: DebugConfig = {
-  enabled: process.env.NODE_ENV === 'development',
-  features: {
-    actions: process.env.NODE_ENV === 'development',
-    stores: false,
-    computed: false,
-    performance: false,
-    errors: process.env.NODE_ENV === 'development',
-    refs: false,
-    immutability: false
-  },
-  logLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'error',
-  logger: undefined
-};
-let currentConfig: DebugConfig = { ...defaultConfig };
-export function setDebugConfig(config: Partial<DebugConfig>): void {
-  if (config.features) {
-    currentConfig.features = {
-      ...currentConfig.features,
-      ...config.features
-    };
-  }
-  if (config.logger) {
-    currentConfig.logger = config.logger;
-  }
-  if (config.enabled !== undefined) {
-    currentConfig.enabled = config.enabled;
-  }
-  if (config.logLevel) {
-    currentConfig.logLevel = config.logLevel;
-  }
-}
-export function getDebugConfig(): Readonly<DebugConfig> {
-  return { ...currentConfig };
-}
-export function resetDebugConfig(): void {
-  currentConfig = { ...defaultConfig };
-}
-const logLevelPriority: Record<string, number> = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  debug: 3,
-  trace: 4
-};
-export function isDebugEnabled(feature: keyof DebugConfig['features']): boolean {
-  return currentConfig.enabled && currentConfig.features[feature];
-}
-export function isLogLevelEnabled(level: keyof typeof logLevelPriority): boolean {
-  const currentLevel = logLevelPriority[currentConfig.logLevel];
-  const targetLevel = logLevelPriority[level];
-  return currentLevel !== undefined && targetLevel !== undefined && targetLevel <= currentLevel;
-}
-export const debugLog = {
-  error: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
-    if (isDebugEnabled(feature) && isLogLevelEnabled('error')) {
-      const logger = currentConfig.logger?.error || console.error;
-      logger(`[Context-Action:${feature}] ${message}`, ...args);
-    }
-  },
-  warn: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
-    if (isDebugEnabled(feature) && isLogLevelEnabled('warn')) {
-      const logger = currentConfig.logger?.warn || console.warn;
-      logger(`[Context-Action:${feature}] ${message}`, ...args);
-    }
-  },
-  info: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
-    if (isDebugEnabled(feature) && isLogLevelEnabled('info')) {
-      const logger = currentConfig.logger?.info || console.info;
-      logger(`[Context-Action:${feature}] ${message}`, ...args);
-    }
-  },
-  debug: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
-    if (isDebugEnabled(feature) && isLogLevelEnabled('debug')) {
-      const logger = currentConfig.logger?.debug || console.debug;
-      logger(`[Context-Action:${feature}] ${message}`, ...args);
-    }
-  },
-  trace: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
-    if (isDebugEnabled(feature) && isLogLevelEnabled('trace')) {
-      const logger = currentConfig.logger?.trace || console.trace;
-      logger(`[Context-Action:${feature}] ${message}`, ...args);
-    }
-  }
-};
-export function configureDebugForEnvironment(): void {
-  const debugEnabled = process.env.REACT_APP_DEBUG === 'true' ||
-                       process.env.NEXT_PUBLIC_DEBUG === 'true' ||
-                       process.env.VITE_DEBUG === 'true';
-  const debugFeatures = process.env.REACT_APP_DEBUG_FEATURES ||
-                        process.env.NEXT_PUBLIC_DEBUG_FEATURES ||
-                        process.env.VITE_DEBUG_FEATURES;
-  if (debugEnabled !== undefined) {
-    setDebugConfig({ enabled: debugEnabled });
-  }
-  if (debugFeatures) {
-    const features = debugFeatures.split(',').reduce((acc, feature) => {
-      const trimmed = feature.trim() as keyof DebugConfig['features'];
-      if (trimmed in defaultConfig.features) {
-        acc[trimmed] = true;
-      }
-      return acc;
-    }, {} as Record<keyof DebugConfig['features'], boolean>);
-    setDebugConfig({ features });
-  }
-}
-if (typeof window !== 'undefined') {
-  configureDebugForEnvironment();
-}
-```
-
-### hooks/index.ts
-
-```typescript
-export { createActionContext, type ActionContextConfig, type ActionContextReturn } from '../actions';
-export * from '../stores/hooks';
-export { useStoreValue, useStoreValues } from '../stores/hooks/useStoreValue';
-export { useLocalStore } from '../stores/hooks/useLocalStore';
+export {
+  BackendStore,
+  createBackendStore,
+} from './stores/core/BackendStore';
+export type {
+  BackendPatchListener,
+  BackendStoreOptions,
+  BackendStoreSetValueOptions,
+} from './stores/core/BackendStore';
+export type {
+  HistoryEntryId,
+  ReadonlyStateSnapshot,
+  StateBackend,
+  StateMutationMeta,
+  StateMutationOrigin,
+  StatePatch,
+  StateReader,
+  StateTransition,
+  StateWriter,
+  TimelineBackend,
+  TransactionBackend,
+  TransactionBatchControl,
+  StateSnapshot,
+  TransactionParticipantBackend,
+  TransactionMeta,
+  TransactionOptions,
+  TransactionParticipant,
+  TransactionHandle,
+  TransactionCoordinatorPort,
+} from '@context-action/store-core';
 ```
 
 ### index.ts
 
 ```typescript
 export { createActionContext } from './actions/ActionContext';
-export type {
+export type { 
   ActionContextConfig,
   ActionContextReturn,
   ActionContextType
 } from './actions/ActionContext.types';
-export { createStore, Store } from './stores/core/Store';
+export { createStore, Store, type PatchAwareListener } from './stores/core/Store';
+export {
+  createTimeTravelStore,
+  TimeTravelStore,
+  isTimeTravelStore
+} from './stores/core/TimeTravelStore';
+export type { TimeTravelStoreOptions } from './stores/core/TimeTravelStore';
 export { useStoreValue } from './stores/hooks/useStoreValue';
 export { useStoreSelector } from './stores/hooks/useStoreSelector';
+export { useStorePath, useStoreSelectorWithPaths } from './stores/hooks/useStorePath';
+export type { PatchAwareStore, StorePathPatch, StorePath, UseStorePathOptions, UseStoreSelectorWithPathsOptions } from './stores/hooks/useStorePath';
+export { useTimeTravelControls } from './stores/hooks/useTimeTravelControls';
+export { useStoreTransactionInspector } from './stores/hooks/useStoreTransactionInspector';
+export type { TimeTravelControlsState } from './stores/hooks/useTimeTravelControls';
+export { useTimeTravelPath, useTimeTravelSelector } from './stores/hooks/useTimeTravelPath';
+export type { UseTimeTravelPathOptions, UseTimeTravelSelectorOptions } from './stores/hooks/useTimeTravelPath';
 export type { IStore, Snapshot } from './stores/core/types';
+export type { StoreReader, StoreWriter, TimelineReader, TimelineWriter } from './stores/core/contracts';
+export { StoreTransactionCoordinator } from './stores/core/StoreTransactionCoordinator';
+export type { StoreTransactionEvent, StoreTransactionEventPhase, StoreTransactionHandle, StoreTransactionInspectorSink, StoreTransactionInspectorSnapshot, StoreTransactionListener, StoreTransactionMeta, StoreTransactionOptions, StoreTransactionParticipant, StoreTransactionRecord } from './stores/core/StoreTransactionCoordinator';
+export { bindActionTransactions } from './stores/core/ActionTransactionBridge';
+export type { ActionTransactionBridgeOptions, DispatchTraceSource } from './stores/core/ActionTransactionBridge';
+export type { Patches, TravelPatches } from '@context-action/mutative';
 export { StoreErrorBoundary } from './stores/components/StoreErrorBoundary';
 export type { StoreErrorBoundaryProps } from './stores/components/StoreErrorBoundary';
-export { createStoreContext, StoreManager } from './stores/patterns/declarative-store-pattern-v2';
-export type { InitialStores, StoreConfig, WithProviderConfig } from './stores/patterns/declarative-store-pattern-v2';
+export { createStoreContext, StoreManager, asStoreValue } from './stores/patterns/declarative-store-pattern-v2';
+export type {
+  InitialStores,
+  StoreConfig,
+  ExplicitStoreValue,
+  WithProviderConfig,
+} from './stores/patterns/declarative-store-pattern-v2';
+export { createTimeTravelStoreContext, TimeTravelStoreManager } from './stores/patterns/time-travel-store-pattern';
+export type {
+  TimeTravelStoreConfig,
+  TimeTravelInitialStores,
+  TimeTravelControlsState as TimeTravelContextControlsState,
+  InferTimeTravelStoreTypes
+} from './stores/patterns/time-travel-store-pattern';
 export { createRefContext } from './refs/createRefContext';
 export type { RefContextReturn, CreateRefContextOptions } from './refs/createRefContext';
 export type { RefTarget, RefOperationOptions, RefOperationResult } from './refs/types';
 export type {
+  ActionCommandController,
+  ActionCommandHandler,
   ActionPayloadMap,
   ActionHandler,
+  CommandConfig,
   HandlerConfig,
   PipelineController,
   ActionRegisterConfig,
@@ -752,29 +1381,29 @@ export type {
   UnregisterFunction
 } from '@context-action/core';
 export { ActionRegister } from '@context-action/core';
-```
-
-### patterns/index.ts
-
-```typescript
-export * from '../stores/patterns';
-export * from '../actions/ActionContext';
+export {
+  createActionHandler,
+  ReactDevUtils,
+  ReactActionError,
+  isReactActionError,
+} from './actions/react-helpers';
 ```
 
 ### refs/createRefContext.ts
 
 ```typescript
-import React, { createContext, useContext, useMemo, useRef, useCallback, ReactNode, useState, useEffect } from 'react';
-import type {
-  RefTarget,
-  RefOperation,
-  RefOperationOptions,
+import React, { createContext, useContext, useMemo, useRef, useCallback, ReactNode, useInsertionEffect } from 'react';
+import type { 
+  RefTarget, 
+  RefOperation, 
+  RefOperationOptions, 
   RefOperationResult,
   RefDefinitions,
   InferRefTypes
 } from './types';
 import { useRefMount, useRefOperation, useRefPolling as useRefPollingHook, useRefMountState, useOnMountStateChange, useRefMountChecker, type InternalRefState, type RefPollingOptions } from './hooks';
 import { ErrorHandlers } from '../stores/utils/error-handling';
+import { disposeRefState, refDisposedError, waitForRefMount } from './ref-state';
 export interface RefContextReturn<T> {
   Provider: React.FC<{ children: ReactNode }>;
   useRefHandler: <K extends keyof T>(refName: K) => {
@@ -826,7 +1455,7 @@ export interface CreateRefContextOptions {
   defaultMountTimeout?: number;
   disableTimeout?: boolean;
 }
-export function createRefContext<T extends Record<string, any>>(
+export function createRefContext<T extends object>(
   contextName: string,
   options?: CreateRefContextOptions
 ): RefContextReturn<T>;
@@ -835,33 +1464,32 @@ export function createRefContext<T extends RefDefinitions>(
   refDefinitions: T,
   options?: CreateRefContextOptions
 ): RefContextReturn<InferRefTypes<T>>;
-export function createRefContext<T extends Record<string, any> | RefDefinitions>(
+export function createRefContext<T extends object | RefDefinitions>(
   contextName: string,
   refDefinitionsOrOptions?: T extends RefDefinitions ? T : CreateRefContextOptions,
   optionsWhenDefs?: CreateRefContextOptions
-): T extends RefDefinitions
+): T extends RefDefinitions 
   ? RefContextReturn<InferRefTypes<T>>
   : RefContextReturn<T> {
-  const refDefinitions = (typeof refDefinitionsOrOptions === 'object' &&
+  const refDefinitions = (typeof refDefinitionsOrOptions === 'object' && 
     refDefinitionsOrOptions !== null &&
-    Object.values(refDefinitionsOrOptions as any).some(
-      (value: any) => value && typeof value === 'object' && 'name' in value
+    Object.values(refDefinitionsOrOptions as object).some(
+      (value: unknown) => value !== null && typeof value === 'object' && 'name' in value
     )) ? (refDefinitionsOrOptions as unknown) as T extends RefDefinitions ? T : undefined : undefined;
   const options = refDefinitions ? optionsWhenDefs : refDefinitionsOrOptions as CreateRefContextOptions | undefined;
   const hasDefinitions = Boolean(refDefinitions);
   interface RefContextValue {
-    refsMapRef: React.MutableRefObject<Map<string, InternalRefState<any>>>;
+    refsMapRef: React.MutableRefObject<Map<string, InternalRefState<RefTarget>>>;
     definitionsRef: React.MutableRefObject<T extends RefDefinitions ? T : undefined>;
     optionsRef: React.MutableRefObject<CreateRefContextOptions | undefined>;
-    subscribeToRef: (refName: string, listener: () => void) => () => void;
-    getRefState: (refName: string) => InternalRefState<any>;
-    setRefTarget: (refName: string, target: any) => void;
+    getRefState: (refName: string) => InternalRefState<RefTarget>;
+    setRefTarget: (refName: string, target: RefTarget) => void;
   }
   const RefContext = createContext<RefContextValue | null>(null);
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const refsMapRef = useRef<Map<string, InternalRefState<any>>>(null!);
+    const refsMapRef = useRef<Map<string, InternalRefState<RefTarget>>>(null!);
     if (!refsMapRef.current) {
-      const map = new Map<string, InternalRefState<any>>();
+      const map = new Map<string, InternalRefState<RefTarget>>();
       if (hasDefinitions && refDefinitions) {
         Object.keys(refDefinitions).forEach((refName) => {
           map.set(refName, createInitialRefState());
@@ -873,43 +1501,27 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
       refDefinitions as T extends RefDefinitions ? T : undefined
     );
     const optionsRef = useRef<CreateRefContextOptions | undefined>(options);
-    useEffect(() => {
+    const disposedRef = useRef(false);
+    useInsertionEffect(() => {
       return () => {
+        disposedRef.current = true;
         if (refsMapRef.current) {
-          refsMapRef.current.forEach((refState) => {
-            refState.mountRejectors.forEach(reject => {
-              reject(new Error('Context provider unmounted'));
-            });
-            refState.mountResolvers.clear();
-            refState.mountRejectors.clear();
-            refState.mountPromise = null;
-            refState.mountCallbacks.clear();
-            refState.listeners.clear();
-            refState.target = null;
-            refState.isMounted = false;
-            refState.operationInProgress = false;
-          });
+          refsMapRef.current.forEach(disposeRefState);
           refsMapRef.current.clear();
         }
       };
     }, []);
-    const subscribeToRef = useCallback((refName: string, listener: () => void) => {
-      const refState = getOrCreateRefState(refsMapRef.current, refName);
-      refState.listeners.add(listener);
-      return () => {
-        refState.listeners.delete(listener);
-      };
-    }, []);
     const getRefState = useCallback((refName: string) => {
+      if (disposedRef.current) throw refDisposedError();
       return getOrCreateRefState(refsMapRef.current, refName);
     }, []);
-    const setRefTarget = useCallback((refName: string, target: any) => {
+    const setRefTarget = useCallback((refName: string, target: RefTarget) => {
+      if (disposedRef.current) return;
       const refState = getOrCreateRefState(refsMapRef.current, refName);
       if (target === null) {
         refState.target = null;
         refState.isMounted = false;
-        refState.mountPromise = null;
-        refState.listeners.forEach(listener => listener());
+        [...refState.listeners].forEach(listener => listener());
       } else {
         refState.target = target;
         refState.isMounted = true;
@@ -917,13 +1529,13 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
         refState.mountResolvers.clear();
         refState.mountRejectors.clear();
         refState.mountPromise = null;
-        refState.mountCallbacks.forEach(callback => {
+        [...refState.mountCallbacks].forEach(callback => {
           try {
             callback(target);
           } catch (error) {
             ErrorHandlers.ref(
               'Error in mount callback',
-              {
+              { 
                 refName: String(refName),
                 targetType: typeof target
               },
@@ -931,17 +1543,16 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
             );
           }
         });
-        refState.listeners.forEach(listener => listener());
+        [...refState.listeners].forEach(listener => listener());
       }
     }, []);
     const contextValue = useMemo<RefContextValue>(() => ({
       refsMapRef,
       definitionsRef,
       optionsRef,
-      subscribeToRef,
       getRefState,
       setRefTarget
-    }), [subscribeToRef, getRefState, setRefTarget]);
+    }), [getRefState, setRefTarget]);
     return React.createElement(
       RefContext.Provider,
       { value: contextValue },
@@ -959,42 +1570,37 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     return context;
   };
   const useRefHandler = <K extends keyof T>(refName: K) => {
-    const { subscribeToRef, getRefState, setRefTarget, definitionsRef, optionsRef } = useRefContext();
+    const { getRefState, setRefTarget, definitionsRef, optionsRef } = useRefContext();
     const refNameStr = String(refName);
-    const [, forceUpdate] = useState({});
-    useEffect(() => {
-      const unsubscribe = subscribeToRef(refNameStr, () => {
-        forceUpdate({});
-      });
-      return unsubscribe;
-    }, [refNameStr, subscribeToRef]);
     const refState = getRefState(refNameStr);
-    const { waitForMount, onMount, isMounted, isWaitingForMount } = useRefMount(
-      refState,
-      refNameStr,
-      optionsRef,
+    const { isMounted, isWaitingForMount } = useRefMountState(refState);
+    const { waitForMount, onMount } = useRefMount(
+      refState, 
+      refNameStr, 
+      optionsRef, 
       definitionsRef
     );
     const { withTarget, executeIfMounted } = useRefOperation(refState);
+    const setRef = useCallback((target: T[K] | null) => {
+      setRefTarget(refNameStr, target);
+    }, [refNameStr, setRefTarget]);
     return useMemo(() => ({
-      setRef: (target: T[K] | null) => {
-        setRefTarget(refNameStr, target);
-      },
+      setRef,
       get target(): T[K] | null {
-        return refState.target;
+        return refState.target as T[K] | null;
       },
-      waitForMount: () => waitForMount() as Promise<T[K]>,
+      waitForMount: waitForMount as () => Promise<T[K]>,
       withTarget: withTarget as <Result>(
         operation: RefOperation<T[K] & RefTarget, Result>,
         options?: RefOperationOptions
       ) => Promise<RefOperationResult<Result>>,
       isMounted,
       isWaitingForMount,
-      onMount: (callback: (target: T[K]) => void) => onMount(callback as (target: any) => void),
+      onMount: onMount as (callback: (target: T[K]) => void) => () => void,
       executeIfMounted: executeIfMounted as <Result>(
         operation: (target: T[K] & RefTarget) => Result
       ) => Result | null
-    }), [refState, setRefTarget, refNameStr, waitForMount, withTarget, executeIfMounted, onMount, isMounted, isWaitingForMount]);
+    }), [refState, setRef, waitForMount, withTarget, executeIfMounted, onMount, isMounted, isWaitingForMount]);
   };
   const useWaitForRefs = () => {
     const { getRefState } = useRefContext();
@@ -1005,31 +1611,20 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
         timeout = args[0];
         refNames = args.slice(1) as K[];
       } else {
-        timeout = 1000;
+        timeout = 1000; 
         refNames = args as K[];
       }
-      const promises = refNames.map(async (refName) => {
-        const refNameStr = String(refName);
-        const refState = getRefState(refNameStr);
-        if (refState.target && refState.isMounted) {
-          return [refName, refState.target] as const;
-        }
-        if (!refState.mountPromise) {
-          refState.mountPromise = new Promise<any>((resolve, reject) => {
-            refState.mountResolvers.add(resolve);
-            refState.mountRejectors.add(reject);
-          });
-        }
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => {
-            reject(new Error(`Mount timeout after ${timeout}ms for ref '${refNameStr}'`));
-          }, timeout);
-        });
-        const target = await Promise.race([refState.mountPromise, timeoutPromise]);
-        return [refName, target] as const;
-      });
-      const results = await Promise.all(promises);
-      return Object.fromEntries(results) as Pick<T, K>;
+      const group = new AbortController();
+      try {
+        const results = await Promise.all(refNames.map(async refName => {
+          const name = String(refName);
+          const target = await waitForRefMount(getRefState(name), name, timeout, group.signal);
+          return [refName, target] as const;
+        }));
+        return Object.fromEntries(results) as Pick<T, K>;
+      } finally {
+        group.abort();
+      }
     }, [getRefState]);
   };
   const useGetAllRefs = () => {
@@ -1038,7 +1633,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
       const result: Partial<T> = {} as Partial<T>;
       refsMapRef.current.forEach((refState, refName) => {
         if (refState.target !== null && refState.isMounted) {
-          (result as any)[refName] = refState.target;
+          (result as unknown as Record<string, unknown>)[String(refName)] = refState.target;
         }
       });
       return result;
@@ -1075,7 +1670,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
   ) => {
     const { getRefState } = useRefContext();
     const refState = getRefState(String(refName));
-    useOnMountStateChange(refState, callback);
+    useOnMountStateChange(refState as InternalRefState<T[K]>, callback);
   };
   const useRefMountCheckerHook = <K extends keyof T>(refName: K) => {
     const { getRefState } = useRefContext();
@@ -1097,7 +1692,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     useRefMountChecker: useRefMountCheckerHook,
     contextName,
     refDefinitions
-  } as T extends RefDefinitions
+  } as T extends RefDefinitions 
     ? RefContextReturn<InferRefTypes<T>>
     : RefContextReturn<T>;
 }
@@ -1127,12 +1722,12 @@ function getOrCreateRefState<T>(
 ### refs/helpers.ts
 
 ```typescript
-import type {
-  RefInitConfig,
+import type { 
+  RefInitConfig, 
   RefTarget
 } from './types';
 export function customRef<T extends RefTarget>(
-  config: Partial<RefInitConfig<T>> & {
+  config: Partial<RefInitConfig<T>> & { 
     name: string;
     cleanup?: (target: T) => void | Promise<void>;
   }
@@ -1157,33 +1752,19 @@ export { useRefMountState, useOnMountStateChange, useRefMountChecker } from './u
 
 ```typescript
 import { useCallback } from 'react';
-import type { RefInitConfig } from '../types';
+import type { RefDefinitions, RefInitConfig } from '../types';
 import type { CreateRefContextOptions } from '../createRefContext';
-export interface InternalRefState<T> {
-  target: T | null;
-  isMounted: boolean;
-  mountPromise: Promise<T> | null;
-  mountResolvers: Set<(target: T) => void>;
-  mountRejectors: Set<(error: Error) => void>;
-  operationInProgress: boolean;
-  listeners: Set<() => void>;
-  mountCallbacks: Set<(target: T) => void>;
-}
+import { type InternalRefState, waitForRefMount } from '../ref-state';
+export type { InternalRefState } from '../ref-state';
 export function useRefMount<T>(
   refState: InternalRefState<T>,
   refNameStr: string,
   optionsRef: React.MutableRefObject<CreateRefContextOptions | undefined>,
-  definitionsRef: React.MutableRefObject<any>
+  definitionsRef: React.MutableRefObject<RefDefinitions | undefined>
 ) {
   const waitForMount = useCallback(async (): Promise<T> => {
-    if (refState.target && refState.isMounted) {
-      return refState.target;
-    }
-    if (refState.mountPromise) {
-      return refState.mountPromise;
-    }
     const globalOptions = optionsRef.current;
-    const refConfig = definitionsRef.current?.[refNameStr] as RefInitConfig<any> | undefined;
+    const refConfig = definitionsRef.current?.[refNameStr] as RefInitConfig | undefined;
     let timeoutMs: number | undefined;
     if (globalOptions?.disableTimeout) {
       timeoutMs = undefined;
@@ -1192,36 +1773,10 @@ export function useRefMount<T>(
     } else if (globalOptions?.defaultMountTimeout !== undefined) {
       timeoutMs = globalOptions.defaultMountTimeout;
     }
-    refState.mountPromise = new Promise<T>((resolve, reject) => {
-      refState.mountResolvers.add(resolve);
-      refState.mountRejectors.add(reject);
-      if (timeoutMs !== undefined && timeoutMs > 0) {
-        const timeoutId = setTimeout(() => {
-          const error = new Error(`Mount timeout after ${timeoutMs}ms for ref '${refNameStr}'`);
-          refState.mountRejectors.forEach(rejector => rejector(error));
-          refState.mountRejectors.clear();
-          refState.mountResolvers.clear();
-          refState.mountPromise = null;
-        }, timeoutMs);
-        const originalResolve = resolve;
-        const originalReject = reject;
-        const cleanupResolve = (value: T) => {
-          clearTimeout(timeoutId);
-          originalResolve(value);
-        };
-        const cleanupReject = (error: Error) => {
-          clearTimeout(timeoutId);
-          originalReject(error);
-        };
-        refState.mountResolvers.delete(resolve);
-        refState.mountRejectors.delete(reject);
-        refState.mountResolvers.add(cleanupResolve);
-        refState.mountRejectors.add(cleanupReject);
-      }
-    });
-    return refState.mountPromise;
+    return waitForRefMount(refState, refNameStr, timeoutMs !== undefined && timeoutMs > 0 ? timeoutMs : undefined);
   }, [refState, refNameStr, optionsRef, definitionsRef]);
   const onMount = useCallback((callback: (target: T) => void) => {
+    if (refState.disposed) return () => {};
     refState.mountCallbacks.add(callback);
     if (refState.isMounted && refState.target) {
       callback(refState.target);
@@ -1260,7 +1815,7 @@ export function useRefMountState<T>(refState: InternalRefState<T>): {
     isMounted: boolean;
     isWaitingForMount: boolean;
     mountedTarget: T | null;
-  }>();
+  } | undefined>(undefined);
   const getSnapshot = useCallback(() => {
     if (!refState) {
       const snapshot = {
@@ -1322,87 +1877,73 @@ export function useRefMountChecker<T>(refState: InternalRefState<T>) {
 ```typescript
 import { useCallback } from 'react';
 import type { RefOperation, RefOperationOptions, RefOperationResult, RefTarget } from '../types';
-import type { InternalRefState } from './useRefMount';
-export function useRefOperation<T>(
-  refState: InternalRefState<T>
-) {
+import { type InternalRefState, onRefDisposed, refAbortError, waitForRefMount } from '../ref-state';
+export function useRefOperation<T>(refState: InternalRefState<T>) {
   const withTarget = useCallback(async <Result>(
     operation: RefOperation<T & RefTarget, Result>,
-    options?: RefOperationOptions
+    options?: RefOperationOptions,
   ): Promise<RefOperationResult<Result>> => {
+    const controller = new AbortController();
+    const externalSignal = options?.signal;
+    const forwardAbort = () => controller.abort(refAbortError(externalSignal!));
+    if (externalSignal?.aborted) forwardAbort();
+    else externalSignal?.addEventListener('abort', forwardAbort, { once: true });
+    const removeDisposal = onRefDisposed(refState, error => controller.abort(error));
+    let startedAt: number | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onAbort = () => {
+      if (timer !== undefined) clearTimeout(timer);
+      rejectAbort(refAbortError(controller.signal));
+    };
+    let rejectAbort!: (error: Error) => void;
+    const aborted = new Promise<never>((_, reject) => { rejectAbort = reject; });
+    controller.signal.addEventListener('abort', onAbort, { once: true });
+    if (controller.signal.aborted) onAbort();
     try {
-      const target = await (async () => {
-        if (refState.target && refState.isMounted) {
-          return refState.target;
+      if (controller.signal.aborted) throw refAbortError(controller.signal);
+      const execution = (refState.operationTail ?? Promise.resolve()).then(async () => {
+        const target = await waitForRefMount(refState, 'operation', undefined, controller.signal);
+        if (controller.signal.aborted) throw refAbortError(controller.signal);
+        refState.operationInProgress = true;
+        startedAt = Date.now();
+        if (options?.timeout) {
+          timer = setTimeout(() => controller.abort(new Error('Operation timed out')), options.timeout);
         }
-        if (refState.mountPromise) {
-          return refState.mountPromise;
+        try {
+          return await operation(target as T & RefTarget, { ...options, signal: controller.signal });
+        } finally {
+          refState.operationInProgress = false;
+          if (timer !== undefined) clearTimeout(timer);
         }
-        refState.mountPromise = new Promise<T>((resolve, reject) => {
-          refState.mountResolvers.add(resolve);
-          refState.mountRejectors.add(reject);
-        });
-        return refState.mountPromise;
-      })();
-      while (refState.operationInProgress) {
-        await new Promise(resolve => setTimeout(resolve, 10));
-      }
-      refState.operationInProgress = true;
-      const startTime = Date.now();
-      try {
-        if (options?.signal?.aborted) {
-          throw new Error('Operation aborted');
-        }
-        const timeoutPromise = options?.timeout
-          ? new Promise<never>((_, reject) => {
-              setTimeout(() => reject(new Error('Operation timed out')), options.timeout);
-            })
-          : null;
-        const operationPromise = operation(target as T & RefTarget, options);
-        const result = timeoutPromise
-          ? await Promise.race([operationPromise, timeoutPromise])
-          : await operationPromise;
-        return {
-          success: true,
-          result,
-          duration: Date.now() - startTime,
-          timestamp: Date.now()
-        };
-      } catch (error) {
-        return {
-          success: false,
-          error: error as Error,
-          duration: Date.now() - startTime,
-          timestamp: Date.now()
-        };
-      } finally {
-        refState.operationInProgress = false;
-      }
+      });
+      refState.operationTail = execution.then(() => undefined, () => undefined);
+      const result = await Promise.race([execution, aborted]);
+      return { success: true, result, duration: Date.now() - startedAt!, timestamp: Date.now() };
     } catch (error) {
       return {
         success: false,
-        error: error as Error,
-        timestamp: Date.now()
+        error: error instanceof Error ? error : new Error(String(error)),
+        ...(startedAt !== undefined && { duration: Date.now() - startedAt }),
+        timestamp: Date.now(),
       };
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
+      externalSignal?.removeEventListener('abort', forwardAbort);
+      controller.signal.removeEventListener('abort', onAbort);
+      removeDisposal();
+      void aborted.catch(() => {});
     }
   }, [refState]);
   const executeIfMounted = useCallback(<Result>(
-    operation: (target: T & RefTarget) => Result
+    operation: (target: T & RefTarget) => Result,
   ): Result | null => {
-    if (refState.target && refState.isMounted) {
-      try {
-        return operation(refState.target);
-      } catch (error) {
-        console.error('Error in executeIfMounted:', error);
-        return null;
-      }
+    if (!refState.disposed && refState.isMounted && refState.target !== null) {
+      try { return operation(refState.target); }
+      catch (error) { console.error('Error in executeIfMounted:', error); }
     }
     return null;
   }, [refState]);
-  return {
-    withTarget,
-    executeIfMounted
-  };
+  return { withTarget, executeIfMounted };
 }
 ```
 
@@ -1410,13 +1951,13 @@ export function useRefOperation<T>(
 
 ```typescript
 import { useCallback } from 'react';
-import type { InternalRefState } from './useRefMount';
+import { type InternalRefState, onRefDisposed } from '../ref-state';
 export interface RefPollingOptions {
   interval?: number;
   timeout?: number;
   onTick?: (elapsed: number, isMounted: boolean) => void;
   onTimeout?: (elapsed: number) => void;
-  onSuccess?: (elapsed: number, target: any) => void;
+  onSuccess?: (elapsed: number, target: unknown) => void;
 }
 export interface RefPollingReturn<T> {
   promise: Promise<T>;
@@ -1436,71 +1977,57 @@ export function useRefPolling() {
       onTimeout,
       onSuccess
     } = options;
-    let cancelled = false;
+    let settled = false;
     let intervalId: ReturnType<typeof setInterval> | null = null;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let removeDisposal = () => {};
     const startTime = Date.now();
-    const promise = new Promise<T>((resolve, reject) => {
-      const cleanup = () => {
-        if (intervalId) {
-          clearInterval(intervalId);
-          intervalId = null;
-        }
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-          timeoutId = null;
-        }
-      };
-      const check = () => {
-        if (cancelled) {
-          cleanup();
-          reject(new Error('Polling cancelled'));
-          return;
-        }
-        const elapsed = Date.now() - startTime;
-        const isMounted = refState.isMounted && refState.target !== null;
-        if (onTick) {
-          try {
-            onTick(elapsed, isMounted);
-          } catch (error) {
-            console.error('Error in polling onTick callback:', error);
-          }
-        }
-        if (isMounted && refState.target) {
-          cleanup();
-          if (onSuccess) {
-            try {
-              onSuccess(elapsed, refState.target);
-            } catch (error) {
-              console.error('Error in polling onSuccess callback:', error);
-            }
-          }
-          resolve(refState.target);
-          return;
-        }
-      };
-      if (timeout && timeout > 0) {
-        timeoutId = setTimeout(() => {
-          cleanup();
-          const elapsed = Date.now() - startTime;
-          if (onTimeout) {
-            try {
-              onTimeout(elapsed);
-            } catch (error) {
-              console.error('Error in polling onTimeout callback:', error);
-            }
-          }
-          reject(new Error(`Polling timeout after ${timeout}ms for ref '${refName}'`));
-        }, timeout);
-      }
-      check();
-      intervalId = setInterval(check, interval);
-    });
-    const cancel = () => {
-      cancelled = true;
+    let resolve!: (target: T) => void;
+    let reject!: (error: Error) => void;
+    const promise = new Promise<T>((onResolve, onReject) => { resolve = onResolve; reject = onReject; });
+    const cleanup = () => {
+      if (intervalId !== null) clearInterval(intervalId);
+      if (timeoutId !== null) clearTimeout(timeoutId);
+      intervalId = null;
+      timeoutId = null;
+      removeDisposal();
     };
+    const fail = (error: Error) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(error);
+    };
+    const check = () => {
+      if (settled) return;
+      const elapsed = Date.now() - startTime;
+      try { onTick?.(elapsed, refState.isMounted && refState.target !== null); }
+      catch (error) { console.error('Error in polling onTick callback:', error); }
+      if (settled) return;
+      if (refState.isMounted && refState.target !== null) {
+        const target = refState.target;
+        settled = true;
+        cleanup();
+        try { onSuccess?.(elapsed, target); }
+        catch (error) { console.error('Error in polling onSuccess callback:', error); }
+        resolve(target);
+      }
+    };
+    removeDisposal = onRefDisposed(refState, fail);
+    if (!settled && timeout !== undefined && timeout > 0) {
+      timeoutId = setTimeout(() => {
+        if (settled) return;
+        fail(new Error(`Polling timeout after ${timeout}ms for ref '${refName}'`));
+        try { onTimeout?.(Date.now() - startTime); }
+        catch (error) { console.error('Error in polling onTimeout callback:', error); }
+      }, timeout);
+    }
+    check();
+    if (!settled) intervalId = setInterval(check, interval);
+    void promise.catch(() => {});
+    const cancel = () => { fail(new Error('Polling cancelled')); };
     const isMounted = () => {
-      return refState.isMounted && refState.target !== null;
+      return !refState.disposed && refState.isMounted && refState.target !== null;
     };
     return {
       promise,
@@ -1512,47 +2039,125 @@ export function useRefPolling() {
 }
 ```
 
-### refs/index.ts
+### refs/ref-state.ts
 
 ```typescript
-export type {
-  RefTarget,
-  RefState,
-  RefOperationResult,
-  RefOperationOptions,
-  RefOperation,
-  RefInitConfig
-} from './types';
-export {
-  createRefContext
-} from './createRefContext';
-export type {
-  RefContextReturn
-} from './createRefContext';
-export {
-  customRef
-} from './helpers';
-```
-
-### stores/components/index.ts
-
-```typescript
-export {
-  StoreErrorBoundary,
-  withStoreErrorBoundary,
-  createStoreErrorBoundary
-} from './StoreErrorBoundary';
-export type {
-  StoreErrorBoundaryProps,
-  StoreErrorBoundaryState
-} from './StoreErrorBoundary';
+export interface InternalRefState<T> {
+  target: T | null;
+  isMounted: boolean;
+  mountPromise: Promise<T> | null;
+  mountResolvers: Set<(target: T) => void>;
+  mountRejectors: Set<(error: Error) => void>;
+  operationInProgress: boolean;
+  listeners: Set<() => void>;
+  mountCallbacks: Set<(target: T) => void>;
+  disposed?: boolean;
+  disposalListeners?: Set<(error: Error) => void>;
+  pendingMounts?: Set<Promise<T>>;
+  operationTail?: Promise<void>;
+}
+export function refDisposedError(): Error {
+  return new Error('Context provider unmounted');
+}
+export function refAbortError(signal: AbortSignal): Error {
+  return signal.reason instanceof Error ? signal.reason : new Error('Operation aborted');
+}
+export function onRefDisposed<T>(state: InternalRefState<T>, listener: (error: Error) => void): () => void {
+  if (state.disposed) {
+    listener(refDisposedError());
+    return () => {};
+  }
+  (state.disposalListeners ??= new Set()).add(listener);
+  return () => { state.disposalListeners?.delete(listener); };
+}
+export function disposeRefState<T>(state: InternalRefState<T>): void {
+  if (state.disposed) return;
+  state.disposed = true;
+  const error = refDisposedError();
+  for (const reject of [...state.mountRejectors]) reject(error);
+  for (const listener of [...(state.disposalListeners ?? [])]) listener(error);
+  state.mountResolvers.clear();
+  state.mountRejectors.clear();
+  state.pendingMounts?.clear();
+  state.disposalListeners?.clear();
+  state.mountPromise = null;
+  state.mountCallbacks.clear();
+  state.listeners.clear();
+  state.target = null;
+  state.isMounted = false;
+}
+export function waitForRefMount<T>(
+  state: InternalRefState<T>,
+  name: string,
+  timeout?: number,
+  signal?: AbortSignal,
+): Promise<T> {
+  if (state.disposed || signal?.aborted) {
+    const rejected = Promise.reject<T>(state.disposed ? refDisposedError() : refAbortError(signal!));
+    void rejected.catch(() => {});
+    return rejected;
+  }
+  if (state.isMounted && state.target !== null) return Promise.resolve(state.target);
+  let resolve!: (target: T) => void;
+  let reject!: (error: Error) => void;
+  const promise = new Promise<T>((onResolve, onReject) => { resolve = onResolve; reject = onReject; });
+  let settled = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let removeDisposal = () => {};
+  const cleanup = () => {
+    const wasWaiting = !state.isMounted && state.mountPromise !== null;
+    if (timer !== undefined) clearTimeout(timer);
+    signal?.removeEventListener('abort', onAbort);
+    removeDisposal();
+    state.mountResolvers.delete(onMount);
+    state.mountRejectors.delete(onError);
+    state.pendingMounts?.delete(promise);
+    state.mountPromise = state.pendingMounts?.values().next().value ?? null;
+    if (wasWaiting && state.mountPromise === null && !state.disposed) {
+      for (const listener of [...state.listeners]) listener();
+    }
+  };
+  const onMount = (target: T) => {
+    if (settled) return;
+    settled = true;
+    cleanup();
+    resolve(target);
+  };
+  const onError = (error: Error) => {
+    if (settled) return;
+    settled = true;
+    cleanup();
+    reject(error);
+  };
+  const onAbort = () => { onError(refAbortError(signal!)); };
+  const wasWaiting = state.mountPromise !== null;
+  (state.pendingMounts ??= new Set()).add(promise);
+  state.mountPromise ??= promise;
+  state.mountResolvers.add(onMount);
+  state.mountRejectors.add(onError);
+  if (timeout !== undefined) {
+    timer = setTimeout(() => onError(new Error(`Mount timeout after ${timeout}ms for ref '${name}'`)), timeout);
+  }
+  signal?.addEventListener('abort', onAbort, { once: true });
+  removeDisposal = onRefDisposed(state, onError);
+  void promise.catch(() => {});
+  if (!wasWaiting && !settled) {
+    for (const listener of [...state.listeners]) listener();
+  }
+  return promise;
+}
 ```
 
 ### stores/components/StoreErrorBoundary.tsx
 
 ```typescript
 import React, { Component, ReactNode, ErrorInfo } from 'react';
-import { ErrorHandlers, getErrorStatistics, type ContextActionError } from '../utils/error-handling';
+import {
+  ContextActionError,
+  ContextActionErrorType,
+  ErrorHandlers,
+  getErrorStatistics,
+} from '../utils/error-handling';
 export interface StoreErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode | ((error: ContextActionError, errorInfo: ErrorInfo) => ReactNode);
@@ -1567,7 +2172,6 @@ export interface StoreErrorBoundaryState {
   errorId: string | null;
 }
 export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, StoreErrorBoundaryState> {
-  private resetTimeoutId: number | null = null;
   constructor(props: StoreErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -1578,8 +2182,7 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
     };
   }
   static getDerivedStateFromError(error: Error): Partial<StoreErrorBoundaryState> {
-    const isContextActionError = error instanceof Error && error.name === 'ContextActionError';
-    const contextActionError = isContextActionError ? (error as any) : null;
+    const contextActionError = error instanceof ContextActionError ? error : null;
     return {
       hasError: true,
       error: contextActionError,
@@ -1587,23 +2190,37 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
     };
   }
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    if (error.name === 'ContextActionError') {
-      const contextActionError = error as any;
+    if (error instanceof ContextActionError) {
+      const contextActionError = error;
       this.setState({ errorInfo });
       this.props.onError?.(contextActionError, errorInfo);
     } else {
-      const contextActionError = ErrorHandlers.store(
-        `Unhandled error in Store component: ${error.message}`,
-        {
-          component: 'StoreErrorBoundary',
-          stack: error.stack,
-          componentStack: errorInfo.componentStack
-        },
-        error
-      );
-      this.setState({
+      const errorContext = {
+        component: 'StoreErrorBoundary',
+        stack: error.stack,
+        componentStack: errorInfo.componentStack
+      };
+      let contextActionError: ContextActionError;
+      try {
+        contextActionError = ErrorHandlers.store(
+          `Unhandled error in Store component: ${error.message}`,
+          errorContext,
+          error
+        );
+      } catch (caughtError) {
+        contextActionError =
+          caughtError instanceof ContextActionError
+            ? caughtError
+            : new ContextActionError(
+                ContextActionErrorType.STORE_ERROR,
+                `Unhandled error in Store component: ${error.message}`,
+                errorContext,
+                error
+              );
+      }
+      this.setState({ 
         error: contextActionError,
-        errorInfo
+        errorInfo 
       });
       this.props.onError?.(contextActionError, errorInfo);
     }
@@ -1613,11 +2230,11 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
     const { resetOnPropsChange, resetKeys } = this.props;
     if (hasError && resetOnPropsChange) {
       if (resetKeys) {
-        const hasResetKeyChanged = resetKeys.some(key => {
-          const prevKey = (prevProps as any)[key];
-          const currentKey = (this.props as any)[key];
-          return prevKey !== currentKey;
-        });
+        const previousResetKeys = prevProps.resetKeys;
+        const hasResetKeyChanged =
+          previousResetKeys === undefined ||
+          previousResetKeys.length !== resetKeys.length ||
+          resetKeys.some((key, index) => !Object.is(key, previousResetKeys[index]));
         if (hasResetKeyChanged) {
           this.resetErrorBoundary();
         }
@@ -1626,15 +2243,7 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
       }
     }
   }
-  componentWillUnmount() {
-    if (this.resetTimeoutId) {
-      clearTimeout(this.resetTimeoutId);
-    }
-  }
   resetErrorBoundary = () => {
-    if (this.resetTimeoutId) {
-      clearTimeout(this.resetTimeoutId);
-    }
     this.setState({
       hasError: false,
       error: null,
@@ -1648,7 +2257,10 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
     if (hasError) {
       if (fallback) {
         if (typeof fallback === 'function') {
-          return fallback(error!, errorInfo!);
+          if (!error || !errorInfo) {
+            return null;
+          }
+          return fallback(error, errorInfo);
         }
         return fallback;
       }
@@ -1692,9 +2304,9 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
         {error?.context && (
           <div style={{ marginBottom: '15px' }}>
             <strong>Context:</strong>
-            <pre style={{
-              background: '#f8f9fa',
-              padding: '10px',
+            <pre style={{ 
+              background: '#f8f9fa', 
+              padding: '10px', 
               borderRadius: '4px',
               overflow: 'auto',
               fontSize: '12px'
@@ -1713,9 +2325,9 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
             <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>
               Component Stack
             </summary>
-            <pre style={{
-              background: '#f8f9fa',
-              padding: '10px',
+            <pre style={{ 
+              background: '#f8f9fa', 
+              padding: '10px', 
               borderRadius: '4px',
               overflow: 'auto',
               fontSize: '11px',
@@ -1775,21 +2387,32 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
     );
   }
 }
+/**
+ * Enhanced HOC for automatic Store Error Boundary wrapping with security
+ * 
+ * @template P - Component props type
+ * @param WrappedComponent - Component to wrap with error boundary
+ * @param errorBoundaryProps - Error boundary configuration
+ * @returns Enhanced component with comprehensive error handling
+ */
 export function withStoreErrorBoundary<P extends object>(
   WrappedComponent: React.ComponentType<P>,
   errorBoundaryProps?: Omit<StoreErrorBoundaryProps, 'children'>
 ): React.ComponentType<P> {
   const WithStoreErrorBoundaryComponent = (props: P) => (
-    <StoreErrorBoundary
+    <StoreErrorBoundary 
       {...errorBoundaryProps}
     >
       <WrappedComponent {...props} />
     </StoreErrorBoundary>
   );
-  WithStoreErrorBoundaryComponent.displayName =
+  WithStoreErrorBoundaryComponent.displayName = 
     `withStoreErrorBoundary(${WrappedComponent.displayName || WrappedComponent.name})`;
   return WithStoreErrorBoundaryComponent;
 }
+/**
+ * 특정 Store와 연결된 에러 경계 생성 헬퍼
+ */
 export function createStoreErrorBoundary(
   storeName: string,
   customFallback?: ReactNode
@@ -1811,34 +2434,454 @@ export function createStoreErrorBoundary(
 }
 ```
 
-### stores/core/index.ts
+### stores/core/ActionTransactionBridge.ts
 
 ```typescript
-export { Store, createStore } from './Store';
-export { StoreRegistry } from './StoreRegistry';
-export type {
-  IStore,
-  IStoreRegistry,
-  Listener,
-  Unsubscribe,
-  Snapshot,
-} from './types';
+import type { ActionDispatchTrace, ActionDispatchTraceListener } from '@context-action/core';
+import type {
+  TransactionCoordinatorPort,
+  TransactionHandle,
+  TransactionParticipant,
+} from '@context-action/store-core';
+export interface DispatchTraceSource {
+  subscribeDispatchTrace(listener: ActionDispatchTraceListener): () => void;
+}
+export interface ActionTransactionBridgeOptions {
+  getParticipants(event: ActionDispatchTrace): readonly TransactionParticipant[];
+}
+export function bindActionTransactions(
+  source: DispatchTraceSource,
+  coordinator: TransactionCoordinatorPort,
+  options: ActionTransactionBridgeOptions,
+): () => void {
+  const pending = new Map<string, TransactionHandle>();
+  const unsubscribe = source.subscribeDispatchTrace(event => {
+    if (event.phase === 'started') {
+      const participants = options.getParticipants(event);
+      if (participants.length === 0) return;
+      const handle = coordinator.begin(participants, {
+        ...(event.transactionId === undefined ? {} : { transactionId: event.transactionId }),
+        actionId: event.dispatchId,
+        ...(event.origin === undefined ? {} : { origin: event.origin }),
+        label: event.label ?? event.action,
+      });
+      pending.set(event.dispatchId, handle);
+      return;
+    }
+    const handle = pending.get(event.dispatchId);
+    if (!handle) return;
+    pending.delete(event.dispatchId);
+    if (event.status === 'completed' || event.status === 'completed_with_errors') handle.commit();
+    else handle.rollback();
+  });
+  return () => {
+    unsubscribe();
+    for (const handle of pending.values()) handle.rollback();
+    pending.clear();
+  };
+}
+```
+
+### stores/core/BackendStore.ts
+
+```typescript
+import type { StateBackend, StateMutationMeta, StatePatch } from '@context-action/store-core';
+import { ErrorHandlers } from '../utils/error-handling';
+import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } from './types';
+export type BackendPatchListener<Patch = StatePatch> = (patches: readonly Patch[] | null) => void;
+interface PendingPatchNotification<Patch> {
+  patches: readonly Patch[] | null;
+  resolved: boolean;
+}
+function normalizeUnsubscribe(candidate: unknown): Unsubscribe {
+  return typeof candidate === 'function' ? candidate as Unsubscribe : () => {};
+}
+export interface BackendStoreOptions {
+  readonly ownership?: 'shared' | 'owned';
+}
+export type BackendStoreSetValueOptions<T> = StoreSetValueOptions<T> & {
+  readonly meta?: StateMutationMeta;
+};
+export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> {
+  public readonly name: string;
+  private readonly backend: StateBackend<T, Patch>;
+  private readonly ownership: 'shared' | 'owned';
+  private readonly listeners = new Set<Listener>();
+  private readonly patchListeners = new Set<BackendPatchListener<Patch>>();
+  private readonly unsubscribeBackend: Unsubscribe;
+  private readonly unsubscribeBackendPatches: Unsubscribe;
+  private backendSnapshot: ReturnType<StateBackend<T>['getSnapshot']>;
+  private backendSnapshotVersion: number;
+  private backendSnapshotLastUpdate: number;
+  private backendSnapshotValue: T;
+  private snapshot: Snapshot<T>;
+  private disposed = false;
+  private lastPatches: readonly Patch[] | null = null;
+  private readonly hasPatchChannel: boolean;
+  private hasReadFallbackPatches = false;
+  private lastFallbackPatches: readonly Patch[] | null = null;
+  private readonly pendingPatchNotifications: PendingPatchNotification<Patch>[] = [];
+  private readonly orphanPatchNotifications: Array<readonly Patch[] | null> = [];
+  private orphanPatchFlushScheduled = false;
+  private listenerDispatchDepth = 0;
+  private patchFlushScheduled = false;
+  constructor(name: string, backend: StateBackend<T, Patch>, options: BackendStoreOptions = {}) {
+    this.name = name;
+    this.backend = backend;
+    this.ownership = options.ownership ?? 'shared';
+    this.backendSnapshot = backend.getSnapshot();
+    this.backendSnapshotVersion = this.backendSnapshot.version;
+    this.backendSnapshotLastUpdate = this.backendSnapshot.lastUpdate;
+    this.backendSnapshotValue = this.backendSnapshot.value;
+    this.snapshot = this.toSnapshot(this.backendSnapshot);
+    const subscribeWithPatches = backend.subscribeWithPatches;
+    this.hasPatchChannel = typeof subscribeWithPatches === 'function';
+    let unsubscribeBackendPatches: Unsubscribe = () => {};
+    let unsubscribeBackend: Unsubscribe = () => {};
+    try {
+      unsubscribeBackendPatches = typeof subscribeWithPatches === 'function'
+        ? normalizeUnsubscribe(subscribeWithPatches.call(backend, (patches) => {
+            this.capturePatchNotification(patches);
+          }))
+        : (() => {});
+      unsubscribeBackend = normalizeUnsubscribe(backend.subscribe(() => {
+        if (this.disposed) return;
+        let nextBackendSnapshot: ReturnType<StateBackend<T>['getSnapshot']>;
+        try {
+          nextBackendSnapshot = backend.getSnapshot();
+        } catch (error) {
+          this.reportListenerError('Backend snapshot read error', error);
+          return;
+        }
+        if (
+          nextBackendSnapshot !== this.backendSnapshot ||
+          nextBackendSnapshot.version !== this.backendSnapshotVersion ||
+          nextBackendSnapshot.lastUpdate !== this.backendSnapshotLastUpdate ||
+          !Object.is(nextBackendSnapshot.value, this.backendSnapshotValue)
+        ) {
+          this.backendSnapshot = nextBackendSnapshot;
+          this.backendSnapshotVersion = nextBackendSnapshot.version;
+          this.backendSnapshotLastUpdate = nextBackendSnapshot.lastUpdate;
+          this.backendSnapshotValue = nextBackendSnapshot.value;
+          this.snapshot = this.toSnapshot(nextBackendSnapshot);
+        }
+        let fallbackPatches: readonly Patch[] | null = null;
+        if (!this.hasPatchChannel) {
+          try {
+            const candidate = backend.getLastPatches?.() ?? null;
+            if (!this.hasReadFallbackPatches || !Object.is(candidate, this.lastFallbackPatches)) {
+              fallbackPatches = candidate;
+            }
+            this.lastFallbackPatches = candidate;
+            this.hasReadFallbackPatches = true;
+          } catch (error) {
+            this.reportListenerError('Backend patch read error', error);
+          }
+        }
+        const pendingPatchNotification: PendingPatchNotification<Patch> = {
+          patches: fallbackPatches,
+          resolved: !this.hasPatchChannel,
+        };
+        if (this.orphanPatchNotifications.length > 0) {
+          pendingPatchNotification.patches = this.orphanPatchNotifications.shift() ?? null;
+          pendingPatchNotification.resolved = true;
+        }
+        this.pendingPatchNotifications.push(pendingPatchNotification);
+        this.listenerDispatchDepth += 1;
+        try {
+          for (const listener of [...this.listeners]) {
+            try {
+              listener();
+            } catch (error) {
+              this.reportListenerError('Backend store listener error', error);
+            }
+          }
+        } finally {
+          this.listenerDispatchDepth -= 1;
+        }
+        if (pendingPatchNotification.resolved) {
+          this.flushPatchNotifications(true);
+        } else {
+          this.schedulePatchFlush();
+        }
+      }));
+    } catch (error) {
+      try {
+        unsubscribeBackendPatches();
+      } catch {
+      }
+      throw error;
+    }
+    this.unsubscribeBackendPatches = unsubscribeBackendPatches;
+    this.unsubscribeBackend = unsubscribeBackend;
+  }
+  subscribe = (listener: Listener): Unsubscribe => {
+    if (typeof listener !== 'function') {
+      throw new TypeError('Store subscriber must be a function.');
+    }
+    if (this.disposed) return () => {};
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  };
+  subscribeWithPatches = (listener: BackendPatchListener<Patch>): Unsubscribe => {
+    if (typeof listener !== 'function') {
+      throw new TypeError('Patch subscriber must be a function.');
+    }
+    if (this.disposed) return () => {};
+    this.patchListeners.add(listener);
+    return () => this.patchListeners.delete(listener);
+  };
+  getSnapshot = (): Snapshot<T> => this.snapshot;
+  getValue = (): T => this.backendSnapshot.value;
+  getSafeValue = (): T => {
+    return this.backend.getSafeValue
+      ? this.backend.getSafeValue()
+      : this.backendSnapshot.value;
+  };
+  getLastPatches = (): readonly Patch[] | null => this.lastPatches;
+  setValue = (value: T, options?: BackendStoreSetValueOptions<T>): void => {
+    if (this.disposed) return;
+    const meta = (options as BackendStoreSetValueOptions<T> | undefined)?.meta;
+    this.backend.setValue(value, meta);
+  };
+  update = (updater: (current: T) => T | undefined, meta?: StateMutationMeta): void => {
+    if (this.disposed) return;
+    this.backend.update(updater, meta);
+  };
+  getListenerCount = (): number => this.listeners.size + this.patchListeners.size;
+  isStoreDisposed = (): boolean => this.disposed;
+  dispose = (): void => {
+    if (this.disposed) return;
+    this.disposed = true;
+    try {
+      this.unsubscribeBackendPatches();
+    } catch (error) {
+      this.reportListenerError('Backend patch unsubscribe error', error);
+    }
+    try {
+      this.unsubscribeBackend();
+    } catch (error) {
+      this.reportListenerError('Backend unsubscribe error', error);
+    }
+    this.listeners.clear();
+    this.patchListeners.clear();
+    if (this.ownership === 'owned') {
+      try {
+        this.backend.dispose?.();
+      } catch (error) {
+        this.reportListenerError('Owned backend disposal error', error);
+      }
+    }
+  };
+  private reportListenerError(message: string, error: unknown): void {
+    try {
+      ErrorHandlers.store(
+        message,
+        { storeName: this.name },
+        error instanceof Error ? error : undefined,
+      );
+    } catch {
+    }
+  }
+  private capturePatchNotification(patches: readonly Patch[] | null): void {
+    if (this.disposed) return;
+    let pending: PendingPatchNotification<Patch> | undefined;
+    if (this.listenerDispatchDepth > 0) {
+      for (let index = this.pendingPatchNotifications.length - 1; index >= 0; index -= 1) {
+        const candidate = this.pendingPatchNotifications[index];
+        if (candidate && !candidate.resolved) {
+          pending = candidate;
+          break;
+        }
+      }
+    }
+    pending ??= this.pendingPatchNotifications.find((entry) => !entry.resolved);
+    if (pending) {
+      pending.patches = patches;
+      pending.resolved = true;
+      this.schedulePatchFlush();
+      return;
+    }
+    this.orphanPatchNotifications.push(patches);
+    this.scheduleOrphanPatchFlush();
+  }
+  private scheduleOrphanPatchFlush(): void {
+    if (this.orphanPatchFlushScheduled) return;
+    this.orphanPatchFlushScheduled = true;
+    queueMicrotask(() => {
+      this.orphanPatchFlushScheduled = false;
+      if (this.disposed) {
+        this.orphanPatchNotifications.length = 0;
+        return;
+      }
+      while (this.orphanPatchNotifications.length > 0) {
+        this.deliverPatchNotification(this.orphanPatchNotifications.shift() ?? null);
+      }
+    });
+  }
+  private schedulePatchFlush(): void {
+    if (this.patchFlushScheduled) return;
+    this.patchFlushScheduled = true;
+    queueMicrotask(() => {
+      this.patchFlushScheduled = false;
+      if (this.disposed) {
+        this.pendingPatchNotifications.length = 0;
+        this.orphanPatchNotifications.length = 0;
+        this.orphanPatchFlushScheduled = false;
+        this.listenerDispatchDepth = 0;
+        return;
+      }
+      this.flushPatchNotifications(false);
+    });
+  }
+  private flushPatchNotifications(onlyResolved: boolean): void {
+    if (onlyResolved) {
+      while (this.pendingPatchNotifications.length > 0) {
+        const pending = this.pendingPatchNotifications[0];
+        if (!pending?.resolved) return;
+        this.pendingPatchNotifications.shift();
+        this.deliverPatchNotification(pending.patches);
+      }
+      return;
+    }
+    while (this.pendingPatchNotifications.length > 0) {
+      const pending = this.pendingPatchNotifications[0];
+      if (!pending) return;
+      this.pendingPatchNotifications.shift();
+      const patches = pending.resolved ? pending.patches : null;
+      pending.resolved = true;
+      pending.patches = patches;
+      this.deliverPatchNotification(patches);
+    }
+  }
+  private deliverPatchNotification(patches: readonly Patch[] | null): void {
+    this.lastPatches = patches;
+    for (const listener of [...this.patchListeners]) {
+      try {
+        listener(patches);
+      } catch (error) {
+        this.reportListenerError('Backend store patch listener error', error);
+      }
+    }
+  }
+  private toSnapshot(source: ReturnType<StateBackend<T>['getSnapshot']>): Snapshot<T> {
+    return {
+      value: source.value,
+      name: source.name || this.name,
+      version: source.version,
+      lastUpdate: source.lastUpdate,
+    };
+  }
+}
+export function createBackendStore<T, Patch = StatePatch>(
+  name: string,
+  backend: StateBackend<T, Patch>,
+  options?: BackendStoreOptions,
+): BackendStore<T, Patch> {
+  return new BackendStore(name, backend, options);
+}
+```
+
+### stores/core/contracts.ts
+
+```typescript
+import type {
+  HistoryEntryId as CoreHistoryEntryId,
+  StateMutationMeta as BackendMutationMeta,
+  StateMutationOrigin as CoreMutationOrigin,
+  StateReader,
+  StateSnapshot,
+  StateTransition as BackendStateTransition,
+  TimelineBackend,
+  TransactionParticipantBackend,
+} from '@context-action/store-core';
+export type StateMutationOrigin = CoreMutationOrigin;
+export interface StateMutationMeta extends Pick<BackendMutationMeta, 'transactionId' | 'actionId' | 'origin' | 'label'> {}
+export interface ReadonlyStateSnapshot<T> extends StateSnapshot<T> {}
+export interface StoreReader<T> extends StateReader<T, ReadonlyStateSnapshot<T>> {}
+export interface StoreWriter<T> {
+  setValue(value: T, meta?: StateMutationMeta): void;
+  update(updater: (current: T) => T | undefined, meta?: StateMutationMeta): void;
+}
+export interface TimelineReader<T> extends StoreReader<T>, Pick<TimelineBackend<T>, 'canUndo' | 'canRedo' | 'getPosition' | 'getHistoryLength'> {}
+export type HistoryEntryId = CoreHistoryEntryId;
+export interface TransactionBackend<T = unknown> extends TransactionParticipantBackend<T> {
+  beginBatch(meta?: StateMutationMeta, options?: { deferNotification?: boolean }): void;
+  undo(steps?: number, meta?: StateMutationMeta): void;
+  redo(steps?: number, meta?: StateMutationMeta): void;
+  goToHistoryEntry(entryId: HistoryEntryId, meta?: StateMutationMeta): void;
+}
+export interface StateTransition<T> extends Omit<BackendStateTransition<T>, 'meta'> {
+  readonly meta: StateMutationMeta;
+}
+export interface TimelineWriter {
+  undo(steps?: number): void;
+  redo(steps?: number): void;
+  goTo(position: number): void;
+  reset(): void;
+}
+```
+
+### stores/core/frame-scheduler.ts
+
+```typescript
+export interface FrameHandle {
+  cancel(): void;
+}
+export function scheduleFrame(callback: (timestamp: number) => void): FrameHandle {
+  const animationFrameHost =
+    typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'
+      ? window
+      : globalThis;
+  if (typeof animationFrameHost.requestAnimationFrame === 'function') {
+    const id = animationFrameHost.requestAnimationFrame(callback);
+    return {
+      cancel: () => animationFrameHost.cancelAnimationFrame?.(id),
+    };
+  }
+  const id = setTimeout(() => callback(Date.now()), 0);
+  return { cancel: () => clearTimeout(id) };
+}
 ```
 
 ### stores/core/Store.ts
 
 ```typescript
-import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
-import type { StoreRegistry } from './StoreRegistry';
-import { safeGet, safeSet, produce } from '../utils/immutable';
+import { type Patches, produceWithPatches, safeGet, safeSet } from '@context-action/mutative';
 import {
-  compareValues,
-  ComparisonOptions
+  ComparisonOptions,
+  compareValues
 } from '../utils/comparison';
-import { TypeGuards } from '../utils/type-guards';
 import { ErrorHandlers } from '../utils/error-handling';
+import { TypeGuards } from '../utils/type-guards';
+import { type FrameHandle, scheduleFrame } from './frame-scheduler';
+import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } from './types';
+export type PatchAwareListener = (patches: Patches | null) => void;
+function deepFreeze<T>(obj: T, seen = new WeakSet<object>()): T {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  if (seen.has(obj)) {
+    return obj;
+  }
+  const proto = Object.getPrototypeOf(obj);
+  if (proto !== Object.prototype && proto !== Array.prototype && proto !== null) {
+    return obj;
+  }
+  seen.add(obj);
+  Object.freeze(obj);
+  for (const key of Object.keys(obj)) {
+    const value = (obj as Record<string, unknown>)[key];
+    if (value !== null && typeof value === 'object') {
+      deepFreeze(value, seen);
+    }
+  }
+  return obj;
+}
 export class Store<T = unknown> implements IStore<T> {
   private listeners = new Set<Listener>();
+  private patchAwareListeners = new Set<PatchAwareListener>();
+  private _lastPatches: Patches | null = null;
   protected _value: T;
   protected _snapshot: Snapshot<T>;
   private _lastClonedValue: T | null = null;
@@ -1848,18 +2891,18 @@ export class Store<T = unknown> implements IStore<T> {
   private updateQueue: Array<() => void> = [];
   private notificationMode: 'batched' | 'immediate' = 'batched';
   private pendingNotification = false;
-  private animationFrameId: number | null = null;
-  private pendingUpdatesCount = 0;
+  private animationFrameId: FrameHandle | null = null;
+  private pendingUpdatesCount = 0; 
+  private pendingPatches: Patches | null = null;
   private cleanupTasks = new Set<() => void>();
   private isDisposed = false;
   private errorCount = 0;
   private lastErrorTime = 0;
   private readonly MAX_ERROR_COUNT = 5;
-  private readonly ERROR_RESET_TIME = 60000;
-  private subscriptionRegistry = new WeakMap<Listener, {
+  private readonly ERROR_RESET_TIME = 60000; 
+  private subscriptionRegistry = new WeakMap<() => void, {
     subscribedAt: number;
     errorCount: number;
-    enhancedListener: () => void;
   }>();
   public readonly name: string;
   private customComparator: ((oldValue: T, newValue: T) => boolean) | undefined;
@@ -1867,7 +2910,7 @@ export class Store<T = unknown> implements IStore<T> {
   private cloningEnabled: boolean = true;
   constructor(name: string, initialValue: T) {
     this.name = name;
-    this._value = initialValue;
+    this._value = safeSet(initialValue, true);
     this._snapshot = this._createSnapshot();
   }
   subscribe = (listener: Listener): Unsubscribe => {
@@ -1883,35 +2926,54 @@ export class Store<T = unknown> implements IStore<T> {
           this.errorCount = 0;
         }
       } catch (error) {
-        this._handleListenerError(error, listener);
+        this._handleListenerError(error, enhancedListener);
       }
     };
-    this.subscriptionRegistry.set(listener, {
+    this.subscriptionRegistry.set(enhancedListener, {
       subscribedAt: Date.now(),
       errorCount: 0,
-      enhancedListener
     });
     this.listeners.add(enhancedListener);
     return () => {
       this.listeners.delete(enhancedListener);
-      this.subscriptionRegistry.delete(listener);
+      this.subscriptionRegistry.delete(enhancedListener);
     };
   };
+  subscribeWithPatches = (listener: PatchAwareListener): Unsubscribe => {
+    if (this.isDisposed) {
+      console.warn(`Cannot subscribe to disposed store "${this.name}"`);
+      return () => {};
+    }
+    this.patchAwareListeners.add(listener);
+    return () => this.patchAwareListeners.delete(listener);
+  };
+  getLastPatches(): Patches | null {
+    return this._lastPatches;
+  }
   getSnapshot = (): Snapshot<T> => {
     return this._snapshot;
   };
   getValue(): T {
+    const valueType = typeof this._value;
+    if (valueType !== 'object' || this._value === null) {
+      return this._value;
+    }
     if (this.cloningEnabled) {
       if (this._lastClonedVersion === this._version && this._lastClonedValue !== null) {
         return this._lastClonedValue;
       }
-      this._lastClonedValue = safeGet(this._value, this.cloningEnabled);
+      const cloned = safeGet(this._value, this.cloningEnabled);
+      this._lastClonedValue = deepFreeze(cloned);
       this._lastClonedVersion = this._version;
       return this._lastClonedValue;
     }
     return this._value;
   }
+  getSafeValue(): T {
+    return deepFreeze(safeGet(this._value, true));
+  }
   setValue(value: T, options?: StoreSetValueOptions<T>): void {
+    if (this.isDisposed) return;
     if (TypeGuards.isObject(value)) {
       if (!TypeGuards.isRefState(value) && TypeGuards.isSuspiciousEventObject(value)) {
         const eventHandling = options?.eventHandling || 'block';
@@ -1944,7 +3006,6 @@ export class Store<T = unknown> implements IStore<T> {
               return;
             }
             break;
-          case 'block':
           default:
             ErrorHandlers.store(
               'Event object detected in Store.setValue - this may cause memory leaks',
@@ -1967,14 +3028,42 @@ export class Store<T = unknown> implements IStore<T> {
     if (!options?.skipComparison) {
       hasChanged = this._compareValues(this._value, safeValue);
     }
-    if (hasChanged) {
+    if (hasChanged && !this.isDisposed) {
+      if (this.patchAwareListeners.size > 0 &&
+          TypeGuards.isObject(this._value) &&
+          TypeGuards.isObject(safeValue)) {
+        try {
+          const [, patches] = produceWithPatches(
+            this._value,
+            (draft) => {
+              const draftKeys = Object.keys(draft as object);
+              const valueKeys = Object.keys(safeValue as object);
+              for (const key of draftKeys) {
+                if (Object.getOwnPropertyDescriptor(safeValue, key) === undefined) {
+                  delete (draft as Record<string, unknown>)[key];
+                }
+              }
+              for (const key of valueKeys) {
+                (draft as Record<string, unknown>)[key] = (safeValue as Record<string, unknown>)[key];
+              }
+            }
+          );
+          this._lastPatches = patches;
+        } catch {
+          this._lastPatches = null;
+        }
+      } else {
+        this._lastPatches = null;
+      }
+      if (this.isDisposed) return;
       this._value = safeValue;
       this._version++;
       this._snapshot = this._createSnapshot();
       this._scheduleNotification();
     }
   }
-  update(updater: (current: T) => T): void {
+  update(updater: (current: T) => T | undefined): void {
+    if (this.isDisposed) return;
     if (this.isUpdating) {
       this.updateQueue.push(() => this.update(updater));
       return;
@@ -1982,28 +3071,55 @@ export class Store<T = unknown> implements IStore<T> {
     try {
       this.isUpdating = true;
       let updatedValue: T;
+      let patches: Patches | null = null;
       try {
-        updatedValue = produce(this._value, (draft: T) => {
-          const result = updater(draft);
-          return result !== undefined ? result : draft;
-        });
-      } catch (immerError) {
+        const [nextState, capturedPatches] = produceWithPatches(
+          this._value,
+          (draft): T | undefined => {
+            const result = updater(draft as T);
+            if (result !== undefined) {
+              return result;
+            }
+            return undefined;
+          }
+        );
+        updatedValue = nextState as T;
+        patches = capturedPatches;
+      } catch (mutativeError) {
         if (process.env.NODE_ENV === 'development') {
-          console.warn('[Store] Immer update failed, falling back to safe copy method', immerError);
+          console.warn('[Store] Mutative update failed, falling back to safe copy method', mutativeError);
         }
         const safeCurrentValue = safeGet(this._value, this.cloningEnabled);
         try {
-          updatedValue = produce(safeCurrentValue, (draft: T) => {
-            const result = updater(draft);
-            return result !== undefined ? result : draft;
-          });
-        } catch (secondImmerError) {
+          const [nextState, capturedPatches] = produceWithPatches(
+            safeCurrentValue,
+            (draft): T | undefined => {
+              const result = updater(draft as T);
+              if (result !== undefined) {
+                return result;
+              }
+              return undefined;
+            }
+          );
+          updatedValue = nextState as T;
+          patches = capturedPatches;
+        } catch (secondMutativeError) {
           if (process.env.NODE_ENV === 'development') {
-            console.warn('[Store] Immer completely failed, using direct update (immutability not guaranteed)', secondImmerError);
+            console.warn('[Store] Mutative completely failed, using direct update (immutability not guaranteed)', secondMutativeError);
           }
-          updatedValue = updater(safeCurrentValue);
+          try {
+            const result = updater(safeCurrentValue);
+            updatedValue = result !== undefined ? result : safeCurrentValue;
+          } catch (updaterError) {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn('[Store] Updater function threw an error, update aborted', updaterError);
+            }
+            return;
+          }
+          patches = null; 
         }
       }
+      if (this.isDisposed) return;
       if (TypeGuards.isObject(updatedValue)) {
         if (!TypeGuards.isRefState(updatedValue) && TypeGuards.isSuspiciousEventObject(updatedValue)) {
           const hasEventTarget = TypeGuards.hasTargetProperty(updatedValue);
@@ -2024,7 +3140,13 @@ export class Store<T = unknown> implements IStore<T> {
           return;
         }
       }
-      this.setValue(updatedValue);
+      if (this._compareValues(this._value, updatedValue) && !this.isDisposed) {
+        this._lastPatches = patches;
+        this._value = updatedValue;
+        this._version++;
+        this._snapshot = this._createSnapshot();
+        this._scheduleNotification();
+      }
     } finally {
       this.isUpdating = false;
       if (this.updateQueue.length > 0) {
@@ -2036,10 +3158,43 @@ export class Store<T = unknown> implements IStore<T> {
     }
   }
   getListenerCount(): number {
-    return this.listeners.size;
+    return this.listeners.size + this.patchAwareListeners.size;
   }
   clearListeners(): void {
     this.listeners.clear();
+    this.patchAwareListeners.clear();
+  }
+  notifyPath(path: (string | number)[]): void {
+    if (this.isDisposed) return;
+    const currentValue = this._getValueAtPath(path);
+    const syntheticPatch: Patches = [{
+      op: 'replace',
+      path: path,
+      value: currentValue
+    }];
+    this._lastPatches = syntheticPatch;
+    this._scheduleNotification();
+  }
+  notifyPaths(paths: (string | number)[][]): void {
+    if (this.isDisposed) return;
+    if (paths.length === 0) return;
+    const syntheticPatches: Patches = paths.map(path => ({
+      op: 'replace' as const,
+      path: path,
+      value: this._getValueAtPath(path)
+    }));
+    this._lastPatches = syntheticPatches;
+    this._scheduleNotification();
+  }
+  private _getValueAtPath(path: (string | number)[]): unknown {
+    let current: unknown = this._value;
+    for (const segment of path) {
+      if (current === null || current === undefined) {
+        return undefined;
+      }
+      current = (current as Record<string | number, unknown>)[segment];
+    }
+    return current;
   }
   registerCleanup(task: () => void): () => void {
     if (this.isDisposed) {
@@ -2051,7 +3206,7 @@ export class Store<T = unknown> implements IStore<T> {
   }
   dispose(): void {
     if (this.isDisposed) {
-      return;
+      return; 
     }
     this.isDisposed = true;
     try {
@@ -2070,10 +3225,12 @@ export class Store<T = unknown> implements IStore<T> {
       this.subscriptionRegistry = new WeakMap();
       this.clearListeners();
       if (this.animationFrameId !== null) {
-        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId.cancel();
         this.animationFrameId = null;
       }
       this.pendingNotification = false;
+      this.pendingPatches = null;
+      this.pendingUpdatesCount = 0;
       this.updateQueue.length = 0;
     } catch (error) {
       ErrorHandlers.store(
@@ -2103,7 +3260,7 @@ export class Store<T = unknown> implements IStore<T> {
     try {
       if (this.customComparator) {
         const areEqual = this.customComparator(oldValue, newValue);
-        result = !areEqual;
+        result = !areEqual; 
       }
       else if (this.comparisonOptions) {
         const areEqual = compareValues(oldValue, newValue, this.comparisonOptions);
@@ -2125,13 +3282,15 @@ export class Store<T = unknown> implements IStore<T> {
   }
   protected _createSnapshot(): Snapshot<T> {
     const clonedValue = safeGet(this._value, this.cloningEnabled);
+    const frozenValue = this.cloningEnabled ? deepFreeze(clonedValue) : clonedValue;
     return {
-      value: clonedValue,
+      value: frozenValue,
       name: this.name,
       lastUpdate: Date.now()
     };
   }
   protected _scheduleNotification(): void {
+    if (this.isDisposed) return;
     if (this.notificationMode === 'immediate') {
       this._notifyListeners();
     } else {
@@ -2140,9 +3299,14 @@ export class Store<T = unknown> implements IStore<T> {
   }
   private _scheduleWithRAF(): void {
     this.pendingUpdatesCount++;
+    this.pendingPatches = this.pendingUpdatesCount === 1
+      ? this._lastPatches
+      : this.pendingPatches && this._lastPatches
+        ? this.pendingPatches.concat(this._lastPatches)
+        : null;
     if (!this.pendingNotification) {
       this.pendingNotification = true;
-      this.animationFrameId = requestAnimationFrame(() => {
+      this.animationFrameId = scheduleFrame(() => {
         this._executeNotification();
       });
     }
@@ -2150,6 +3314,8 @@ export class Store<T = unknown> implements IStore<T> {
   private _executeNotification(): void {
     this.pendingNotification = false;
     this.animationFrameId = null;
+    this._lastPatches = this.pendingPatches;
+    this.pendingPatches = null;
     const batchedUpdates = this.pendingUpdatesCount;
     this.pendingUpdatesCount = 0;
     this._notifyListeners();
@@ -2157,33 +3323,36 @@ export class Store<T = unknown> implements IStore<T> {
       console.debug(`[Store:${this.name}] Batched ${batchedUpdates} updates in single frame`);
     }
   }
-  private _handleListenerError(error: unknown, listener: Listener): void {
+  private _handleListenerError(error: unknown, enhancedListener: () => void): void {
     const now = Date.now();
     if (now - this.lastErrorTime > this.ERROR_RESET_TIME) {
       this.errorCount = 0;
     }
     this.errorCount++;
     this.lastErrorTime = now;
-    const metadata = this.subscriptionRegistry.get(listener);
+    const metadata = this.subscriptionRegistry.get(enhancedListener);
     if (metadata) {
       metadata.errorCount++;
     }
-    ErrorHandlers.store(
-      'Error in store listener execution',
-      {
-        storeName: this.name,
-        listenerCount: this.listeners.size,
-        errorCount: this.errorCount,
-        subscriptionAge: metadata ? now - metadata.subscribedAt : 'unknown'
-      },
-      error instanceof Error ? error : undefined
-    );
+    try {
+      ErrorHandlers.store(
+        'Error in store listener execution',
+        { 
+          storeName: this.name,
+          listenerCount: this.listeners.size,
+          errorCount: this.errorCount,
+          subscriptionAge: metadata ? now - metadata.subscribedAt : 'unknown'
+        },
+        error instanceof Error ? error : undefined
+      );
+    } catch {
+    }
     if (metadata && metadata.errorCount >= 3) {
       console.warn(
         `Removing problematic listener from store "${this.name}" after ${metadata.errorCount} errors`
       );
-      this.listeners.delete(metadata.enhancedListener);
-      this.subscriptionRegistry.delete(listener);
+      this.listeners.delete(enhancedListener);
+      this.subscriptionRegistry.delete(enhancedListener);
     }
     if (this.errorCount >= this.MAX_ERROR_COUNT) {
       console.error(
@@ -2194,51 +3363,33 @@ export class Store<T = unknown> implements IStore<T> {
   }
   private _notifyListeners(): void {
     if (this.isDisposed) return;
-    this.listeners.forEach(listener => {
+    const notifiedPatches = this._lastPatches;
+    for (const listener of [...this.listeners]) {
       if (this.isDisposed) return;
-      listener();
-    });
+      if (!this.listeners.has(listener)) continue;
+      listener(); 
+    }
+    for (const listener of [...this.patchAwareListeners]) {
+      if (this.isDisposed) return;
+      if (!this.patchAwareListeners.has(listener)) continue;
+      try {
+        listener(notifiedPatches);
+      } catch (error) {
+        try {
+          ErrorHandlers.store(
+            'Error in patch-aware listener execution',
+            { storeName: this.name },
+            error instanceof Error ? error : undefined
+          );
+        } catch {
+        }
+      }
+    }
   }
 }
 export function createStore<T>(name: string, initialValue: T): Store<T> {
   const store = new Store<T>(name, initialValue);
   return store;
-}
-export interface StoreConfig<T = unknown> {
-  name: string;
-  initialValue: T;
-  registry?: StoreRegistry;
-  autoRegister?: boolean;
-}
-export class ManagedStore<T> extends Store<T> {
-  private registry: StoreRegistry | undefined;
-  private autoRegister: boolean;
-  constructor(config: StoreConfig<T>) {
-    super(config.name, config.initialValue);
-    this.registry = config.registry ?? undefined;
-    this.autoRegister = config.autoRegister ?? true;
-    if (this.autoRegister && this.registry) {
-      this.registry.register(this.name, this);
-    }
-  }
-  dispose(): void {
-    if (this.registry) {
-      this.registry.unregister(this.name);
-    }
-    this.clearListeners();
-  }
-}
-export function createManagedStore<T>(config: StoreConfig<T>): ManagedStore<T> {
-  return new ManagedStore<T>(config);
-}
-export interface AdvancedStoreConfig<T> extends StoreConfig<T> {
-  comparisonStrategy?: 'reference' | 'shallow' | 'deep' | 'custom';
-  customComparator?: (oldValue: T, newValue: T) => boolean;
-  enablePersistence?: boolean;
-  persistenceKey?: string;
-  enablePerformanceMonitoring?: boolean;
-  notificationMode?: 'batched' | 'immediate';
-  enableCloning?: boolean;
 }
 ```
 
@@ -2267,11 +3418,6 @@ export class StoreRegistry implements IStoreRegistry {
     };
   }
   register(name: string, store: IStore<any>, metadata?: Partial<StoreMetadata>): void {
-    if (this.stores.has(name)) {
-      const oldStore = this.stores.get(name);
-      if (oldStore) {
-      }
-    }
     this.stores.set(name, store);
     if (metadata) {
       this.metadata.set(store, {
@@ -2366,41 +3512,867 @@ export class StoreRegistry implements IStoreRegistry {
 export const globalStoreRegistry = new StoreRegistry('global');
 ```
 
-### stores/hooks/index.ts
+### stores/core/StoreTransactionCoordinator.ts
 
 ```typescript
-export { useStoreSelector as useStore } from '../utils/store-selector';
-export { useStoreValue, useStoreValues, assertStoreValue } from './useStoreValue';
-export {
-  useSafeStoreSubscription,
-  useConditionalStoreSubscription,
-  useMultiStoreSubscription,
-  equalityFunctions,
-  type EnhancedSubscriptionOptions
-} from '../utils/sync-external-store-utils';
-export { useLocalStore } from './useLocalStore';
-export {
-  useStoreSelector,
-  shallowEqual,
-  deepEqual,
-  defaultEqualityFn
-} from './useStoreSelector';
-export {
-  useComputedStore,
-  useMultiComputedStore,
-  useComputedStoreInstance,
-  useAsyncComputedStore
-} from './useComputedStore';
+import { ErrorHandlers } from '../utils/error-handling';
+import type {
+  TransactionCoordinatorPort,
+  TransactionHandle,
+  TransactionMeta,
+  TransactionOptions,
+  TransactionParticipant,
+  TransactionParticipantBackend,
+} from '@context-action/store-core';
+import type { HistoryEntryId, StateMutationMeta, TransactionBackend } from './contracts';
+type TimeTravelTransitionMeta = StateMutationMeta;
+const activeTransactionStores = new WeakSet<TransactionParticipantBackend>();
+export interface StoreTransactionMeta extends TransactionMeta {}
+export type StoreTransactionOptions = TransactionOptions;
+export interface StoreTransactionParticipant<T = unknown> extends TransactionParticipant<T> {
+  readonly store: TransactionBackend<T>;
+}
+export interface StoreTransactionRecord {
+  readonly meta: StoreTransactionMeta;
+  readonly participants: readonly {
+    readonly name: string;
+    readonly before: number;
+    readonly after: number;
+  }[];
+}
+export type StoreTransactionEventPhase = 'started' | 'committed' | 'rolled_back' | 'undone' | 'redone';
+export interface StoreTransactionEvent {
+  readonly phase: StoreTransactionEventPhase;
+  readonly record: StoreTransactionRecord;
+}
+export type StoreTransactionListener = (event: StoreTransactionEvent) => void;
+export interface StoreTransactionInspectorSnapshot {
+  readonly version: number;
+  readonly position: number;
+  readonly historyLength: number;
+  readonly canUndo: boolean;
+  readonly canRedo: boolean;
+  readonly latest?: StoreTransactionRecord;
+}
+export interface StoreTransactionInspectorSink {
+  write(snapshot: StoreTransactionInspectorSnapshot): void;
+}
+type StoredStoreTransactionRecord = Omit<StoreTransactionRecord, 'participants'> & {
+  readonly participants: readonly {
+    readonly name: string;
+    readonly store: TransactionParticipantBackend;
+    readonly before: number;
+    readonly after: number;
+    readonly beforeEntryId: HistoryEntryId;
+    readonly afterEntryId: HistoryEntryId;
+    readonly changed: boolean;
+  }[];
+};
+export interface StoreTransactionHandle extends TransactionHandle {
+  readonly meta: StoreTransactionMeta;
+}
+export class StoreTransactionCoordinator implements TransactionCoordinatorPort {
+  private sequence = 0;
+  private position = 0;
+  private history: StoredStoreTransactionRecord[] = [];
+  private readonly activeStores = new Set<TransactionParticipantBackend>();
+  private readonly listeners = new Set<StoreTransactionListener>();
+  private inspectorVersion = 0;
+  private inspectorSnapshot: StoreTransactionInspectorSnapshot = {
+    version: 0,
+    position: 0,
+    historyLength: 0,
+    canUndo: false,
+    canRedo: false,
+  };
+  subscribe(listener: StoreTransactionListener): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+  serializeHistory(): string {
+    return JSON.stringify(this.getHistory());
+  }
+  getInspectorSnapshot(): StoreTransactionInspectorSnapshot {
+    return this.inspectorSnapshot;
+  }
+  bindInspector(sink: StoreTransactionInspectorSink): () => void {
+    try {
+      sink.write(this.getInspectorSnapshot());
+    } catch (error) {
+      this.reportListenerError(error);
+    }
+    return this.subscribe(() => {
+      try {
+        sink.write(this.getInspectorSnapshot());
+      } catch (error) {
+        this.reportListenerError(error);
+      }
+    });
+  }
+  private reportListenerError(error: unknown): void {
+    try {
+      ErrorHandlers.store('Transaction listener error', undefined, error instanceof Error ? error : undefined);
+    } catch {}
+  }
+  private updateInspectorSnapshot(): void {
+    this.inspectorVersion += 1;
+    const latest = this.history[this.history.length - 1];
+    this.inspectorSnapshot = {
+      version: this.inspectorVersion,
+      position: this.position,
+      historyLength: this.history.length,
+      canUndo: this.canUndo(),
+      canRedo: this.canRedo(),
+      ...(latest && { latest: this.snapshot(latest) }),
+    };
+  }
+  private emit(
+    phase: StoreTransactionEventPhase,
+    record: StoreTransactionRecord,
+    snapshotAlreadyUpdated = false,
+  ): void {
+    const snapshot = this.snapshot(record);
+    if (!snapshotAlreadyUpdated) {
+      this.updateInspectorSnapshot();
+    }
+    for (const listener of [...this.listeners]) {
+      try {
+        listener({ phase, record: snapshot });
+      } catch (error) {
+        this.reportListenerError(error);
+      }
+    }
+  }
+  private snapshot(record: StoreTransactionRecord): StoreTransactionRecord {
+    return {
+      meta: { ...record.meta },
+      participants: record.participants.map(({ name, before, after }) => ({ name, before, after })),
+    };
+  }
+  begin(
+    participants: readonly TransactionParticipant[],
+    options: StoreTransactionOptions = {},
+  ): StoreTransactionHandle {
+    const id = `tx_${++this.sequence}`;
+    const meta = { ...options, id } satisfies StoreTransactionMeta;
+    const unique = participants.map(({ name, store, batchControl }) => ({
+      name,
+      store,
+      batchControl: batchControl ?? store,
+    }));
+    if (unique.length === 0) throw new Error('A transaction requires at least one participant');
+    const participantNames = new Set<string>();
+    const participantStores = new Set<TransactionParticipantBackend>();
+    for (const participant of unique) {
+      if (participantNames.has(participant.name)) {
+        throw new Error(`Duplicate transaction participant name "${participant.name}"`);
+      }
+      if (participantStores.has(participant.store)) {
+        throw new Error(`Store "${participant.store.name}" is registered more than once in the transaction`);
+      }
+      participantNames.add(participant.name);
+      participantStores.add(participant.store);
+      if (this.activeStores.has(participant.store) || activeTransactionStores.has(participant.store)) {
+        throw new Error(`Store "${participant.store.name}" already participates in an active transaction`);
+      }
+    }
+    if (unique.some(participant => participant.store.isStoreDisposed())) {
+      throw new Error('A transaction cannot include a disposed store');
+    }
+    const before = unique.map(participant => ({
+      ...participant,
+      position: participant.store.getPosition(),
+      beforeEntryId: participant.store.getHistoryEntryId(),
+    }));
+    const started: typeof unique = [];
+    try {
+      for (const participant of unique) {
+        participant.batchControl.beginBatch(meta, { deferNotification: true });
+        started.push(participant);
+      }
+    } catch (error) {
+      const cleanup = (operation: () => void) => {
+        try { operation(); } catch (cleanupError) { this.reportListenerError(cleanupError); }
+      };
+      for (const participant of [...started].reverse()) cleanup(() => participant.batchControl.cancelBatch());
+      for (const participant of started) cleanup(() => participant.batchControl.resumeNotifications());
+      for (const participant of started) {
+        cleanup(() => participant.batchControl.flushNotifications());
+      }
+      throw error;
+    }
+    for (const participant of unique) {
+      this.activeStores.add(participant.store);
+      activeTransactionStores.add(participant.store);
+    }
+    this.emit('started', { meta, participants: before.map(({ name, position }) => ({ name, before: position, after: position })) });
+    let closed = false;
+    const endBatches = () => {
+      for (const participant of [...unique].reverse()) participant.batchControl.endBatch();
+    };
+    const cancelBatches = () => {
+      for (const participant of [...unique].reverse()) {
+        if (participant.store.isStoreDisposed()) continue;
+        try {
+          participant.batchControl.cancelBatch();
+        } catch (error) {
+          this.reportListenerError(error);
+        }
+      }
+    };
+    const flushBatches = () => {
+      for (const participant of unique) {
+        try {
+          participant.batchControl.resumeNotifications();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
+      }
+      for (const participant of unique) {
+        try {
+          participant.batchControl.flushNotifications();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
+      }
+    };
+    return {
+      meta,
+      commit: () => {
+        if (closed) return;
+        closed = true;
+        try {
+          const disposed = unique.find(participant => participant.store.isStoreDisposed());
+          if (disposed) throw new Error(`Store "${disposed.store.name}" is disposed`);
+          endBatches();
+          const record = {
+            meta,
+            participants: before.map(participant => ({
+                name: participant.name,
+                store: participant.store,
+                before: participant.position,
+                after: participant.store.getPosition(),
+                beforeEntryId: participant.beforeEntryId,
+                afterEntryId: participant.store.getHistoryEntryId(),
+                changed: participant.beforeEntryId !== participant.store.getHistoryEntryId(),
+              })),
+          };
+          const hasChanged = record.participants.some(participant => participant.changed);
+          if (hasChanged) {
+            this.history = this.history.slice(0, this.position);
+            this.history.push(record);
+            this.position += 1;
+            this.updateInspectorSnapshot();
+          }
+          flushBatches();
+          if (hasChanged) {
+            this.emit('committed', record, true);
+          }
+        } catch (error) {
+          cancelBatches();
+          flushBatches();
+          throw error;
+        } finally {
+          for (const participant of unique) {
+            this.activeStores.delete(participant.store);
+            activeTransactionStores.delete(participant.store);
+          }
+        }
+      },
+      rollback: () => {
+        if (closed) return;
+        closed = true;
+        try {
+          cancelBatches();
+          flushBatches();
+          this.emit('rolled_back', { meta, participants: before.map(({ name, position }) => ({ name, before: position, after: position })) });
+        } finally {
+          for (const participant of unique) {
+            this.activeStores.delete(participant.store);
+            activeTransactionStores.delete(participant.store);
+          }
+        }
+      },
+    };
+  }
+  async run<R>(
+    participants: readonly TransactionParticipant[],
+    callback: (meta: StoreTransactionMeta) => R | Promise<R>,
+    options: StoreTransactionOptions = {},
+  ): Promise<R> {
+    const handle = this.begin(participants, options);
+    try {
+      const result = await callback(handle.meta);
+      handle.commit();
+      return result;
+    } catch (error) {
+      handle.rollback();
+      throw error;
+    }
+  }
+  canUndo(): boolean {
+    return this.position > 0 && this.canMoveRecord(this.history[this.position - 1]!, 'undo');
+  }
+  canRedo(): boolean {
+    return this.position < this.history.length && this.canMoveRecord(this.history[this.position]!, 'redo');
+  }
+  getPosition(): number { return this.position; }
+  getHistory(): readonly StoreTransactionRecord[] { return this.history.map(record => this.snapshot(record)); }
+  undo(): void {
+    if (!this.canUndo()) return;
+    const record = this.history[this.position - 1]!;
+    this.assertAtPositions(record, 'after');
+    this.applyPositions(record, 'undo', () => {
+      this.position -= 1;
+      this.updateInspectorSnapshot();
+    });
+    this.emit('undone', record, true);
+  }
+  redo(): void {
+    if (!this.canRedo()) return;
+    const record = this.history[this.position]!;
+    this.assertAtPositions(record, 'before');
+    this.applyPositions(record, 'redo', () => {
+      this.position += 1;
+      this.updateInspectorSnapshot();
+    });
+    this.emit('redone', record, true);
+  }
+  private applyPositions(
+    record: StoredStoreTransactionRecord,
+    origin: 'undo' | 'redo',
+    onApplied: () => void,
+  ): void {
+    const participants = record.participants.map(({ store }) => store);
+    const metadata = { ...record.meta, origin } satisfies TimeTravelTransitionMeta;
+    const started: TransactionParticipantBackend[] = [];
+    try {
+      for (const store of participants) {
+        store.beginBatch(metadata, { deferNotification: true });
+        started.push(store);
+      }
+    } catch (error) {
+      for (const store of [...started].reverse()) {
+        try {
+          store.cancelBatch();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
+      }
+      for (const store of started) {
+        try {
+          store.resumeNotifications();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
+        try {
+          store.flushNotifications();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
+      }
+      throw error;
+    }
+    let applied = false;
+    let ended = false;
+    try {
+      for (const participant of participants) {
+        const participantRecord = record.participants.find(({ store }) => store === participant)!;
+        if (!participantRecord.changed) continue;
+        if (origin === 'undo' ? !participant.canUndo() : !participant.canRedo()) {
+          throw new Error(`Transaction ${record.meta.id} cannot ${origin} retained history on store "${participant.name}"`);
+        }
+        const targetEntryId = origin === 'undo' ? participantRecord.beforeEntryId : participantRecord.afterEntryId;
+        if (!participant.hasHistoryEntry(targetEntryId)) {
+          throw new Error(`Transaction ${record.meta.id} cannot ${origin} retained history on store "${participant.name}"`);
+        }
+        participant.goToHistoryEntry(targetEntryId, metadata);
+      }
+      applied = true;
+      for (const store of [...participants].reverse()) {
+        store.endBatch();
+      }
+      ended = true;
+      onApplied();
+    } finally {
+      if (!ended) {
+        for (const store of [...participants].reverse()) {
+          try {
+            if (applied) store.endBatch();
+            else if (!store.isStoreDisposed()) store.cancelBatch();
+          } catch (cleanupError) {
+            this.reportListenerError(cleanupError);
+          }
+        }
+      }
+      for (const store of participants) {
+        try {
+          store.resumeNotifications();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
+        try {
+          store.flushNotifications();
+        } catch (cleanupError) {
+          this.reportListenerError(cleanupError);
+        }
+      }
+    }
+  }
+  private assertAtPositions(record: StoredStoreTransactionRecord, side: 'before' | 'after'): void {
+    for (const participant of record.participants) {
+      const expectedEntryId = participant[`${side}EntryId`];
+      if (participant.store.isStoreDisposed() || participant.store.getHistoryEntryId() !== expectedEntryId) {
+        throw new Error(`Transaction ${record.meta.id} conflicts with external history on store "${participant.name}"`);
+      }
+    }
+  }
+  private canMoveRecord(record: StoredStoreTransactionRecord, direction: 'undo' | 'redo'): boolean {
+    return record.participants.every(participant =>
+      !participant.changed
+      || (!participant.store.isStoreDisposed()
+        && participant.store.hasHistoryEntry(direction === 'undo' ? participant.beforeEntryId : participant.afterEntryId))
+    );
+  }
+}
+```
+
+### stores/core/TimeTravelStore.ts
+
+```typescript
+import { createTimeTravel, type Patches, safeGet, TimeTravel, type TimeTravelControls, type TimeTravelOptions, type TimeTravelTransitionMeta } from '@context-action/mutative';
+import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } from './types';
+export type PatchAwareListener = (patches: Patches | null) => void;
+function validateHistoryStep(value: number, label: string): void {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new RangeError(`${label} must be a non-negative safe integer`);
+  }
+}
+function validateHistoryPosition(value: number): void {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new RangeError('History position must be a non-negative safe integer');
+  }
+}
+import { ErrorHandlers } from '../utils/error-handling';
+import { TypeGuards } from '../utils/type-guards';
+import { type FrameHandle, scheduleFrame } from './frame-scheduler';
+export interface TimeTravelStoreOptions<T> {
+  maxHistory?: number;
+  mutable?: boolean;
+  isEqual?: (a: T, b: T) => boolean;
+  notificationMode?: 'batched' | 'immediate';
+  readMode?: 'reference' | 'safe';
+}
+export class TimeTravelStore<T = unknown> implements IStore<T> {
+  public readonly name: string;
+  private timeTravel: TimeTravel<T, false, true>;
+  private listeners = new Set<Listener>();
+  private patchAwareListeners = new Set<PatchAwareListener>();
+  private _snapshot: Snapshot<T>;
+  private _lastPatches: Patches | null = null;
+  private _lastTransitionMeta: TimeTravelTransitionMeta | undefined;
+  private isDisposed = false;
+  private cleanupTasks = new Set<() => void>();
+  private customComparator?: (a: T, b: T) => boolean;
+  private cloningEnabled = false;
+  private notificationMode: 'batched' | 'immediate' = 'immediate';
+  private pendingNotification = false;
+  private animationFrameId: FrameHandle | null = null;
+  private pendingPatches: Patches | null = null;
+  private unsubscribeTimeTravel: Unsubscribe = () => {};
+  private notificationHoldDepth = 0;
+  private notificationDeferred = false;
+  constructor(
+    name: string,
+    initialValue: T,
+    options: TimeTravelStoreOptions<T> = {}
+  ) {
+    this.name = name;
+    this.customComparator = options.isEqual;
+    this.notificationMode = options.notificationMode ?? 'immediate';
+    this.cloningEnabled = options.readMode === 'safe';
+    const timeTravelOptions: TimeTravelOptions<false, true> = {
+      maxHistory: options.maxHistory ?? 50,
+      mutable: options.mutable ?? true,
+      autoArchive: true,
+    };
+    this.timeTravel = createTimeTravel(initialValue, timeTravelOptions);
+    this.unsubscribeTimeTravel = this.timeTravel.subscribe((_state, travelPatches, _position, changedPatches, metadata) => {
+      const transitionPatches = (changedPatches ?? travelPatches.patches.flat()) as Patches;
+      this._lastPatches = transitionPatches;
+      this._lastTransitionMeta = metadata;
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[TimeTravelStore:${this.name}] TimeTravel notified - patches:`, transitionPatches.length, 'listeners:', this.listeners.size);
+      }
+      this._updateSnapshot();
+      if (this.notificationHoldDepth > 0) {
+        this.pendingPatches = this.pendingPatches
+          ? this.pendingPatches.concat(transitionPatches)
+          : transitionPatches;
+        this.notificationDeferred = true;
+        return;
+      }
+      this._scheduleNotification(transitionPatches);
+    });
+    this._snapshot = this._createSnapshot();
+  }
+  subscribe = (listener: Listener): Unsubscribe => {
+    if (this.isDisposed) {
+      console.warn(`Cannot subscribe to disposed store "${this.name}"`);
+      return () => {};
+    }
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  };
+  subscribeWithPatches = (listener: PatchAwareListener): Unsubscribe => {
+    if (this.isDisposed) {
+      console.warn(`Cannot subscribe to disposed store "${this.name}"`);
+      return () => {};
+    }
+    this.patchAwareListeners.add(listener);
+    return () => this.patchAwareListeners.delete(listener);
+  };
+  getLastPatches(): Patches | null {
+    return this._lastPatches;
+  }
+  getLastTransitionMeta(): TimeTravelTransitionMeta | undefined {
+    return this._lastTransitionMeta;
+  }
+  getSnapshot = (): Snapshot<T> => this._snapshot;
+  getValue(): T {
+    const value = this.timeTravel.getState();
+    return this.cloningEnabled ? safeGet(value, true) : value;
+  }
+  getSafeValue(): T {
+    return safeGet(this.timeTravel.getState(), true);
+  }
+  setValue(value: T, options?: StoreSetValueOptions<T>): void {
+    if (this.isDisposed) return;
+    if (TypeGuards.isObject(value)) {
+      if (!TypeGuards.isRefState(value) && TypeGuards.isSuspiciousEventObject(value)) {
+        const eventHandling = options?.eventHandling || 'block';
+        if (eventHandling === 'block') {
+          ErrorHandlers.store(
+            'Event object detected in TimeTravelStore.setValue',
+            { storeName: this.name }
+          );
+          return;
+        }
+        if (eventHandling === 'transform' && options?.eventTransform) {
+          value = options.eventTransform(value);
+        }
+      }
+    }
+    if (!options?.skipComparison) {
+      const currentValue = this.timeTravel.getState();
+      if (this._areEqual(currentValue, value)) {
+        return;
+      }
+    }
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TimeTravelStore:${this.name}] setValue - position before: ${this.timeTravel.getPosition()}`);
+    }
+    this.timeTravel.setState(value);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TimeTravelStore:${this.name}] setValue complete - position after: ${this.timeTravel.getPosition()}`);
+    }
+  }
+  update(updater: (current: T) => T | undefined): void {
+    if (this.isDisposed) return;
+    this.timeTravel.setState((draft): T | undefined => {
+      const result = updater(draft as T);
+      if (result !== undefined) {
+        return result;
+      }
+      return undefined;
+    });
+  }
+  beginBatch(metadata?: TimeTravelTransitionMeta, options: { deferNotification?: boolean } = {}): void {
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    this.timeTravel.beginBatch(metadata);
+    if (options.deferNotification) this.notificationHoldDepth += 1;
+  }
+  endBatch(): void {
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    this.timeTravel.endBatch();
+  }
+  cancelBatch(): void {
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    this.timeTravel.cancelBatch();
+  }
+  resumeNotifications(): void {
+    if (this.notificationHoldDepth > 0) this.notificationHoldDepth -= 1;
+  }
+  flushNotifications(): void {
+    if (this.isDisposed || this.notificationHoldDepth > 0 || !this.notificationDeferred) return;
+    this.notificationDeferred = false;
+    this._scheduleNotification();
+  }
+  batch<R>(callback: () => R, metadata?: TimeTravelTransitionMeta): R {
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    return this.timeTravel.batch(callback, metadata);
+  }
+  getListenerCount(): number {
+    return this.listeners.size + this.patchAwareListeners.size;
+  }
+  clearListeners(): void {
+    this.listeners.clear();
+    this.patchAwareListeners.clear();
+  }
+  dispose(): void {
+    if (this.isDisposed) return;
+    this.isDisposed = true;
+    if (this.animationFrameId !== null) {
+      this.animationFrameId.cancel();
+      this.animationFrameId = null;
+    }
+    this.pendingNotification = false;
+    this.pendingPatches = null;
+    this.notificationHoldDepth = 0;
+    this.notificationDeferred = false;
+    this.unsubscribeTimeTravel();
+    this.unsubscribeTimeTravel = () => {};
+    this.cleanupTasks.forEach((task) => {
+      try {
+        task();
+      } catch {
+        ErrorHandlers.store('Cleanup task error', { storeName: this.name });
+      }
+    });
+    this.cleanupTasks.clear();
+    this.listeners.clear();
+    this.patchAwareListeners.clear();
+  }
+  registerCleanup(task: () => void): () => void {
+    if (this.isDisposed) return () => {};
+    this.cleanupTasks.add(task);
+    return () => this.cleanupTasks.delete(task);
+  }
+  isStoreDisposed(): boolean {
+    return this.isDisposed;
+  }
+  undo(steps = 1, metadata?: TimeTravelTransitionMeta): void {
+    if (this.isDisposed) return;
+    validateHistoryStep(steps, 'Undo steps');
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TimeTravelStore:${this.name}] undo(${steps}) - position before: ${this.timeTravel.getPosition()}, canBack: ${this.timeTravel.canBack()}`);
+    }
+    this.timeTravel.back(steps, metadata ?? { origin: 'undo' });
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TimeTravelStore:${this.name}] undo complete - position after: ${this.timeTravel.getPosition()}`);
+    }
+  }
+  redo(steps = 1, metadata?: TimeTravelTransitionMeta): void {
+    if (this.isDisposed) return;
+    validateHistoryStep(steps, 'Redo steps');
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TimeTravelStore:${this.name}] redo(${steps}) - position before: ${this.timeTravel.getPosition()}, canForward: ${this.timeTravel.canForward()}`);
+    }
+    this.timeTravel.forward(steps, metadata ?? { origin: 'redo' });
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[TimeTravelStore:${this.name}] redo complete - position after: ${this.timeTravel.getPosition()}`);
+    }
+  }
+  canUndo(): boolean {
+    if (this.isDisposed) return false;
+    return this.timeTravel.canBack();
+  }
+  canRedo(): boolean {
+    if (this.isDisposed) return false;
+    return this.timeTravel.canForward();
+  }
+  goTo(position: number, metadata?: TimeTravelTransitionMeta): void {
+    if (this.isDisposed) return;
+    validateHistoryPosition(position);
+    this.timeTravel.go(position, metadata);
+  }
+  reset(): void {
+    if (this.isDisposed) return;
+    this.timeTravel.reset();
+  }
+  getHistory(): readonly T[] {
+    if (this.isDisposed) return [];
+    return this.timeTravel.getHistory();
+  }
+  getPosition(): number {
+    if (this.isDisposed) return 0;
+    return this.timeTravel.getPosition();
+  }
+  getHistoryLength(): number {
+    if (this.isDisposed) return 0;
+    return this.timeTravel.getHistoryLength();
+  }
+  getHistoryEntryId(): number {
+    if (this.isDisposed) return -1;
+    return this.timeTravel.getHistoryEntryId();
+  }
+  hasHistoryEntry(entryId: number): boolean {
+    return !this.isDisposed && this.timeTravel.hasHistoryEntry(entryId);
+  }
+  goToHistoryEntry(entryId: number, metadata?: TimeTravelTransitionMeta): void {
+    if (this.isDisposed) throw new Error(`Store "${this.name}" is disposed`);
+    this.timeTravel.goToHistoryEntry(entryId, metadata);
+  }
+  getTimeTravelControls(): TimeTravelControls<T, false> {
+    const store = this;
+    return {
+      get position() { return store.getPosition(); },
+      getHistory: () => store.getHistory() as readonly (T extends (...args: unknown[]) => infer R ? R : T)[],
+      get patches() { return store.isStoreDisposed() ? { patches: [], inversePatches: [] } : store.timeTravel.getPatches(); },
+      back: (amount = 1) => store.undo(amount),
+      forward: (amount = 1) => store.redo(amount),
+      reset: () => store.reset(),
+      go: (position) => store.goTo(position),
+      canBack: () => store.canUndo(),
+      canForward: () => store.canRedo(),
+    };
+  }
+  notifyPath(path: (string | number)[]): void {
+    if (this.isDisposed) return;
+    const currentValue = this._getValueAtPath(path);
+    const patch = [{
+      op: 'replace',
+      path: path,
+      value: currentValue
+    }] as Patches;
+    this._lastPatches = patch;
+    if (this.notificationHoldDepth > 0) {
+      this.pendingPatches = this.pendingPatches
+        ? this.pendingPatches.concat(patch)
+        : patch;
+      this.notificationDeferred = true;
+      return;
+    }
+    this._scheduleNotification(patch);
+  }
+  notifyPaths(paths: (string | number)[][]): void {
+    if (this.isDisposed) return;
+    if (paths.length === 0) return;
+    const patches = paths.map(path => ({
+      op: 'replace' as const,
+      path: path,
+      value: this._getValueAtPath(path)
+    })) as Patches;
+    this._lastPatches = patches;
+    if (this.notificationHoldDepth > 0) {
+      this.pendingPatches = this.pendingPatches
+        ? this.pendingPatches.concat(patches)
+        : patches;
+      this.notificationDeferred = true;
+      return;
+    }
+    this._scheduleNotification(patches);
+  }
+  private _getValueAtPath(path: (string | number)[]): unknown {
+    let current: unknown = this.timeTravel.getState();
+    for (const segment of path) {
+      if (current === null || current === undefined) {
+        return undefined;
+      }
+      current = (current as Record<string | number, unknown>)[segment];
+    }
+    return current;
+  }
+  setCloningEnabled(enabled: boolean): void {
+    this.cloningEnabled = enabled;
+  }
+  isCloningEnabled(): boolean {
+    return this.cloningEnabled;
+  }
+  setCustomComparator(comparator: (a: T, b: T) => boolean): void {
+    this.customComparator = comparator;
+  }
+  private _createSnapshot(): Snapshot<T> {
+    const value = this.cloningEnabled
+      ? safeGet(this.timeTravel.getState(), true)
+      : this.timeTravel.getState();
+    return {
+      value,
+      name: this.name,
+      lastUpdate: Date.now(),
+    };
+  }
+  private _updateSnapshot(): void {
+    this._snapshot = this._createSnapshot();
+  }
+  private _scheduleNotification(patches?: Patches): void {
+    if (this.isDisposed) return;
+    if (patches) {
+      this.pendingPatches = this.pendingPatches
+        ? this.pendingPatches.concat(patches)
+        : patches;
+    }
+    if (this.notificationMode === 'immediate') {
+      this._executeNotification();
+      return;
+    }
+    if (!this.pendingNotification) {
+      this.pendingNotification = true;
+      this.animationFrameId = scheduleFrame(() => {
+        this.pendingNotification = false;
+        this.animationFrameId = null;
+        this._executeNotification();
+      });
+    }
+  }
+  private _executeNotification(): void {
+    if (this.isDisposed) return;
+    if (this.pendingPatches) {
+      this._lastPatches = this.pendingPatches;
+      this.pendingPatches = null;
+    }
+    const notifiedPatches = this._lastPatches;
+    for (const listener of [...this.listeners]) {
+      if (this.isDisposed) return;
+      if (!this.listeners.has(listener)) continue;
+      try {
+        listener();
+      } catch {
+        try {
+          ErrorHandlers.store('Listener error', { storeName: this.name });
+        } catch {
+        }
+      }
+    }
+    for (const listener of [...this.patchAwareListeners]) {
+      if (this.isDisposed) return;
+      if (!this.patchAwareListeners.has(listener)) continue;
+      try {
+        listener(notifiedPatches);
+      } catch {
+        try {
+          ErrorHandlers.store('Patch-aware listener error', { storeName: this.name });
+        } catch {
+        }
+      }
+    }
+  }
+  private _areEqual(a: T, b: T): boolean {
+    if (this.customComparator) {
+      return this.customComparator(a, b);
+    }
+    return Object.is(a, b);
+  }
+}
+export function createTimeTravelStore<T>(
+  name: string,
+  initialValue: T,
+  options?: TimeTravelStoreOptions<T>
+): TimeTravelStore<T> {
+  return new TimeTravelStore(name, initialValue, options);
+}
+export function isTimeTravelStore<T>(store: IStore<T>): store is TimeTravelStore<T> {
+  return store instanceof TimeTravelStore;
+}
 ```
 
 ### stores/hooks/useComputedStore.ts
 
 ```typescript
-import { useMemo, useRef, useCallback, useEffect, useState } from 'react';
-import { createStore } from '../core/Store';
+import { useCallback, useRef } from 'react';
 import type { Store } from '../core/Store';
+import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
 import { defaultEqualityFn } from './useStoreSelector';
-import { useSafeStoreSubscription, useMultiStoreSubscription } from '../utils/sync-external-store-utils';
 export interface ComputedStoreConfig<R> {
   equalityFn?: (a: R, b: R) => boolean;
   debug?: boolean;
@@ -2428,12 +4400,29 @@ export function useComputedStore<T, R>(
   } = config;
   const computeRef = useRef(compute);
   const cacheRef = useRef<Map<T, R>>(new Map());
-  const lastComputedRef = useRef<R>();
-  const lastInputRef = useRef<T>();
+  const lastComputedRef = useRef<R | undefined>(undefined);
+  const lastInputRef = useRef<T | undefined>(undefined);
+  const lastInputValidRef = useRef(false);
+  const cacheIdentityRef = useRef<{ compute: (value: T) => R; enableCache: boolean }>({
+    compute,
+    enableCache,
+  });
+  if (
+    cacheIdentityRef.current.compute !== compute ||
+    cacheIdentityRef.current.enableCache !== enableCache
+  ) {
+    cacheRef.current.clear();
+    lastInputValidRef.current = false;
+    cacheIdentityRef.current = { compute, enableCache };
+  }
   computeRef.current = compute;
   const getCachedValue = useCallback((input: T): R | undefined => {
     if (!enableCache) return undefined;
-    if (lastInputRef.current === input && lastComputedRef.current !== undefined) {
+    if (
+      lastInputValidRef.current &&
+      lastInputRef.current === input &&
+      lastComputedRef.current !== undefined
+    ) {
       return lastComputedRef.current;
     }
     for (const [cachedInput, cachedOutput] of cacheRef.current) {
@@ -2449,6 +4438,7 @@ export function useComputedStore<T, R>(
   const setCachedValue = useCallback((input: T, output: R) => {
     if (!enableCache) return;
     lastInputRef.current = input;
+    lastInputValidRef.current = true;
     lastComputedRef.current = output;
     cacheRef.current.set(input, output);
     if (cacheRef.current.size > cacheSize) {
@@ -2510,205 +4500,15 @@ export function useComputedStore<T, R>(
   );
   return computedValue as R;
 }
-export function useMultiComputedStore<R>(
-  stores: Store<any>[],
-  compute: (values: any[]) => R,
-  config?: ComputedStoreConfig<R>
-): R {
-  const finalConfig = config || {};
-  const {
-    equalityFn = defaultEqualityFn,
-    debug = false,
-    name = 'multiComputed',
-    onError,
-    enableCache = false,
-    cacheSize = 10,
-    initialValue
-  } = finalConfig;
-  const computeRef = useRef(compute);
-  const cacheRef = useRef<Map<string, R>>(new Map());
-  const lastComputedRef = useRef<R>();
-  const lastInputsRef = useRef<any[]>();
-  computeRef.current = compute;
-  const getCacheKey = useCallback((inputs: any[]): string => {
-    try {
-      return JSON.stringify(inputs);
-    } catch {
-      return inputs.map((v, i) => `${i}:${typeof v}`).join(',');
-    }
-  }, []);
-  const getCachedValue = useCallback((inputs: any[]): R | undefined => {
-    if (!enableCache) return undefined;
-    if (lastInputsRef.current === inputs && lastComputedRef.current !== undefined) {
-      return lastComputedRef.current;
-    }
-    if (lastInputsRef.current &&
-        lastInputsRef.current.length === inputs.length &&
-        lastInputsRef.current.every((v, i) => defaultEqualityFn(v, inputs[i]))) {
-      return lastComputedRef.current;
-    }
-    const key = getCacheKey(inputs);
-    const cached = cacheRef.current.get(key);
-    if (cached !== undefined && debug) {
-      console.debug(`useMultiComputedStore [${name}]: Using cached value`);
-    }
-    return cached;
-  }, [enableCache, debug, name, getCacheKey]);
-  const setCachedValue = useCallback((inputs: any[], output: R) => {
-    if (!enableCache) return;
-    lastInputsRef.current = inputs;
-    lastComputedRef.current = output;
-    const key = getCacheKey(inputs);
-    cacheRef.current.set(key, output);
-    if (cacheRef.current.size > cacheSize) {
-      const firstKey = cacheRef.current.keys().next().value;
-      if (firstKey !== undefined) {
-        cacheRef.current.delete(firstKey);
-      }
-    }
-    if (debug) {
-      console.debug(`useMultiComputedStore [${name}]: Cache updated`, {
-        cacheSize: cacheRef.current.size,
-        inputs,
-        output
-      });
-    }
-  }, [enableCache, cacheSize, debug, name, getCacheKey]);
-  const computeSelector = useCallback((values: any[]): R => {
-    try {
-      const cached = getCachedValue(values);
-      if (cached !== undefined) {
-        return cached;
-      }
-      const startTime = debug ? performance.now() : 0;
-      const result = computeRef.current(values);
-      if (debug) {
-        const duration = performance.now() - startTime;
-        console.debug(`useMultiComputedStore [${name}]: Computed in ${duration.toFixed(2)}ms`, {
-          inputs: values,
-          result
-        });
-      }
-      setCachedValue(values, result);
-      lastComputedRef.current = result;
-      return result;
-    } catch (error) {
-      if (onError) {
-        onError(error as Error);
-        const fallbackValue = lastComputedRef.current !== undefined
-          ? lastComputedRef.current
-          : initialValue as R;
-        return fallbackValue;
-      }
-      if (debug) {
-        console.error(`useMultiComputedStore [${name}]: Error in computation:`, error);
-      }
-      throw error;
-    }
-  }, [getCachedValue, setCachedValue, debug, name, onError, initialValue]);
-  const computedValue = useMultiStoreSubscription(
-    stores as any,
-    computeSelector,
-    equalityFn
-  );
-  return computedValue;
-}
-export function useComputedStoreInstance<R>(
-  dependencies: Store<any>[],
-  compute: (values: any[]) => R,
-  config?: ComputedStoreConfig<R>
-): Store<R> {
-  const finalConfig = config || {};
-  const computedValue = useMultiComputedStore(dependencies, compute, config);
-  const computedStore = useMemo(() => {
-    const storeName = finalConfig.name || `computed-${Date.now()}`;
-    const store = createStore(storeName, computedValue);
-    if (finalConfig.debug) {
-      console.log(`useComputedStoreInstance: Created store [${storeName}]`);
-    }
-    return store;
-  }, [finalConfig.name, finalConfig.debug, computedValue]);
-  useEffect(() => {
-    computedStore.setValue(computedValue);
-  }, [computedValue, computedStore]);
-  return computedStore;
-}
-export function useAsyncComputedStore<R>(
-  dependencies: Store<any>[],
-  compute: (values: any[]) => Promise<R>,
-  config: ComputedStoreConfig<R> & {
-    loadingValue?: R;
-    errorValue?: R;
-  } = {}
-): {
-  value: R;
-  loading: boolean;
-  error: Error | null;
-  reload: () => void;
-} {
-  const {
-    initialValue,
-    loadingValue,
-    errorValue,
-    name = 'asyncComputed',
-    debug = false,
-    onError
-  } = config;
-  const currentValues = useMemo(() => {
-    return dependencies.map(store => store.getValue());
-  }, [dependencies]);
-  const [state, setState] = useState<{
-    value: R;
-    loading: boolean;
-    error: Error | null;
-  }>(() => ({
-    value: initialValue || loadingValue as R,
-    loading: false,
-    error: null
-  }));
-  const computeRef = useRef(compute);
-  computeRef.current = compute;
-  const reload = useCallback(async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
-    try {
-      const result = await computeRef.current(currentValues);
-      setState({ value: result, loading: false, error: null });
-      if (debug) {
-        console.debug(`useAsyncComputedStore [${name}]: Async computation completed`, result);
-      }
-    } catch (error) {
-      const err = error as Error;
-      setState({
-        value: errorValue !== undefined ? errorValue : state.value,
-        loading: false,
-        error: err
-      });
-      if (onError) {
-        onError(err);
-      } else if (debug) {
-        console.error(`useAsyncComputedStore [${name}]: Async computation failed:`, err);
-      }
-    }
-  }, [currentValues, errorValue, state.value, name, debug, onError]);
-  useEffect(() => {
-    reload();
-  }, [reload]);
-  return {
-    value: state.value,
-    loading: state.loading,
-    error: state.error,
-    reload
-  };
-}
 ```
 
 ### stores/hooks/useLocalStore.ts
 
 ```typescript
-import { useRef } from 'react';
-import { Store, createStore } from '../core/Store';
-import { useStoreSelector } from '../utils/store-selector';
+import { useInsertionEffect, useRef } from 'react';
+import { createStore, Store } from '../core/Store';
 import type { Snapshot } from '../core/types';
+import { useStoreValue } from './useStoreValue';
 let localStoreCounter = 0;
 export function useLocalStore<T>(
   initialValue: T,
@@ -2719,11 +4519,177 @@ export function useLocalStore<T>(
     const storeName = name || `localStore_${++localStoreCounter}`;
     storeRef.current = createStore(storeName, initialValue);
   }
-  const snapshot = useStoreSelector(storeRef.current);
+  const store = storeRef.current;
+  useInsertionEffect(() => {
+    return () => {
+      store.dispose();
+      if (storeRef.current === store) {
+        storeRef.current = null;
+      }
+    };
+  }, [store]);
+  const value = useStoreValue(store);
   return {
-    ...snapshot,
-    store: storeRef.current
+    value,
+    name: store.name,
+    lastUpdate: store.getSnapshot().lastUpdate,
+    store
   };
+}
+```
+
+### stores/hooks/useStorePath.ts
+
+```typescript
+import { useCallback, useRef, useSyncExternalStore } from 'react';
+import type { Snapshot, Unsubscribe } from '../core/types';
+import { patchesAffectPath, type StorePathPatch } from '../utils/patch-affects-path';
+import { createPathSignature, createPathsSignature } from '../utils/path-signature';
+import { defaultEqualityFn } from './useStoreSelector';
+export type { StorePathPatch } from '../utils/patch-affects-path';
+export interface PatchAwareStore<T> {
+  getValue(): T;
+  getSnapshot?: () => Snapshot<T>;
+  subscribe(listener: () => void): Unsubscribe;
+  subscribeWithPatches(listener: (patches: readonly StorePathPatch[] | null) => void): Unsubscribe;
+}
+export type StorePath = (string | number)[];
+export interface UseStorePathOptions<R> {
+  equalityFn?: (a: R, b: R) => boolean;
+}
+function getValueAtPath<T, R>(obj: T, path: Readonly<StorePath>): R {
+  let current: unknown = obj;
+  for (const key of path) {
+    if (current === null || current === undefined) {
+      return undefined as R;
+    }
+    current = (current as Record<string | number, unknown>)[key];
+  }
+  return current as R;
+}
+function readStoreValue<T>(store: PatchAwareStore<T>): T {
+  return store.getSnapshot ? store.getSnapshot().value : store.getValue();
+}
+export function useStorePath<T, R = unknown>(
+  store: PatchAwareStore<T>,
+  path: Readonly<StorePath>,
+  options: UseStorePathOptions<R> = {}
+): R {
+  const { equalityFn } = options;
+  const pathSignature = createPathSignature(path);
+  const stablePathRef = useRef<{ signature: string; path: StorePath }>({
+    signature: pathSignature,
+    path: [...path],
+  });
+  if (stablePathRef.current.signature !== pathSignature) {
+    stablePathRef.current = { signature: pathSignature, path: [...path] };
+  }
+  const stablePath = stablePathRef.current.path;
+  const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string; store: PatchAwareStore<T> }>({
+    value: undefined as R,
+    initialized: false,
+    pathSignature: '',
+    store,
+  });
+  if (cacheRef.current.pathSignature !== pathSignature || cacheRef.current.store !== store) {
+    cacheRef.current = { value: undefined as R, initialized: false, pathSignature, store };
+  }
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      return store.subscribeWithPatches((patches) => {
+        if (patchesAffectPath(patches, stablePath)) {
+          callback();
+        }
+      });
+    },
+    [store, stablePath]
+  );
+  const getSnapshot = useCallback((): R => {
+    const storeValue = readStoreValue(store);
+    const currentValue = getValueAtPath<T, R>(storeValue, stablePath);
+    if (!cacheRef.current.initialized) {
+      cacheRef.current = { value: currentValue, initialized: true, pathSignature, store };
+      return currentValue;
+    }
+    const prevValue = cacheRef.current.value;
+    if (equalityFn) {
+      if (equalityFn(prevValue, currentValue)) {
+        return prevValue;
+      }
+    } else {
+      if (Object.is(prevValue, currentValue)) {
+        return prevValue;
+      }
+    }
+    cacheRef.current.value = currentValue;
+    return currentValue;
+  }, [store, stablePath, pathSignature, equalityFn]);
+  const getServerSnapshot = useCallback((): R => {
+    return getValueAtPath<T, R>(readStoreValue(store), stablePath);
+  }, [store, stablePath]);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+export interface UseStoreSelectorWithPathsOptions<R> {
+  dependsOn?: readonly Readonly<StorePath>[];
+  equalityFn?: (a: R, b: R) => boolean;
+}
+export function useStoreSelectorWithPaths<T, R>(
+  store: PatchAwareStore<T>,
+  selector: (value: T) => R,
+  options: UseStoreSelectorWithPathsOptions<R> = {}
+): R {
+  const { dependsOn, equalityFn = defaultEqualityFn } = options;
+  const depsKey = createPathsSignature(dependsOn);
+  const stablePathsRef = useRef<{
+    signature: string | null;
+    paths: StorePath[] | undefined;
+  }>({
+    signature: depsKey,
+    paths: dependsOn?.map((path) => [...path]),
+  });
+  if (stablePathsRef.current.signature !== depsKey) {
+    stablePathsRef.current = {
+      signature: depsKey,
+      paths: dependsOn?.map((path) => [...path]),
+    };
+  }
+  const stablePaths = stablePathsRef.current.paths;
+  const cacheRef = useRef<{
+    value: R;
+    depsKey: string | null;
+    store: PatchAwareStore<T>;
+  } | undefined>(undefined);
+  if (cacheRef.current && (cacheRef.current.depsKey !== depsKey || cacheRef.current.store !== store)) {
+    cacheRef.current = undefined;
+  }
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      if (!stablePaths) {
+        return store.subscribe(callback);
+      }
+      return store.subscribeWithPatches((patches) => {
+        const affected = stablePaths.some(path => patchesAffectPath(patches, path));
+        if (affected) {
+          callback();
+        }
+      });
+    },
+    [store, stablePaths]
+  );
+  const getSnapshot = useCallback((): R => {
+    const storeValue = readStoreValue(store);
+    const currentValue = selector(storeValue);
+    const cached = cacheRef.current;
+    if (cached?.store === store && cached.depsKey === depsKey) {
+      const prevValue = cached.value;
+      if (equalityFn(prevValue, currentValue)) {
+        return prevValue;
+      }
+    }
+    cacheRef.current = { value: currentValue, depsKey, store };
+    return currentValue;
+  }, [store, selector, equalityFn, depsKey]);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 ```
 
@@ -2733,40 +4699,28 @@ export function useLocalStore<T>(
 import { useSyncExternalStore, useCallback, useRef } from 'react';
 import type { Store } from '../core/Store';
 import { equalityFunctions } from '../utils/sync-external-store-utils';
-export const defaultEqualityFn = equalityFunctions.smart;
+export const defaultEqualityFn = equalityFunctions.smart; 
 export const shallowEqual = equalityFunctions.shallow;
 export const deepEqual = equalityFunctions.deep;
-export const smartEqual = equalityFunctions.smart;
 export function useStoreSelector<T, R>(
   store: Store<T>,
   selector: (value: T) => R,
   equalityFn: (a: R, b: R) => boolean = defaultEqualityFn
 ): R {
-  const stableSelector = useCallback(selector, [selector]);
-  const stableEqualityFn = useCallback(equalityFn, [equalityFn]);
-  const selectorWarningShownRef = useRef(false);
-  if (process.env.NODE_ENV === 'development') {
-    if (selector !== stableSelector && !selectorWarningShownRef.current) {
-      console.warn(
-        'useStoreSelector: selector function changed. ' +
-        'Consider wrapping it with useCallback to avoid unnecessary recalculations.',
-        'Store:', store.name
-      );
-      selectorWarningShownRef.current = true;
-    }
-  }
-  const previousValueRef = useRef<R>();
+  "use memo";
+  const previousValueRef = useRef<{ store: Store<T>; value: R } | undefined>(undefined);
   const subscribe = useCallback((callback: () => void) => {
     return store.subscribe(callback);
   }, [store]);
   const getSnapshot = useCallback((): R => {
     try {
-      const storeValue = store.getValue();
-      const selectedValue = stableSelector(storeValue);
-      if (previousValueRef.current !== undefined && stableEqualityFn(previousValueRef.current, selectedValue)) {
-        return previousValueRef.current;
+      const storeValue = store.getSnapshot().value;
+      const selectedValue = selector(storeValue);
+      const previous = previousValueRef.current;
+      if (previous?.store === store && equalityFn(previous.value, selectedValue)) {
+        return previous.value;
       }
-      previousValueRef.current = selectedValue;
+      previousValueRef.current = { store, value: selectedValue };
       return selectedValue;
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
@@ -2774,7 +4728,30 @@ export function useStoreSelector<T, R>(
       }
       throw error;
     }
-  }, [store, stableSelector, stableEqualityFn]);
+  }, [store, selector, equalityFn]);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
+```
+
+### stores/hooks/useStoreTransactionInspector.ts
+
+```typescript
+import { useCallback, useSyncExternalStore } from 'react';
+import type {
+  StoreTransactionCoordinator,
+  StoreTransactionInspectorSnapshot,
+} from '../core/StoreTransactionCoordinator';
+export function useStoreTransactionInspector(
+  coordinator: StoreTransactionCoordinator,
+): StoreTransactionInspectorSnapshot {
+  const subscribe = useCallback(
+    (callback: () => void) => coordinator.subscribe(() => callback()),
+    [coordinator],
+  );
+  const getSnapshot = useCallback(
+    () => coordinator.getInspectorSnapshot(),
+    [coordinator],
+  );
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 ```
@@ -2783,18 +4760,9 @@ export function useStoreSelector<T, R>(
 
 ```typescript
 import { useMemo } from 'react';
-import { shallowEqual, defaultEqualityFn } from './useStoreSelector';
-import type { Store } from '../core/Store';
+import type { IStore } from '../core/types';
 import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
-export function assertStoreValue<T>(value: T | undefined, storeName: string): T {
-  if (value === undefined) {
-    throw new Error(
-      `Store "${storeName}" returned undefined value. ` +
-      'This should not happen with properly initialized stores.'
-    );
-  }
-  return value;
-}
+import { defaultEqualityFn, shallowEqual } from './useStoreSelector';
 export interface StoreValueOptions<R> {
   equalityFn?: (a: R, b: R) => boolean;
   condition?: () => boolean;
@@ -2804,29 +4772,31 @@ export interface StoreValueOptions<R> {
   debug?: boolean;
   name?: string;
 }
-export function useStoreValue<T>(
-  store: Store<T>,
-  options?: StoreValueOptions<T>
-): T;
-export function useStoreValue<T>(
-  store: Store<T> | undefined | null,
-  options?: StoreValueOptions<T>
-): T | undefined;
-export function useStoreValue<T, R>(
-  store: Store<T>,
-  selector: (value: T) => R,
+type StoreValueOf<S extends IStore<any>> = ReturnType<S['getValue']>;
+export function useStoreValue<S extends IStore<any>>(
+  store: S,
+  options?: StoreValueOptions<StoreValueOf<S>>
+): StoreValueOf<S>;
+export function useStoreValue<S extends IStore<any>>(
+  store: S | undefined | null,
+  options?: StoreValueOptions<StoreValueOf<S>>
+): StoreValueOf<S> | undefined;
+export function useStoreValue<S extends IStore<any>, R>(
+  store: S,
+  selector: (value: StoreValueOf<S>) => R,
   options?: StoreValueOptions<R>
 ): R;
-export function useStoreValue<T, R>(
-  store: Store<T> | undefined | null,
-  selector: (value: T) => R,
+export function useStoreValue<S extends IStore<any>, R>(
+  store: S | undefined | null,
+  selector: (value: StoreValueOf<S>) => R,
   options?: StoreValueOptions<R>
 ): R | undefined;
 export function useStoreValue<T, R>(
-  store: Store<T> | undefined | null,
+  store: IStore<T> | undefined | null,
   selectorOrOptions?: ((value: T) => R) | StoreValueOptions<T>,
   options?: StoreValueOptions<R>
 ): T | R | undefined {
+  "use memo";
   const selector = typeof selectorOrOptions === 'function' ? selectorOrOptions : undefined;
   const finalOptions = (typeof selectorOrOptions === 'function' ? options : selectorOrOptions) || {};
   const {
@@ -2855,9 +4825,10 @@ export function useStoreValue<T, R>(
   return value;
 }
 export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
-  store: Store<T> | undefined | null,
+  store: IStore<T> | undefined | null,
   selectors: S
 ): { [K in keyof S]: ReturnType<S[K]> } | undefined {
+  "use memo";
   const selectorFunction = useMemo(() => {
     return (value: T) => {
       const result = {} as { [K in keyof S]: ReturnType<S[K]> };
@@ -2879,46 +4850,241 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
 }
 ```
 
-### stores/index.ts
+### stores/hooks/useTimeTravelControls.ts
 
 ```typescript
-export * from './patterns';
-export * from './core';
-export * from './hooks';
-export * from './utils';
-export { createStoreContext } from './patterns';
-export type {
-  StoreConfig,
-  StoreSchema,
-  InitialStores,
-  StoreDefinitions,
-  InferStoreTypes,
-  InferInitialStores,
-  StoreValues,
-  WithProviderConfig
-} from './patterns';
-export type {
-  IStore,
-  IStoreRegistry,
-  Snapshot
-} from './core';
-export type {
-  ComparisonOptions,
-  ComparisonStrategy
-} from './utils';
+import { useSyncExternalStore, useCallback, useMemo, useRef } from 'react';
+import { TimeTravelStore } from '../core/TimeTravelStore';
+interface TimeTravelState {
+  canUndo: boolean;
+  canRedo: boolean;
+  position: number;
+  historyLength: number;
+}
+export interface TimeTravelControlsState extends TimeTravelState {
+  undo: (steps?: number) => void;
+  redo: (steps?: number) => void;
+  goTo: (position: number) => void;
+  reset: () => void;
+}
+const SERVER_SNAPSHOT: TimeTravelState = {
+  canUndo: false,
+  canRedo: false,
+  position: 0,
+  historyLength: 1,
+};
+export function useTimeTravelControls<T>(
+  store: TimeTravelStore<T>
+): TimeTravelControlsState {
+  const cacheRef = useRef<TimeTravelState | null>(null);
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      return store.subscribe(callback);
+    },
+    [store]
+  );
+  const getSnapshot = useCallback((): TimeTravelState => {
+    const canUndo = store.canUndo();
+    const canRedo = store.canRedo();
+    const position = store.getPosition();
+    const historyLength = store.getHistoryLength();
+    const cached = cacheRef.current;
+    if (
+      cached &&
+      cached.canUndo === canUndo &&
+      cached.canRedo === canRedo &&
+      cached.position === position &&
+      cached.historyLength === historyLength
+    ) {
+      return cached;
+    }
+    const newState: TimeTravelState = { canUndo, canRedo, position, historyLength };
+    cacheRef.current = newState;
+    return newState;
+  }, [store]);
+  const getServerSnapshot = useCallback(() => SERVER_SNAPSHOT, []);
+  const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const controls = useMemo(
+    () => ({
+      undo: (steps?: number) => store.undo(steps),
+      redo: (steps?: number) => store.redo(steps),
+      goTo: (position: number) => store.goTo(position),
+      reset: () => store.reset(),
+    }),
+    [store]
+  );
+  return {
+    ...state,
+    ...controls,
+  };
+}
+```
+
+### stores/hooks/useTimeTravelPath.ts
+
+```typescript
+import { useCallback, useRef, useSyncExternalStore } from 'react';
+import { TimeTravelStore } from '../core/TimeTravelStore';
+import { patchesAffectPath } from '../utils/patch-affects-path';
+import { createPathSignature, createPathsSignature } from '../utils/path-signature';
+import { defaultEqualityFn } from './useStoreSelector';
+export type StorePath = (string | number)[];
+export interface UseTimeTravelPathOptions<R> {
+  equalityFn?: (a: R, b: R) => boolean;
+}
+function getValueAtPath<T, R>(obj: T, path: StorePath): R {
+  let current: unknown = obj;
+  for (const key of path) {
+    if (current === null || current === undefined) {
+      return undefined as R;
+    }
+    current = (current as Record<string | number, unknown>)[key];
+  }
+  return current as R;
+}
+export function useTimeTravelPath<T, R = unknown>(
+  store: TimeTravelStore<T>,
+  path: StorePath,
+  options: UseTimeTravelPathOptions<R> = {}
+): R {
+  const { equalityFn } = options;
+  const pathSignature = createPathSignature(path);
+  const stablePathRef = useRef<{ signature: string; path: StorePath }>({
+    signature: pathSignature,
+    path: [...path],
+  });
+  if (stablePathRef.current.signature !== pathSignature) {
+    stablePathRef.current = { signature: pathSignature, path: [...path] };
+  }
+  const stablePath = stablePathRef.current.path;
+  const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string; store: TimeTravelStore<T> }>({
+    value: undefined as R,
+    initialized: false,
+    pathSignature,
+    store,
+  });
+  if (cacheRef.current.pathSignature !== pathSignature || cacheRef.current.store !== store) {
+    cacheRef.current = { value: undefined as R, initialized: false, pathSignature, store };
+  }
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      return store.subscribeWithPatches((patches) => {
+        if (patchesAffectPath(patches, stablePath)) {
+          callback();
+        }
+      });
+    },
+    [store, stablePath]
+  );
+  const getSnapshot = useCallback((): R => {
+    const storeValue = store.getSnapshot().value;
+    const currentValue = getValueAtPath<T, R>(storeValue, stablePath);
+    if (!cacheRef.current.initialized) {
+      cacheRef.current = { value: currentValue, initialized: true, pathSignature, store };
+      return currentValue;
+    }
+    const prevValue = cacheRef.current.value;
+    if (equalityFn) {
+      if (equalityFn(prevValue, currentValue)) {
+        return prevValue;
+      }
+    } else {
+      if (Object.is(prevValue, currentValue)) {
+        return prevValue;
+      }
+    }
+    cacheRef.current.value = currentValue;
+    return currentValue;
+  }, [store, stablePath, pathSignature, equalityFn]);
+  const getServerSnapshot = useCallback((): R => {
+    return getValueAtPath<T, R>(store.getSnapshot().value, stablePath);
+  }, [store, stablePath]);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+export interface UseTimeTravelSelectorOptions<R> {
+  dependsOn?: StorePath[];
+  equalityFn?: (a: R, b: R) => boolean;
+}
+export function useTimeTravelSelector<T, R>(
+  store: TimeTravelStore<T>,
+  selector: (value: T) => R,
+  options: UseTimeTravelSelectorOptions<R> = {}
+): R {
+  const { dependsOn, equalityFn = defaultEqualityFn } = options;
+  const cacheRef = useRef<{ store: TimeTravelStore<T>; value: R } | undefined>(undefined);
+  const depsKey = createPathsSignature(dependsOn);
+  const stablePathsRef = useRef<{
+    signature: string | null;
+    paths: StorePath[] | undefined;
+  }>({
+    signature: depsKey,
+    paths: dependsOn?.map((path) => [...path]),
+  });
+  if (stablePathsRef.current.signature !== depsKey) {
+    stablePathsRef.current = {
+      signature: depsKey,
+      paths: dependsOn?.map((path) => [...path]),
+    };
+  }
+  const stablePaths = stablePathsRef.current.paths;
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      if (!stablePaths) {
+        return store.subscribe(callback);
+      }
+      return store.subscribeWithPatches((patches) => {
+        const affected = stablePaths.some(path => patchesAffectPath(patches, path));
+        if (affected) {
+          callback();
+        }
+      });
+    },
+    [store, stablePaths]
+  );
+  const getSnapshot = useCallback((): R => {
+    const storeValue = store.getSnapshot().value;
+    const currentValue = selector(storeValue);
+    if (cacheRef.current?.store === store) {
+      const prevValue = cacheRef.current.value;
+      if (equalityFn(prevValue, currentValue)) {
+        return prevValue;
+      }
+    }
+    cacheRef.current = { store, value: currentValue };
+    return currentValue;
+  }, [store, selector, equalityFn]);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
 ```
 
 ### stores/patterns/declarative-store-pattern-v2.tsx
 
 ```typescript
-import React, { createContext, useContext, ReactNode, useRef, useMemo } from 'react';
-import { StoreRegistry } from '../core/StoreRegistry';
-import { createStore } from '../core/Store';
+import React, { createContext, ReactNode, useContext, useInsertionEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import { StoreErrorBoundary } from '../components/StoreErrorBoundary';
 import type { Store } from '../core/Store';
+import { createStore } from '../core/Store';
+import { StoreRegistry } from '../core/StoreRegistry';
 import type { ComparisonOptions } from '../utils/comparison';
+import {
+  type ExplicitStoreValue,
+  isExplicitStoreValue,
+  isStoreConfigShape,
+} from './store-definition';
+const STORE_CONFIG_KEYS = new Set<PropertyKey>([
+  'initialValue',
+  'strategy',
+  'compareStrategy',
+  'description',
+  'debug',
+  'tags',
+  'version',
+  'comparisonOptions',
+]);
 export interface StoreConfig<T = any> {
   initialValue: T;
   strategy?: 'reference' | 'shallow' | 'deep';
+  compareStrategy?: 'reference' | 'shallow' | 'deep';
   description?: string;
   debug?: boolean;
   tags?: string[];
@@ -2926,27 +5092,41 @@ export interface StoreConfig<T = any> {
   comparisonOptions?: Partial<ComparisonOptions<T>>;
 }
 export type InitialStores<T extends Record<string, any>> = {
-  [K in keyof T]: StoreConfig<T[K]> | T[K];
+  [K in keyof T]: StoreConfig<T[K]> | ExplicitStoreValue<T[K]> | T[K];
 };
-export type StoreDefinitions = Record<string, StoreConfig<any> | any>;
-export type InferStoreTypes<T extends StoreDefinitions> = {
-  [K in keyof T]: T[K] extends StoreConfig<infer V>
+export type StoreDefinitions = Record<string, StoreConfig<any> | ExplicitStoreValue<any> | any>;
+type InferStoreDefinitionValue<T> =
+  T extends ExplicitStoreValue<infer V>
     ? V
-    : T[K] extends (...args: any[]) => any
-      ? never
-      : T[K] extends object
-        ? T[K] extends { length: number }
-          ? T[K]
-          : T[K] extends Date
-            ? T[K]
-            : T[K]
-        : T[K];
+    : T extends { initialValue: infer V }
+      ? Exclude<keyof T, keyof StoreConfig<any>> extends never
+        ? V
+        : T
+      : T;
+export type InferStoreTypes<T extends StoreDefinitions> = {
+  readonly [K in keyof T]: InferStoreDefinitionValue<T[K]> extends (...args: unknown[]) => unknown
+      ? never  
+      : InferStoreDefinitionValue<T[K]> extends readonly unknown[]
+        ? InferStoreDefinitionValue<T[K]>  
+        : InferStoreDefinitionValue<T[K]> extends unknown[]
+          ? InferStoreDefinitionValue<T[K]>  
+          : InferStoreDefinitionValue<T[K]> extends Date | RegExp | Error
+            ? InferStoreDefinitionValue<T[K]>  
+            : InferStoreDefinitionValue<T[K]> extends Record<string, unknown>
+              ? InferStoreDefinitionValue<T[K]>  
+              : InferStoreDefinitionValue<T[K]>;  
 };
 export type StoreSchema<T extends Record<string, any>> = InitialStores<T>;
 export class StoreManager<T extends Record<string, any>> {
   public readonly registry: StoreRegistry;
   public readonly initialStores: InitialStores<T>;
   public readonly stores = new Map<keyof T, Store<any>>();
+  private lifecycle: 'active' | 'disposed' = 'active';
+  private version = 0;
+  private infoVersion = 0;
+  private readonly listeners = new Set<() => void>();
+  private readonly infoListeners = new Set<() => void>();
+  private infoNotificationScheduled = false;
   constructor(
     public readonly name: string,
     initialStores: InitialStores<T>
@@ -2955,6 +5135,9 @@ export class StoreManager<T extends Record<string, any>> {
     this.initialStores = initialStores;
   }
   getStore<K extends keyof T>(storeName: K): Store<T[K]> {
+    if (this.lifecycle === 'disposed') {
+      throw new Error(`StoreManager "${this.name}" is disposed`);
+    }
     const existing = this.stores.get(storeName);
     if (existing) {
       return existing;
@@ -2967,10 +5150,13 @@ export class StoreManager<T extends Record<string, any>> {
     let tags: string[] = ['declarative'];
     let version: string | undefined;
     let comparisonOptions: StoreConfig<T[K]>['comparisonOptions'];
-    if (storeConfig && typeof storeConfig === 'object' && 'initialValue' in storeConfig) {
+    if (isExplicitStoreValue(storeConfig)) {
+      initialValue = storeConfig.value as T[K];
+      tags = ['declarative', strategy];
+    } else if (isStoreConfigShape(storeConfig, STORE_CONFIG_KEYS)) {
       const config = storeConfig as StoreConfig<T[K]>;
       initialValue = config.initialValue;
-      strategy = config.strategy || 'reference';
+      strategy = config.strategy ?? config.compareStrategy ?? 'reference';
       description = config.description;
       debug = config.debug || false;
       tags = config.tags ? ['declarative', ...config.tags] : ['declarative', strategy];
@@ -3005,11 +5191,53 @@ export class StoreManager<T extends Record<string, any>> {
       });
     }
     this.stores.set(storeName, store);
+    this.infoVersion += 1;
+    this.scheduleInfoNotification();
     return store;
   }
   clear(): void {
+    if (this.lifecycle === 'disposed') {
+      throw new Error(`StoreManager "${this.name}" is disposed`);
+    }
+    this.stores.forEach(store => store.dispose());
     this.registry.clear();
     this.stores.clear();
+    this.version += 1;
+    this.infoVersion += 1;
+    this.listeners.forEach(listener => listener());
+    this.scheduleInfoNotification();
+  }
+  dispose(): void {
+    if (this.lifecycle === 'disposed') return;
+    this.lifecycle = 'disposed';
+    this.stores.forEach(store => store.dispose());
+    this.stores.clear();
+    this.listeners.clear();
+    this.infoListeners.clear();
+    this.registry.dispose();
+  }
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+  getVersion(): number {
+    return this.version;
+  }
+  subscribeInfo(listener: () => void): () => void {
+    this.infoListeners.add(listener);
+    return () => this.infoListeners.delete(listener);
+  }
+  getInfoVersion(): number {
+    return this.infoVersion;
+  }
+  private scheduleInfoNotification(): void {
+    if (this.infoNotificationScheduled) return;
+    this.infoNotificationScheduled = true;
+    queueMicrotask(() => {
+      this.infoNotificationScheduled = false;
+      if (this.lifecycle === 'disposed') return;
+      this.infoListeners.forEach(listener => listener());
+    });
   }
   getInfo() {
     return {
@@ -3022,29 +5250,53 @@ export class StoreManager<T extends Record<string, any>> {
 interface StoreContextValue<T extends Record<string, any>> {
   managerRef: React.RefObject<StoreManager<T> | null>;
 }
-export function createStoreContext<T extends Record<string, any>>(
-  contextName: string,
-  initialStores: InitialStores<T>
-): ReturnType<typeof createStoreContextImpl<T>>;
+export interface StoreContextReturn<T extends Record<string, any>> {
+  readonly Provider: (props: {
+    children: ReactNode;
+    registryId?: string;
+  }) => React.JSX.Element;
+  readonly useStore: <K extends keyof T>(storeName: K) => Store<T[K]>;
+  readonly useStoreManager: () => StoreManager<T>;
+  readonly useStoreInfo: () => {
+    name: string;
+    storeCount: number;
+    availableStores: string[];
+  };
+  readonly useStoreClear: () => () => void;
+  readonly withProvider: <P extends {}>(
+    Component: React.ComponentType<P>,
+    config?: WithProviderConfig
+  ) => React.FC<P>;
+  readonly contextName: string;
+  readonly initialStores: InitialStores<T>;
+}
 export function createStoreContext<T extends StoreDefinitions>(
   contextName: string,
   storeDefinitions: T
-): ReturnType<typeof createStoreContextImpl<InferStoreTypes<T>>>;
+): StoreContextReturn<InferStoreTypes<T>>;
+export function createStoreContext<T extends Record<string, any>>(
+  contextName: string,
+  initialStores: InitialStores<T>
+): StoreContextReturn<T>;
 export function createStoreContext(
   contextName: string,
-  initialStores: any
-): any {
-  return createStoreContextImpl(contextName, initialStores);
+  initialStores: Record<string, any>
+): StoreContextReturn<any>;
+export function createStoreContext<T extends Record<string, any> | StoreDefinitions>(
+  contextName: string,
+  initialStores: T extends StoreDefinitions ? T : InitialStores<T>
+): StoreContextReturn<any> {
+  return createStoreContextImpl(contextName, initialStores as any) as any;
 }
 function createStoreContextImpl<T extends Record<string, any>>(
   contextName: string,
   initialStores: InitialStores<T>
-) {
+): StoreContextReturn<T> {
   const StoreContext = createContext<StoreContextValue<T> | null>(null);
-  function Provider({
-    children,
-    registryId
-  }: {
+  function Provider({ 
+    children, 
+    registryId 
+  }: { 
     children: ReactNode;
     registryId?: string;
   }) {
@@ -3053,6 +5305,13 @@ function createStoreContextImpl<T extends Record<string, any>>(
     if (!managerRef.current) {
       managerRef.current = new StoreManager(effectiveRegistryId, initialStores);
     }
+    useInsertionEffect(() => {
+      const manager = managerRef.current;
+      return () => {
+        manager?.dispose();
+        if (managerRef.current === manager) managerRef.current = null;
+      };
+    }, []);
     return (
       <StoreContext.Provider value={{ managerRef }}>
         {children}
@@ -3061,19 +5320,21 @@ function createStoreContextImpl<T extends Record<string, any>>(
   }
   function useStore<K extends keyof T>(storeName: K): Store<T[K]> {
     const context = useContext(StoreContext);
-    if (!context || !context.managerRef.current) {
+    if (!context?.managerRef.current) {
       throw new Error(
         `useStore must be used within ${contextName}.Provider. ` +
         `Wrap your component with <${contextName}.Provider>`
       );
     }
-    return useMemo(() => {
-      return context.managerRef.current!.getStore(storeName);
-    }, [context.managerRef, storeName]);
+    const manager = context.managerRef.current;
+    const subscribe = useMemo(() => manager.subscribe.bind(manager), [manager]);
+    const getVersion = useMemo(() => manager.getVersion.bind(manager), [manager]);
+    useSyncExternalStore(subscribe, getVersion, getVersion);
+    return manager.getStore(storeName);
   }
   function useStoreManager(): StoreManager<T> {
     const context = useContext(StoreContext);
-    if (!context || !context.managerRef.current) {
+    if (!context?.managerRef.current) {
       throw new Error(
         `useStoreManager must be used within ${contextName}.Provider`
       );
@@ -3082,6 +5343,11 @@ function createStoreContextImpl<T extends Record<string, any>>(
   }
   function useStoreInfo() {
     const manager = useStoreManager();
+    useSyncExternalStore(
+      listener => manager.subscribeInfo(listener),
+      () => manager.getInfoVersion(),
+      () => manager.getInfoVersion(),
+    );
     return manager.getInfo();
   }
   function useStoreClear() {
@@ -3098,20 +5364,31 @@ function createStoreContextImpl<T extends Record<string, any>>(
       if (!managerRef.current) {
         managerRef.current = new StoreManager(registryId, initialStores);
       }
-      return (
+      useInsertionEffect(() => {
+        const manager = managerRef.current;
+        return () => {
+          if (config?.autoCleanup === false) return;
+          manager?.dispose();
+          if (managerRef.current === manager) managerRef.current = null;
+        };
+      }, []);
+      const provider = (
         <StoreContext.Provider value={{ managerRef }}>
           <Component {...props} />
         </StoreContext.Provider>
       );
+      return config?.errorBoundary ? (
+        <StoreErrorBoundary>{provider}</StoreErrorBoundary>
+      ) : provider;
     };
-    WithStoreProvider.displayName =
+    WithStoreProvider.displayName = 
       config?.displayName || `with${contextName}Provider(${Component.displayName || Component.name})`;
     return WithStoreProvider;
   }
   return {
     Provider,
-    useStore,
-    useStoreManager,
+    useStore,        
+    useStoreManager, 
     useStoreInfo,
     useStoreClear,
     withProvider,
@@ -3119,7 +5396,7 @@ function createStoreContextImpl<T extends Record<string, any>>(
     initialStores
   } as const;
 }
-export type InferInitialStores<T> = T extends InitialStores<infer U> ? U : never;
+export type InferInitialStores<T> = T extends StoreDefinitions ? InferStoreTypes<T> : never;
 export interface WithProviderConfig {
   displayName?: string;
   registryId?: string;
@@ -3127,26 +5404,584 @@ export interface WithProviderConfig {
   errorBoundary?: boolean;
 }
 export type StoreValues<T extends Record<string, any>> = {
-  [K in keyof T]: T[K] extends StoreConfig<infer V> ? V : T[K];
+  [K in keyof T]: InferStoreDefinitionValue<T[K]>;
 };
+export type { ExplicitStoreValue } from './store-definition';
+export { asStoreValue } from './store-definition';
 ```
 
-### stores/patterns/index.ts
+### stores/patterns/store-definition.ts
 
 ```typescript
-export {
-  createStoreContext,
-  type InitialStores,
-  type StoreConfig,
-  type StoreDefinitions,
-  type InferStoreTypes,
-  type InferInitialStores,
-  type StoreValues,
-  type WithProviderConfig
-} from './declarative-store-pattern-v2';
-export {
-  type StoreConfig as StoreSchema
-} from './declarative-store-pattern-v2';
+const explicitStoreValueMarker = Symbol('context-action.explicit-store-value');
+export interface ExplicitStoreValue<T> {
+  readonly value: T;
+  readonly [explicitStoreValueMarker]: true;
+}
+export function asStoreValue<T>(value: T): ExplicitStoreValue<T> {
+  return {
+    value,
+    [explicitStoreValueMarker]: true,
+  };
+}
+export function isExplicitStoreValue(value: unknown): value is ExplicitStoreValue<unknown> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as Partial<ExplicitStoreValue<unknown>>)[explicitStoreValueMarker] === true
+  );
+}
+export function isStoreConfigShape(
+  value: unknown,
+  allowedKeys: ReadonlySet<PropertyKey>
+): value is { initialValue: unknown } {
+  if (typeof value !== 'object' || value === null || isExplicitStoreValue(value)) {
+    return false;
+  }
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) {
+    return false;
+  }
+  if (Object.getOwnPropertyDescriptor(value, 'initialValue') === undefined) {
+    return false;
+  }
+  return Reflect.ownKeys(value).every((key) => allowedKeys.has(key));
+}
+```
+
+### stores/patterns/time-travel-store-pattern.tsx
+
+```typescript
+import type { Patches } from '@context-action/mutative';
+import React, { createContext, ReactNode, useCallback, useContext, useInsertionEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import { StoreErrorBoundary } from '../components/StoreErrorBoundary';
+import { createStore, Store } from '../core/Store';
+import { StoreRegistry } from '../core/StoreRegistry';
+import { createTimeTravelStore, isTimeTravelStore, TimeTravelStore } from '../core/TimeTravelStore';
+import type { StorePath } from '../hooks/useTimeTravelPath';
+import { compareValues, type ComparisonOptions } from '../utils/comparison';
+import { createPathSignature, createPathsSignature } from '../utils/path-signature';
+import { patchesAffectPath } from '../utils/patch-affects-path';
+import {
+  type ExplicitStoreValue,
+  isExplicitStoreValue,
+  isStoreConfigShape,
+} from './store-definition';
+const TIME_TRAVEL_STORE_CONFIG_KEYS = new Set<PropertyKey>([
+  'initialValue',
+  'timeTravel',
+  'maxHistory',
+  'mutable',
+  'strategy',
+  'description',
+  'debug',
+  'tags',
+  'version',
+  'comparisonOptions',
+  'readMode',
+]);
+function getValueAtPath<T, R>(obj: T, path: StorePath): R {
+  let current: unknown = obj;
+  for (const key of path) {
+    if (current === null || current === undefined) return undefined as R;
+    current = (current as Record<string | number, unknown>)[key];
+  }
+  return current as R;
+}
+export interface TimeTravelStoreConfig<T = any> {
+  initialValue: T;
+  timeTravel?: boolean;
+  maxHistory?: number;
+  mutable?: boolean;
+  strategy?: 'reference' | 'shallow' | 'deep';
+  description?: string;
+  debug?: boolean;
+  tags?: string[];
+  version?: string;
+  comparisonOptions?: Partial<ComparisonOptions<T>>;
+  readMode?: 'reference' | 'safe';
+}
+export type TimeTravelInitialStores<T extends Record<string, any>> = {
+  [K in keyof T]: TimeTravelStoreConfig<T[K]> | ExplicitStoreValue<T[K]> | T[K];
+};
+export interface TimeTravelControlsState {
+  canUndo: boolean;
+  canRedo: boolean;
+  position: number;
+  historyLength: number;
+  undo: (steps?: number) => void;
+  redo: (steps?: number) => void;
+  goTo: (position: number) => void;
+  reset: () => void;
+}
+export type InferTimeTravelStoreTypes<T extends Record<string, any>> = {
+  readonly [K in keyof T]: T[K] extends ExplicitStoreValue<infer V>
+    ? V
+    : T[K] extends { initialValue: infer V }
+      ? Exclude<keyof T[K], keyof TimeTravelStoreConfig<any>> extends never
+        ? V
+        : T[K]
+      : T[K] extends (...args: unknown[]) => unknown
+        ? never
+        : T[K];
+};
+export class TimeTravelStoreManager<T extends Record<string, any>> {
+  public readonly registry: StoreRegistry;
+  public readonly initialStores: TimeTravelInitialStores<T>;
+  public readonly stores = new Map<keyof T, Store<any> | TimeTravelStore<any>>();
+  private lifecycle: 'active' | 'disposed' = 'active';
+  private version = 0;
+  private infoVersion = 0;
+  private readonly listeners = new Set<() => void>();
+  private readonly infoListeners = new Set<() => void>();
+  private infoNotificationScheduled = false;
+  constructor(
+    public readonly name: string,
+    initialStores: TimeTravelInitialStores<T>,
+    private readonly defaultMaxHistory: number = 50
+  ) {
+    this.registry = new StoreRegistry(name);
+    this.initialStores = initialStores;
+  }
+  getStore<K extends keyof T>(storeName: K): Store<T[K]> | TimeTravelStore<T[K]> {
+    if (this.lifecycle === 'disposed') {
+      throw new Error(`TimeTravelStoreManager "${this.name}" is disposed`);
+    }
+    const existing = this.stores.get(storeName);
+    if (existing) {
+      return existing;
+    }
+    const storeConfig = this.initialStores[storeName];
+    let initialValue: T[K];
+    let enableTimeTravel = true; 
+    let maxHistory = this.defaultMaxHistory;
+    let mutable = false;
+    let strategy: 'reference' | 'shallow' | 'deep' = 'reference';
+    let description: string | undefined;
+    let debug = false;
+    let tags: string[] = ['time-travel'];
+    let version: string | undefined;
+    let comparisonOptions: TimeTravelStoreConfig<T[K]>['comparisonOptions'];
+    if (isExplicitStoreValue(storeConfig)) {
+      initialValue = storeConfig.value as T[K];
+      tags = ['time-travel', strategy];
+    } else if (isStoreConfigShape(storeConfig, TIME_TRAVEL_STORE_CONFIG_KEYS)) {
+      const config = storeConfig as TimeTravelStoreConfig<T[K]>;
+      initialValue = config.initialValue;
+      enableTimeTravel = config.timeTravel !== false; 
+      maxHistory = config.maxHistory ?? this.defaultMaxHistory;
+      mutable = config.mutable ?? false;
+      strategy = config.strategy || 'reference';
+      description = config.description;
+      debug = config.debug || false;
+      tags = enableTimeTravel
+        ? (config.tags ? ['time-travel', ...config.tags] : ['time-travel', strategy])
+        : (config.tags ? ['store', ...config.tags] : ['store', strategy]);
+      version = config.version;
+      comparisonOptions = config.comparisonOptions;
+    } else {
+      initialValue = storeConfig as T[K];
+      tags = ['time-travel', strategy];
+    }
+    let store: Store<T[K]> | TimeTravelStore<T[K]>;
+    if (enableTimeTravel) {
+      store = createTimeTravelStore(String(storeName), initialValue, {
+        maxHistory,
+        mutable,
+        readMode: (storeConfig && isStoreConfigShape(storeConfig, TIME_TRAVEL_STORE_CONFIG_KEYS))
+          ? (storeConfig as TimeTravelStoreConfig<T[K]>).readMode ?? 'safe'
+          : 'safe',
+        isEqual: comparisonOptions?.customComparator ?? (
+          (comparisonOptions?.strategy ?? strategy) === 'reference'
+            ? undefined
+            : (previous, next) => compareValues(previous, next, {
+                ...comparisonOptions,
+                strategy: comparisonOptions?.strategy ?? strategy,
+              })
+        ),
+      });
+    } else {
+      store = createStore(String(storeName), initialValue);
+      store.setComparisonOptions({
+        strategy,
+        ...comparisonOptions,
+      });
+    }
+    const metadata = {
+      name: String(storeName),
+      tags,
+      description: description || `${enableTimeTravel ? 'TimeTravelStore' : 'Store'}: ${String(storeName)}`,
+      debug,
+      ...(version !== undefined && { version }),
+    };
+    this.registry.register(String(storeName), store as any, metadata);
+    if (debug && process.env.NODE_ENV === 'development') {
+      console.log(`${enableTimeTravel ? '🕰️ Time travel' : '📦 Regular'} store created: ${String(storeName)}`, {
+        timeTravel: enableTimeTravel,
+        ...(enableTimeTravel && { maxHistory }),
+        mutable,
+        strategy,
+        tags,
+      });
+    }
+    this.stores.set(storeName, store);
+    this.infoVersion += 1;
+    this.scheduleInfoNotification();
+    return store;
+  }
+  hasTimeTravel<K extends keyof T>(storeName: K): boolean {
+    const store = this.getStore(storeName);
+    return isTimeTravelStore(store);
+  }
+  clear(): void {
+    if (this.lifecycle === 'disposed') {
+      throw new Error(`TimeTravelStoreManager "${this.name}" is disposed`);
+    }
+    this.stores.forEach(store => store.dispose());
+    this.registry.clear();
+    this.stores.clear();
+    this.version += 1;
+    this.infoVersion += 1;
+    this.listeners.forEach(listener => listener());
+    this.scheduleInfoNotification();
+  }
+  dispose(): void {
+    if (this.lifecycle === 'disposed') return;
+    this.lifecycle = 'disposed';
+    this.stores.forEach(store => store.dispose());
+    this.stores.clear();
+    this.listeners.clear();
+    this.infoListeners.clear();
+    this.registry.dispose();
+  }
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+  getVersion(): number {
+    return this.version;
+  }
+  subscribeInfo(listener: () => void): () => void {
+    this.infoListeners.add(listener);
+    return () => this.infoListeners.delete(listener);
+  }
+  getInfoVersion(): number {
+    return this.infoVersion;
+  }
+  private scheduleInfoNotification(): void {
+    if (this.infoNotificationScheduled) return;
+    this.infoNotificationScheduled = true;
+    queueMicrotask(() => {
+      this.infoNotificationScheduled = false;
+      if (this.lifecycle === 'disposed') return;
+      this.infoListeners.forEach(listener => listener());
+    });
+  }
+  getInfo() {
+    return {
+      name: this.name,
+      storeCount: this.stores.size,
+      availableStores: Object.keys(this.initialStores),
+    };
+  }
+}
+interface TimeTravelStoreContextValue<T extends Record<string, any>> {
+  managerRef: React.RefObject<TimeTravelStoreManager<T> | null>;
+}
+export function createTimeTravelStoreContext<T extends Record<string, any>>(
+  contextName: string,
+  initialStores: TimeTravelInitialStores<T>,
+  options?: { defaultMaxHistory?: number }
+) {
+  const defaultMaxHistory = options?.defaultMaxHistory ?? 50;
+  const StoreContext = createContext<TimeTravelStoreContextValue<T> | null>(null);
+  function Provider({
+    children,
+    registryId,
+  }: {
+    children: ReactNode;
+    registryId?: string;
+  }) {
+    const effectiveRegistryId = registryId || contextName;
+    const managerRef = useRef<TimeTravelStoreManager<T> | null>(null);
+    if (!managerRef.current) {
+      managerRef.current = new TimeTravelStoreManager(
+        effectiveRegistryId,
+        initialStores,
+        defaultMaxHistory
+      );
+    }
+    useInsertionEffect(() => {
+      const manager = managerRef.current;
+      return () => {
+        manager?.dispose();
+        if (managerRef.current === manager) managerRef.current = null;
+      };
+    }, []);
+    return (
+      <StoreContext.Provider value={{ managerRef }}>
+        {children}
+      </StoreContext.Provider>
+    );
+  }
+  function useStore<K extends keyof T>(storeName: K): Store<T[K]> | TimeTravelStore<T[K]> {
+    const context = useContext(StoreContext);
+    if (!context?.managerRef.current) {
+      throw new Error(
+        `useStore must be used within ${contextName}.Provider. ` +
+        `Wrap your component with <${contextName}.Provider>`
+      );
+    }
+    const manager = context.managerRef.current;
+    const subscribe = useMemo(() => manager.subscribe.bind(manager), [manager]);
+    const getVersion = useMemo(() => manager.getVersion.bind(manager), [manager]);
+    useSyncExternalStore(subscribe, getVersion, getVersion);
+    return manager.getStore(storeName);
+  }
+  function useTimeTravelStore<K extends keyof T>(storeName: K): TimeTravelStore<T[K]> {
+    const store = useStore(storeName);
+    if (!isTimeTravelStore(store)) {
+      throw new Error(
+        `useTimeTravelStore: Store "${String(storeName)}" does not have time travel enabled. ` +
+        `Use useStore() instead, or set timeTravel: true in the store config.`
+      );
+    }
+    return store;
+  }
+  function useTimeTravelControls<K extends keyof T>(storeName: K): TimeTravelControlsState {
+    const store = useStore(storeName);
+    if (!isTimeTravelStore(store)) {
+      throw new Error(
+        `useTimeTravelControls: Store "${String(storeName)}" does not have time travel enabled. ` +
+        `Set timeTravel: true in the store config to use undo/redo.`
+      );
+    }
+    const cacheRef = useRef<{
+      canUndo: boolean;
+      canRedo: boolean;
+      position: number;
+      historyLength: number;
+    } | null>(null);
+    const subscribe = useCallback(
+      (callback: () => void) => store.subscribe(callback),
+      [store]
+    );
+    const getSnapshot = useCallback(() => {
+      const canUndo = store.canUndo();
+      const canRedo = store.canRedo();
+      const position = store.getPosition();
+      const historyLength = store.getHistory().length;
+      const cached = cacheRef.current;
+      if (
+        cached &&
+        cached.canUndo === canUndo &&
+        cached.canRedo === canRedo &&
+        cached.position === position &&
+        cached.historyLength === historyLength
+      ) {
+        return cached;
+      }
+      const newState = { canUndo, canRedo, position, historyLength };
+      cacheRef.current = newState;
+      return newState;
+    }, [store]);
+    const getServerSnapshot = useCallback(
+      () => ({ canUndo: false, canRedo: false, position: 0, historyLength: 1 }),
+      []
+    );
+    const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+    const controls = useMemo(
+      () => ({
+        undo: (steps?: number) => store.undo(steps),
+        redo: (steps?: number) => store.redo(steps),
+        goTo: (position: number) => store.goTo(position),
+        reset: () => store.reset(),
+      }),
+      [store]
+    );
+    return { ...state, ...controls };
+  }
+  function useStorePath<K extends keyof T, R = unknown>(
+    storeName: K,
+    path: StorePath
+  ): R {
+    const store = useStore(storeName);
+    const pathSignature = createPathSignature(path);
+    const stablePathRef = useRef<{ signature: string; path: StorePath }>({
+      signature: pathSignature,
+      path: [...path],
+    });
+    if (stablePathRef.current.signature !== pathSignature) {
+      stablePathRef.current = { signature: pathSignature, path: [...path] };
+    }
+    const stablePath = stablePathRef.current.path;
+    const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string }>({
+      value: undefined as R,
+      initialized: false,
+      pathSignature,
+    });
+    if (cacheRef.current.pathSignature !== pathSignature) {
+      cacheRef.current = { value: undefined as R, initialized: false, pathSignature };
+    }
+    const subscribe = useCallback(
+      (callback: () => void) => {
+        if (isTimeTravelStore(store)) {
+          return store.subscribeWithPatches((patches: Patches | null) => {
+            if (patchesAffectPath(patches, stablePath)) {
+              callback();
+            }
+          });
+        }
+        return store.subscribe(callback);
+      },
+      [store, stablePath]
+    );
+    const getSnapshot = useCallback((): R => {
+      const storeValue = store.getSnapshot().value;
+      const currentValue = getValueAtPath<T[K], R>(storeValue, stablePath);
+      if (!cacheRef.current.initialized) {
+        cacheRef.current = { value: currentValue, initialized: true, pathSignature };
+        return currentValue;
+      }
+      if (Object.is(cacheRef.current.value, currentValue)) {
+        return cacheRef.current.value;
+      }
+      cacheRef.current.value = currentValue;
+      return currentValue;
+    }, [store, stablePath, pathSignature]);
+    const getServerSnapshot = useCallback((): R => {
+      return getValueAtPath<T[K], R>(store.getSnapshot().value, stablePath);
+    }, [store, stablePath]);
+    return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  }
+  function useStoreSelector<K extends keyof T, R>(
+    storeName: K,
+    selector: (value: T[K]) => R,
+    options: { dependsOn?: StorePath[]; equalityFn?: (a: R, b: R) => boolean } = {}
+  ): R {
+    const store = useStore(storeName);
+    const { dependsOn, equalityFn } = options;
+    const cacheRef = useRef<R | undefined>(undefined);
+    const depsKey = createPathsSignature(dependsOn);
+    const stablePathsRef = useRef<{
+      signature: string | null;
+      paths: StorePath[] | undefined;
+    }>({
+      signature: depsKey,
+      paths: dependsOn?.map((path) => [...path]),
+    });
+    if (stablePathsRef.current.signature !== depsKey) {
+      stablePathsRef.current = {
+        signature: depsKey,
+        paths: dependsOn?.map((path) => [...path]),
+      };
+    }
+    const stablePaths = stablePathsRef.current.paths;
+    const subscribe = useCallback(
+      (callback: () => void) => {
+        if (!stablePaths) {
+          return store.subscribe(callback);
+        }
+        if (isTimeTravelStore(store)) {
+          return store.subscribeWithPatches((patches: Patches | null) => {
+            const affected = stablePaths.some(path => patchesAffectPath(patches, path));
+            if (affected) callback();
+          });
+        }
+        return store.subscribe(callback);
+      },
+      [store, stablePaths]
+    );
+    const getSnapshot = useCallback((): R => {
+      const currentValue = selector(store.getSnapshot().value);
+      if (cacheRef.current !== undefined) {
+        if (equalityFn ? equalityFn(cacheRef.current, currentValue) : Object.is(cacheRef.current, currentValue)) {
+          return cacheRef.current;
+        }
+      }
+      cacheRef.current = currentValue;
+      return currentValue;
+    }, [store, selector, equalityFn]);
+    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  }
+  function useStoreManager(): TimeTravelStoreManager<T> {
+    const context = useContext(StoreContext);
+    if (!context?.managerRef.current) {
+      throw new Error(
+        `useStoreManager must be used within ${contextName}.Provider`
+      );
+    }
+    return context.managerRef.current;
+  }
+  function useStoreInfo() {
+    const manager = useStoreManager();
+    useSyncExternalStore(
+      listener => manager.subscribeInfo(listener),
+      () => manager.getInfoVersion(),
+      () => manager.getInfoVersion(),
+    );
+    return manager.getInfo();
+  }
+  function useStoreClear() {
+    const manager = useStoreManager();
+    return () => manager.clear();
+  }
+  function withProvider<P extends {}>(
+    Component: React.ComponentType<P>,
+    config?: {
+      displayName?: string;
+      registryId?: string;
+      autoCleanup?: boolean;
+      errorBoundary?: boolean;
+    }
+  ): React.FC<P> {
+    const registryId = config?.registryId || contextName;
+    const WithTimeTravelStoreProvider = (props: P) => {
+      const managerRef = useRef<TimeTravelStoreManager<T> | null>(null);
+      if (!managerRef.current) {
+        managerRef.current = new TimeTravelStoreManager(
+          registryId,
+          initialStores,
+          defaultMaxHistory
+        );
+      }
+      useInsertionEffect(() => {
+        const manager = managerRef.current;
+        return () => {
+          if (config?.autoCleanup === false) return;
+          manager?.dispose();
+          if (managerRef.current === manager) managerRef.current = null;
+        };
+      }, []);
+      const provider = (
+        <StoreContext.Provider value={{ managerRef }}>
+          <Component {...props} />
+        </StoreContext.Provider>
+      );
+      return config?.errorBoundary ? (
+        <StoreErrorBoundary>{provider}</StoreErrorBoundary>
+      ) : provider;
+    };
+    WithTimeTravelStoreProvider.displayName =
+      config?.displayName ||
+      `with${contextName}TimeTravelProvider(${Component.displayName || Component.name})`;
+    return WithTimeTravelStoreProvider;
+  }
+  return {
+    Provider,
+    useStore,
+    useTimeTravelStore,
+    useStorePath,
+    useStoreSelector,
+    useTimeTravelControls,
+    useStoreManager,
+    useStoreInfo,
+    useStoreClear,
+    withProvider,
+    contextName,
+    initialStores,
+  } as const;
+}
 ```
 
 ### stores/utils/comparison.ts
@@ -3189,6 +6024,9 @@ export function shallowEquals<T>(oldValue: T, newValue: T, ignoreKeys: string[] 
     const result = oldValue === newValue;
     return result;
   }
+  if (Array.isArray(oldValue) !== Array.isArray(newValue)) {
+    return false;
+  }
   if (Array.isArray(oldValue) && Array.isArray(newValue)) {
     if (oldValue.length !== newValue.length) {
       return false;
@@ -3216,8 +6054,8 @@ export function shallowEquals<T>(oldValue: T, newValue: T, ignoreKeys: string[] 
   return true;
 }
 export function deepEquals<T>(
-  oldValue: T,
-  newValue: T,
+  oldValue: T, 
+  newValue: T, 
   options: {
     maxDepth?: number;
     ignoreKeys?: string[];
@@ -3246,7 +6084,7 @@ export function deepEquals<T>(
       if (visitedPairs.has(a)) {
         const pairedSet = visitedPairs.get(a)!;
         if (pairedSet.has(b)) {
-          return Object.is(a, b);
+          return true;
         }
       }
       if (!visitedPairs.has(a)) {
@@ -3258,11 +6096,62 @@ export function deepEquals<T>(
       }
       visitedPairs.get(b)!.add(a);
     }
+    if ((a instanceof Date) !== (b instanceof Date)) {
+      return false;
+    }
     if (a instanceof Date && b instanceof Date) {
       return a.getTime() === b.getTime();
     }
+    if ((a instanceof RegExp) !== (b instanceof RegExp)) {
+      return false;
+    }
     if (a instanceof RegExp && b instanceof RegExp) {
       return a.toString() === b.toString();
+    }
+    if ((a instanceof Map) !== (b instanceof Map)) {
+      return false;
+    }
+    if (a instanceof Map && b instanceof Map) {
+      if (a.size !== b.size) {
+        return false;
+      }
+      for (const [key, value] of a) {
+        if (!b.has(key) || !deepCompare(value, b.get(key), depth + 1, `${path}[Map]`)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    if ((a instanceof Set) !== (b instanceof Set)) {
+      return false;
+    }
+    if (a instanceof Set && b instanceof Set) {
+      if (a.size !== b.size) {
+        return false;
+      }
+      const bItems = [...b];
+      const matched = new Array<boolean>(bItems.length).fill(false);
+      for (const item of a) {
+        if (b.has(item)) {
+          const exactIdx = bItems.findIndex((candidate, idx) => !matched[idx] && Object.is(candidate, item));
+          if (exactIdx !== -1) {
+            matched[exactIdx] = true;
+            continue;
+          }
+        }
+        let found = false;
+        for (let idx = 0; idx < bItems.length; idx++) {
+          if (!matched[idx] && deepCompare(item, bItems[idx], depth + 1, `${path}[Set]`)) {
+            matched[idx] = true;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          return false;
+        }
+      }
+      return true;
     }
     if (Array.isArray(a) && Array.isArray(b)) {
       if (a.length !== b.length) {
@@ -3297,28 +6186,14 @@ export function deepEquals<T>(
   return result;
 }
 export function compareValues<T>(
-  oldValue: T,
-  newValue: T,
+  oldValue: T, 
+  newValue: T, 
   options: Partial<ComparisonOptions<T>> = {}
 ): boolean {
   const finalOptions = { ...globalComparisonOptions, ...options };
   const { strategy, customComparator, maxDepth, ignoreKeys, enableCircularCheck } = finalOptions;
   let result: boolean;
   try {
-    if (strategy !== 'reference' && strategy !== 'custom' && typeof oldValue === 'object' && typeof newValue === 'object') {
-      try {
-        const oldStr = JSON.stringify(oldValue);
-        const newStr = JSON.stringify(newValue);
-        if (oldStr.length < 1000 && newStr.length < 1000) {
-          result = oldStr === newStr;
-          return result;
-        }
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.debug('[ComparisonOptimization] JSON serialization failed, falling back to original strategy:', error);
-        }
-      }
-    }
     switch (strategy) {
       case 'reference':
         result = referenceEquals(oldValue, newValue);
@@ -3405,9 +6280,11 @@ export interface ErrorHandlingConfig {
   suppressRepeatedErrors: boolean;
   logErrors: boolean;
 }
+const isDevEnvironment =
+  typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
 const defaultErrorConfig: ErrorHandlingConfig = {
-  logLevel: process.env.NODE_ENV === 'development' ? ErrorLogLevel.DEBUG : ErrorLogLevel.ERROR,
-  throwOnError: process.env.NODE_ENV === 'development',
+  logLevel: isDevEnvironment ? ErrorLogLevel.DEBUG : ErrorLogLevel.ERROR,
+  throwOnError: isDevEnvironment,
   enableStackTrace: true,
   maxLogEntries: 100,
   suppressRepeatedErrors: true,
@@ -3419,8 +6296,11 @@ interface ErrorLogEntry {
   count: number;
   lastOccurred: number;
 }
-let errorLog: ErrorLogEntry[] = [];
-let errorSignatures: Map<string, ErrorLogEntry> = new Map();
+const errorLog: ErrorLogEntry[] = [];
+const errorSignatures: Map<string, ErrorLogEntry> = new Map();
+interface GlobalErrorBoundary {
+  reportError(error: ContextActionError): void;
+}
 export function setErrorHandlingConfig(config: Partial<ErrorHandlingConfig>): void {
   currentErrorConfig = { ...currentErrorConfig, ...config };
 }
@@ -3473,8 +6353,11 @@ function logError(error: ContextActionError): void {
       errorSignatures.delete(removedSignature);
     }
   }
-  if (typeof globalThis !== 'undefined' && (globalThis as any).globalErrorBoundary) {
-    (globalThis as any).globalErrorBoundary.reportError(error);
+  const globalWithBoundary = globalThis as typeof globalThis & {
+    globalErrorBoundary?: GlobalErrorBoundary;
+  };
+  if (globalWithBoundary.globalErrorBoundary) {
+    globalWithBoundary.globalErrorBoundary.reportError(error);
   }
   switch (currentErrorConfig.logLevel) {
     case ErrorLogLevel.DEBUG:
@@ -3496,29 +6379,36 @@ function logError(error: ContextActionError): void {
       break;
   }
 }
+function safeStringifyContext(context?: Record<string, unknown>): string {
+  try {
+    return JSON.stringify(context, null, 2) ?? 'undefined';
+  } catch {
+    return '[Unserializable context]';
+  }
+}
 export const ErrorHandlers = {
   store: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
-    const enhancedMessage = `[Store Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    const enhancedMessage = `[Store Error] ${message}\nContext: ${safeStringifyContext(context)}`;
     return handleError(ContextActionErrorType.STORE_ERROR, enhancedMessage, context, originalError);
   },
   action: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
-    const enhancedMessage = `[Action Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    const enhancedMessage = `[Action Error] ${message}\nContext: ${safeStringifyContext(context)}`;
     return handleError(ContextActionErrorType.ACTION_ERROR, enhancedMessage, context, originalError);
   },
   ref: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
-    const enhancedMessage = `[Ref Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    const enhancedMessage = `[Ref Error] ${message}\nContext: ${safeStringifyContext(context)}`;
     return handleError(ContextActionErrorType.REF_ERROR, enhancedMessage, context, originalError);
   },
   validation: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
-    const enhancedMessage = `[Validation Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    const enhancedMessage = `[Validation Error] ${message}\nContext: ${safeStringifyContext(context)}`;
     return handleError(ContextActionErrorType.VALIDATION_ERROR, enhancedMessage, context, originalError);
   },
   initialization: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
-    const enhancedMessage = `[Initialization Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    const enhancedMessage = `[Initialization Error] ${message}\nContext: ${safeStringifyContext(context)}`;
     return handleError(ContextActionErrorType.INITIALIZATION_ERROR, enhancedMessage, context, originalError);
   },
   timeout: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
-    const enhancedMessage = `[Timeout Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    const enhancedMessage = `[Timeout Error] ${message}\nContext: ${safeStringifyContext(context)}`;
     return handleError(ContextActionErrorType.TIMEOUT_ERROR, enhancedMessage, context, originalError);
   },
   circularReference: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
@@ -3562,389 +6452,131 @@ export function getErrorStatistics(): ErrorStatistics {
 }
 ```
 
-### stores/utils/immutable.ts
+### stores/utils/json-pointer.ts
 
 ```typescript
-import {
-  produce as immerProduce,
-  isDraft as immerIsDraft,
-  original as immerOriginal,
-  current as immerCurrent,
-  enableMapSet
-} from 'immer';
-enableMapSet();
-function isPrimitive(value: unknown): boolean {
-  return (
-    value === null ||
-    value === undefined ||
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean' ||
-    typeof value === 'bigint' ||
-    typeof value === 'symbol'
-  );
+export type JsonPointerPath = (string | number)[];
+export function escapeSegment(segment: string | number): string {
+  if (typeof segment === 'number') {
+    return String(segment);
+  }
+  return segment.replace(/~/g, '~0').replace(/\
 }
-function isComplexObject(value: unknown): boolean {
-  if (!value || typeof value !== 'object') return false;
-  if (Array.isArray(value)) return true;
-  if (value.constructor === Object) {
-    const obj = value as Record<string, unknown>;
-    return Object.values(obj).some(val =>
-      typeof val === 'object' && val !== null
-    );
-  }
-  return value.constructor !== Object;
+export function unescapeSegment(segment: string): string {
+  return segment.replace(/~1/g, '/').replace(/~0/g, '~');
 }
-const logger = {
-  warn: (message: string, ...args: any[]) => console.warn(`[Context-Action] ${message}`, ...args),
-  trace: (message: string, ...args: any[]) => console.trace(`[Context-Action] ${message}`, ...args),
-  error: (message: string, ...args: any[]) => console.error(`[Context-Action] ${message}`, ...args),
-  debug: (message: string, ...args: any[]) => console.debug(`[Context-Action] ${message}`, ...args)
-};
-export interface ImmutabilityOptions {
-  enableCloning?: boolean;
-  enableVerification?: boolean;
-  warnOnFallback?: boolean;
+export function pathToPointer(path: JsonPointerPath): string {
+  if (path.length === 0) return '';
+  return `/${path.map(escapeSegment).join('/')}`;
 }
-let globalImmutabilityOptions: ImmutabilityOptions = {
-  enableCloning: true,
-  enableVerification: process.env.NODE_ENV === 'development',
-  warnOnFallback: true
-};
-function isNonCloneableType(value: unknown): boolean {
-  if (!value || typeof value !== 'object') return false;
-  if (typeof Element !== 'undefined' && value instanceof Element) return true;
-  if (typeof Node !== 'undefined' && value instanceof Node) return true;
-  if (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) return true;
-  const record = value as Record<string, unknown>;
-  if (typeof record.nodeType === 'number' && record.nodeType > 0) return true;
-  if (typeof record.nodeName === 'string') return true;
-  if (typeof record.tagName === 'string') return true;
-  if (record._owner !== undefined || record.stateNode !== undefined) return true;
-  if (typeof value === 'function') return true;
-  if (value instanceof Promise) return true;
-  if (typeof record.then === 'function' && typeof record.catch === 'function') return true;
-  if (value instanceof WeakMap || value instanceof WeakSet) return true;
-  return false;
+export function pointerToPath(pointer: string): string[] {
+  if (pointer === '') return [];
+  if (!pointer.startsWith('/')) {
+    throw new Error(`Invalid JSON Pointer: must start with '/' or be empty string`);
+  }
+  return pointer.slice(1).split('/').map(unescapeSegment);
 }
-export function deepClone<T>(value: T, _options?: { skipProducer?: boolean }): T {
-  if (isPrimitive(value)) {
-    return value;
-  }
-  if (typeof value === 'function') {
-    if (process.env.NODE_ENV === 'development') {
-      logger.warn('Functions cannot be deep cloned, returning original reference');
-    }
-    return value;
-  }
-  if (isNonCloneableType(value)) {
-    return value;
-  }
-  if (typeof value === 'object' && value !== null &&
-      '__contextActionRefState' in value && value.__contextActionRefState === true) {
-    return value;
-  }
-  try {
-    return immerProduce(value, (_draft: any) => {
-    });
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.warn('Immer produce failed, falling back to native methods', error);
-    }
-  }
-  if (typeof structuredClone !== 'undefined') {
-    try {
-      return structuredClone(value);
-    } catch {
-    }
-  }
-  if (!isComplexObject(value)) {
-    return simpleClone(value);
-  }
-  return fallbackClone(value);
+export function isPointerPrefix(prefix: string, pointer: string): boolean {
+  if (prefix === pointer) return true;
+  if (prefix === '') return true; 
+  return pointer.startsWith(`${prefix}/`);
 }
-export function deepCloneWithImmer<T>(value: T): T {
-  if (isPrimitive(value)) {
-    return value;
-  }
-  if (isNonCloneableType(value) || typeof value === 'function') {
-    return value;
-  }
-  try {
-    return immerProduce(value, (_draft: any) => {
-    });
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.warn('Immer produce failed, falling back to simple clone', error);
-    }
-    return fallbackClone(value);
-  }
+export function arePointersRelated(pointer1: string, pointer2: string): boolean {
+  return isPointerPrefix(pointer1, pointer2) || isPointerPrefix(pointer2, pointer1);
 }
-function isSimpleObject(value: unknown): value is Record<string, unknown> {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    value.constructor === Object &&
-    Object.getPrototypeOf(value) === Object.prototype
-  );
+export const pathToKey = pathToPointer;
+export const isPathPrefix = isPointerPrefix;
+```
+
+### stores/utils/patch-affects-path.ts
+
+```typescript
+export type StorePathSegment = string | number;
+export interface StorePathPatch {
+  readonly op: string;
+  readonly path: readonly unknown[] | string;
+  readonly from?: readonly unknown[] | string;
+  readonly value?: unknown;
 }
-function simpleClone<T>(value: T, visited = new WeakSet()): T {
-  if (typeof value === 'object' && value !== null && visited.has(value)) {
-    return '[Circular]' as any;
+function isPrefix(prefix: readonly string[], value: readonly string[]): boolean {
+  return prefix.length <= value.length && prefix.every((segment, index) => segment === value[index]);
+}
+function normalizePatchPath(path: unknown): readonly string[] | null {
+  if (typeof path === 'string') {
+    if (path === '') return [];
+    if (!path.startsWith('/') || /~(?:[^01]|$)/.test(path)) return null;
+    return path.slice(1).split('/').map(segment => segment.replace(/~1/g, '/').replace(/~0/g, '~'));
   }
-  if (Array.isArray(value)) {
-    visited.add(value);
-    const result = value.map(item => {
-      if (typeof item === 'object' && item !== null) {
-        if ('__contextActionRefState' in item && item.__contextActionRefState === true) {
-          return item;
-        } else {
-          return simpleClone(item, visited);
+  if (!Array.isArray(path)) return null;
+  const segments: string[] = [];
+  for (const segment of path) {
+    if (typeof segment !== 'string' && typeof segment !== 'number') return null;
+    segments.push(String(segment));
+  }
+  return segments;
+}
+function affectsTarget(path: readonly string[], target: readonly string[], structural: boolean): boolean {
+  if (isPrefix(path, target) || isPrefix(target, path)) return true;
+  return (structural || path[path.length - 1] === 'length') && isPrefix(path.slice(0, -1), target);
+}
+export function patchesAffectPath(
+  patches: readonly StorePathPatch[] | null,
+  targetPath: readonly StorePathSegment[],
+): boolean {
+  if (!patches || patches.length === 0) return true;
+  const target = targetPath.map(String);
+  for (const patch of patches) {
+    const path = normalizePatchPath(patch.path);
+    if (path === null) return true;
+    switch (patch.op) {
+      case 'add':
+      case 'remove':
+      case 'copy':
+      case 'move':
+        if (affectsTarget(path, target, true)) return true;
+        if (patch.op === 'move') {
+          const source = normalizePatchPath(patch.from);
+          if (source === null || affectsTarget(source, target, true)) return true;
         }
-      }
-      return item;
-    }) as T;
-    return result;
-  }
-  if (isSimpleObject(value)) {
-    visited.add(value);
-    const cloned = {} as Record<string, unknown>;
-    for (const [key, val] of Object.entries(value)) {
-      if (typeof val === 'object' && val !== null) {
-        if ('__contextActionRefState' in val && val.__contextActionRefState === true) {
-          cloned[key] = val;
-        } else {
-          cloned[key] = simpleClone(val, visited);
-        }
-      } else {
-        cloned[key] = val;
-      }
+        break;
+      case 'replace':
+      case 'test':
+        if (affectsTarget(path, target, false)) return true;
+        break;
+      default:
+        return true;
     }
-    return cloned as T;
-  }
-  return value;
-}
-function fallbackClone<T>(value: T): T {
-  try {
-    const visited = new WeakSet();
-    const refStateObjects = new Map<string, object>();
-    let refStateId = 0;
-    const collectRefStates = (obj: any) => {
-      if (typeof obj !== 'object' || obj === null || visited.has(obj)) return;
-      visited.add(obj);
-      if ('__contextActionRefState' in obj && obj.__contextActionRefState === true) {
-        const id = `refstate_${refStateId++}`;
-        refStateObjects.set(id, obj);
-      }
-      try {
-        if (Array.isArray(obj)) {
-          obj.forEach(collectRefStates);
-        } else {
-          for (const val of Object.values(obj)) {
-            collectRefStates(val);
-          }
-        }
-      } catch {
-      }
-    };
-    try {
-      collectRefStates(value);
-    } catch {
-    }
-    const circularSafeStringify = (obj: unknown): string => {
-      const jsonVisited = new WeakSet();
-      return JSON.stringify(obj, function(key, val) {
-        if (val !== null && typeof val === 'object') {
-          if (jsonVisited.has(val)) {
-            return '[Circular]';
-          }
-          jsonVisited.add(val);
-          if ('__contextActionRefState' in val && val.__contextActionRefState === true) {
-            const entries = Array.from(refStateObjects.entries());
-            for (let i = 0; i < entries.length; i++) {
-              const entry = entries[i];
-              if (entry && entry[1] === val) {
-                return { __REFSTATE_PLACEHOLDER__: entry[0] };
-              }
-            }
-          }
-        }
-        return val;
-      });
-    };
-    const jsonString = circularSafeStringify(value);
-    const parsed = JSON.parse(jsonString);
-    const restoreRefStates = (obj: any): any => {
-      if (typeof obj !== 'object' || obj === null) return obj;
-      if (obj.__REFSTATE_PLACEHOLDER__ && refStateObjects.has(obj.__REFSTATE_PLACEHOLDER__)) {
-        return refStateObjects.get(obj.__REFSTATE_PLACEHOLDER__);
-      }
-      if (Array.isArray(obj)) {
-        return obj.map(restoreRefStates);
-      }
-      const result = {} as any;
-      for (const [key, val] of Object.entries(obj)) {
-        result[key] = restoreRefStates(val);
-      }
-      return result;
-    };
-    return restoreRefStates(parsed);
-  } catch (jsonError) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.error('All cloning methods failed, returning original reference', jsonError);
-    }
-    return value;
-  }
-}
-export function verifyImmutability<T>(original: T, cloned: T): boolean {
-  if (
-    original === null ||
-    original === undefined ||
-    typeof original === 'string' ||
-    typeof original === 'number' ||
-    typeof original === 'boolean' ||
-    typeof original === 'bigint' ||
-    typeof original === 'symbol'
-  ) {
-    return original === cloned;
-  }
-  if (isNonCloneableType(original)) {
-    return original === cloned;
-  }
-  if (typeof original === 'function') {
-    return original === cloned;
-  }
-  if (typeof original === 'object' && original !== null) {
-    return true;
   }
   return false;
-}
-export function safeGet<T>(value: T, enableCloning: boolean = true): T {
-  if (!enableCloning) return value;
-  if (isPrimitive(value)) return value;
-  if (isNonCloneableType(value)) return value;
-  if (typeof value === 'object' && value !== null &&
-      '__contextActionRefState' in value && value.__contextActionRefState === true) {
-    return value;
-  }
-  const cloned = deepClone(value);
-  if (process.env.NODE_ENV === 'development' && globalImmutabilityOptions.enableVerification) {
-    if (!isNonCloneableType(value)) {
-      const isImmutable = verifyImmutability(value, cloned);
-      if (!isImmutable && typeof value === 'object' && value !== null) {
-        if (Math.random() < 0.01) {
-          logger.debug('Immer optimization: same reference returned for unchanged object', {
-            type: typeof value,
-            constructor: value?.constructor?.name,
-            isArray: Array.isArray(value)
-          });
-        }
-      }
-    }
-  }
-  return cloned;
-}
-export function safeSet<T>(value: T, enableCloning: boolean = true): T {
-  if (!enableCloning) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.trace('Cloning disabled for setter, returning original reference');
-    }
-    return value;
-  }
-  return deepClone(value);
-}
-export function setGlobalImmutabilityOptions(options: Partial<ImmutabilityOptions>): void {
-  globalImmutabilityOptions = { ...globalImmutabilityOptions, ...options };
-  logger.debug('Global immutability options updated', globalImmutabilityOptions);
-}
-export function getGlobalImmutabilityOptions(): ImmutabilityOptions {
-  return { ...globalImmutabilityOptions };
-}
-export const ImmerUtils = {
-  isDraft(value: unknown): boolean {
-    return immerIsDraft(value);
-  },
-  original<T>(value: T): T | undefined {
-    return immerOriginal(value);
-  },
-  current<T>(value: T): T {
-    return immerCurrent(value);
-  },
-  produce<T>(baseState: T, producer: (draft: T) => void | T): T {
-    return immerProduce(baseState, producer);
-  }
-};
-export function preloadImmer(): void {
-}
-export function produce<T>(baseState: T, producer: (draft: T) => void | T): T {
-  try {
-    return immerProduce(baseState, producer);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.warn('Immer produce failed, falling back to deep clone simulation', error);
-    }
-    try {
-      const draft = deepClone(baseState);
-      const result = producer(draft);
-      return (result !== undefined ? result : draft) as T;
-    } catch (fallbackError) {
-      if (process.env.NODE_ENV === 'development') {
-        logger.error('Produce fallback failed, returning original state', fallbackError);
-      }
-      return baseState;
-    }
-  }
 }
 ```
 
-### stores/utils/index.ts
+### stores/utils/path-signature.ts
 
 ```typescript
-export {
-  compareValues,
-  setGlobalComparisonOptions,
-  getGlobalComparisonOptions,
-  type ComparisonOptions,
-  type ComparisonStrategy,
-  type CustomComparator
-} from './comparison';
-export {
-  safeGet,
-  safeSet,
-  deepClone,
-  getGlobalImmutabilityOptions,
-} from './immutable';
-export { createRegistrySync, RegistryUtils } from './registry-sync';
-export {
-  composeProviders,
-  type ProviderComponent
-} from './provider-composition';
-export {
-  SubscriptionManager,
-  useSubscriptionManager,
-  type SubscriptionEntry,
-  type SubscriptionStats
-} from './subscription-manager';
-export {
-  isStore,
-  isValidStoreValue,
-  extractStoreValue,
-  extractStoreValues,
-  createSafeEqualityFn,
-  createStoreConfig,
-  TypeUtils,
-  type StoreValue,
-  type StoresValues,
-  type StoreRecordValues,
-  type StoreSelector,
-  type EqualityFunction,
-  type StoreListener,
-  type StoreUpdater,
-  type DeepReadonly,
-  type StoreInitConfig,
-  type PartialBy,
-  type RequiredBy
-} from './type-helpers';
+export type PathSegment = string | number;
+function serializeNumber(value: number): string {
+  if (Number.isNaN(value)) return 'NaN';
+  if (value === Infinity) return 'Infinity';
+  if (value === -Infinity) return '-Infinity';
+  if (Object.is(value, -0)) return '-0';
+  return String(value);
+}
+export function createPathSignature(path: readonly PathSegment[]): string {
+  return JSON.stringify(
+    path.map((segment) =>
+      typeof segment === 'number'
+        ? ['number', serializeNumber(segment)]
+        : ['string', segment]
+    )
+  );
+}
+export function createPathsSignature(
+  paths: readonly (readonly PathSegment[])[] | undefined
+): string | null {
+  if (!paths) return null;
+  return JSON.stringify(paths.map(createPathSignature).sort());
+}
 ```
 
 ### stores/utils/provider-composition.ts
@@ -3964,208 +6596,12 @@ export function composeProviders(
 }
 ```
 
-### stores/utils/registry-sync.ts
-
-```typescript
-import { useStoreSelector } from './store-selector';
-import type { IStoreRegistry, IStore } from '../core/types';
-export function createRegistrySync<T = any>() {
-  return {
-    useDynamicStore(
-      registry: IStoreRegistry | undefined | null,
-      storeName: string
-    ): T | undefined {
-      const store = registry?.getStore(storeName);
-      return useStoreSelector(store, {
-        selector: (snapshot: any) => snapshot.value as T
-      });
-    }
-  };
-}
-export class RegistryUtils {
-  static getTypedStore<T>(
-    registry: IStoreRegistry | undefined | null,
-    name: string
-  ): IStore<T> | undefined {
-    return registry?.getStore(name) as IStore<T> | undefined;
-  }
-  static hasStore(
-    registry: IStoreRegistry | undefined | null,
-    name: string
-  ): boolean {
-    return registry?.hasStore(name) ?? false;
-  }
-}
-```
-
-### stores/utils/store-selector.ts
-
-```typescript
-import { useSyncExternalStore } from 'react';
-import type { IStore, Snapshot, StoreSyncConfig } from '../core/types';
-const CONSTANTS = {
-  EMPTY_SUBSCRIBE: () => () => {},
-  EMPTY_SNAPSHOT: <T>(): Snapshot<T> => ({
-    value: undefined as T,
-    name: 'empty',
-    lastUpdate: 0
-  })
-} as const;
-export function useStoreSelector<T, R = Snapshot<T>>(
-  store: IStore<T> | undefined | null,
-  config?: StoreSyncConfig<T, R>
-): R {
-  const { defaultValue, selector } = config ?? {};
-  const getSnapshot = store?.getSnapshot ?? (() => ({
-    ...CONSTANTS.EMPTY_SNAPSHOT<T>(),
-    ...(defaultValue !== undefined && { value: defaultValue })
-  }));
-  const selectedGetSnapshot = selector
-    ? () => selector(getSnapshot())
-    : getSnapshot;
-  return useSyncExternalStore(
-    store?.subscribe ?? CONSTANTS.EMPTY_SUBSCRIBE,
-    selectedGetSnapshot as () => R
-  );
-}
-```
-
-### stores/utils/subscription-manager.ts
-
-```typescript
-import type { Store } from '../core/Store';
-import { ErrorHandlers } from './error-handling';
-export interface SubscriptionEntry {
-  unsubscribe: () => void;
-  storeName: string;
-  createdAt: number;
-  isActive: boolean;
-}
-export interface SubscriptionStats {
-  totalSubscriptions: number;
-  activeSubscriptions: number;
-  averageAge: number;
-  oldestSubscription: number;
-  subscriptionsByStore: Record<string, number>;
-}
-export class SubscriptionManager {
-  private subscriptions = new Map<string, SubscriptionEntry>();
-  private subscriptionCounter = 0;
-  private isDisposed = false;
-  add(unsubscribe: () => void, storeName: string = 'unknown'): string {
-    if (this.isDisposed) {
-      throw new Error('SubscriptionManager has been disposed');
-    }
-    const subscriptionId = `sub_${++this.subscriptionCounter}_${Date.now()}`;
-    const entry: SubscriptionEntry = {
-      unsubscribe,
-      storeName,
-      createdAt: Date.now(),
-      isActive: true
-    };
-    this.subscriptions.set(subscriptionId, entry);
-    return subscriptionId;
-  }
-  addStoreSubscription<T>(store: Store<T>, listener: () => void): string {
-    try {
-      const unsubscribe = store.subscribe(listener);
-      return this.add(unsubscribe, store.name);
-    } catch (error) {
-      ErrorHandlers.store(
-        'Failed to create store subscription',
-        { storeName: store.name },
-        error instanceof Error ? error : undefined
-      );
-      throw error;
-    }
-  }
-  remove(subscriptionId: string): boolean {
-    const entry = this.subscriptions.get(subscriptionId);
-    if (!entry) {
-      return false;
-    }
-    if (entry.isActive) {
-      try {
-        entry.unsubscribe();
-        entry.isActive = false;
-      } catch (error) {
-        ErrorHandlers.store(
-          'Error during subscription cleanup',
-          {
-            subscriptionId,
-            storeName: entry.storeName
-          },
-          error instanceof Error ? error : undefined
-        );
-      }
-    }
-    this.subscriptions.delete(subscriptionId);
-    return true;
-  }
-  cleanupAll(): void {
-    const subscriptionIds = Array.from(this.subscriptions.keys());
-    subscriptionIds.forEach(id => {
-      this.remove(id);
-    });
-  }
-  getStats(): SubscriptionStats {
-    const now = Date.now();
-    const activeSubscriptions = Array.from(this.subscriptions.values()).filter(s => s.isActive);
-    const subscriptionsByStore: Record<string, number> = {};
-    let totalAge = 0;
-    let oldestTime = now;
-    activeSubscriptions.forEach(entry => {
-      subscriptionsByStore[entry.storeName] = (subscriptionsByStore[entry.storeName] || 0) + 1;
-      const age = now - entry.createdAt;
-      totalAge += age;
-      oldestTime = Math.min(oldestTime, entry.createdAt);
-    });
-    return {
-      totalSubscriptions: this.subscriptions.size,
-      activeSubscriptions: activeSubscriptions.length,
-      averageAge: activeSubscriptions.length > 0 ? totalAge / activeSubscriptions.length : 0,
-      oldestSubscription: activeSubscriptions.length > 0 ? now - oldestTime : 0,
-      subscriptionsByStore
-    };
-  }
-  dispose(): void {
-    if (this.isDisposed) {
-      return;
-    }
-    this.cleanupAll();
-    this.subscriptions.clear();
-    this.isDisposed = true;
-  }
-  isManagerDisposed(): boolean {
-    return this.isDisposed;
-  }
-}
-export function useSubscriptionManager(): SubscriptionManager {
-  const { useRef, useEffect } = require('react');
-  const managerRef = useRef(null as SubscriptionManager | null);
-  if (!managerRef.current) {
-    managerRef.current = new SubscriptionManager();
-  }
-  useEffect(() => {
-    return () => {
-      if (managerRef.current) {
-        managerRef.current.dispose();
-        managerRef.current = null;
-      }
-    };
-  }, []);
-  return managerRef.current;
-}
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).__contextActionDebug = { SubscriptionManager };
-}
-```
-
 ### stores/utils/sync-external-store-utils.ts
 
 ```typescript
-import { useSyncExternalStore, useCallback, useMemo, useRef } from 'react';
-import type { Store } from '../core/Store';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import type { IStore, Snapshot } from '../core/types';
+import { deepEquals, referenceEquals, shallowEquals } from './comparison';
 export interface EnhancedSubscriptionOptions {
   debounce?: number;
   throttle?: number;
@@ -4173,175 +6609,121 @@ export interface EnhancedSubscriptionOptions {
   debug?: boolean;
   name?: string;
 }
-function createEnhancedSubscriber<T>(
-  store: Store<T>,
-  options: EnhancedSubscriptionOptions = {}
-) {
-  const { debounce, throttle, condition, debug, name = 'unknown' } = options;
-  return (callback: () => void) => {
-    if (!store) return () => {};
-    let debounceTimer: NodeJS.Timeout | null = null;
-    let throttleTimer: NodeJS.Timeout | null = null;
-    let lastThrottleTime = 0;
-    const enhancedCallback = () => {
-      if (condition && !condition()) {
-        if (debug) {
-          console.debug(`[${name}] Subscription suspended due to condition`);
-        }
-        return;
-      }
-      const now = performance.now();
-      if (throttle && throttle > 0) {
-        if (now - lastThrottleTime < throttle) {
-          if (throttleTimer) clearTimeout(throttleTimer);
-          throttleTimer = setTimeout(() => {
-            lastThrottleTime = performance.now();
-            callback();
-          }, throttle - (now - lastThrottleTime));
-          return;
-        }
-        lastThrottleTime = now;
-      }
-      if (debounce && debounce > 0) {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          callback();
-          if (debug) {
-            console.debug(`[${name}] Debounced callback executed after ${debounce}ms`);
-          }
-        }, debounce);
-        return;
-      }
-      callback();
-    };
-    const unsubscribe = store.subscribe(enhancedCallback);
-    return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      if (throttleTimer) clearTimeout(throttleTimer);
-      unsubscribe();
-    };
-  };
+interface SelectedServerSnapshotCache<T, R> {
+  store: IStore<T>;
+  sourceSnapshot: Snapshot<T>;
+  selector: ((value: T) => R) | undefined;
+  equalityFn: ((a: R, b: R) => boolean) | undefined;
+  value: R | T;
 }
 export function useSafeStoreSubscription<T, R = T>(
-  store: Store<T> | undefined | null,
+  store: IStore<T> | undefined | null,
   selector?: (value: T) => R,
   options: EnhancedSubscriptionOptions & {
     equalityFn?: (a: R, b: R) => boolean;
     initialValue?: R;
   } = {}
 ): R | T | undefined {
-  const { initialValue, equalityFn, ...subscriptionOptions } = options;
+  const { initialValue, equalityFn, debounce, throttle, condition, debug, name } = options;
   const subscribe = useCallback((callback: () => void) => {
     if (!store) return () => {};
-    if (subscriptionOptions.debounce || subscriptionOptions.throttle || subscriptionOptions.condition) {
-      return createEnhancedSubscriber(store, subscriptionOptions)(callback);
-    }
     return store.subscribe(callback);
-  }, [store, subscriptionOptions]);
+  }, [store]);
   const getSnapshot = useCallback((): R | T | undefined => {
     if (!store) return initialValue;
     const snapshot = store.getSnapshot();
     const value = selector ? selector(snapshot.value) : snapshot.value;
     return value as R | T;
   }, [store, selector, initialValue]);
-  const cachedSnapshotRef = useRef<R | T | undefined>();
+  const cachedSnapshotRef = useRef<{
+    store: IStore<T> | undefined | null;
+    value: R | T | undefined;
+  } | undefined>(undefined);
   const stableGetSnapshot = useCallback((): R | T | undefined => {
     const currentSnapshot = getSnapshot();
-    if (equalityFn && cachedSnapshotRef.current !== undefined) {
-      if (equalityFn(cachedSnapshotRef.current as R, currentSnapshot as R)) {
-        return cachedSnapshotRef.current;
+    const cached = cachedSnapshotRef.current;
+    if (store && equalityFn && cached?.store === store) {
+      if (equalityFn(cached.value as R, currentSnapshot as R)) {
+        return cached.value;
       }
     }
-    cachedSnapshotRef.current = currentSnapshot;
+    cachedSnapshotRef.current = { store, value: currentSnapshot };
     return currentSnapshot;
-  }, [getSnapshot, equalityFn]);
+  }, [getSnapshot, equalityFn, store]);
+  const serverSnapshotCacheRef = useRef<SelectedServerSnapshotCache<T, R> | undefined>(undefined);
   const getServerSnapshot = useCallback((): R | T | undefined => {
-    return initialValue;
-  }, [initialValue]);
+    if (!store) return initialValue;
+    const sourceSnapshot = store.getSnapshot();
+    const cached = serverSnapshotCacheRef.current;
+    if (
+      cached &&
+      cached.store === store &&
+      cached.sourceSnapshot === sourceSnapshot &&
+      cached.selector === selector &&
+      cached.equalityFn === equalityFn
+    ) {
+      return cached.value;
+    }
+    const selectedValue = selector
+      ? selector(sourceSnapshot.value)
+      : sourceSnapshot.value;
+    const value =
+      cached &&
+      cached.store === store &&
+      cached.selector === selector &&
+      cached.equalityFn === equalityFn &&
+      equalityFn?.(cached.value as R, selectedValue as R)
+        ? cached.value
+        : selectedValue;
+    serverSnapshotCacheRef.current = {
+      store,
+      sourceSnapshot,
+      selector,
+      equalityFn,
+      value,
+    };
+    return value;
+  }, [store, selector, initialValue, equalityFn]);
   const currentValue = useSyncExternalStore(
     subscribe,
     equalityFn ? stableGetSnapshot : getSnapshot,
     getServerSnapshot
   );
-  return currentValue;
-}
-export function useConditionalStoreSubscription<T>(
-  store: Store<T> | undefined | null,
-  condition: boolean,
-  initialValue?: T
-): T | undefined {
-  const subscribe = useCallback((callback: () => void) => {
-    if (!store || !condition) return () => {};
-    return store.subscribe(callback);
-  }, [store, condition]);
-  const getSnapshot = useCallback((): T | undefined => {
-    if (!store || !condition) return initialValue;
-    return store.getSnapshot().value;
-  }, [store, condition, initialValue]);
-  const getServerSnapshot = useCallback((): T | undefined => {
-    return initialValue;
-  }, [initialValue]);
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-}
-export function useMultiStoreSubscription<T extends readonly Store<any>[], R>(
-  stores: T,
-  selector: (values: { [K in keyof T]: T[K] extends Store<infer U> ? U : never }) => R,
-  equalityFn?: (a: R, b: R) => boolean
-): R {
-  const subscribe = useCallback((callback: () => void) => {
-    const unsubscribes = stores.map(store => store.subscribe(callback));
-    return () => unsubscribes.forEach(unsub => unsub());
-  }, [stores]);
-  const getSnapshot = useCallback((): R => {
-    const values = stores.map(store => store.getSnapshot().value) as any;
-    return selector(values);
-  }, [stores, selector]);
-  const previousValueRef = useRef<R>();
-  const currentValue = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  return useMemo(() => {
-    if (equalityFn && previousValueRef.current !== undefined) {
-      if (equalityFn(previousValueRef.current, currentValue)) {
-        return previousValueRef.current;
-      }
+  useEffect(() => {
+    serverSnapshotCacheRef.current = undefined;
+  });
+  const [visibleValue, setVisibleValue] = useState(currentValue);
+  const lastVisibleAtRef = useRef(0);
+  useEffect(() => {
+    const delay = Math.max(debounce ?? 0, throttle ?? 0);
+    if (!condition && delay <= 0) return;
+    if (condition && !condition()) return;
+    if (delay <= 0) {
+      lastVisibleAtRef.current = Date.now();
+      setVisibleValue(currentValue);
+      return;
     }
-    previousValueRef.current = currentValue;
-    return currentValue;
-  }, [currentValue, equalityFn]);
+    const elapsed = Date.now() - lastVisibleAtRef.current;
+    const wait = throttle && elapsed < throttle
+      ? throttle - elapsed
+      : debounce ?? 0;
+    const timer = setTimeout(() => {
+      lastVisibleAtRef.current = Date.now();
+      setVisibleValue(currentValue);
+      if (debug && name) {
+        console.debug(`[${name}] Delayed store value committed after ${wait}ms`);
+      }
+    }, Math.max(0, wait));
+    return () => clearTimeout(timer);
+  }, [condition, currentValue, debounce, debug, name, throttle]);
+  return debounce || throttle || condition ? visibleValue : currentValue;
 }
 export const equalityFunctions = {
-  reference: <T>(a: T, b: T): boolean => Object.is(a, b),
-  shallow: <T>(a: T, b: T): boolean => {
-    if (Object.is(a, b)) return true;
-    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
-      return false;
-    }
-    const keysA = Object.keys(a) as Array<keyof T>;
-    const keysB = Object.keys(b) as Array<keyof T>;
-    if (keysA.length !== keysB.length) return false;
-    for (const key of keysA) {
-      if (!Object.prototype.hasOwnProperty.call(b, key) || !Object.is(a[key], b[key])) {
-        return false;
-      }
-    }
-    return true;
-  },
-  deep: <T>(a: T, b: T): boolean => {
-    if (Object.is(a, b)) return true;
-    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
-      return false;
-    }
-    if (Array.isArray(a) !== Array.isArray(b)) return false;
-    const keysA = Object.keys(a) as Array<keyof T>;
-    const keysB = Object.keys(b) as Array<keyof T>;
-    if (keysA.length !== keysB.length) return false;
-    for (const key of keysA) {
-      if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
-      if (!equalityFunctions.deep(a[key], b[key])) return false;
-    }
-    return true;
-  },
+  reference: <T>(a: T, b: T): boolean => referenceEquals(a, b),
+  shallow: <T>(a: T, b: T): boolean => shallowEquals(a, b),
+  deep: <T>(a: T, b: T): boolean => deepEquals(a, b),
   smart: <T>(a: T, b: T): boolean => {
-    if (Object.is(a, b)) return true;
+    if (referenceEquals(a, b)) return true;
     if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
       return false;
     }
@@ -4350,12 +6732,12 @@ export const equalityFunctions = {
       return a.every((item, index) => {
         const bItem = b[index];
         if (typeof item === 'object' && item !== null && typeof bItem === 'object' && bItem !== null) {
-          return equalityFunctions.shallow(item, bItem);
+          return shallowEquals(item, bItem);
         }
-        return Object.is(item, bItem);
+        return referenceEquals(item, bItem);
       });
     }
-    return equalityFunctions.shallow(a, b);
+    return shallowEquals(a, b);
   }
 };
 ```
@@ -4370,25 +6752,28 @@ export interface RefState {
   mountPromise: Promise<unknown> | null;
 }
 export function isRefState(value: unknown): value is RefState {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const candidate = value as Record<string, unknown>;
   return (
-    typeof value === 'object' &&
-    value !== null &&
-    'target' in value &&
-    'isReady' in value &&
-    'isMounted' in value &&
-    'mountPromise' in value &&
-    typeof (value as any).isReady === 'boolean' &&
-    typeof (value as any).isMounted === 'boolean'
+    'target' in candidate &&
+    'isReady' in candidate &&
+    'isMounted' in candidate &&
+    'mountPromise' in candidate &&
+    typeof candidate.isReady === 'boolean' &&
+    typeof candidate.isMounted === 'boolean'
   );
 }
 export function isDOMEvent(value: unknown): value is Event {
-  return value instanceof Event;
+  return typeof Event !== 'undefined' && value instanceof Event;
 }
 export function isEventLike(value: unknown): value is { preventDefault: () => void } {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
   return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof (value as any).preventDefault === 'function'
+    typeof (value as Record<string, unknown>).preventDefault === 'function'
   );
 }
 export function hasTargetProperty(value: unknown): value is { target: unknown } {
@@ -4399,7 +6784,7 @@ export function hasTargetProperty(value: unknown): value is { target: unknown } 
   );
 }
 export function isDOMElement(value: unknown): value is Element {
-  return value instanceof Element;
+  return typeof Element !== 'undefined' && value instanceof Element;
 }
 export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -4413,7 +6798,7 @@ export function isSuspiciousEventObject(value: unknown, checkNested = true): boo
   }
   if (checkNested) {
     for (const key in value) {
-      if (Object.prototype.hasOwnProperty.call(value, key)) {
+      if (Object.getOwnPropertyDescriptor(value, key) !== undefined) {
         const nestedValue = value[key];
         if (isEventLikeObject(nestedValue)) {
           return true;
@@ -4430,12 +6815,12 @@ function isEventLikeObject(value: unknown): boolean {
   const hasEventTarget = hasTargetProperty(value);
   const hasPreventDefault = isEventLike(value);
   const isEvent = isDOMEvent(value);
-  const hasEventType = 'type' in value && typeof (value as any).type === 'string';
+  const hasEventType = 'type' in value && typeof value.type === 'string';
   const hasEventProperties = hasEventType && (hasEventTarget || hasPreventDefault);
   const hasReactMarkers = ('nativeEvent' in value) || ('persist' in value) || ('$$typeof' in value) || ('_reactInternalFiber' in value) || ('_owner' in value);
   const constructorName = value?.constructor?.name;
   const hasEventConstructor = constructorName ? (
-    constructorName.includes('Event') ||
+    constructorName.includes('Event') || 
     constructorName === 'SyntheticEvent' ||
     constructorName.includes('MouseEvent') ||
     constructorName.includes('KeyboardEvent') ||
@@ -4451,7 +6836,7 @@ export function findProblematicProperties(value: unknown): string[] {
   }
   const problematicKeys: string[] = [];
   for (const key in value) {
-    if (Object.prototype.hasOwnProperty.call(value, key)) {
+    if (Object.getOwnPropertyDescriptor(value, key) !== undefined) {
       const prop = value[key];
       if (isDOMElement(prop) || isDOMEvent(prop) || (isObject(prop) && hasTargetProperty(prop))) {
         problematicKeys.push(key);
@@ -4487,25 +6872,6 @@ export type StoreSelector<T, R> = (value: T) => R;
 export type EqualityFunction<T> = (a: T, b: T) => boolean;
 export type StoreListener = () => void;
 export type StoreUpdater<T> = (current: T) => T;
-export function isStore<T = any>(value: any): value is Store<T> {
-  return (
-    value != null &&
-    typeof value === 'object' &&
-    'subscribe' in value &&
-    'getSnapshot' in value &&
-    'setValue' in value &&
-    'getValue' in value &&
-    'name' in value &&
-    typeof value.subscribe === 'function' &&
-    typeof value.getSnapshot === 'function' &&
-    typeof value.setValue === 'function' &&
-    typeof value.getValue === 'function' &&
-    typeof value.name === 'string'
-  );
-}
-export function isValidStoreValue<T>(value: unknown): value is T {
-  return value !== undefined;
-}
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 export type RequiredBy<T, K extends keyof T> = T & Required<Pick<T, K>>;
 export type DeepReadonly<T> = {
@@ -4522,62 +6888,2039 @@ export interface StoreInitConfig<T> {
   validateValue?: (value: unknown) => value is T;
   transformValue?: (value: unknown) => T;
 }
-export function createStoreConfig<T>(config: StoreInitConfig<T>): StoreInitConfig<T> {
-  return {
-    ...config,
-    validateValue: config.validateValue || isValidStoreValue,
-  };
+```
+
+### tools/index.ts
+
+```typescript
+export { createToolContext } from './ToolContext';
+export type {
+  ToolContextConfig,
+  ToolPolicy,
+  ToolPolicyDecision,
+  ToolPolicyInput,
+  ToolContextReturn,
+  ToolContextType,
+  DirectToolCallOptions,
+  ToolRegistry,
+  SchemaToolCallRequest,
+  SchemaModelToolCall,
+  SchemaToolCallResult,
+  SchemaDurableOperationRecord,
+  SchemaDurableOperationResolution,
+  SchemaToolOperationRecoveryResolver,
+  ToolCallFunction,
+  ToolDispatchFunction,
+  ToolDispatchWithResultReturn,
+  ToolExecutionResult,
+  ToolOperationRecoveryResolver,
+  ToolValidationMode,
+} from './ToolContext.types';
+```
+
+### tools/tool-registry.ts
+
+```typescript
+import type {
+  ActionSchemaMap,
+  ModelToolCall,
+  ToolCallContext,
+  ToolCallOptions,
+  ToolCallRequest,
+  ToolCallResult,
+  ToolListRequest,
+} from '@context-action/tool-protocol';
+import {
+  isToolListRequest,
+  toAnthropicToolDefinitions,
+  toOpenAIToolDefinitions,
+  toToolCallRequest,
+} from '@context-action/tool-protocol';
+import type {
+  DurableOperationRecord,
+  DurableOperationResolution,
+  DurableOperationFence,
+} from '@context-action/tool-durable-operations';
+import type {
+  ToolOperationRecoveryResolver,
+  ToolRegistry,
+} from './ToolContext.types';
+export type ToolCallExecutor = (
+  request: ToolCallRequest,
+  options?: ToolCallOptions
+) => Promise<ToolCallResult>;
+export type ToolOperationStatusReader = (
+  toolName: string,
+  idempotencyKey: string,
+  context?: ToolCallContext
+) => Promise<DurableOperationRecord<ToolCallResult> | undefined>;
+export type ToolOperationReconciler = (
+  toolName: string,
+  idempotencyKey: string,
+  resolution: DurableOperationResolution<ToolCallResult>,
+  context: ToolCallContext | undefined,
+  expectedFence: DurableOperationFence
+) => Promise<DurableOperationRecord<ToolCallResult> | undefined>;
+const TOOL_LIST_CURSOR_PREFIX = 'offset:';
+function encodeToolListCursor(offset: number): string {
+  return `${TOOL_LIST_CURSOR_PREFIX}${offset}`;
 }
-export function extractStoreValue<T>(store: Store<T> | undefined | null): T | undefined {
-  if (!store || !isStore(store)) {
-    return undefined;
+function parseToolListCursor(cursor: string, toolCount: number): number {
+  if (!cursor.startsWith(TOOL_LIST_CURSOR_PREFIX)) {
+    throw new Error('Invalid tools/list cursor.');
   }
-  try {
-    return store.getValue();
-  } catch {
-    return undefined;
+  const offset = Number(cursor.slice(TOOL_LIST_CURSOR_PREFIX.length));
+  if (!Number.isInteger(offset) || offset < 0 || offset > toolCount) {
+    throw new Error('Invalid tools/list cursor.');
   }
+  return offset;
 }
-export function extractStoreValues<S extends Record<string, Store<any>>>(
-  stores: S
-): Partial<StoreRecordValues<S>> {
-  const result = {} as Partial<StoreRecordValues<S>>;
-  for (const [key, store] of Object.entries(stores)) {
-    const value = extractStoreValue(store);
-    if (value !== undefined) {
-      (result as any)[key] = value;
+export function createToolRegistry<TSchema extends ActionSchemaMap>(
+  schema: TSchema,
+  executeToolCall: ToolCallExecutor,
+  allowedToolNames?: readonly string[],
+  toolListPageSize?: number,
+  getOperationStatus?: ToolOperationStatusReader,
+  reconcileOperation?: ToolOperationReconciler
+): ToolRegistry<TSchema> {
+  if (
+    toolListPageSize !== undefined &&
+    (!Number.isInteger(toolListPageSize) || toolListPageSize <= 0)
+  ) {
+    throw new Error('toolListPageSize must be a positive integer.');
+  }
+  const catalog = Object.freeze({ ...schema }) as TSchema;
+  const allowedNames = allowedToolNames ? new Set(allowedToolNames) : undefined;
+  const toolNames = Object.freeze(Object.keys(catalog).filter(
+    name => !allowedNames || allowedNames.has(name)
+  ) as (keyof TSchema)[]);
+  const hasOwnTool = (name: string): boolean =>
+    Object.getOwnPropertyDescriptor(catalog, name) !== undefined &&
+    (!allowedNames || allowedNames.has(name));
+  const getExportableTool = <K extends keyof TSchema>(name: K): TSchema[K] => {
+    if (!hasOwnTool(String(name))) {
+      throw new Error(`Tool "${String(name)}" is not available in registry`);
     }
-  }
-  return result;
-}
-export function createSafeEqualityFn<T>(
-  customFn?: EqualityFunction<T>
-): EqualityFunction<T> {
-  return (a: T, b: T) => {
-    try {
-      return customFn ? customFn(a, b) : Object.is(a, b);
-    } catch {
-      return Object.is(a, b);
+    const tool = catalog[name];
+    if (!tool) {
+      throw new Error(`Tool "${String(name)}" is not available in registry`);
     }
+    return tool;
   };
-}
-export const TypeUtils = {
-  validateStoreConfig<T>(config: any): config is StoreInitConfig<T> {
-    return (
-      config != null &&
-      typeof config === 'object' &&
-      typeof config.name === 'string' &&
-      config.name.length > 0 &&
-      'initialValue' in config
+  const listTools = (request?: ToolListRequest) => {
+    if (request !== undefined && !isToolListRequest(request)) {
+      throw new Error('Invalid tools/list request.');
+    }
+    if (!request || toolListPageSize === undefined) {
+      return { tools: toolNames.map(name => catalog[name]!.toMCP()) };
+    }
+    const start = request.params?.cursor
+      ? parseToolListCursor(request.params.cursor, toolNames.length)
+      : 0;
+    const end = Math.min(start + toolListPageSize, toolNames.length);
+    return {
+      tools: toolNames.slice(start, end).map(name => catalog[name]!.toMCP()),
+      ...(end < toolNames.length ? { nextCursor: encodeToolListCursor(end) } : {}),
+    };
+  };
+  const callTool = ((
+    request: ToolCallRequest,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult> => executeToolCall(request, options)) as ToolRegistry<
+    TSchema
+  >['callTool'];
+  const executeModelToolCall = ((
+    call: ModelToolCall,
+    options?: ToolCallOptions
+  ): Promise<ToolCallResult> => executeToolCall(toToolCallRequest(call), {
+    ...options,
+    context: {
+      ...options?.context,
+      source: options?.context?.source ?? 'model',
+      mode: options?.context?.mode ?? 'agent',
+    },
+  })) as ToolRegistry<TSchema>['executeModelToolCall'];
+  const readOperationStatus = (async (
+    toolName: string,
+    idempotencyKey: string,
+    context?: ToolCallContext
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined> => {
+    if (!hasOwnTool(toolName)) return undefined;
+    return getOperationStatus?.(toolName, idempotencyKey, context);
+  }) as ToolRegistry<TSchema>['getOperationStatus'];
+  const reconcileDurableOperation = (async (
+    toolName: string,
+    idempotencyKey: string,
+    resolution: DurableOperationResolution<ToolCallResult>,
+    context?: ToolCallContext,
+    expectedFence?: DurableOperationFence | number
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined> => {
+    if (!hasOwnTool(toolName)) return undefined;
+    if (!reconcileOperation) return undefined;
+    if (typeof expectedFence !== 'object' || expectedFence === null) {
+      throw new Error(
+        'Tool operation reconciliation requires a full { incarnation, revision } ' +
+        'fifth-argument fence or recoverOperation(); omitted and numeric legacy ' +
+        'fences fail closed.'
+      );
+    }
+    return reconcileOperation(
+      toolName,
+      idempotencyKey,
+      resolution,
+      context,
+      expectedFence
     );
-  },
-  validateStore<T>(store: any): store is Store<T> {
-    return isStore(store);
-  },
-  getSafeValue<T>(value: unknown, fallback: T): T {
-    return value !== undefined && value !== null ? value as T : fallback;
+  }) as ToolRegistry<TSchema>['reconcileOperation'];
+  const recoverDurableOperation = (async (
+    toolName: string,
+    idempotencyKey: string,
+    resolver: ToolOperationRecoveryResolver,
+    context?: ToolCallContext
+  ): Promise<DurableOperationRecord<ToolCallResult> | undefined> => {
+    if (!hasOwnTool(toolName)) return undefined;
+    if (typeof resolver !== 'function') {
+      throw new TypeError('Tool operation recovery resolver must be a function.');
+    }
+    const record = await getOperationStatus?.(toolName, idempotencyKey, context);
+    if (record?.state !== 'unknown') return record;
+    if (!reconcileOperation) return record;
+    const resolution = await resolver(record, context);
+    return reconcileOperation(
+      toolName,
+      idempotencyKey,
+      resolution,
+      context,
+      { incarnation: record.incarnation, revision: record.revision }
+    );
+  }) as ToolRegistry<TSchema>['recoverOperation'];
+  return {
+    tools: catalog,
+    getTool<K extends keyof TSchema>(name: K): TSchema[K] {
+      if (Object.getOwnPropertyDescriptor(catalog, String(name)) === undefined) {
+        throw new Error(`Tool "${String(name)}" not found in registry`);
+      }
+      return getExportableTool(name);
+    },
+    hasTool(name: string): boolean {
+      return hasOwnTool(name);
+    },
+    listTools,
+    getToolDefinition(name: string) {
+      if (!hasOwnTool(name)) return undefined;
+      return catalog[name]?.toMCP();
+    },
+    callTool,
+    executeModelToolCall,
+    getOperationStatus: readOperationStatus,
+    reconcileOperation: reconcileDurableOperation,
+    recoverOperation: recoverDurableOperation,
+    getToolNames(): (keyof TSchema)[] {
+      return [...toolNames];
+    },
+    toMCP() {
+      return listTools().tools;
+    },
+    toOpenAI() {
+      return toOpenAIToolDefinitions(listTools().tools);
+    },
+    toAnthropic() {
+      return toAnthropicToolDefinitions(listTools().tools);
+    },
+    toMCPFiltered<K extends keyof TSchema>(names: K[]) {
+      return names.map(name => getExportableTool(name).toMCP());
+    },
+    toOpenAIFiltered<K extends keyof TSchema>(names: K[]) {
+      return toOpenAIToolDefinitions(names.map(name => getExportableTool(name).toMCP()));
+    },
+    toAnthropicFiltered<K extends keyof TSchema>(names: K[]) {
+      return toAnthropicToolDefinitions(names.map(name => getExportableTool(name).toMCP()));
+    },
+  };
+}
+```
+
+### tools/ToolContext.tsx
+
+```typescript
+import {
+  ActionHandler,
+  ActionRegister,
+  ActionResultHandler,
+  DispatchArgs,
+  DispatchOptions,
+  HandlerConfig,
+} from '@context-action/core';
+import {
+  type DurableOperationClaim,
+  hasDurableOperationFencingCapability,
+} from '@context-action/tool-durable-operations';
+import type {
+  ToolCallContext,
+  ToolCallEvent,
+  ToolCallRequest,
+  ToolCallResult,
+  ToolIdempotencyRegistry,
+} from '@context-action/tool-protocol';
+import {
+  ActionSchemaMap,
+  createToolCallError,
+  createToolCallFingerprint,
+  createToolCallSuccess,
+  createToolExecutionProvenance,
+  createToolIdempotencyRegistry,
+  createToolOperationKey,
+  getToolCallErrorMetadata,
+  InferActionPayloadMap,
+  InferActionInputMap,
+  InferActionResultMap,
+  isToolCallRequest,
+  isValidToolIdempotencyKey,
+  measureToolOutputBytes,
+  sanitizeToolCallDiagnostic,
+  sanitizeToolCallDiagnosticReason,
+  TOOL_CALL_ERROR_CODES,
+  withToolCallId,
+} from '@context-action/tool-protocol';
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useId,
+  useInsertionEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  ProviderDispatchLifecycleImpl,
+  withProviderDispatchSignal,
+} from '../actions/ActionContext';
+import type {
+  DirectToolCallOptions,
+  ToolCallFunction,
+  ToolContextConfig,
+  ToolContextReturn,
+  ToolContextType,
+  ToolExecutionResult,
+  ToolPolicy,
+  ToolRegistry,
+} from './ToolContext.types';
+import {
+  createToolRegistry,
+  type ToolCallExecutor,
+  type ToolOperationReconciler,
+  type ToolOperationStatusReader,
+} from './tool-registry';
+const DEFAULT_DURABLE_OPERATION_LEASE_MS = 5 * 60 * 1000;
+const MAX_DURABLE_ABORT_PERSISTENCE_WAIT_MS = 1000;
+const MAX_TOOL_CALL_TIMEOUT_MS = 2_147_483_647;
+type DurablePersistenceOutcome =
+  | { readonly persisted: true }
+  | { readonly persisted: false; readonly error: unknown };
+type DurableAbortSettlement =
+  | { readonly safe: true; readonly winner: 'known-terminal' | 'unknown' }
+  | { readonly safe: false; readonly error: unknown };
+function abortError(signal: AbortSignal): Error {
+  const reason = signal.reason;
+  if (reason instanceof Error) return reason;
+  const error = new Error('Tool call cancelled.');
+  error.name = 'AbortError';
+  return error;
+}
+function awaitWithAbort<T>(
+  promise: PromiseLike<T>,
+  signal?: AbortSignal
+): Promise<T> {
+  if (!signal) return Promise.resolve(promise);
+  if (signal.aborted) return Promise.reject(abortError(signal));
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+    const cleanup = () => signal.removeEventListener('abort', onAbort);
+    const onAbort = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(abortError(signal));
+    };
+    signal.addEventListener('abort', onAbort, { once: true });
+    Promise.resolve(promise).then(
+      value => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve(value);
+      },
+      error => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(error);
+      }
+    );
+  });
+}
+class ToolCallTimeoutError extends Error {
+  override name = 'ToolCallTimeoutError';
+  constructor(public readonly timeoutMs: number) {
+    super(`Tool call timed out after ${timeoutMs}ms.`);
+    Object.setPrototypeOf(this, ToolCallTimeoutError.prototype);
   }
-} as const;
+}
+interface ToolCallTimeoutState {
+  readonly signal: AbortSignal;
+  readonly timeoutMs: number;
+  readonly cleanup: () => void;
+}
+function createToolCallTimeout(timeout: number | undefined): ToolCallTimeoutState | undefined {
+  if (timeout === undefined) return undefined;
+  if (!Number.isSafeInteger(timeout) || timeout < 0 || timeout > MAX_TOOL_CALL_TIMEOUT_MS) {
+    throw new RangeError(
+      `Tool call timeout must be a safe integer between 0 and ${MAX_TOOL_CALL_TIMEOUT_MS}ms.`
+    );
+  }
+  const controller = new AbortController();
+  const timeoutError = new ToolCallTimeoutError(timeout);
+  const timer = setTimeout(() => controller.abort(timeoutError), timeout);
+  return {
+    signal: controller.signal,
+    timeoutMs: timeout,
+    cleanup: () => clearTimeout(timer),
+  };
+}
+function mergeToolCallSignals(
+  signals: readonly (AbortSignal | undefined)[]
+): { signal?: AbortSignal; cleanup: () => void } {
+  const activeSignals = signals.filter(
+    (signal): signal is AbortSignal => signal !== undefined
+  );
+  if (activeSignals.length === 0) return { cleanup: () => {} };
+  if (activeSignals.length === 1) {
+    return { signal: activeSignals[0], cleanup: () => {} };
+  }
+  if (typeof AbortSignal.any === 'function') {
+    return { signal: AbortSignal.any(activeSignals), cleanup: () => {} };
+  }
+  const controller = new AbortController();
+  const listeners = activeSignals.map(signal => {
+    if (signal.aborted) {
+      controller.abort(signal.reason);
+      return undefined;
+    }
+    const listener = () => {
+      if (!controller.signal.aborted) controller.abort(signal.reason);
+    };
+    signal.addEventListener('abort', listener, { once: true });
+    return () => signal.removeEventListener('abort', listener);
+  });
+  return {
+    signal: controller.signal,
+    cleanup: () => listeners.forEach(listener => listener?.()),
+  };
+}
+function isToolCallTimeoutError(error: unknown): error is ToolCallTimeoutError {
+  return error instanceof ToolCallTimeoutError;
+}
+function validateOptionalOutputBudget(maxOutputBytes: number | undefined): void {
+  if (maxOutputBytes !== undefined
+    && (!Number.isSafeInteger(maxOutputBytes) || maxOutputBytes <= 0)) {
+    throw new RangeError('Tool call maxOutputBytes must be a positive safe integer.');
+  }
+}
+function validateOptionalExecutionOwnerId(ownerId: string | undefined, label = 'executionOwnerId'): void {
+  if (ownerId === undefined) return;
+  const normalized = ownerId.trim();
+  if (normalized.length === 0 || normalized.length > 256 || normalized.includes('\0')) {
+    throw new TypeError(`${label} must be visible text within 256 characters.`);
+  }
+}
+function provenanceStateForResult(
+  result: ToolCallResult,
+): 'completed' | 'failed' | 'cancelled' | 'unknown' {
+  if (!result.isError) return 'completed';
+  const code = result.error?.code;
+  if (code === TOOL_CALL_ERROR_CODES.TIMEOUT
+    || code === TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED
+    || code === TOOL_CALL_ERROR_CODES.EXECUTION_UNKNOWN) {
+    return 'unknown';
+  }
+  if (code === TOOL_CALL_ERROR_CODES.CANCELLED) return 'cancelled';
+  return 'failed';
+}
+function enforceToolOutputBudget(
+  result: ToolCallResult,
+  maxOutputBytes: number | undefined,
+  toolCallId: ToolCallRequest['id'],
+): ToolCallResult {
+  if (maxOutputBytes === undefined) return result;
+  const usedOutputBytes = measureToolOutputBytes({
+    content: result.content,
+    ...(result.structuredContent === undefined
+      ? {}
+      : { structuredContent: result.structuredContent }),
+  });
+  if (usedOutputBytes <= maxOutputBytes) return result;
+  return createToolCallError(
+    `Tool call output exceeded the ${maxOutputBytes}-byte limit.`,
+    {
+      code: TOOL_CALL_ERROR_CODES.OUTPUT_LIMIT_EXCEEDED,
+      retryable: false,
+      toolCallId,
+      details: { maxOutputBytes, usedOutputBytes },
+    }
+  );
+}
+function observedToolOutputBytes(result: ToolCallResult): number {
+  const details = result.error?.details;
+  if (details && typeof details === 'object' && !Array.isArray(details)) {
+    const usedOutputBytes = (details as Record<string, unknown>).usedOutputBytes;
+    if (typeof usedOutputBytes === 'number' && Number.isSafeInteger(usedOutputBytes)
+      && usedOutputBytes >= 0) {
+      return usedOutputBytes;
+    }
+  }
+  return measureToolOutputBytes({
+    content: result.content,
+    ...(result.structuredContent === undefined
+      ? {}
+      : { structuredContent: result.structuredContent }),
+  });
+}
+export function createToolContext<TSchema extends ActionSchemaMap>(
+  contextName: string,
+  config: ToolContextConfig<TSchema>
+): ToolContextReturn<TSchema> {
+  type TPayloadMap = InferActionPayloadMap<TSchema>;
+  type TInputMap = InferActionInputMap<TSchema>;
+  const {
+    schema: configuredSchema,
+    validationMode = 'strict',
+    validateOnDispatch = true,
+    debug = false,
+    allowedToolNames: configuredAllowedToolNames,
+    toolListPageSize,
+    toolPolicy,
+    onToolCall,
+    executionOwnerId,
+    idempotency,
+    durableOperationStore,
+    durableOperationOwnerId,
+    durableOperationLeaseMs = DEFAULT_DURABLE_OPERATION_LEASE_MS,
+    durableDiagnosticPolicy,
+  } = config;
+  const schema = Object.freeze({ ...configuredSchema }) as TSchema;
+  const allowedToolNames = configuredAllowedToolNames === undefined
+    ? undefined
+    : Object.freeze([...new Set(configuredAllowedToolNames)]);
+  if (
+    durableOperationLeaseMs !== undefined &&
+    (!Number.isFinite(durableOperationLeaseMs) || durableOperationLeaseMs <= 0)
+  ) {
+    throw new RangeError('durableOperationLeaseMs must be a positive finite number.');
+  }
+  validateOptionalExecutionOwnerId(durableOperationOwnerId, 'durableOperationOwnerId');
+  validateOptionalExecutionOwnerId(executionOwnerId);
+  if (durableOperationStore && !hasDurableOperationFencingCapability(durableOperationStore)) {
+    throw new TypeError(
+      'durableOperationStore must declare incarnation-revision fencing capability.'
+    );
+  }
+  const ToolReactContext = createContext<ToolContextType<TSchema> | null>(null);
+  const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const providerInstanceId = useId();
+    const durableOwnerId = durableOperationOwnerId ?? `${contextName}:${providerInstanceId}`;
+    const actionRegisterRef = useRef<ActionRegister<TPayloadMap> | null>(null);
+    const dispatchLifecycleRef = useRef<ProviderDispatchLifecycleImpl | null>(null);
+    const idempotencyRegistryRef = useRef<ToolIdempotencyRegistry<ToolCallResult> | null>(null);
+    if (!actionRegisterRef.current) {
+      actionRegisterRef.current = new ActionRegister<TPayloadMap>({
+        name: contextName,
+        registry: {
+          schema: schema as ActionSchemaMap,
+          validationMode,
+          validateOnDispatch,
+          useConcurrencyQueue: true,
+        },
+      });
+    }
+    if (!dispatchLifecycleRef.current) {
+      dispatchLifecycleRef.current = new ProviderDispatchLifecycleImpl();
+    }
+    if (!idempotencyRegistryRef.current) {
+      idempotencyRegistryRef.current = createToolIdempotencyRegistry<ToolCallResult>(
+        idempotency
+      );
+    }
+    const dispatchLifecycle = dispatchLifecycleRef.current;
+    useInsertionEffect(() => {
+      const register = actionRegisterRef.current;
+      if (!register) {
+        throw new Error('Tool provider resources were not initialized before commit.');
+      }
+      return () => {
+        void dispatchLifecycle.shutdown(register);
+        if (actionRegisterRef.current === register) {
+          actionRegisterRef.current = null;
+        }
+        if (dispatchLifecycleRef.current === dispatchLifecycle) {
+          dispatchLifecycleRef.current = null;
+        }
+        idempotencyRegistryRef.current = null;
+      };
+    }, [dispatchLifecycle]);
+    const dispatch = useMemo(() => {
+      return <K extends Extract<keyof TPayloadMap, string>>(
+        toolName: K,
+        payload: TPayloadMap[K],
+        options?: DispatchOptions
+      ): Promise<void> => {
+        if (debug) {
+          console.log(`[${contextName}] Dispatching tool '${String(toolName)}':`, payload);
+        }
+        const register = actionRegisterRef.current;
+        if (!register) {
+          throw new Error(`ActionRegister not initialized in ${contextName}`);
+        }
+        const trackedPromise = dispatchLifecycle.run(
+          [options?.signal],
+          signal => register.dispatch(
+            toolName as Extract<keyof TPayloadMap, string>,
+            ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<TPayloadMap[K]>)
+          )
+        );
+        void trackedPromise.catch(() => {});
+        return trackedPromise;
+      };
+    }, [dispatchLifecycle]);
+    const executeToolCall = useMemo<ToolCallExecutor>(() => {
+      return async (request, options) => {
+        if (!isToolCallRequest(request)) {
+          const rawRequest = request as unknown as {
+            id?: unknown;
+          } | null;
+          const rawId = rawRequest?.id;
+          const toolCallId =
+            typeof rawId === 'string' ||
+            (typeof rawId === 'number' && Number.isFinite(rawId))
+              ? rawId
+              : undefined;
+          return createToolCallError('Invalid tools/call request.', {
+            code: TOOL_CALL_ERROR_CODES.VALIDATION_FAILED,
+            ...(toolCallId === undefined ? {} : { toolCallId }),
+          });
+        }
+        const startedAt = Date.now();
+        const idempotencyKey = options?.idempotencyKey;
+        if (idempotencyKey !== undefined && !isValidToolIdempotencyKey(idempotencyKey)) {
+          return createToolCallError(
+            'Tool call idempotencyKey must be a non-empty string of at most 256 characters.',
+            {
+              code: TOOL_CALL_ERROR_CODES.INVALID_OPTIONS,
+              retryable: false,
+              toolCallId: request.id,
+            }
+          );
+        }
+        let timeoutState: ToolCallTimeoutState | undefined;
+        try {
+          timeoutState = createToolCallTimeout(options?.timeout);
+          validateOptionalOutputBudget(options?.maxOutputBytes);
+          validateOptionalExecutionOwnerId(options?.executionOwnerId);
+        } catch (error) {
+          timeoutState?.cleanup();
+          return createToolCallError(
+            error instanceof Error ? error.message : String(error),
+            {
+              code: TOOL_CALL_ERROR_CODES.INVALID_OPTIONS,
+              retryable: false,
+              toolCallId: request.id,
+            }
+          );
+        }
+        const signalState = mergeToolCallSignals([
+          options?.signal,
+          timeoutState?.signal,
+        ]);
+        const callSignal = signalState.signal;
+        const context: ToolCallContext = options?.context ?? { source: 'mcp' };
+        const provenanceOwnerId = options?.executionOwnerId ?? executionOwnerId ?? durableOwnerId;
+        const toolName = request.params.name as keyof TPayloadMap;
+        const hasOwnTool = Object.getOwnPropertyDescriptor(schema, request.params.name) !== undefined;
+        const tool = hasOwnTool ? schema[request.params.name] : undefined;
+        const emit = (event: ToolCallEvent): void => {
+          try {
+            onToolCall?.(event);
+          } catch (error) {
+            if (debug) console.warn(`[${contextName}] Tool observer failed`, error);
+          }
+        };
+        emit({
+          type: 'started',
+          toolCallId: request.id,
+          name: request.params.name,
+          request,
+          context,
+          timestamp: startedAt,
+          provenance: createToolExecutionProvenance({
+            ownerId: provenanceOwnerId,
+            state: 'pending',
+            ...(options?.timeout === undefined ? {} : { timeoutMs: options.timeout }),
+            ...(options?.maxOutputBytes === undefined ? {} : { maxOutputBytes: options.maxOutputBytes }),
+            usedOutputBytes: 0,
+            elapsedMs: 0,
+          }),
+        });
+        const finish = (result: ToolCallResult): ToolCallResult => {
+          timeoutState?.cleanup();
+          signalState.cleanup();
+          const normalized = withToolCallId(result, request.id);
+          const usedOutputBytes = observedToolOutputBytes(normalized);
+          const finalResult = normalized;
+          const elapsedMs = Math.max(0, Date.now() - startedAt);
+          emit({
+            type: finalResult.isError ? 'failed' : 'completed',
+            toolCallId: request.id,
+            name: request.params.name,
+            request,
+            context,
+            timestamp: Date.now(),
+            durationMs: elapsedMs,
+            result: finalResult,
+            provenance: createToolExecutionProvenance({
+              ownerId: provenanceOwnerId,
+              state: provenanceStateForResult(finalResult),
+              ...(options?.timeout === undefined ? {} : { timeoutMs: options.timeout }),
+              ...(options?.maxOutputBytes === undefined ? {} : { maxOutputBytes: options.maxOutputBytes }),
+              usedOutputBytes,
+              elapsedMs,
+            }),
+          });
+          return finalResult;
+        };
+        const timeoutResult = (): ToolCallResult => createToolCallError(
+          `Tool call timed out after ${timeoutState!.timeoutMs}ms.`,
+          {
+            code: TOOL_CALL_ERROR_CODES.TIMEOUT,
+            retryable: true,
+            toolCallId: request.id,
+            details: {
+              timeoutMs: timeoutState!.timeoutMs,
+              executionState: 'detached',
+            },
+          }
+        );
+        if (!tool) {
+          return finish(createToolCallError(
+            `Tool "${request.params.name}" not found in registry`,
+            { code: TOOL_CALL_ERROR_CODES.NOT_FOUND, toolCallId: request.id }
+          ));
+        }
+        if (allowedToolNames && !allowedToolNames.includes(request.params.name)) {
+          return finish(createToolCallError(
+            `Tool "${request.params.name}" is not allowed in this registry`,
+            { code: TOOL_CALL_ERROR_CODES.NOT_ALLOWED, toolCallId: request.id }
+          ));
+        }
+        let executionArguments = request.params.arguments ?? {};
+        if (validateOnDispatch && validationMode === 'strict') {
+          const validation = tool.safeParse(request.params.arguments ?? {});
+          if (!validation.success) {
+            return finish(createToolCallError(
+              `Tool "${request.params.name}" arguments failed validation`,
+              {
+                code: TOOL_CALL_ERROR_CODES.VALIDATION_FAILED,
+                toolCallId: request.id,
+                details: { issues: validation.error.issues },
+              }
+            ));
+          }
+          executionArguments = validation.data as Record<string, unknown>;
+        }
+        if (toolPolicy) {
+          let decision: Awaited<ReturnType<ToolPolicy>>;
+          let policySignal: AbortSignal | undefined;
+          try {
+            decision = await awaitWithAbort(
+              dispatchLifecycle.run(
+                [options?.signal, timeoutState?.signal],
+                signal => {
+                  policySignal = signal;
+                  return awaitWithAbort(
+                    Promise.resolve().then(() =>
+                      toolPolicy({
+                        request,
+                        definition: tool.toMCP(),
+                        context,
+                        signal,
+                      })
+                    ),
+                    signal
+                  );
+                }
+              ),
+              callSignal
+            );
+          } catch (error) {
+            if (timeoutState && (timeoutState.signal.aborted || isToolCallTimeoutError(error))) {
+              return finish(timeoutResult());
+            }
+            if (options?.signal?.aborted) {
+              return finish(createToolCallError(
+                'Tool call cancelled while waiting for policy.',
+                {
+                  code: TOOL_CALL_ERROR_CODES.CANCELLED,
+                  retryable: true,
+                  toolCallId: request.id,
+                }
+              ));
+            }
+            if (
+              !options?.signal?.aborted &&
+              (policySignal?.aborted ||
+                (policySignal === undefined &&
+                  error instanceof Error &&
+                  error.name === 'AbortError'))
+            ) {
+              return finish(createToolCallError(
+                error instanceof Error ? error.message : 'Tool provider unmounted.',
+                {
+                  code: TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED,
+                  retryable: true,
+                  toolCallId: request.id,
+                  details: { executionState: 'detached' },
+                }
+              ));
+            }
+            return finish(createToolCallError(
+              error instanceof Error ? error.message : String(error),
+              {
+                code: TOOL_CALL_ERROR_CODES.POLICY_FAILED,
+                toolCallId: request.id,
+                retryable: true,
+              }
+            ));
+          }
+          if (decision === 'ask' && options?.interaction) {
+            let interactionSignal: AbortSignal | undefined;
+            try {
+              const interactionDecision = await awaitWithAbort(
+                dispatchLifecycle.run(
+                  [options?.signal, timeoutState?.signal],
+                  signal => {
+                    interactionSignal = signal;
+                    return awaitWithAbort(
+                      options.interaction!({
+                        kind: 'approval',
+                        call: {
+                          ...(request.id === undefined ? {} : { id: request.id }),
+                          name: request.params.name,
+                          arguments: request.params.arguments ?? {},
+                        },
+                        request,
+                        definition: tool.toMCP(),
+                        context,
+                        signal,
+                      }),
+                      signal
+                    );
+                  }
+                ),
+                callSignal,
+              );
+              decision = interactionDecision === 'approved' ? 'allow' : 'deny';
+            } catch (error) {
+              if (timeoutState && (timeoutState.signal.aborted || isToolCallTimeoutError(error))) {
+                return finish(timeoutResult());
+              }
+              if (options?.signal?.aborted) {
+                return finish(createToolCallError('Tool call cancelled while waiting for interaction.', {
+                  code: TOOL_CALL_ERROR_CODES.CANCELLED,
+                  retryable: true,
+                  toolCallId: request.id,
+                }));
+              }
+              if (
+                !options?.signal?.aborted &&
+                (interactionSignal?.aborted ||
+                  (interactionSignal === undefined &&
+                    error instanceof Error &&
+                    error.name === 'AbortError'))
+              ) {
+                return finish(createToolCallError(
+                  error instanceof Error ? error.message : 'Tool provider unmounted.',
+                  {
+                    code: TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED,
+                    retryable: true,
+                    toolCallId: request.id,
+                    details: { executionState: 'detached' },
+                  }
+                ));
+              }
+              return finish(createToolCallError(
+                error instanceof Error ? error.message : String(error),
+                {
+                  code: TOOL_CALL_ERROR_CODES.POLICY_FAILED,
+                  retryable: true,
+                  toolCallId: request.id,
+                },
+              ));
+            }
+          }
+          if (decision !== 'allow') {
+            return finish(createToolCallError(
+              decision === 'ask'
+                ? `Approval required for tool "${request.params.name}"`
+                : `Tool "${request.params.name}" was denied by policy`,
+              {
+                code: decision === 'ask'
+                  ? TOOL_CALL_ERROR_CODES.APPROVAL_REQUIRED
+                  : TOOL_CALL_ERROR_CODES.POLICY_DENIED,
+                retryable: decision === 'ask',
+                toolCallId: request.id,
+              }
+            ));
+          }
+        }
+        const register = actionRegisterRef.current;
+        if (!register) {
+          return finish(createToolCallError(`ActionRegister not initialized in ${contextName}`, {
+            code: TOOL_CALL_ERROR_CODES.REGISTRY_NOT_READY,
+            toolCallId: request.id,
+            retryable: true,
+          }));
+        }
+        const payload = executionArguments as TPayloadMap[typeof toolName];
+        const operationKey = idempotencyKey === undefined
+          ? undefined
+          : createToolOperationKey(
+              request.params.name,
+              idempotencyKey,
+              context.sessionId
+            );
+        const fingerprint = idempotencyKey === undefined
+          ? undefined
+          : createToolCallFingerprint(request.params.name, request.params.arguments ?? {});
+        let durableAbortTransition: Promise<DurableAbortSettlement> | undefined;
+        const storeFailureResult = (
+          error: unknown,
+          persistenceUncertain = false
+        ): ToolCallResult => createToolCallError(
+          `Durable operation state could not be persisted: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          {
+            code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_STORE_FAILED,
+            retryable: true,
+            toolCallId: request.id,
+            details: {
+              ...(operationKey === undefined ? {} : { operationKey }),
+              ...(persistenceUncertain
+                ? {
+                    persistenceState: 'uncertain',
+                    automaticRetrySafe: false,
+                  }
+                : {}),
+            },
+          }
+        );
+        const unknownOperationResult = (): ToolCallResult => createToolCallError(
+          `Operation "${request.params.name}" has an unknown outcome and requires reconciliation.`,
+          {
+            code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_UNKNOWN,
+            retryable: false,
+            toolCallId: request.id,
+            details: {
+              state: 'unknown',
+              automaticRetrySafe: false,
+            },
+          }
+        );
+        const storedResultForDurability = (result: ToolCallResult): ToolCallResult => {
+          if (result.toolCallId === undefined) return result;
+          const { toolCallId: _toolCallId, ...withoutToolCallId } = result;
+          return withoutToolCallId;
+        };
+        const transitionOutcome = (
+          transition: () => unknown | PromiseLike<unknown>
+        ): Promise<DurablePersistenceOutcome> => Promise.resolve()
+          .then(transition)
+          .then(
+            () => ({ persisted: true as const }),
+            error => ({ persisted: false as const, error })
+          );
+        const performExecution = async (
+          signal: AbortSignal
+        ): Promise<ToolCallResult> => {
+          try {
+            const execution = await register.dispatchWithResult(
+              toolName as Extract<keyof TPayloadMap, string>,
+              ...([
+                payload,
+                withProviderDispatchSignal({ signal }, signal),
+              ] as DispatchArgs<TPayloadMap[typeof toolName]>)
+            );
+            if (!execution.success) {
+              const validationMessage =
+                execution.validation && !execution.validation.passed
+                  ? execution.validation.errors.join('; ')
+                  : undefined;
+              const failedHandler = execution.failedResults.find(
+                ({ error }) => Boolean(error?.message)
+              );
+              const lifecycleError = execution.errors.find(
+                ({ error }) => Boolean(error?.message)
+              );
+              const handlerError = failedHandler?.error ?? lifecycleError?.error;
+              const handlerMetadata = getToolCallErrorMetadata(handlerError);
+              const executionMessage =
+                execution.abortReason ??
+                validationMessage ??
+                failedHandler?.error.message ??
+                lifecycleError?.error.message ??
+                `Tool "${request.params.name}" failed`;
+              const timedOut = timeoutState?.signal.aborted === true && !execution.aborted;
+              const externallyCancelled = options?.signal?.aborted === true;
+              return createToolCallError(executionMessage, {
+                code: timedOut
+                  ? TOOL_CALL_ERROR_CODES.TIMEOUT
+                  : externallyCancelled
+                  ? TOOL_CALL_ERROR_CODES.CANCELLED
+                  : handlerMetadata.code ??
+                    (execution.validation && !execution.validation.passed
+                      ? TOOL_CALL_ERROR_CODES.VALIDATION_FAILED
+                      : execution.aborted
+                        ? TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED
+                        : TOOL_CALL_ERROR_CODES.EXECUTION_FAILED),
+                retryable:
+                  timedOut ||
+                  externallyCancelled ||
+                  handlerMetadata.retryable === true ||
+                  (handlerMetadata.retryable === undefined && execution.aborted),
+                details: timedOut
+                  ? {
+                      timeoutMs: timeoutState!.timeoutMs,
+                      executionState: 'detached',
+                    }
+                  : handlerMetadata.details ??
+                    (failedHandler
+                      ? {
+                          handlerId: failedHandler.handlerId,
+                          message: failedHandler.error.message,
+                        }
+                      : undefined),
+              });
+            }
+            const output =
+              execution.result ??
+              (execution.successResults.length === 0
+                ? undefined
+                : execution.successResults.length === 1
+                  ? execution.successResults[0]
+                  : execution.successResults);
+            const outputValidation = tool.safeParseOutput?.(output);
+            if (outputValidation && !outputValidation.success) {
+              return createToolCallError(
+                `Tool "${request.params.name}" returned an invalid result`,
+                {
+                  code: TOOL_CALL_ERROR_CODES.OUTPUT_VALIDATION_FAILED,
+                  details: { issues: outputValidation.error.issues },
+                }
+              );
+            }
+            const normalizedOutput = outputValidation?.success
+              ? outputValidation.data
+              : output;
+            return createToolCallSuccess(normalizedOutput);
+          } catch (error) {
+            const errorMetadata = getToolCallErrorMetadata(error);
+            const timedOut = timeoutState !== undefined && (
+              timeoutState.signal.aborted || isToolCallTimeoutError(error)
+            );
+            const externallyCancelled = options?.signal?.aborted === true;
+            const providerAborted =
+              !timedOut &&
+              !externallyCancelled &&
+              (signal.aborted || (error instanceof Error && error.name === 'AbortError'));
+            return createToolCallError(
+              timedOut
+                ? `Tool call timed out after ${timeoutState!.timeoutMs}ms.`
+                : error instanceof Error ? error.message : String(error),
+              {
+                code: timedOut
+                  ? TOOL_CALL_ERROR_CODES.TIMEOUT
+                  : externallyCancelled
+                  ? TOOL_CALL_ERROR_CODES.CANCELLED
+                  : providerAborted
+                  ? TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED
+                  : errorMetadata.code ?? TOOL_CALL_ERROR_CODES.EXECUTION_FAILED,
+                retryable:
+                  timedOut ||
+                  externallyCancelled ||
+                  providerAborted ||
+                  errorMetadata.retryable === true,
+                ...(timedOut
+                  ? {
+                      details: {
+                        timeoutMs: timeoutState!.timeoutMs,
+                        executionState: 'detached',
+                      },
+                    }
+                  : providerAborted
+                  ? { details: { executionState: 'detached' } }
+                  : errorMetadata.details === undefined
+                  ? {}
+                  : { details: errorMetadata.details }),
+              }
+            );
+          }
+        };
+        const runLogicalOperation = async (
+          operationSignal: AbortSignal
+        ): Promise<ToolCallResult> => {
+          const performExecutionWithBudget = async (): Promise<ToolCallResult> =>
+            enforceToolOutputBudget(
+              await performExecution(operationSignal),
+              options?.maxOutputBytes,
+              request.id,
+            );
+          if (!durableOperationStore || !operationKey || !fingerprint) {
+            return performExecutionWithBudget();
+          }
+          let operationAborted = operationSignal.aborted;
+          let resolveOperationAbort: (() => void) | undefined;
+          let beginOwnedAbort: (() => void) | undefined;
+          const operationAbortPromise = operationAborted
+            ? Promise.resolve()
+            : new Promise<void>(resolve => {
+                resolveOperationAbort = resolve;
+              });
+          const onOperationAbort = (): void => {
+            operationAborted = true;
+            resolveOperationAbort?.();
+            beginOwnedAbort?.();
+          };
+          if (!operationAborted) {
+            operationSignal.addEventListener('abort', onOperationAbort, { once: true });
+          }
+          const cleanupOperationAbort = (): void => {
+            operationSignal.removeEventListener('abort', onOperationAbort);
+          };
+          const abortResultForSignal = (): ToolCallResult => {
+            if (timeoutState?.signal.aborted) return timeoutResult();
+            if (options?.signal?.aborted) {
+              const message = abortError(options.signal).message;
+              return createToolCallError(message.trim() ? message : 'Tool call cancelled.', {
+                code: TOOL_CALL_ERROR_CODES.CANCELLED,
+                retryable: true,
+                toolCallId: request.id,
+              });
+            }
+            const message = abortError(operationSignal).message;
+            return createToolCallError(
+              message.trim() ? message : 'Tool execution was aborted.',
+              {
+                code: TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED,
+                retryable: true,
+                toolCallId: request.id,
+                details: { executionState: 'detached' },
+              }
+            );
+          };
+          const boundDetachedAbortTransition = (
+            transition: Promise<DurablePersistenceOutcome>
+          ): Promise<DurablePersistenceOutcome> => {
+            const waitMs = Math.max(
+              1,
+              Math.min(
+                durableOperationLeaseMs,
+                MAX_DURABLE_ABORT_PERSISTENCE_WAIT_MS
+              )
+            );
+            return new Promise(resolve => {
+              let settled = false;
+              const finish = (outcome: DurablePersistenceOutcome): void => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                resolve(outcome);
+              };
+              const timer = setTimeout(() => {
+                finish({
+                  persisted: false,
+                  error: new Error(
+                    `Detached durable abort persistence did not settle within ${waitMs}ms.`
+                  ),
+                });
+              }, waitMs);
+              void transition.then(finish);
+            });
+          };
+          const claimPromise = Promise.resolve().then(() =>
+            durableOperationStore.claim(
+              operationKey,
+              fingerprint,
+              durableOwnerId,
+              { leaseMs: durableOperationLeaseMs }
+            )
+          );
+          const claimRace = await Promise.race([
+            claimPromise.then(
+              claim => ({ kind: 'claim' as const, claim }),
+              error => ({ kind: 'error' as const, error })
+            ),
+            operationAbortPromise.then(() => ({ kind: 'abort' as const })),
+          ]);
+          if (claimRace.kind === 'abort') {
+            cleanupOperationAbort();
+            idempotencyRegistryRef.current?.clear(operationKey);
+            const abortResult = abortResultForSignal();
+            void claimPromise.then(
+              lateClaim => {
+                if (lateClaim.status !== 'owner') return;
+                const transition = transitionOutcome(() => {
+                  const storedAbortResult = storedResultForDurability(abortResult);
+                  const durableDiagnostic = sanitizeToolCallDiagnostic(
+                    storedAbortResult,
+                    durableDiagnosticPolicy
+                  );
+                  return durableOperationStore.markUnknown(
+                    operationKey,
+                    durableOwnerId,
+                    sanitizeToolCallDiagnosticReason(abortResult),
+                    durableDiagnostic,
+                    lateClaim.fence
+                  );
+                });
+                void boundDetachedAbortTransition(transition).then(outcome => {
+                  if (!outcome.persisted && debug) {
+                    console.warn(
+                      `[${contextName}] Detached durable abort transition failed`,
+                      outcome.error
+                    );
+                  }
+                });
+              },
+              error => {
+                if (debug) {
+                  console.warn(`[${contextName}] Detached durable claim failed`, error);
+                }
+              }
+            );
+            return abortResult;
+          }
+          if (claimRace.kind === 'error') {
+            cleanupOperationAbort();
+            idempotencyRegistryRef.current?.clear(operationKey);
+            return storeFailureResult(claimRace.error);
+          }
+          const durableClaim: DurableOperationClaim<ToolCallResult> = claimRace.claim;
+          if (durableClaim.status === 'conflict') {
+            cleanupOperationAbort();
+            return createToolCallError(
+              `Idempotency key was already used for a different "${request.params.name}" operation.`,
+              {
+                code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_CONFLICT,
+                retryable: false,
+              }
+            );
+          }
+          if (durableClaim.status === 'pending') {
+            cleanupOperationAbort();
+            idempotencyRegistryRef.current?.clear(operationKey);
+            return createToolCallError(
+              `Operation "${request.params.name}" is already running in another owner.`,
+              {
+                code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_PENDING,
+                retryable: true,
+                details: {
+                  state: durableClaim.record.state,
+                  ownerId: durableClaim.record.ownerId,
+                  leaseExpiresAt: durableClaim.record.leaseExpiresAt,
+                },
+              }
+            );
+          }
+          if (durableClaim.status === 'unknown') {
+            cleanupOperationAbort();
+            idempotencyRegistryRef.current?.clear(operationKey);
+            return createToolCallError(
+              `Operation "${request.params.name}" has an unknown outcome and requires reconciliation.`,
+              {
+                code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_UNKNOWN,
+                retryable: false,
+                details: {
+                  state: durableClaim.record.state,
+                  reason: durableClaim.record.reason,
+                  automaticRetrySafe: false,
+                },
+              }
+            );
+          }
+          if (durableClaim.status === 'replay') {
+            cleanupOperationAbort();
+            if (durableClaim.record.result === undefined) {
+              idempotencyRegistryRef.current?.clear(operationKey);
+              return unknownOperationResult();
+            }
+            return durableClaim.record.result;
+          }
+          let terminalTransition: Promise<DurablePersistenceOutcome> | undefined;
+          let terminalResult: ToolCallResult | undefined;
+          let terminalWritesUnknown = false;
+          const createAbortSettlement = (
+            abortTransition: Promise<DurablePersistenceOutcome>,
+            competingTerminal: Promise<DurablePersistenceOutcome> | undefined,
+            competingTerminalWritesUnknown: boolean
+          ): Promise<DurableAbortSettlement> => {
+            const waitMs = Math.max(
+              1,
+              Math.min(
+                durableOperationLeaseMs,
+                MAX_DURABLE_ABORT_PERSISTENCE_WAIT_MS
+              )
+            );
+            return new Promise(resolve => {
+              let settled = false;
+              let abortOutcome: DurablePersistenceOutcome | undefined;
+              let terminalOutcome: DurablePersistenceOutcome | undefined;
+              const finish = (outcome: DurableAbortSettlement): void => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                cleanupOperationAbort();
+                resolve(outcome);
+              };
+              const evaluate = (): void => {
+                if (abortOutcome?.persisted) {
+                  finish({ safe: true, winner: 'unknown' });
+                  return;
+                }
+                if (terminalOutcome?.persisted) {
+                  finish({
+                    safe: true,
+                    winner: competingTerminalWritesUnknown
+                      ? 'unknown'
+                      : 'known-terminal',
+                  });
+                  return;
+                }
+                if (
+                  abortOutcome &&
+                  !abortOutcome.persisted &&
+                  (
+                    competingTerminal === undefined ||
+                    (terminalOutcome !== undefined && !terminalOutcome.persisted)
+                  )
+                ) {
+                  finish({ safe: false, error: abortOutcome.error });
+                }
+              };
+              const timer = setTimeout(() => {
+                finish({
+                  safe: false,
+                  error: new Error(
+                    `Durable abort persistence did not settle within ${waitMs}ms.`
+                  ),
+                });
+              }, waitMs);
+              void abortTransition.then(outcome => {
+                abortOutcome = outcome;
+                evaluate();
+              });
+              void competingTerminal?.then(outcome => {
+                terminalOutcome = outcome;
+                evaluate();
+              });
+            });
+          };
+          const beginAbortTransition = (): void => {
+            if (durableAbortTransition) return;
+            idempotencyRegistryRef.current?.clear(operationKey);
+            const rawAbortTransition = transitionOutcome(() => {
+              const result = abortResultForSignal();
+              const storedResult = storedResultForDurability(result);
+              const durableDiagnostic = sanitizeToolCallDiagnostic(
+                storedResult,
+                durableDiagnosticPolicy
+              );
+              return durableOperationStore.markUnknown(
+                operationKey,
+                durableOwnerId,
+                sanitizeToolCallDiagnosticReason(result),
+                durableDiagnostic,
+                durableClaim.fence
+              );
+            });
+            durableAbortTransition = createAbortSettlement(
+              rawAbortTransition,
+              terminalTransition,
+              terminalWritesUnknown
+            );
+            void durableAbortTransition.then(outcome => {
+              if (!outcome.safe && debug) {
+                console.warn(
+                  `[${contextName}] Durable abort transition failed`,
+                  outcome.error
+                );
+              }
+            });
+          };
+          beginOwnedAbort = beginAbortTransition;
+          if (operationAborted) beginAbortTransition();
+          const settleAbortedOperation = async (): Promise<ToolCallResult> => {
+            beginAbortTransition();
+            const settlement = await durableAbortTransition!;
+            if (!settlement.safe) {
+              return storeFailureResult(settlement.error, true);
+            }
+            if (settlement.winner === 'known-terminal' && terminalResult) {
+              return terminalResult;
+            }
+            return unknownOperationResult();
+          };
+          if (operationAborted) return settleAbortedOperation();
+          const execution = performExecutionWithBudget();
+          const executionRace = await Promise.race([
+            execution.then(result => ({ kind: 'result' as const, result })),
+            operationAbortPromise.then(() => ({ kind: 'abort' as const })),
+          ]);
+          if (executionRace.kind === 'abort') return settleAbortedOperation();
+          terminalResult = executionRace.result;
+          if (operationAborted) return settleAbortedOperation();
+          const code = terminalResult.error?.code;
+          const ambiguous =
+            code === TOOL_CALL_ERROR_CODES.TIMEOUT ||
+            code === TOOL_CALL_ERROR_CODES.CANCELLED ||
+            code === TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED ||
+            code === TOOL_CALL_ERROR_CODES.EXECUTION_UNKNOWN;
+          terminalWritesUnknown = ambiguous;
+          const storedResult = storedResultForDurability(terminalResult);
+          const durableDiagnostic = terminalResult.isError
+            ? sanitizeToolCallDiagnostic(storedResult, durableDiagnosticPolicy)
+            : storedResult;
+          terminalTransition = transitionOutcome(() => {
+            if (ambiguous) {
+              return durableOperationStore.markUnknown(
+                operationKey,
+                durableOwnerId,
+                sanitizeToolCallDiagnosticReason(terminalResult!),
+                durableDiagnostic,
+                durableClaim.fence
+              );
+            }
+            if (terminalResult!.isError) {
+              return durableOperationStore.fail(
+                operationKey,
+                durableOwnerId,
+                sanitizeToolCallDiagnosticReason(terminalResult!),
+                durableDiagnostic,
+                durableClaim.fence
+              );
+            }
+            return durableOperationStore.complete(
+              operationKey,
+              durableOwnerId,
+              storedResult,
+              durableClaim.fence
+            );
+          });
+          const terminalRace = await Promise.race([
+            terminalTransition.then(outcome => ({
+              kind: 'terminal' as const,
+              outcome,
+            })),
+            operationAbortPromise.then(() => ({ kind: 'abort' as const })),
+          ]);
+          if (terminalRace.kind === 'abort') return settleAbortedOperation();
+          if (terminalRace.outcome.persisted) {
+            cleanupOperationAbort();
+            if (ambiguous) idempotencyRegistryRef.current?.clear(operationKey);
+            return terminalResult;
+          }
+          if (durableAbortTransition) return settleAbortedOperation();
+          cleanupOperationAbort();
+          idempotencyRegistryRef.current?.clear(operationKey);
+          if (debug) {
+            console.warn(
+              `[${contextName}] Durable operation transition failed`,
+              terminalRace.outcome.error
+            );
+          }
+          return storeFailureResult(terminalRace.outcome.error, true);
+        };
+        const runProviderScopedOperation = (): Promise<ToolCallResult> =>
+          dispatchLifecycle.run(
+            [options?.signal, timeoutState?.signal],
+            runLogicalOperation
+          );
+        try {
+          const idempotencyClaim = operationKey === undefined
+            ? undefined
+            : idempotencyRegistryRef.current!.claim(
+                operationKey,
+                fingerprint!,
+                runProviderScopedOperation
+              );
+          if (idempotencyClaim?.status === 'conflict') {
+            return finish(createToolCallError(
+              `Idempotency key was already used for a different "${request.params.name}" operation.`,
+              {
+                code: TOOL_CALL_ERROR_CODES.IDEMPOTENCY_CONFLICT,
+                retryable: false,
+                toolCallId: request.id,
+              }
+            ));
+          }
+          const result = await awaitWithAbort(
+            idempotencyClaim?.promise ?? runProviderScopedOperation(),
+            callSignal
+          );
+          return finish(withToolCallId(result, request.id));
+        } catch (error) {
+          const errorMetadata = getToolCallErrorMetadata(error);
+          const timedOut = timeoutState !== undefined && (
+            timeoutState.signal.aborted || isToolCallTimeoutError(error)
+          );
+          const externallyCancelled = options?.signal?.aborted === true;
+          const providerAborted =
+            !timedOut &&
+            !externallyCancelled &&
+            error instanceof Error &&
+            error.name === 'AbortError';
+          if (
+            (timedOut || externallyCancelled || providerAborted) &&
+            durableAbortTransition
+          ) {
+            const settlement = await durableAbortTransition;
+            if (!settlement.safe) {
+              return finish(storeFailureResult(settlement.error, true));
+            }
+          }
+          return finish(createToolCallError(
+            timedOut
+              ? `Tool call timed out after ${timeoutState!.timeoutMs}ms.`
+              : error instanceof Error ? error.message : String(error),
+            {
+              code: timedOut
+                ? TOOL_CALL_ERROR_CODES.TIMEOUT
+                : externallyCancelled
+                ? TOOL_CALL_ERROR_CODES.CANCELLED
+                : providerAborted
+                ? TOOL_CALL_ERROR_CODES.EXECUTION_ABORTED
+                : errorMetadata.code ?? TOOL_CALL_ERROR_CODES.EXECUTION_FAILED,
+              retryable:
+                timedOut ||
+                externallyCancelled ||
+                providerAborted ||
+                errorMetadata.retryable === true,
+              ...(timedOut
+                ? {
+                    details: {
+                      timeoutMs: timeoutState!.timeoutMs,
+                      executionState: 'detached',
+                    },
+                  }
+                : providerAborted
+                ? { details: { executionState: 'detached' } }
+                : errorMetadata.details === undefined
+                ? {}
+                : { details: errorMetadata.details }),
+              toolCallId: request.id,
+            }
+          ));
+        }
+      };
+    }, [
+      dispatchLifecycle,
+      durableOwnerId,
+    ]);
+    const getOperationStatus = useMemo<ToolOperationStatusReader>(
+      () => async (toolName, idempotencyKey, context) => {
+        if (!durableOperationStore) return undefined;
+        const key = createToolOperationKey(
+          toolName,
+          idempotencyKey,
+          context?.sessionId
+        );
+        return durableOperationStore.get(key);
+      },
+      []
+    );
+    const reconcileOperation = useMemo<ToolOperationReconciler>(
+      () => async (toolName, idempotencyKey, resolution, context, expectedFence) => {
+        if (!durableOperationStore) return undefined;
+        const key = createToolOperationKey(
+          toolName,
+          idempotencyKey,
+          context?.sessionId
+        );
+        return durableOperationStore.resolveUnknown(
+          key,
+          durableOwnerId,
+          resolution,
+          expectedFence
+        );
+      },
+      [durableOwnerId]
+    );
+    const registry = useMemo(
+      () => createToolRegistry(
+        schema,
+        executeToolCall,
+        allowedToolNames,
+        toolListPageSize,
+        getOperationStatus,
+        reconcileOperation
+      ),
+      [executeToolCall, getOperationStatus, reconcileOperation]
+    );
+    const contextValue = useMemo(
+      () => ({
+        actionRegisterRef,
+        registry,
+        dispatch,
+        dispatchLifecycle,
+      }),
+      [dispatch, dispatchLifecycle, registry]
+    );
+    return (
+      <ToolReactContext.Provider value={contextValue}>{children}</ToolReactContext.Provider>
+    );
+  };
+  const useToolContext = (): ToolContextType<TSchema> => {
+    const context = useContext(ToolReactContext);
+    if (!context) {
+      throw new Error(
+        `useToolContext must be used within a ${contextName} ToolContext Provider`
+      );
+    }
+    return context;
+  };
+  const useToolDispatch = () => {
+    const { dispatch: contextDispatch } = useToolContext();
+    return contextDispatch;
+  };
+  const useToolCall = (): ToolCallFunction<TInputMap, InferActionResultMap<TSchema>> => {
+    const { registry } = useToolContext();
+    const hookId = useId();
+    const sequenceRef = useRef(0);
+    return useMemo(() => (
+      <K extends Extract<keyof TInputMap, string>>(
+        toolName: K,
+        payload: TInputMap[K],
+        options?: DirectToolCallOptions
+      ): Promise<ToolCallResult<
+        K extends keyof InferActionResultMap<TSchema>
+          ? InferActionResultMap<TSchema>[K]
+          : unknown
+      >> => {
+        const { toolCallId, context, ...callOptions } = options ?? {};
+        const name = String(toolName);
+        const id = toolCallId ?? `${contextName}:direct:${hookId}:${++sequenceRef.current}`;
+        const params = payload === undefined
+          ? { name }
+          : { name, arguments: payload as Record<string, unknown> };
+        type TResult = K extends keyof InferActionResultMap<TSchema>
+          ? InferActionResultMap<TSchema>[K]
+          : unknown;
+        return registry.callTool(
+          { id, method: 'tools/call', params },
+          {
+            ...callOptions,
+            context: {
+              ...context,
+              source: context?.source ?? 'local',
+              mode: context?.mode ?? 'direct',
+            },
+          }
+        ) as Promise<ToolCallResult<TResult>>;
+      }
+    ), [hookId, registry]);
+  };
+  const useRegisteredToolHandler = <K extends Extract<keyof TSchema, string>, R = void>(
+    toolName: K,
+    handler: ActionHandler<TPayloadMap[K], R>,
+    handlerConfig: HandlerConfig<TPayloadMap[K]> | undefined,
+    registrationRole: 'legacy' | 'result',
+  ): void => {
+    const { actionRegisterRef, dispatchLifecycle } = useToolContext();
+    const handlerId = useId();
+    const effectGenerationRef = useRef(0);
+    const registrationRef = useRef<{
+      register: ActionRegister<TPayloadMap>;
+      toolName: keyof TPayloadMap;
+      config: HandlerConfig<TPayloadMap[K]>;
+      active: boolean;
+      unregister: () => void;
+    } | null>(null);
+    const handlerRef = useRef(handler);
+    useInsertionEffect(() => {
+      handlerRef.current = handler;
+    }, [handler]);
+    const priority = handlerConfig?.priority ?? 0;
+    const id = handlerConfig?.id || `tool_${String(toolName)}_${handlerId}`;
+    const blocking = handlerConfig?.blocking;
+    const scheduling = handlerConfig?.scheduling;
+    const errorPolicy = handlerConfig?.errorPolicy;
+    const once = handlerConfig?.once ?? false;
+    const debounce = handlerConfig?.debounce;
+    const throttle = handlerConfig?.throttle;
+    const cleanup = handlerConfig?.cleanup;
+    const condition = handlerConfig?.condition;
+    const stableHandlerConfig = useMemo((): HandlerConfig<TPayloadMap[K]> => ({
+      priority,
+      id,
+      ...(blocking !== undefined && { blocking }),
+      ...(scheduling !== undefined && { scheduling }),
+      ...(errorPolicy !== undefined && { errorPolicy }),
+      once,
+      replaceExisting: true,
+      ...(cleanup !== undefined && {
+        cleanup: () => dispatchLifecycle.scheduleHandlerCleanup(cleanup),
+      }),
+      ...(condition !== undefined && { condition }),
+      ...(debounce !== undefined && { debounce }),
+      ...(throttle !== undefined && { throttle }),
+    }), [
+      priority,
+      id,
+      blocking,
+      scheduling,
+      errorPolicy,
+      once,
+      cleanup,
+      condition,
+      debounce,
+      throttle,
+      dispatchLifecycle,
+    ]);
+    useInsertionEffect(() => {
+      const register = actionRegisterRef.current;
+      if (!register) return;
+      const generation = ++effectGenerationRef.current;
+      const normalizedToolName = toolName as K;
+      let lease = registrationRef.current;
+      if (lease && (
+        lease.register !== register ||
+        lease.toolName !== normalizedToolName ||
+        lease.config !== stableHandlerConfig
+      )) {
+        lease.active = false;
+        lease.unregister();
+        registrationRef.current = null;
+        lease = null;
+      }
+      if (!lease) {
+        const nextLease = {
+          register,
+          toolName: normalizedToolName,
+          config: stableHandlerConfig,
+          active: true,
+          unregister: () => {},
+        };
+        if (debug) {
+          console.log(`[${contextName}] Registering handler for tool '${String(toolName)}'`);
+        }
+        const wrapperHandler: ActionHandler<TPayloadMap[K], R> = (payload, controller) => {
+          if (!nextLease.active) return;
+          return handlerRef.current(payload, controller);
+        };
+        nextLease.unregister = registrationRole === 'result'
+          ? (register as unknown as {
+              registerResult: (
+                action: K,
+                handler: ActionResultHandler<TPayloadMap[K], unknown>,
+                config?: HandlerConfig<TPayloadMap[K]>,
+              ) => () => void;
+            }).registerResult(
+              normalizedToolName,
+              wrapperHandler as ActionResultHandler<TPayloadMap[K], unknown>,
+              stableHandlerConfig,
+            )
+          : register.register(
+              normalizedToolName,
+              wrapperHandler as ActionHandler<TPayloadMap[K], unknown>,
+              stableHandlerConfig,
+            );
+        registrationRef.current = nextLease;
+        lease = nextLease;
+      } else {
+        lease.active = true;
+      }
+      const currentLease = lease;
+      return () => {
+        currentLease.active = false;
+        queueMicrotask(() => {
+          if (effectGenerationRef.current !== generation) return;
+          dispatchLifecycle.scheduleHandlerCleanup(() => {
+            if (registrationRef.current === currentLease) {
+              registrationRef.current = null;
+            }
+            currentLease.unregister();
+          });
+        });
+      };
+    }, [toolName, actionRegisterRef, dispatchLifecycle, stableHandlerConfig, registrationRole]);
+  };
+  const useToolHandler = <K extends Extract<keyof TSchema, string>, R = void>(
+    toolName: K,
+    handler: ActionHandler<TPayloadMap[K], R>,
+    handlerConfig?: HandlerConfig<TPayloadMap[K]>
+  ): void => useRegisteredToolHandler(toolName, handler, handlerConfig, 'legacy');
+  const useToolResultHandler = <K extends Extract<keyof TSchema, string>>(
+    toolName: K,
+    handler: ActionResultHandler<TPayloadMap[K], InferActionResultMap<TSchema>[K]>,
+    handlerConfig?: HandlerConfig<TPayloadMap[K]>
+  ): void => useRegisteredToolHandler(
+    toolName,
+    handler as unknown as ActionHandler<TPayloadMap[K], InferActionResultMap<TSchema>[K]>,
+    handlerConfig,
+    'result',
+  );
+  const useToolRegistry = (): ToolRegistry<TSchema> => {
+    const { registry: contextRegistry } = useToolContext();
+    return contextRegistry;
+  };
+  const useToolDispatchWithResult = () => {
+    const { actionRegisterRef, dispatchLifecycle } = useToolContext();
+    const activeControllersRef = useRef<Set<AbortController>>(new Set());
+    const cleanupGenerationRef = useRef(0);
+    useEffect(() => {
+      const generation = ++cleanupGenerationRef.current;
+      const activeControllers = activeControllersRef.current;
+      return () => {
+        queueMicrotask(() => {
+          if (cleanupGenerationRef.current !== generation) return;
+          activeControllers.forEach((controller) => {
+            if (!controller.signal.aborted) controller.abort();
+          });
+          activeControllers.clear();
+        });
+      };
+    }, []);
+    const dispatch = useMemo(() => {
+      return <K extends Extract<keyof TPayloadMap, string>>(
+        toolName: K,
+        payload: TPayloadMap[K],
+        options?: DispatchOptions
+      ): Promise<void> => {
+        const register = actionRegisterRef.current;
+        if (!register) {
+          throw new Error(`ActionRegister not initialized in ${contextName}`);
+        }
+        const scopeController = new AbortController();
+        activeControllersRef.current.add(scopeController);
+        const trackedPromise = dispatchLifecycle.run(
+          [options?.signal, scopeController.signal],
+          signal => register.dispatch(
+            toolName as Extract<keyof TPayloadMap, string>,
+            ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<TPayloadMap[K]>)
+          )
+        ).finally(() => {
+          activeControllersRef.current.delete(scopeController);
+        });
+        void trackedPromise.catch(() => {});
+        return trackedPromise;
+      };
+    }, [actionRegisterRef, dispatchLifecycle]);
+    const dispatchWithResult = useMemo(() => {
+      return <K extends Extract<keyof TPayloadMap, string>, R = void>(
+        toolName: K,
+        ...args: DispatchArgs<TPayloadMap[K]>
+      ): Promise<ToolExecutionResult<R>> => {
+        const [payload, options] = args as [TPayloadMap[K] | undefined, DispatchOptions | undefined];
+        const register = actionRegisterRef.current;
+        if (!register) {
+          throw new Error(`ActionRegister not initialized in ${contextName}`);
+        }
+        const scopeController = new AbortController();
+        activeControllersRef.current.add(scopeController);
+        const trackedPromise = dispatchLifecycle
+          .run(
+            [options?.signal, scopeController.signal],
+            signal => register.dispatchWithResult<Extract<K, string>, R>(
+              toolName as Extract<K, string>,
+              ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<TPayloadMap[K]>)
+            )
+          )
+          .then((result) => {
+            const validationPassed = result.validation?.passed ?? true;
+            return {
+              ...result,
+              validationPassed,
+              ...(!validationPassed && result.validation
+                ? { validationErrors: result.validation.errors }
+                : {}),
+            };
+          })
+          .finally(() => {
+            activeControllersRef.current.delete(scopeController);
+          });
+        void trackedPromise.catch(() => {});
+        return trackedPromise;
+      };
+    }, [actionRegisterRef, dispatchLifecycle]);
+    const abortAll = useMemo(() => {
+      return () => {
+        activeControllersRef.current.forEach((controller) => {
+          if (!controller.signal.aborted) {
+            controller.abort();
+          }
+        });
+        activeControllersRef.current.clear();
+      };
+    }, []);
+    return { dispatch, dispatchWithResult, abortAll };
+  };
+  const useActionRegister = (): ActionRegister<TPayloadMap> | null => {
+    const { actionRegisterRef } = useToolContext();
+    return actionRegisterRef.current;
+  };
+  return {
+    Provider,
+    useToolDispatch,
+    useToolCall,
+    useToolHandler,
+    useToolResultHandler,
+    useToolRegistry,
+    useToolDispatchWithResult,
+    useActionRegister,
+    context: ToolReactContext,
+  };
+}
+```
+
+### tools/useWebMCPToolScope.ts
+
+```typescript
+import {
+  createWebMCPToolScope,
+  type WebMCPToolScope,
+  type WebMCPDocument,
+  type WebMCPToolScopeOptions,
+} from '@context-action/webmcp';
+import type { ToolManagementInterface } from '@context-action/tool-protocol';
+import { useEffect, useRef, useState } from 'react';
+export interface WebMCPToolScopeState {
+  readonly supported: boolean;
+  readonly activeTools: readonly string[];
+  readonly error?: Error;
+}
+const INITIAL_SCOPE_STATE: WebMCPToolScopeState = {
+  supported: false,
+  activeTools: [],
+};
+function mergeSignals(
+  external: AbortSignal | undefined,
+  lifecycle: AbortSignal,
+): { signal: AbortSignal; dispose: () => void } {
+  if (!external) return { signal: lifecycle, dispose: () => {} };
+  if (typeof AbortSignal.any === 'function') {
+    return { signal: AbortSignal.any([external, lifecycle]), dispose: () => {} };
+  }
+  const controller = new AbortController();
+  const abort = (signal: AbortSignal) => () => controller.abort(signal.reason);
+  const abortExternal = abort(external);
+  const abortLifecycle = abort(lifecycle);
+  if (external.aborted) abortExternal();
+  else external.addEventListener('abort', abortExternal, { once: true });
+  if (lifecycle.aborted) abortLifecycle();
+  else lifecycle.addEventListener('abort', abortLifecycle, { once: true });
+  return {
+    signal: controller.signal,
+    dispose: () => {
+      external.removeEventListener('abort', abortExternal);
+      lifecycle.removeEventListener('abort', abortLifecycle);
+    },
+  };
+}
+export function useWebMCPToolScope<TDocument = WebMCPDocument>(
+  manager: ToolManagementInterface | null | undefined,
+  options: WebMCPToolScopeOptions<TDocument>,
+): WebMCPToolScopeState {
+  const [state, setState] = useState<WebMCPToolScopeState>(INITIAL_SCOPE_STATE);
+  const toolNamesKey = options.toolNames.join('\u0000');
+  const exposedToKey = (options.exposedTo ?? []).join('\u0000');
+  const executionOptionsRef = useRef({
+    context: options.context,
+    callOptions: options.callOptions,
+    getIdempotencyKey: options.getIdempotencyKey,
+    afterExecute: options.afterExecute,
+    onObserverError: options.onObserverError,
+    interaction: options.interaction,
+    errorMode: options.errorMode,
+    getExecutionOptions: options.getExecutionOptions,
+  });
+  executionOptionsRef.current = {
+    context: options.context,
+    callOptions: options.callOptions,
+    getIdempotencyKey: options.getIdempotencyKey,
+    afterExecute: options.afterExecute,
+    onObserverError: options.onObserverError,
+    interaction: options.interaction,
+    errorMode: options.errorMode,
+    getExecutionOptions: options.getExecutionOptions,
+  };
+  useEffect(() => {
+    if (!manager) {
+      setState(INITIAL_SCOPE_STATE);
+      return;
+    }
+    const lifecycleController = new AbortController();
+    const mergedSignal = mergeSignals(options.signal, lifecycleController.signal);
+    const scopeOptions: WebMCPToolScopeOptions<TDocument> = {
+      sessionId: options.sessionId,
+      toolNames: options.toolNames,
+      document: options.document,
+      profile: options.profile,
+      exposedTo: options.exposedTo,
+      signal: mergedSignal.signal,
+      getExecutionOptions: invocation => {
+        const { getExecutionOptions, ...current } = executionOptionsRef.current;
+        return {
+          ...current,
+          ...getExecutionOptions?.(invocation),
+        };
+      },
+    };
+    let disposed = false;
+    let scope: WebMCPToolScope | undefined;
+    void createWebMCPToolScope(manager, scopeOptions).then((nextScope) => {
+      if (disposed) {
+        nextScope.dispose();
+        return;
+      }
+      scope = nextScope;
+      setState({
+        supported: nextScope.supported,
+        activeTools: nextScope.activeTools,
+      });
+    }, (error: unknown) => {
+      if (!disposed) {
+        setState({
+          supported: false,
+          activeTools: [],
+          error: error instanceof Error ? error : new Error(String(error)),
+        });
+      }
+    });
+    return () => {
+      disposed = true;
+      lifecycleController.abort(new Error('WebMCP scope disposed'));
+      mergedSignal.dispose();
+      scope?.dispose();
+    };
+  }, [
+    manager,
+    options.sessionId,
+    options.document,
+    options.profile,
+    options.signal,
+    toolNamesKey,
+    exposedToKey,
+  ]);
+  return state;
+}
 ```
 
 ### utils.ts
@@ -4585,14 +8928,12 @@ export const TypeUtils = {
 ```typescript
 export {
   deepClone,
-  deepCloneWithImmer,
   safeGet,
   safeSet,
-  ImmerUtils,
-  preloadImmer,
+  MutativeUtils,
   produce
-} from './stores/utils/immutable';
-export {
+} from '@context-action/mutative';
+export { 
   compareValues,
   setGlobalComparisonOptions,
   getGlobalComparisonOptions
@@ -4602,15 +8943,6 @@ export type {
   ComparisonStrategy,
   CustomComparator
 } from './stores/utils/comparison';
-export {
-  isStore,
-  isValidStoreValue,
-  extractStoreValue,
-  extractStoreValues,
-  createSafeEqualityFn,
-  createStoreConfig,
-  TypeUtils
-} from './stores/utils/type-helpers';
 export type {
   StoreValue,
   StoresValues,
@@ -4630,12 +8962,11 @@ export {
 export type {
   ProviderComponent
 } from './stores/utils/provider-composition';
-export {
-  SubscriptionManager,
-  useSubscriptionManager
-} from './stores/utils/subscription-manager';
-export type {
-  SubscriptionEntry,
-  SubscriptionStats
-} from './stores/utils/subscription-manager';
+```
+
+### webmcp.ts
+
+```typescript
+export { useWebMCPToolScope } from './tools/useWebMCPToolScope';
+export type { WebMCPToolScopeState } from './tools/useWebMCPToolScope';
 ```

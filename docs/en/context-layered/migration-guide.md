@@ -422,9 +422,9 @@ describe('useCheckoutData', () => {
 
 - [Context-Layered Architecture Guide](./context-layered-guide.md)
 - [Folder Structure Guide](./architecture/folder-structure.md)
-- [Props-based Handler Patterns](./patterns/props-based-handlers.md)
+- [Props-based Handler Patterns](./architecture/handler-registry.md)
 - [Handler Registry Pattern](./architecture/handler-registry.md)
-- [Traditional MVVM Documentation](../guide/architecture/mvvm.md) (Legacy)
+- [Traditional MVVM Documentation](../concept/architecture-guide.md) (Legacy)
 
 ## 🚨 Migration Tips
 

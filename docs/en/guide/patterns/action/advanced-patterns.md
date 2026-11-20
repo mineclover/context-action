@@ -38,7 +38,7 @@ Advanced result aggregation for complex business workflows across domain boundar
 - **Cross-Context Validation**: Validation domain integration with result processing
 - **Enterprise Result Processing**: Large-scale data processing with domain separation
 
-**[View Dispatch with Result Patterns →](./dispatch-with-result.md)**
+**[View Dispatch with Result Patterns →](./dispatch-patterns.md)**
 
 ### ⚙️ Registration Patterns
 Domain-aware handler registration with MVVM layer configuration and cross-context coordination.
@@ -205,17 +205,17 @@ function useAdvancedUserOperations() {
 Multi-context setup enables sophisticated real-world patterns:
 
 - [Priority Performance Demo](https://github.com/mineclover/context-action/tree/main/example/src/pages/actionguard/priority-performance) - Cross-domain priority execution
-- [Search Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/SearchPage.tsx) - Multi-domain search with validation
-- [Scroll Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/ScrollPage.tsx) - Performance-optimized UI state management
+- [Search Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/performance/action-guard/SearchPageRefactored.tsx) - Multi-domain search with validation
+- [Scroll Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/performance/action-guard/ScrollPageRefactored.tsx) - Performance-optimized UI state management
 
 ## Related Patterns
 
 ### Setup Foundations
 - **[Multi-Context Setup](../setup/multi-context-setup.md)** - Complete architecture foundation
-- **[MVVM Architecture](../architecture/mvvm.md)** - Layer separation patterns
-- **[Domain Context](../architecture/domain-context.md)** - Business domain isolation
+- **[MVVM Architecture](../../../concept/architecture-guide.md)** - Layer separation patterns
+- **[Domain Context](../../../context-layered/context-layered-guide.md)** - Business domain isolation
 
 ### Basic Patterns
 - [Action Basic Usage](./basic-usage.md) - Single-context fundamental patterns
 - [Type System](./type-system.md) - Multi-context TypeScript integration
-- [Register Delegation](./register-delegation.md) - Cross-domain handler organization
+- [Register Delegation](./register-patterns.md) - Cross-domain handler organization

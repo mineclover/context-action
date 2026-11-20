@@ -120,27 +120,27 @@ interface MyAppActions extends CRUDActions, UserActions {
 
 ### 스토어 패턴
 - **[스토어 기본 사용법](../store/basic-usage.md)** → [기본 스토어 설정](./basic-store-setup.md) 사용
-- **[스토어 성능 패턴](../store/performance-patterns.md)** → [기본 스토어 설정](./basic-store-setup.md) 사용
+- **[스토어 성능 패턴](../store/path-based-subscription.md)** → [기본 스토어 설정](./basic-store-setup.md) 사용
 - **[스토어 매니저 API](../store/useStoreManager-api.md)** → [기본 스토어 설정](./basic-store-setup.md) 사용
 
 ### 아키텍처 패턴
-- **[MVVM 아키텍처](../architecture/mvvm.md)** → [다중 컨텍스트 설정](./multi-context-setup.md#mvvm-architecture-setup) 사용
-- **[도메인 컨텍스트 아키텍처](../architecture/domain-context.md)** → [다중 컨텍스트 설정](./multi-context-setup.md#domain-context-architecture-setup) 사용
-- **[컨텍스트 분할 패턴](../architecture/context-splitting.md)** → [다중 컨텍스트 설정](./multi-context-setup.md) 사용
+- **[MVVM 아키텍처](../../../concept/architecture-guide.md)** → [다중 컨텍스트 설정](./multi-context-setup.md#mvvm-architecture-setup) 사용
+- **[도메인 컨텍스트 아키텍처](../../../context-layered/context-layered-guide.md)** → [다중 컨텍스트 설정](./multi-context-setup.md#domain-context-architecture-setup) 사용
+- **[컨텍스트 분할 패턴](../../../context-layered/context-layered-guide.md)** → [다중 컨텍스트 설정](./multi-context-setup.md) 사용
 
 ### Ref 패턴
 - **[Ref 기본 사용법](../ref/basic-usage.md)** → [RefContext 설정](./ref-context-setup.md) 사용
-- **[캔버스 최적화](../ref/canvas-optimization.md)** → [RefContext 설정](./ref-context-setup.md) 사용
-- **[메모리 최적화](../ref/memory-optimization.md)** → [RefContext 설정](./ref-context-setup.md) 사용
+- **[캔버스 최적화](../ref/basic-usage.md)** → [RefContext 설정](./ref-context-setup.md) 사용
+- **[메모리 최적화](../ref/basic-usage.md)** → [RefContext 설정](./ref-context-setup.md) 사용
 
 ### 성능 패턴
-- **[최적화 기법](../performance/optimization-techniques.md)** → 모든 설정 가이드 사용
+- **[최적화 기법](../store/path-based-subscription.md)** → 모든 설정 가이드 사용
 
 ### 프로바이더 관리
-- **[withProvider 패턴](../store/withProvider-pattern.md)** → [프로바이더 구성 설정](./provider-composition-setup.md) 사용
+- **[withProvider 패턴](./provider-composition-setup.md)** → [프로바이더 구성 설정](./provider-composition-setup.md) 사용
 
 ## 관련 가이드
 
-- **[패턴 선택 가이드](../index.md)** - 사용 사례에 적합한 패턴 선택
-- **[모범 사례](../../conventions.md)** - 일반적인 프레임워크 모범 사례
-- **[아키텍처 가이드](../../concept/architecture-guide.md)** - 전반적인 아키텍처 개념
+- **[패턴 선택 가이드](./index.md)** - 사용 사례에 적합한 패턴 선택
+- **[모범 사례](../../../concept/conventions.md)** - 일반적인 프레임워크 모범 사례
+- **[아키텍처 가이드](../../../concept/architecture-guide.md)** - 전반적인 아키텍처 개념

@@ -115,7 +115,7 @@ function CartCalculator() {
 
 ## Related Patterns
 
-- [Advanced useComputedStore Patterns](./useComputedStore-advanced.md) - Complex computation patterns
-- [Async Computed Patterns](./useComputedStore-async.md) - Asynchronous computations
-- [Computed Store Performance](./useComputedStore-performance.md) - Optimization techniques
+- [Advanced useComputedStore Patterns](./useComputedStore-overview.md) - Complex computation patterns
+- [Async Computed Patterns](./useComputedStore-overview.md) - Asynchronous computations
+- [Computed Store Performance](./useComputedStore-overview.md) - Optimization techniques
 - [useStoreValue Patterns](./useStoreValue-patterns.md) - Basic subscription patterns

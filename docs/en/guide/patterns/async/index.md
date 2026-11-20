@@ -85,14 +85,14 @@ const { useAppRef, useWaitForRefs } = createRefContext<AsyncElementRefs>('AsyncR
 - **Purpose**: Smart waiting based on runtime conditions
 - **Required Setup**: All three context setups for state-driven waiting decisions
 - **Key Implementation**: Conditional `waitForRefs()` based on store state
-- **Documentation**: [Conditional Await](./conditional-await.md)
+- **Documentation**: [Conditional Await](./index.md)
 
 #### 4. Timeout Protection Pattern
 **Setup Spec**: Action Context + Store Context (optional RefContext)
 - **Purpose**: Preventing infinite waits with fallback strategies
 - **Required Setup**: [Basic Action Setup](../setup/basic-action-setup.md) for timeout logic
 - **Key Implementation**: `Promise.race()` with configurable timeouts  
-- **Documentation**: [Timeout Protection](./timeout-protection.md)
+- **Documentation**: [Timeout Protection](./index.md)
 
 ## Setup-Based Quick Reference
 

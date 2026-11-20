@@ -939,6 +939,6 @@ function MemoryMonitoring() {
 ## Related Patterns
 
 - [Dispatch Patterns](./dispatch-patterns.md) - Basic dispatching patterns
-- [Dispatch with Result](./dispatch-with-result.md) - Result collection patterns
+- [Dispatch with Result](./dispatch-patterns.md) - Result collection patterns
 - [Type System](./type-system.md) - TypeScript integration
 - [Action Basic Usage](./basic-usage.md) - Fundamental patterns

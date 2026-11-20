@@ -643,10 +643,10 @@ export * from './PaymentRefs';
 이 설정 파일은 다음을 위한 재사용 가능한 패턴을 제공합니다:
 
 - **[Ref 기본 사용법](../ref/basic-usage.md)** - CanvasRefs 패턴 사용
-- **[캔버스 최적화](../ref/canvas-optimization.md)** - CanvasRefs 및 WorkerRefs 사용
-- **[메모리 최적화](../ref/memory-optimization.md)** - 서비스 정리 패턴 사용
-- **[MVVM 아키텍처](../architecture/mvvm.md)** - RefContext를 성능 레이어로 사용
-- **[성능 패턴](../performance/optimization-techniques.md)** - 모든 ref 패턴 사용
+- **[캔버스 최적화](../ref/basic-usage.md)** - CanvasRefs 및 WorkerRefs 사용
+- **[메모리 최적화](../ref/basic-usage.md)** - 서비스 정리 패턴 사용
+- **[MVVM 아키텍처](../../../concept/architecture-guide.md)** - RefContext를 성능 레이어로 사용
+- **[성능 패턴](../store/path-based-subscription.md)** - 모든 ref 패턴 사용
 
 ## 관련 설정 가이드
 

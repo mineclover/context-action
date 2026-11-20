@@ -26,7 +26,7 @@
   - *기본 액션 설정의 EventActions 설정 패턴 사용*
 - **[타입 시스템](./type-system.md)** - TypeScript 통합 및 타입 안전성
   - *설정 가이드의 ActionPayloadMap 확장 패턴 기반*
-- **[등록 위임](./register-delegation.md)** - 대규모 애플리케이션용 모듈식 핸들러 구성
+- **[등록 위임](./register-patterns.md)** - 대규모 애플리케이션용 모듈식 핸들러 구성
   - *멀티 도메인 컨텍스트 설정 패턴 사용*
 
 ### 고급 패턴
@@ -34,7 +34,7 @@
   - *복잡한 아키텍처용 다중 설정 패턴 쇼케이스*
 - **[디스패치 패턴](./dispatch-patterns.md)** - 실행 모드, 필터링, 성능
   - *설정의 AppActions 확장 인터페이스 패턴 사용*
-- **[결과와 함께 디스패치](./dispatch-with-result.md)** - 결과 수집 및 처리
+- **[결과와 함께 디스패치](./dispatch-patterns.md)** - 결과 수집 및 처리
   - *결과 처리 확장을 포함한 설정 패턴 기반*
 - **[등록 패턴](./register-patterns.md)** - 고급 핸들러 등록
   - *복잡한 시나리오용 조건부 프로바이더 설정 패턴 사용*
@@ -125,9 +125,9 @@ function InteractiveComponent() {
 
 액션 패턴은 공유 설정 기반을 통해 다른 패턴과 원활하게 통합됩니다:
 
-- **[스토어 패턴](../store/)** - 상태 관리를 위한 스토어 설정과 결합
+- **[스토어 패턴](../store/basic-usage.md)** - 상태 관리를 위한 스토어 설정과 결합
 - **[설정 패턴](../setup/)** - 모든 액션 구현의 기반
-- **[아키텍처 패턴](../architecture/)** - MVVM 및 도메인 컨텍스트 통합
+- **[아키텍처 패턴](../../../context-layered/context-layered-guide.md)** - MVVM 및 도메인 컨텍스트 통합
 - **멀티 컨텍스트 설정** - 복잡한 애플리케이션 아키텍처
 
 ### 설정 통합 플로우
@@ -142,4 +142,4 @@ function InteractiveComponent() {
 1. **설정 완료**: [기본 액션 설정](../setup/basic-action-setup.md)을 먼저 따르기
 2. **기본부터 시작**: [기본 사용법](./basic-usage.md)으로 시작하기
 3. **고급 탐색**: 준비되면 [고급 패턴](./advanced-patterns.md)으로 이동
-4. **확장**: 복잡한 애플리케이션을 위해 [등록 위임](./register-delegation.md) 사용
+4. **확장**: 복잡한 애플리케이션을 위해 [등록 위임](./register-patterns.md) 사용

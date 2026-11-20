@@ -451,7 +451,7 @@ subscribe → dispatch → notifyPath → 종료 (루프 없음)
 
 ## 테스트 구현
 
-실행 가능한 테스트 증명은 [notifyPath-performance.test.tsx](../../packages/react/__tests__/stores/notifyPath-performance.test.tsx)를 참조하세요.
+실행 가능한 테스트 증명은 [notifyPath-performance.test.tsx](https://github.com/mineclover/context-action/blob/main/packages/react/__tests__/stores/notifyPath-performance.test.tsx)를 참조하세요.
 
 주요 테스트 케이스:
 1. 재렌더링 횟수 비교 (setValue vs notifyPath)

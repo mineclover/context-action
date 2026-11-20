@@ -282,11 +282,11 @@ const UserDispatch = UserContext.useActionDispatch;
 - **[액션 기본 사용법](../action/basic-usage.md)** - EventActions 패턴 사용
 - **[디스패치 액세스 패턴](../action/dispatch-access.md)** - AppActions 패턴 사용  
 - **[고급 액션 패턴](../action/advanced-patterns.md)** - 다중 도메인 패턴 사용
-- **[MVVM 아키텍처](../architecture/mvvm.md)** - UserActions 패턴 사용
-- **[도메인 컨텍스트 아키텍처](../architecture/domain-context.md)** - 다중 도메인 패턴 사용
+- **[MVVM 아키텍처](../../../concept/architecture-guide.md)** - UserActions 패턴 사용
+- **[도메인 컨텍스트 아키텍처](../../../context-layered/context-layered-guide.md)** - 다중 도메인 패턴 사용
 
 ## 관련 설정 가이드
 
 - **[기본 스토어 설정](./basic-store-setup.md)** - 스토어 컨텍스트 설정 패턴
 - **[다중 컨텍스트 설정](./multi-context-setup.md)** - 복잡한 아키텍처 설정
-- **[프로바이더 구성](../store/withProvider-pattern.md)** - 고급 프로바이더 패턴
+- **[프로바이더 구성](./provider-composition-setup.md)** - 고급 프로바이더 패턴

@@ -279,14 +279,14 @@ function BestEffortComponent() {
 
 ## 실제 예제
 
-- [검색 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/SearchPage.tsx) - 필터링을 사용한 디바운스 검색
-- [스크롤 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/ScrollPage.tsx) - 성능 최적화된 스크롤 처리
+- [검색 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/performance/action-guard/SearchPageRefactored.tsx) - 필터링을 사용한 디바운스 검색
+- [스크롤 페이지](https://github.com/mineclover/context-action/blob/main/example/src/pages/performance/action-guard/ScrollPageRefactored.tsx) - 성능 최적화된 스크롤 처리
 - [우선순위 데모](https://github.com/mineclover/context-action/tree/main/example/src/pages/actionguard/priority-performance) - 우선순위 기반 실행 패턴
 
 ## 관련 패턴
 
 - **[액션 기본 사용법](./basic-usage.md)** - 기본 액션 패턴
-- **[결과와 함께 디스패치](./dispatch-with-result.md)** - 결과 수집 패턴
+- **[결과와 함께 디스패치](./dispatch-patterns.md)** - 결과 수집 패턴
 - **[등록 패턴](./register-patterns.md)** - 핸들러 등록 패턴
 - **[타입 시스템](./type-system.md)** - TypeScript 통합
 - **[기본 액션 설정](../setup/basic-action-setup.md)** - 설정 패턴 및 타입 정의

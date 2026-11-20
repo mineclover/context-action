@@ -217,5 +217,5 @@ register.register('featureHandler', handler, {
 ## Related Patterns
 
 - [Action Basic Usage](./basic-usage.md) - Fundamental action patterns
-- [Register Delegation](./register-delegation.md) - Advanced registration patterns
+- [Register Delegation](./register-patterns.md) - Advanced registration patterns
 - [Store Integration](../store/basic-usage.md) - Integrating with stores
