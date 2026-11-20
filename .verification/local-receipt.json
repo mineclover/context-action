@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-20T01:01:47.376Z",
-  "commitSha": "9a478f1e88613bafdd60ec4cd2003591f03a6937",
-  "branch": "feat/examples-uncovered-packages-and-overviews",
+  "timestamp": "2026-11-20T01:27:39.425Z",
+  "commitSha": "1036c408c15996c1ed7c4fcbcee3261df2902b60",
+  "branch": "refactor/examples-v1-action-hooks-and-triad-playbook",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
@@ -11,31 +11,31 @@
   },
   "inputDigest": "sha256:584fbe08f17d63a6daa7d63eee6c23d1f79a1e969516a8a88e2562e14bb4cf53",
   "workingTree": "clean",
-  "treeDigest": "sha256:84c36fb8faac76dde47828953b017894033a8b9f4e36d402541f3d1fed6d5f39",
+  "treeDigest": "sha256:763255066133616e93cfd511d5eb10e414c9c3aea45706afb48bead5018c34b7",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 23.85,
+      "durationSec": 19.88,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.97,
+      "durationSec": 0.9,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 3.63,
+      "durationSec": 3.4,
       "status": "passed"
     },
     {
       "name": "4. Core & React Artifact Parity / Isolation",
-      "durationSec": 0.09,
+      "durationSec": 0.06,
       "status": "passed"
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.25,
+      "durationSec": 0.23,
       "status": "passed"
     },
     {
@@ -45,20 +45,20 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.34,
+      "durationSec": 0.32,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 2.08,
+      "durationSec": 1.9,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.47,
+      "durationSec": 0.42,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:2150ed0bfc9a22b998396149577e9a9aaf7c6d0d7134a72a57a411724e6a6c16"
+  "receiptDigest": "sha256:435bd70dacbd7e8acc6b4239cfac16e528bf3706099340d024b77d31d9592e81"
 }
