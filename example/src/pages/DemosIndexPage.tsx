@@ -209,7 +209,7 @@ const demos: DemoItem[] = [
     estimatedTime: '10-15분',
   },
   {
-    path: '/performance/memoization',
+    path: '/performance',
     title: 'Memoization Patterns',
     emoji: '🧠',
     description:

@@ -15,8 +15,12 @@ test('indexes every public route and preserves one smoke target per route entry'
   const routes = buildExampleRouteIndex();
   const canonical = canonicalRoutes(routes);
 
-  assert.ok(routes.length >= 100, 'expected the example app route catalog');
-  assert.ok(canonical.length < routes.length, 'expected legacy aliases to share a smoke target');
+  assert.ok(routes.length >= 75, 'expected the example app route catalog');
+  assert.equal(
+    canonical.length,
+    routes.length,
+    'expected every public route in App.tsx to map 1:1 to a canonical entry module'
+  );
   assert.equal(
     new Set(canonical.map((route) => route.entry)).size,
     canonical.length,

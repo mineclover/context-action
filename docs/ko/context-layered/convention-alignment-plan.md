@@ -115,7 +115,7 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - `pnpm --dir example build:fast` 통과.
 - `pnpm test:canonical-example` 통과(1 suite, 4 tests).
 - `pnpm docs:build` 통과.
-- `http://127.0.0.1:4000/` 개발 서버에서 `/react/context`, `/actionguard/conditional/permissions`를 열고 Child A/B 상호작용, 권한 승인, audit 출력을 확인했습니다.
+- `http://127.0.0.1:4000/` 개발 서버에서 `/foundations/react/context`, `/patterns/conditional/permissions`를 열고 Child A/B 상호작용, 권한 승인, audit 출력을 확인했습니다.
 - LogMonitor Registry readiness gate 추가 후 새 브라우저 로드의 시작 warning/error가 0건이었습니다.
 
 ## 마이그레이션 순서

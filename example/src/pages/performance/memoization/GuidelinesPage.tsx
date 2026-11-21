@@ -24,7 +24,7 @@ export default function GuidelinesPage() {
     <main className="min-h-screen bg-gray-50 py-8">
       <div className="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 lg:px-8">
         <nav aria-label="Breadcrumb" className="text-sm text-gray-500">
-          <Link to="/performance/memoization" className="hover:text-blue-700">
+          <Link to="/performance" className="hover:text-blue-700">
             Memoization
           </Link>
           <span className="mx-2">/</span>

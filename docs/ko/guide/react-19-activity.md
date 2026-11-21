@@ -143,6 +143,6 @@ side effect를 소유하는 경계마다 `StrictMode`에서 visible → hidden �
 돌아왔을 때 최신 Store 값을 읽는지 확인합니다. Context-Action 테스트 suite는 직접
 Store Provider, Time Travel history, 두 `withProvider()` variant를 검증합니다.
 
-예제 앱의 **Unified Provider** 화면(`/react/provider`)에는 실행 가능한 Activity
+예제 앱의 **Unified Provider** 화면(`/foundations/react/provider`)에는 실행 가능한 Activity
 패널이 있습니다. 컴포넌트 로컬 input과 Store-backed input에 값을 입력한 뒤 패널을
 숨기고 다시 표시하면 두 값이 모두 복원되는 것을 확인할 수 있습니다.
