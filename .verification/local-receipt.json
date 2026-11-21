@@ -1,7 +1,7 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-21T11:15:24.666Z",
-  "commitSha": "5cbccecef652fe7e10fc2bedbc1466367dfd5e3e",
+  "timestamp": "2026-11-21T12:38:08.728Z",
+  "commitSha": "28a9e83e3e784ac84dd06c851f095cf971a9119d",
   "branch": "stage",
   "toolchain": {
     "node": "v24.22.1",
@@ -11,21 +11,21 @@
   },
   "inputDigest": "sha256:e19b57559319dc6a6ecfb09ac98c102a59a521313940b63b9f57f78672fac7de",
   "workingTree": "clean",
-  "treeDigest": "sha256:1cb897e049fc658d6157829c1806ff0618ba0d396cabe4450ae44ea4a62ab76e",
+  "treeDigest": "sha256:c8aff21ae5d3429b0e6c8ef31a21073e5737936ec903219f23d9a4c54f63a6f5",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 17.29,
+      "durationSec": 20.21,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.79,
+      "durationSec": 0.77,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 2.95,
+      "durationSec": 3.65,
       "status": "passed"
     },
     {
@@ -50,15 +50,15 @@
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.41,
+      "durationSec": 1.8,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.42,
+      "durationSec": 0.41,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:f855d45f4f1b7be3e5a3e7ab715a3c4849e9fb478e3dcdac578f1d2ac4d0526c"
+  "receiptDigest": "sha256:c2ad4e7f8dbe9726979fe08f83ad09d9dcde7917ecdf4dc86e3ccf683d6fa156"
 }
