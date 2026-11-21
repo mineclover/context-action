@@ -1,7 +1,7 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-21T14:24:35.547Z",
-  "commitSha": "8826b8ae966d0d8c4aa2b4582b145f9b16de5a27",
+  "timestamp": "2026-11-21T15:05:48.177Z",
+  "commitSha": "cc0f2fcf3359b00f81f817d7412edb0e9fc6afd7",
   "branch": "stage",
   "toolchain": {
     "node": "v24.22.1",
@@ -11,11 +11,11 @@
   },
   "inputDigest": "sha256:e19b57559319dc6a6ecfb09ac98c102a59a521313940b63b9f57f78672fac7de",
   "workingTree": "clean",
-  "treeDigest": "sha256:2f1a279a73ca4a6a7d047fe5dadeebfbcb735ab54f1f73fbdd7e9c3705f200b0",
+  "treeDigest": "sha256:a1c8c61d0fc8899610558ed5be88af918ee0ebe5b2dc199cf33e92918d1d1ce8",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 16.94,
+      "durationSec": 18.64,
       "status": "passed"
     },
     {
@@ -25,7 +25,7 @@
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 3.48,
+      "durationSec": 3.9,
       "status": "passed"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.22,
+      "durationSec": 0.23,
       "status": "passed"
     },
     {
@@ -45,20 +45,20 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.29,
+      "durationSec": 0.3,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.45,
+      "durationSec": 1.51,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.4,
+      "durationSec": 0.43,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:d8c24d2aec974064c64109376609fa4e2e2fe2d07a0c0b4c76259824fc1b44f2"
+  "receiptDigest": "sha256:bc40227943780df48cda9945ca4e150219e817e999941dbae953a9bc539a13f3"
 }
