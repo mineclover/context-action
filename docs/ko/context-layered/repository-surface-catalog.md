@@ -23,7 +23,7 @@
 1. **원본 우선 및 비복제(Source-First Non-Duplication)**: 런타임 매니페스트(`packages/*/package.json`), TypeDoc 엔트리(`typedoc.json`), 라우트 등록(`example/src/App.tsx`), 사람이 작성한 가이드(`docs/{en,ko}/**`)가 정식 원본입니다. 카탈로그는 이를 복제하지 않고 색인·교차 검증합니다.
 2. **권한 문서와 파생 산출물의 엄격한 분리**: 모든 관리 문서는 `authoritative`, `discovery`, `evidence`, `derived`, `transitional`, `historical` 중 하나로 분류합니다. 파생 산출물(`docs/api/generated`, `docs/en/api`, `api-spec.ts`, `llmsData`, `llms-*.txt`)은 직접 수정하지 않고 원본에서 재생성합니다.
 3. **3개 표면의 버전 관리 스키마 대칭성**: API(`api-surface.v1.json`), 예제(`example-surface.v1.json`), 문서(`document-surface.v1.json`) 모두 버전화된 스키마, 안정적 kebab ID, 한영 설명(`en` / `ko`), 명시적 검증 게이트(`verificationGate`)를 갖습니다.
-4. **한영 번역 격차의 정직한 계상**: 동기화가 강제되는 디렉터리는 `strict-paired`(미번역 0건)로 잠그고, 기존 번역 공백이 남아 있는 `guide`와 `troubleshooting`은 `tracked-partial` + `knownUnpaired` 목록으로 관리해 공백이 조용히 늘어나지 않도록 합니다.
+4. **한영 번역 격차의 정직한 계상**: 동기화가 강제되는 디렉터리(`context-layered`, `concept`, `examples`, `guide`, `troubleshooting`, `llms`)는 `strict-paired`(미번역 0건)로 잠그고, 일시적인 번역 공백이 필요한 경우에만 `tracked-partial` + `knownUnpaired` 목록으로 관리해 공백이 조용히 늘어나지 않도록 합니다.
 5. **Fail-Closed 드리프트 검증**: 카탈로그 갱신 없이 패키지, export 서브패스, 워크스페이스 의존성, 정식 예제 라우트, `packages/*/examples`, 루트 `.md`, 또는 미번역 가이드가 바뀌면 `pnpm verify:surface-catalog`와 `pnpm convention:check`가 즉시 실패합니다.
 
 ---
@@ -185,7 +185,7 @@
 | `doc-concept` | `docs/{en,ko}/concept` | `authoritative` | `strict-paired` | 미번역 0건; 아키텍처, 파이프라인, 훅 레퍼런스, 에디터 구조, 문서 규칙 |
 | `doc-examples` | `docs/{en,ko}/examples` | `authoritative` | `strict-paired` | 미번역 0건; 9개 내러티브 예제 가이드 |
 | `doc-llms` | `docs/{en,ko}/llms` (`.md`) | `authoritative` | `strict-paired` | 미번역 0건 (`llms-*.txt`는 `derivedSurfaces`로 분리 관리) |
-| `doc-guide` | `docs/{en,ko}/guide` | `authoritative` | `tracked-partial` | 영문 전용 14개 (`patterns/action/react-integration.md`, `patterns/store/*` 12개, `pipeline/advanced-filtering.md`); 국문 전용 4개 (`action-handlers.md`, `action-pipeline.md`, `architecture.md`, `hooks.md`) |
+| `doc-guide` | `docs/{en,ko}/guide` | `authoritative` | `strict-paired` | 미번역 0건; 시작하기, 파이프라인(`advanced-filtering.md` 쌍 구성), 액션/스토어/Ref/비동기/설정 패턴 |
 | `doc-troubleshooting` | `docs/{en,ko}/troubleshooting` | `authoritative` | `strict-paired` | 미번역 0건; 액션·스토어·Ref·무한 루프·성능 진단 가이드 |
 | `doc-docs-root` | `docs/index.md`, `LOCAL_FIRST_VERIFICATION_POLICY.md`, `STORE_GUIDE.md` | `authoritative` | `single-locale` | `STORE_GUIDE.md`는 역사적 참고 문서로 명시 |
 | `doc-releases-v1` | `docs/releases`, `docs/ko/releases` | `evidence` | `single-locale` | v1.0.0 감사, 범위, 런북, 릴리스 매니페스트 |

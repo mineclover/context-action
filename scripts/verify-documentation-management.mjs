@@ -52,7 +52,7 @@ function assertDoesNotContain(relativePath, source, pattern, description) {
   }
 }
 
-const pairedDirectories = ['context-layered', 'concept', 'examples'];
+const pairedDirectories = ['context-layered', 'concept', 'examples', 'guide'];
 for (const directory of pairedDirectories) {
   const english = collectMarkdown(`en/${directory}`);
   const korean = collectMarkdown(`ko/${directory}`);

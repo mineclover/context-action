@@ -270,7 +270,7 @@ function HighPerformanceComponent() {
 4. **Debugging Support**: Manual refresh patterns for development tools
 5. **Progressive Enhancement**: Start reactive, optimize selectively where needed
 
-For detailed implementation patterns, see [Selective Subscription Patterns](../guide/patterns/store/subscription-optimization.md).
+For detailed implementation patterns, see [Path-Based Subscription](../guide/patterns/store/path-based-subscription.md).
 
 ## Best Practices Summary
 
@@ -353,7 +353,7 @@ For detailed implementation examples and step-by-step guides, see:
 - **[Pattern Guide Index](../guide/patterns/setup/index.md)** - Complete pattern documentation
 - **[Action Only Pattern](../guide/patterns/action/basic-usage.md)** - Start with pure actions
 - **[Store Only Pattern](../guide/patterns/store/basic-usage.md)** - Recommended starting point
-- **[Selective Subscription Patterns](../guide/patterns/store/subscription-optimization.md)** - Pre-memoization performance optimization
+- **[Path-Based Subscription](../guide/patterns/store/path-based-subscription.md)** - Selective subscription optimization
 - **[Pattern Composition](../examples/pattern-composition.md)** - Combining patterns
 - **[Coding Conventions](./conventions.md)** - Complete coding conventions and best practices including import patterns
 

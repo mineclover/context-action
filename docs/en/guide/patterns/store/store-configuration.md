@@ -516,6 +516,6 @@ This configuration guide builds on the foundation established in [Basic Store Se
 ## Related Patterns
 
 - **[Basic Store Setup](../setup/basic-store-setup.md)** - Foundation patterns for store configuration
-- **[Store Performance Patterns](./subscription-optimization.md)** - Performance optimization techniques
+- **[Store Performance Patterns](./path-based-subscription.md)** - Performance optimization techniques
 - **[useStoreValue Patterns](./useStoreValue-patterns.md)** - Efficient store value consumption
 - **[MVVM Architecture](../../../concept/architecture-guide.md)** - Architectural context for store configuration

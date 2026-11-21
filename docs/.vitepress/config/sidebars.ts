@@ -35,7 +35,8 @@ const GUIDE_STRUCTURE = {
       items: [
         { text: 'Overview', link: '/en/guide/pipeline/' },
         { text: 'Priority System', link: '/en/guide/pipeline/priority' },
-        { text: 'Dispatch Methods', link: '/en/guide/pipeline/dispatch' }
+        { text: 'Dispatch Methods', link: '/en/guide/pipeline/dispatch' },
+        { text: 'Advanced Filtering', link: '/en/guide/pipeline/advanced-filtering' }
       ]
     },
     patterns: {
@@ -125,7 +126,8 @@ const GUIDE_STRUCTURE = {
       items: [
         { text: '개요', link: '/ko/guide/pipeline/' },
         { text: '우선순위 시스템', link: '/ko/guide/pipeline/priority' },
-        { text: '디스패치 메서드', link: '/ko/guide/pipeline/dispatch' }
+        { text: '디스패치 메서드', link: '/ko/guide/pipeline/dispatch' },
+        { text: '고급 필터링', link: '/ko/guide/pipeline/advanced-filtering' }
       ]
     },
     patterns: {

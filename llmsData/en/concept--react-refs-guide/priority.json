@@ -41,8 +41,8 @@
     "description": "This guide covers the **React Refs Management System** in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management.",
     "language": "en",
     "created_at": "2025-08-21T02:13:42.317Z",
-    "last_updated": "2026-11-20T16:03:36.076Z",
-    "source_last_modified": "2026-11-20T15:59:08.029Z"
+    "last_updated": "2026-11-21T07:28:38.008Z",
+    "source_last_modified": "2026-11-21T07:26:59.105Z"
   },
   "lastUpdated": "2026-01-03T06:25:22.086Z",
   "source": {

@@ -646,7 +646,7 @@ This setup file provides reusable patterns for:
 - **[Canvas Optimization](../ref/basic-usage.md)** - Uses CanvasRefs and WorkerRefs
 - **[Memory Optimization](../ref/basic-usage.md)** - Uses service cleanup patterns
 - **[MVVM Architecture](../../../concept/architecture-guide.md)** - Uses RefContext as Performance layer
-- **[Performance Patterns](../store/subscription-optimization.md)** - Uses all ref patterns
+- **[Performance Patterns](../store/path-based-subscription.md)** - Uses path-based subscriptions alongside ref patterns
 
 ## Related Setup Guides
 

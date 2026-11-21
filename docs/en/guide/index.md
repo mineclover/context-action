@@ -27,7 +27,7 @@ The **[Pattern Collection](./patterns/setup/index.md)** contains all the detaile
 | **[RefContext](./patterns/ref/basic-usage.md)** | Direct DOM manipulation | High-performance UI, animations |
 | **[Setup Patterns](./patterns/setup/)** | Foundation patterns | All implementations |
 | **[Architecture](../context-layered/context-layered-guide.md)** | System design | Complex applications |
-| **[Performance](./patterns/store/subscription-optimization.md)** | Optimization techniques | High-performance apps |
+| **[Performance](./patterns/store/path-based-subscription.md)** | Optimization techniques | High-performance apps |
 | **[Async Patterns](./patterns/async/)** | Safe async operations | Element waiting, timeouts |
 
 ## 📖 Learning Path
@@ -57,7 +57,7 @@ Looking for something specific?
 
 - **State Management** → [Store Patterns](./patterns/store/basic-usage.md)
 - **Business Logic** → [Action Patterns](./patterns/action/) (includes memory management)
-- **Performance** → [Performance Patterns](./patterns/store/subscription-optimization.md) or [RefContext](./patterns/ref/basic-usage.md)
+- **Performance** → [Performance Patterns](./patterns/store/path-based-subscription.md) or [RefContext](./patterns/ref/basic-usage.md)
 - **Complex Apps** → [Architecture Patterns](../context-layered/context-layered-guide.md)
 - **Foundation** → [Setup Patterns](./patterns/setup/)
 - **Async Operations** → [Async Patterns](./patterns/async/)

@@ -16,8 +16,8 @@ This guide has been reorganized for better maintainability. For detailed impleme
 ### 🏗️ Advanced Patterns
 - **[Architecture Patterns](../context-layered/context-layered-guide.md)** - System architecture and design patterns
 - **[Async Patterns](./patterns/async/)** - Asynchronous operation patterns and control flow
-- **[Performance Patterns](./patterns/store/subscription-optimization.md)** - Performance optimization techniques
-- **[Debug Patterns](./patterns/store/debugging-development.md)** - Production debugging and troubleshooting
+- **[Performance Patterns](./patterns/store/path-based-subscription.md)** - Performance optimization techniques
+- **[Debug Patterns](./troubleshooting.md)** - Production debugging and troubleshooting
 
 ## ⚠️ Critical Best Practices
 
@@ -57,7 +57,7 @@ function GoodComponent() {
 #### 2. **Production Debugging** - 🐛 **ESSENTIAL**
 Critical issues like duplicate handlers, race conditions, and component lifecycle conflicts.
 
-**📖 Read More**: [Production Debugging Patterns](./patterns/store/debugging-development.md)
+**📖 Read More**: [Troubleshooting Guide](./troubleshooting.md)
 
 #### 3. **Real-time State Access** - ⚡ **IMPORTANT**
 Proper async patterns for accessing current state values.
@@ -136,7 +136,7 @@ For step-by-step implementation details, see:
 6. **Event Object Storage**: Never store DOM events or React event objects in stores
 7. **Cross-Platform Compatibility**: Use proper timeout types for browser/Node.js environments
 
-**📖 Detailed Solutions**: [Production Debugging](./patterns/store/debugging-development.md)
+**📖 Detailed Solutions**: [Store Issues Troubleshooting](../troubleshooting/store-issues.md)
 
 ### 🔧 Security & Performance Guidelines
 

@@ -26,7 +26,7 @@ Choose the right pattern for your use case:
 ### Advanced Patterns
 - **[🔧 Ref Context Pattern](../guide/patterns/ref/basic-usage.md)** - Direct DOM manipulation with zero re-renders
 - **[Pattern Composition](../examples/pattern-composition.md)** - Combining patterns for complex applications
-- **[Selective Subscription Patterns](../guide/patterns/store/subscription-optimization.md)** - Pre-memoization optimization through strategic subscription management
+- **[Path-Based Subscription](../guide/patterns/store/path-based-subscription.md)** - Pre-memoization optimization through strategic subscription management
 - **[Domain Context Architecture](../context-layered/context-layered-guide.md)** - Document-centric context separation
 - **[MVVM Architecture](./architecture-guide.md)** - Modern Model-View-ViewModel implementation
 
