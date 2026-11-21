@@ -10,14 +10,14 @@
 
 > **current**&lt;`T`&gt;(`target`): `T`
 
-Defined in: [packages/mutative-core/dist/index.d.ts:231](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L231)
+Defined in: [packages/mutative-core/dist/index.d.ts:329](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L329)
 
 `current(draft)` to get current state in the draft mutation function.
 
 ## Example
 
 ```ts
-import { create, current } from '../index';
+import { create, current } from 'mutative';
 
 const baseState = { foo: { bar: 'str' }, arr: [] };
 const state = create(
@@ -49,7 +49,7 @@ Type parameter **T**
 
 > **current**&lt;`T`&gt;(`target`): `T`
 
-Defined in: [packages/mutative-core/dist/index.d.ts:233](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L233)
+Defined in: [packages/mutative-core/dist/index.d.ts:331](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L331)
 
 ### Type Parameters
 

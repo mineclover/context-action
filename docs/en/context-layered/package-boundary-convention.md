@@ -113,7 +113,7 @@ for the authoritative behavior and synchronization record.
 
 The current stable cohort publishes `@context-action/mutative-core@0.8.14` and
 `@context-action/mutative@0.8.15`. Both packages track the acquired upstream
-`mutative@1.3.0` compatibility baseline, but neither package depends on the
+`mutative@2.0.2` compatibility baseline, but neither package depends on the
 upstream package at runtime. `upstream-lock.json` is the source of truth for
 the npm tarball integrity and file inventory; run
 `pnpm verify:mutative-upstream` before changing or publishing the vendored

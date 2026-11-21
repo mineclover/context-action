@@ -112,7 +112,7 @@ immutable runtime 계약은 `@context-action/mutative-core`가 소유하며
 
 현재 stable cohort는 `@context-action/mutative-core@0.8.14`와
 `@context-action/mutative@0.8.15`를 배포한다. 두 package는 인수한 upstream
-`mutative@1.3.0` 호환성 기준을 추적하지만 runtime에서 upstream package에
+`mutative@2.0.2` 호환성 기준을 추적하지만 runtime에서 upstream package에
 의존하지 않는다. npm tarball integrity와 파일 inventory의 source of truth는
 `upstream-lock.json`이며 vendored runtime을 변경하거나 publish하기 전에
 `pnpm verify:mutative-upstream`을 실행한다. baseline 버전과 scoped package

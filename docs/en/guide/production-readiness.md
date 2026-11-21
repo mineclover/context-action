@@ -29,12 +29,12 @@ The current stable release is the state-management surface:
 | --- | --- | --- |
 | `@context-action/core` | `1.3.1` | Stable action lifecycle, dispatch trace, and observer semantics. |
 | `@context-action/store-core` | `0.1.4` | Framework-neutral state, patch, and timeline backend contracts. |
-| `@context-action/mutative-core` | `0.8.14` | Upstream `mutative@1.3.0` compatibility baseline and maintained fork fixes. |
+| `@context-action/mutative-core` | `0.8.14` | Upstream `mutative@2.0.2` compatibility baseline and maintained fork fixes. |
 | `@context-action/mutative` | `0.8.15` | Defensive collection snapshots, immutable update, and timeline batches. |
 | `@context-action/react` | `4.0.7` | React lifecycle, backend notification, declaration, and SSR contract. |
 
 The upstream baseline and scoped package versions are independent contracts.
-`mutative@1.3.0` identifies the acquired source baseline; it is not a runtime
+`mutative@2.0.2` identifies the acquired source baseline; it is not a runtime
 dependency or a scoped adapter version. The core lock and carried patches are
 verified with `pnpm verify:mutative-upstream`.
 

@@ -51,7 +51,7 @@ external effects:
    `useStorePath()` for mutable direct updates reported through `notifyPath()`.
 9. **Track the immutable runtime separately.** Mutative Core remains at `0.8.14`
    while the scoped adapter is patched at `0.8.15`; both track upstream
-   `mutative@1.3.0` as a compatibility baseline. Synchronize only through the
+   `mutative@2.0.2` as a compatibility baseline. Synchronize only through the
    reviewed lock and `pnpm verify:mutative-upstream`.
 
 For a complete feature, test its Store/Action contract, its visible UI, and any

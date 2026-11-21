@@ -12,38 +12,38 @@
 
 | 단계 | 참조 | 역할 |
 | --- | --- | --- |
-| 원본 프로젝트 | [`unadlib/mutative`](https://github.com/unadlib/mutative) | Mutative 원본 구현과 이슈 이력 |
-| 유지보수 포크 | [`mineclover/mutative`](https://github.com/mineclover/mutative) | 유지보수와 upstream 호환 수정의 기준 포크 |
-| 편입 revision | [`5fd7d56`](https://github.com/mineclover/mutative/commit/5fd7d56b3f88185ef26908df055a9a27be9a2b88) | `@context-action/mutative-core`에 vendoring한 revision |
-| upstream 호환성 기준 | `mutative@1.3.0` | npm tarball과 source `gitHead`를 `upstream-lock.json`에 기록 |
+| 원본 / 활성 upstream | [`unadlib/mutative`](https://github.com/unadlib/mutative) (`v2.0.2`) | 활성 upstream Mutative 구현체 |
+| upstream 호환성 기준 | `mutative@2.0.2` ([`15caa67b`](https://github.com/unadlib/mutative/commit/15caa67b2a15430d2d981c770bf7821d1beca3fa)) | npm tarball과 source `gitHead`를 `upstream-lock.json`에 기록 |
+| 이전 포크 계보 (대체됨) | [`mineclover/mutative`](https://github.com/mineclover/mutative) ([`5fd7d56`](https://github.com/mineclover/mutative/commit/5fd7d56b3f88185ef26908df055a9a27be9a2b88)) | `v2.0.2` 편입 전 `mutative@1.3.0` 위에 유지하던 초기 배열/컬렉션 포크 |
 | Context-Action 패키지 | [`packages/mutative-core`](https://github.com/mineclover/context-action/tree/main/packages/mutative-core) | publish 패키지와 동기화 경계 |
 
-이 revision은 2026-07-18에 준비했으며, 설치 시 별도 빌드가 필요하지 않도록
-배포 산출물도 포함한다. 인수한 upstream `mutative@1.3.0` npm tarball integrity,
-source-tree hash, local modified/added/unchanged inventory는
+`1.3.0` 포크 기준선에서 `mutative@2.0.2`로 업그레이드하면서 upstream의
+네이티브 `src/array.ts`, Map/Set 동결 및 이터레이터 수명 수정, 프로토타입 오염
+방어 `apply()`, 공유 draft finalization 수정
+([PR #213](https://github.com/unadlib/mutative/pull/213),
+[PR #218](https://github.com/unadlib/mutative/pull/218))을 흡수했습니다.
+이로써 전체 28개 `src/` 파일 중 24개를 upstream과 바이트 동일하게 유지하고
+로컬 변경 파일을 13개에서 4개로 축소했습니다.
+
+인수한 upstream `mutative@2.0.2` npm tarball integrity, source-tree hash,
+local modified/unchanged inventory는
 [`upstream-lock.json`](../../../packages/mutative-core/upstream-lock.json)에
-기록한다. 전체 provenance는 패키지의
-[`UPSTREAM.md`](../../../packages/mutative-core/UPSTREAM.md)에도 기록한다.
+기록합니다. 전체 provenance는 패키지의
+[`UPSTREAM.md`](../../../packages/mutative-core/UPSTREAM.md)에도 기록합니다.
 
-## 반영한 upstream 작업
+## 유지 중인 Context-Action 로컬 패치 계약
 
-- [PR #166](https://github.com/unadlib/mutative/pull/166): lazy array draft
-  성능, rollback, species constructor, assigned value 수정.
-- [Issue #160](https://github.com/unadlib/mutative/issues/160): nested
-  `create()` 호출에서 원본 base state의 참조가 노출되지 않도록 미변경
-  descendant를 분리.
-- [Issue #32](https://github.com/unadlib/mutative/issues/32): Immer 스타일
-  호출부를 위한 `create`의 정확한 alias `produce` 추가.
+`mutative@2.0.2` 위에서 다음 3가지 경량 계약만 의도적으로 유지합니다:
 
-다음 제안은 identity와 replay semantics가 정리될 때까지 core 범위에서
-의도적으로 제외한다.
-
-- [Issue #127](https://github.com/unadlib/mutative/issues/127): `move`/`copy`
-  연산.
-- [Issue #162](https://github.com/unadlib/mutative/issues/162): splice 전용
-  patch 표현.
-- [Issue #163](https://github.com/unadlib/mutative/issues/163): array 구현
-  이후 bundle size 감소 후속 작업.
+- `produce-alias` (`src/index.ts`): Immer 스타일 호출부를 위한 `create`의
+  정확한 alias `produce` export ([Issue #32](https://github.com/unadlib/mutative/issues/32)).
+- `nested-create-and-strict-return` (`src/makeCreator.ts`): 중첩
+  `create(draft, ...)` 시 미변경 하위 트리가 바깥 원본을 오염시키지 않도록
+  `deepClone(current(base))`로 분리하고([Issue #160](https://github.com/unadlib/mutative/issues/160)),
+  `rawReturn()` 없는 `strict: true` 비-draft 직접 반환을 거부합니다.
+- `set-order-and-lossless-paths` (`src/patch.ts`, `src/utils/draft.ts`):
+  undo/redo에서 삽입 순서를 보존하는 Set 단위 `replace` patch를 유지하고,
+  dev/prod 모두에서 `pathAsArray: false` 비문자열 Map key·Symbol path를 차단합니다.
 
 ## Context-Action adapter 계약
 
@@ -76,12 +76,12 @@ Context-Action adapter는 별도로 Apache-2.0 라이선스를 사용하며 upst
 
 ## 동기화 규칙
 
-1. 원본 저장소와 유지보수 포크의 새 issue/PR을 검토한 뒤 vendored source를
-   변경한다.
-2. `mutative-core` 안에 Context-Action 전용 수정을 직접 넣기보다, 검토된
-   upstream commit을 가져오는 방식을 우선한다.
-3. 편입 commit을 `UPSTREAM.md`, 이 히스토리 문서, package changelog에
-   기록한다.
+1. [`unadlib/mutative`](https://github.com/unadlib/mutative)의 새 issue/PR을
+   검토한 뒤 vendored source를 변경한다.
+2. `mutative-core` 안에 Context-Action 전용 수정을 직접 넣기보다, 검증된
+   upstream 릴리즈를 가져오는 방식을 우선한다.
+3. 편입 릴리즈를 `UPSTREAM.md`, `upstream-sync.json`, 이 히스토리 문서,
+   package changelog에 기록한다.
 4. core 테스트와 타입 체크를 먼저 실행하고, 그 다음
    `@context-action/mutative`를 빌드한 뒤 React 통합 테스트를 실행한다.
 5. adapter 의존성 범위가 바뀌는 release에서는 core 패키지를 먼저 publish한다.
@@ -96,5 +96,5 @@ pnpm verify:mutative-upstream
 `src` 파일 hash를 검증한 뒤 committed lock inventory와 local fork를 비교합니다.
 읽기 전용이므로 vendored source를 자동으로 덮어쓰지 않습니다. `--inventory`로
 후보를 확인하고 lock과 provenance를 검토·commit한 뒤 `--check`를 다시 실행합니다.
-upstream baseline `1.3.0`, Mutative Core `0.8.14`, scoped adapter `0.8.15`는
+upstream baseline `2.0.2`, Mutative Core `0.8.14`, scoped adapter `0.8.15`는
 별도 release 계약입니다.

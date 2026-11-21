@@ -3,7 +3,7 @@
 Context-Action 프레임워크의 Store, TimeTravelStore, MutableStore 패턴에 대한 완전한 컨벤션입니다.
 
 이 가이드는 stable Core `1.2.6`, Store Core `0.1.3`, Mutative Core `0.8.14`, scoped adapter `0.8.15`,
-React `4.0.7` cohort를 기준으로 합니다. immutable-update upstream 기준은 `mutative@1.3.0`이며
+React `4.0.7` cohort를 기준으로 합니다. immutable-update upstream 기준은 `mutative@2.0.2`이며
 scoped adapter 버전은 별도로 관리합니다. 역할과 transaction 계약은
 [Store and time-travel contracts](../../../packages/react/docs/state-contracts.md)를
 따릅니다.

@@ -1,8 +1,9 @@
-import { dataTypes, iteratorSymbol } from './constant';
+import type { ProxyDraft } from './interface';
+import { dataTypes, iteratorPrototype, iteratorSymbol } from './constant';
 import { internal } from './internal';
-import { generatePatches } from './patch';
 import { checkReadable } from './unsafe';
 import {
+  assertDraftActive,
   ensureShallowCopy,
   getProxyDraft,
   isDraftable,
@@ -11,6 +12,38 @@ import {
   markChanged,
   markFinalization,
 } from './utils';
+
+// The value at `key` as `get()` returns it: a draft of a draftable value of
+// the original Map. Iteration calls this with the draft state it looked up
+// once, instead of calling `get()` through the proxy, which binds a new
+// function for every entry.
+function getEntry(target: ProxyDraft, key: any) {
+  const value = latest(target).get(key);
+  const mutable = target.options.mark?.(value, dataTypes) === dataTypes.mutable;
+  if (target.options.strict) {
+    checkReadable(value, target.options, mutable);
+  }
+  if (mutable) {
+    return value;
+  }
+  if (target.finalized || !isDraftable(value, target.options)) {
+    return value;
+  }
+  // drafted or reassigned
+  if (value !== target.original.get(key)) {
+    return value;
+  }
+  const draft = internal.createDraft(
+    value,
+    target,
+    key,
+    target.finalities,
+    target.options
+  );
+  ensureShallowCopy(target);
+  target.copy.set(key, draft);
+  return draft;
+}
 
 export const mapHandler = {
   get size() {
@@ -21,6 +54,22 @@ export const mapHandler = {
     return latest(getProxyDraft(this)!).has(key);
   },
   set(key: any, value: any) {
+    // Map keys are used as they are, and a draft is revoked when its producer
+    // ends, so a Map would keep a key that throws when it is read.
+    if (__DEV__) {
+      let isDraftKey = false;
+      try {
+        isDraftKey = !!getProxyDraft(key);
+      } catch {
+        // Map keys are compared by identity only, so a key can also be a Proxy
+        // that rejects reading the symbol of drafts, or a revoked one.
+      }
+      if (isDraftKey) {
+        throw new Error(
+          `A draft cannot be a Map key: its producer revokes it when it ends. Use original(key), current(key) or an id as the key; see https://mutative.js.org/docs/extra-topics/faq`
+        );
+      }
+    }
     const target = getProxyDraft(this)!;
     const source = latest(target);
     if (!source.has(key) || !isEqual(source.get(key), value)) {
@@ -28,7 +77,7 @@ export const mapHandler = {
       markChanged(target);
       target.assignedMap!.set(key, true);
       target.copy.set(key, value);
-      markFinalization(target, key, value, generatePatches);
+      markFinalization(target, key, value);
     }
     return this;
   },
@@ -60,68 +109,45 @@ export const mapHandler = {
   },
   forEach(callback: (value: any, key: any, self: any) => void, thisArg?: any) {
     const target = getProxyDraft(this)!;
-    latest(target).forEach((_value: any, _key: any) => {
-      callback.call(thisArg, this.get(_key), _key, this);
+    latest(target).forEach((_value: any, key: any) => {
+      assertDraftActive(target);
+      callback.call(thisArg, getEntry(target, key), key, this);
     });
   },
   get(key: any): any {
-    const target = getProxyDraft(this)!;
-    const value = latest(target).get(key);
-    const mutable =
-      target.options.mark?.(value, dataTypes) === dataTypes.mutable;
-    if (target.options.strict) {
-      checkReadable(value, target.options, mutable);
-    }
-    if (mutable) {
-      return value;
-    }
-    if (target.finalized || !isDraftable(value, target.options)) {
-      return value;
-    }
-    // drafted or reassigned
-    if (value !== target.original.get(key)) {
-      return value;
-    }
-    const draft = internal.createDraft({
-      original: value,
-      parentDraft: target,
-      key,
-      finalities: target.finalities,
-      options: target.options,
-    });
-    ensureShallowCopy(target);
-    target.copy.set(key, draft);
-    return draft;
+    return getEntry(getProxyDraft(this)!, key);
   },
   keys(): IterableIterator<any> {
     return latest(getProxyDraft(this)!).keys();
   },
   values(): IterableIterator<any> {
+    const target = getProxyDraft(this)!;
     const iterator = this.keys();
     return {
-      [iteratorSymbol]: () => this.values(),
+      __proto__: iteratorPrototype,
       next: () => {
         const result = iterator.next();
         if (result.done) return result;
-        const value = this.get(result.value);
+        assertDraftActive(target);
         return {
           done: false,
-          value,
+          value: getEntry(target, result.value),
         };
       },
     } as any;
   },
   entries(): IterableIterator<[any, any]> {
+    const target = getProxyDraft(this)!;
     const iterator = this.keys();
     return {
-      [iteratorSymbol]: () => this.entries(),
+      __proto__: iteratorPrototype,
       next: () => {
         const result = iterator.next();
         if (result.done) return result;
-        const value = this.get(result.value);
+        assertDraftActive(target);
         return {
           done: false,
-          value: [result.value, value],
+          value: [result.value, getEntry(target, result.value)],
         };
       },
     } as any;

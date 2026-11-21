@@ -8,12 +8,11 @@
 
 > **Draft**&lt;`T`&gt; = `T` *extends* `Primitive` \| `AtomicObject` ? `T` : `T` *extends* `IfAvailable`\<`ReadonlyMap`\<infer K, infer V\>\> ? `DraftedMap`\<`K`, `V`\> : `T` *extends* `IfAvailable`\<`ReadonlySet`\<infer V\>\> ? `DraftedSet`&lt;`V`&gt; : `T` *extends* `WeakReferences` ? `T` : `T` *extends* `object` ? `DraftedObject`&lt;`T`&gt; : `T`
 
-Defined in: [packages/mutative-core/dist/index.d.ts:98](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L98)
+Defined in: [packages/mutative-core/dist/index.d.ts:148](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L148)
 
-@context-action/mutative
-
-Mutative-based immutability and time-travel utilities.
-Drop-in replacement for Immer with undo/redo capabilities.
+The type of a draft of `T`: its objects, arrays, Maps and Sets without
+`readonly`, deeply, so that a recipe can change them. Functions, Promises,
+dates and regular expressions keep their types.
 
 ## Type Parameters
 

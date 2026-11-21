@@ -8,12 +8,12 @@ Travels를 사용하더라도 이 연결 계층의 책임은 남습니다.
 
 현행 `TimeTravel`은 Travels에서 영감을 받은 로컬 구현이며, 외부 `travels`를
 직접 사용하는 래퍼가 아닙니다. draft/patch 엔진은 유지보수 중인
-`@context-action/mutative-core`이고, upstream 호환 기준은 Mutative 1.3.0입니다.
+`@context-action/mutative-core`이고, upstream 호환 기준은 Mutative 2.0.2입니다.
 출처·동기화 정책은 [UPSTREAM.md](../../mutative-core/UPSTREAM.md)를 참고하세요.
 
 이번 [Travels 3.0.1 + Mutative 2.0.0 실험](../examples/travels-v3/README.md)은
 기본 구현을 교체하지 않습니다. 의존성도 개발용으로만 추가하며, 공개 export,
-runtime dependencies, 패키지 버전과 fork baseline은 유지합니다.
+runtime dependencies와 패키지 버전은 유지합니다.
 
 ## 책임 분리
 

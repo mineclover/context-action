@@ -374,8 +374,8 @@
       "visibility": "public",
       "stability": "stable",
       "summary": {
-        "en": "Zero-dependency maintained Mutative-compatible immutable draft, patch, and array engine tracking upstream mutative@1.3.0 compatibility.",
-        "ko": "Upstream mutative@1.3.0 호환성을 추적하며 유지보수되는 Zero-dependency 불변 draft·patch·배열 엔진입니다."
+        "en": "Zero-dependency maintained Mutative-compatible immutable draft, patch, and array engine tracking upstream mutative@2.0.2 compatibility.",
+        "ko": "Upstream mutative@2.0.2 호환성을 추적하며 유지보수되는 Zero-dependency 불변 draft·patch·배열 엔진입니다."
       },
       "nonGoals": [
         "Context-Action store/action policy or React integration",

@@ -188,10 +188,13 @@ Reject non-draft replacement values in strict mode.
 
 > `optional` **mark?**: `Mark`\<`true`, `false`\> \| `Mark`\<`true`, `false`\>[]
 
-Defined in: [packages/mutative-core/dist/index.d.ts:85](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L85)
+Defined in: [packages/mutative-core/dist/index.d.ts:122](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L122)
 
-Set a mark to determine if the object is mutable or if an instance is an immutable.
-And it can also return a shallow copy function(AutoFreeze and Patches should both be disabled).
+Decide how values are drafted: a mark returns `immutable` to make a value
+draftable, such as a class instance, `mutable` to keep it out of drafts so
+that the recipe changes it in place, or a function that returns a shallow
+copy of the value, which needs patches and auto-freeze off. With several
+marks, the first one that returns a value decides.
 
 #### Inherited from
 

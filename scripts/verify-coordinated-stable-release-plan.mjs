@@ -106,10 +106,10 @@ if (requireCurrentSource) {
     readFile(path.join(repositoryRoot, upstreamLockPath), 'utf8').then(JSON.parse),
     readFile(path.join(repositoryRoot, upstreamSyncPath), 'utf8').then(JSON.parse),
   ]);
-  if (upstreamLock.upstream?.version !== '1.3.0'
-    || upstreamSync.upstream?.version !== '1.3.0'
+  if (upstreamLock.upstream?.version !== '2.0.2'
+    || upstreamSync.upstream?.version !== '2.0.2'
     || upstreamLock.upstream?.gitHead !== upstreamSync.upstream?.gitHead) {
-    errors.push('Mutative release plan must bind both upstream lock and sync metadata to mutative@1.3.0 with one gitHead');
+    errors.push('Mutative release plan must bind both upstream lock and sync metadata to mutative@2.0.2 with one gitHead');
   }
   if (plan.provenanceBinding !== 'workflow-release-commit') errors.push('Release plan must bind provenance to workflow release_commit');
   if (react.exports?.['./tools']) {

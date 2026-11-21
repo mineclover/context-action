@@ -755,7 +755,7 @@ The monorepo contains **20 workspace packages across 6 layers** (16 publishable,
 
 - **[@context-action/core](./packages/core)** — Zero-dependency framework-agnostic action pipeline (`ActionRegister`, guards, priority, cancellation, `./element` host bindings).
 - **[@context-action/store-core](./packages/store-core)** — Framework-neutral `StateBackend`, `TimelineBackend`, `TransactionBackend`, and lightweight `createStateStore` contracts.
-- **[@context-action/mutative-core](./packages/mutative-core)** & **[@context-action/mutative](./packages/mutative)** — Upstream-compatible immutable engine (`mutative@1.3.0` lineage) and Context-Action `StateBackend` / time-travel adapter.
+- **[@context-action/mutative-core](./packages/mutative-core)** & **[@context-action/mutative](./packages/mutative)** — Upstream-compatible immutable engine (`mutative@2.0.2` lineage) and Context-Action `StateBackend` / time-travel adapter.
 
 ### Framework Adapters & UI Bridges
 

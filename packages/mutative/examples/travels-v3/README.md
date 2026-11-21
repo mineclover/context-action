@@ -4,8 +4,8 @@
 
 - 엔진: `travels@3.0.1` + peer `mutative@2.0.0`을 정확한 버전으로 고정합니다.
 - 두 의존성은 이 패키지의 **devDependencies**에만 추가합니다.
-- 기존 runtime dependencies, `src/index.ts`, package exports, build entry와
-  `mutative@1.3.0` fork baseline은 유지합니다.
+- 기존 runtime dependencies, `src/index.ts`, package exports, build entry 계약은
+  유지합니다(`@context-action/mutative-core`가 `mutative@2.0.2` 호환 기준을 추적).
 - 이 디렉터리와 실험 API는 package tarball에 포함하지 않습니다.
 
 ## 두 가지 실험 경로
