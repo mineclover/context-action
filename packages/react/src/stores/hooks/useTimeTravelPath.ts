@@ -7,18 +7,16 @@
 
 import type { StateSnapshot } from '@context-action/store-core';
 import {
+  type PatchAwareStore,
   useStorePath,
   useStoreSelectorWithPaths,
   type StorePath,
 } from './useStorePath';
-import type { StorePathPatch } from '../utils/patch-affects-path';
 
 /** Structural external store contract accepted by `useTimeTravelPath` and `useTimeTravelSelector`. */
-export interface TimeTravelPathStore<T> {
+export type TimeTravelPathStore<T> = PatchAwareStore<T> & {
   getSnapshot(): StateSnapshot<T>;
-  subscribe(listener: () => void): () => void;
-  subscribeWithPatches?(listener: (patches: readonly StorePathPatch[] | null) => void): () => void;
-}
+};
 
 export type { StorePath };
 

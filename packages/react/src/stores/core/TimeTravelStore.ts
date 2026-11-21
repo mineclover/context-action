@@ -70,6 +70,8 @@ export interface TimeTravelStoreOptions<T> {
  * const { canUndo, canRedo, position, history } = store.getTimeTravelControls();
  * ```
  */
+const TIME_TRAVEL_STORE_BRAND = Symbol.for('context-action.react.time-travel-store');
+
 export class TimeTravelStore<T = unknown> implements IStore<T> {
   public readonly name: string;
 
@@ -101,6 +103,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   ) {
     this.name = name;
     this.customComparator = options.isEqual;
+    Object.defineProperty(this, TIME_TRAVEL_STORE_BRAND, { value: true });
     this.notificationMode = options.notificationMode ?? 'immediate';
     this.cloningEnabled = options.readMode === 'safe';
 
@@ -684,5 +687,10 @@ export function createTimeTravelStore<T>(
  * Type guard to check if a store is a TimeTravelStore
  */
 export function isTimeTravelStore<T>(store: IStore<T>): store is TimeTravelStore<T> {
-  return store instanceof TimeTravelStore;
+  return (
+    store instanceof TimeTravelStore ||
+    (typeof store === 'object' &&
+      store !== null &&
+      (store as unknown as Record<PropertyKey, unknown>)[TIME_TRAVEL_STORE_BRAND] === true)
+  );
 }

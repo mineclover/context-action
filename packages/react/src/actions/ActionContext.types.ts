@@ -200,6 +200,11 @@ export interface ActionContextReturn<
    * `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }`.
    */
   useActionScope: () => ActionScopeReturn<T, TResultMap>;
+  /**
+   * @deprecated Prefer `useActionResultDispatch()` for Provider-scoped result
+   * dispatches or `useActionScope()` for component-scoped abort lifecycles.
+   * Scheduled for removal in Phase 2 (v5).
+   */
   useActionDispatchWithResult: () => ActionScopeReturn<T, TResultMap>;
   context: React.Context<ActionContextType<T, TResultMap> | null>;
 }
