@@ -9,7 +9,10 @@ const repositoryRoot = path.resolve(
 const docsRoot = path.join(repositoryRoot, 'docs');
 const rootManifest = JSON.parse(read('package.json'));
 
-if (rootManifest.scripts?.['docs:check'] !== 'pnpm docs:management && pnpm llms:check && pnpm docs:build') {
+if (
+  rootManifest.scripts?.['docs:check'] !==
+  'pnpm docs:management && pnpm verify:surface-catalog && pnpm llms:check && pnpm docs:build'
+) {
   throw new Error('package.json must expose the canonical docs:check command');
 }
 
@@ -187,7 +190,9 @@ for (const [locale, relativePath] of [
   const source = read(relativePath);
   assertContains(relativePath, source, /pnpm docs:check/, `${locale} canonical documentation check`);
   assertContains(relativePath, source, /## (?:\d+\. )?(?:Choose the Source Before Editing|편집 전 원본 선택)/, `${locale} source-selection route`);
-  assertContains(relativePath, source, /does \*\*not\*\* regenerate\s+LLMS artifacts|LLMS 산출물은 재생성하지 않습니다/, `${locale} API/LLMS boundary`);
+  assertContains(relativePath, source, /pnpm docs:llms/, `${locale} LLMS bundle generator command`);
+  assertDoesNotContain(relativePath, source, /pnpm docs:api/, 'TypeDoc repo docs:api command');
+  assertDoesNotContain(relativePath, source, /llmsData/, 'legacy llmsData workspace reference');
 }
 
 for (const [locale, relativePath] of [

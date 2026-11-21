@@ -6,31 +6,31 @@
 
 ## Context
 
-The repository spans workspace packages (`packages/*`), canonical example routes inside `example/`, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), package-local `examples/` suites, narrative example walkthroughs, root markdown files, bilingual documentation trees, release manifests, and derived TypeDoc/LLMS artifacts (live counts are tracked in the JSON catalogs).
+The repository spans workspace packages (`packages/*`), canonical example routes inside `example/`, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), package-local `examples/` suites, narrative example walkthroughs, root markdown files, bilingual documentation trees, release manifests, and derived LLMS bundle artifacts (live counts are tracked in the JSON catalogs).
 
-Previously, these surfaces were only discoverable piecemeal across `package.json`, `typedoc.json`, `example/src/App.tsx`, `sidebars.ts`, and `package-boundary-convention.md` (where `@context-action/lit`, `@context-action/lit-ui`, `@context-action/webmcp`, and `@context-action/template-react` were already omitted from the package map). Without a machine-verifiable base specification, new packages, example routes, or unpaired translations drifted silently.
+Previously, these surfaces were only discoverable piecemeal across `package.json`, `example/src/App.tsx`, `sidebars.ts`, and `package-boundary-convention.md` (where `@context-action/lit`, `@context-action/lit-ui`, `@context-action/webmcp`, and `@context-action/template-react` were already omitted from the package map). Without a machine-verifiable base specification, new packages, example routes, or unpaired translations drifted silently.
 
 ## Options considered
 
 - **Manually maintained markdown lists only**: Rejected because prose inventories rot immediately when packages, export subpaths, canonical routes, or markdown directories change.
-- **Replacing existing source-of-truth files (`package.json`, `typedoc.json`, `App.tsx`) with a monolithic generator**: Rejected because each surface already has an authoritative runtime source (`package.json#exports`, `typedoc.json`, `example/src/App.tsx`, handwritten `docs/{en,ko}/`); duplicating runtime ownership violates `package-boundary-convention.md`.
+- **Replacing existing source-of-truth files (`package.json`, `App.tsx`) with a monolithic generator**: Rejected because each surface already has an authoritative runtime source (`package.json#exports`, `example/src/App.tsx`, handwritten `docs/{en,ko}/`); duplicating runtime ownership violates `package-boundary-convention.md`.
 - **Option 1 (Accepted): Three versioned JSON catalogs under `catalog/repository-surface/` verified fail-closed against live disk sources, paired with an authoritative bilingual base guide**: Preserves existing runtime/doc sources of truth while enforcing 1:1 structural parity via `pnpm verify:surface-catalog`.
 
 ## Decision
 
 Establish three versioned, machine-verifiable surface catalogs under `catalog/repository-surface/` plus bilingual base specifications:
 
-- `catalog/repository-surface/api-surface.v1.json`: catalogs all workspace packages (`layer`, `visibility`, `stability`, `exports` subpaths, workspace dependencies/peers, `typedocEntryPoints`, `readme`, `authoritativeDocs`, `verificationGate`).
+- `catalog/repository-surface/api-surface.v1.json`: catalogs all workspace packages (`layer`, `visibility`, `stability`, `exports` subpaths, workspace dependencies/peers, `readme`, `authoritativeDocs`, `verificationGate`).
 - `catalog/repository-surface/example-surface.v1.json`: catalogs all canonical `example/` routes by semantic group, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), `packages/*/examples` suites, and paired narrative example docs (`docs/{en,ko}/examples/*.md`).
-- `catalog/repository-surface/document-surface.v1.json`: catalogs root markdown files, managed documentation areas with explicit `authorityClass` and `pairingPolicy` (`strict-paired`, `tracked-partial`, `single-locale`, `derived`, `not-applicable`), and derived TypeDoc/LLMS outputs.
+- `catalog/repository-surface/document-surface.v1.json`: catalogs root markdown files, managed documentation areas with explicit `authorityClass` and `pairingPolicy` (`strict-paired`, `tracked-partial`, `single-locale`, `derived`, `not-applicable`), and derived LLMS bundle outputs.
 - Enforce 1:1 parity via `scripts/verify-repository-surface-catalog.mjs` (`pnpm verify:surface-catalog`), wired into `pnpm convention:check` alongside `scripts/verify-repository-surface-catalog.test.mjs`.
 
 ## Consequences and invariants
 
-1. **Source-First Non-Duplication**: Catalogs reference and index authoritative sources (`package.json`, `typedoc.json`, `example/src/App.tsx`, `docs/`) rather than replacing them.
-2. **Explicit Partial-Parity Accountability**: Directories with legacy translation gaps (`docs/{en,ko}/guide`, `docs/{en,ko}/troubleshooting`) are governed as `tracked-partial` with exact `knownUnpaired` inventories, while `concept`, `context-layered`, `examples`, and `llms` enforce `strict-paired` zero-drift parity.
+1. **Source-First Non-Duplication**: Catalogs reference and index authoritative sources (`package.json`, `example/src/App.tsx`, `docs/`) rather than replacing them.
+2. **Explicit Partial-Parity Accountability**: Directories that temporarily carry translation debt can use `tracked-partial` with exact `knownUnpaired` inventories, while all `docs/{en,ko}/{context-layered,concept,examples,guide,troubleshooting,llms}` enforce `strict-paired` zero-drift parity.
 3. **Fail-Closed Drift Gate**: Adding or removing a workspace package, export subpath, workspace dependency, canonical example route, `packages/*/examples` directory, root markdown file, or unpaired guide page without updating the corresponding catalog fails `pnpm verify:surface-catalog` and `pnpm convention:check`.
-4. **Visible Documentation Debt**: Coverage gaps such as partial public-package coverage in TypeDoc and `guide`/`troubleshooting` translation gaps remain explicitly surfaced in [Repository Surface Catalog](../repository-surface-catalog.md) and `api-surface.v1.json` rather than hidden.
+4. **Single Unified Doc Pipeline**: Package API contracts live in package READMEs, `packages/*/docs/*.md`, `.d.ts` declarations, and `api-surface.v1.json` without maintaining repository-wide TypeDoc or `llmsData/` template trees.
 
 ## Verification evidence
 

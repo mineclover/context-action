@@ -1,21 +1,21 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-21T09:15:29.973Z",
-  "commitSha": "d742e5228d0d63b6b59e6cbe94df4319d40feb2c",
-  "branch": "feat/spec-to-code-guide-runtime-layer-and-dx",
+  "timestamp": "2026-11-21T10:12:11.260Z",
+  "commitSha": "9db3f34ea899641c1afe6c5e79c5f98080148d11",
+  "branch": "refactor/unify-docs-remove-typedoc-and-llmsdata",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
     "platform": "darwin",
     "arch": "arm64"
   },
-  "inputDigest": "sha256:866ebb5a02557f6866294facd68497a1043dbfa2cf13237b05ecafd5ded4dd7b",
+  "inputDigest": "sha256:ac50bab66511957ad9f8cde0541a8f2a3109f76cadf06925f8ea927611e815d9",
   "workingTree": "clean",
-  "treeDigest": "sha256:21c36fa8ab72336300303530015b2ad00599062536bf460b6069528f2c1136c5",
+  "treeDigest": "sha256:cc216b1fd62fc515db94ee82d836b765416de72d65a60e9f9bfbb8bbc6ddaadf",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 16.76,
+      "durationSec": 17,
       "status": "passed"
     },
     {
@@ -25,7 +25,7 @@
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 3,
+      "durationSec": 3.1,
       "status": "passed"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.25,
+      "durationSec": 0.22,
       "status": "passed"
     },
     {
@@ -45,12 +45,12 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.28,
+      "durationSec": 0.29,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.35,
+      "durationSec": 1.36,
       "status": "passed"
     },
     {
@@ -60,5 +60,5 @@
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:8085a4399539a5fe2ee702e9f3d65682642edb0d7a0a1b42d01d94093d1fda84"
+  "receiptDigest": "sha256:283f8db2c81852dd0c821d059fbe2c8e40a48675fea24eba440fb1a677f957e0"
 }

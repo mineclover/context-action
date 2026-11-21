@@ -18,10 +18,8 @@ export default defineConfig({
     /^\.\/(?:\.\.\/){3,}(?:packages|demos|example|releases|\.agents|skills|README\.en)(?:\/|$)/,
   ],
   
-  // TypeDoc 생성 디렉토리 제외 및 LLM 데이터 제외
+  // 빌드에서 제외할 임시/작업 문서 경로
   srcExclude: [
-    'api/generated/**',
-    '**/llmsData/**',
     'llms-*.md',
     'task-*.md',
     'dead-code-*.md',
@@ -140,10 +138,10 @@ export default defineConfig({
   lastUpdated: true,
   metaChunk: true,
 
-  // Vite 빌드 설정 - 청크 크기 경고 임계값 조정
+  // Vite 빌드 설정
   vite: {
     build: {
-      chunkSizeWarningLimit: 3000 // 3MB로 임계값 상향 조정 (로컬 검색 인덱스 때문)
+      chunkSizeWarningLimit: 1500
     }
   },
 

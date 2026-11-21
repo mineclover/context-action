@@ -47,7 +47,7 @@ Context-Action 프레임워크 사용자 가이드에 오신 것을 환영합니
 ## 🔗 관련 문서
 
 - **[핵심 개념](../concept/architecture-guide.md)** - 프레임워크 기본 철학과 설계
-- **[API 레퍼런스](/en/api/README)** - TypeDoc 기반 전체 API 문서 (영문)
+- **[API 레퍼런스](/ko/context-layered/repository-surface-catalog)** - 패키지 및 API 표면 카탈로그
 - **[예제 워크스루](../examples/basic-setup.md)** - 동작하는 실제 예제 코드
 - **[LLM 리소스](/ko/llms/)** - AI 에이전트 연동용 요약 리소스
 

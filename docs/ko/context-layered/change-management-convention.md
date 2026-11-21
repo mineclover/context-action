@@ -234,8 +234,10 @@ GitHub issue를 사용한다면 commit 또는 PR 본문에 `Refs #<number>` 또�
 - 공개 영문·국문 페이지는 pair source이며 의미와 현재 동작을 맞춥니다.
 - 권위 가이드가 설명을 소유합니다. README는 발견과 연결을 담당하며 별도
   계약을 만들지 않습니다.
-- API 페이지와 LLMS 산출물은 파생물입니다. 원본을 먼저 수정하고 관련
-  generator를 실행합니다.
+- LLMS 번들(`docs/{en,ko}/llms/llms-*.txt`)은 `docs/{en,ko}/**`에서 파생됩니다.
+  원본 마크다운을 먼저 수정하고 `pnpm docs:llms`로 재생성합니다.
+- 패키지 API 참조는 `packages/*/README.md`, `packages/*/docs/*.md`, TypeScript 선언 및
+  `catalog/repository-surface/api-surface.v1.json`에서 직접 관리합니다.
 - 사용할 수 없거나 best-effort, experimental, 수동 credential 의존 기능은
   문서에 그 상태를 표시합니다.
 - 새 컨벤션은 Convention Index와 VitePress sidebar에 discovery link를 추가합니다.
@@ -243,14 +245,9 @@ GitHub issue를 사용한다면 commit 또는 PR 본문에 `Refs #<number>` 또�
 변경한 영역을 증명하는 가장 작은 명령 집합을 사용합니다.
 
 ```bash
-# 사람이 작성한 가이드 또는 컨벤션 (llms-generator 빌드 선행, 쉼표 구분 경로)
-pnpm build:llms-generator
-pnpm llms:sync-docs --changed-files path1.md,path2.md
+# 사람이 작성한 가이드 또는 컨벤션 (docs/{en,ko}/**에서 LLMS 번들 컴파일 후 검증)
+pnpm docs:llms
 pnpm docs:check
-
-# export API 또는 API JSDoc
-pnpm docs:api && pnpm docs:sync
-pnpm docs:build
 
 # PR 추적성, 표면 카탈로그, canonical example 구조 및 Local-First 영수증
 pnpm change:traceability
@@ -259,10 +256,9 @@ pnpm convention:check
 pnpm verify:quick && pnpm verify:receipt
 ```
 
-`pnpm docs:check`는 문서 관리 metadata, LLMS 최신성, VitePress 렌더링을
-검사합니다. 파일을 생성하지는 않습니다. `pnpm docs:full`은 API 참조 갱신
-흐름(`docs:api` → `docs:sync` → `docs:build`)이며 LLMS 산출물은 재생성하지
-않습니다. `pnpm verify:surface-catalog`는 워크스페이스 패키지/export, 정식
+`pnpm docs:check`는 `pnpm docs:management && pnpm verify:surface-catalog && pnpm llms:check && pnpm docs:build`를
+실행해 문서 관리 metadata, 표면 카탈로그 정합성, LLMS 번들 최신성, VitePress 렌더링을
+검사하며 파일을 수정하지는 않습니다. `pnpm verify:surface-catalog`는 워크스페이스 패키지/export, 정식
 `example/` 라우트, 루트 마크다운 파일, 관리 문서 페어링이
 `catalog/repository-surface/*.v1.json`과 어긋나면 fail-closed로 실패합니다.
 
@@ -302,6 +298,6 @@ standalone Web Studio는 [Tool-Calling Web Studio 컨벤션](./usecase-tool-call
 - [ ] Acceptance criteria가 구현·테스트 증거에 연결됨
 - [ ] persistence/API/schema 변경에 호환성과 migration note가 있음
 - [ ] 권위 영문·국문 문서, discovery link 및(표면 변경 시) `catalog/repository-surface/*.v1.json`이 갱신됨
-- [ ] 해당 시 원본에서 생성물(`llmsData/`, API 문서)을 다시 생성함
+- [ ] 해당 시 `pnpm docs:llms`로 파생 LLMS 번들(`docs/{en,ko}/llms/llms-*.txt`)을 다시 생성함
 - [ ] 집중 gate, `pnpm verify:surface-catalog`, `pnpm docs:check` 및 Local-First 영수증(`pnpm verify:quick` 또는 `pnpm verify` + `pnpm verify:receipt`)이 기록됨
 - [ ] 미룬 작업이 조용한 TODO가 아닌 후속 이슈로 남아 있음

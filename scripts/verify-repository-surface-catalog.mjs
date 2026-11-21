@@ -143,11 +143,6 @@ function verifyApiSurface(repositoryRoot, catalog, errors) {
     }
   }
 
-  const typedocPath = path.join(repositoryRoot, 'typedoc.json');
-  const typedocEntryPoints = fs.existsSync(typedocPath)
-    ? (readJson(typedocPath).entryPoints ?? [])
-    : [];
-
   diffSets(
     packages.map((item) => item.packageName),
     [...diskManifests.keys()],
@@ -212,14 +207,6 @@ function verifyApiSurface(repositoryRoot, catalog, errors) {
     );
     if (JSON.stringify(entry.workspacePeerDependencies) !== JSON.stringify(actualWsPeers)) {
       errors.push(`${label}: workspacePeerDependencies mismatch ${JSON.stringify(actualWsPeers)}`);
-    }
-
-    const expectedTypedoc = sortedStrings(
-      typedocEntryPoints.filter((target) => target.startsWith(`./${disk.directory}/`)),
-    );
-    const catalogTypedoc = sortedStrings(entry.typedocEntryPoints ?? []);
-    if (JSON.stringify(catalogTypedoc) !== JSON.stringify(expectedTypedoc)) {
-      errors.push(`${label}: typedocEntryPoints ${JSON.stringify(catalogTypedoc)} mismatch typedoc.json ${JSON.stringify(expectedTypedoc)}`);
     }
   }
 

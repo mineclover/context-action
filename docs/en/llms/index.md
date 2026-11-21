@@ -11,9 +11,10 @@ This section contains resources and documentation for LLM integration with the C
 - [Library Specifications](./library-specs.md) - Technical specifications for library usage
 
 ### Generated Files
-- **llms-500chars.txt** - 500 character summary for token-limited contexts
-- **llms-minimal.txt** - Minimal essential information
-- **llms-origin.txt** - Complete original documentation
+Compiled directly from `docs/en/**` (excluding `docs/en/llms/**`) via `pnpm docs:llms` (`pnpm llms:check` verifies freshness):
+- **llms-500chars.txt** - 500-character excerpt per document for token-limited contexts
+- **llms-minimal.txt** - Minimal numbered index with clean single-line summaries
+- **llms-origin.txt** - Complete original English documentation bundle
 
 ## Purpose
 

@@ -16,7 +16,7 @@ Do not default every request to a full demo. Start with the smallest shape that 
 - pure business modules (`*Draft.ts`, `*Validation.ts`, `*Result.ts`, `*Activity.ts`, `*StateMachine.ts`) with `ttsc@0.33.1` / `@wrtnlabs/evidence@0.8.0` Policy Hopping locks (`@evidenceReview ./generated/dto.ts#... #hash`, Heading-Form `## @evidence`, or detached `evidenceFiles`)
 - handlers split by concern (`Draft` vs `Submission` / `Hydration`) using the 4-role handler hooks (`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`) and `Promise.allSettled` for parallel `@entityRoot` + `@aspectOf` aspect hydration
 - thin views adhering to the 6-Level layout hierarchy, Two Golden Rules, 4-Tier Semantic Z-Index tokens (`--z-base: 1` ~ `--z-toast: 1100`), and Tier 3 Presentation State Waiver (file-header `@evidenceExclude`)
-- source registration, paired KO/EN docs linkage, `catalog/repository-surface/example-surface.v1.json` registration, and local verification gates (`pnpm docs:management`, `pnpm llms:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`)
+- source registration, paired KO/EN docs linkage, `catalog/repository-surface/example-surface.v1.json` registration, and local verification gates (`pnpm docs:llms`, `pnpm docs:management`, `pnpm llms:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`)
 
 ## Read these references first
 
@@ -90,13 +90,13 @@ If the user is working in English, also read:
    - Run the repository governance, surface-catalog, and documentation gates:
      - `pnpm verify:surface-catalog`
      - `pnpm convention:check`
-     - `pnpm docs:check` (`pnpm docs:management`, `pnpm llms:check`, `pnpm docs:build`)
+     - `pnpm docs:check` (`pnpm docs:management`, `pnpm verify:surface-catalog`, `pnpm llms:check`, `pnpm docs:build`)
      - `pnpm verify:quick` (and `pnpm verify:receipt`)
 
 7. Add discoverability
    - source registration
    - update `catalog/repository-surface/example-surface.v1.json` (for new canonical routes or demos)
-   - paired KO/EN example and convention docs (sync with `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files a.md,b.md`)
+   - paired KO/EN example and convention docs (regenerate LLMS bundles with `pnpm docs:llms`)
    - scenario library or overview entry
 
 8. Run the iteration loop
@@ -121,7 +121,7 @@ If the user is working in English, also read:
 
 - the scenario follows the standard 6-layer split and intent separation
 - the async workflow has explicit transitions and `Promise.allSettled` aspect resilience when needed
-- paired KO/EN docs, `catalog/repository-surface/example-surface.v1.json`, and `llmsData/` are synchronized
+- paired KO/EN docs, `catalog/repository-surface/example-surface.v1.json`, and `docs/{en,ko}/llms/llms-*.txt` (`pnpm docs:llms`) are synchronized
 - `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`, tests, and builds pass (`pnpm verify:quick`)
 
 ## Iterative enhancement rule
@@ -133,5 +133,5 @@ Recommended order:
 1. split business logic and separate `BusinessActionIntent` vs `LayoutActionIntent`
 2. add or refine explicit state transitions and `@evidenceReview` contract locks
 3. convert log strings into domain events
-4. improve paired KO/EN docs, `llmsData`, and source discoverability
+4. improve paired KO/EN docs, regenerate `docs/{en,ko}/llms/llms-*.txt`, and source discoverability
 5. only then promote blueprint scenarios into full demos

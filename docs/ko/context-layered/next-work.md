@@ -12,8 +12,8 @@ backlog다. 의미 계약 문서, 운영 runbook, package README, 생성 API 문
 | Redis 배포, retention, rollback, 운영 절차 | [Durable Operation Runbook](./architecture/durable-operation-operations) | 새로운 protocol 의미 |
 | package API와 consumer quickstart | package `README.md` | 두 번째 state-machine 명세 |
 | Durable mutation 실행, side-effect adapter, backend 운영 | [`@context-action/tool-durable-operations`](../../../packages/tool-durable-operations/README.md)와 [Durable Operation Runbook](./architecture/durable-operation-operations) | provider-neutral tool schema 또는 domain outbox 정책 |
-| 공개 TypeScript signature | TypeDoc 출력과 `typedoc-vitepress-sync` | 손으로 작성한 동작 주장 |
-| 짧은 요약 | `llmsData/`와 `llms-generator` | 수동 backlog 결정 |
+| 공개 TypeScript signature | 패키지 `README.md`, `packages/*/docs/*.md`, `.d.ts` 선언 및 [`api-surface.v1.json`](../../../catalog/repository-surface/api-surface.v1.json) | 손으로 복제한 중복 스펙 |
+| LLMS 번들 | `pnpm docs:llms`로 `docs/{en,ko}/**`에서 직접 생성하는 `docs/{en,ko}/llms/llms-*.txt` | 수동 backlog 결정 |
 
 계약이 바뀌면 먼저 소유 문서를 수정하고, 그 다음 영문/국문 문서와 생성
 artifact를 갱신한다. Package README는 전체 계약을 복사하지 말고 소유 문서로
@@ -185,5 +185,5 @@ guide가 소유한다.
 - [ ] 수정 전에 소유 package와 기준 문서를 정한다.
 - [ ] ownership table이 요구하는 교차 링크 외에는 의미 문서 또는 runbook 한 곳만 수정한다.
 - [ ] focused test와 contract/fixture version을 추가한다.
-- [ ] 문서가 안정된 뒤 영문/국문과 LLMS artifact를 생성한다 (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md,path2.md`).
+- [ ] 문서가 안정된 뒤 영문/국문과 LLMS 번들을 생성한다 (`pnpm docs:llms`).
 - [ ] `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`, package focused check, `pnpm verify:quick`(`pnpm verify:receipt`)을 실행한다.

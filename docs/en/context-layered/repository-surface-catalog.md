@@ -10,9 +10,9 @@
 
 This specification defines the principles, schema standards, and complete inventory for three repository surfaces:
 
-1. **Full Repository API Architecture**: all 20 workspace packages (`packages/*`), their public `exports`, workspace dependencies, stability tiers, and TypeDoc coverage.
+1. **Full Repository API Architecture**: all 20 workspace packages (`packages/*`), their public `exports`, workspace dependencies, and stability tiers.
 2. **What Examples Explain**: all 77 canonical routes across 13 semantic groups in `example/`, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), 7 package-local example suites, and 9 narrative example walkthroughs.
-3. **Managed Documentation Architecture**: all 13 root markdown documents, 13 managed documentation areas with explicit authority and EN/KO pairing policies, and derived TypeDoc/LLMS artifacts.
+3. **Managed Documentation Architecture**: all 13 root markdown documents, 13 managed documentation areas with explicit authority and EN/KO pairing policies, and derived LLMS bundle artifacts.
 
 It complements [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention), [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention), [Documentation and Development Management](/en/concept/documentation-development-conventions), and ADR [CA-SURFACE-CATALOG-001](/en/context-layered/decisions/CA-SURFACE-CATALOG-001).
 
@@ -20,8 +20,8 @@ It complements [Package Boundary and Codebase Management](/en/context-layered/pa
 
 ## 1. Five Organizing Principles
 
-1. **Source-First Non-Duplication**: Runtime manifests (`packages/*/package.json`), TypeDoc entrypoints (`typedoc.json`), route registration (`example/src/App.tsx`), and handwritten guides (`docs/{en,ko}/**`) remain the canonical sources of truth. The surface catalog indexes and cross-validates them without duplicating behavior specs.
-2. **Explicit Authority vs. Derived Separation**: Every managed document is classified as `authoritative`, `discovery`, `evidence`, `derived`, `transitional`, or `historical`. Derived files (`docs/api/generated`, `docs/en/api`, `api-spec.ts`, `llmsData`, `llms-*.txt`) must be regenerated from source, never edited as canonical specs.
+1. **Source-First Non-Duplication**: Runtime manifests (`packages/*/package.json`), route registration (`example/src/App.tsx`), package READMEs/contracts, and handwritten guides (`docs/{en,ko}/**`) remain the canonical sources of truth. The surface catalog indexes and cross-validates them without duplicating behavior specs.
+2. **Explicit Authority vs. Derived Separation**: Every managed document is classified as `authoritative`, `discovery`, `evidence`, `derived`, `transitional`, or `historical`. Derived files (`docs/{en,ko}/llms/llms-*.txt`) must be regenerated from source, never edited as canonical specs.
 3. **Three-Surface Versioned Schema Symmetry**: API (`api-surface.v1.json`), Example (`example-surface.v1.json`), and Document (`document-surface.v1.json`) share versioned schemas, stable kebab IDs, bilingual summaries (`en` / `ko`), and explicit verification gates.
 4. **Honest Bilingual Parity Accounting**: Directories expected to move in lockstep use `strict-paired` (0 unpaired files; currently all 5 `docs/{en,ko}/{context-layered,concept,examples,guide,troubleshooting}` and `docs/{en,ko}/llms`). Any directory temporarily carrying tracked translation debt uses `tracked-partial` with an explicit `knownUnpaired` list so gaps cannot silently grow or go stale.
 5. **Fail-Closed Drift Verification**: Any uncataloged package, export subpath, workspace dependency, canonical example route, package example folder, root markdown file, or translation drift fails `pnpm verify:surface-catalog` and `pnpm convention:check`.
@@ -48,9 +48,9 @@ It complements [Package Boundary and Codebase Management](/en/context-layered/pa
 | `authoritative` | Canonical specification, architecture convention, or user guide |
 | `discovery` | Landing README, AI agent guide, or index linking to canonical docs |
 | `evidence` | Immutable release plans, v1 audit/runbook records, verification evidence |
-| `derived` | Machine-generated outputs (`TypeDoc`, `typedoc-vitepress-sync`, `llms-generator`) |
+| `derived` | Machine-generated outputs (`docs/{en,ko}/llms/llms-*.txt` via `pnpm docs:llms`) |
 | `transitional` | Retained bridge documentation pending consolidation |
-| `historical` | Preserved point-in-time snapshot (`CHANGELOG.md`, `OPTIMIZATION_ANALYSIS.md`, `STORE_GUIDE.md`) |
+| `historical` | Preserved point-in-time snapshot (`CHANGELOG.md`, `OPTIMIZATION_ANALYSIS.md`, `REACT_COMPILER_MIGRATION.md`) |
 
 | Pairing Policy | Enforcement Rule |
 | --- | --- |
@@ -62,9 +62,9 @@ It complements [Package Boundary and Codebase Management](/en/context-layered/pa
 
 ### Update Loop on Surface Changes
 
-1. Update the canonical source (`package.json`, `typedoc.json`, `example/src/App.tsx`, or `docs/`).
+1. Update the canonical source (`package.json`, `example/src/App.tsx`, or `docs/`).
 2. Update the corresponding catalog in `catalog/repository-surface/*.v1.json` and, if needed, `docs/{en,ko}/context-layered/repository-surface-catalog.md`.
-3. Run `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md path2.md` (comma- or space-separated) for edited markdown files.
+3. Run `pnpm docs:llms` for edited markdown files to regenerate `docs/{en,ko}/llms/llms-*.txt`.
 4. Run `pnpm verify:surface-catalog && pnpm convention:check && pnpm docs:check`.
 
 ---
@@ -73,31 +73,31 @@ It complements [Package Boundary and Codebase Management](/en/context-layered/pa
 
 All 20 workspace packages declared under `packages/*/package.json` (excluding untracked local build residue without `package.json`):
 
-| Package | Layer | Visibility / Stability | Public `exports` | Workspace Deps (+Peers) | TypeDoc Covered |
+| Package | Layer | Visibility / Stability | Public `exports` | Workspace Deps (+Peers) | Authoritative Reference |
 | --- | --- | --- | --- | --- | --- |
-| `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | none | Yes (`.`, `./element`, `./element/react`) |
-| `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | none | Yes (`.`) |
-| `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | none | Yes (`.`) |
-| `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | none | Yes (`.`) |
-| `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | none | Yes (`.`) |
-| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peers: `tool-protocol`, `webmcp`) | Yes (all 5 exports) |
-| `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | Yes (`.`) |
-| `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | Yes (`.`) |
-| `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | Yes (`.`) |
-| `@context-action/lit-ui` (`0.1.4`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr`, `./hydrate` | `core`, `lit` | Yes (all 4 exports) |
-| `@context-action/preact-ui` (`0.2.1`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | Yes (all 3 exports) |
-| `@context-action/ai-sdk` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.` | `tool-protocol` | Yes (`.`) |
-| `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | Yes (all 2 exports) |
-| `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | Yes (`.`, `./effect`) |
-| `@context-action/llms-generator` (`0.8.7`) | `tooling` | `public` / `tooling` | `.`, `./cli` | none | No |
-| `@context-action/typedoc-vitepress-sync` (`0.8.8`) | `tooling` | `public` / `tooling` | `.`, `./cli` | none | No |
-| `@context-action/style-testing` (`0.1.0`) | `tooling` | `private` / `private` | `.`, `./babel-plugin` | none | No |
-| `@context-action/live-code-editor` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | none | No |
-| `@context-action/openrouter-browser-storage` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | none | No |
-| `@context-action/template-react` (`1.0.0`) | `private-host-support` | `private` / `private` | `(no exports)` | `core`, `react` | No |
+| `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | none | `packages/core/README.md`, `action-contracts.md`, `element-interop.md` |
+| `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | none | `packages/store-core/README.md`, `store-selection-and-usage-guide.md` |
+| `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | none | `packages/mutative-core/README.md`, `mutative-core-history.md` |
+| `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | none | `packages/tool-protocol/README.md`, `tool-calling-editor-architecture.md` |
+| `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | none | `packages/tool-durable-operations/README.md`, `durable-operation-operations.md` |
+| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peers: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
+| `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | `packages/mutative/README.md`, `time-travel-specialization.md` |
+| `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/lit/README.md`, `01-controller-scope.md` |
+| `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/preact/README.md`, `spec-to-code-authoring-guide.md` |
+| `@context-action/lit-ui` (`0.1.4`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr`, `./hydrate` | `core`, `lit` | `packages/lit-ui/README.md`, `packages/lit-ui/docs/*.md` |
+| `@context-action/preact-ui` (`0.2.1`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | `packages/preact-ui/README.md`, `packages/preact-ui/docs/*.md` |
+| `@context-action/ai-sdk` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.` | `tool-protocol` | `packages/ai-sdk/README.md`, `usecase-tool-calling-web-studio.md` |
+| `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | `packages/webmcp/README.md`, `docs/en/guide/webmcp.md` |
+| `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | `packages/xstate/README.md`, `xstate-effect-integration.md` |
+| `@context-action/llms-generator` (`0.8.7`) | `tooling` | `public` / `tooling` | `.`, `./cli` | none | `packages/llms-generator/README.md`, `packages/llms-generator/docs/` |
+| `@context-action/typedoc-vitepress-sync` (`0.8.8`) | `tooling` | `public` / `tooling` | `.`, `./cli` | none | `packages/typedoc-vitepress-sync/README.md`, `packages/typedoc-vitepress-sync/docs/` |
+| `@context-action/style-testing` (`0.1.0`) | `tooling` | `private` / `private` | `.`, `./babel-plugin` | none | `packages/style-testing/README.md` |
+| `@context-action/live-code-editor` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | none | `packages/live-code-editor/README.md` |
+| `@context-action/openrouter-browser-storage` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | none | `packages/openrouter-browser-storage/README.md` |
+| `@context-action/template-react` (`1.0.0`) | `private-host-support` | `private` / `private` | `(no exports)` | `core`, `react` | `packages/template-react/README.md` |
 
 > [!NOTE]
-> **TypeDoc Coverage Scope**: `typedoc.json` targets **27 source entrypoints across 14 of 16 public packages** (`14 / 14` public consumer runtime packages and all their public subpaths: `core`, `store-core`, `mutative-core`, `mutative`, `xstate`, `tool-protocol`, `ai-sdk`, `webmcp`, `tool-durable-operations`, `react`, `lit`, `lit-ui`, `preact`, `preact-ui`). Only the 2 CLI/build tooling packages (`llms-generator`, `typedoc-vitepress-sync`, maintained with standalone `packages/*/docs/` documentation) remain intentionally excluded from the runtime API reference.
+> **API Surface Source of Truth**: Rather than maintaining a repository-wide TypeDoc HTML/Markdown generation tree (`docs/en/api/**`), the 14 public consumer runtime packages and 2 public tooling packages document their public contracts directly in `packages/*/README.md`, `packages/*/docs/*.md`, TypeScript `.d.ts` declarations, and [`catalog/repository-surface/api-surface.v1.json`](../../../catalog/repository-surface/api-surface.v1.json). `@context-action/llms-generator` and `@context-action/typedoc-vitepress-sync` remain independent public tooling packages.
 
 ### 3.1 Package Roles by Layer
 
@@ -187,7 +187,7 @@ For deciding which state/store API to use across these packages, see the [Store 
 | `doc-llms` | `docs/{en,ko}/llms` (`.md`) | `authoritative` | `strict-paired` | 0 unpaired (`llms-*.txt` tracked under `derivedSurfaces`) |
 | `doc-guide` | `docs/{en,ko}/guide` | `authoritative` | `strict-paired` | 0 unpaired; getting-started, pipeline (`advanced-filtering.md` paired), and action/store/ref/async/setup patterns |
 | `doc-troubleshooting` | `docs/{en,ko}/troubleshooting` | `authoritative` | `strict-paired` | 0 unpaired; diagnostic guides for action, store, ref, infinite loops, and performance |
-| `doc-docs-root` | `docs/index.md`, `LOCAL_FIRST_VERIFICATION_POLICY.md`, `STORE_GUIDE.md` | `authoritative` | `single-locale` | `STORE_GUIDE.md` is explicitly marked historical |
+| `doc-docs-root` | `docs/index.md`, `LOCAL_FIRST_VERIFICATION_POLICY.md` | `authoritative` | `single-locale` | VitePress home selector & Local-First Verification Policy |
 | `doc-releases-v1` | `docs/releases`, `docs/ko/releases` | `evidence` | `single-locale` | v1.0.0 audit, scope, runbooks, release manifest |
 | `doc-releases-ops` | `releases/` | `evidence` | `single-locale` | `RELEASE.md`, cohort JSON plans, public preview release notes |
 | `doc-package-docs` | `packages/*/README.md`, `CHANGELOG.md`, `UNRELEASED.md`, `docs/*.md` | `authoritative` | `single-locale` | Per-package discovery & focused contracts |
@@ -195,12 +195,10 @@ For deciding which state/store API to use across these packages, see the [Store 
 | `doc-skills` | `skills/` (`.agents/skills/` gitignored mirror) | `authoritative` | `not-applicable` | Repository-local Implementation Playbook skills |
 | `doc-design-tasks` | `design-docs/`, `tasks/` | `historical` | `not-applicable` | Archived design specs and task briefs |
 
-### 5.3 Derived / Generated Surfaces (10 Outputs)
+### 5.3 Derived / Generated Surfaces (6 Outputs)
 
-- `docs/api/generated` (`pnpm docs:api`) ← `typedoc.json` + exported TypeScript source/JSDoc
-- `docs/en/api` & `docs/.vitepress/config/api-spec.ts` (`pnpm docs:sync`) ← `docs/api/generated` + `typedoc-vitepress-sync`
-- `llmsData` (`pnpm llms:sync-docs --changed-files path1.md,path2.md`) ← `docs/{en,ko}/**/*.md`
-- `docs/{en,ko}/llms/llms-origin.txt`, `llms-500chars.txt`, `llms-minimal.txt` (`llms-generate`) ← `llmsData/{en,ko}/**`
+- `docs/en/llms/llms-origin.txt`, `llms-500chars.txt`, `llms-minimal.txt` (`pnpm docs:llms`) ← `docs/en/**/*.md` (excluding `docs/en/llms/**`)
+- `docs/ko/llms/llms-origin.txt`, `llms-500chars.txt`, `llms-minimal.txt` (`pnpm docs:llms`) ← `docs/ko/**/*.md` (excluding `docs/ko/llms/**`)
 
 ---
 

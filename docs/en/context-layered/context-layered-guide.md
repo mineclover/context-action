@@ -142,10 +142,10 @@ docs/en/context-layered/
 ```
 
 The folders above are the maintained documentation surfaces. Package READMEs are
-discovery pages, TypeDoc pages are generated API references, and `llmsData/` is
-derived output; none of them is a second architecture specification. Use the
-[Convention Index](./convention-index.md) when a topic could belong to more than
-one page.
+discovery pages and `docs/{en,ko}/llms/llms-*.txt` are derived bundles compiled
+via `pnpm docs:llms`; neither replaces the authoritative architecture specs or
+`catalog/repository-surface/*.v1.json`. Use the [Convention Index](./convention-index.md)
+when a topic could belong to more than one page.
 
 ## 🚀 Getting Started
 

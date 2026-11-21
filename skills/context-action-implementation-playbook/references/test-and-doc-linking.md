@@ -24,6 +24,6 @@ Use this after the scenario structure exists.
 
 - register source files for the new page and key modules
 - update `catalog/repository-surface/example-surface.v1.json` for new canonical routes or demos
-- add paired KO/EN docs links (`docs/ko/...` and `docs/en/...`) and sync `llmsData/` (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files a.md,b.md`)
+- add paired KO/EN docs links (`docs/ko/...` and `docs/en/...`) and regenerate LLMS bundles (`pnpm docs:llms`)
 - add docs sidebar entry if a new document was added
 - add route discovery from PatternsOverview or a scenario library page

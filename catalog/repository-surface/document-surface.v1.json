@@ -270,13 +270,12 @@
       "pairingPolicy": "single-locale",
       "paths": [
         "docs/index.md",
-        "docs/LOCAL_FIRST_VERIFICATION_POLICY.md",
-        "docs/STORE_GUIDE.md"
+        "docs/LOCAL_FIRST_VERIFICATION_POLICY.md"
       ],
       "owner": "Documentation & Verification Owners",
       "purpose": {
-        "en": "VitePress home selector, enforced Local-First Verification Policy (#50/#53), and historical Store system notes.",
-        "ko": "VitePress 홈 언어 선택기, 강제되는 Local-First 검증 정책(#50/#53) 및 역사적 Store 참고 문서입니다."
+        "en": "VitePress home selector and enforced Local-First Verification Policy (#50/#53).",
+        "ko": "VitePress 홈 언어 선택기와 강제되는 Local-First 검증 정책(#50/#53)입니다."
       },
       "verificationGate": "pnpm docs:build"
     },
@@ -369,76 +368,46 @@
   ],
   "derivedSurfaces": [
     {
-      "id": "derived-typedoc-raw",
-      "path": "docs/api/generated",
-      "gitignored": true,
-      "sourceOfTruth": "typedoc.json + exported TypeScript source/JSDoc",
-      "generatorCommand": "pnpm docs:api",
-      "verificationCommand": "pnpm release:check"
-    },
-    {
-      "id": "derived-api-vitepress",
-      "path": "docs/en/api",
-      "sourceOfTruth": "docs/api/generated + typedoc-vitepress-sync.config.js",
-      "generatorCommand": "pnpm docs:api && pnpm docs:sync",
-      "verificationCommand": "pnpm docs:build"
-    },
-    {
-      "id": "derived-api-sidebar",
-      "path": "docs/.vitepress/config/api-spec.ts",
-      "gitignored": true,
-      "sourceOfTruth": "docs/api/generated + typedoc-vitepress-sync",
-      "generatorCommand": "pnpm docs:sync",
-      "verificationCommand": "pnpm docs:build"
-    },
-    {
-      "id": "derived-llms-data",
-      "path": "llmsData",
-      "sourceOfTruth": "docs/en/** and docs/ko/** markdown sources",
-      "generatorCommand": "pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md,path2.md",
-      "verificationCommand": "pnpm llms:check"
-    },
-    {
       "id": "derived-llms-txt-origin-en",
       "path": "docs/en/llms/llms-origin.txt",
-      "sourceOfTruth": "llmsData/en/** + packages/llms-generator",
-      "generatorCommand": "node packages/llms-generator/dist/cli/index.js llms-generate --language en --pattern origin",
-      "verificationCommand": "pnpm docs:build"
+      "sourceOfTruth": "docs/en/**/*.md (excluding docs/en/llms/**)",
+      "generatorCommand": "pnpm docs:llms",
+      "verificationCommand": "pnpm llms:check"
     },
     {
       "id": "derived-llms-txt-500-en",
       "path": "docs/en/llms/llms-500chars.txt",
-      "sourceOfTruth": "llmsData/en/** + packages/llms-generator",
-      "generatorCommand": "node packages/llms-generator/dist/cli/index.js llms-generate --language en --character-limit 500",
-      "verificationCommand": "pnpm docs:build"
+      "sourceOfTruth": "docs/en/**/*.md (excluding docs/en/llms/**)",
+      "generatorCommand": "pnpm docs:llms",
+      "verificationCommand": "pnpm llms:check"
     },
     {
       "id": "derived-llms-txt-minimal-en",
       "path": "docs/en/llms/llms-minimal.txt",
-      "sourceOfTruth": "llmsData/en/** + packages/llms-generator",
-      "generatorCommand": "node packages/llms-generator/dist/cli/index.js llms-generate --language en --pattern minimum",
-      "verificationCommand": "pnpm docs:build"
+      "sourceOfTruth": "docs/en/**/*.md (excluding docs/en/llms/**)",
+      "generatorCommand": "pnpm docs:llms",
+      "verificationCommand": "pnpm llms:check"
     },
     {
       "id": "derived-llms-txt-origin-ko",
       "path": "docs/ko/llms/llms-origin.txt",
-      "sourceOfTruth": "llmsData/ko/** + packages/llms-generator",
-      "generatorCommand": "node packages/llms-generator/dist/cli/index.js llms-generate --language ko --pattern origin",
-      "verificationCommand": "pnpm docs:build"
+      "sourceOfTruth": "docs/ko/**/*.md (excluding docs/ko/llms/**)",
+      "generatorCommand": "pnpm docs:llms",
+      "verificationCommand": "pnpm llms:check"
     },
     {
       "id": "derived-llms-txt-500-ko",
       "path": "docs/ko/llms/llms-500chars.txt",
-      "sourceOfTruth": "llmsData/ko/** + packages/llms-generator",
-      "generatorCommand": "node packages/llms-generator/dist/cli/index.js llms-generate --language ko --character-limit 500",
-      "verificationCommand": "pnpm docs:build"
+      "sourceOfTruth": "docs/ko/**/*.md (excluding docs/ko/llms/**)",
+      "generatorCommand": "pnpm docs:llms",
+      "verificationCommand": "pnpm llms:check"
     },
     {
       "id": "derived-llms-txt-minimal-ko",
       "path": "docs/ko/llms/llms-minimal.txt",
-      "sourceOfTruth": "llmsData/ko/** + packages/llms-generator",
-      "generatorCommand": "node packages/llms-generator/dist/cli/index.js llms-generate --language ko --pattern minimum",
-      "verificationCommand": "pnpm docs:build"
+      "sourceOfTruth": "docs/ko/**/*.md (excluding docs/ko/llms/**)",
+      "generatorCommand": "pnpm docs:llms",
+      "verificationCommand": "pnpm llms:check"
     }
   ]
 }

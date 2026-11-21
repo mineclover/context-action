@@ -78,7 +78,7 @@
 | **타임아웃** | 최대 10분 | 최대 30분 | 최대 30분 |
 | **동시성 제어** | 동일 PR 새 커밋 시 이전 실행 즉시 자동 취소 (`cancel-in-progress: true`) | 동일 ref 새 커밋 시 이전 실행 취소 | 개별 릴리즈 실행 보존 (`cancel-in-progress: false`) |
 | **서비스 컨테이너** | 없음 (러너 가상머신만 사용) | Redis 7 + PostgreSQL 16 (durable-operation 검증) | Redis 7 + PostgreSQL 16 |
-| **검증 항목** | 1. `pnpm run verify:receipt` (로컬 영수증 감사)<br>2. PR 변경 추적성 (`pnpm change:traceability`)<br>3. 패키지 경계 및 컨벤션/표면 카탈로그 스모크 (`package-boundary:check`, `convention:check`)<br>4. 문서·LLMS·VitePress 빌드 (`docs:management`, `llms:check`, `docs:build`), Lit/Example 스모크 | 전체 통합 테스트 (`pnpm verify:all`), durable backend 스모크, OSV Scanner 보안 감사, React 호환성 매트릭스, 번들 사이즈 체크 | 불변 커밋 provenance 검증, 패키지 tarball 무결성, OIDC npm 서명 발행 |
+| **검증 항목** | 1. `pnpm run verify:receipt` (로컬 영수증 감사)<br>2. PR 변경 추적성 (`pnpm change:traceability`)<br>3. 패키지 경계 및 컨벤션/표면 카탈로그 스모크 (`package-boundary:check`, `convention:check`)<br>4. 통합 문서·LLMS·VitePress 검증 (`pnpm docs:check`: `docs:management` + `verify:surface-catalog` + `llms:check` + `docs:build`), Lit/Example 스모크 | 전체 통합 테스트 (`pnpm verify:all`), durable backend 스모크, OSV Scanner 보안 감사, React 호환성 매트릭스, 번들 사이즈 체크 | 불변 커밋 provenance 검증, 패키지 tarball 무결성, OIDC npm 서명 발행 |
 | **소요 시간** | **~1.5분 - 2분** (기존 대비 85% 절감) | ~8분 - 10분 | ~12분 - 15분 |
 
 ---
@@ -86,5 +86,5 @@
 ## 5. 배포 의존성 및 거버넌스 보장
 
 1. **GitHub Pages 배포 파이프라인 무결성**: `deploy-all.yml`은 `main` 브랜치에서 `CI` 워크플로가 성공 완료된 이벤트(`workflow_run`)를 수신하여 문서 및 데모 배포를 진행합니다. PR 단계의 경량화와 무관하게 `main` 브랜치에 머지되는 시점에 정규 `CI`가 실행되어 배포 트리거 계약이 완벽히 유지됩니다.
-2. **문서 변경 PR의 경량 검증**: `pr-verify.yml`은 `docs/**` 및 `llmsData/**` 경로 변경에서도 트리거되어 Redis/PostgreSQL 서비스 컨테이너 없이 문서 정합성(`docs:management`, `llms:check`, `docs:build`), 로컬 영수증, 컨벤션 스모크만 가볍게 검증합니다.
+2. **문서 변경 PR의 경량 검증**: `pr-verify.yml`은 `docs/**` 경로 변경에서도 트리거되어 Redis/PostgreSQL 서비스 컨테이너 없이 통합 문서 게이트(`pnpm docs:check`), 로컬 영수증, 컨벤션 스모크만 가볍게 검증합니다.
 3. **Fail-Closed 원칙**: 비용 절감을 이유로 보안 점검, 타입체크, 입력/출력 해시 검증을 생략하거나 제거하지 않습니다.

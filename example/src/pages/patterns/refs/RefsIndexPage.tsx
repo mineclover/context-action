@@ -521,7 +521,7 @@ function Component() {
                 🎮 더 많은 예제
               </a>
               <a
-                href="https://mineclover.github.io/context-action/en/api/"
+                href="https://mineclover.github.io/context-action/en/context-layered/repository-surface-catalog"
                 target="_blank"
                 rel="noreferrer"
                 className="text-blue-600 hover:text-blue-800 text-sm hover:underline"

@@ -10,14 +10,12 @@ on:
       - 'example/**'
       - 'demos/**'
       - 'docs/**'
-      - 'llmsData/**'
       - 'catalog/**'
       - 'releases/**'
       - 'tools/**'
       - 'biome.json'
       - 'tsconfig*.json'
       - 'lerna.json'
-      - 'typedoc.json'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -77,14 +75,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Verify documentation contracts
-        run: |
-          pnpm build:llms-generator
-          pnpm docs:management
-          pnpm llms:check
-
-      - name: Build documentation
-        run: pnpm docs:build
+      - name: Verify and build documentation
+        run: pnpm docs:check
 
       - name: Build core and react for smoke checks
         run: >-

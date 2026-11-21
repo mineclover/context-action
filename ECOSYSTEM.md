@@ -20,7 +20,7 @@ llms --version
 - 📊 **Priority Management**: Automated priority analysis with health scoring
 - 🌐 **Multilingual Support**: English/Korean processing with intelligent detection  
 - ⚡ **CLI Tools**: Complete command-line interface with global `llms` command
-- 🔄 **Auto-Sync**: Post-commit hooks for seamless documentation workflow
+- 🔄 **Standalone Package Tooling**: Standalone CLI tooling (`packages/llms-generator`, `packages/typedoc-vitepress-sync`) while the monorepo docs site uses `pnpm docs:llms` (`scripts/sync-llms-bundles.mjs`) and `pnpm docs:check`
 - 🎯 **Work Management**: Priority-driven task discovery
 
 ---
@@ -235,33 +235,20 @@ llms code-mode --include-tests               # Include test files
 
 ---
 
-## 🔄 Automation & Workflows
+## 🔄 Repository Documentation Workflow
 
-### Post-Commit Hook System
-Automatically processes documentation changes via git hooks:
+The monorepo documentation pipeline compiles `docs/{en,ko}/llms/llms-{minimal,500chars,origin}.txt` directly from `docs/{en,ko}/**` without an intermediate `llmsData/` folder or post-commit git hook:
 
 ```bash
-# Setup (automatically configured during pnpm install)
-.husky/post-commit
+# 1. Edit paired English/Korean docs under docs/{en,ko}/
+# 2. Regenerate LLMS bundles directly from docs/{en,ko}/**
+pnpm docs:llms
+
+# 3. Run the unified documentation gate
+pnpm docs:check
 ```
 
-**Automated Workflow:**
-1. **Detection**: Automatically detects changes in `docs/(en|ko)/**/*.md` files
-2. **Processing**: Generates 7 character-limited templates with YAML frontmatter
-3. **Metadata**: Creates `priority.json` with enhanced metadata
-4. **Manual Control**: Files are staged but require manual commit
-
-### Integration with Development
-```bash
-# Development workflow
-git add docs/en/guide/new-feature.md
-git commit -m "docs: add new feature guide"
-# → LLMS Generator automatically processes the new file
-# → Files staged for manual commit
-
-git add llmsData/ 
-git commit -m "chore(llms): update documentation templates"
-```
+Standalone tooling packages (`@context-action/llms-generator` and `@context-action/typedoc-vitepress-sync`) remain independently maintained under `packages/` for external consumers and library workflows (`llms ...` CLI subcommands above apply when using `@context-action/llms-generator` standalone).
 
 ---
 
@@ -269,22 +256,10 @@ git commit -m "chore(llms): update documentation templates"
 
 ### VitePress Integration
 The framework uses VitePress for documentation with:
-- **Dual Language Support**: English and Korean
-- **Auto-Generated API**: TypeDoc integration
+- **Dual Language Support**: English and Korean (`strict-paired`)
+- **Surface Catalogs**: Machine-verifiable package, route, and document inventories (`catalog/repository-surface/*.v1.json`)
 - **Live Examples**: Embedded interactive examples
 - **Search**: Full-text search across all documentation
-
-### TypeDoc API Generation
-```bash
-# Generate API documentation
-pnpm docs:api
-
-# Sync API docs to VitePress
-pnpm docs:sync
-
-# Full documentation build
-pnpm docs:full
-```
 
 ---
 
@@ -323,12 +298,16 @@ npm install -g @context-action/llms-generator
 llms --help
 ```
 
-### Local Development
+### Local Repository & Standalone Usage
 ```bash
-# Use project-local commands
-pnpm llms:priority-stats
-pnpm llms:sync-docs:ko
-pnpm llms:work-next
+# Repository documentation bundles & unified gate
+pnpm docs:llms
+pnpm llms:check
+pnpm docs:check
+
+# Standalone CLI usage (built @context-action/llms-generator package)
+pnpm build:llms-generator
+node packages/llms-generator/dist/cli/index.js --help
 ```
 
 ### Command Categories

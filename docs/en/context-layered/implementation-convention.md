@@ -223,7 +223,7 @@ Recommended commands:
 
 When you add a new scenario, update at least:
 
-- a paired KO/EN example doc and sync `llmsData/` (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md path2.md`)
+- a paired KO/EN example doc and regenerated LLMS bundles (`pnpm docs:llms`)
 - `catalog/repository-surface/example-surface.v1.json` (`pnpm verify:surface-catalog`)
 - the state-machine doc linkage
 - a discovery link in PatternsOverview or a scenario library

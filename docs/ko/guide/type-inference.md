@@ -111,7 +111,7 @@ function UserComponent() {
 
 - [시작하기 가이드](./getting-started.md)
 - [모범 사례](./best-practices.md)
-- [API 레퍼런스](/en/api/README)
+- [API 레퍼런스](/ko/context-layered/repository-surface-catalog)
 - [아키텍처 개요](../concept/architecture-guide.md)
 
 ---
