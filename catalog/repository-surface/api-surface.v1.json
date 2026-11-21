@@ -159,7 +159,9 @@
         "@context-action/core"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
+      "typedocEntryPoints": [
+        "./packages/lit/src/index.ts"
+      ],
       "readme": "packages/lit/README.md",
       "authoritativeDocs": [
         "packages/lit/docs/01-controller-scope.md",
@@ -229,7 +231,12 @@
         "@context-action/lit"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
+      "typedocEntryPoints": [
+        "./packages/lit-ui/src/hydrate.ts",
+        "./packages/lit-ui/src/index.ts",
+        "./packages/lit-ui/src/react-bridge.ts",
+        "./packages/lit-ui/src/ssr.ts"
+      ],
       "readme": "packages/lit-ui/README.md",
       "authoritativeDocs": [
         "packages/lit-ui/docs/01-dom-ownership.md",
@@ -400,7 +407,9 @@
       ],
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
+      "typedocEntryPoints": [
+        "./packages/mutative-core/src/index.ts"
+      ],
       "readme": "packages/mutative-core/README.md",
       "authoritativeDocs": [
         "docs/en/context-layered/mutative-core-history.md",
@@ -477,7 +486,9 @@
         "@context-action/core"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
+      "typedocEntryPoints": [
+        "./packages/preact/src/index.ts"
+      ],
       "readme": "packages/preact/README.md",
       "authoritativeDocs": [
         "docs/en/context-layered/package-boundary-convention.md",
@@ -535,7 +546,11 @@
         "@context-action/preact"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
+      "typedocEntryPoints": [
+        "./packages/preact-ui/src/index.ts",
+        "./packages/preact-ui/src/react-bridge.ts",
+        "./packages/preact-ui/src/ssr.ts"
+      ],
       "readme": "packages/preact-ui/README.md",
       "authoritativeDocs": [
         "packages/preact-ui/docs/README.md",
@@ -939,7 +954,8 @@
       ],
       "workspacePeerDependencies": [],
       "typedocEntryPoints": [
-        "./packages/webmcp/src/index.ts"
+        "./packages/webmcp/src/index.ts",
+        "./packages/webmcp/src/profiles/chrome-legacy.ts"
       ],
       "readme": "packages/webmcp/README.md",
       "authoritativeDocs": [

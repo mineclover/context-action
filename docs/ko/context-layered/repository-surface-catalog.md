@@ -77,17 +77,17 @@
 | --- | --- | --- | --- | --- | --- |
 | `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | 없음 | 예 (`.`, `./element`, `./element/react`) |
 | `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | 없음 | 예 (`.`) |
-| `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | 없음 | 아니오 |
+| `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | 없음 | 예 (`.`) |
 | `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | 없음 | 예 (`.`) |
 | `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | 없음 | 예 (`.`) |
 | `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | 예 (전체 5개 export) |
 | `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | 예 (`.`) |
-| `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | 아니오 |
-| `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | 아니오 |
-| `@context-action/lit-ui` (`0.1.4`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr`, `./hydrate` | `core`, `lit` | 아니오 |
-| `@context-action/preact-ui` (`0.2.1`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | 아니오 |
+| `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | 예 (`.`) |
+| `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | 예 (`.`) |
+| `@context-action/lit-ui` (`0.1.4`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr`, `./hydrate` | `core`, `lit` | 예 (전체 4개 export) |
+| `@context-action/preact-ui` (`0.2.1`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | 예 (전체 3개 export) |
 | `@context-action/ai-sdk` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.` | `tool-protocol` | 예 (`.`) |
-| `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | 예 (`.`) |
+| `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | 예 (전체 2개 export) |
 | `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | 예 (`.`, `./effect`) |
 | `@context-action/llms-generator` (`0.8.7`) | `tooling` | `public` / `tooling` | `.`, `./cli` | 없음 | 아니오 |
 | `@context-action/typedoc-vitepress-sync` (`0.8.8`) | `tooling` | `public` / `tooling` | `.`, `./cli` | 없음 | 아니오 |
@@ -97,7 +97,7 @@
 | `@context-action/template-react` (`1.0.0`) | `private-host-support` | `private` / `private` | `(없음)` | `core`, `react` | 아니오 |
 
 > [!NOTE]
-> **TypeDoc 커버리지 공백**: 현재 `typedoc.json`은 **공개 패키지 16개 중 9개**의 16개 엔트리(`core`, `react`, `xstate`의 전체 서브패스 및 `store-core`, `mutative`, `tool-protocol`, `ai-sdk`, `webmcp`, `tool-durable-operations`)를 API 참조로 생성합니다. 나머지 7개 공개 패키지(`lit`, `lit-ui`, `preact`, `preact-ui`, `mutative-core`, `llms-generator`, `typedoc-vitepress-sync`)와 `@context-action/webmcp/profiles/chrome-legacy` 서브패스는 TypeDoc에 편입되기 전까지 `api-surface.v1.json`에서 명시적으로 추적합니다.
+> **TypeDoc 커버리지 범위**: `typedoc.json`은 **공개 패키지 16개 중 14개**(`core`, `store-core`, `mutative-core`, `mutative`, `xstate`, `tool-protocol`, `ai-sdk`, `webmcp`, `tool-durable-operations`, `react`, `lit`, `lit-ui`, `preact`, `preact-ui` 등 공개 런타임 패키지 **14/14개 전체** 및 모든 서브패스 27개 엔트리)를 API 참조로 생성합니다. CLI/빌드 도구 패키지 2종(`llms-generator`, `typedoc-vitepress-sync`, 각각 `packages/*/docs/` 독립 문서 유지)만 런타임 API 참조 대상에서 의도적으로 제외되어 있습니다.
 
 ### 3.1 계층별 패키지 용도 요약
 
