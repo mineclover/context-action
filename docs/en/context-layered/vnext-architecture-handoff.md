@@ -1,16 +1,16 @@
 # vNext Architecture & Cross-Project Handoff Guide
 
-**Status:** Active handoff reference for cross-project feedback  
-**Baseline:** `stage` branch (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`)
+**Status:** Phase 1 (`M0–M4` 4.x additive alignment) implemented on `stage`; Phase 2 (`v5` major) feedback & release window remain open  
+**Baseline:** `stage` branch (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`; package versions frozen on `stage`)
 
-This document equips a sibling consumer project or the next architecture review session with exact baseline rules, reading paths, open feedback gates, and ready-to-paste prompts so design feedback can be collected safely without disrupting concurrent cross-project work.
+This document equips a sibling consumer project or the next architecture review session with exact baseline rules, reading paths, Phase 1 implementation coverage, remaining Phase 2 (`v5`) decision gates, and ready-to-paste prompts so coordination can proceed safely without breaking existing 4.x consumers.
 
 ---
 
 ## 1. Baseline & Freeze Rules
 
 - **Active branch:** `stage` (keep all pre-release design and stabilization work off `main` until an approved integration window).
-- **Published contract freeze:** Sibling/external projects are actively modifying or integrating against the current `@context-action/*` 4.x / 1.x / 0.x contracts. **Do NOT alter runtime code, public exports, `package.json` versions, or `catalog/repository-surface/api-surface.v1.json`** while collecting design feedback.
+- **Published contract & version freeze:** Package versions and npm releases remain frozen while sibling/external projects transition; **all Phase 1 changes on `stage` (`M0–M4`) are strictly 4.x additive / non-breaking** with full root `.` export and default compatibility.
 - **No thin React hook wrappers for already-composable patterns:** Context-Action intentionally treats the 5 OOP × React built-in hook archetypes (`useImperativeHandle`, `useLocalStore`/`useReducer`, `useDeferredValue`, React 19 `useOptimistic`/`useTransition`/`useActionState`, and isomorphic `useLayoutEffect`/`useEffect`) as documented usage patterns rather than adding thin wrapper APIs.
 
 ---
@@ -56,15 +56,15 @@ Sibling/consumer feedback should explicitly take a position on the 4 open decisi
 | **3. `StateBackend` & TimeTravel Placement** | `macrostructure` (`interface-intent-runtime-react.ts:15-32`) mirrors stores via `useEffect` because React `useStoreValue` rejects `StateReader<T>`, `google-tools` contrasts Lit's native `StateStore` acceptance, and `browser-studio` + `ae-editor` `.mjs` tests prove non-React demand for `TimeTravelStore`. | **M1 (P0):** Native `StateReader<T>` / `StateBackend<T>` in React hooks & `createStoreContext`.<br>**M3 (P1):** Framework-neutral Timeline/TimeTravel engine with React `.` re-exports preserved. |
 | **4. Semver Horizon** | `ae-editor`, `iframe-demo`, `graph-hub`, and `macrostructure` all import directly from `@context-action/react` root `.` (`0.8.x`–`3.0.0`/`4.x`). | Commit **Phase 1 strictly to 4.x Non-Breaking (Additive)**; defer breaking cleanups to **v5 Major**. |
 
-### 3.2 Phase 1 (4.x Additive) Execution Plan Summary (`M0–M4`)
+### 3.2 Phase 1 (4.x Additive) Implementation Status (`M0–M4` on `stage`)
 
-Full contract targets, file ownership, and acceptance commands live in Section 9 of [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md):
+Full contract targets, file ownership, and acceptance commands live in Section 9 of [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md). All five Phase 1 milestones are implemented and verified on `stage` (with **Phase 2 / `v5` breaking cleanup deferred**):
 
-- **M0 (Baseline Sync Prerequisite):** Let active concurrent `packages/react` 4.x edits (`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP docs) settle and commit cleanly on `stage`.
-- **M1 (P0 · Track A1):** Widen `useStoreValue`, `useStoreSelector`, and `ExternalStoresMap<T>` (`createStoreContext().Provider stores={...}`) to accept `StateReader<T>` / `StateBackend<T>` directly without manual `BackendStore` wrapping.
-- **M2 (P1 · Track B1):** Add optional per-action scheduling policy (`actions?: Partial<Record<ActionNames<T>, { queue?: 'serial' | 'immediate'; timeout?: number }>>`) in `@context-action/core` while preserving current defaults.
-- **M3 (P1 · Track A2):** Extract framework-neutral `TimeTravelStore` / `TimelineBackend<T>` capabilities into Layer 1 while retaining full backward-compatible re-exports on `@context-action/react` root `.`.
-- **M4 (P2 · Track C1 & B2):** Add opt-in React subpaths (`./refs`, `./time-travel`, `./transactions`) and symmetric dispatch hooks (`useActionResultDispatch()`, `useActionScope()`) with root `.` intact and full `api-surface.v1.json` + doc/boundary gate parity.
+- **M0 (`Done` · Baseline Sync):** Concurrent `packages/react` 4.x improvements (`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP docs) and baseline receipt (`e1bdf4a7`).
+- **M1a & M1b (`Done` · P0 · Track A1):** `useStoreValue`, `useStoreValues`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`, `useTimeTravelSelector`, `ExternalStoresMap` (`ExternalStoreInput`), and `ExternalTimeTravelStoresMap` (`ExternalTimeTravelStoreInput`) accept `StateReader<T>` / `StateBackend<T>` / `TimelineBackend<T>` natively without manual `BackendStore` wrapping.
+- **M2 (`Done` · P1 · Track B1):** `@context-action/core` adds generic `ActionRegisterConfig<T>.actions` (`ActionQueuePolicy`, `ActionPolicyConfig`: `queue: 'serial' | 'immediate'`, `timeout?: number`) and `createActionContext` forwarding while preserving 4.x defaults.
+- **M3 (`Done` · P1 · Track A2):** `@context-action/mutative` Layer 1 `MutativeStateBackend` and `MutativeTimelineBackend` align with `StateStore`, `TransactionBackend`, and dynamic `getNotificationMode()` / `setNotificationMode()`, working natively with both React and non-React callers without creating a new package.
+- **M4a & M4b (`Done` · P2 · Track C1 & B2):** Added opt-in React subpaths (`./refs` [Mutative-free], `./time-travel`, `./transactions`) and symmetric dispatch hooks (`useActionResultDispatch()`, `useActionScope()`, `ActionScopeReturn`) while keeping 100% root `.` exports and `api-surface.v1.json` / boundary gates aligned.
 
 ---
 

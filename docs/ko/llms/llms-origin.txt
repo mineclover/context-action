@@ -1872,18 +1872,21 @@ XState 없이 Effect 전용(`Schema`, `EffectRunnerPort`, `TransactionCoordinato
 ===================[ DOC: ko/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001.md ]===================
 # CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, 상태 계층 통합 및 React 표면 슬림화 청사진
 
-**상태:** proposed — Phase 1 (4.x 무중단) 실행 계획 수립 완료, 7개 소비자 저장소 교차 감사 완료 (본 문서로 런타임 코드 변경 미적용)  
+**상태:** accepted — Phase 1 (`M0–M4`, 4.x 무중단 정렬) `stage` 구현 완료; Phase 2 (`v5` 메이저 정리)는 합의된 릴리스 윈도우까지 유보  
 **소유자:** Framework Core & React Runtime  
 **관련 이슈/스펙:** `CA-VNEXT-ARCHITECTURE-001` ([CA-SURFACE-CATALOG-001](./CA-SURFACE-CATALOG-001.md), [CA-ELEMENT-INTEROP-001](./CA-ELEMENT-INTEROP-001.md), [CA-STATECHART-EFFECT-001](./CA-STATECHART-EFFECT-001.md), [CA-SPEC-EVIDENCE-001](./CA-SPEC-EVIDENCE-001.md) 기반)  
-**기준선(Baseline):** `stage` @ `d21aff4a` (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`)
+**기준선(Baseline):** `stage` (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`, 프리릴리스 기간 중 패키지 버전 동결)
 
 ---
 
-## 1. 맥락 및 타 프로젝트 병행 작업 안내
+## 1. 맥락 및 단계별 반영 원칙
 
-현재 타 프로젝트 및 연계 워크스페이스에서도 기존 공개 `@context-action/*` 계약에 맞춰 수정이 진행 중이므로, 검증 완료된 현재 API 표면이나 런타임 동작을 즉시 바꾸면 교차 프로젝트 간 드리프트가 발생할 수 있습니다.
+타 프로젝트 및 연계 워크스페이스가 현재 공개된 `@context-action/*` 4.x / 1.x / 0.x 계약에 의존하고 있으므로, 루트(`.`) export 축소·기본 알림/큐 동작 반전·버전 범프 같은 breaking 변경은 별도 동기화 릴리스 윈도우가 열릴 때까지 보류해야 합니다.
 
-따라서 이 문서는 `stage` 안정화 과정에서 확인된 실증 근거와 구조적 긴장을 **비규범적(non-normative) `proposed` 아키텍처 청사진**으로 정제해 고정한 설계 레퍼런스입니다. **이 문서 작업에서는 소스 코드, `package.json`, 또는 표면 카탈로그를 일절 수정하지 않으며**, 실제 코드 반영은 섹션 6의 의사결정 합의와 교차 프로젝트 동기화 윈도우가 열린 이후 별도 `accepted` ADR로 진행합니다.
+이에 따라 본 결정 기록은 이행 경로를 두 단계로 분리합니다:
+
+1. **Phase 1 (`M0–M4` — 4.x 무중단 / Additive 정렬, `stage` 구현 완료):** 기존 루트 `.` export와 4.x 기본값을 100% 보존한 채 React 훅·Provider의 `StateReader`/`StateBackend`/`TimelineBackend` 네이티브 수용(`M1a`/`M1b`), Core 계약 레벨 `actions` 큐·타임아웃 정책(`M2`), Layer 1 `@context-action/mutative` `StateStore` 및 동적 `notificationMode` 정합(`M3`), opt-in 서브패스(`./refs`, `./time-travel`, `./transactions`)와 대칭 디스패치 훅(`useActionResultDispatch()`, `useActionScope()`) (`M4`)을 반영했습니다.
+2. **Phase 2 (`v5` 메이저 정리, 유보):** deprecated 심볼 제거(`useActionEffectHandler`, `compareStrategy`, `StoreSchema`), 루트 배럴 슬림화, 기본 알림/큐 정책 통일은 교차 프로젝트 마이그레이션 윈도우 개방 시 별도 릴리스로 진행합니다.
 
 ---
 
@@ -2128,17 +2131,17 @@ const engine = CouponRuntime.create();
 
 ---
 
-## 9. Phase 1 (4.x 무중단) 계약 우선 구현 계획 (M0–M4)
+## 9. Phase 1 (4.x 무중단) 계약 우선 구현 계획 및 이행 현황 (`M0–M4`)
 
-아래 마일스톤은 모두 **4.x 하위 호환을 100% 보장하는 무중단(Additive) 단계**로 설계되었으며, `@context-action/core`·`store-core`·`react`의 기존 루트(`.`) export를 그대로 보존합니다.
+아래 마일스톤은 모두 **4.x 하위 호환을 100% 보장하는 무중단(Additive) 단계**로 설계되어 `@context-action/core`·`store-core`·`mutative`·`react`의 기존 루트(`.`) export를 그대로 보존합니다. 5개 Phase 1 마일스톤(`M0–M4`)은 모두 `stage`에 구현 및 검증이 완료되었습니다(패키지 버전 범프·npm 배포는 계속 동결, Phase 2 `v5` 정리는 유보).
 
-| 마일스톤 | 범위 및 트랙 | 대상 파일 / 문서 | 계약 목표 및 소비자 마찰 해소 | 인수 테스트 및 검증 게이트 |
+| 마일스톤 | 상태 및 트랙 | 반영 대상 파일 / 표면 | 계약 목표 및 소비자 마찰 해소 | 인수 테스트 및 검증 게이트 |
 |---|---|---|---|---|
-| **M0 — 기준선 동기화 선행** | 병행 4.x React 작업 정렬 | `packages/react/UNRELEASED.md`, `packages/react/src/**`, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/guide/**` | M1 착수 전 진행 중인 병행 변경(`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP 문서)을 `stage`에 안정적으로 마감합니다. | `pnpm docs:llms && pnpm docs:check && pnpm --filter @context-action/react type-check && pnpm --filter @context-action/react test && pnpm verify:quick && pnpm verify:receipt` |
-| **M1 — P0: React `StateReader` / `StateBackend` 네이티브 수용** | 트랙 A1 | `packages/react/src/stores/hooks/useStoreValue.ts`, `useStoreSelector.ts`, `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx`, `packages/react/src/stores/core/contracts.ts`, `packages/react/docs/state-contracts.md` | `useStoreValue`, `useStoreSelector`, `ExternalStoresMap<T>`(`createStoreContext().Provider stores={...}`)가 `StateReader<T>`/`StateBackend<T>`를 직접 받도록 확장합니다 (`macrostructure`의 `useEffect` 미러 Store 우회 및 수동 `BackendStore` 래핑 제거, `IStore`/`Store` 완전 호환). | `createStateStore()`를 `createStoreContext().Provider stores={...}` 및 `useStoreValue`에 직결하는 통합 테스트; `pnpm --filter @context-action/react type-check && pnpm --filter @context-action/react test && pnpm verify:react-artifact-boundary && pnpm package-boundary:check` |
-| **M2 — P1: Core 계약 레벨 액션 큐 정책** | 트랙 B1 | `packages/core/src/types.ts`, `packages/core/src/ActionRegister.ts`, `packages/core/docs/action-contracts.md` | 선택적 액션별 정책 선언(`actions?: Partial<Record<ActionNames<T>, { queue?: 'serial' \| 'immediate'; timeout?: number }>>`)을 추가해 선점 액션이 호출부 `{ immediate: true }`에만 의존하지 않도록 개선합니다 (Core·React 4.x 기본 `useConcurrencyQueue` 값은 보존). | 활성 `'serial'` 큐를 호출부 플래그 없이 선점하는 `'immediate'` 계약 단위 테스트; `pnpm --filter @context-action/core test && pnpm verify:core-artifact-parity` |
-| **M3 — P1: 프레임워크 중립 Timeline / TimeTravel 분리** | 트랙 A2 | Layer 1 프레임워크 중립 `TimeTravelStore`(`TimelineBackend<T>` 구현), `packages/react/src/index.ts` 호환 re-export, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/context-layered/store-selection-and-usage-guide.md` | Undo/Redo 타임라인 엔진을 React에서 분리해 비-React 소비자(`browser-studio`, 순수 Node `.mjs` 기반 `ae-editor` 테스트)가 React peer나 수동 `history[]`/`structuredClone` 구현 없이 재사용할 수 있게 합니다 (React 루트 `.` re-export 유지). | 순수 Node 비-React 타임라인 계약 테스트 + 기존 React `TimeTravelStore` 회귀 스위트 + packed tarball export 검증; `pnpm build && pnpm test && pnpm verify:package-exports && pnpm verify:package-tarballs` |
-| **M4 — P2: Opt-In React 서브패스 및 대칭 디스패치 훅** | 트랙 C1 & B2 | `packages/react/package.json` (`./refs`, `./time-travel`, `./transactions`), `tsdown.config.ts`, `ActionContext.types.ts`, `ActionContext.tsx`(additive `useActionResultDispatch()`, `useActionScope()`), `catalog/repository-surface/api-surface.v1.json`, `scripts/verify-react-artifact-boundary.mjs` | 슬림한 opt-in 서브패스와 함수형 결과 디스패치 훅을 추가하되, 루트 `.` export 및 deprecated 심볼 제거는 **Phase 2 (v5 Major)** 로 유보해 무중단 도입을 보장합니다. | 루트 `.` + 신규 서브패스 packed ESM/CJS 소비자 검증 및 React 18/19 호환 매트릭스; `pnpm verify:surface-catalog && pnpm verify:react-artifact-boundary && pnpm docs:llms && pnpm docs:check && pnpm verify:doc-snippets && pnpm verify` |
+| **M0 — 기준선 동기화 선행** | **완료** (`e1bdf4a7`) · 병행 4.x 정렬 | `packages/react/UNRELEASED.md`, `StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP 문서, 기준선 영수증 | M1 착수 전 병행 4.x 개선 변경과 기준선 영수증을 `stage`에 안정 커밋했습니다. | `pnpm verify:quick && pnpm verify:receipt` (`✔ [VALID]`) |
+| **M1a & M1b — P0: React `StateReader` / `StateBackend` / `TimelineBackend` 네이티브 수용** | **완료** · 트랙 A1 | `useStoreValue.ts`, `useStoreSelector.ts`, `useStorePath.ts`, `useTimeTravelControls.ts`, `useTimeTravelPath.ts`, `declarative-store-pattern-v2.tsx`, `time-travel-store-pattern.tsx`, `packages/react/src/index.ts` | React 구독·타임라인 훅(`SubscribableStore`, `TimeTravelControlsStore`, `TimeTravelPathStore`)과 Provider DI(`ExternalStoreInput`, `ExternalTimeTravelStoreInput`)가 `StateReader`/`StateBackend`/`TimelineBackend`를 직접 수용하도록 확장하고, 래핑된 `BackendStore` 리스너 누수 방지·`ownership` 정책을 정리했습니다. | `state-reader-native-acceptance.test.tsx`, `vnext-phase1-alignment.integration.test.tsx`, `pnpm verify:react-artifact-boundary`, `pnpm package-boundary:check` |
+| **M2 — P1: Core 계약 레벨 액션 큐 정책** | **완료** · 트랙 B1 | `packages/core/src/types.ts`, `packages/core/src/index.ts`, `packages/core/src/ActionRegister.ts`, `ActionContext.types.ts`, `ActionContext.tsx`, `packages/core/docs/action-contracts.md` | 제네릭 `ActionRegisterConfig<T>.actions`(`ActionQueuePolicy`, `ActionPolicyConfig`: `{ queue?: 'serial' \| 'immediate'; timeout?: number }`) 및 `ActionContext` 전달을 4.x 기본값·호출부 옵션 우선순위 유지 상태로 구현했습니다. | `packages/core/__tests__/action-policy-config.test.ts`, `@context-action/core` 전체 Jest/Vitest 스위트, `pnpm verify:core-artifact-parity` |
+| **M3 — P1: Layer 1 Mutative & Timeline 정합** | **완료** · 트랙 A2 | `packages/mutative/src/backend.ts`, `packages/mutative/__tests__/backend-state-store-parity.test.ts`, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/context-layered/store-selection-and-usage-guide.md` | 19번째 패키지를 신설하지 않고 `@context-action/mutative` Layer 1 `MutativeStateBackend`와 `MutativeTimelineBackend`를 `StateStore`/`TransactionBackend`(`getValue()`, `isDisposed()`, 동적 `getNotificationMode()`/`setNotificationMode()`)로 정합화하고 React 타임라인 컨텍스트·훅과 직결했습니다. | `backend-state-store-parity.test.ts`, `@context-action/mutative` 전체 Vitest 스위트, `vnext-phase1-alignment.integration.test.tsx` |
+| **M4a & M4b — P2: Opt-In React 서브패스 및 대칭 디스패치 훅** | **완료** · 트랙 C1 & B2 | `packages/react/src/{refs,time-travel,transactions}.ts`, `package.json`, `tsdown.config.ts`, `jest.config.cjs`, `ActionContext.{types.ts,tsx}`, `catalog/repository-surface/api-surface.v1.json`, `scripts/verify-react-artifact-boundary.mjs`, `scripts/verify-doc-snippets.mjs` | 루트 `.` export를 100% 보존한 채 opt-in 서브패스 `./refs`(Mutative 독립)·`./time-travel`·`./transactions`와 대칭 훅 `useActionResultDispatch()`, `useActionScope()`(`ActionScopeReturn`)를 추가했고 `useActionDispatchWithResult()` 호환성을 유지했습니다. | `pnpm verify:surface-catalog`, `pnpm verify:package-exports`, `pnpm verify:react-artifact-boundary`, `pnpm --filter @context-action/react test`, `pnpm docs:check`, `pnpm verify:quick && pnpm verify:receipt` |
 
 ===================[ DOC: ko/context-layered/decisions/index.md ]===================
 # 아키텍처 결정 기록
@@ -3805,7 +3808,7 @@ stateDiagram-v2
 | `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/mutative-core/README.md`, `mutative-core-history.md` |
 | `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/tool-protocol/README.md`, `tool-calling-editor-architecture.md` |
 | `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | 없음 | `packages/tool-durable-operations/README.md`, `durable-operation-operations.md` |
-| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
+| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
 | `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | `packages/mutative/README.md`, `time-travel-specialization.md` |
 | `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/lit/README.md`, `01-controller-scope.md` |
 | `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/preact/README.md`, `spec-to-code-authoring-guide.md` |
@@ -3825,7 +3828,7 @@ stateDiagram-v2
 ### 3.1 계층별 패키지 용도 요약
 
 - **Foundation (`5`)**: `core`(액션 파이프라인 + 선택적 `./element` DOM/호스트 전송), `store-core`(프레임워크 중립 상태/타임라인/트랜잭션 계약 + `createStateStore`), `mutative-core`(`mutative@2.0.2` 호환 불변 draft·patch 엔진), `tool-protocol`(Zod/JSON Schema 도구, MCP/프로바이더 어댑터, 승인 큐, 멱등성, 관측 정책), `tool-durable-operations`(lease/claim 부작용 복구 + IndexedDB/Redis/PostgreSQL 기준 백엔드).
-- **Framework Adapters (`4`)**: `react`(React 18/19 Action/Store/TimeTravel/Ref 컨텍스트, 훅, 트랜잭션, `./backend`, `./advanced`, `./webmcp`), `mutative`(`TimeTravel` + `MutativeStateBackend`/`MutativeTimelineBackend`), `lit`(`StoreController`, `ActionController`, `ControllerScope`), `preact`(`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`).
+- **Framework Adapters (`4`)**: `react`(React 18/19 Action/Store/TimeTravel/Ref 컨텍스트, 훅, 트랜잭션, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./webmcp`), `mutative`(`TimeTravel` + `MutativeStateBackend`/`MutativeTimelineBackend`), `lit`(`StoreController`, `ActionController`, `ControllerScope`), `preact`(`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`).
 - **UI Runtimes (`2`)**: `lit-ui`(Lit 웹 컴포넌트, W3C Context Protocol, FACE, `./react-bridge`, `./ssr`, `./hydrate`), `preact-ui`(소유된 Preact DOM 루트, `mountPreact`/`hydratePreact`, `createDisposalScope`, `./react-bridge`, `./ssr`).
 - **Integration Adapters (`3`)**: `xstate`(`.`의 XState v5/v6 액터 브리지 + `./effect`의 Effect v4 / `@xstate/effect` / Standard Schema v1 / 트랜잭션 스코프), `ai-sdk`(AI SDK v7 턴 범위 `ToolSet` 어댑터), `webmcp`(allowlist 기반 `document.modelContext` 브라우저 어댑터).
 - **Tooling (`1`)**: `style-testing`(비공개 Playwright 스타일 추출 및 Babel 플러그인).
@@ -4452,12 +4455,13 @@ Context-Action은 **쓰기 경계(`StoreWriter` / Action Handler)** 와 **읽기
 | --- | --- | --- | --- | --- |
 | **`createStoreContext`** | `@context-action/react` | **기본 권장.** 도메인별 다중 스토어를 React 트리 스코프로 격리 | 없음 | 예 |
 | **`createStore` (`Store`)** | `@context-action/react` | Provider 밖의 단일 독립 스토어 (모듈 공유·DI·단위 테스트) | 없음 | 예 (Mutative 내장) |
-| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react` | Undo/Redo·히스토리 탐색이 필요한 에디터, 폼 드래프트, 캔버스 상태 | **예 (Mutative 패치)** | 예 |
+| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react` 또는 `@context-action/react/time-travel` | Undo/Redo·히스토리 탐색이 필요한 에디터, 폼 드래프트, 캔버스 상태 | **예 (Mutative 패치)** | 예 |
 | **`createStateStore`** | `@context-action/store-core` | Vanilla JS, Node, Preact, Lit, XState 공용 Zero-dependency 최소 참조 스토어 | 없음 | **아니오 (0 deps)** |
-| **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | 사용자 소유의 커스텀 `StateBackend`를 React 훅에 연결 | 백엔드 기능에 따름 | 예 (래퍼만) |
-| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react` | 여러 Store의 변경을 하나의 원자적 커밋·롤백·단일 Undo 단위로 묶을 때 | **예 (다중 스토어 원자 Undo)** | 예 |
+| **`createMutativeStateBackend` / `createMutativeTimelineBackend`** | `@context-action/mutative` | React/Lit/Preact·순수 Node 간 공유 가능한 프레임워크 중립 Layer 1 Mutative `StateStore` 및 `TimelineBackend`(`TransactionBackend`) 엔진 | 선택 (`TimelineBackend`) | **아니오** |
+| **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | 사용자 소유의 커스텀 `StateBackend`를 명시적으로 `IStore`로 브리지 (`createStoreContext().Provider stores={...}` 사용 시 생략 가능) | 백엔드 기능에 따름 | 예 (래퍼만) |
+| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react` 또는 `@context-action/react/transactions` | 여러 Store의 변경을 하나의 원자적 커밋·롤백·단일 Undo 단위로 묶을 때 | **예 (다중 스토어 원자 Undo)** | 예 |
 | **`useLocalStore` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | 컴포넌트 수명 로컬 스토어 / 메모이즈된 파생 계산 / 동적 스토어 등록 | 없음 | 예 |
-| **`createRefContext`** | `@context-action/react` | **비반응형 (Tier 3).** DOM, Canvas, 120fps 포인터 좌표 등 리렌더 0회 상태 | 없음 | 예 |
+| **`createRefContext`** | `@context-action/react` 또는 `@context-action/react/refs` | **비반응형 (Tier 3).** DOM, Canvas, 120fps 포인터 좌표 등 리렌더 0회 상태 | 없음 | 예 |
 | **`createActorStateReader`** | `@context-action/xstate` | **닫힌 상태 머신 읽기 전용 투영.** 외부 `setValue()` 차단, 전이는 이벤트로만 | 없음 | **아니오** |
 | **`createSourceContext` / `fromStateReader` / `StoreController`** | `@context-action/preact`, `@context-action/lit` | 외부 Store를 Preact Signals(`fromStateReader`로 `StateReader`/`StoreReader` 스냅샷 변환) 또는 Lit `ReactiveController`에 읽기 전용 투영 | 없음 | **아니오** |
 | **`createDurableOperationStore`** | `@context-action/tool-durable-operations` | **UI 상태 아님.** 외부 HTTP·큐·파일시스템 부작용의 멱등성·복구 레코드 저장소 | 없음 | **아니오** |
@@ -4585,9 +4589,50 @@ unsubscribe();
 counterStore.dispose?.();
 ```
 
-### 2.5 `createBackendStore` / `BackendStore` (`@context-action/react/backend`) — 커스텀 백엔드 연결
+### 2.5 `createMutativeStateBackend` / `createMutativeTimelineBackend` 및 네이티브 상호운용 (`@context-action/mutative` + `@context-action/react`)
 
-`@context-action/store-core`의 `StateBackend<T, Patch>`(`createStateStore`, `MutativeStateBackend`, 또는 사용자 정의 영속/동기화 백엔드)를 React의 `useSyncExternalStore` 훅(`useStoreValue`, `useStoreSelector`, 패치 지원 시 `useStorePath`)에 그대로 연결합니다.
+React, Lit, Preact 또는 헤드리스 Node 워커 사이에서 JSON 패치, Undo/Redo 타임라인, 동적 `setNotificationMode('immediate' | 'batched')`를 공유하는 프레임워크 중립 Layer 1 Mutative 엔진이 필요하다면 `@context-action/mutative`의 `createMutativeStateBackend`(`StateStore`) 및 `createMutativeTimelineBackend`(`TransactionBackend & StateStore`)를 사용합니다.
+
+React 구독 훅(`useStoreValue`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`)과 Provider DI(`createStoreContext().Provider stores={...}`, `createTimeTravelStoreContext().Provider stores={...}`)는 수동 `BackendStore` 래핑 없이도 `StateReader<T>`, `StateBackend<T>`, `TimelineBackend<T>`를 **직접** 수용합니다 (`@context-action/react/backend`의 `createBackendStore`는 독립 명시 래퍼가 필요할 때 계속 사용할 수 있습니다):
+
+<!-- @context-action-compile -->
+```tsx
+import { createStateStore } from '@context-action/store-core';
+import { createMutativeTimelineBackend } from '@context-action/mutative';
+import { createStoreContext, useStoreValue } from '@context-action/react';
+import {
+  createTimeTravelStoreContext,
+  useTimeTravelControls,
+} from '@context-action/react/time-travel';
+
+const sessionBackend = createStateStore('session', { step: 1 });
+const docTimeline = createMutativeTimelineBackend('doc', { title: 'v1' }, { maxHistory: 20 });
+
+const SessionStores = createStoreContext('Session', {
+  session: { step: 0 },
+});
+const DocStores = createTimeTravelStoreContext('Doc', {
+  doc: { initialValue: { title: '' }, maxHistory: 20 },
+});
+
+export function SessionAndDocView() {
+  const directStep = useStoreValue(sessionBackend);
+  const directTimeline = useTimeTravelControls(docTimeline);
+  return (
+    <SessionStores.Provider stores={{ session: sessionBackend }} ownership="shared">
+      <DocStores.Provider stores={{ doc: docTimeline }} ownership="shared">
+        <span>
+          Step {directStep.step} (undo={String(directTimeline.canUndo)})
+        </span>
+      </DocStores.Provider>
+    </SessionStores.Provider>
+  );
+}
+```
+
+### 2.5a `createBackendStore` / `BackendStore` (`@context-action/react/backend`) — 명시적 독립 브리지
+
+선언적 `createStoreContext` Provider 밖에서 `@context-action/store-core`의 `StateBackend<T, Patch>`(`createStateStore`, `MutativeStateBackend`, 또는 커스텀 영속/동기화 백엔드)를 명시적인 `IStore` 래퍼 인스턴스로 다룰 때 사용합니다:
 
 - `ownership: 'shared'` (기본값): 래퍼가 `dispose()`되어도 원본 백엔드는 살아 있습니다.
 - `ownership: 'owned'`: 래퍼를 `dispose()`할 때 원본 백엔드도 함께 정리합니다.
@@ -4702,7 +4747,7 @@ export function HeadlessCartView() {
 }
 ```
 
-> 외부 프레임워크 중립 `StateBackend`(`@context-action/store-core`의 `createStateStore`, 외부 상태 라이브러리/영속 스토리지 백엔드)를 React 훅에 직접 어댑팅해야 한다면 `@context-action/react/backend`의 `createBackendStore('cart', cartBackend, { ownership: 'shared' })`를 사용하세요. 스펙, 인텐트 분리, 헤드리스 DI를 한 번에 연결하는 전체 작성 예시는 [스펙 기반 코드 작성 가이드](./spec-to-code-authoring-guide.md)를 참고하세요.
+> `@context-action/store-core`의 `createStateStore()`나 `@context-action/mutative`의 `createMutativeStateBackend()`는 `createStoreContext().Provider stores={...}`에 직접 전달해도 `StoreManager`가 내부적으로 `BackendStore` 어댑팅과 정리를 처리하며, 명시적 독립 래퍼가 필요할 때는 `@context-action/react/backend`의 `createBackendStore('cart', cartBackend, { ownership: 'shared' })`를 사용할 수 있습니다. 또한 특수 표면은 루트 `@context-action/react`와 100% 호환되는 opt-in 서브패스(`@context-action/react/refs`, `@context-action/react/time-travel`, `@context-action/react/transactions`)로도 임포트할 수 있습니다. 스펙, 인텐트 분리, 헤드리스 DI를 한 번에 연결하는 전체 작성 예시는 [스펙 기반 코드 작성 가이드](./spec-to-code-authoring-guide.md)를 참고하세요.
 
 ---
 
@@ -6485,17 +6530,17 @@ Definition of Ready 항목 수를 맞춰야 하지만 문장 번역 자체를 �
 ===================[ DOC: ko/context-layered/vnext-architecture-handoff.md ]===================
 # vNext 아키텍처 & 타 프로젝트 핸드오프 가이드
 
-**상태:** 타 프로젝트 병행 피드백 수집용 활성 핸드오프 기준 문서  
-**기준선(Baseline):** `stage` 브랜치 (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`)
+**상태:** Phase 1 (`M0–M4` 4.x 무중단 정렬) `stage` 구현 완료 — Phase 2 (`v5` 메이저) 피드백·릴리스 윈도우 대기  
+**기준선(Baseline):** `stage` 브랜치 (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`, 프리릴리스 기간 패키지 버전 동결)
 
-이 문서는 병행 작업 중인 타 프로젝트 또는 다음 설계/검토 세션이 현재 안정화된 기준선을 깨지 않고 구조화된 설계 피드백과 후속 구현 지시를 이어갈 수 있도록 **동결 원칙 · 필독 지도 · 미확정 의사결정 4가지 · 바로 복사해 쓸 수 있는 지시 프롬프트**를 정리한 레퍼런스입니다.
+이 문서는 연계 프로젝트 또는 후속 세션이 기존 4.x 소비자를 깨뜨리지 않고 협업할 수 있도록 **기준선 규칙 · 필독 지도 · `stage`에 반영된 Phase 1 범위 · Phase 2(`v5`) 유보 결정 게이트 · 재사용 프롬프트 키트**를 정리한 레퍼런스입니다.
 
 ---
 
 ## 1. 기준선 및 동결 원칙
 
 - **작업 브랜치:** `stage` (릴리스 승인 전까지 `main` 직접 병합·버전 범프·배포 금지).
-- **공개 계약 동결 원칙:** 타 프로젝트 및 연계 워크스페이스가 현재 `@context-action/*` 4.x / 1.x / 0.x 공개 계약을 기준으로 수정 중이므로, **피드백 수집 단계에서는 런타임 코드·공개 export·`package.json` 버전·`catalog/repository-surface/api-surface.v1.json`을 변경하지 않습니다.**
+- **버전 동결 및 4.x 무중단 원칙:** 타 프로젝트·연계 워크스페이스가 현행 `@context-action/*` 4.x / 1.x / 0.x 계약을 사용 중이므로 패키지 버전 및 배포는 동결을 유지하며, **`stage`에 반영된 Phase 1(`M0–M4`) 변경은 전부 루트 `.` export와 기본값을 깨지 않는 Additive 확장**입니다.
 - **불필요한 React 훅 래퍼 지양 원칙:** Context-Action은 5가지 OOP × React 기본 Hook 조합 패턴(`useImperativeHandle`, `useLocalStore`/`useReducer`, `useDeferredValue`, React 19 `useOptimistic`/`useTransition`/`useActionState`, isomorphic `useLayoutEffect`/`useEffect`)을 얇은 전용 래퍼 API로 추가하지 않고 **조합 사용 패턴 문서**로 관리합니다.
 
 ---
@@ -6541,15 +6586,15 @@ Definition of Ready 항목 수를 맞춰야 하지만 문장 번역 자체를 �
 | **3. `StateBackend` & TimeTravel 위치** | `macrostructure`(`interface-intent-runtime-react.ts:15-32`)는 React 미지원 탓에 `useRef`+`useEffect` 미러 Store를 쓰며, `google-tools`는 Lit만 `StateStore`를 직접 받는 비대칭을 보입니다. `browser-studio`·`ae-editor`(`.mjs`)는 비-React `TimeTravelStore` 수요를 증명합니다. | **M1 (P0):** React 훅·`createStoreContext`의 `StateReader<T>`/`StateBackend<T>` 네이티브 수용<br>**M3 (P1):** Layer 1 프레임워크 중립 타임라인 추출(React `.` re-export 유지) |
 | **4. Semver 우선순위** | `ae-editor`, `iframe-demo`, `graph-hub`, `macrostructure`가 모두 `@context-action/react` 루트(`.`)에 직접 의존합니다. | **Phase 1 = 4.x 무중단(Additive) 확정**, 루트 축소·breaking 정리는 **v5 Major**로 분리 |
 
-### 3.2 Phase 1 (4.x 무중단) 계약 우선 실행 계획 요약 (`M0–M4`)
+### 3.2 Phase 1 (4.x 무중단) `stage` 구현 완료 요약 (`M0–M4`)
 
-세부 대상 파일, 계약 목표, 검증 명령은 [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) 섹션 9를 따릅니다:
+세부 대상 파일, 계약 목표, 검증 명령은 [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) 섹션 9를 따르며, 아래 5개 Phase 1 마일스톤은 `stage`에 반영·검증이 완료되었습니다 (**Phase 2 / `v5` breaking 정리는 유보**):
 
-- **M0 (기준선 동기화 선행):** 병행 중인 `packages/react` 4.x 변경(`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP 문서)의 `stage` 커밋 완료.
-- **M1 (P0 · 트랙 A1):** `useStoreValue`, `useStoreSelector`, `ExternalStoresMap<T>`(`createStoreContext().Provider stores={...}`)가 수동 `BackendStore` 래핑 없이 `StateReader<T>`/`StateBackend<T>`를 직접 받도록 확장.
-- **M2 (P1 · 트랙 B1):** `@context-action/core`에 액션별 스케줄링 정책(`actions?: Partial<Record<ActionNames<T>, { queue?: 'serial' | 'immediate'; timeout?: number }>>`)을 기존 기본값 유지 상태로 추가.
-- **M3 (P1 · 트랙 A2):** `TimeTravelStore` / `TimelineBackend<T>` 엔진을 Layer 1 프레임워크 중립 모듈로 추출하되 `@context-action/react` 루트 `.` 하위 호환 re-export 보존.
-- **M4 (P2 · 트랙 C1 & B2):** opt-in React 서브패스(`./refs`, `./time-travel`, `./transactions`)와 대칭 디스패치 훅(`useActionResultDispatch()`, `useActionScope()`)을 루트 `.` 유지·`api-surface.v1.json` 동기화와 함께 추가.
+- **M0 (`완료` · 기준선 동기화):** `packages/react` 4.x 개선(`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP 문서) 및 기준선 영수증(`e1bdf4a7`) 커밋.
+- **M1a & M1b (`완료` · P0 · 트랙 A1):** `useStoreValue`, `useStoreValues`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`, `useTimeTravelSelector`, `ExternalStoresMap`(`ExternalStoreInput`), `ExternalTimeTravelStoresMap`(`ExternalTimeTravelStoreInput`)가 `StateReader<T>`/`StateBackend<T>`/`TimelineBackend<T>`를 수동 `BackendStore` 래핑 없이 직접 수용.
+- **M2 (`완료` · P1 · 트랙 B1):** `@context-action/core` 제네릭 `ActionRegisterConfig<T>.actions`(`ActionQueuePolicy`, `ActionPolicyConfig`: `queue: 'serial' | 'immediate'`, `timeout?: number`) 및 React `createActionContext` 전달을 4.x 기본값 유지 상태로 구현.
+- **M3 (`완료` · P1 · 트랙 A2):** 신규 패키지 증설 없이 `@context-action/mutative` Layer 1 `MutativeStateBackend`/`MutativeTimelineBackend`를 `StateStore`, `TransactionBackend`, 동적 `getNotificationMode()`/`setNotificationMode()`로 정합화하고 React/비-React 상호운용 완성.
+- **M4a & M4b (`완료` · P2 · 트랙 C1 & B2):** opt-in React 서브패스(`./refs`[Mutative 독립], `./time-travel`, `./transactions`)와 대칭 디스패치 훅(`useActionResultDispatch()`, `useActionScope()`, `ActionScopeReturn`)을 루트 `.` 100% 보존·`api-surface.v1.json`/경계 게이트 동기화와 함께 반영.
 
 ---
 

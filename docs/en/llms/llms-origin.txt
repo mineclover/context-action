@@ -2423,18 +2423,21 @@ Bump catalog schema versions (`*.v2.json`) if package layers, stability tiers, o
 ===================[ DOC: en/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001.md ]===================
 # CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, State Unification, and React Surface Blueprint
 
-**Status:** proposed — Phase 1 (4.x additive) execution plan ready; cross-project audit completed across 7 consumer repos (no runtime changes applied by this record)  
+**Status:** accepted — Phase 1 (`M0–M4`, 4.x additive alignment) implemented on `stage`; Phase 2 (`v5` major breaking cleanup) deferred pending coordinated release window  
 **Owner:** Framework Core & React Runtime  
 **Related issue/spec:** `CA-VNEXT-ARCHITECTURE-001` (builds on [CA-SURFACE-CATALOG-001](./CA-SURFACE-CATALOG-001.md), [CA-ELEMENT-INTEROP-001](./CA-ELEMENT-INTEROP-001.md), [CA-STATECHART-EFFECT-001](./CA-STATECHART-EFFECT-001.md), [CA-SPEC-EVIDENCE-001](./CA-SPEC-EVIDENCE-001.md))  
-**Baseline:** `stage` @ `d21aff4a` (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`)
+**Baseline:** `stage` (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`; package versions frozen during pre-release stage work)
 
 ---
 
-## 1. Context & Cross-Project Freeze Note
+## 1. Context & Rollout Staging Note
 
-While sibling projects and external integrations are actively modifying or consuming the currently published `@context-action/*` contracts, changing runtime implementations, package entrypoints, or public TypeScript signatures prematurely would introduce breaking surface drift across workspaces.
+While sibling projects and external integrations rely on the currently published `@context-action/*` 4.x / 1.x / 0.x contracts, breaking root `.` removals, default notification/queue flips, or version bumps must wait for a coordinated release window.
 
-Therefore, this record captures the evidence-backed architectural design findings gathered during stabilization of the `stage` baseline and organizes them into a **non-normative, review-ready vNext blueprint**. **Zero runtime source code, package manifests, or catalog inventories are altered by this document.** No breaking or additive implementation derived from this proposal should begin until concurrent external work settles and the open decisions in Section 6 are resolved in an accepted Architecture Decision Record.
+Therefore, this record splits adoption cleanly into two phases:
+
+1. **Phase 1 (`M0–M4` — 4.x Non-Breaking / Additive Alignment, Implemented on `stage`):** Delivers native `StateReader`/`StateBackend`/`TimelineBackend` interop in React hooks and Providers (`M1a`/`M1b`), Core contract-level `actions` queue/timeout policies (`M2`), Layer 1 `@context-action/mutative` `StateStore` and mutable `notificationMode` parity (`M3`), opt-in subpaths (`./refs`, `./time-travel`, `./transactions`), and symmetric dispatch hooks (`useActionResultDispatch()`, `useActionScope()`) (`M4`) while preserving 100% of root `.` exports and existing defaults.
+2. **Phase 2 (`v5` Major Breaking Cleanup, Deferred):** Stages removal of deprecated APIs (`useActionEffectHandler`, `compareStrategy`, `StoreSchema`), root barrel slimming, and default timing/queue harmonization once cross-project migration windows open.
 
 ---
 
@@ -2679,17 +2682,17 @@ Cross-project audit evidence (Subsection 2.1) pairs each of the 4 open gates wit
 
 ---
 
-## 9. Phase 1 (4.x Additive) Contract-First Implementation Plan (M0–M4)
+## 9. Phase 1 (4.x Additive) Contract-First Implementation Plan & Status (`M0–M4`)
 
-All milestones below are strictly **4.x non-breaking (additive)** and preserve root `.` exports across `@context-action/core`, `@context-action/store-core`, and `@context-action/react`.
+All milestones below are strictly **4.x non-breaking (additive)** and preserve root `.` exports across `@context-action/core`, `@context-action/store-core`, `@context-action/mutative`, and `@context-action/react`. All five Phase 1 milestones (`M0–M4`) are now implemented and verified on `stage` (package versions and npm publication remain frozen; Phase 2 `v5` breaking cleanup remains deferred).
 
-| Milestone | Scope & Track | Target Files / Docs | Contract Goal & Consumer Relief | Acceptance Tests & Verification Gates |
+| Milestone | Status & Track | Delivered Files / Surfaces | Contract Outcome & Consumer Relief | Acceptance Tests & Verification Gates |
 |---|---|---|---|---|
-| **M0 — Baseline Sync Prerequisite** | Sync active concurrent 4.x React work | `packages/react/UNRELEASED.md`, `packages/react/src/**`, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/guide/**` | Land active concurrent changes (`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP docs) cleanly on `stage` before starting M1. | `pnpm docs:llms && pnpm docs:check && pnpm --filter @context-action/react type-check && pnpm --filter @context-action/react test && pnpm verify:quick && pnpm verify:receipt` |
-| **M1 — P0: Native `StateReader` / `StateBackend` in React** | Track A1 | `packages/react/src/stores/hooks/useStoreValue.ts`, `useStoreSelector.ts`, `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx`, `packages/react/src/stores/core/contracts.ts`, `packages/react/docs/state-contracts.md` | Widen `useStoreValue`, `useStoreSelector`, and `ExternalStoresMap<T>` (`createStoreContext().Provider stores={...}`) to accept `StateReader<T>` / `StateBackend<T>` directly (eliminates `macrostructure`'s `useEffect` mirror-store workaround & mandatory `BackendStore` wrapping while preserving `IStore<T>`/`Store<T>`). | New React integration test wiring `createStateStore()` directly into `createStoreContext().Provider stores={...}` & `useStoreValue`; `pnpm --filter @context-action/react type-check && pnpm --filter @context-action/react test && pnpm verify:react-artifact-boundary && pnpm package-boundary:check` |
-| **M2 — P1: Contract-Level Action Queue Policy** | Track B1 | `packages/core/src/types.ts`, `packages/core/src/ActionRegister.ts`, `packages/core/docs/action-contracts.md` | Add optional per-action policy declaration (`actions?: Partial<Record<ActionNames<T>, { queue?: 'serial' \| 'immediate'; timeout?: number }>>`) so preemption actions never rely solely on manual `{ immediate: true }` at call sites; preserve existing `useConcurrencyQueue` defaults across Core & React in 4.x. | Core unit tests for contract-level `'immediate'` bypassing active `'serial'` queue without call-site flags; `pnpm --filter @context-action/core test && pnpm verify:core-artifact-parity` |
-| **M3 — P1: Framework-Neutral Timeline / TimeTravel** | Track A2 | Layer 1 framework-neutral `TimeTravelStore` implementing `TimelineBackend<T>`, compatibility re-exports on `packages/react/src/index.ts`, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/context-layered/store-selection-and-usage-guide.md` | Decouple time-travel history/timeline execution from React so non-React consumers (`browser-studio`, headless Node `.mjs` suites like `ae-editor`) consume `TimelineBackend<T>` without pulling React peers or hand-rolling `history[]`/`structuredClone`. | Pure Node / non-React timeline contract tests + existing React `TimeTravelStore` compatibility suite + packed tarball export verification; `pnpm build && pnpm test && pnpm verify:package-exports && pnpm verify:package-tarballs` |
-| **M4 — P2: Opt-In React Subpaths & Symmetric Dispatch** | Track C1 & B2 | `packages/react/package.json` (`./refs`, `./time-travel`, `./transactions`), `tsdown.config.ts`, `packages/react/src/actions/ActionContext.types.ts`, `ActionContext.tsx` (additive `useActionResultDispatch()`, `useActionScope()`), `catalog/repository-surface/api-surface.v1.json`, `scripts/verify-react-artifact-boundary.mjs` | Expose slim opt-in React subpaths and symmetric function-returning result dispatcher while retaining 100% of root `.` exports and deprecated APIs until **Phase 2 (v5 Major)**. | Packed ESM/CJS consumer imports across root `.` and new subpaths + React 18/19 compatibility matrix; `pnpm verify:surface-catalog && pnpm verify:react-artifact-boundary && pnpm docs:llms && pnpm docs:check && pnpm verify:doc-snippets && pnpm verify` |
+| **M0 — Baseline Sync Prerequisite** | **Done** (`e1bdf4a7`) · Concurrent 4.x sync | `packages/react/UNRELEASED.md`, `StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP docs, baseline receipt | Landed active concurrent 4.x improvements cleanly on `stage` with verified baseline receipt before M1. | `pnpm verify:quick && pnpm verify:receipt` (`✔ [VALID]`) |
+| **M1a & M1b — P0: Native `StateReader` / `StateBackend` / `TimelineBackend` in React** | **Done** · Track A1 | `useStoreValue.ts`, `useStoreSelector.ts`, `useStorePath.ts`, `useTimeTravelControls.ts`, `useTimeTravelPath.ts`, `declarative-store-pattern-v2.tsx`, `time-travel-store-pattern.tsx`, `packages/react/src/index.ts` | Widened React hooks (`SubscribableStore`, `TimeTravelControlsStore`, `TimeTravelPathStore`) and Provider DI (`ExternalStoreInput`, `ExternalTimeTravelStoreInput`) to accept `StateReader` / `StateBackend` / `TimelineBackend` directly without manual `BackendStore` wrapping; added leak-free adapted wrapper disposal while respecting `ownership`. | `state-reader-native-acceptance.test.tsx`, `vnext-phase1-alignment.integration.test.tsx`, `pnpm verify:react-artifact-boundary`, `pnpm package-boundary:check` |
+| **M2 — P1: Contract-Level Action Queue Policy** | **Done** · Track B1 | `packages/core/src/types.ts`, `packages/core/src/index.ts`, `packages/core/src/ActionRegister.ts`, `ActionContext.types.ts`, `ActionContext.tsx`, `packages/core/docs/action-contracts.md` | Added generic `ActionRegisterConfig<T>.actions` (`ActionQueuePolicy`, `ActionPolicyConfig`: `{ queue?: 'serial' \| 'immediate'; timeout?: number }`) and `ActionContext` forwarding without altering 4.x defaults or explicit call-site overrides. | `packages/core/__tests__/action-policy-config.test.ts`, full `@context-action/core` Jest + Vitest suites, `pnpm verify:core-artifact-parity` |
+| **M3 — P1: Layer 1 Mutative & Timeline Parity** | **Done** · Track A2 | `packages/mutative/src/backend.ts`, `packages/mutative/__tests__/backend-state-store-parity.test.ts`, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/context-layered/store-selection-and-usage-guide.md` | Aligned `@context-action/mutative` Layer 1 `MutativeStateBackend` and `MutativeTimelineBackend` (`StateStore`, `TransactionBackend`, `getValue()`, `isDisposed()`, dynamic `getNotificationMode()` / `setNotificationMode()`) cleanly without introducing a 19th package; wired native React hook & `createTimeTravelStoreContext` interop. | `backend-state-store-parity.test.ts`, full `@context-action/mutative` Vitest suite, `vnext-phase1-alignment.integration.test.tsx` |
+| **M4a & M4b — P2: Opt-In React Subpaths & Symmetric Dispatch** | **Done** · Track C1 & B2 | `packages/react/src/{refs,time-travel,transactions}.ts`, `package.json`, `tsdown.config.ts`, `jest.config.cjs`, `ActionContext.{types.ts,tsx}`, `catalog/repository-surface/api-surface.v1.json`, `scripts/verify-react-artifact-boundary.mjs`, `scripts/verify-doc-snippets.mjs` | Exposed opt-in `./refs` (Mutative-free), `./time-travel`, `./transactions` subpaths alongside unchanged root `.` exports, plus symmetric `useActionResultDispatch()` and `useActionScope()` (`ActionScopeReturn`); preserved `useActionDispatchWithResult()` until Phase 2 (v5). | `pnpm verify:surface-catalog`, `pnpm verify:package-exports`, `pnpm verify:react-artifact-boundary`, `pnpm --filter @context-action/react test`, `pnpm docs:check`, `pnpm verify:quick && pnpm verify:receipt` |
 
 ===================[ DOC: en/context-layered/decisions/index.md ]===================
 # Architecture Decision Records
@@ -4713,7 +4716,7 @@ All 18 workspace packages declared under `packages/*/package.json` (excluding un
 | `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | none | `packages/mutative-core/README.md`, `mutative-core-history.md` |
 | `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | none | `packages/tool-protocol/README.md`, `tool-calling-editor-architecture.md` |
 | `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | none | `packages/tool-durable-operations/README.md`, `durable-operation-operations.md` |
-| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peers: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
+| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peers: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
 | `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | `packages/mutative/README.md`, `time-travel-specialization.md` |
 | `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/lit/README.md`, `01-controller-scope.md` |
 | `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/preact/README.md`, `spec-to-code-authoring-guide.md` |
@@ -4733,7 +4736,7 @@ All 18 workspace packages declared under `packages/*/package.json` (excluding un
 ### 3.1 Package Roles by Layer
 
 - **Foundation (`5`)**: `core` (action pipeline & optional `./element` DOM/host transport), `store-core` (framework-neutral state/timeline/transaction protocols + `createStateStore`), `mutative-core` (`mutative@2.0.2`-compatible immutable draft/patch engine), `tool-protocol` (Zod/JSON Schema tools, MCP/provider adapters, approval queues, idempotency, observability), `tool-durable-operations` (lease/claim side-effect recovery & IndexedDB/Redis/PostgreSQL reference backends).
-- **Framework Adapters (`4`)**: `react` (React 18/19 Action/Store/TimeTravel/Ref contexts, hooks, transactions, `./backend`, `./advanced`, `./webmcp`), `mutative` (`TimeTravel` + `MutativeStateBackend`/`MutativeTimelineBackend`), `lit` (`StoreController`, `ActionController`, `ControllerScope`), `preact` (`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`).
+- **Framework Adapters (`4`)**: `react` (React 18/19 Action/Store/TimeTravel/Ref contexts, hooks, transactions, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./webmcp`), `mutative` (`TimeTravel` + `MutativeStateBackend`/`MutativeTimelineBackend`), `lit` (`StoreController`, `ActionController`, `ControllerScope`), `preact` (`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`).
 - **UI Runtimes (`2`)**: `lit-ui` (Lit Web Components, W3C Context Protocol, FACE, `./react-bridge`, `./ssr`, `./hydrate`), `preact-ui` (owned Preact DOM roots, `mountPreact`/`hydratePreact`, `createDisposalScope`, `./react-bridge`, `./ssr`).
 - **Integration Adapters (`3`)**: `xstate` (XState v5/v6 actor bridges in `.` and Effect v4 / `@xstate/effect` / Standard Schema v1 / transaction scopes in `./effect`), `ai-sdk` (AI SDK v7 turn-scoped `ToolSet` bridge), `webmcp` (allowlisted `document.modelContext` browser adapter).
 - **Tooling (`1`)**: `style-testing` (private Playwright style extraction & Babel instrumentation).
@@ -5361,12 +5364,13 @@ Context-Action separates **write ownership** (`StoreWriter` / Action Handlers) f
 | --- | --- | --- | --- | --- |
 | **`createStoreContext`** | `@context-action/react` | **Default choice.** Scope multiple domain stores cleanly to a React component subtree | No | Yes |
 | **`createStore` (`Store`)** | `@context-action/react` | Standalone module-level store, dependency-injected store, or unit tests | No | Yes (Mutative built in) |
-| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react` | Editors, form drafts, and canvas state needing undo/redo history navigation | **Yes (Mutative patches)** | Yes |
+| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react` or `@context-action/react/time-travel` | Editors, form drafts, and canvas state needing undo/redo history navigation | **Yes (Mutative patches)** | Yes |
 | **`createStateStore`** | `@context-action/store-core` | Minimal framework-neutral reference store for Vanilla JS, Node, Preact, Lit, or XState | No | **No (0 deps)** |
-| **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | Bridge any user-owned `StateBackend` into React subscription hooks | Backend-dependent | Yes (wrapper only) |
-| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react` | Group mutations across multiple stores into one atomic commit, rollback, and single undo step | **Yes (atomic multi-store)** | Yes |
+| **`createMutativeStateBackend` / `createMutativeTimelineBackend`** | `@context-action/mutative` | Framework-neutral Layer 1 Mutative draft/patch `StateStore` & `TimelineBackend` (`TransactionBackend`), usable standalone or injected natively into React/Lit/Preact | Optional (`TimelineBackend`) | **No** |
+| **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | Bridge any user-owned `StateBackend` into React subscription hooks (optional when using `createStoreContext().Provider stores={...}`) | Backend-dependent | Yes (wrapper only) |
+| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react` or `@context-action/react/transactions` | Group mutations across multiple stores into one atomic commit, rollback, and single undo step | **Yes (atomic multi-store)** | Yes |
 | **`useLocalStore` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | Component-lifetime local store / memoized derived value / dynamic named store registry | No | Yes |
-| **`createRefContext`** | `@context-action/react` | **Non-reactive (Tier 3).** DOM elements, Canvas handles, and 120fps pointer coordinates with zero React re-renders | No | Yes |
+| **`createRefContext`** | `@context-action/react` or `@context-action/react/refs` | **Non-reactive (Tier 3).** DOM elements, Canvas handles, and 120fps pointer coordinates with zero React re-renders | No | Yes |
 | **`createActorStateReader`** | `@context-action/xstate` | **Closed statechart read-only projection.** Blocks external `setValue()`; transitions go through actor events only | No | **No** |
 | **`createSourceContext` / `fromStateReader` / `StoreController`** | `@context-action/preact`, `@context-action/lit` | Read-only Signals (`fromStateReader` bridges `StateReader`/`StoreReader` snapshots) or `ReactiveController` projections for Preact/Lit hosts | No | **No** |
 | **`createDurableOperationStore`** | `@context-action/tool-durable-operations` | **Not UI state.** Lease/claim idempotency and recovery records for external HTTP, queue, or filesystem side effects | No | **No** |
@@ -5494,9 +5498,50 @@ unsubscribe();
 counterStore.dispose?.();
 ```
 
-### 2.5 `createBackendStore` / `BackendStore` (`@context-action/react/backend`) — Custom Backend Bridge
+### 2.5 `createMutativeStateBackend` / `createMutativeTimelineBackend` & Native Interoperability (`@context-action/mutative` + `@context-action/react`)
 
-Use `createBackendStore` to expose any `@context-action/store-core` `StateBackend<T, Patch>` (such as `createStateStore`, `MutativeStateBackend`, or a custom persistence/sync backend) to React's `useSyncExternalStore` hooks (`useStoreValue`, `useStoreSelector`, and `useStorePath` if the backend supplies patches).
+Use `createMutativeStateBackend` (`StateStore`) and `createMutativeTimelineBackend` (`TransactionBackend & StateStore`) from `@context-action/mutative` when you want a framework-neutral Layer 1 Mutative engine with JSON patches, undo/redo timeline navigation, and mutable `setNotificationMode('immediate' | 'batched')` shared across React, Lit, Preact, or headless Node workers.
+
+React subscription hooks (`useStoreValue`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`) and Provider DI (`createStoreContext().Provider stores={...}`, `createTimeTravelStoreContext().Provider stores={...}`) accept `StateReader<T>`, `StateBackend<T>`, and `TimelineBackend<T>` **directly** without requiring manual `BackendStore` boilerplate (while `@context-action/react/backend` `createBackendStore` remains available for explicit standalone wrapping):
+
+<!-- @context-action-compile -->
+```tsx
+import { createStateStore } from '@context-action/store-core';
+import { createMutativeTimelineBackend } from '@context-action/mutative';
+import { createStoreContext, useStoreValue } from '@context-action/react';
+import {
+  createTimeTravelStoreContext,
+  useTimeTravelControls,
+} from '@context-action/react/time-travel';
+
+const sessionBackend = createStateStore('session', { step: 1 });
+const docTimeline = createMutativeTimelineBackend('doc', { title: 'v1' }, { maxHistory: 20 });
+
+const SessionStores = createStoreContext('Session', {
+  session: { step: 0 },
+});
+const DocStores = createTimeTravelStoreContext('Doc', {
+  doc: { initialValue: { title: '' }, maxHistory: 20 },
+});
+
+export function SessionAndDocView() {
+  const directStep = useStoreValue(sessionBackend);
+  const directTimeline = useTimeTravelControls(docTimeline);
+  return (
+    <SessionStores.Provider stores={{ session: sessionBackend }} ownership="shared">
+      <DocStores.Provider stores={{ doc: docTimeline }} ownership="shared">
+        <span>
+          Step {directStep.step} (undo={String(directTimeline.canUndo)})
+        </span>
+      </DocStores.Provider>
+    </SessionStores.Provider>
+  );
+}
+```
+
+### 2.5a `createBackendStore` / `BackendStore` (`@context-action/react/backend`) — Explicit Standalone Bridge
+
+Use `createBackendStore` when you want an explicit standalone `IStore` wrapper instance over any `@context-action/store-core` `StateBackend<T, Patch>` (such as `createStateStore`, `MutativeStateBackend`, or a custom persistence/sync backend):
 
 - `ownership: 'shared'` (default): disposing the `BackendStore` wrapper keeps the underlying backend alive.
 - `ownership: 'owned'`: disposing the wrapper also disposes the underlying backend.
@@ -5611,7 +5656,7 @@ export function HeadlessCartView() {
 }
 ```
 
-> Need to adapt an external framework-neutral `StateBackend` (e.g., `createStateStore` from `@context-action/store-core`, Redux/Zustand bridges, or storage backends) directly to React hooks? Use `createBackendStore('cart', cartBackend, { ownership: 'shared' })` from `@context-action/react/backend`. For a complete walkthrough connecting specs, intents, and headless DI, see the [Spec-to-Code Authoring Guide](./spec-to-code-authoring-guide.md).
+> You can pass `@context-action/store-core` `createStateStore()` or `@context-action/mutative` `createMutativeStateBackend()` directly into `createStoreContext().Provider stores={...}` (`StoreManager` adapts raw `StateBackend` entries automatically) or use `createBackendStore('cart', cartBackend, { ownership: 'shared' })` from `@context-action/react/backend`. For opt-in tree-shaking, specialized React surfaces are also exposed from `@context-action/react/refs`, `@context-action/react/time-travel`, and `@context-action/react/transactions` alongside root `@context-action/react`. For a complete walkthrough connecting specs, intents, and headless DI, see the [Spec-to-Code Authoring Guide](./spec-to-code-authoring-guide.md).
 
 ---
 
@@ -7471,17 +7516,17 @@ next roadmap item is the smallest gate-clearing task, not a version bump.
 ===================[ DOC: en/context-layered/vnext-architecture-handoff.md ]===================
 # vNext Architecture & Cross-Project Handoff Guide
 
-**Status:** Active handoff reference for cross-project feedback  
-**Baseline:** `stage` branch (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`)
+**Status:** Phase 1 (`M0–M4` 4.x additive alignment) implemented on `stage`; Phase 2 (`v5` major) feedback & release window remain open  
+**Baseline:** `stage` branch (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`; package versions frozen on `stage`)
 
-This document equips a sibling consumer project or the next architecture review session with exact baseline rules, reading paths, open feedback gates, and ready-to-paste prompts so design feedback can be collected safely without disrupting concurrent cross-project work.
+This document equips a sibling consumer project or the next architecture review session with exact baseline rules, reading paths, Phase 1 implementation coverage, remaining Phase 2 (`v5`) decision gates, and ready-to-paste prompts so coordination can proceed safely without breaking existing 4.x consumers.
 
 ---
 
 ## 1. Baseline & Freeze Rules
 
 - **Active branch:** `stage` (keep all pre-release design and stabilization work off `main` until an approved integration window).
-- **Published contract freeze:** Sibling/external projects are actively modifying or integrating against the current `@context-action/*` 4.x / 1.x / 0.x contracts. **Do NOT alter runtime code, public exports, `package.json` versions, or `catalog/repository-surface/api-surface.v1.json`** while collecting design feedback.
+- **Published contract & version freeze:** Package versions and npm releases remain frozen while sibling/external projects transition; **all Phase 1 changes on `stage` (`M0–M4`) are strictly 4.x additive / non-breaking** with full root `.` export and default compatibility.
 - **No thin React hook wrappers for already-composable patterns:** Context-Action intentionally treats the 5 OOP × React built-in hook archetypes (`useImperativeHandle`, `useLocalStore`/`useReducer`, `useDeferredValue`, React 19 `useOptimistic`/`useTransition`/`useActionState`, and isomorphic `useLayoutEffect`/`useEffect`) as documented usage patterns rather than adding thin wrapper APIs.
 
 ---
@@ -7527,15 +7572,15 @@ Sibling/consumer feedback should explicitly take a position on the 4 open decisi
 | **3. `StateBackend` & TimeTravel Placement** | `macrostructure` (`interface-intent-runtime-react.ts:15-32`) mirrors stores via `useEffect` because React `useStoreValue` rejects `StateReader<T>`, `google-tools` contrasts Lit's native `StateStore` acceptance, and `browser-studio` + `ae-editor` `.mjs` tests prove non-React demand for `TimeTravelStore`. | **M1 (P0):** Native `StateReader<T>` / `StateBackend<T>` in React hooks & `createStoreContext`.<br>**M3 (P1):** Framework-neutral Timeline/TimeTravel engine with React `.` re-exports preserved. |
 | **4. Semver Horizon** | `ae-editor`, `iframe-demo`, `graph-hub`, and `macrostructure` all import directly from `@context-action/react` root `.` (`0.8.x`–`3.0.0`/`4.x`). | Commit **Phase 1 strictly to 4.x Non-Breaking (Additive)**; defer breaking cleanups to **v5 Major**. |
 
-### 3.2 Phase 1 (4.x Additive) Execution Plan Summary (`M0–M4`)
+### 3.2 Phase 1 (4.x Additive) Implementation Status (`M0–M4` on `stage`)
 
-Full contract targets, file ownership, and acceptance commands live in Section 9 of [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md):
+Full contract targets, file ownership, and acceptance commands live in Section 9 of [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md). All five Phase 1 milestones are implemented and verified on `stage` (with **Phase 2 / `v5` breaking cleanup deferred**):
 
-- **M0 (Baseline Sync Prerequisite):** Let active concurrent `packages/react` 4.x edits (`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP docs) settle and commit cleanly on `stage`.
-- **M1 (P0 · Track A1):** Widen `useStoreValue`, `useStoreSelector`, and `ExternalStoresMap<T>` (`createStoreContext().Provider stores={...}`) to accept `StateReader<T>` / `StateBackend<T>` directly without manual `BackendStore` wrapping.
-- **M2 (P1 · Track B1):** Add optional per-action scheduling policy (`actions?: Partial<Record<ActionNames<T>, { queue?: 'serial' | 'immediate'; timeout?: number }>>`) in `@context-action/core` while preserving current defaults.
-- **M3 (P1 · Track A2):** Extract framework-neutral `TimeTravelStore` / `TimelineBackend<T>` capabilities into Layer 1 while retaining full backward-compatible re-exports on `@context-action/react` root `.`.
-- **M4 (P2 · Track C1 & B2):** Add opt-in React subpaths (`./refs`, `./time-travel`, `./transactions`) and symmetric dispatch hooks (`useActionResultDispatch()`, `useActionScope()`) with root `.` intact and full `api-surface.v1.json` + doc/boundary gate parity.
+- **M0 (`Done` · Baseline Sync):** Concurrent `packages/react` 4.x improvements (`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP docs) and baseline receipt (`e1bdf4a7`).
+- **M1a & M1b (`Done` · P0 · Track A1):** `useStoreValue`, `useStoreValues`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`, `useTimeTravelSelector`, `ExternalStoresMap` (`ExternalStoreInput`), and `ExternalTimeTravelStoresMap` (`ExternalTimeTravelStoreInput`) accept `StateReader<T>` / `StateBackend<T>` / `TimelineBackend<T>` natively without manual `BackendStore` wrapping.
+- **M2 (`Done` · P1 · Track B1):** `@context-action/core` adds generic `ActionRegisterConfig<T>.actions` (`ActionQueuePolicy`, `ActionPolicyConfig`: `queue: 'serial' | 'immediate'`, `timeout?: number`) and `createActionContext` forwarding while preserving 4.x defaults.
+- **M3 (`Done` · P1 · Track A2):** `@context-action/mutative` Layer 1 `MutativeStateBackend` and `MutativeTimelineBackend` align with `StateStore`, `TransactionBackend`, and dynamic `getNotificationMode()` / `setNotificationMode()`, working natively with both React and non-React callers without creating a new package.
+- **M4a & M4b (`Done` · P2 · Track C1 & B2):** Added opt-in React subpaths (`./refs` [Mutative-free], `./time-travel`, `./transactions`) and symmetric dispatch hooks (`useActionResultDispatch()`, `useActionScope()`, `ActionScopeReturn`) while keeping 100% root `.` exports and `api-surface.v1.json` / boundary gates aligned.
 
 ---
 

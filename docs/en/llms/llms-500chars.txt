@@ -72,9 +72,9 @@ Status: accepted Owner: Framework Architecture & Documentation Governance Relate
 
 ===================[ DOC: en/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001.md ]===================
 # CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, State Unification, and React Surface Blueprint
-Sections: Context & Cross-Project Freeze Note | Verified Primary-Source Evidence Inventory | Hub-and-Spoke Target Architecture | Options Considered & Detailed Track Blueprints | Consequences, Invariants & Non-Goals | Open Feedback Decisions & Evidence-Backed Resolutions | Verification Evidence & Authoritative References | Admission & Reversal Conditions
+Sections: Context & Rollout Staging Note | Verified Primary-Source Evidence Inventory | Hub-and-Spoke Target Architecture | Options Considered & Detailed Track Blueprints | Consequences, Invariants & Non-Goals | Open Feedback Decisions & Evidence-Backed Resolutions | Verification Evidence & Authoritative References | Admission & Reversal Conditions
 
-Status: proposed — Phase 1 (4.x additive) execution plan ready; cross-project audit completed across 7 consumer repos (no runtime changes applied by this record) Owner: Framework Core & React Runtime Related issue/spec: CA-VNEXT-ARCHITECTURE-001 (builds on CA-SURFACE-CATALOG-001, CA-ELEMENT-INTEROP-001, CA-STATECHART-EFFECT-001, CA-SPEC-EVIDENCE-001) Baseline: stage @ d21aff4a (@context-action/core@1.3.1, @context-action/store-core@0.1.4, @context-action/mutative-core@0.8.14, @context-action/...
+Status: accepted — Phase 1 (M0–M4, 4.x additive alignment) implemented on stage; Phase 2 (v5 major breaking cleanup) deferred pending coordinated release window Owner: Framework Core & React Runtime Related issue/spec: CA-VNEXT-ARCHITECTURE-001 (builds on CA-SURFACE-CATALOG-001, CA-ELEMENT-INTEROP-001, CA-STATECHART-EFFECT-001, CA-SPEC-EVIDENCE-001) Baseline: stage (@context-action/core@1.3.1, @context-action/store-core@0.1.4, @context-action/mutative-core@0.8.14, @context-action/mutative@0.8...
 
 ===================[ DOC: en/context-layered/decisions/index.md ]===================
 # Architecture Decision Records
@@ -194,7 +194,7 @@ status: completed canonical: false translationOf: docs/ko/context-layered/v1-rel
 # vNext Architecture & Cross-Project Handoff Guide
 Sections: Baseline & Freeze Rules | Required Reading Map | Open Feedback Decision Gates (Resolve Before Implementation) | Copy-Pasteable Instruction / Prompt Kit
 
-Status: Active handoff reference for cross-project feedback Baseline: stage branch (@context-action/core@1.3.1, @context-action/store-core@0.1.4, @context-action/mutative-core@0.8.14, @context-action/mutative@0.8.15, @context-action/react@4.0.7, @context-action/lit@0.1.4, @context-action/preact@0.1.3) This document equips a sibling consumer project or the next architecture review session with exact baseline rules, reading paths, open feedback gates, and ready-to-paste prompts so design feedba...
+Status: Phase 1 (M0–M4 4.x additive alignment) implemented on stage; Phase 2 (v5 major) feedback & release window remain open Baseline: stage branch (@context-action/core@1.3.1, @context-action/store-core@0.1.4, @context-action/mutative-core@0.8.14, @context-action/mutative@0.8.15, @context-action/react@4.0.7, @context-action/lit@0.1.4, @context-action/preact@0.1.3; package versions frozen on stage) This document equips a sibling consumer project or the next architecture review session with e...
 
 ===================[ DOC: en/concept/action-pipeline-guide.md ]===================
 # Action Pipeline Guide: ActionPayloadMap & ActionRegister

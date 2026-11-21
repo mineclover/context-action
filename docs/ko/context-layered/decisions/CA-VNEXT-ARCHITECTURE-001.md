@@ -1,17 +1,20 @@
 # CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, 상태 계층 통합 및 React 표면 슬림화 청사진
 
-**상태:** proposed — Phase 1 (4.x 무중단) 실행 계획 수립 완료, 7개 소비자 저장소 교차 감사 완료 (본 문서로 런타임 코드 변경 미적용)  
+**상태:** accepted — Phase 1 (`M0–M4`, 4.x 무중단 정렬) `stage` 구현 완료; Phase 2 (`v5` 메이저 정리)는 합의된 릴리스 윈도우까지 유보  
 **소유자:** Framework Core & React Runtime  
 **관련 이슈/스펙:** `CA-VNEXT-ARCHITECTURE-001` ([CA-SURFACE-CATALOG-001](./CA-SURFACE-CATALOG-001.md), [CA-ELEMENT-INTEROP-001](./CA-ELEMENT-INTEROP-001.md), [CA-STATECHART-EFFECT-001](./CA-STATECHART-EFFECT-001.md), [CA-SPEC-EVIDENCE-001](./CA-SPEC-EVIDENCE-001.md) 기반)  
-**기준선(Baseline):** `stage` @ `d21aff4a` (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`)
+**기준선(Baseline):** `stage` (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`, 프리릴리스 기간 중 패키지 버전 동결)
 
 ---
 
-## 1. 맥락 및 타 프로젝트 병행 작업 안내
+## 1. 맥락 및 단계별 반영 원칙
 
-현재 타 프로젝트 및 연계 워크스페이스에서도 기존 공개 `@context-action/*` 계약에 맞춰 수정이 진행 중이므로, 검증 완료된 현재 API 표면이나 런타임 동작을 즉시 바꾸면 교차 프로젝트 간 드리프트가 발생할 수 있습니다.
+타 프로젝트 및 연계 워크스페이스가 현재 공개된 `@context-action/*` 4.x / 1.x / 0.x 계약에 의존하고 있으므로, 루트(`.`) export 축소·기본 알림/큐 동작 반전·버전 범프 같은 breaking 변경은 별도 동기화 릴리스 윈도우가 열릴 때까지 보류해야 합니다.
 
-따라서 이 문서는 `stage` 안정화 과정에서 확인된 실증 근거와 구조적 긴장을 **비규범적(non-normative) `proposed` 아키텍처 청사진**으로 정제해 고정한 설계 레퍼런스입니다. **이 문서 작업에서는 소스 코드, `package.json`, 또는 표면 카탈로그를 일절 수정하지 않으며**, 실제 코드 반영은 섹션 6의 의사결정 합의와 교차 프로젝트 동기화 윈도우가 열린 이후 별도 `accepted` ADR로 진행합니다.
+이에 따라 본 결정 기록은 이행 경로를 두 단계로 분리합니다:
+
+1. **Phase 1 (`M0–M4` — 4.x 무중단 / Additive 정렬, `stage` 구현 완료):** 기존 루트 `.` export와 4.x 기본값을 100% 보존한 채 React 훅·Provider의 `StateReader`/`StateBackend`/`TimelineBackend` 네이티브 수용(`M1a`/`M1b`), Core 계약 레벨 `actions` 큐·타임아웃 정책(`M2`), Layer 1 `@context-action/mutative` `StateStore` 및 동적 `notificationMode` 정합(`M3`), opt-in 서브패스(`./refs`, `./time-travel`, `./transactions`)와 대칭 디스패치 훅(`useActionResultDispatch()`, `useActionScope()`) (`M4`)을 반영했습니다.
+2. **Phase 2 (`v5` 메이저 정리, 유보):** deprecated 심볼 제거(`useActionEffectHandler`, `compareStrategy`, `StoreSchema`), 루트 배럴 슬림화, 기본 알림/큐 정책 통일은 교차 프로젝트 마이그레이션 윈도우 개방 시 별도 릴리스로 진행합니다.
 
 ---
 
@@ -256,14 +259,14 @@ const engine = CouponRuntime.create();
 
 ---
 
-## 9. Phase 1 (4.x 무중단) 계약 우선 구현 계획 (M0–M4)
+## 9. Phase 1 (4.x 무중단) 계약 우선 구현 계획 및 이행 현황 (`M0–M4`)
 
-아래 마일스톤은 모두 **4.x 하위 호환을 100% 보장하는 무중단(Additive) 단계**로 설계되었으며, `@context-action/core`·`store-core`·`react`의 기존 루트(`.`) export를 그대로 보존합니다.
+아래 마일스톤은 모두 **4.x 하위 호환을 100% 보장하는 무중단(Additive) 단계**로 설계되어 `@context-action/core`·`store-core`·`mutative`·`react`의 기존 루트(`.`) export를 그대로 보존합니다. 5개 Phase 1 마일스톤(`M0–M4`)은 모두 `stage`에 구현 및 검증이 완료되었습니다(패키지 버전 범프·npm 배포는 계속 동결, Phase 2 `v5` 정리는 유보).
 
-| 마일스톤 | 범위 및 트랙 | 대상 파일 / 문서 | 계약 목표 및 소비자 마찰 해소 | 인수 테스트 및 검증 게이트 |
+| 마일스톤 | 상태 및 트랙 | 반영 대상 파일 / 표면 | 계약 목표 및 소비자 마찰 해소 | 인수 테스트 및 검증 게이트 |
 |---|---|---|---|---|
-| **M0 — 기준선 동기화 선행** | 병행 4.x React 작업 정렬 | `packages/react/UNRELEASED.md`, `packages/react/src/**`, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/guide/**` | M1 착수 전 진행 중인 병행 변경(`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP 문서)을 `stage`에 안정적으로 마감합니다. | `pnpm docs:llms && pnpm docs:check && pnpm --filter @context-action/react type-check && pnpm --filter @context-action/react test && pnpm verify:quick && pnpm verify:receipt` |
-| **M1 — P0: React `StateReader` / `StateBackend` 네이티브 수용** | 트랙 A1 | `packages/react/src/stores/hooks/useStoreValue.ts`, `useStoreSelector.ts`, `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx`, `packages/react/src/stores/core/contracts.ts`, `packages/react/docs/state-contracts.md` | `useStoreValue`, `useStoreSelector`, `ExternalStoresMap<T>`(`createStoreContext().Provider stores={...}`)가 `StateReader<T>`/`StateBackend<T>`를 직접 받도록 확장합니다 (`macrostructure`의 `useEffect` 미러 Store 우회 및 수동 `BackendStore` 래핑 제거, `IStore`/`Store` 완전 호환). | `createStateStore()`를 `createStoreContext().Provider stores={...}` 및 `useStoreValue`에 직결하는 통합 테스트; `pnpm --filter @context-action/react type-check && pnpm --filter @context-action/react test && pnpm verify:react-artifact-boundary && pnpm package-boundary:check` |
-| **M2 — P1: Core 계약 레벨 액션 큐 정책** | 트랙 B1 | `packages/core/src/types.ts`, `packages/core/src/ActionRegister.ts`, `packages/core/docs/action-contracts.md` | 선택적 액션별 정책 선언(`actions?: Partial<Record<ActionNames<T>, { queue?: 'serial' \| 'immediate'; timeout?: number }>>`)을 추가해 선점 액션이 호출부 `{ immediate: true }`에만 의존하지 않도록 개선합니다 (Core·React 4.x 기본 `useConcurrencyQueue` 값은 보존). | 활성 `'serial'` 큐를 호출부 플래그 없이 선점하는 `'immediate'` 계약 단위 테스트; `pnpm --filter @context-action/core test && pnpm verify:core-artifact-parity` |
-| **M3 — P1: 프레임워크 중립 Timeline / TimeTravel 분리** | 트랙 A2 | Layer 1 프레임워크 중립 `TimeTravelStore`(`TimelineBackend<T>` 구현), `packages/react/src/index.ts` 호환 re-export, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/context-layered/store-selection-and-usage-guide.md` | Undo/Redo 타임라인 엔진을 React에서 분리해 비-React 소비자(`browser-studio`, 순수 Node `.mjs` 기반 `ae-editor` 테스트)가 React peer나 수동 `history[]`/`structuredClone` 구현 없이 재사용할 수 있게 합니다 (React 루트 `.` re-export 유지). | 순수 Node 비-React 타임라인 계약 테스트 + 기존 React `TimeTravelStore` 회귀 스위트 + packed tarball export 검증; `pnpm build && pnpm test && pnpm verify:package-exports && pnpm verify:package-tarballs` |
-| **M4 — P2: Opt-In React 서브패스 및 대칭 디스패치 훅** | 트랙 C1 & B2 | `packages/react/package.json` (`./refs`, `./time-travel`, `./transactions`), `tsdown.config.ts`, `ActionContext.types.ts`, `ActionContext.tsx`(additive `useActionResultDispatch()`, `useActionScope()`), `catalog/repository-surface/api-surface.v1.json`, `scripts/verify-react-artifact-boundary.mjs` | 슬림한 opt-in 서브패스와 함수형 결과 디스패치 훅을 추가하되, 루트 `.` export 및 deprecated 심볼 제거는 **Phase 2 (v5 Major)** 로 유보해 무중단 도입을 보장합니다. | 루트 `.` + 신규 서브패스 packed ESM/CJS 소비자 검증 및 React 18/19 호환 매트릭스; `pnpm verify:surface-catalog && pnpm verify:react-artifact-boundary && pnpm docs:llms && pnpm docs:check && pnpm verify:doc-snippets && pnpm verify` |
+| **M0 — 기준선 동기화 선행** | **완료** (`e1bdf4a7`) · 병행 4.x 정렬 | `packages/react/UNRELEASED.md`, `StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP 문서, 기준선 영수증 | M1 착수 전 병행 4.x 개선 변경과 기준선 영수증을 `stage`에 안정 커밋했습니다. | `pnpm verify:quick && pnpm verify:receipt` (`✔ [VALID]`) |
+| **M1a & M1b — P0: React `StateReader` / `StateBackend` / `TimelineBackend` 네이티브 수용** | **완료** · 트랙 A1 | `useStoreValue.ts`, `useStoreSelector.ts`, `useStorePath.ts`, `useTimeTravelControls.ts`, `useTimeTravelPath.ts`, `declarative-store-pattern-v2.tsx`, `time-travel-store-pattern.tsx`, `packages/react/src/index.ts` | React 구독·타임라인 훅(`SubscribableStore`, `TimeTravelControlsStore`, `TimeTravelPathStore`)과 Provider DI(`ExternalStoreInput`, `ExternalTimeTravelStoreInput`)가 `StateReader`/`StateBackend`/`TimelineBackend`를 직접 수용하도록 확장하고, 래핑된 `BackendStore` 리스너 누수 방지·`ownership` 정책을 정리했습니다. | `state-reader-native-acceptance.test.tsx`, `vnext-phase1-alignment.integration.test.tsx`, `pnpm verify:react-artifact-boundary`, `pnpm package-boundary:check` |
+| **M2 — P1: Core 계약 레벨 액션 큐 정책** | **완료** · 트랙 B1 | `packages/core/src/types.ts`, `packages/core/src/index.ts`, `packages/core/src/ActionRegister.ts`, `ActionContext.types.ts`, `ActionContext.tsx`, `packages/core/docs/action-contracts.md` | 제네릭 `ActionRegisterConfig<T>.actions`(`ActionQueuePolicy`, `ActionPolicyConfig`: `{ queue?: 'serial' \| 'immediate'; timeout?: number }`) 및 `ActionContext` 전달을 4.x 기본값·호출부 옵션 우선순위 유지 상태로 구현했습니다. | `packages/core/__tests__/action-policy-config.test.ts`, `@context-action/core` 전체 Jest/Vitest 스위트, `pnpm verify:core-artifact-parity` |
+| **M3 — P1: Layer 1 Mutative & Timeline 정합** | **완료** · 트랙 A2 | `packages/mutative/src/backend.ts`, `packages/mutative/__tests__/backend-state-store-parity.test.ts`, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/context-layered/store-selection-and-usage-guide.md` | 19번째 패키지를 신설하지 않고 `@context-action/mutative` Layer 1 `MutativeStateBackend`와 `MutativeTimelineBackend`를 `StateStore`/`TransactionBackend`(`getValue()`, `isDisposed()`, 동적 `getNotificationMode()`/`setNotificationMode()`)로 정합화하고 React 타임라인 컨텍스트·훅과 직결했습니다. | `backend-state-store-parity.test.ts`, `@context-action/mutative` 전체 Vitest 스위트, `vnext-phase1-alignment.integration.test.tsx` |
+| **M4a & M4b — P2: Opt-In React 서브패스 및 대칭 디스패치 훅** | **완료** · 트랙 C1 & B2 | `packages/react/src/{refs,time-travel,transactions}.ts`, `package.json`, `tsdown.config.ts`, `jest.config.cjs`, `ActionContext.{types.ts,tsx}`, `catalog/repository-surface/api-surface.v1.json`, `scripts/verify-react-artifact-boundary.mjs`, `scripts/verify-doc-snippets.mjs` | 루트 `.` export를 100% 보존한 채 opt-in 서브패스 `./refs`(Mutative 독립)·`./time-travel`·`./transactions`와 대칭 훅 `useActionResultDispatch()`, `useActionScope()`(`ActionScopeReturn`)를 추가했고 `useActionDispatchWithResult()` 호환성을 유지했습니다. | `pnpm verify:surface-catalog`, `pnpm verify:package-exports`, `pnpm verify:react-artifact-boundary`, `pnpm --filter @context-action/react test`, `pnpm docs:check`, `pnpm verify:quick && pnpm verify:receipt` |
