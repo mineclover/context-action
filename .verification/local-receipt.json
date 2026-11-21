@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-21T03:37:05.535Z",
-  "commitSha": "5d4296c88f9c5978f21a8515ec085b01fb35592b",
-  "branch": "feat/progressive-disclosure-headless-di-docs-dx",
+  "timestamp": "2026-11-21T04:15:23.341Z",
+  "commitSha": "9d94a0918dd1910d458425e0114c2d6ce2a9813b",
+  "branch": "feat/headless-store-di-and-philosophy-alignment",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
@@ -11,21 +11,21 @@
   },
   "inputDigest": "sha256:d8afc802b59eb4dfdde253a6f118808544f2f57c94fc6bf727a01bdbab0b55f4",
   "workingTree": "clean",
-  "treeDigest": "sha256:b9b385ca413a61c1fb61ec93b1763fd408d1e6ac1280f9b30109fe962376f9a3",
+  "treeDigest": "sha256:9e8f300f2f181247dab6d9f1cc1ed41dc14ecbe562e51d278584961e34306f0d",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 16.05,
+      "durationSec": 15.99,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.74,
+      "durationSec": 0.8,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 2.84,
+      "durationSec": 2.57,
       "status": "passed"
     },
     {
@@ -45,12 +45,12 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.29,
+      "durationSec": 0.28,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.86,
+      "durationSec": 1.34,
       "status": "passed"
     },
     {
@@ -60,5 +60,5 @@
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:1e93e8c1fbc8c5f7d8170ec2b28fb4de968eb84c10e4cd626e684028f6562506"
+  "receiptDigest": "sha256:3f45a150baa0c7bc0867e12cbd769d649a1d11e4555e8b7f99ac24a00aac04fc"
 }
