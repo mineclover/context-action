@@ -1443,9 +1443,12 @@ export class ActionRegister<
     action: K,
     options?: DispatchOptions
   ): boolean {
-    if (!this.dispatchQueue) return false;
     if (options?.immediate === true) return false;
-    if (options?.immediate === false) return true;
+    if (options?.immediate === false) {
+      this.dispatchQueue ??= new OperationQueue(`${this.name}-Dispatch`);
+      return true;
+    }
+    if (!this.dispatchQueue) return false;
     if (this.useGlobalConcurrencyQueue) return true;
     return this.actionPolicies?.[action]?.queue === 'serial';
   }

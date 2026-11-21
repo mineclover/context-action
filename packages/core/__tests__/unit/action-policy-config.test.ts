@@ -211,4 +211,39 @@ describe('M2 · ActionRegister contract-level action queue & timeout policies', 
 
     register.destroy();
   });
+
+  it('lazily initializes dispatchQueue for explicit immediate: false without global concurrency queue', async () => {
+    const register = new ActionRegister<{ queuedWork: { id: string } }>({
+      name: 'LazyImmediateFalseQueue',
+    });
+
+    const events: string[] = [];
+    let releaseFirst!: () => void;
+    const firstEntered = new Promise<void>((resolve) => {
+      register.register('queuedWork', async (payload) => {
+        events.push(`start:${payload.id}`);
+        if (payload.id === 'first') {
+          resolve();
+          await new Promise<void>((done) => {
+            releaseFirst = done;
+          });
+        }
+        events.push(`end:${payload.id}`);
+      });
+    });
+
+    const firstPromise = register.dispatch('queuedWork', { id: 'first' }, { immediate: false });
+    await firstEntered;
+
+    const secondPromise = register.dispatch('queuedWork', { id: 'second' }, { immediate: false });
+    // Second queued call must stay queued until the first handler finishes.
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(events).toEqual(['start:first']);
+
+    releaseFirst();
+    await Promise.all([firstPromise, secondPromise]);
+
+    expect(events).toEqual(['start:first', 'end:first', 'start:second', 'end:second']);
+    register.destroy();
+  });
 });
