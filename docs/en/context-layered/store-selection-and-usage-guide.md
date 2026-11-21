@@ -7,6 +7,7 @@
 - [Store and Time-Travel Contracts](../../../packages/react/docs/state-contracts.md)
 - [Store Conventions](/en/concept/store-conventions)
 - [Repository Surface Catalog](/en/context-layered/repository-surface-catalog)
+- [Spec-to-Code Authoring Guide](/en/context-layered/spec-to-code-authoring-guide)
 - [CA-STATECHART-EFFECT-001](/en/context-layered/decisions/CA-STATECHART-EFFECT-001)
 
 Context-Action separates **write ownership** (`StoreWriter` / Action Handlers) from **read ownership** (`StoreReader` / reactive hooks or framework controllers). Every state mutation belongs inside an Action Handler following the three-step flow: read via `store.getValue()`, compute pure domain logic, and commit via `store.setValue()` or `store.update()`.
@@ -26,7 +27,7 @@ Context-Action separates **write ownership** (`StoreWriter` / Action Handlers) f
 | **`useLocalStore` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | Component-lifetime local store / memoized derived value / dynamic named store registry | No | Yes |
 | **`createRefContext`** | `@context-action/react` | **Non-reactive (Tier 3).** DOM elements, Canvas handles, and 120fps pointer coordinates with zero React re-renders | No | Yes |
 | **`createActorStateReader`** | `@context-action/xstate` | **Closed statechart read-only projection.** Blocks external `setValue()`; transitions go through actor events only | No | **No** |
-| **`createSourceContext` / `StoreController`** | `@context-action/preact`, `@context-action/lit` | Read-only Signals or `ReactiveController` projections of external stores for Preact/Lit hosts | No | **No** |
+| **`createSourceContext` / `fromStateReader` / `StoreController`** | `@context-action/preact`, `@context-action/lit` | Read-only Signals (`fromStateReader` bridges `StateReader`/`StoreReader` snapshots) or `ReactiveController` projections for Preact/Lit hosts | No | **No** |
 | **`createDurableOperationStore`** | `@context-action/tool-durable-operations` | **Not UI state.** Lease/claim idempotency and recovery records for external HTTP, queue, or filesystem side effects | No | **No** |
 
 ---
@@ -269,7 +270,7 @@ export function HeadlessCartView() {
 }
 ```
 
-> Need to adapt an external framework-neutral `StateBackend` (e.g., `createStateStore` from `@context-action/store-core`, Redux/Zustand bridges, or storage backends) directly to React hooks? Use `createBackendStore('cart', cartBackend, { ownership: 'shared' })` from `@context-action/react/backend`.
+> Need to adapt an external framework-neutral `StateBackend` (e.g., `createStateStore` from `@context-action/store-core`, Redux/Zustand bridges, or storage backends) directly to React hooks? Use `createBackendStore('cart', cartBackend, { ownership: 'shared' })` from `@context-action/react/backend`. For a complete walkthrough connecting specs, intents, and headless DI, see the [Spec-to-Code Authoring Guide](./spec-to-code-authoring-guide.md).
 
 ---
 
@@ -291,6 +292,6 @@ Do not force every stateful need into a reactive React `Store`:
 1. **`createRefContext` (`@context-action/react`) — Non-Reactive Tier 3 State**: Keep DOM nodes, HTML5 Canvas handles, animation timers, and 120fps pointer coordinates in `createRefContext` so frequent updates never trigger React re-renders.
 2. **`createActorStateReader` (`@context-action/xstate`) — Closed Statechart Projection**: Unlike open `StateStore` instances, an XState actor does not allow arbitrary external `setValue()` writes. Route intents through `ActionRegister` / `SyncActionPipeline` (`bindActorToActionRegister` / `bindActorToSyncPipeline`) and read monotonic versioned snapshots via `createActorStateReader(actor, { select, equals })`.
 3. **Preact & Lit Read-Only Adapters**:
-   - **Preact** (`@context-action/preact`): wrap any `ReadableSource` with `connectSourceSignal(store)` and pass it down via `createSourceContext`, projecting slices with `useProjection(signal, selector)`.
+   - **Preact** (`@context-action/preact`): wrap any `ReadableSource` with `connectSourceSignal(store)` — or adapt snapshot-envelope `StateReader`/`StoreReader` stores explicitly via `fromStateReader(store)` first — and pass it down via `createSourceContext`, projecting slices with `useProjection(signal, selector)`.
    - **Lit** (`@context-action/lit`): attach `new StoreController(this, store, { selector, equalityFn })` to subscribe on `hostConnected()` and clean up automatically on `hostDisconnected()`.
 4. **`createDurableOperationStore` (`@context-action/tool-durable-operations`) — Durable Side-Effect Records**: Stores lease/claim status (`pending`, `completed`, `failed`, `unknown`) and reconciliation metadata for external HTTP, queue, or filesystem mutations—it is an idempotency/recovery store, not a UI view store.

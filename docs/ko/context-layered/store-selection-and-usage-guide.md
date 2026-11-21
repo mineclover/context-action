@@ -7,6 +7,7 @@
 - [Store and Time-Travel Contracts](../../../packages/react/docs/state-contracts.md)
 - [Store 컨벤션](/ko/concept/store-conventions)
 - [저장소 표면 카탈로그](/ko/context-layered/repository-surface-catalog)
+- [스펙 기반 코드 작성 가이드](/ko/context-layered/spec-to-code-authoring-guide)
 - [CA-STATECHART-EFFECT-001](/ko/context-layered/decisions/CA-STATECHART-EFFECT-001)
 
 Context-Action은 **쓰기 경계(`StoreWriter` / Action Handler)** 와 **읽기 경계(`StoreReader` / 구독 훅·컨트롤러)** 를 분리합니다. 모든 상태 변경은 Action Handler 내부에서 `store.getValue()`로 현재 값을 읽고, 순수 비즈니스 로직으로 다음 값을 계산한 뒤, `store.setValue()` 또는 `store.update()`로 커밋하는 3단계 흐름을 따릅니다.
@@ -26,7 +27,7 @@ Context-Action은 **쓰기 경계(`StoreWriter` / Action Handler)** 와 **읽기
 | **`useLocalStore` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | 컴포넌트 수명 로컬 스토어 / 메모이즈된 파생 계산 / 동적 스토어 등록 | 없음 | 예 |
 | **`createRefContext`** | `@context-action/react` | **비반응형 (Tier 3).** DOM, Canvas, 120fps 포인터 좌표 등 리렌더 0회 상태 | 없음 | 예 |
 | **`createActorStateReader`** | `@context-action/xstate` | **닫힌 상태 머신 읽기 전용 투영.** 외부 `setValue()` 차단, 전이는 이벤트로만 | 없음 | **아니오** |
-| **`createSourceContext` / `StoreController`** | `@context-action/preact`, `@context-action/lit` | 외부 Store를 Preact Signals 또는 Lit `ReactiveController`에 읽기 전용 투영 | 없음 | **아니오** |
+| **`createSourceContext` / `fromStateReader` / `StoreController`** | `@context-action/preact`, `@context-action/lit` | 외부 Store를 Preact Signals(`fromStateReader`로 `StateReader`/`StoreReader` 스냅샷 변환) 또는 Lit `ReactiveController`에 읽기 전용 투영 | 없음 | **아니오** |
 | **`createDurableOperationStore`** | `@context-action/tool-durable-operations` | **UI 상태 아님.** 외부 HTTP·큐·파일시스템 부작용의 멱등성·복구 레코드 저장소 | 없음 | **아니오** |
 
 ---
@@ -269,7 +270,7 @@ export function HeadlessCartView() {
 }
 ```
 
-> 외부 프레임워크 중립 `StateBackend`(`@context-action/store-core`의 `createStateStore`, 외부 상태 라이브러리/영속 스토리지 백엔드)를 React 훅에 직접 어댑팅해야 한다면 `@context-action/react/backend`의 `createBackendStore('cart', cartBackend, { ownership: 'shared' })`를 사용하세요.
+> 외부 프레임워크 중립 `StateBackend`(`@context-action/store-core`의 `createStateStore`, 외부 상태 라이브러리/영속 스토리지 백엔드)를 React 훅에 직접 어댑팅해야 한다면 `@context-action/react/backend`의 `createBackendStore('cart', cartBackend, { ownership: 'shared' })`를 사용하세요. 스펙, 인텐트 분리, 헤드리스 DI를 한 번에 연결하는 전체 작성 예시는 [스펙 기반 코드 작성 가이드](./spec-to-code-authoring-guide.md)를 참고하세요.
 
 ---
 
@@ -291,6 +292,6 @@ export function HeadlessCartView() {
 1. **`createRefContext` (`@context-action/react`) — 비반응형 Tier 3 상태**: DOM 엘리먼트, HTML5 Canvas, 애니메이션 타이머, 120fps 마우스 좌표처럼 React 리렌더를 유발하면 안 되는 휘발성 상태는 `createRefContext`에 둡니다.
 2. **`createActorStateReader` (`@context-action/xstate`) — 닫힌 상태 머신 읽기 전용 투영**: 열린 `StateStore`와 달리 XState 액터는 외부 `setValue()`가 차단됩니다. 의도는 `ActionRegister` / `SyncActionPipeline`(`bindActorToActionRegister` / `bindActorToSyncPipeline`)으로만 전달하고, UI는 `createActorStateReader(actor, { select, equals })`의 단조 증가 `version` 스냅샷만 구독합니다.
 3. **Preact & Lit 읽기 전용 어댑터**:
-   - **Preact** (`@context-action/preact`): `connectSourceSignal(store)`로 외부 스토어를 `ReadonlySignal`로 연결한 뒤 `createSourceContext`로 전달하고 `useProjection(signal, selector)`로 투영합니다.
+   - **Preact** (`@context-action/preact`): `connectSourceSignal(store)`로 외부 `ReadableSource`를 `ReadonlySignal`로 연결하거나(`StateReader`/`StoreReader` 기반 스토어는 `fromStateReader(store)`로 스냅샷 래퍼를 명시 변환 후 연결), `createSourceContext`로 전달해 `useProjection(signal, selector)`로 투영합니다.
    - **Lit** (`@context-action/lit`): 호스트에 `new StoreController(this, store, { selector, equalityFn })`를 붙이면 `hostConnected()`/`hostDisconnected()`에 맞춰 자동 구독·정리됩니다.
 4. **`createDurableOperationStore` (`@context-action/tool-durable-operations`) — 영속 작업 복구 스토어**: HTTP·큐·파일시스템 등 외부 부작용의 `pending`/`completed`/`failed`/`unknown` 상태, lease, 재시도 복구를 기록하는 멱등성 저장소이며 UI 상태 스토어가 아닙니다.

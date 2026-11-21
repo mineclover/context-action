@@ -475,10 +475,12 @@
           "purpose": "Preact action dispatch contexts and read-only Signals projection hooks/sources.",
           "keySymbols": [
             "createDispatchContext",
-            "createSourceContext",
+            "fromStateReader",
             "connectSourceSignal",
+            "createSourceContext",
             "useProjection",
-            "ReadableSource"
+            "ReadableSource",
+            "SnapshotStateReader"
           ]
         }
       ],
@@ -492,6 +494,7 @@
       "readme": "packages/preact/README.md",
       "authoritativeDocs": [
         "docs/en/context-layered/package-boundary-convention.md",
+        "docs/en/context-layered/spec-to-code-authoring-guide.md",
         "docs/en/context-layered/decisions/CA-ELEMENT-INTEROP-001.md"
       ],
       "verificationGate": "pnpm --filter @context-action/preact test && pnpm verify:preact-public-release -- --require-current-source"
@@ -663,7 +666,8 @@
         "packages/react/docs/state-contracts.md",
         "docs/en/concept/hooks-reference.md",
         "docs/en/context-layered/context-layered-guide.md",
-        "docs/en/context-layered/store-selection-and-usage-guide.md"
+        "docs/en/context-layered/store-selection-and-usage-guide.md",
+        "docs/en/context-layered/spec-to-code-authoring-guide.md"
       ],
       "verificationGate": "pnpm --filter @context-action/react test && pnpm verify:react-compatibility && pnpm verify:react-artifact-boundary"
     },

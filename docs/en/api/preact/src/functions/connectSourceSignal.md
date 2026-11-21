@@ -8,7 +8,7 @@
 
 > **connectSourceSignal**&lt;`T`&gt;(`source`): [`SignalConnection`](../interfaces/SignalConnection.md)&lt;`T`&gt;
 
-Defined in: [packages/preact/src/source-signal.ts:31](https://github.com/mineclover/context-action/blob/main/packages/preact/src/source-signal.ts#L31)
+Defined in: [packages/preact/src/source-signal.ts:49](https://github.com/mineclover/context-action/blob/main/packages/preact/src/source-signal.ts#L49)
 
 Connect outside render, then dispose with the owning UI/session.
 

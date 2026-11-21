@@ -9,6 +9,7 @@
 
 | 바꾸려는 대상 | 먼저 읽을 문서 | 이어서 사용할 것 |
 | --- | --- | --- |
+| 스펙·의도·Store 선택에서 코드 작성·게이트까지 한 번에 연결할 때 | [스펙 기반 코드 작성 가이드](/ko/context-layered/spec-to-code-authoring-guide) | `pnpm convention:check && pnpm docs:check` |
 | package 책임, dependency, export | [패키지 경계 및 코드베이스 관리](/ko/context-layered/package-boundary-convention) | `pnpm package-boundary:check` |
 | 레포지토리 API 전체 구성, 예제 라우트·데모, 관리 문서 목록 | [저장소 표면 카탈로그](/ko/context-layered/repository-surface-catalog) | `pnpm verify:surface-catalog` |
 | 패키지 전반의 Store·상태 저장소 선택 기준과 사용법 | [Store별 선택 기준 및 사용법 가이드](/ko/context-layered/store-selection-and-usage-guide) | `pnpm package-boundary:check` |
@@ -25,6 +26,8 @@ PR 전 로컬 우선 검증 및 영수증 발급([Local-First Verification Polic
 
 ### 1. 표준을 고정하는 문서
 
+- [스펙 기반 코드 작성 가이드](/ko/context-layered/spec-to-code-authoring-guide)
+  - IIC·3-Tier 상태 분류에서 `contexts / business / runtime / handlers / actions / hooks / views` 4-역할 파이프라인 및 검증 게이트까지 1:1로 연결하는 단일 작성 블루프린트
 - [컨벤션 정합성 계획](/ko/context-layered/convention-alignment-plan)
   - 현재 상태 분류, Provider 순서, 마이그레이션 완료 조건
 - [패키지 경계 및 코드베이스 관리](/ko/context-layered/package-boundary-convention)

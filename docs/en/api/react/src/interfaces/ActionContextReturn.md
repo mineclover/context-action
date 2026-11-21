@@ -58,7 +58,11 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:123](https://gith
 
 > **useActionHandler**: \<`K`, `R`\>(`action`, `handler`, `config?`) => `void`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:124](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L124)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:129](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L129)
+
+General-purpose / compatibility handler registration hook suited for Level 1 Lite features.
+For structured workflows, prefer the 4 role-specific hooks (`useActionGuard`,
+`useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`).
 
 #### Type Parameters
 
@@ -90,11 +94,11 @@ Type parameter **K**
 
 ***
 
-### useActionEffectHandler
+### ~~useActionEffectHandler~~
 
 > **useActionEffectHandler**: \{&lt;`K`&gt;(`action`, `handler`, `config`): `void`; &lt;`K`&gt;(`action`, `handler`, `config`): `void`; \}
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:131](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L131)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:140](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L140)
 
 #### Call Signature
 
@@ -152,13 +156,20 @@ Type parameter **K**
 
 `void`
 
+#### Deprecated
+
+Prefer `useActionGuard()` (for `effectKind: 'guard'`) or
+`useActionObserver()` (for `effectKind: 'observer'`).
+
 ***
 
 ### useActionGuard
 
 > **useActionGuard**: &lt;`K`&gt;(`action`, `handler`, `config?`) => `void`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:143](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L143)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:153](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L153)
+
+Canonical admission role hook: validate payloads/permissions and abort invalid flows via `controller.abort()`.
 
 #### Type Parameters
 
@@ -190,7 +201,9 @@ Type parameter **K**
 
 > **useActionCommandHandler**: &lt;`K`&gt;(`action`, `handler`, `config?`) => `void`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:148](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L148)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:159](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L159)
+
+Canonical command role hook: read state via `getValue()`, compute pure rules, and commit via `setValue()` / `update()`.
 
 #### Type Parameters
 
@@ -222,7 +235,9 @@ Type parameter **K**
 
 > **useActionObserver**: \<`K`, `R`\>(`action`, `handler`, `config?`) => `void`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:153](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L153)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:165](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L165)
+
+Canonical post-settlement observation role hook: react after pipeline completion with no controller or result authority.
 
 #### Type Parameters
 
@@ -258,7 +273,9 @@ Type parameter **K**
 
 > **useActionResultHandler**: &lt;`K`&gt;(`action`, `handler`, `config?`) => `void`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:158](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L158)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:171](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L171)
+
+Canonical typed-result role hook: compute and return typed results collected by `dispatchWithResult()`.
 
 #### Type Parameters
 
@@ -290,7 +307,7 @@ Type parameter **K**
 
 > **useActionRegister**: () => `ActionRegister`\<`T`, `TResultMap`\> \| `null`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:163](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L163)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:176](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L176)
 
 #### Returns
 
@@ -302,7 +319,7 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:163](https://gith
 
 > **useActionDispatchWithResult**: () => `object`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:164](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L164)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:177](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L177)
 
 #### Returns
 
@@ -410,4 +427,4 @@ Type parameter **K**
 
 > **context**: `Context`\<[`ActionContextType`](ActionContextType.md)\<`T`, `TResultMap`\> \| `null`\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:170](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L170)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:183](https://github.com/mineclover/context-action/blob/main/packages/react/src/actions/ActionContext.types.ts#L183)

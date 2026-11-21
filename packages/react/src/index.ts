@@ -61,6 +61,7 @@ export { createTimeTravelStoreContext, TimeTravelStoreManager } from './stores/p
 export type {
   TimeTravelStoreConfig,
   TimeTravelInitialStores,
+  // Context-level controls alias kept distinct from hook-level `TimeTravelControlsState` (`useTimeTravelControls`).
   TimeTravelControlsState as TimeTravelContextControlsState,
   InferTimeTravelStoreTypes,
   ExternalTimeTravelStoresMap,

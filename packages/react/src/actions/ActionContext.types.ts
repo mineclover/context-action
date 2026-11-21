@@ -121,6 +121,11 @@ export interface ActionContextReturn<
   Provider: React.FC<ActionProviderProps<T, TResultMap>>;
   useActionContext: () => ActionContextType<T, TResultMap>;
   useActionDispatch: () => ActionRegister<T, TResultMap>['dispatch'];
+  /**
+   * General-purpose / compatibility handler registration hook suited for Level 1 Lite features.
+   * For structured workflows, prefer the 4 role-specific hooks (`useActionGuard`,
+   * `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`).
+   */
   useActionHandler: <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
     action: K,
     handler: K extends keyof TResultMap
@@ -128,6 +133,10 @@ export interface ActionContextReturn<
       : ActionContextHandler<T[K], R>,
     config?: HandlerConfig<T[K]>
   ) => void;
+  /**
+   * @deprecated Prefer `useActionGuard()` (for `effectKind: 'guard'`) or
+   * `useActionObserver()` (for `effectKind: 'observer'`).
+   */
   useActionEffectHandler: {
     <K extends ActionNames<T>>(
       action: K,
@@ -140,21 +149,25 @@ export interface ActionContextReturn<
       config: EffectConfig<T[K]> & { effectKind: 'observer' },
     ): void;
   };
+  /** Canonical admission role hook: validate payloads/permissions and abort invalid flows via `controller.abort()`. */
   useActionGuard: <K extends ActionNames<T>>(
     action: K,
     handler: ActionGuardHandler<T[K]>,
     config?: GuardConfig<T[K]>
   ) => void;
+  /** Canonical command role hook: read state via `getValue()`, compute pure rules, and commit via `setValue()` / `update()`. */
   useActionCommandHandler: <K extends ActionNames<T>>(
     action: K,
     handler: ActionCommandHandler<T[K]>,
     config?: CommandConfig<T[K]>
   ) => void;
+  /** Canonical post-settlement observation role hook: react after pipeline completion with no controller or result authority. */
   useActionObserver: <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
     action: K,
     handler: ActionObserverHandler<T[K], R>,
     config?: ObserverConfig<T[K]>
   ) => void;
+  /** Canonical typed-result role hook: compute and return typed results collected by `dispatchWithResult()`. */
   useActionResultHandler: <K extends ActionNames<T> & keyof TResultMap>(
     action: K,
     handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,

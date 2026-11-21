@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-21T08:24:44.642Z",
-  "commitSha": "f24c11af52af78871c09781a079789a9ada18707",
-  "branch": "chore/preact-11-deps-and-biome-zero-warnings",
+  "timestamp": "2026-11-21T09:15:29.973Z",
+  "commitSha": "d742e5228d0d63b6b59e6cbe94df4319d40feb2c",
+  "branch": "feat/spec-to-code-guide-runtime-layer-and-dx",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
@@ -11,11 +11,11 @@
   },
   "inputDigest": "sha256:866ebb5a02557f6866294facd68497a1043dbfa2cf13237b05ecafd5ded4dd7b",
   "workingTree": "clean",
-  "treeDigest": "sha256:3cc407eb1799c0956c5911f4177f6e69db69d949db9b8f42b3f41fd7f1c892b6",
+  "treeDigest": "sha256:21c36fa8ab72336300303530015b2ad00599062536bf460b6069528f2c1136c5",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 16.68,
+      "durationSec": 16.76,
       "status": "passed"
     },
     {
@@ -25,7 +25,7 @@
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 2.64,
+      "durationSec": 3,
       "status": "passed"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.22,
+      "durationSec": 0.25,
       "status": "passed"
     },
     {
@@ -50,7 +50,7 @@
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.34,
+      "durationSec": 1.35,
       "status": "passed"
     },
     {
@@ -60,5 +60,5 @@
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:062c7848c66509379f4765ea025aa5f7f59856248be3cdfb3136d288245b032d"
+  "receiptDigest": "sha256:8085a4399539a5fe2ee702e9f3d65682642edb0d7a0a1b42d01d94093d1fda84"
 }
