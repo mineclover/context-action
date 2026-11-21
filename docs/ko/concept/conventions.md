@@ -1992,7 +1992,7 @@ function SlowMouseTracker() {
 - [Pattern Guide](./pattern-guide.md) - 상세한 패턴 사용법
 - [Full Architecture Guide](./architecture-guide.md) - 완전한 아키텍처 가이드
 - [Hooks Reference](./hooks-reference.md) - Hooks 참조 문서
-- [API Reference](../../en/api/README.md) - API 문서
+- [API Reference](../context-layered/repository-surface-catalog.md) - 패키지 및 API 표면 카탈로그
 
 ### 예제 프로젝트
 - [Basic Example](https://github.com/mineclover/context-action/tree/main/example) - 기본 사용 예제

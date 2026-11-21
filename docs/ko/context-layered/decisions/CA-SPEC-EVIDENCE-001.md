@@ -94,7 +94,7 @@ $$\text{OrderView / Handlers} \xrightarrow{} \text{business/orderValidation.ts} 
 ## 검증 증거
 
 - `pnpm docs:management`: 한/영 페어 문서, 이슈 템플릿, 컨벤션 인덱스 및 ADR 링크 무결성 검증.
-- `pnpm llms:check`: 문서 변경에 따른 `llmsData/` 요약 템플릿 동기화 검증.
+- `pnpm llms:check`: `docs/{en,ko}/**` 원본 대비 `docs/{en,ko}/llms/llms-*.txt` 번들 동기화 검증.
 - `pnpm convention:check` (`node scripts/verify-context-action-conventions.mjs`): Context-Layered 6계층 분리, React import 격리 및 use-case 경계 검증.
 - `tsp-evidence check specs/**/*.tsp` / `npx evidence check --only <unit> --context`: TypeSpec 및 생성 TS 선언과 프론트엔드 비즈니스 로직 간 바인딩 정적 검증.
 

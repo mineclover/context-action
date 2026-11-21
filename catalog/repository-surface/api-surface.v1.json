@@ -49,9 +49,6 @@
         "@context-action/tool-protocol"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/ai-sdk/src/index.ts"
-      ],
       "readme": "packages/ai-sdk/README.md",
       "authoritativeDocs": [
         "docs/en/context-layered/usecase-tool-calling-web-studio.md",
@@ -112,11 +109,6 @@
       ],
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/core/src/index.ts",
-        "./packages/core/src/element.ts",
-        "./packages/core/src/element-react.ts"
-      ],
       "readme": "packages/core/README.md",
       "authoritativeDocs": [
         "packages/core/docs/action-contracts.md",
@@ -159,9 +151,6 @@
         "@context-action/core"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/lit/src/index.ts"
-      ],
       "readme": "packages/lit/README.md",
       "authoritativeDocs": [
         "packages/lit/docs/01-controller-scope.md",
@@ -231,12 +220,6 @@
         "@context-action/lit"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/lit-ui/src/hydrate.ts",
-        "./packages/lit-ui/src/index.ts",
-        "./packages/lit-ui/src/react-bridge.ts",
-        "./packages/lit-ui/src/ssr.ts"
-      ],
       "readme": "packages/lit-ui/README.md",
       "authoritativeDocs": [
         "packages/lit-ui/docs/01-dom-ownership.md",
@@ -276,7 +259,6 @@
       ],
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
       "readme": "packages/live-code-editor/README.md",
       "authoritativeDocs": [
         "docs/en/concept/tool-calling-editor-architecture.md",
@@ -320,14 +302,13 @@
       ],
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
       "readme": "packages/llms-generator/README.md",
       "authoritativeDocs": [
         "packages/llms-generator/docs/README.md",
         "packages/llms-generator/docs/data-structure.md",
         "docs/en/llms/index.md"
       ],
-      "verificationGate": "pnpm build:llms-generator && pnpm --filter @context-action/llms-generator test && pnpm llms:check"
+      "verificationGate": "pnpm build:llms-generator && pnpm --filter @context-action/llms-generator test"
     },
     {
       "id": "api-mutative",
@@ -363,9 +344,6 @@
         "@context-action/store-core"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/mutative/src/index.ts"
-      ],
       "readme": "packages/mutative/README.md",
       "authoritativeDocs": [
         "packages/mutative/docs/time-travel-specialization.md",
@@ -407,9 +385,6 @@
       ],
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/mutative-core/src/index.ts"
-      ],
       "readme": "packages/mutative-core/README.md",
       "authoritativeDocs": [
         "docs/en/context-layered/mutative-core-history.md",
@@ -447,7 +422,6 @@
       ],
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
       "readme": "packages/openrouter-browser-storage/README.md",
       "authoritativeDocs": [
         "docs/en/context-layered/package-boundary-convention.md"
@@ -488,9 +462,6 @@
         "@context-action/core"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/preact/src/index.ts"
-      ],
       "readme": "packages/preact/README.md",
       "authoritativeDocs": [
         "docs/en/context-layered/package-boundary-convention.md",
@@ -549,11 +520,6 @@
         "@context-action/preact"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/preact-ui/src/index.ts",
-        "./packages/preact-ui/src/react-bridge.ts",
-        "./packages/preact-ui/src/ssr.ts"
-      ],
       "readme": "packages/preact-ui/README.md",
       "authoritativeDocs": [
         "packages/preact-ui/docs/README.md",
@@ -654,13 +620,6 @@
         "@context-action/tool-protocol",
         "@context-action/webmcp"
       ],
-      "typedocEntryPoints": [
-        "./packages/react/src/index.ts",
-        "./packages/react/src/backend.ts",
-        "./packages/react/src/advanced.ts",
-        "./packages/react/src/utils.ts",
-        "./packages/react/src/webmcp.ts"
-      ],
       "readme": "packages/react/README.md",
       "authoritativeDocs": [
         "packages/react/docs/state-contracts.md",
@@ -704,9 +663,6 @@
       ],
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/store-core/src/index.ts"
-      ],
       "readme": "packages/store-core/README.md",
       "authoritativeDocs": [
         "packages/react/docs/state-contracts.md",
@@ -752,7 +708,6 @@
       ],
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
       "readme": "packages/style-testing/README.md",
       "authoritativeDocs": [
         "docs/en/context-layered/package-boundary-convention.md"
@@ -780,7 +735,6 @@
         "@context-action/react"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
       "readme": "packages/template-react/README.md",
       "authoritativeDocs": [
         "docs/en/context-layered/decisions/CA-SPEC-EVIDENCE-001.md",
@@ -821,9 +775,6 @@
       ],
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/tool-durable-operations/src/index.ts"
-      ],
       "readme": "packages/tool-durable-operations/README.md",
       "authoritativeDocs": [
         "docs/en/context-layered/architecture/durable-operation-operations.md",
@@ -864,9 +815,6 @@
       ],
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/tool-protocol/src/index.ts"
-      ],
       "readme": "packages/tool-protocol/README.md",
       "authoritativeDocs": [
         "docs/en/concept/tool-calling-editor-architecture.md",
@@ -903,20 +851,19 @@
         },
         {
           "subpath": "./cli",
-          "purpose": "CLI entrypoint powering pnpm docs:sync.",
+          "purpose": "CLI entrypoint for syncing TypeDoc Markdown outputs into VitePress.",
           "keySymbols": []
         }
       ],
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [],
       "readme": "packages/typedoc-vitepress-sync/README.md",
       "authoritativeDocs": [
         "packages/typedoc-vitepress-sync/docs/README.md",
         "packages/typedoc-vitepress-sync/docs/architecture.md",
         "docs/en/concept/documentation-development-conventions.md"
       ],
-      "verificationGate": "pnpm --filter @context-action/typedoc-vitepress-sync test && pnpm docs:sync"
+      "verificationGate": "pnpm --filter @context-action/typedoc-vitepress-sync build && pnpm --filter @context-action/typedoc-vitepress-sync test"
     },
     {
       "id": "api-webmcp",
@@ -957,10 +904,6 @@
         "@context-action/tool-protocol"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/webmcp/src/index.ts",
-        "./packages/webmcp/src/profiles/chrome-legacy.ts"
-      ],
       "readme": "packages/webmcp/README.md",
       "authoritativeDocs": [
         "docs/en/guide/webmcp.md",
@@ -1018,10 +961,6 @@
         "@context-action/store-core"
       ],
       "workspacePeerDependencies": [],
-      "typedocEntryPoints": [
-        "./packages/xstate/src/index.ts",
-        "./packages/xstate/src/effect.ts"
-      ],
       "readme": "packages/xstate/README.md",
       "authoritativeDocs": [
         "packages/xstate/docs/xstate-effect-integration.md",

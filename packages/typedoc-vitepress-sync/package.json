@@ -70,7 +70,6 @@
     "node": ">=24.11.0"
   },
   "peerDependencies": {
-    "typedoc": "^0.28.20",
     "vitepress": "^1.6.4"
   },
   "dependencies": {

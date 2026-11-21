@@ -5,6 +5,10 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## [0.8.8] (Unreleased)
 
+### Changed
+
+- Remove the unused `typedoc` `peerDependency` because syncing operates on generated Markdown files without importing `typedoc`.
+
 ### Fixed
 
 - Treat TypeDoc horizontal rules, signature blocks, TypeScript `undefined`, and

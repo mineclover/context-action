@@ -3067,7 +3067,7 @@ function UnsafeRefOperations() {
 - [Pattern Guide](./pattern-guide.md) - Detailed pattern usage guide
 - [Full Architecture Guide](./architecture-guide.md) - Complete architecture guide
 - [Hooks Reference](./hooks-reference.md) - Hooks reference documentation
-- [API Reference](../api/README.md) - API documentation
+- [Repository API Surface Catalog](../context-layered/repository-surface-catalog.md) - Package & API surface catalog
 
 ### Example Projects
 - [Basic Example](https://github.com/mineclover/context-action/tree/main/example) - Basic usage examples

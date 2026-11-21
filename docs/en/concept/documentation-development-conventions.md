@@ -18,17 +18,14 @@ is planned and closed.
 
 | Surface | Owner and editing rule | Verification |
 | --- | --- | --- |
-| `docs/en/**`, `docs/ko/**` guides and concepts | Hand-authored source. Keep English and Korean pages aligned (`strict-paired` in `context-layered`, `concept`, `examples`, `llms`; `tracked-partial` in `guide`, `troubleshooting`). Use [Store Selection and Usage Guide](../context-layered/store-selection-and-usage-guide) as the canonical Store/state reference. | `pnpm docs:check` |
+| `docs/en/**`, `docs/ko/**` guides and concepts | Hand-authored source. Keep English and Korean pages aligned (`strict-paired` in `context-layered`, `concept`, `examples`, `guide`, `troubleshooting`, `llms`). Use [Store Selection and Usage Guide](../context-layered/store-selection-and-usage-guide) as the canonical Store/state reference. | `pnpm docs:check` |
 | `catalog/repository-surface/*.v1.json` | Machine-verifiable inventory of workspace packages (`api-surface`), canonical example routes & demos (`example-surface`), and root/managed/derived documents (`document-surface`, `CA-SURFACE-CATALOG-001`; live counts live in JSON). Update alongside any surface addition or removal. | `pnpm verify:surface-catalog` |
-| `docs/api/generated/**`, `docs/.vitepress/config/api-spec.ts`, `docs/en/api/**` | Generated API reference. `docs/api/generated/**` and `api-spec.ts` are `gitignored: true` build outputs; change TypeScript exports and JSDoc first and regenerate rather than hand-editing. | `pnpm docs:api`, `pnpm docs:sync`, `pnpm docs:build` |
-| `llmsData/**` and `docs/{en,ko}/llms/llms-*.txt` | Tracked derived learning/context artifacts generated from `docs/{en,ko}/**`. Do not treat them as the canonical explanation. | `pnpm build:llms-generator` then `pnpm llms:sync-docs --changed-files a.md b.md` followed by `pnpm llms:check` |
-| Root and package `README.md` | Discovery and package entry points. They must route readers to the authoritative guide, [Repository Surface Catalog](../context-layered/repository-surface-catalog), or API page rather than duplicate specs. | Relevant build, surface catalog, and link check |
+| `docs/{en,ko}/llms/llms-*.txt` | Tracked derived LLMS summary/bundle artifacts compiled directly from `docs/{en,ko}/**` (excluding `docs/{en,ko}/llms/**`). Do not treat them as the canonical explanation or edit by hand. | `pnpm docs:llms` then `pnpm llms:check` |
+| Root, `packages/*/README.md`, `packages/*/docs/*.md`, and `.d.ts` | Package discovery entry points, focused package contracts, and exported TypeScript types/JSDoc. Link readers to [Repository Surface Catalog](../context-layered/repository-surface-catalog) and authoritative guides rather than duplicating specs. | Relevant build, surface catalog, and link check |
 
-Generated files may be reviewed, but a behavioral correction belongs in their
-source document, generator, or exported API—not only in generated output.
-API source links are generated against the `main` branch so that running the
-documentation pipeline after a commit does not create commit-hash-only drift;
-the generated file remains reproducible until the source path or line changes.
+Generated bundle files may be reviewed, but any behavioral correction belongs in
+their canonical Markdown source or exported TypeScript API—not in generated
+output.
 
 Surface documents follow the six **authority classes** (`authoritative`,
 `discovery`, `evidence`, `derived`, `transitional`, `historical`) and five
@@ -44,15 +41,15 @@ start from a generated page merely because it is where the drift was noticed.
 
 | Change | Canonical source to edit | Derived/update path | Minimum proof |
 | --- | --- | --- | --- |
-| Public guide, Store usage, or convention | paired `docs/en/**` and `docs/ko/**` pages (`store-selection-and-usage-guide` for cross-package Store decisions) | regenerate affected `llmsData/` via `--changed-files` | `pnpm docs:check` |
-| Package, export subpath, or verification gate | package `package.json` + source + `catalog/repository-surface/api-surface.v1.json` + `repository-surface-catalog.md` | `pnpm docs:api && pnpm docs:sync` (for public API/JSDoc) | `pnpm verify:surface-catalog && pnpm package-boundary:check` |
-| Canonical `example/` route, standalone demo, or example doc | route/demo/doc + `catalog/repository-surface/example-surface.v1.json` + `repository-surface-catalog.md` | sync paired `docs/{en,ko}/examples/*.md` LLMS summaries | `pnpm verify:surface-catalog && pnpm --filter example build` |
-| Root `*.md` or managed doc area metadata | root/managed document + `catalog/repository-surface/document-surface.v1.json` + `repository-surface-catalog.md` | update `knownUnpaired` if `guide`/`troubleshooting` pairing changes | `pnpm verify:surface-catalog && pnpm docs:check` |
+| Public guide, Store usage, or convention | paired `docs/en/**` and `docs/ko/**` pages (`store-selection-and-usage-guide` for cross-package Store decisions) | regenerate `docs/{en,ko}/llms/llms-*.txt` with `pnpm docs:llms` | `pnpm docs:check` |
+| Package, export subpath, or verification gate | package `package.json` + source/JSDoc + `catalog/repository-surface/api-surface.v1.json` + `repository-surface-catalog.md` | update package `README.md` / `packages/*/docs/*.md` if contracts changed | `pnpm verify:surface-catalog && pnpm package-boundary:check` |
+| Canonical `example/` route, standalone demo, or example doc | route/demo/doc + `catalog/repository-surface/example-surface.v1.json` + `repository-surface-catalog.md` | regenerate LLMS bundles if `docs/{en,ko}/examples/*.md` changed (`pnpm docs:llms`) | `pnpm verify:surface-catalog && pnpm --filter example build` |
+| Root `*.md` or managed doc area metadata | root/managed document + `catalog/repository-surface/document-surface.v1.json` + `repository-surface-catalog.md` | keep `pairingPolicy` / `knownUnpaired` accurate in `document-surface.v1.json` | `pnpm verify:surface-catalog && pnpm docs:check` |
 | Package discovery or consumer entry point | package `README.md`, with a link to its authoritative guide | update the linked guide only when the contract changed | focused package verification |
 | Durable architecture choice | decision record plus the owning guide/package contract | add implementation and test anchors | focused boundary/test evidence |
 
-`pnpm docs:check` verifies documentation management metadata, LLMS freshness,
-and the VitePress build. It checks consistency; it does not generate files.
+`pnpm docs:check` runs `pnpm docs:management && pnpm verify:surface-catalog && pnpm llms:check && pnpm docs:build`.
+It checks metadata, catalog parity, LLMS freshness, and the VitePress build; it does not modify files.
 
 ## 3. Change Classification
 
@@ -94,23 +91,21 @@ describing it as available.
 
 | Change | Minimum gate | Add when applicable |
 | --- | --- | --- |
-| Hand-authored documentation | `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files a.md b.md` then `pnpm docs:check` | focused link/browser proof when a rendered interaction changed; `pnpm verify:doc-snippets` when `<!-- @context-action-compile -->` blocks changed |
+| Hand-authored documentation | `pnpm docs:llms` then `pnpm docs:check` | focused link/browser proof when a rendered interaction changed; `pnpm verify:doc-snippets` when `<!-- @context-action-compile -->` blocks changed |
 | Repository surfaces (packages, routes, managed/root docs) | `pnpm verify:surface-catalog` and `pnpm convention:check` | update `catalog/repository-surface/*.v1.json` and `repository-surface-catalog.md` |
-| Public TypeScript API | `pnpm type-check` | `pnpm docs:api && pnpm docs:sync` |
+| Public TypeScript API | `pnpm build` and `pnpm type-check` | update package `README.md`, `api-surface.v1.json`, and `pnpm verify:doc-snippets` |
 | Runtime behavior or a framework pattern | Focused package test and `pnpm type-check` | `pnpm test`, example build |
 | Example app or browser integration | `pnpm --filter example build` | Manual proof with user-owned credentials; never commit secrets |
 | Release/package tooling | `pnpm verify:package-exports` and `pnpm verify:package-tarballs` | `pnpm verify:private-tools` |
-| LLMS/documentation consistency | `pnpm llms:check` | `pnpm llms:detect-mismatches --output reports/llms-mismatch-report.md` for review evidence |
+| LLMS/documentation consistency | `pnpm llms:check` | run `pnpm docs:llms` when `docs/{en,ko}/**` sources changed |
 | Local-First PR preflight receipt ([policy](../../LOCAL_FIRST_VERIFICATION_POLICY.md)) | `pnpm verify:quick` (or `pnpm verify`) then `pnpm verify:receipt` | Commit `.verification/local-receipt.json` on a clean tree before PR |
 
-> **CLI `--changed-files` syntax:** `pnpm llms:sync-docs` accepts `--changed-files`
-> as comma-separated paths (`--changed-files docs/en/guide/a.md,docs/ko/guide/a.md`),
-> space-separated paths (`--changed-files docs/en/guide/a.md docs/ko/guide/a.md`),
-> `--changed-files=...` with `=`, quoted whitespace, or repeated flags, after
-> running `pnpm build:llms-generator`. Note that `.husky/post-commit` runs `sync-docs`
-> automatically on committed hand-authored `docs/(en|ko)/**/*.md` changes (excluding
-> `docs/{en,ko}/llms/` and `docs/{en,ko}/api/`) without creating an extra commit—always
-> check `git status --short` after committing docs and before running `pnpm verify:quick`.
+> **Direct LLMS Bundle Generation:** `pnpm docs:llms` (`node scripts/sync-llms-bundles.mjs --write`)
+> compiles `docs/{en,ko}/llms/llms-minimal.txt`, `llms-500chars.txt`, and
+> `llms-origin.txt` deterministically directly from `docs/{en,ko}/**`
+> (excluding `docs/{en,ko}/llms/**`), with no intermediate template directory
+> or post-commit git hook. Commit both the edited docs and regenerated `llms-*.txt`
+> bundles together before running `pnpm verify:quick`.
 
 Canonical TypeScript examples that are intended to be self-contained may be
 marked with `<!-- @context-action-compile -->` immediately before a `ts`,
@@ -128,11 +123,11 @@ The AI SDK adapter also has a real-runtime smoke gate:
 invokes the installed AI SDK `dynamicTool` output, and verifies the approval
 and execution callback contracts.
 
-`pnpm docs:full` is the API-reference refresh pipeline: it regenerates TypeDoc,
-synchronizes it into VitePress, and builds the site. It does **not** regenerate
-LLMS artifacts. For authored-guide work, run `pnpm llms:sync-docs` for the
-changed source pages and then `pnpm docs:check`. Use both flows when a release
-changes API and guide content.
+For authored documentation changes, run `pnpm docs:llms` followed by `pnpm docs:check`
+(and `pnpm verify:doc-snippets` after `pnpm build` when compile-checked
+snippets change). Repository API surfaces and package entry points remain
+documented directly in `packages/*/README.md`, `packages/*/docs/*.md`,
+`.d.ts` declarations, and `catalog/repository-surface/api-surface.v1.json`.
 
 For local verification and receipt generation before opening a PR, run
 `pnpm verify:quick` (fast smoke) or `pnpm verify` (full 17-step Local-First

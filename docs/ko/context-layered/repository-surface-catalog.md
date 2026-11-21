@@ -10,9 +10,9 @@
 
 이 문서는 저장소 내 세 가지 핵심 표면의 **원칙**, **기본 규격(스키마·분류·검증 규칙)**, 그리고 **전체 목록**을 정의합니다.
 
-1. **API 전체 구성**: 20개 워크스페이스 패키지(`packages/*`), 공개 `exports` 서브패스, 워크스페이스 의존성, 안정성 등급, TypeDoc 포함 범위
+1. **API 전체 구성**: 20개 워크스페이스 패키지(`packages/*`), 공개 `exports` 서브패스, 워크스페이스 의존성, 안정성 등급
 2. **예제가 설명하는 것**: `example/` 앱 내 13개 의미 그룹(77개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 7개 패키지 로컬 `examples/`, 9개 내러티브 예제 문서
-3. **관리되는 문서 구조**: 13개 루트 마크다운 문서, 13개 관리 문서 영역(권한 등급·한영 쌍 정책·추적 중인 번역 공백), 파생 TypeDoc/LLMS 산출물
+3. **관리되는 문서 구조**: 13개 루트 마크다운 문서, 13개 관리 문서 영역(권한 등급·한영 쌍 정책·추적 중인 번역 공백), 파생 LLMS 번들 산출물
 
 관련 기준 문서는 [패키지 경계 및 코드베이스 관리 컨벤션](/ko/context-layered/package-boundary-convention), [스펙·이슈·문서 관리 컨벤션](/ko/context-layered/change-management-convention), [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions), ADR [CA-SURFACE-CATALOG-001](/ko/context-layered/decisions/CA-SURFACE-CATALOG-001)입니다.
 
@@ -20,8 +20,8 @@
 
 ## 1. 5대 기본 원칙
 
-1. **원본 우선 및 비복제(Source-First Non-Duplication)**: 런타임 매니페스트(`packages/*/package.json`), TypeDoc 엔트리(`typedoc.json`), 라우트 등록(`example/src/App.tsx`), 사람이 작성한 가이드(`docs/{en,ko}/**`)가 정식 원본입니다. 카탈로그는 이를 복제하지 않고 색인·교차 검증합니다.
-2. **권한 문서와 파생 산출물의 엄격한 분리**: 모든 관리 문서는 `authoritative`, `discovery`, `evidence`, `derived`, `transitional`, `historical` 중 하나로 분류합니다. 파생 산출물(`docs/api/generated`, `docs/en/api`, `api-spec.ts`, `llmsData`, `llms-*.txt`)은 직접 수정하지 않고 원본에서 재생성합니다.
+1. **원본 우선 및 비복제(Source-First Non-Duplication)**: 런타임 매니페스트(`packages/*/package.json`), 라우트 등록(`example/src/App.tsx`), 패키지 README/세부 명세, 사람이 작성한 가이드(`docs/{en,ko}/**`)가 정식 원본입니다. 카탈로그는 이를 복제하지 않고 색인·교차 검증합니다.
+2. **권한 문서와 파생 산출물의 엄격한 분리**: 모든 관리 문서는 `authoritative`, `discovery`, `evidence`, `derived`, `transitional`, `historical` 중 하나로 분류합니다. 파생 산출물(`docs/{en,ko}/llms/llms-*.txt`)은 직접 수정하지 않고 원본에서 재생성합니다.
 3. **3개 표면의 버전 관리 스키마 대칭성**: API(`api-surface.v1.json`), 예제(`example-surface.v1.json`), 문서(`document-surface.v1.json`) 모두 버전화된 스키마, 안정적 kebab ID, 한영 설명(`en` / `ko`), 명시적 검증 게이트(`verificationGate`)를 갖습니다.
 4. **한영 번역 격차의 정직한 계상**: 동기화가 강제되는 디렉터리(`context-layered`, `concept`, `examples`, `guide`, `troubleshooting`, `llms`)는 `strict-paired`(미번역 0건)로 잠그고, 일시적인 번역 공백이 필요한 경우에만 `tracked-partial` + `knownUnpaired` 목록으로 관리해 공백이 조용히 늘어나지 않도록 합니다.
 5. **Fail-Closed 드리프트 검증**: 카탈로그 갱신 없이 패키지, export 서브패스, 워크스페이스 의존성, 정식 예제 라우트, `packages/*/examples`, 루트 `.md`, 또는 미번역 가이드가 바뀌면 `pnpm verify:surface-catalog`와 `pnpm convention:check`가 즉시 실패합니다.
@@ -48,9 +48,9 @@
 | `authoritative` | 정식 사양, 아키텍처 컨벤션 또는 사용자 가이드 |
 | `discovery` | 정식 문서로 안내하는 루트 README, 에이전트 가이드, 인덱스 |
 | `evidence` | 불변 릴리스 계획, v1 감사·런북 기록, 검증 증거 |
-| `derived` | 기계 생성 산출물 (`TypeDoc`, `typedoc-vitepress-sync`, `llms-generator`) |
+| `derived` | 기계 생성 산출물 (`pnpm docs:llms`로 생성하는 `docs/{en,ko}/llms/llms-*.txt`) |
 | `transitional` | 통합 전까지 유지되는 과도기 문서 |
-| `historical` | 특정 시점 보존 스냅샷 (`CHANGELOG.md`, `OPTIMIZATION_ANALYSIS.md`, `STORE_GUIDE.md`) |
+| `historical` | 특정 시점 보존 스냅샷 (`CHANGELOG.md`, `OPTIMIZATION_ANALYSIS.md`, `REACT_COMPILER_MIGRATION.md`) |
 
 | 쌍 정책 (`pairingPolicy`) | 검증 규칙 |
 | --- | --- |
@@ -62,9 +62,9 @@
 
 ### 표면 변경 시 갱신 절차
 
-1. 정식 원본(`package.json`, `typedoc.json`, `example/src/App.tsx`, `docs/`)을 먼저 수정합니다.
+1. 정식 원본(`package.json`, `example/src/App.tsx`, `docs/`)을 먼저 수정합니다.
 2. `catalog/repository-surface/*.v1.json`과 필요한 경우 이 기준 문서(`docs/{en,ko}/context-layered/repository-surface-catalog.md`)를 함께 갱신합니다.
-3. 마크다운 문서를 수정했으면 `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files path1.md path2.md` (쉼표 또는 공백 구분)를 실행합니다.
+3. 마크다운 문서를 수정했으면 `pnpm docs:llms`를 실행해 `docs/{en,ko}/llms/llms-*.txt`를 재생성합니다.
 4. `pnpm verify:surface-catalog && pnpm convention:check && pnpm docs:check`로 검증합니다.
 
 ---
@@ -73,31 +73,31 @@
 
 `packages/*/package.json` 기준 전체 20개 워크스페이스 패키지 목록입니다 (`package.json`이 없는 로컬 잔여 디렉터리는 제외).
 
-| 패키지 | 계층 | 공개성 / 안정성 | 공개 `exports` | 워크스페이스 의존성 (+Peer) | TypeDoc 포함 |
+| 패키지 | 계층 | 공개성 / 안정성 | 공개 `exports` | 워크스페이스 의존성 (+Peer) | 권위 참조 문서 |
 | --- | --- | --- | --- | --- | --- |
-| `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | 없음 | 예 (`.`, `./element`, `./element/react`) |
-| `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | 없음 | 예 (`.`) |
-| `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | 없음 | 예 (`.`) |
-| `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | 없음 | 예 (`.`) |
-| `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | 없음 | 예 (`.`) |
-| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | 예 (전체 5개 export) |
-| `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | 예 (`.`) |
-| `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | 예 (`.`) |
-| `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | 예 (`.`) |
-| `@context-action/lit-ui` (`0.1.4`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr`, `./hydrate` | `core`, `lit` | 예 (전체 4개 export) |
-| `@context-action/preact-ui` (`0.2.1`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | 예 (전체 3개 export) |
-| `@context-action/ai-sdk` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.` | `tool-protocol` | 예 (`.`) |
-| `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | 예 (전체 2개 export) |
-| `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | 예 (`.`, `./effect`) |
-| `@context-action/llms-generator` (`0.8.7`) | `tooling` | `public` / `tooling` | `.`, `./cli` | 없음 | 아니오 |
-| `@context-action/typedoc-vitepress-sync` (`0.8.8`) | `tooling` | `public` / `tooling` | `.`, `./cli` | 없음 | 아니오 |
-| `@context-action/style-testing` (`0.1.0`) | `tooling` | `private` / `private` | `.`, `./babel-plugin` | 없음 | 아니오 |
-| `@context-action/live-code-editor` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | 없음 | 아니오 |
-| `@context-action/openrouter-browser-storage` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | 없음 | 아니오 |
-| `@context-action/template-react` (`1.0.0`) | `private-host-support` | `private` / `private` | `(없음)` | `core`, `react` | 아니오 |
+| `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | 없음 | `packages/core/README.md`, `action-contracts.md`, `element-interop.md` |
+| `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/store-core/README.md`, `store-selection-and-usage-guide.md` |
+| `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/mutative-core/README.md`, `mutative-core-history.md` |
+| `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/tool-protocol/README.md`, `tool-calling-editor-architecture.md` |
+| `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | 없음 | `packages/tool-durable-operations/README.md`, `durable-operation-operations.md` |
+| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
+| `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | `packages/mutative/README.md`, `time-travel-specialization.md` |
+| `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/lit/README.md`, `01-controller-scope.md` |
+| `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/preact/README.md`, `spec-to-code-authoring-guide.md` |
+| `@context-action/lit-ui` (`0.1.4`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr`, `./hydrate` | `core`, `lit` | `packages/lit-ui/README.md`, `packages/lit-ui/docs/*.md` |
+| `@context-action/preact-ui` (`0.2.1`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | `packages/preact-ui/README.md`, `packages/preact-ui/docs/*.md` |
+| `@context-action/ai-sdk` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.` | `tool-protocol` | `packages/ai-sdk/README.md`, `usecase-tool-calling-web-studio.md` |
+| `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | `packages/webmcp/README.md`, `docs/ko/guide/webmcp.md` |
+| `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | `packages/xstate/README.md`, `xstate-effect-integration.md` |
+| `@context-action/llms-generator` (`0.8.7`) | `tooling` | `public` / `tooling` | `.`, `./cli` | 없음 | `packages/llms-generator/README.md`, `packages/llms-generator/docs/` |
+| `@context-action/typedoc-vitepress-sync` (`0.8.8`) | `tooling` | `public` / `tooling` | `.`, `./cli` | 없음 | `packages/typedoc-vitepress-sync/README.md`, `packages/typedoc-vitepress-sync/docs/` |
+| `@context-action/style-testing` (`0.1.0`) | `tooling` | `private` / `private` | `.`, `./babel-plugin` | 없음 | `packages/style-testing/README.md` |
+| `@context-action/live-code-editor` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | 없음 | `packages/live-code-editor/README.md` |
+| `@context-action/openrouter-browser-storage` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | 없음 | `packages/openrouter-browser-storage/README.md` |
+| `@context-action/template-react` (`1.0.0`) | `private-host-support` | `private` / `private` | `(없음)` | `core`, `react` | `packages/template-react/README.md` |
 
 > [!NOTE]
-> **TypeDoc 커버리지 범위**: `typedoc.json`은 **공개 패키지 16개 중 14개**(`core`, `store-core`, `mutative-core`, `mutative`, `xstate`, `tool-protocol`, `ai-sdk`, `webmcp`, `tool-durable-operations`, `react`, `lit`, `lit-ui`, `preact`, `preact-ui` 등 공개 런타임 패키지 **14/14개 전체** 및 모든 서브패스 27개 엔트리)를 API 참조로 생성합니다. CLI/빌드 도구 패키지 2종(`llms-generator`, `typedoc-vitepress-sync`, 각각 `packages/*/docs/` 독립 문서 유지)만 런타임 API 참조 대상에서 의도적으로 제외되어 있습니다.
+> **API 표면 단일 소스(SSOT)**: 저장소 차원의 대량 TypeDoc 마크다운 트리(`docs/en/api/**`) 대신, 14개 공개 소비자 런타임 패키지와 2개 공개 도구 패키지는 각 패키지 `README.md`, `packages/*/docs/*.md`, TypeScript `.d.ts` 선언 및 [`catalog/repository-surface/api-surface.v1.json`](../../../catalog/repository-surface/api-surface.v1.json)에서 공개 API 계약을 직접 관리합니다. `@context-action/llms-generator`와 `@context-action/typedoc-vitepress-sync`는 독립 공개 도구 패키지로 유지됩니다.
 
 ### 3.1 계층별 패키지 용도 요약
 
@@ -187,7 +187,7 @@
 | `doc-llms` | `docs/{en,ko}/llms` (`.md`) | `authoritative` | `strict-paired` | 미번역 0건 (`llms-*.txt`는 `derivedSurfaces`로 분리 관리) |
 | `doc-guide` | `docs/{en,ko}/guide` | `authoritative` | `strict-paired` | 미번역 0건; 시작하기, 파이프라인(`advanced-filtering.md` 쌍 구성), 액션/스토어/Ref/비동기/설정 패턴 |
 | `doc-troubleshooting` | `docs/{en,ko}/troubleshooting` | `authoritative` | `strict-paired` | 미번역 0건; 액션·스토어·Ref·무한 루프·성능 진단 가이드 |
-| `doc-docs-root` | `docs/index.md`, `LOCAL_FIRST_VERIFICATION_POLICY.md`, `STORE_GUIDE.md` | `authoritative` | `single-locale` | `STORE_GUIDE.md`는 역사적 참고 문서로 명시 |
+| `doc-docs-root` | `docs/index.md`, `LOCAL_FIRST_VERIFICATION_POLICY.md` | `authoritative` | `single-locale` | VitePress 홈 선택기 및 Local-First 검증 정책 |
 | `doc-releases-v1` | `docs/releases`, `docs/ko/releases` | `evidence` | `single-locale` | v1.0.0 감사, 범위, 런북, 릴리스 매니페스트 |
 | `doc-releases-ops` | `releases/` | `evidence` | `single-locale` | `RELEASE.md`, 코호트 JSON 계획, 공개 프리뷰 릴리스 노트 |
 | `doc-package-docs` | `packages/*/README.md`, `CHANGELOG.md`, `UNRELEASED.md`, `docs/*.md` | `authoritative` | `single-locale` | 패키지별 탐색 문서 및 세부 계약 |
@@ -195,12 +195,10 @@
 | `doc-skills` | `skills/` (`.agents/skills/` gitignored 미러) | `authoritative` | `not-applicable` | 저장소 로컬 Implementation Playbook 스킬 문서 |
 | `doc-design-tasks` | `design-docs/`, `tasks/` | `historical` | `not-applicable` | 아카이브된 설계 명세 및 작업 기록 |
 
-### 5.3 파생 / 생성 산출물 (10개 출력)
+### 5.3 파생 / 생성 산출물 (6개 출력)
 
-- `docs/api/generated` (`pnpm docs:api`) ← `typedoc.json` + export된 TypeScript 소스/JSDoc
-- `docs/en/api` 및 `docs/.vitepress/config/api-spec.ts` (`pnpm docs:sync`) ← `docs/api/generated` + `typedoc-vitepress-sync`
-- `llmsData` (`pnpm llms:sync-docs --changed-files path1.md,path2.md`) ← `docs/{en,ko}/**/*.md`
-- `docs/{en,ko}/llms/llms-origin.txt`, `llms-500chars.txt`, `llms-minimal.txt` (`llms-generate`) ← `llmsData/{en,ko}/**`
+- `docs/en/llms/llms-origin.txt`, `llms-500chars.txt`, `llms-minimal.txt` (`pnpm docs:llms`) ← `docs/en/**/*.md` (`docs/en/llms/**` 제외)
+- `docs/ko/llms/llms-origin.txt`, `llms-500chars.txt`, `llms-minimal.txt` (`pnpm docs:llms`) ← `docs/ko/**/*.md` (`docs/ko/llms/**` 제외)
 
 ---
 

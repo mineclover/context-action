@@ -94,7 +94,7 @@ To avoid friction during early prototyping:
 ## Verification Evidence
 
 - `pnpm docs:management`: Verifies paired KO/EN docs, issue templates, convention index, and ADR link integrity.
-- `pnpm llms:check`: Verifies `llmsData/` summary template synchronization after doc updates.
+- `pnpm llms:check`: Verifies `docs/{en,ko}/llms/llms-*.txt` bundle synchronization directly against `docs/{en,ko}/**` sources.
 - `pnpm convention:check` (`node scripts/verify-context-action-conventions.mjs`): Verifies Context-Layered 6-layer boundaries, React isolation, and use-case boundaries.
 - `tsp-evidence check specs/**/*.tsp` / `npx evidence check --only <unit> --context`: Verifies TypeSpec and generated TS declaration bindings against frontend pure business functions.
 

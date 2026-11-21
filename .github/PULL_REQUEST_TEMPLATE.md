@@ -7,7 +7,7 @@
 
 ## Surface Catalog & Documentation Impact
 - [ ] Updated `catalog/repository-surface/*.v1.json` if packages/exports, canonical `example/` routes/demos, or managed/root docs changed (`pnpm verify:surface-catalog`).
-- [ ] Kept paired `docs/en/**` and `docs/ko/**` pages aligned and synced `llmsData/` (`pnpm build:llms-generator && pnpm llms:sync-docs --changed-files a.md,b.md`).
+- [ ] Kept paired `docs/en/**` and `docs/ko/**` pages aligned and regenerated LLMS bundles (`pnpm docs:llms`).
 
 ## Verification
 - [ ] Local-First receipt refreshed on a clean working tree (`pnpm verify` or `pnpm verify:quick` + `pnpm verify:receipt`).

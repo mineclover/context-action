@@ -21,10 +21,9 @@ context-action/
 ├── demos/                             # Standalone demos (e.g., bolt-style-editor)
 ├── skills/                            # Context-Action Implementation Playbook skills
 ├── releases/                          # Protected release guide and cohort manifests
-├── docs/                              # VitePress documentation
-├── llmsData/                          # Generated LLMS summaries
+├── docs/                              # VitePress documentation & derived llms/*.txt bundles
 ├── scripts/                           # Build, catalog, and verification scripts
-├── .husky/                            # Git hooks (post-commit LLMS assist)
+├── .husky/                            # Git hooks (lightweight pre-commit)
 └── .github/workflows/                 # CI/CD and protected release pipelines
 ```
 
@@ -212,8 +211,7 @@ pnpm lint && pnpm type-check && pnpm test
 ### Git Hooks
 ```bash
 # Configured via .husky/
-.husky/pre-commit      # No-op (verification runs explicitly via pnpm verify / pnpm verify:quick)
-.husky/post-commit     # Assists LLMS sync on docs/(en|ko)/**/*.md changes (does not auto-commit)
+.husky/pre-commit      # Lightweight no-op (verification runs explicitly via pnpm verify / pnpm docs:check)
 ```
 
 ## 🚀 Development Workflows
@@ -268,8 +266,8 @@ pnpm type-check    # TypeScript validation
 
 ## 📖 Documentation Workflow
 
-The source-of-truth rules for hand-authored guides, generated API references,
-LLMS artifacts, and proportional verification are in [Documentation and
+The source-of-truth rules for hand-authored guides, package API references,
+LLMS bundles, and proportional verification are in [Documentation and
 Development Management Conventions](docs/en/concept/documentation-development-conventions.md).
 
 ### VitePress Documentation & Verification
@@ -277,35 +275,25 @@ Development Management Conventions](docs/en/concept/documentation-development-co
 # Start documentation dev server
 pnpm docs:dev
 
-# Verify documentation management, LLMS freshness, and VitePress build
+# Verify documentation management, surface catalog parity, LLMS freshness, and VitePress build
 pnpm docs:management
+pnpm verify:surface-catalog
 pnpm llms:check
 pnpm docs:build
-pnpm docs:check        # Canonical combined docs gate (docs:management + llms:check + docs:build)
+pnpm docs:check        # Canonical combined docs gate
 
-# Verify machine-verifiable catalogs and Context-Layered conventions
-pnpm verify:surface-catalog
+# Verify Context-Layered conventions and compiled doc snippets
 pnpm convention:check
-
-# Generate and sync API documentation (does not regenerate LLMS artifacts)
-pnpm docs:api
-pnpm docs:sync
-pnpm docs:full
+pnpm verify:doc-snippets
 ```
 
-### LLMS Generator Integration
+### LLMS Bundle Generation
 ```bash
-# Build llms-generator first, then pass comma-separated paths
-pnpm build:llms-generator
-pnpm llms:sync-docs --changed-files docs/en/guide/a.md,docs/ko/guide/a.md
+# Regenerate docs/{en,ko}/llms/llms-{minimal,500chars,origin}.txt from docs/{en,ko}/**
+pnpm docs:llms
 
-# Priority & work management
-pnpm llms:priority-stats
-pnpm llms:work-next
-
-# Korean/English specific processing
-pnpm llms:sync-docs:ko
-pnpm llms:sync-docs:en
+# Standalone tooling packages (@context-action/llms-generator, @context-action/typedoc-vitepress-sync)
+# remain independently tested and built in packages/*/
 ```
 
 ## 🏷️ Release Management

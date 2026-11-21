@@ -47,7 +47,7 @@ The **[Pattern Collection](./patterns/setup/index.md)** contains all the detaile
 ## 🔗 Related Documentation
 
 - **[Core Concepts](/en/concept/architecture-guide)** - Fundamental framework concepts
-- **[API Reference](/en/api/README)** - Complete API documentation
+- **[API Reference](/en/context-layered/repository-surface-catalog)** - Package & API Surface Catalog
 - **[Examples](/en/examples/basic-setup)** - Working code examples
 - **[LLM Resources](/en/llms/)** - AI integration guides
 

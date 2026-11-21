@@ -236,7 +236,7 @@ chore(deps): update TypeScript to 6.0.3
 1. **Create feature branch** from `main`
 2. **Make changes** following coding and Context-Layered standards
 3. **Add tests** for new functionality and rebuild lower layers before verifying consumers
-4. **Update documentation & catalogs** (`docs/{en,ko}/**`, `catalog/repository-surface/*.v1.json`, `llmsData/` via `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files a.md,b.md`)
+4. **Update documentation & catalogs** (`docs/{en,ko}/**`, `catalog/repository-surface/*.v1.json`, and `docs/{en,ko}/llms/llms-*.txt` via `pnpm docs:llms`)
 5. **Run Local-First verification** on a clean working tree (`pnpm verify` or `pnpm verify:quick`, then `pnpm verify:receipt`)
 6. **Create pull request** using `.github/PULL_REQUEST_TEMPLATE.md` and include `#<issue>` or a `CA-*` ID (`pnpm change:traceability`)
 7. **Address review feedback** promptly
@@ -246,7 +246,7 @@ chore(deps): update TypeScript to 6.0.3
 - [ ] Tests, types, and Biome lint pass (`pnpm test`, `pnpm type-check`, `pnpm lint`)
 - [ ] Surface catalogs, conventions, and package boundaries pass (`pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm package-boundary:check`)
 - [ ] PR references `#<issue>` or `CA-*` ID (`pnpm change:traceability`)
-- [ ] Paired EN/KO docs, `llmsData/`, and VitePress build pass (`pnpm docs:check`)
+- [ ] Paired EN/KO docs, `docs/{en,ko}/llms/llms-*.txt`, and VitePress build pass (`pnpm docs:check`)
 - [ ] Example app checks/builds pass if relevant (`pnpm --filter example check && pnpm example:build`)
 
 ## 🏷️ Release Process

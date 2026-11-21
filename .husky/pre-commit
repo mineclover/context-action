@@ -1,10 +1,4 @@
 #!/bin/sh
 
-# Standard pre-commit checks can go here
-# LLMS sync has been moved to post-commit for cleaner commit separation
-
-# Example: Run linting, type-checking, or other validation
-# echo "🔍 Running pre-commit validation..."
-
-# For now, just pass through - LLMS sync happens after commit
+# Pre-commit hook intentionally lightweight; full checks run via pnpm verify / docs:check.
 exit 0

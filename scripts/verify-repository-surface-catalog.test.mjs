@@ -13,7 +13,6 @@ function writeFile(root, relativePath, contents) {
 
 function createValidFixture(root) {
   writeFile(root, 'README.md', '# Fixture Root\n');
-  writeFile(root, 'typedoc.json', JSON.stringify({ entryPoints: ['./packages/core/src/index.ts'] }));
   writeFile(
     root,
     'packages/core/package.json',
@@ -45,7 +44,6 @@ function createValidFixture(root) {
 
   writeFile(root, 'docs/index.md', '# Docs\n');
   writeFile(root, 'docs/LOCAL_FIRST_VERIFICATION_POLICY.md', '# Policy\n');
-  writeFile(root, 'docs/STORE_GUIDE.md', '# Store Guide\n');
   writeFile(root, 'docs/en/context-layered/guide.md', '# EN\n');
   writeFile(root, 'docs/ko/context-layered/guide.md', '# KO\n');
   writeFile(root, 'docs/en/concept/c.md', '# EN\n');
@@ -60,8 +58,6 @@ function createValidFixture(root) {
   writeFile(root, 'docs/ko/guide/start.md', '# KO\n');
   writeFile(root, 'docs/en/troubleshooting/index.md', '# EN\n');
   writeFile(root, 'docs/ko/troubleshooting/index.md', '# KO\n');
-  writeFile(root, 'docs/en/api/README.md', '# API\n');
-  writeFile(root, 'llmsData/README.md', '# LLMS\n');
   writeFile(root, 'docs/releases/index.md', '# Releases\n');
   writeFile(root, 'docs/ko/releases/index.md', '# Releases KO\n');
   writeFile(root, 'releases/RELEASE.md', '# Release Ops\n');
@@ -91,7 +87,6 @@ function createValidFixture(root) {
           exports: [{ subpath: '.', purpose: 'Action pipeline', keySymbols: ['ActionRegister'] }],
           workspaceDependencies: [],
           workspacePeerDependencies: [],
-          typedocEntryPoints: ['./packages/core/src/index.ts'],
           readme: 'packages/core/README.md',
           authoritativeDocs: ['packages/core/docs/core.md'],
           verificationGate: 'pnpm --filter @context-action/core test',
@@ -197,19 +192,11 @@ function createValidFixture(root) {
       ],
       derivedSurfaces: [
         {
-          id: 'derived-api',
-          path: 'docs/api/generated',
-          gitignored: true,
-          sourceOfTruth: 'typedoc.json',
-          generatorCommand: 'pnpm docs:api',
-          verificationCommand: 'pnpm docs:build',
-        },
-        {
-          id: 'derived-en-api',
-          path: 'docs/en/api',
-          sourceOfTruth: 'docs/api/generated',
-          generatorCommand: 'pnpm docs:sync',
-          verificationCommand: 'pnpm docs:build',
+          id: 'derived-llms-txt-en-origin',
+          path: 'docs/en/llms/llms-origin.txt',
+          sourceOfTruth: 'docs/en/**/*.md',
+          generatorCommand: 'pnpm docs:llms',
+          verificationCommand: 'pnpm llms:check',
         },
       ],
     }),

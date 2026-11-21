@@ -14,7 +14,6 @@ const [
   toolsReadmeSource,
   toolContextSource,
   webmcpSource,
-  typedocSource,
 ] = await Promise.all([
   readFile(path.join(reactDirectory, 'package.json'), 'utf8'),
   readFile(path.join(reactDirectory, 'src/index.ts'), 'utf8'),
@@ -22,7 +21,6 @@ const [
   readFile(path.join(reactDirectory, 'src/tools/README.md'), 'utf8'),
   readFile(path.join(reactDirectory, 'src/tools/ToolContext.tsx'), 'utf8'),
   readFile(path.join(reactDirectory, 'src/webmcp.ts'), 'utf8'),
-  readFile(path.join(repositoryRoot, 'typedoc.json'), 'utf8'),
 ]);
 const manifest = JSON.parse(manifestSource);
 
@@ -30,11 +28,6 @@ assert.equal(
   manifest.exports?.['./tools'],
   undefined,
   'React 3 must not export the development-only ToolContext subpath.',
-);
-assert.doesNotMatch(
-  typedocSource,
-  /packages\/react\/src\/tools\/index\.ts/u,
-  'Public API reference generation must not publish the development-only ToolContext source.',
 );
 assert.ok(manifest.exports?.['./webmcp'], 'Experimental WebMCP subpath must be exported.');
 assert.doesNotMatch(

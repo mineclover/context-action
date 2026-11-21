@@ -125,7 +125,7 @@ function UserComponent() {
 
 - [Getting Started Guide](./getting-started.md)
 - [Best Practices](./best-practices.md)
-- [API Reference](../api/README.md)
+- [Repository API Surface Catalog](../context-layered/repository-surface-catalog.md)
 - [Architecture Overview](../concept/architecture-guide.md)
 
 ---

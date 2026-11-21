@@ -146,11 +146,6 @@ jobs:
           pnpm build
 
       # Build documentation
-      - name: Generate API documentation
-        run: |
-          pnpm docs:api
-          pnpm docs:sync
-
       - name: Build documentation
         run: pnpm docs:build
 

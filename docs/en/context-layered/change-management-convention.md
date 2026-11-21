@@ -237,8 +237,10 @@ in the commit or PR body. Do not use a commit hash as the only issue link.
   current behavior aligned.
 - The canonical guide owns the explanation. README files provide discovery and
   link to it; they should not create a second, divergent contract.
-- API pages and LLMS artifacts are derived. Change their source first and run
-  the appropriate generator.
+- LLMS bundles (`docs/{en,ko}/llms/llms-*.txt`) are derived from `docs/{en,ko}/**`.
+  Change the handwritten source first and regenerate with `pnpm docs:llms`.
+- Package API references are documented directly in `packages/*/README.md`,
+  `packages/*/docs/*.md`, TypeScript declarations, and `catalog/repository-surface/api-surface.v1.json`.
 - A document must say when a feature is unavailable, best-effort, experimental,
   or dependent on manual credentials.
 - New conventions need a discovery link in the Convention Index and the
@@ -247,14 +249,9 @@ in the commit or PR body. Do not use a commit hash as the only issue link.
 Use the smallest command set that proves the changed surface:
 
 ```bash
-# Hand-authored guide or convention (requires built llms-generator; comma-separated paths)
-pnpm build:llms-generator
-pnpm llms:sync-docs --changed-files path1.md,path2.md
+# Hand-authored guide or convention (compile LLMS bundles from docs/{en,ko}/** then check)
+pnpm docs:llms
 pnpm docs:check
-
-# Exported API or API JSDoc
-pnpm docs:api && pnpm docs:sync
-pnpm docs:build
 
 # Pull-request traceability, surface catalogs, canonical example structure, and Local-First receipt
 pnpm change:traceability
@@ -263,10 +260,9 @@ pnpm convention:check
 pnpm verify:quick && pnpm verify:receipt
 ```
 
-`pnpm docs:check` checks documentation-management metadata, LLMS freshness,
-and VitePress rendering. It does not generate output. `pnpm docs:full` is the
-API-reference refresh flow (`docs:api` → `docs:sync` → `docs:build`); it does
-not regenerate LLMS artifacts. `pnpm verify:surface-catalog` fails closed if
+`pnpm docs:check` runs `pnpm docs:management && pnpm verify:surface-catalog && pnpm llms:check && pnpm docs:build`.
+It validates metadata, catalog parity, LLMS bundle freshness, and VitePress rendering
+without modifying files. `pnpm verify:surface-catalog` fails closed if
 workspace packages/exports, canonical `example/` routes, root markdown files, or
 managed doc pairing drift from `catalog/repository-surface/*.v1.json`.
 
@@ -308,6 +304,6 @@ the preferred reference when a change does not have a GitHub issue.
 - [ ] Acceptance criteria map to implementation and test evidence.
 - [ ] Persistence/API/schema changes include compatibility and migration notes.
 - [ ] Authoritative English/Korean docs, discovery links, and `catalog/repository-surface/*.v1.json` (when surfaces change) are updated.
-- [ ] Generated artifacts (`llmsData/`, API docs) were regenerated from their source, when applicable.
+- [ ] Derived LLMS bundles (`docs/{en,ko}/llms/llms-*.txt`) were regenerated via `pnpm docs:llms`, when applicable.
 - [ ] Focused gates, `pnpm verify:surface-catalog`, `pnpm docs:check`, and Local-First receipt (`pnpm verify:quick` or `pnpm verify` + `pnpm verify:receipt`) are recorded.
 - [ ] Follow-up issues capture deferred work instead of leaving silent TODOs.

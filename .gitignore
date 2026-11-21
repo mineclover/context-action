@@ -61,22 +61,14 @@ Thumbs.db
 packages/test-app/dist/
 packages/test-app/.vite/
 
-# Documentation
+# Documentation build & optional local tool caches
 docs/.vitepress/cache/
 docs/.vitepress/dist/
 dist-docs/
 docs/api/generated/
-
-# TypeDoc
+llmsData/
 typedoc-out/
-
-# Auto-generated API documentation
-docs/.vitepress/config/api-spec.ts
-
-# TypeDoc VitePress Sync cache
 .typedoc-vitepress-cache/
-
-# Legacy API docs cache (enhanced script)
 .api-docs-cache/
 
 # Reports directory
@@ -91,9 +83,6 @@ packages/glossary-query/glossary-data.json
 packages/llms-generator/data/**/*.txt
 packages/llms-generator/data/**/*.md
 !packages/llms-generator/data/priority-schema.json
-
-# Note: llmsData/ is now tracked when present for team collaboration
-# Remove llmsData/ from repository with: git rm -r --cached llmsData/ (if needed)
 
 # history
 .history/

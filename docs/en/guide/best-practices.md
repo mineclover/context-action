@@ -204,7 +204,7 @@ If you're migrating from other state management libraries or updating existing c
 ## 📚 Additional Resources
 
 ### Documentation Links
-- [API Reference](../api/README.md) - Complete API documentation
+- [Repository API Surface Catalog](../context-layered/repository-surface-catalog.md) - Package & API surface catalog
 - [Example Code](https://github.com/mineclover/context-action/tree/main/example) - Working example application
 - [Pattern Collection](./patterns/setup/index.md) - Comprehensive pattern guides
 

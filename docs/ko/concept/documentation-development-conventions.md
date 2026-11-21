@@ -16,17 +16,13 @@
 
 | 영역 | 소유자 및 편집 규칙 | 검증 |
 | --- | --- | --- |
-| `docs/en/**`, `docs/ko/**` 가이드·개념 문서 | 사람이 작성하는 원문입니다. 공개 내용은 영문·국문 페이지의 의미를 함께 맞춥니다 (`context-layered`, `concept`, `examples`, `llms`는 `strict-paired`, `guide`, `troubleshooting`은 `tracked-partial`). 패키지 전반 Store 사용 기준은 [Store별 선택 및 사용법 가이드](../context-layered/store-selection-and-usage-guide)를 정본으로 삼습니다. | `pnpm docs:check` |
+| `docs/en/**`, `docs/ko/**` 가이드·개념 문서 | 사람이 작성하는 원문입니다. 공개 내용은 영문·국문 페이지의 의미를 함께 맞춥니다 (`context-layered`, `concept`, `examples`, `guide`, `troubleshooting`, `llms` 모두 `strict-paired`). 패키지 전반 Store 사용 기준은 [Store별 선택 및 사용법 가이드](../context-layered/store-selection-and-usage-guide)를 정본으로 삼습니다. | `pnpm docs:check` |
 | `catalog/repository-surface/*.v1.json` | 워크스페이스 패키지 API(`api-surface`), 정식 예제 라우트·데모(`example-surface`), 루트·관리·파생 문서 목록(`document-surface`, `CA-SURFACE-CATALOG-001`)을 고정하는 머신 검증용 카탈로그입니다 (최신 수치는 JSON 참조). 표면 추가·변경·삭제 시 함께 갱신합니다. | `pnpm verify:surface-catalog` |
-| `docs/api/generated/**`, `docs/.vitepress/config/api-spec.ts`, `docs/en/api/**` | 생성 API 참조입니다. `docs/api/generated/**`와 `api-spec.ts`는 `gitignored: true` 빌드 산출물이며, TypeScript export와 JSDoc을 먼저 고친 뒤 출력물을 직접 고치지 말고 다시 생성합니다. | `pnpm docs:api`, `pnpm docs:sync`, `pnpm docs:build` |
-| `llmsData/**` 및 `docs/{en,ko}/llms/llms-*.txt` | `docs/{en,ko}/**` 원문에서 파생되는 학습·컨텍스트 산출물입니다. 정식 설명의 원문으로 취급하지 않습니다. | `pnpm build:llms-generator` 후 `pnpm llms:sync-docs --changed-files a.md b.md` 및 `pnpm llms:check` |
-| 루트와 패키지 `README` | 발견과 진입을 위한 문서입니다. 설명을 중복하기보다 권위 있는 가이드, [저장소 표면 카탈로그](../context-layered/repository-surface-catalog), API 페이지로 연결합니다. | 관련 빌드·표면 카탈로그·링크 검증 |
+| `docs/{en,ko}/llms/llms-*.txt` | `docs/{en,ko}/**`(`docs/{en,ko}/llms/**` 제외) 원문에서 직접 생성되는 LLMS 번들 산출물입니다. 정식 설명의 원문으로 취급하거나 직접 손으로 수정하지 않습니다. | `pnpm docs:llms` 후 `pnpm llms:check` |
+| 루트, `packages/*/README.md`, `packages/*/docs/*.md`, `.d.ts` | 패키지 발견 진입점, 패키지별 세부 계약, export된 TypeScript 타입·JSDoc입니다. 설명을 복제하기보다 [저장소 표면 카탈로그](../context-layered/repository-surface-catalog)와 권위 가이드로 연결합니다. | 관련 빌드·표면 카탈로그·링크 검증 |
 
-생성 파일도 리뷰할 수 있지만, 동작 수정은 생성물만 고치지 않고 원문, generator,
-또는 export에 반영합니다.
-API 소스 링크는 `main` 브랜치를 기준으로 생성합니다. 따라서 커밋 후 문서 파이프라인을
-다시 실행해도 커밋 해시만 달라지는 drift가 발생하지 않으며, 소스 경로나 줄이 바뀔 때만
-생성 파일이 달라집니다.
+생성 번들 파일도 리뷰할 수 있지만, 동작 수정은 생성물만 고치지 않고
+정식 마크다운 원문이나 export된 TypeScript API에 반영합니다.
 
 표면 문서는 [`document-surface.v1.json`](../../../catalog/repository-surface/document-surface.v1.json)과
 [저장소 표면 카탈로그](../context-layered/repository-surface-catalog)에 등록된 6종 권위 등급
@@ -40,15 +36,15 @@ API 소스 링크는 `main` 브랜치를 기준으로 생성합니다. 따라서
 
 | 변경 | 수정할 정식 원본 | 파생물/갱신 경로 | 최소 증명 |
 | --- | --- | --- | --- |
-| 공개 가이드, Store 사용법 또는 컨벤션 | 짝을 이루는 `docs/en/**`, `docs/ko/**` 페이지 (패키지 전반 Store 선택은 `store-selection-and-usage-guide`) | `--changed-files`로 영향받은 LLMS 요약 재생성 | `pnpm docs:check` |
-| 패키지, export subpath 또는 검증 게이트 | package `package.json` + 소스 + `catalog/repository-surface/api-surface.v1.json` + `repository-surface-catalog.md` | 공개 API/JSDoc 변경 시 `pnpm docs:api && pnpm docs:sync` | `pnpm verify:surface-catalog && pnpm package-boundary:check` |
-| 정식 `example/` 라우트, 독립 데모 또는 예제 문서 | 라우트/데모/문서 + `catalog/repository-surface/example-surface.v1.json` + `repository-surface-catalog.md` | 짝을 이루는 `docs/{en,ko}/examples/*.md` LLMS 요약 동기화 | `pnpm verify:surface-catalog && pnpm --filter example build` |
-| 루트 `*.md` 또는 관리 문서 영역 메타데이터 | 루트/관리 문서 + `catalog/repository-surface/document-surface.v1.json` + `repository-surface-catalog.md` | `guide`/`troubleshooting` 페어링 변동 시 `knownUnpaired` 갱신 | `pnpm verify:surface-catalog && pnpm docs:check` |
+| 공개 가이드, Store 사용법 또는 컨벤션 | 짝을 이루는 `docs/en/**`, `docs/ko/**` 페이지 (패키지 전반 Store 선택은 `store-selection-and-usage-guide`) | `pnpm docs:llms`로 `docs/{en,ko}/llms/llms-*.txt` 재생성 | `pnpm docs:check` |
+| 패키지, export subpath 또는 검증 게이트 | package `package.json` + 소스/JSDoc + `catalog/repository-surface/api-surface.v1.json` + `repository-surface-catalog.md` | 계약 변경 시 패키지 `README.md` / `packages/*/docs/*.md` 갱신 | `pnpm verify:surface-catalog && pnpm package-boundary:check` |
+| 정식 `example/` 라우트, 독립 데모 또는 예제 문서 | 라우트/데모/문서 + `catalog/repository-surface/example-surface.v1.json` + `repository-surface-catalog.md` | `docs/{en,ko}/examples/*.md` 변경 시 `pnpm docs:llms` 실행 | `pnpm verify:surface-catalog && pnpm --filter example build` |
+| 루트 `*.md` 또는 관리 문서 영역 메타데이터 | 루트/관리 문서 + `catalog/repository-surface/document-surface.v1.json` + `repository-surface-catalog.md` | `document-surface.v1.json`의 `pairingPolicy` / `knownUnpaired` 정합 유지 | `pnpm verify:surface-catalog && pnpm docs:check` |
 | package 발견 경로 또는 소비자 진입점 | package `README.md`와 정식 가이드 링크 | 계약이 바뀐 경우에만 연결된 guide 갱신 | 집중 package 검증 |
 | 지속되는 아키텍처 선택 | decision record와 소유 guide/package contract | 구현·테스트 anchor 추가 | 집중 boundary/test 증거 |
 
-`pnpm docs:check`는 문서 관리 metadata, LLMS 최신성, VitePress build를
-검증합니다. 이 명령은 정합성을 검사할 뿐 파일을 생성하지는 않습니다.
+`pnpm docs:check`는 `pnpm docs:management && pnpm verify:surface-catalog && pnpm llms:check && pnpm docs:build`를
+실행합니다. 이 명령은 정합성과 빌드를 검증할 뿐 파일을 수정하지는 않습니다.
 
 ## 3. 변경 분류
 
@@ -84,22 +80,19 @@ API 소스 링크는 `main` 브랜치를 기준으로 생성합니다. 따라서
 
 | 변경 | 최소 게이트 | 해당할 때 추가 |
 | --- | --- | --- |
-| 사람이 작성한 문서 | `pnpm build:llms-generator && pnpm llms:sync-docs --changed-files a.md b.md` 후 `pnpm docs:check` | 렌더된 상호작용이 바뀌면 집중 link/browser 증명; `<!-- @context-action-compile -->` 블록이 바뀌면 `pnpm verify:doc-snippets` |
+| 사람이 작성한 문서 | `pnpm docs:llms` 후 `pnpm docs:check` | 렌더된 상호작용이 바뀌면 집중 link/browser 증명; `<!-- @context-action-compile -->` 블록이 바뀌면 `pnpm verify:doc-snippets` |
 | 저장소 표면 (패키지, 라우트, 관리·루트 문서) | `pnpm verify:surface-catalog` 및 `pnpm convention:check` | `catalog/repository-surface/*.v1.json`과 `repository-surface-catalog.md` 함께 갱신 |
-| 공개 TypeScript API | `pnpm type-check` | `pnpm docs:api && pnpm docs:sync` |
+| 공개 TypeScript API | `pnpm build` 및 `pnpm type-check` | 패키지 `README.md`, `api-surface.v1.json`, `pnpm verify:doc-snippets` 갱신 |
 | 런타임 동작 또는 프레임워크 패턴 | 집중 패키지 테스트와 `pnpm type-check` | `pnpm test`, example build |
 | 예제 앱 또는 브라우저 통합 | `pnpm --filter example build` | 사용자 소유 자격 증명으로 수동 증명, 비밀값 커밋 금지 |
 | 릴리스·패키지 도구 | `pnpm verify:package-exports`, `pnpm verify:package-tarballs` | `pnpm verify:private-tools` |
-| LLMS/문서 정합성 | `pnpm llms:check` | 리뷰 증거가 필요하면 `pnpm llms:detect-mismatches --output reports/llms-mismatch-report.md` |
+| LLMS/문서 정합성 | `pnpm llms:check` | `docs/{en,ko}/**` 원본이 바뀌었으면 `pnpm docs:llms` 실행 |
 | Local-First PR 사전 검증 영수증 ([정책](../../LOCAL_FIRST_VERIFICATION_POLICY.md)) | `pnpm verify:quick` (또는 `pnpm verify`) 후 `pnpm verify:receipt` | PR 전 clean working tree에서 `.verification/local-receipt.json` 커밋 |
 
-> **CLI `--changed-files` 문법:** `pnpm build:llms-generator` 실행 후 `pnpm llms:sync-docs`는
-> `--changed-files`에 쉼표 구분(`--changed-files docs/en/guide/a.md,docs/ko/guide/a.md`),
-> 공백 구분(`--changed-files docs/en/guide/a.md docs/ko/guide/a.md`), `--changed-files=...`,
-> 따옴표 공백 문자열, 반복 플래그를 모두 지원합니다. 또한 `.husky/post-commit`은 커밋된
-> `docs/(en|ko)/**/*.md`(`docs/{en,ko}/llms/` 및 `docs/{en,ko}/api/` 제외)에 대해 자동으로
-> `sync-docs`를 실행하지만 추가 커밋을 만들지는 않으므로, 문서 커밋 직후 `git status --short`를
-> 확인하고 clean 상태를 맞춘 뒤 `pnpm verify:quick`을 실행하세요.
+> **직접 LLMS 번들 생성:** `pnpm docs:llms`(`node scripts/sync-llms-bundles.mjs --write`)는
+> 중간 템플릿 디렉터리나 post-commit git hook 없이 `docs/{en,ko}/**`(`docs/{en,ko}/llms/**` 제외)에서
+> `docs/{en,ko}/llms/llms-minimal.txt`, `llms-500chars.txt`, `llms-origin.txt`를 직접 결정적으로
+> 생성합니다. 수정한 문서와 재생성된 `llms-*.txt` 번들을 함께 커밋한 뒤 `pnpm verify:quick`을 실행하세요.
 
 독립 실행이 가능한 정식 TypeScript 예제는 `ts`, `typescript`, 또는 `tsx` fence
 바로 앞에 `<!-- @context-action-compile -->` marker를 붙일 수 있습니다.
@@ -116,10 +109,10 @@ AI SDK adapter에는 실제 runtime smoke gate인 `pnpm test:ai-sdk-integration`
 이 명령은 local protocol과 adapter를 빌드한 뒤 설치된 AI SDK의 `dynamicTool` 결과를
 호출해 approval 및 execution callback 계약을 검증합니다.
 
-`pnpm docs:full`은 API 참조 갱신 파이프라인입니다. TypeDoc을 생성하고 VitePress에
-동기화한 뒤 사이트를 빌드합니다. **LLMS 산출물은 재생성하지 않습니다.** 사람이 작성한
-가이드 변경에는 해당 원본을 `pnpm llms:sync-docs`로 갱신한 뒤 `pnpm docs:check`를
-실행합니다. 릴리스에서 API와 가이드가 함께 바뀌면 두 흐름을 모두 실행합니다.
+사람이 작성한 문서 변경에는 `pnpm docs:llms` 실행 후 `pnpm docs:check`를 실행합니다
+(컴파일 검증 스니펫이 바뀌었으면 `pnpm build` 이후 `pnpm verify:doc-snippets`도 함께 실행합니다).
+저장소 API 표면과 패키지 진입점은 `packages/*/README.md`, `packages/*/docs/*.md`,
+`.d.ts` 선언 및 `catalog/repository-surface/api-surface.v1.json`에서 단일 소스로 관리합니다.
 
 PR 전 로컬 우선 검증 및 서명 영수증 발급은 `pnpm verify:quick`(빠른 스모크) 또는
 `pnpm verify`(전체 17단계 로컬 검증) 실행 후 `pnpm verify:receipt`로 확인합니다.

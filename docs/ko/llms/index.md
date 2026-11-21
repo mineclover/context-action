@@ -11,9 +11,10 @@
 - [라이브러리 사양](./library-specs.md) - 라이브러리 사용을 위한 기술 사양
 
 ### 생성된 파일
-- **llms-500chars.txt** - 토큰 제한 컨텍스트를 위한 500자 요약
-- **llms-minimal.txt** - 최소 필수 정보
-- **llms-origin.txt** - 완전한 원본 문서
+`docs/ko/**` (`docs/ko/llms/**` 제외)에서 `pnpm docs:llms`로 직접 생성되며 `pnpm llms:check`로 최신성을 검증합니다:
+- **llms-500chars.txt** - 토큰 제한 컨텍스트를 위한 문서별 500자 요약 번들
+- **llms-minimal.txt** - 문서별 단일 라인 요약을 포함한 최소 인덱스
+- **llms-origin.txt** - 완전한 한국어 원본 문서 통합 번들
 
 ## 목적
 

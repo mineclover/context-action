@@ -874,6 +874,6 @@ function SequentialProcessor() {
 
 - **[Context-Layered Architecture Guide](../context-layered/context-layered-guide)** - 6-layer separation between handlers, business logic, and views
 - **[Action Pipeline Guide](../concept/action-pipeline-guide)** - Comprehensive action pipeline documentation
-- **[Core API Overview](../api/core/src/README)** - Core `ActionRegister` and pipeline APIs
+- **[Repository API Surface Catalog](../context-layered/repository-surface-catalog.md)** - Package & core `ActionRegister` surface catalog
 - **[Pipeline Guide](../guide/pipeline/index)** - Pipeline priority, filtering, and dispatch controls
 - **[Pattern Composition Example](./pattern-composition)** - Combining with Store Pattern
