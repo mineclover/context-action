@@ -37,6 +37,8 @@ scenario/
 │   ├── scenarioActivity.ts
 │   ├── scenarioStateMachine.ts
 │   └── scenarioBusiness.ts
+├── runtime/                     # Optional · pure-TS Headless-First engine (node/worker/host shared)
+│   └── createScenarioRuntime.ts
 ├── handlers/
 │   ├── ScenarioHandlers.tsx
 │   ├── scenarioHandlerSupport.ts
@@ -72,6 +74,12 @@ Do not put UI wording, DOM focus, or analytics calls here.
 
 > **TypeSpec Evidence Integration (Policy Hopping — `ttsc@0.33.1` / `@wrtnlabs/evidence@0.8.0`)**:  
 > Pure validation and state transition functions in `business/` qualify as TypeSpec SSOT runtime policy targets ([CA-SPEC-EVIDENCE-001](./decisions/CA-SPEC-EVIDENCE-001.md), [Unified Triad Self-Serve Sync Guide](./triad-evidence-sync-guide.md)). Core domain functions lock their AST contracts against generated declarations using `@evidenceReview ./generated/dto.ts#Policy #hash`, multi-line Heading-Form annotations (`## @evidence`, `## @evidenceReview`), or detached `evidenceFiles` (`evidence/**/*.md`).
+
+### `runtime/` (Optional · Headless-First)
+
+- assemble pure-TS domain engines (`ActionRegister` + `createStore` / `createStateStore` / `TimeTravelStoreManager`) whose lifecycle does not depend on React mount lifetimes
+- import only framework-neutral dependencies, pure `business/` modules, and store factories — keep `react` / `react-dom` and downstream UI layers (`contexts/`, `handlers/`, `actions/`, `hooks/`, `views/`) out of `runtime/`
+- use lower-camel or kebab-case `.ts` filenames (colocated `*.test.ts` / `*.spec.ts` files allowed; no `.tsx`)
 
 ### `handlers/`
 
@@ -121,14 +129,21 @@ The current gate enforces:
 - `contexts/` files end in `Context` or `Contexts`.
 - `business/` files use lower-camel or kebab-case names and remain free of
   React and `@context-action/*` imports.
+- `runtime/` files use lower-camel or kebab-case `.ts` names (colocated
+  `*.test.ts` / `*.spec.ts` allowed) and remain free of `react`/`react-dom`
+  and UI layer (`contexts/`, `handlers/`, `actions/`, `hooks/`, `views/`)
+  imports.
 - `handlers/` files use `*HandlerRegistry`, `*Handlers`, `*HandlerSupport`, or
   `*HandlerDefinitions` names (plus `index` and `handler-registry` entry
-  points).
+  points); direct `use*ActionGuard`, `use*ActionCommandHandler`,
+  `use*ActionResultHandler`, `use*ActionObserver`, `use*ActionHandler`, and
+  `use*ActionEffectHandler` calls outside `handlers/` / `*HandlerRegistry` are
+  rejected.
 - `actions/` files use `*Actions` or `*ActionHandlers` names.
 - `hooks/` files use `use*` names, with `index` and `types` entry points.
 - `views/` files use `*View`, `*Views`, or a named composite such as `*Grid`.
 - Context modules do not import downstream layer folders, and views do not
-  import framework runtime, business, or handler modules directly.
+  import framework runtime, business, `runtime/`, or handler modules directly.
 
 Derived business values belong in a hook or facade before they reach a view.
 For example, the implementation-playbook packet and quote previews are
@@ -230,6 +245,7 @@ When you add a new scenario, update at least:
 
 ## Related Material
 
+- [Spec-to-Code Authoring Guide](/en/context-layered/spec-to-code-authoring-guide)
 - [Canonical Order Form Example](/en/examples/canonical-order-form)
 - [Explicit State Machine](/en/context-layered/patterns/explicit-state-machine)
 - [Stability Test Cycle](/en/context-layered/stability-test-cycle)

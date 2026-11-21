@@ -8,6 +8,7 @@
 pages/checkout/
 ├── contexts/
 ├── business/
+├── runtime/                     # 선택 · 순수 TS Headless-First 도메인 조립 계층
 ├── handlers/
 ├── actions/
 ├── hooks/
@@ -46,6 +47,10 @@ export interface CheckoutActions extends ActionPayloadMap {
 - 파생 데이터 계산
 
 여기 함수는 가능하면 입력만으로 결과가 결정되도록 유지하세요.
+
+### 2.5 `runtime/` (선택 · Headless-First)
+
+UI 마운트 수명에 묶이지 않는 순수 TypeScript 도메인 엔진(`ActionRegister` + `createStore` / `createStateStore` / `TimeTravelStoreManager`)을 조립합니다. React 없이 Node/Worker/Preact/Lit에서도 테스트·재사용할 수 있으며, 하위 UI 레이어나 `react`/`react-dom`은 import하지 않습니다.
 
 ### 3. `handlers/`
 
@@ -148,6 +153,7 @@ export default function CheckoutPage() {
 ## 함께 읽으면 좋은 문서
 
 - [Context-Layered 개요](/ko/context-layered/context-layered-guide)
+- [스펙 기반 코드 작성 가이드](/ko/context-layered/spec-to-code-authoring-guide)
 - [핸들러 레지스트리](/ko/context-layered/architecture/handler-registry)
 - [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
 - [Canonical Order Form 예제](/ko/examples/canonical-order-form)

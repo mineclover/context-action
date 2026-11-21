@@ -37,6 +37,8 @@ scenario/
 │   ├── scenarioActivity.ts
 │   ├── scenarioStateMachine.ts
 │   └── scenarioBusiness.ts
+├── runtime/                     # 선택 · 순수 TS Headless-First 엔진 (Node/Worker/호스트 공유)
+│   └── createScenarioRuntime.ts
 ├── handlers/
 │   ├── ScenarioHandlers.tsx
 │   ├── scenarioHandlerSupport.ts
@@ -72,6 +74,12 @@ scenario/
 
 > **TypeSpec Evidence 연동 (Policy Hopping — `ttsc@0.33.1` / `@wrtnlabs/evidence@0.8.0`)**:  
 > `business/`의 순수 검증 및 상태 전이 함수는 TypeSpec SSOT의 런타임 정책 타깃([CA-SPEC-EVIDENCE-001](./decisions/CA-SPEC-EVIDENCE-001.md), [통합 트라이어드 자율 동기화 가이드](./triad-evidence-sync-guide.md))이 될 수 있습니다. 핵심 비즈니스 로직 함수는 생성된 계약 선언(`@evidenceReview ./generated/dto.ts#Policy #hash`), 멀티라인 Heading-Form 주석(`## @evidence`, `## @evidenceReview`), 또는 분리형 증명 문서(`evidenceFiles: ["evidence/**/*.md"]`)로 AST 계약을 고정합니다.
+
+### `runtime/` (선택 · Headless-First)
+
+- React 마운트 수명주기에 종속되지 않는 순수 TypeScript 도메인 엔진(`ActionRegister` + `createStore` / `createStateStore` / `TimeTravelStoreManager`)을 조립한다
+- 프레임워크 중립 의존성, 순수 `business/` 모듈, 스토어 팩토리만 import하며 `react` / `react-dom` 및 React 하위 UI 레이어(`contexts/`, `handlers/`, `actions/`, `hooks/`, `views/`) import를 금지한다
+- 파일명은 lower-camel 또는 kebab-case `.ts`를 사용한다 (동일 위치 `*.test.ts` / `*.spec.ts` 허용, `.tsx` 금지)
 
 ### `handlers/`
 
@@ -121,16 +129,21 @@ compatibility 표면에는 canonical 명명 규칙을 일괄 적용하지 않습
 - `contexts/` 파일은 `Context` 또는 `Contexts`로 끝납니다.
 - `business/` 파일은 lower-camel 또는 kebab-case로 이름 짓고 React와
   `@context-action/*` import를 갖지 않습니다.
+- `runtime/` 파일은 lower-camel 또는 kebab-case `.ts`로 이름 짓고(동일 위치
+  `*.test.ts` / `*.spec.ts` 허용) `react`/`react-dom` 및 UI 레이어(`contexts/`,
+  `handlers/`, `actions/`, `hooks/`, `views/`) import를 갖지 않습니다.
 - `handlers/` 파일은 `*HandlerRegistry`, `*Handlers`, `*HandlerSupport`,
-  `*HandlerDefinitions` 명명을 사용합니다. `index`와
-  `handler-registry` 진입점은 예외로 허용합니다.
+  `*HandlerDefinitions` 명명을 사용하며(`index`와 `handler-registry` 예외),
+  `handlers/` 또는 `*HandlerRegistry` 바깥의 `use*ActionGuard`,
+  `use*ActionCommandHandler`, `use*ActionResultHandler`, `use*ActionObserver`,
+  `use*ActionHandler`, `use*ActionEffectHandler` 직접 호출을 차단합니다.
 - `actions/` 파일은 `*Actions` 또는 `*ActionHandlers`로 이름 짓습니다.
 - `hooks/` 파일은 `use*` 명명을 사용하며 `index`, `types` 진입점을
   허용합니다.
 - `views/` 파일은 `*View`, `*Views` 또는 `*Grid` 같은 명시적 composite
   명명을 사용합니다.
 - Context 모듈은 downstream 레이어를 import하지 않으며, View는 framework
-  runtime·business·handler 모듈을 직접 import하지 않습니다.
+  runtime·business·`runtime/`·handler 모듈을 직접 import하지 않습니다.
 
 파생 business 값은 View에 도달하기 전에 Hook 또는 Facade에서 계산합니다.
 예를 들어 implementation-playbook의 packet과 quote preview는 Data Hook이
@@ -230,6 +243,7 @@ activity log는 화면용 문자열을 바로 push하지 않습니다.
 
 ## 관련 자료
 
+- [스펙 기반 코드 작성 가이드](/ko/context-layered/spec-to-code-authoring-guide)
 - [Canonical Order Form 예제](/ko/examples/canonical-order-form)
 - [명시적 상태 머신](/ko/context-layered/patterns/explicit-state-machine)
 - [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)

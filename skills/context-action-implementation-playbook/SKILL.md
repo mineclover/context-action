@@ -11,10 +11,10 @@ Do not default every request to a full demo. Start with the smallest shape that 
 
 ## What this skill produces
 
-- a `contexts / business / handlers / actions / hooks / views` 6-layer split
+- a `contexts / business / handlers / actions / hooks / views` 6-layer split (plus an optional pure-TS `runtime/` directory for headless domain orchestration outside React)
 - `BusinessActionIntent` vs `LayoutActionIntent` separation (`No Mixed Payloads`)
 - pure business modules (`*Draft.ts`, `*Validation.ts`, `*Result.ts`, `*Activity.ts`, `*StateMachine.ts`) with `ttsc@0.33.1` / `@wrtnlabs/evidence@0.8.0` Policy Hopping locks (`@evidenceReview ./generated/dto.ts#... #hash`, Heading-Form `## @evidence`, or detached `evidenceFiles`)
-- handlers split by concern (`Draft` vs `Submission` / `Hydration`) using `Promise.allSettled` for parallel `@entityRoot` + `@aspectOf` aspect hydration
+- handlers split by concern (`Draft` vs `Submission` / `Hydration`) using the 4-role handler hooks (`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`) and `Promise.allSettled` for parallel `@entityRoot` + `@aspectOf` aspect hydration
 - thin views adhering to the 6-Level layout hierarchy, Two Golden Rules, 4-Tier Semantic Z-Index tokens (`--z-base: 1` ~ `--z-toast: 1100`), and Tier 3 Presentation State Waiver (file-header `@evidenceExclude`)
 - source registration, paired KO/EN docs linkage, `catalog/repository-surface/example-surface.v1.json` registration, and local verification gates (`pnpm docs:management`, `pnpm llms:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`)
 
@@ -25,6 +25,7 @@ Do not default every request to a full demo. Start with the smallest shape that 
 - `references/scaffolding.md`
 - `references/test-and-doc-linking.md`
 - `references/maturity-levels.md`
+- `../../docs/ko/context-layered/spec-to-code-authoring-guide.md`
 - `../../docs/ko/context-layered/implementation-convention.md`
 - `../../docs/ko/context-layered/store-selection-and-usage-guide.md`
 - `../../docs/ko/context-layered/triad-evidence-sync-guide.md`
@@ -33,6 +34,7 @@ Do not default every request to a full demo. Start with the smallest shape that 
 
 If the user is working in English, also read:
 
+- `../../docs/en/context-layered/spec-to-code-authoring-guide.md`
 - `../../docs/en/context-layered/implementation-convention.md`
 - `../../docs/en/context-layered/store-selection-and-usage-guide.md`
 - `../../docs/en/context-layered/triad-evidence-sync-guide.md`

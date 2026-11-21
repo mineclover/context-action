@@ -6,7 +6,7 @@
 
 # Interface: SignalConnection\<T\>
 
-Defined in: [packages/preact/src/source-signal.ts:24](https://github.com/mineclover/context-action/blob/main/packages/preact/src/source-signal.ts#L24)
+Defined in: [packages/preact/src/source-signal.ts:42](https://github.com/mineclover/context-action/blob/main/packages/preact/src/source-signal.ts#L42)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Type parameter **T**
 
 > **dispose**(): `void`
 
-Defined in: [packages/preact/src/source-signal.ts:27](https://github.com/mineclover/context-action/blob/main/packages/preact/src/source-signal.ts#L27)
+Defined in: [packages/preact/src/source-signal.ts:45](https://github.com/mineclover/context-action/blob/main/packages/preact/src/source-signal.ts#L45)
 
 #### Returns
 
@@ -32,7 +32,7 @@ Defined in: [packages/preact/src/source-signal.ts:27](https://github.com/mineclo
 
 > `readonly` **signal**: `ReadonlySignal`&lt;`T`&gt;
 
-Defined in: [packages/preact/src/source-signal.ts:25](https://github.com/mineclover/context-action/blob/main/packages/preact/src/source-signal.ts#L25)
+Defined in: [packages/preact/src/source-signal.ts:43](https://github.com/mineclover/context-action/blob/main/packages/preact/src/source-signal.ts#L43)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: [packages/preact/src/source-signal.ts:25](https://github.com/mineclo
 
 > `readonly` **disposed**: `boolean`
 
-Defined in: [packages/preact/src/source-signal.ts:26](https://github.com/mineclover/context-action/blob/main/packages/preact/src/source-signal.ts#L26)
+Defined in: [packages/preact/src/source-signal.ts:44](https://github.com/mineclover/context-action/blob/main/packages/preact/src/source-signal.ts#L44)

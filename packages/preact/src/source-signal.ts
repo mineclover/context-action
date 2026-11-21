@@ -21,6 +21,24 @@ export interface ReadableSource<T> {
   subscribe(notify: () => void): () => void;
 }
 
+/** Structural envelope contract matching `@context-action/store-core` `StateReader<T>` and `@context-action/react` `StoreReader<T>`. */
+export interface SnapshotStateReader<T> {
+  getSnapshot(): { readonly value: T };
+  subscribe(notify: () => void): () => void;
+}
+
+/**
+ * Adapts a snapshot-envelope `StateReader<T>` / `StoreReader<T>` (returning `{ value }`) into a
+ * raw-value `ReadableSource<T>` for `connectSourceSignal()`. Explicit adaptation avoids ambiguous
+ * duck-typing when domain states themselves contain a `.value` property.
+ */
+export function fromStateReader<T>(reader: SnapshotStateReader<T>): ReadableSource<T> {
+  return {
+    getSnapshot: () => reader.getSnapshot().value,
+    subscribe: notify => reader.subscribe(notify),
+  };
+}
+
 export interface SignalConnection<T> {
   readonly signal: ReadonlySignal<T>;
   readonly disposed: boolean;

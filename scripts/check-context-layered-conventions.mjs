@@ -66,6 +66,7 @@ const providerLayerRank = {
 const layerFileNamePatterns = {
   contexts: /(?:Context|Contexts)\.(?:ts|tsx)$/,
   business: /^[a-z][A-Za-z0-9-]*\.(?:ts|tsx)$/,
+  runtime: /^(?:index|[a-z][A-Za-z0-9-]*(?:\.(?:test|spec))?)\.ts$/,
   handlers:
     /^(?:index|handler-registry|[A-Za-z][A-Za-z0-9]*(?:HandlerRegistry|Handlers|HandlerSupport|HandlerDefinitions))\.(?:ts|tsx)$/,
   actions:
@@ -81,6 +82,16 @@ const layerBoundaryRules = {
       description: 'framework imports from business modules',
     },
   ],
+  runtime: [
+    {
+      pattern: /^react(?:-dom)?(?:\/|$)/,
+      description: 'React runtime imports from headless runtime modules',
+    },
+    {
+      pattern: /^(?:\.\.?\/)+(?:contexts|handlers|actions|hooks|views)(?:\/|$)/,
+      description: 'UI/React layer imports from headless runtime modules',
+    },
+  ],
   contexts: [
     {
       pattern: /^(?:\.\.?\/)(?:handlers|actions|hooks|views)(?:\/|$)/,
@@ -94,8 +105,8 @@ const layerBoundaryRules = {
       runtimeOnly: true,
     },
     {
-      pattern: /(?:^|\/)(?:business|handlers)(?:\/|$)/,
-      description: 'domain or handler imports from view modules',
+      pattern: /(?:^|\/)(?:business|handlers|runtime)(?:\/|$)/,
+      description: 'domain, runtime, or handler imports from view modules',
       runtimeOnly: true,
     },
   ],
@@ -463,7 +474,12 @@ function countHandlerRegistrations(filePath, source) {
       : ts.isPropertyAccessExpression(node.expression)
         ? node.expression.name.text
         : null;
-    if (expressionName && /^use[A-Za-z0-9_]*ActionHandler$/.test(expressionName)) {
+    if (
+      expressionName &&
+      /^use[A-Za-z0-9_]*(?:ActionHandler|ActionGuard|ActionCommandHandler|ActionObserver|ActionResultHandler|ActionEffectHandler)$/.test(
+        expressionName
+      )
+    ) {
       count += 1;
     }
     ts.forEachChild(node, visit);

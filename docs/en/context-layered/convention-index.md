@@ -9,6 +9,7 @@ you know which artifact you own.
 
 | If you are changing… | Read first | Then use |
 | --- | --- | --- |
+| a feature end-to-end from specs, intent, or store selection | [Spec-to-Code Authoring Guide](/en/context-layered/spec-to-code-authoring-guide) | `pnpm convention:check && pnpm docs:check` |
 | a package responsibility, dependency, or export | [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention) | `pnpm package-boundary:check` |
 | repository API packages, example routes, or managed document inventory | [Repository Surface Catalog](/en/context-layered/repository-surface-catalog) | `pnpm verify:surface-catalog` |
 | choosing or integrating a Store / state mechanism across packages | [Store Selection and Usage Guide](/en/context-layered/store-selection-and-usage-guide) | `pnpm package-boundary:check` |
@@ -25,6 +26,8 @@ For local pre-PR receipt verification ([Local-First Verification Policy](../../L
 
 ### 1. Documents that define the standard
 
+- [Spec-to-Code Authoring Guide](/en/context-layered/spec-to-code-authoring-guide)
+  - single end-to-end blueprint mapping IIC and 3-tier state rules through `contexts / business / runtime / handlers / actions / hooks / views`, the 4-role pipeline hierarchy, and verification gates
 - [Convention Alignment Plan](/en/context-layered/convention-alignment-plan)
   - current-state classification, fixed provider order, and migration gates
 - [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention)

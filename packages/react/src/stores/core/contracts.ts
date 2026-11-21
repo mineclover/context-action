@@ -23,7 +23,12 @@ export interface StoreWriter<T> {
 export interface TimelineReader<T> extends StoreReader<T>, Pick<TimelineBackend<T>, 'canUndo' | 'canRedo' | 'getPosition' | 'getHistoryLength'> {}
 export type HistoryEntryId = CoreHistoryEntryId;
 
-/** Legacy participant facade, NOT the state-owning store-core TransactionBackend. */
+/**
+ * @deprecated Legacy React participant facade. Prefer `TransactionParticipantBackend`
+ * from `@context-action/store-core` or `@context-action/react/backend` for new
+ * coordination integrations; `@context-action/store-core`'s `TransactionBackend`
+ * is a full state-owning timeline.
+ */
 export interface TransactionBackend<T = unknown> extends TransactionParticipantBackend<T> {
   // Keep legacy metadata arguments and convenience undo/redo methods intact.
   beginBatch(meta?: StateMutationMeta, options?: { deferNotification?: boolean }): void;

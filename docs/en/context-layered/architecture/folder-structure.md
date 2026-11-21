@@ -10,6 +10,7 @@ The Context-Layered Architecture provides clear separation of responsibilities w
 pages/checkout/
 ├── contexts/                    # 🗄️ Context Definitions
 ├── business/                    # 🏢 Pure Domain Logic
+├── runtime/                     # ⚙️ Optional Pure-TS Headless Engine
 ├── handlers/                    # ⚙️ Handler Logic (Props-based)
 ├── actions/                     # 🚀 Dispatch + Callbacks
 ├── hooks/                       # 🔗 Store Subscriptions
@@ -76,6 +77,9 @@ export const {
 **Purpose**: Side-effect-free validation, calculations, and state transitions
 
 Keep domain rules in pure functions so they can be tested without React, stores, or external services.
+
+### 2.5 `runtime/` - Optional Pure-TS Headless Engine
+**Purpose**: Assemble pure-TS domain engines (`ActionRegister` + `createStore` / `createStateStore` / `TimeTravelStoreManager`) whose lifecycle does not depend on React mount lifetimes. Testable directly in Node/Workers/Preact/Lit without React or DOM, keeping `react`/`react-dom` and downstream UI layers out of `runtime/`.
 
 ### 3. `handlers/` - Handler Logic (Props-based)
 **Purpose**: Isolated handler registration with props-based dependency injection
@@ -318,3 +322,5 @@ Full TypeScript support with clear interfaces between layers.
 - Don't bypass the props-based dependency pattern
 
 This structure ensures maintainable, testable, and scalable Context-Action applications with clear architectural boundaries.
+
+See also the [Spec-to-Code Authoring Guide](../spec-to-code-authoring-guide.md) for the end-to-end workflow connecting IIC, 3-tier state classification, 4-role pipelines, and headless `runtime/` DI.

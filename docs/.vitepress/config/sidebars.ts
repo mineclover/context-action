@@ -236,6 +236,7 @@ const CONTEXT_LAYERED_ITEMS = {
   en: [
     { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
     { text: 'Convention Index', link: '/en/context-layered/convention-index' },
+    { text: 'Spec-to-Code Authoring Guide', link: '/en/context-layered/spec-to-code-authoring-guide' },
     { text: 'Repository Surface Catalog', link: '/en/context-layered/repository-surface-catalog' },
     { text: 'Store Selection and Usage Guide', link: '/en/context-layered/store-selection-and-usage-guide' },
     { text: 'Package Boundary and Codebase Management', link: '/en/context-layered/package-boundary-convention' },
@@ -265,6 +266,7 @@ const CONTEXT_LAYERED_ITEMS = {
   ko: [
     { text: '개요', link: '/ko/context-layered/context-layered-guide' },
     { text: '개발 컨벤션 인덱스', link: '/ko/context-layered/convention-index' },
+    { text: '스펙 기반 코드 작성 가이드', link: '/ko/context-layered/spec-to-code-authoring-guide' },
     { text: '저장소 표면 카탈로그', link: '/ko/context-layered/repository-surface-catalog' },
     { text: 'Store별 선택 및 사용법 가이드', link: '/ko/context-layered/store-selection-and-usage-guide' },
     { text: '패키지 경계 및 코드베이스 관리', link: '/ko/context-layered/package-boundary-convention' },

@@ -152,6 +152,18 @@ assertContains(
   /\/ko\/context-layered\/store-selection-and-usage-guide/,
   'the store selection and usage guide discovery link'
 );
+assertContains(
+  'docs/en/context-layered/convention-index.md',
+  englishConventionIndex,
+  /\/en\/context-layered\/spec-to-code-authoring-guide/,
+  'the spec-to-code authoring guide discovery link'
+);
+assertContains(
+  'docs/ko/context-layered/convention-index.md',
+  koreanConventionIndex,
+  /\/ko\/context-layered\/spec-to-code-authoring-guide/,
+  'the spec-to-code authoring guide discovery link'
+);
 
 for (const [locale, relativePath] of [
   ['en', 'docs/en/context-layered/change-management-convention.md'],

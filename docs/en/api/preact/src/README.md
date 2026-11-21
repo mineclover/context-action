@@ -10,6 +10,7 @@
 
 - [SourceContext](interfaces/SourceContext.md)
 - [ReadableSource](interfaces/ReadableSource.md)
+- [SnapshotStateReader](interfaces/SnapshotStateReader.md)
 - [SignalConnection](interfaces/SignalConnection.md)
 
 ## Functions
@@ -17,4 +18,5 @@
 - [createDispatchContext](functions/createDispatchContext.md)
 - [useProjection](functions/useProjection.md)
 - [createSourceContext](functions/createSourceContext.md)
+- [fromStateReader](functions/fromStateReader.md)
 - [connectSourceSignal](functions/connectSourceSignal.md)

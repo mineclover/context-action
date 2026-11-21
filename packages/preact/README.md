@@ -2,7 +2,7 @@
 
 `@context-action/preact`는 Context-Action의 핵심 액션 파이프라인(`ActionDispatcher`)과 외부의 읽기 전용 상태 소스(`ReadableSource`)를 Preact 뷰와 `@preact/signals`에 연결하는 **헤드리스(Headless) 어댑터**입니다.
 
-이 패키지는 DOM 루트를 생성하거나 소유하지 않으며, 컴포넌트 수명주기를 직접 제어하지 않습니다. 정확히 4개의 공개 함수(`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`)와 3개의 핵심 인터페이스(`ReadableSource<T>`, `SignalConnection<T>`, `SourceContext<T>`)로 구성된 극도로 정제된 API 표면을 제공합니다. Preact Signals의 미세 단위 반응성을 활용하여 가상 DOM 전체 리렌더링 없이 DOM 텍스트 노드를 $O(1)$로 직접 갱신합니다.
+이 패키지는 DOM 루트를 생성하거나 소유하지 않으며, 컴포넌트 수명주기를 직접 제어하지 않습니다. 정확히 5개의 공개 함수(`createDispatchContext`, `fromStateReader`, `connectSourceSignal`, `createSourceContext`, `useProjection`)와 4개의 핵심 인터페이스(`ReadableSource<T>`, `SnapshotStateReader<T>`, `SignalConnection<T>`, `SourceContext<T>`)로 구성된 정제된 API 표면을 제공합니다. Preact Signals의 미세 단위 반응성을 활용하여 가상 DOM 전체 리렌더링 없이 DOM 텍스트 노드를 $O(1)$로 직접 갱신합니다.
 
 ---
 
@@ -25,7 +25,7 @@ yarn add @context-action/preact preact @preact/signals
 
 | 패키지 (Package) | 요구 버전 (Version Range) | 필수 여부 (Required) | 역할 및 설명 (Role & Responsibility) |
 |---|---|---|---|
-| `preact` | `^10.27.3` | **필수 (Mandatory)** | Preact VDOM 런타임 및 JSX 렌더링 엔진 |
+| `preact` | `^10.27.3 \|\| ^11.0.0` | **필수 (Mandatory)** | Preact VDOM 런타임 및 JSX 렌더링 엔진 (Preact 10/11 지원) |
 | `@preact/signals` | `^2.11.3` | **필수 (Mandatory)** | 미세 단위 반응형 시그널 프리미티브 (`signal`, `computed`, `ReadonlySignal`) |
 | `react` | 해당 없음 | **불필요 (Not Required)** | 순수 Headless 어댑터이므로 React 의존성이 필요하지 않습니다. (선택적 브릿지가 필요한 경우 `@context-action/preact-ui/react-bridge` 사용) |
 | `preact-render-to-string` | 해당 없음 | **불필요 (Not Required)** | DOM 렌더러가 아니므로 SSR 렌더러 의존성이 필요하지 않습니다. (서버 마운트 렌더링이 필요한 경우 `@context-action/preact-ui/ssr` 사용) |
@@ -271,6 +271,22 @@ export function createDispatchContext<A extends ActionPayloadMap>(name: string):
   - `Provider` 외부에서 `useDispatch()`를 호출할 경우 `"${name}: useDispatch requires its Provider"` 에러를 던집니다.
 - **계약 보장**:
   - 이 어댑터는 `ActionRegister`를 임의로 생성하거나 파괴하지 않으며, `@context-action/core`의 디스패치 실행 및 프로미스 처리 의미론을 그대로 유지합니다.
+
+---
+
+### `fromStateReader<T>(reader: SnapshotStateReader<T>): ReadableSource<T>`
+
+`@context-action/store-core`의 `StateReader<T>` 또는 `@context-action/react`의 `StoreReader<T>`처럼 `getSnapshot()`이 `{ value: T }` 메타데이터 래퍼를 반환하는 스토어를 `connectSourceSignal()`이 기대하는 원시 값 기반 `ReadableSource<T>`로 명시적으로 변환합니다.
+
+```typescript
+import { createStateStore } from '@context-action/store-core';
+import { connectSourceSignal, fromStateReader } from '@context-action/preact';
+
+const backendStore = createStateStore('session', { step: 1 });
+const connection = connectSourceSignal(fromStateReader(backendStore));
+```
+
+- **명시적 어댑터를 두는 이유**: 도메인 상태 `T` 자체에 `.value` 속성이 포함될 수 있으므로 `connectSourceSignal()` 내부에서 런타임 덕 타이핑(`'value' in snapshot`)을 수행하지 않고, 래퍼 언래핑 의도를 호출부에서 명확히 드러냅니다.
 
 ---
 
