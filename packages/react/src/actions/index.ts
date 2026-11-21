@@ -21,7 +21,9 @@ export {
 export type {
   ActionContextConfig,
   ActionContextType,
-  ActionContextReturn
+  ActionContextReturn,
+  ActionProviderProps,
+  ProviderShutdownOptions,
 } from './ActionContext.types';
 
 // === ACTION UTILITIES ===

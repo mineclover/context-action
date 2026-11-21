@@ -8,7 +8,7 @@
 
 > **sanitizeToolCallDiagnostic**(`result`, `policy?`): [`ToolCallResult`](../interfaces/ToolCallResult.md)
 
-Defined in: [packages/tool-protocol/src/observability.ts:301](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L301)
+Defined in: [packages/tool-protocol/src/observability.ts:307](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L307)
 
 Creates the durable projection for an ambiguous or failed tool result.
 

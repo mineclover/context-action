@@ -15,9 +15,11 @@ const GUIDE_STRUCTURE = {
       collapsed: false,
       items: [
         { text: 'Getting Started', link: '/en/guide/getting-started' },
+        { text: 'Type Inference', link: '/en/guide/type-inference' },
         { text: 'Actions-based Dispatching', link: '/en/guide/actions-based-dispatching' },
         { text: 'Code Patterns', link: '/en/guide/code-patterns' },
         { text: 'Best Practices', link: '/en/guide/best-practices' },
+        { text: 'Troubleshooting', link: '/en/guide/troubleshooting' },
         { text: 'Production Readiness', link: '/en/guide/production-readiness' },
         { text: 'React 19.2 Activity', link: '/en/guide/react-19-activity' },
         { text: 'React UI Testing with act', link: '/en/guide/react-testing-act' },
@@ -103,9 +105,11 @@ const GUIDE_STRUCTURE = {
       collapsed: false,
       items: [
         { text: '시작하기', link: '/ko/guide/getting-started' },
+        { text: '타입 추론', link: '/ko/guide/type-inference' },
         { text: 'Actions 기반 디스패칭', link: '/ko/guide/actions-based-dispatching' },
         { text: '코드 패턴', link: '/ko/guide/code-patterns' },
         { text: '모범 사례', link: '/ko/guide/best-practices' },
+        { text: '문제 해결', link: '/ko/guide/troubleshooting' },
         { text: '프로덕션 준비도', link: '/ko/guide/production-readiness' },
         { text: 'React 19.2 Activity', link: '/ko/guide/react-19-activity' },
         { text: 'act를 활용한 React UI 테스트', link: '/ko/guide/react-testing-act' },

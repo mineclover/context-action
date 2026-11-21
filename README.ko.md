@@ -5,9 +5,9 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/mineclover/context-action/ci.yml?branch=main&style=flat-square)](https://github.com/mineclover/context-action/actions)
 
-**문서 중심의 컨텍스트 분리와 MVVM 아키텍처를 갖춘 혁신적인 TypeScript 상태 관리 라이브러리**
+**명시적인 도메인 경계, 타입 안전한 커맨드 파이프라인, 점진적 도입을 지원하는 TypeScript 상태 관리 및 액션 런타임**
 
-**🎯 완벽한 관심사 분리** • **🔒 완전한 타입 안전성** • **⚡ 제로 보일러플레이트** • **🏗️ 확장 가능한 아키텍처** • **🌐 바닐라 JS 지원**
+**🎯 명확한 관심사 분리** • **🔒 완전한 타입 안전성** • **🧩 점진적 도입** • **🏗️ 헤드리스 우선 아키텍처** • **🌐 프레임워크 중립 코어**
 
 [📚 문서](https://mineclover.github.io/context-action/ko/) • [🎮 라이브 데모](https://mineclover.github.io/context-action/example/) • [⚡ Web Coding Studio](https://mineclover.github.io/context-action/web-coding/) • [🚀 빠른 시작](#-빠른-시작) • [🌟 바닐라 JS](#-바닐라-자바스크립트)
 
@@ -21,35 +21,42 @@
 # React 애플리케이션
 npm install @context-action/react
 
-# 바닐라 JavaScript/TypeScript (프레임워크 불필요)
-npm install @context-action/core
+# 헤드리스 TypeScript / 바닐라 JS (액션 파이프라인 + 무의존성 스토어)
+npm install @context-action/core @context-action/store-core
 
-# CDN (빠른 프로토타이핑)
+# CDN (빠른 브라우저 프로토타이핑)
 # <script type="module">
 #   import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+#   import { createStateStore } from 'https://esm.sh/@context-action/store-core@latest';
 # </script>
 ```
 
 ### 30초 예제 (React)
 
-```typescript
+```tsx
 import { createStoreContext, useStoreValue } from '@context-action/react';
-import { useCallback } from 'react';
 
-// 1. 컨텍스트 생성
+// 1. 도메인 스토어 컨텍스트 생성
 const { Provider, useStore } = createStoreContext('User', {
   profile: { name: 'John', email: 'john@example.com' }
 });
 
-// 2. 컴포넌트에서 사용
+// 2. 컴포넌트에서 읽고 업데이트
 function UserProfile() {
   const profileStore = useStore('profile');
   const profile = useStoreValue(profileStore);
 
-  return <h1>환영합니다, {profile.name}님!</h1>;
+  return (
+    <div>
+      <h1>환영합니다, {profile.name}님!</h1>
+      <button onClick={() => profileStore.setValue({ ...profile, name: 'Jane' })}>
+        이름 변경
+      </button>
+    </div>
+  );
 }
 
-// 3. 프로바이더로 감싸기
+// 3. Provider로 감싸기
 function App() {
   return (
     <Provider>
@@ -59,9 +66,7 @@ function App() {
 }
 ```
 
-**끝!** 🎉 완전한 타입 안전성, 반응형 업데이트, 깔끔한 아키텍처.
-
-### 30초 예제 (바닐라 JS)
+### 30초 예제 (헤드리스 / 바닐라 JS)
 
 ```html
 <!DOCTYPE html>
@@ -72,37 +77,21 @@ function App() {
 
   <script type="module">
     import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+    import { createStateStore } from 'https://esm.sh/@context-action/store-core@latest';
 
-    // 간단한 스토어
-    class Store {
-      constructor(initialState) {
-        this.state = initialState;
-        this.listeners = new Set();
-      }
-      getValue() { return this.state; }
-      setValue(newState) {
-        this.state = newState;
-        this.listeners.forEach(fn => fn(this.state));
-      }
-      subscribe(listener) {
-        this.listeners.add(listener);
-        return () => this.listeners.delete(listener);
-      }
-    }
-
-    // 스토어와 액션 생성
-    const store = new Store({ count: 0 });
+    // 무의존성 스토어와 액션 파이프라인 생성
+    const store = createStateStore('counter', { count: 0 });
     const actions = new ActionRegister({ name: 'Counter' });
 
-    // 핸들러 등록
+    // 커맨드 핸들러 등록
     actions.register('increment', () => {
       const current = store.getValue();
       store.setValue({ count: current.count + 1 });
     });
 
-    // 구독 및 연결
-    store.subscribe(state => {
-      document.getElementById('counter').textContent = state.count;
+    // UI 구독 및 액션 연결
+    store.subscribe(() => {
+      document.getElementById('counter').textContent = String(store.getValue().count);
     });
     document.getElementById('increment').onclick = () => {
       actions.dispatch('increment');
@@ -116,9 +105,48 @@ function App() {
 
 ---
 
-## 🧭 첫 추천 학습 경로
+## 📈 점진적 도입 (작게 시작해 필요할 때 확장)
 
-개별 API를 따로 보기보다, 현재 저장소가 권장하는 표준을 한 번에 이해하고 싶다면 **Implementation Playbook 경로**부터 시작하는 것이 가장 좋습니다.
+기능 규모에 맞는 경계만 선택해 도입할 수 있습니다:
+
+| 단계 | 적합한 상황 | 핵심 API |
+| --- | --- | --- |
+| **Level 1 · Lite** | 단일 컴포넌트/기능 상태와 타입 안전한 커맨드 | `createStoreContext`, `createActionContext` (또는 `createStateStore` + `ActionRegister`) |
+| **Level 2 · Standard** | 헤드리스 오케스트레이션, 역할 기반 검증·실행, 고빈도 DOM 제어 | `<ActionProvider register={headlessRegister}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `createRefContext` |
+| **Level 3 · Enterprise** | 다중 팀 도메인, 다중 스토어 원자 Undo/Redo, AI/MCP 도구, 마이크로 프론트엔드 | 6계층 Context-Layered, `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, `@context-action/lit-ui` / `preact-ui` |
+
+---
+
+## 🎯 왜 Context-Action인가?
+
+### ❌ 기존 상태 관리의 한계
+- **높은 React 결합도** → 비즈니스 파이프라인이 컴포넌트와 훅 생명주기에 종속됨
+- **이진 상태 접근법** → 거대한 전역 싱글턴 아니면 로컬 `useState`뿐이어서 도메인별 스코프 격리가 어려움
+- **비정형 비동기 제어** → 우선순위, 취소(`AbortSignal`), 가드 검증, 다중 스토어 롤백을 매번 수동 구현해야 함
+
+### ✅ Context-Action의 접근법
+- **🎯 명시적인 도메인 경계** → 하나의 전역 스토어 대신 도메인 컨텍스트 단위로 상태와 액션 파이프라인을 격리
+- **🏗️ 헤드리스 우선 + MVVM 분리** → 프레임워크 중립 `ActionRegister` / `StateStore`를 React 밖에서 조립한 뒤 `<Provider register={...}>` DI로 주입 가능
+- **🔒 타입 우선 계약** → 액션 페이로드, 반환 결과, 가드, 스토어 전체에 걸친 컴파일 타임 타입 추론
+- **📈 점진적 확장** → 작은 스토어 컨텍스트로 시작해 필요할 때만 역할별 훅, 6계층 구조, 트랜잭션, AI/웹 컴포넌트 어댑터 추가
+
+### 🚀 주요 이점
+
+```typescript
+// 도메인 훅 하나로 상태 읽기와 액션 디스패치 계약을 깔끔하게 제공:
+const { profile, updateProfile } = useUserPage();
+```
+
+---
+
+<details>
+<summary><strong>🏛️ 엔터프라이즈·에코시스템 심화: Implementation Playbook 및 4대 핵심 개발 표준</strong> (클릭하여 펼치기)</summary>
+
+<br/>
+
+### 추천 표준 학습 경로 (Implementation Playbook)
+
+엔터프라이즈 규모의 6계층 표준 패턴과 도구 호출 아키텍처를 한 번에 확인하려면 아래 경로를 참고하세요:
 
 - **표준 컨벤션**: [Implementation Convention](https://mineclover.github.io/context-action/ko/context-layered/implementation-convention)
 - **Tool-calling 컨벤션**: [Tool Calling Web Studio 컨벤션](https://mineclover.github.io/context-action/ko/context-layered/usecase-tool-calling-web-studio)
@@ -139,84 +167,23 @@ function App() {
   - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/incident-escalation-playbook.integration.test.tsx`
   - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/renewal-risk-review-playbook.integration.test.tsx`
 
-이 경로를 따라가면 Action, Store, Ref 경계뿐 아니라, 표준 컨벤션, skill, canonical example, 그리고 3개의 도메인 시나리오 데모까지 한 번에 확인할 수 있습니다.
+### 4대 핵심 개발 표준
 
----
+엔터프라이즈 마이크로 프론트엔드 및 웹 컴포넌트 통합 시 아래 **4대 핵심 개발 표준**을 따릅니다:
 
-## 🏛️ 4대 핵심 개발 표준
+1. **📊 상태 관리 아키텍처 (3-Tier State Hierarchy)** ([CA-SPEC-EVIDENCE-001](./docs/ko/context-layered/decisions/CA-SPEC-EVIDENCE-001.md)):
+   - **Tier 1 (지속 가능한 도메인 계약)**: 공유 도메인 모델·영속/API DTO·핵심 FSM (`createStoreContext`, `@context-action/store-core`, TypeSpec SSOT).
+   - **Tier 2 (일시적 애플리케이션 로직)**: 클라이언트 계산 결과(`*Result.ts`), 폼 제어 값(`@property()` + `ElementInternals.setFormValue()`), 도메인 활동 이벤트(`*Activity.ts`).
+   - **Tier 3 (휘발성 프레젠테이션 상태)**: 로컬 UI 상태(`isFocused`, `isOpen`, `activeTab`)는 로컬 `useState`, `createRefContext`, Lit `@state()`, Preact `signal()`로 관리.
+   - 선택적 프로젝션, Equality Guard(`Object.is`), Coalesced Pending 지원.
+2. **🔌 인터페이스 설계 표준**:
+   - 프리미티브 Attribute vs 복합 객체 Property(`attribute: false`) 분리, `{ bubbles: true, composed: true }` 기반 `CustomEvent`, 명령형 인스턴스 메서드, React 18/19 호스트 브리지(`createLitElementBridge`, `createCustomElementBridge`).
+3. **🎨 디자인 시스템 통합**:
+   - CSS Custom Properties 디자인 토큰, `::part()` 스타일링 훅, Constructable Stylesheets, Adobe React Aria 상태 속성 호환.
+4. **🧩 웹 컴포넌트 구현 컨벤션**:
+   - Lit(`@context-action/lit` / `lit-ui`)·Preact(`@context-action/preact` / `preact-ui`), W3C Context Protocol(`@lit/context`), `disconnectedCallback` 무누수 해제, FACE(`ElementInternals`).
 
-Context-Action 프레임워크는 마이크로 프론트엔드와 엔터프라이즈 환경에서 구현의 자율성을 보장하면서도 일관된 품질과 유지보수성을 확보하기 위해 **4대 핵심 개발 표준**을 확립합니다.
-
-### 1. 📊 상태 관리 아키텍처 (State Management)
-* **상태 3계층 모델 (3-Tier State Hierarchy)** ([CA-SPEC-EVIDENCE-001](./docs/ko/context-layered/decisions/CA-SPEC-EVIDENCE-001.md)):
-  - **Tier 1 (지속 가능한 도메인 계약 — Durable Domain Contract)**: 장바구니, 유저 세션, 영속화/API DTO 및 핵심 상태 머신. Context-Action `ReadableStore` (`createStoreContext`, `@context-action/store-core`)와 TypeSpec SSOT 계약이 단일 진실 원천(SSOT).
-  - **Tier 2 (일시적 애플리케이션 로직 — Transient Application Logic)**: 클라이언트 계산 결과(`*Result.ts`), 폼 컨트롤 고유 값(`@property()` + `ElementInternals.setFormValue()`), 도메인 활동 이벤트(`*Activity.ts`).
-  - **Tier 3 (휘발성 프레젠테이션 상태 — Volatile Presentation State)**: 컴포넌트 내부 렌더링 전용 UI 상태(`isFocused`, `isOpen`, `activeTab`). 로컬 `useState`, `createRefContext`, Lit `@state()`, Preact `signal()`로 관리하며 TypeSpec/Evidence 추적 대상에서 명시적으로 면제.
-* **선택적 프로젝션 (Selective Projection)**: 스토어 전체가 아닌 컴포넌트에 필요한 최소 슬라이스만 `selector` 함수로 추출.
-* **Equality Guard (방어적 리렌더링)**: `equalityFn`(기본 `Object.is`) 비교로 파생 데이터가 같을 경우 `requestUpdate()`를 억제하여 120fps 고주파 이벤트에서도 렌더링 비용을 0으로 유지.
-* **Coalesced Pending**: 액션 로딩 상태(`isPending`) 추적 시 0 ↔ >0 전환 시점에만 리렌더링 요청을 병합 실행.
-
-### 2. 🔌 인터페이스 설계 표준 (Interface Design Standards)
-* **속성(Attribute) vs 프로퍼티(Property) 엄격 분리**:
-  - 문자열, 숫자, 불리언 등 프리미티브만 HTML 속성(`kebab-case`)과 1:1 양방향 리플렉션.
-  - Store, ActionRegister, Model 객체, 함수 등 복합 객체는 **반드시 `attribute: false`로 선언**하여 HTML 어트리뷰트 문자열화(`[object Object]`)를 방지하고 순수 DOM 프로퍼티로만 수용.
-* **표준 CustomEvent 디스패칭**:
-  - 시맨틱 명칭(`quantity-change`, `cart-badge-click`)을 사용하며, **`{ bubbles: true, composed: true }`를 기본값으로 필수 지정**하여 Shadow DOM 경계를 자연스럽게 탈출.
-  - 소비자의 완벽한 타입 안전성을 위해 `export interface XxxEventDetail { ... }` 규격을 필수로 함께 export.
-* **명령형 인스턴스 메서드 (Imperative APIs)**:
-  - `.focus()`, `.setValue()`, `.increment()`, `.checkValidity()` 등은 `public`으로 명확히 노출하며, 옵션 객체(`options?: { dispatchEvents?: boolean }`) 패턴으로 부수 효과를 제어.
-* **React 18/19 호스트 연동 브리지**:
-  - `createLitElementBridge` 및 `createCustomElementBridge`를 통해 복합 객체(`properties: ['store', 'register']`)의 DOM 프로퍼티 직할 할당과 React 카멜케이스 핸들러 ↔ DOM 이벤트 매핑을 자동화.
-
-### 3. 🎨 디자인 시스템 적용 방법 (Design System Integration)
-* **CSS Custom Properties 기반 디자인 토큰 주입**:
-  - 컴포넌트 내부 스타일은 Fallback을 갖춘 전역 토큰(`var(--stepper-border-color, #cbd5e1)`)으로 참조하여 상위 호스트 문서에서 테마(색상, 타이포그래피, 간격)를 일괄 주입.
-* **`::part()` 의사 요소 훅(Styling Hook) 노출**:
-  - 외부에서 미세한 스타일 커스터마이징이 가능하도록 핵심 내부 노드에 `part="button"`, `part="input"` 훅을 명시적으로 노출.
-* **Constructable Stylesheets & 테마 적응**:
-  - `static override styles = css`...``를 사용하여 브라우저 메모리를 절약하고, 다크 모드(`:host-context([data-theme="dark"])` 또는 미디어 쿼리)에 즉각 반응.
-* **Adobe React Aria 호환성**:
-  - React Aria Components의 접근성 및 스타일 계약(`data-focus-visible`, `data-hovered`, `data-disabled`)과 완벽히 동기화.
-
-### 4. 🧩 웹 컴포넌트 구현 컨벤션 (Web Component Conventions)
-* **런타임 선택 기준**:
-  - **Lit (`@context-action/lit`)**: Zero VDOM 초경량 렌더링, W3C 표준, 독립형 엔터프라이즈 디자인 시스템에 최적.
-  - **Preact (`@context-action/preact`)**: Micro VDOM(3KB) + Preact Signals의 미세 반응성, React/JSX 친화적 마이크로 프론트엔드 위젯에 최적.
-* **W3C Context Protocol (`@lit/context`) 지원**:
-  - Shadow DOM 트리 경계를 넘어 상위 Provider로부터 스토어와 레지스터를 자동 주입(DI).
-* **결정론적 수명주기 & Zero Memory Leak**:
-  - `disconnectedCallback` 시점에 스토어 구독, DOM 이벤트, 진행 중인 비동기 요청(`AbortSignal`)이 동기적으로 완전 해제.
-  - DOM에 재부착(`connectedCallback`)될 때 최신 상태 스냅샷으로 깨끗하게 재동기화.
-* **Form-Associated Custom Elements (FACE) 준수**:
-  - `ElementInternals`를 통해 네이티브 `<form>` 참여 및 `new FormData()` 수집을 보장하고, 폼 리셋 시 `onFormReset()` 콜백으로 초기 상태 복원.
-
----
-
-## 🎯 왜 Context-Action인가?
-
-### ❌ 기존 라이브러리의 문제점
-- **높은 React 결합도** → 컴포넌트 모듈화 어려움
-- **이진 상태 접근법** → 범위 기반 분리 부족
-- **복잡한 보일러플레이트** → 장황한 설정과 유지보수
-
-### ✅ Context-Action의 해결책
-- **🎯 문서 중심 설계** → 도메인 경계를 기반으로 한 컨텍스트 분리
-- **🏗️ MVVM 아키텍처** → 완벽한 분리: Model, ViewModel, View 레이어
-- **🔒 타입 우선 접근법** → 완전한 TypeScript 지원으로 런타임 오류 제로
-- **⚡ 제로 보일러플레이트** → 최소한의 코드, 최대한의 기능
-
-### 🚀 주요 이점
-
-```typescript
-// 기존: 여러 라이브러리로 복잡한 설정
-const store = createStore(reducer);
-const dispatch = useDispatch();
-const selector = useSelector(state => state.user);
-const actions = bindActionCreators(userActions, dispatch);
-
-// Context-Action: 한 줄로 모든 로직
-const { profile, updateProfile } = useUserPage(); // 모든 로직이 훅 안에
-```
+</details>
 
 ---
 

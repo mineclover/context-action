@@ -8,4 +8,4 @@
 
 > `const` **DEFAULT\_TOOL\_OBSERVABILITY\_POLICY**: [`ToolObservabilityPolicy`](../interfaces/ToolObservabilityPolicy.md)
 
-Defined in: [packages/tool-protocol/src/observability.ts:135](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L135)
+Defined in: [packages/tool-protocol/src/observability.ts:134](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L134)

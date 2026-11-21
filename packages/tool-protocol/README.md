@@ -36,6 +36,16 @@ const initialInput: SearchInput = { query: 'keyboard' };
 const initialResult: SearchResult = { items: [] };
 ```
 
+## Package Boundary Quick Reference
+
+| Package | Responsibility | Owns Runtime Execution / Persistence? |
+| --- | --- | --- |
+| `@context-action/core` | Framework-neutral `ActionRegister` pipeline & roles | Execution pipeline only (no schemas/Zod) |
+| `@context-action/tool-protocol` | Action/Zod/JSON Schema contracts, MCP & provider format adapters, observability helpers | Contracts & serialization only |
+| `@context-action/tool-durable-operations` | Lease/claim side-effect recovery & IndexedDB/Redis/PostgreSQL backends | Yes (durable recovery & persistence) |
+| `@context-action/ai-sdk` | AI SDK v7 turn-scoped `dynamicTool` `ToolSet` bridge | Adapter only |
+| `@context-action/webmcp` | Browser `document.modelContext` allowlist bridge | Browser adapter only |
+
 Zod is a runtime dependency because the package exposes the action-schema API from
 its root entry point. `@context-action/core` owns action registration and
 execution. The repository's source-only `packages/react/src/tools` track binds

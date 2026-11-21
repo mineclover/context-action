@@ -1,0 +1,29 @@
+---
+document_id: guide--index
+category: guide
+source_path: ko/guide/index.md
+character_limit: 2000
+last_update: '2026-11-21T03:32:50.152Z'
+update_status: auto_generated
+priority_score: 85
+priority_tier: high
+completion_status: completed
+workflow_stage: content_generated
+---
+사용자 가이드
+
+사용자 가이드 Context-Action 프레임워크 사용자 가이드에 오신 것을 환영합니다. 기초 설정부터 단계적 아키텍처 확장 패턴까지 한눈에 살펴볼 수 있습니다. 🚀 시작하기 핵심 가이드 - 시작하기 - 점진적 도입 단계, 설치, React/Headless/Ref 빠른 시작 - 파이프라인 시스템 - 액션 처리 파이프라인, 우선순위, 디스패치 동작 이해하기 - 훅 수명주기 - 액션 파이프라인과 React 훅 내부 동작 원리 - 모범 사례 - 프로덕션 권장 패턴과 컨벤션 - React Aria 통합 - 접근성 UI 상태는 로컬에 두고 도메인 결정만 Context-Action과 연결하기 - 문제 해결 가이드 - 자주 겪는 문제와 메모리·성능 점검 🎯 패턴 모음 핵심 프레임워크 패턴 - 코드 패턴 - 패턴 개요 및 디렉터리별 마이그레이션 안내 - 패턴 컬렉션 - 전체 구현 패턴 인덱스 패턴 컬렉션 에서 상황별 세부 패턴을 확인할 수 있습니다: | 패턴 | 활용 시나리오 | 적합한 대상 | |------|---------------|-------------| | Action Only | Store 없이 액션 파이프라인만 구성 | 이벤트 버스, 커맨드 파이프라인 | | Store Only | Action 없이 순수 상태 저장소 관리 | 데이터 레이어, 단순 상태 공유 | | RefContext | 리렌더 없는 직접 DOM 조작 | 고빈도 120fps UI, 애니메이션, Canvas | | Setup Patterns | 기본 컨텍스트 및 Provider 조합 | 모든 신규 기능 구성 | | Context-Layered 아키텍처 | 계층별 책임 분리 및 Headless DI | 중대형 도메인 워크플로 | | 경로 기반 성능 구독 | 중첩 객체 선택적 구독 최적화 | 대형 상태 트리 | | Async Patterns | 비동기 대기·취소·타임아웃 제어 | DOM 마운트 대기, API race 방지 | 📖 추천 학습 순서 처음 시작하는 분 1. 시작하기 에서 Level 1 Level 2 빠른 시작 예제 확인 2. 아키텍처 가이드 로 전체 데이터 흐름 이해 3. Store Only 패턴 으로 가벼운 상태 관리 적용 4. 필요해질 때 패턴 컬렉션 으로 확장 심화/대규모 적용 1. 파이프라인 시스템 에서 우선순위·가드·흐름 제어 익히기 2. Context-Layered 아키텍처 와 Store별 선택 가이드로 도메인 경계 확립
+
+Key points:
+• **[시작하기](./getting-started.md)** - 점진적 도입 단계, 설치, React/Headless/Ref 빠른 시작
+• **[파이프라인 시스템](./pipeline/)** - 액션 처리 파이프라인, 우선순위, 디스패치 동작 이해하기
+• **[훅 수명주기](../concept/action-pipeline-guide.md)** - 액션 파이프라인과 React 훅 내부 동작 원리
+• **[모범 사례](./best-practices.md)** - 프로덕션 권장 패턴과 컨벤션
+• **[React Aria 통합](./react-aria-integration.md)** - 접근성 UI 상태는 로컬에 두고 도메인 결정만 Context-Action과 연결하기
+• **[문제 해결 가이드](./troubleshooting.md)** - 자주 겪는 문제와 메모리·성능 점검
+• **[코드 패턴](./code-patterns.md)** - 패턴 개요 및 디렉터리별 마이그레이션 안내
+• **[패턴 컬렉션](./patterns/setup/index.md)** - 전체 구현 패턴 인덱스
+• **[핵심 개념](../concept/architecture-guide.md)** - 프레임워크 기본 철학과 설계
+• **[API 레퍼런스](/en/api/README)** - TypeDoc 기반 전체 API 문서 (영문)
+• **[예제 워크스루](../examples/basic-setup.md)** - 동작하는 실제 예제 코드
+• **[LLM 리소스](/ko/llms/)** - AI...

@@ -8,7 +8,7 @@
 
 > **isToolObservationRetained**(`observedAt`, `now`, `policy?`): `boolean`
 
-Defined in: [packages/tool-protocol/src/observability.ts:337](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L337)
+Defined in: [packages/tool-protocol/src/observability.ts:343](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L343)
 
 Returns whether an observation is still within the configured retention window.
 

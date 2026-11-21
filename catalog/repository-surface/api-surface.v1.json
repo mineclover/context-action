@@ -113,7 +113,9 @@
       "workspaceDependencies": [],
       "workspacePeerDependencies": [],
       "typedocEntryPoints": [
-        "./packages/core/src/index.ts"
+        "./packages/core/src/index.ts",
+        "./packages/core/src/element.ts",
+        "./packages/core/src/element-react.ts"
       ],
       "readme": "packages/core/README.md",
       "authoritativeDocs": [
@@ -571,7 +573,9 @@
             "useStoreSelector",
             "useStorePath",
             "StoreTransactionCoordinator",
-            "bindActionTransactions"
+            "bindActionTransactions",
+            "ActionProviderProps",
+            "ProviderShutdownOptions"
           ]
         },
         {
@@ -627,6 +631,9 @@
       ],
       "typedocEntryPoints": [
         "./packages/react/src/index.ts",
+        "./packages/react/src/backend.ts",
+        "./packages/react/src/advanced.ts",
+        "./packages/react/src/utils.ts",
         "./packages/react/src/webmcp.ts"
       ],
       "readme": "packages/react/README.md",
@@ -985,7 +992,8 @@
       ],
       "workspacePeerDependencies": [],
       "typedocEntryPoints": [
-        "./packages/xstate/src/index.ts"
+        "./packages/xstate/src/index.ts",
+        "./packages/xstate/src/effect.ts"
       ],
       "readme": "packages/xstate/README.md",
       "authoritativeDocs": [

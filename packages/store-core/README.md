@@ -2,6 +2,29 @@
 
 Framework-neutral contracts for Context-Action state and timeline adapters.
 
+See the [Store Selection and Usage Guide](../../docs/en/context-layered/store-selection-and-usage-guide.md) when choosing between `createStateStore`, React stores, and cross-framework adapters.
+
+## Quick Start
+
+```bash
+npm install @context-action/store-core
+```
+
+<!-- @context-action-compile -->
+```ts
+import { createStateStore } from '@context-action/store-core';
+
+const counterStore = createStateStore('counter', { count: 0 });
+const unsubscribe = counterStore.subscribe(() => {
+  const snapshot = counterStore.getSnapshot();
+  console.log(`v${snapshot.version}: ${snapshot.value.count}`);
+});
+
+counterStore.update(prev => ({ count: prev.count + 1 }));
+unsubscribe();
+counterStore.dispose?.();
+```
+
 This package intentionally has no React, Mutative, immutable runtime, or DOM
 dependency. Applications and integrations can provide their own `StateBackend`
 or `TimelineBackend`. `@context-action/mutative` is one optional implementation.

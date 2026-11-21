@@ -8,7 +8,7 @@
 
 > **redactToolObservabilityValue**(`value`, `policy?`): `unknown`
 
-Defined in: [packages/tool-protocol/src/observability.ts:175](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L175)
+Defined in: [packages/tool-protocol/src/observability.ts:174](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L174)
 
 Returns a bounded JSON-compatible value with sensitive fields removed.
 Cycles, unsupported values, deep branches, and excess collection entries are

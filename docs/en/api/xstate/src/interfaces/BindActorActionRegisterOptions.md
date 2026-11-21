@@ -12,6 +12,10 @@ Defined in: [packages/xstate/src/pipeline-binding.ts:83](https://github.com/mine
 
 - [`BindActorPipelineOptions`](BindActorPipelineOptions.md)\<`TActions`, `TEvent`, `TEmitted`\>
 
+## Extended by
+
+- [`BindEffectActorOptions`](../effect/interfaces/BindEffectActorOptions.md)
+
 ## Type Parameters
 
 ### TActions
@@ -136,7 +140,7 @@ Defined in: [packages/xstate/src/pipeline-binding.ts:66](https://github.com/mine
 
 #### Inherited from
 
-[`BindActorPipelineOptions`](BindActorPipelineOptions.md).[`enforceCanGuard`](BindActorPipelineOptions.md#enforcecanguard)
+`BindActorActionRegisterOptions`.[`enforceCanGuard`](#enforcecanguard)
 
 ***
 
@@ -148,7 +152,7 @@ Defined in: [packages/xstate/src/pipeline-binding.ts:67](https://github.com/mine
 
 #### Inherited from
 
-[`BindActorPipelineOptions`](BindActorPipelineOptions.md).[`guardPriority`](BindActorPipelineOptions.md#guardpriority)
+`BindActorActionRegisterOptions`.[`guardPriority`](#guardpriority)
 
 ***
 
@@ -160,7 +164,7 @@ Defined in: [packages/xstate/src/pipeline-binding.ts:68](https://github.com/mine
 
 #### Inherited from
 
-[`BindActorPipelineOptions`](BindActorPipelineOptions.md).[`handlerPriority`](BindActorPipelineOptions.md#handlerpriority)
+`BindActorActionRegisterOptions`.[`handlerPriority`](#handlerpriority)
 
 ***
 

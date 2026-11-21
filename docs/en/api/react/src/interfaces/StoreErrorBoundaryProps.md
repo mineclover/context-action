@@ -38,7 +38,7 @@ Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:22](htt
 
 ##### error
 
-`ContextActionError`
+[`ContextActionError`](../advanced/classes/ContextActionError.md)
 
 ##### errorInfo
 

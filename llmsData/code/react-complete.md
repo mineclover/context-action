@@ -1,7 +1,7 @@
 # Context-Action React Package - Complete Code
 
 Total Files: 53
-Total Lines: 8699
+Total Lines: 8737
 
 ## Type Definitions
 
@@ -42,19 +42,30 @@ export interface ActionContextType<
   actionRegisterRef: React.RefObject<ActionRegister<T, TResultMap> | null>;
   dispatchLifecycle: ProviderDispatchLifecycle;
 }
+export interface ProviderShutdownOptions {
+  destroyRegister?: boolean;
+}
+export interface ActionProviderProps<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+> {
+  children: ReactNode;
+  register?: ActionRegister<T, TResultMap>;
+  ownership?: 'shared' | 'owned';
+}
 export interface ProviderDispatchLifecycle {
   run<R>(
     externalSignals: Array<AbortSignal | undefined>,
     operation: (signal: AbortSignal) => Promise<R>
   ): Promise<R>;
   scheduleHandlerCleanup(cleanup: () => void): void;
-  shutdown(register: ActionRegister<any, any>): Promise<void>;
+  shutdown(register: ActionRegister<any, any>, options?: ProviderShutdownOptions): Promise<void>;
 }
 export interface ActionContextReturn<
   T extends ActionPayloadMap,
   TResultMap extends ActionResultMap<T> = {},
 > {
-  Provider: React.FC<{ children: ReactNode }>;
+  Provider: React.FC<ActionProviderProps<T, TResultMap>>;
   useActionContext: () => ActionContextType<T, TResultMap>;
   useActionDispatch: () => ActionRegister<T, TResultMap>['dispatch'];
   useActionHandler: <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(
@@ -563,7 +574,9 @@ import type {
   ActionContextConfig,
   ActionContextReturn,
   ActionContextType,
-  ProviderDispatchLifecycle
+  ActionProviderProps,
+  ProviderDispatchLifecycle,
+  ProviderShutdownOptions,
 } from './ActionContext.types';
 const useInsertionCommitEffect = useInsertionEffect;
 function createProviderAbortError(): Error {
@@ -702,13 +715,16 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
       }
     });
   }
-  shutdown(register: ActionRegister<any, any>): Promise<void> {
+  shutdown(register: ActionRegister<any, any>, options?: ProviderShutdownOptions): Promise<void> {
     if (this.shutdownPromise) return this.shutdownPromise;
+    const destroyRegister = options?.destroyRegister !== false;
     this.accepting = false;
     this.controllers.forEach(controller => {
       if (!controller.signal.aborted) controller.abort(createProviderAbortError());
     });
-    const registerShutdown = register.destroyAsync({ deferCleanup: true });
+    const registerShutdown = destroyRegister
+      ? register.destroyAsync({ deferCleanup: true })
+      : Promise.resolve();
     this.shutdownPromise = Promise.allSettled([...this.activeExposedOperations])
       .then(() => undefined);
     const finalizationPromise = (async () => {
@@ -777,25 +793,43 @@ export function createActionContext<
     };
   }
   const FactoryActionContext = createContext<ActionContextType<T, TResultMap> | null>(null);
-  const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const actionRegisterRef = useRef<ActionRegister<T, TResultMap> | null>(null);
-    const dispatchLifecycleRef = useRef<ProviderDispatchLifecycleImpl | null>(null);
-    if (!actionRegisterRef.current) {
-      actionRegisterRef.current = new ActionRegister<T, TResultMap>(effectiveConfig);
+  const Provider: React.FC<ActionProviderProps<T, TResultMap>> = ({
+    children,
+    register: externalRegister,
+    ownership,
+  }) => {
+    const ownedRegisterRef = useRef<ActionRegister<T, TResultMap> | null>(null);
+    if (!externalRegister && !ownedRegisterRef.current) {
+      ownedRegisterRef.current = new ActionRegister<T, TResultMap>(effectiveConfig);
     }
-    if (!dispatchLifecycleRef.current) {
-      dispatchLifecycleRef.current = new ProviderDispatchLifecycleImpl();
-    }
-    const dispatchLifecycle = dispatchLifecycleRef.current;
-    useInsertionCommitEffect(() => {
-      const register = actionRegisterRef.current;
-      if (!register) {
-        throw new Error('Action provider resources were not initialized before commit.');
-      }
-      return () => {
-        void dispatchLifecycle.shutdown(register);
+    const activeRegister = externalRegister ?? ownedRegisterRef.current!;
+    const shouldDestroyRegister = externalRegister ? ownership === 'owned' : true;
+    const actionRegisterRef = useRef<ActionRegister<T, TResultMap> | null>(activeRegister);
+    actionRegisterRef.current = activeRegister;
+    const lifecycleEntryRef = useRef<{
+      register: ActionRegister<T, TResultMap>;
+      lifecycle: ProviderDispatchLifecycleImpl;
+    } | null>(null);
+    if (!lifecycleEntryRef.current || lifecycleEntryRef.current.register !== activeRegister) {
+      lifecycleEntryRef.current = {
+        register: activeRegister,
+        lifecycle: new ProviderDispatchLifecycleImpl(),
       };
-    }, [dispatchLifecycle]);
+    }
+    const dispatchLifecycle = lifecycleEntryRef.current.lifecycle;
+    const destroyOnUnmountRef = useRef(shouldDestroyRegister);
+    useInsertionCommitEffect(() => {
+      destroyOnUnmountRef.current = shouldDestroyRegister;
+    }, [activeRegister, shouldDestroyRegister]);
+    useInsertionCommitEffect(() => {
+      return () => {
+        const destroyRegister = destroyOnUnmountRef.current;
+        void dispatchLifecycle.shutdown(activeRegister, { destroyRegister });
+        if (ownedRegisterRef.current === activeRegister && destroyRegister) {
+          ownedRegisterRef.current = null;
+        }
+      };
+    }, [activeRegister, dispatchLifecycle]);
     const contextValue = useMemo(() => ({
       actionRegisterRef,
       dispatchLifecycle,
@@ -1119,7 +1153,9 @@ export {
 export type {
   ActionContextConfig,
   ActionContextType,
-  ActionContextReturn
+  ActionContextReturn,
+  ActionProviderProps,
+  ProviderShutdownOptions,
 } from './ActionContext.types';
 export type {
   ActionPayloadMap,
@@ -1324,7 +1360,9 @@ export { createActionContext } from './actions/ActionContext';
 export type { 
   ActionContextConfig,
   ActionContextReturn,
-  ActionContextType
+  ActionContextType,
+  ActionProviderProps,
+  ProviderShutdownOptions,
 } from './actions/ActionContext.types';
 export { createStore, Store, type PatchAwareListener } from './stores/core/Store';
 export {

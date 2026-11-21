@@ -1,14 +1,20 @@
 {
   "entryPoints": [
     "./packages/core/src/index.ts",
+    "./packages/core/src/element.ts",
+    "./packages/core/src/element-react.ts",
     "./packages/store-core/src/index.ts",
     "./packages/mutative/src/index.ts",
     "./packages/xstate/src/index.ts",
+    "./packages/xstate/src/effect.ts",
     "./packages/tool-protocol/src/index.ts",
     "./packages/ai-sdk/src/index.ts",
     "./packages/webmcp/src/index.ts",
     "./packages/tool-durable-operations/src/index.ts",
     "./packages/react/src/index.ts",
+    "./packages/react/src/backend.ts",
+    "./packages/react/src/advanced.ts",
+    "./packages/react/src/utils.ts",
     "./packages/react/src/webmcp.ts"
   ],
   "tsconfig": "./tsconfig.json",

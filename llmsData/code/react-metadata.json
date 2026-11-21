@@ -1,19 +1,19 @@
 {
   "package": "react",
-  "generatedAt": "2026-11-20T16:03:35.538Z",
+  "generatedAt": "2026-11-21T03:32:49.616Z",
   "statistics": {
     "totalFiles": 53,
     "typeFiles": 4,
     "codeFiles": 49,
-    "totalLines": 8699,
-    "typeLines": 497,
-    "codeLines": 8202
+    "totalLines": 8737,
+    "typeLines": 508,
+    "codeLines": 8229
   },
   "files": [
     {
       "path": "actions/ActionContext.types.ts",
       "isType": true,
-      "lines": 97
+      "lines": 108
     },
     {
       "path": "refs/types.ts",
@@ -33,12 +33,12 @@
     {
       "path": "actions/ActionContext.tsx",
       "isType": false,
-      "lines": 581
+      "lines": 604
     },
     {
       "path": "actions/index.ts",
       "isType": false,
-      "lines": 15
+      "lines": 17
     },
     {
       "path": "actions/react-helpers.ts",
@@ -58,7 +58,7 @@
     {
       "path": "index.ts",
       "isType": false,
-      "lines": 67
+      "lines": 69
     },
     {
       "path": "refs/createRefContext.ts",

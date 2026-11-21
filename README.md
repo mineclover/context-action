@@ -5,9 +5,9 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/mineclover/context-action/ci.yml?branch=main&style=flat-square)](https://github.com/mineclover/context-action/actions)
 
-**Revolutionary TypeScript state management with document-centric context separation and MVVM architecture.**
+**TypeScript state management and typed command pipelines with explicit domain boundaries and progressive adoption.**
 
-**🎯 Perfect separation of concerns** • **🔒 Full type safety** • **⚡ Zero boilerplate** • **🏗️ Scalable architecture** • **🌐 Vanilla JS Support**
+**🎯 Separation of concerns** • **🔒 Full type safety** • **🧩 Progressive adoption** • **🏗️ Headless-first architecture** • **🌐 Framework-agnostic core**
 
 [📚 Documentation](https://mineclover.github.io/context-action/) • [🇰🇷 한국어 문서](README.ko.md) • [🎮 Live Demo](https://mineclover.github.io/context-action/example/) • [⚡ Web Coding Studio](https://mineclover.github.io/context-action/web-coding/) • [🚀 Quick Start](#-quick-start) • [🌟 Vanilla JS](#-vanilla-javascript)
 
@@ -20,31 +20,38 @@
 # React applications
 npm install @context-action/react
 
-# Vanilla JavaScript/TypeScript (framework-agnostic)
-npm install @context-action/core
+# Headless TypeScript / Vanilla JS (action pipeline + 0-dep store)
+npm install @context-action/core @context-action/store-core
 
-# CDN (quick prototyping)
+# CDN (quick browser prototyping)
 # <script type="module">
 #   import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+#   import { createStateStore } from 'https://esm.sh/@context-action/store-core@latest';
 # </script>
 ```
 
 ### 30-Second Example (React)
-```typescript
+```tsx
 import { createStoreContext, useStoreValue } from '@context-action/react';
-import { useCallback } from 'react';
 
-// 1. Create context
+// 1. Create scoped store context
 const { Provider, useStore } = createStoreContext('User', {
   profile: { name: 'John', email: 'john@example.com' }
 });
 
-// 2. Use in component  
+// 2. Read and update cleanly
 function UserProfile() {
   const profileStore = useStore('profile');
   const profile = useStoreValue(profileStore);
-  
-  return <h1>Welcome, {profile.name}!</h1>;
+
+  return (
+    <div>
+      <h1>Welcome, {profile.name}!</h1>
+      <button onClick={() => profileStore.setValue({ ...profile, name: 'Jane' })}>
+        Rename
+      </button>
+    </div>
+  );
 }
 
 // 3. Wrap with provider
@@ -57,9 +64,7 @@ function App() {
 }
 ```
 
-**That's it!** 🎉 Full type safety, reactive updates, and clean architecture.
-
-### 30-Second Example (Vanilla JS)
+### 30-Second Example (Headless / Vanilla JS)
 
 ```html
 <!DOCTYPE html>
@@ -70,37 +75,21 @@ function App() {
 
   <script type="module">
     import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+    import { createStateStore } from 'https://esm.sh/@context-action/store-core@latest';
 
-    // Simple store
-    class Store {
-      constructor(initialState) {
-        this.state = initialState;
-        this.listeners = new Set();
-      }
-      getValue() { return this.state; }
-      setValue(newState) {
-        this.state = newState;
-        this.listeners.forEach(fn => fn(this.state));
-      }
-      subscribe(listener) {
-        this.listeners.add(listener);
-        return () => this.listeners.delete(listener);
-      }
-    }
-
-    // Create store and actions
-    const store = new Store({ count: 0 });
+    // Create zero-dependency store and action pipeline
+    const store = createStateStore('counter', { count: 0 });
     const actions = new ActionRegister({ name: 'Counter' });
 
-    // Register handler
+    // Register command handler
     actions.register('increment', () => {
       const current = store.getValue();
       store.setValue({ count: current.count + 1 });
     });
 
-    // Subscribe and wire up
-    store.subscribe(state => {
-      document.getElementById('counter').textContent = state.count;
+    // Subscribe UI and dispatch intent
+    store.subscribe(() => {
+      document.getElementById('counter').textContent = String(store.getValue().count);
     });
     document.getElementById('increment').onclick = () => {
       actions.dispatch('increment');
@@ -114,9 +103,47 @@ function App() {
 
 ---
 
-## 🧭 Recommended First Path
+## 📈 Progressive Adoption (Start Small, Scale Cleanly)
 
-If you want to understand Context-Action through the repository's current standard, start with the **Implementation Playbook path** instead of isolated APIs.
+Adopt only the boundaries your feature needs today:
+
+| Level | When to Use | Core Primitives |
+| --- | --- | --- |
+| **Level 1 · Lite** | Single component/feature state or typed commands | `createStoreContext`, `createActionContext` (or `createStateStore` + `ActionRegister`) |
+| **Level 2 · Standard** | Headless orchestration, role-based validation, high-frequency DOM | `<ActionProvider register={headlessRegister}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `createRefContext` |
+| **Level 3 · Enterprise** | Multi-team domains, atomic undo/redo, AI/MCP tools, micro-frontends | 6-Layer Context-Layered Architecture, `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, `@context-action/lit-ui` / `preact-ui` |
+
+---
+
+## 🎯 Why Context-Action?
+
+### ❌ Common State-Management Pain Points
+- **High React Coupling** → Business pipelines trapped in components and hooks
+- **Binary State Approach** → Only global singleton or isolated `useState`, with weak domain boundaries
+- **Ad-Hoc Async Control** → Priority ordering, cancellation (`AbortSignal`), guards, and rollback bolted on manually
+
+### ✅ Context-Action's Approach
+- **🎯 Explicit Domain Boundaries** → Scope state and action pipelines per domain context instead of one giant global store
+- **🏗️ Headless-First + MVVM Separation** → Compose framework-neutral `ActionRegister` / `StateStore` pipelines outside React and inject them cleanly via Provider DI (`<Provider register={...}>`)
+- **🔒 Type-First Contracts** → Compile-time inference across action payloads, typed results, guards, and stores
+- **📈 Progressive Complexity** → Start with one store context; add role hooks, 6-layer structure, transactions, or AI/Web Component adapters only when needed
+
+### 🚀 Key Benefits
+```typescript
+// Standardize dispatch, state reads, and clean separation:
+const { profile, updateProfile } = useUserPage();
+```
+
+---
+
+<details>
+<summary><strong>🏛️ Enterprise &amp; Ecosystem Deep Dive: Implementation Playbook &amp; 4 Core Development Standards</strong> (click to expand)</summary>
+
+<br/>
+
+### Recommended Standard Path (Implementation Playbook)
+
+If you want to explore Context-Action through the full enterprise 6-layer reference pattern:
 
 - **Standard convention**: [Implementation Convention](https://mineclover.github.io/context-action/en/context-layered/implementation-convention)
 - **Usecase + Recipe profile**: [Usecase and Recipe Profile](https://mineclover.github.io/context-action/en/context-layered/usecase-recipe-profile)
@@ -139,82 +166,24 @@ If you want to understand Context-Action through the repository's current standa
   - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/incident-escalation-playbook.integration.test.tsx`
   - `pnpm --dir packages/react test -- --runInBand __tests__/patterns/renewal-risk-review-playbook.integration.test.tsx`
 
-This path now shows the full pattern as a reusable standard: convention, skill, canonical example, and three domain-specific demos.
+### 4 Core Development Standards
 
----
+For enterprise micro-frontends and custom Web Component runtimes, Context-Action enforces **4 Core Development Standards**:
 
-## 🏛️ 4 Core Development Standards
+1. **📊 State Management Architecture**
+   - **3-Tier State Hierarchy** ([CA-SPEC-EVIDENCE-001](./docs/en/context-layered/decisions/CA-SPEC-EVIDENCE-001.md)):
+     - **Tier 1 (Durable Domain Contract)**: Shared enterprise domain models, persistence/API DTOs, and core FSMs (`createStoreContext`, `@context-action/store-core`, TypeSpec SSOT).
+     - **Tier 2 (Transient Application Logic)**: Client-only derived calculations (`*Result.ts`), controlled component values (`@property()` + `ElementInternals.setFormValue()`), and domain activity events (`*Activity.ts`).
+     - **Tier 3 (Volatile Presentation State)**: Scoped ephemeral UI chrome (`isOpen`, `isFocused`, `activeTab`) via local `useState`, `createRefContext`, Lit `@state()`, or Preact `signal()`.
+   - **Selective Projection, Equality Guard (`Object.is`), and Coalesced Pending** keep high-frequency renders at zero overhead.
+2. **🔌 Interface Design Standards**
+   - Strict Attribute vs Property separation (`attribute: false` for Stores/ActionRegisters/objects), semantic `CustomEvent` (`{ bubbles: true, composed: true }`), imperative public APIs, and React 18/19 Host Bridges (`createLitElementBridge` / `createCustomElementBridge`).
+3. **🎨 Design System Integration**
+   - CSS Custom Properties with fallbacks, `::part()` styling hooks, Constructable Stylesheets, and Adobe React Aria compatibility.
+4. **🧩 Web Component Implementation Conventions**
+   - Lit (`@context-action/lit` / `lit-ui`) and Preact (`@context-action/preact` / `preact-ui`), W3C Context Protocol (`@lit/context`), deterministic zero-leak cleanup on `disconnectedCallback`, and Form-Associated Custom Elements (`ElementInternals`).
 
-The Context-Action framework guarantees implementation autonomy while enforcing **4 Core Development Standards** to preserve architectural consistency and zero-leak reliability across enterprise micro-frontends:
-
-### 1. 📊 State Management Architecture
-* **3-Tier State Hierarchy** ([CA-SPEC-EVIDENCE-001](./docs/en/context-layered/decisions/CA-SPEC-EVIDENCE-001.md)):
-  - **Tier 1 (Durable Domain Contract)**: Shared enterprise domain models, persistence/API DTOs, and core FSMs. Managed via Context-Action `ReadableStore` (`createStoreContext`, `@context-action/store-core`) and TypeSpec SSOT contracts.
-  - **Tier 2 (Transient Application Logic)**: Client-only derived calculations (`*Result.ts`), controlled component values (`@property()` + `ElementInternals.setFormValue()`), and domain activity events (`*Activity.ts`).
-  - **Tier 3 (Volatile Presentation State)**: Scoped ephemeral UI chrome (`isOpen`, `isFocused`, `activeTab`). Managed via component-local `useState`, `createRefContext`, Lit `@state()`, or Preact `signal()`, and explicitly waived from TypeSpec/Evidence tracking.
-* **Selective Projection**: Subscribe strictly to minimal projected state slices via `selector` functions.
-* **Equality Guard**: Suppress render requests when projected slices remain unchanged (`equalityFn: Object.is`), keeping render overhead at 0 even during 120fps high-frequency mouse/touch streams.
-* **Coalesced Pending**: Track async action status (`isPending`) and coalesce renders exclusively on 0 ↔ >0 transitions.
-
-### 2. 🔌 Interface Design Standards
-* **Strict Attribute vs Property Separation**:
-  - Primitive values (`string`, `number`, `boolean`) map 1:1 to HTML attributes (`kebab-case`).
-  - Complex objects (`ReadableStore`, `ActionRegister`, models, functions) must declare `attribute: false` to prevent `[object Object]` attribute stringification bugs, exposing pure DOM properties only.
-* **Standard CustomEvent Dispatching**:
-  - Semantic event names (`quantity-change`, `cart-badge-click`) with `{ bubbles: true, composed: true }` by default to traverse Shadow DOM boundaries.
-  - Fully typed detail payload contracts (`export interface XxxEventDetail { ... }`).
-* **Imperative Public APIs**:
-  - Methods like `.focus()`, `.setValue()`, `.increment()`, `.checkValidity()` are explicitly public with options pattern support (`options?: { dispatchEvents?: boolean }`).
-* **React 18/19 Host Bridge**:
-  - `createLitElementBridge` and `createCustomElementBridge` bypass attribute serialization by directly assigning DOM properties (`properties: ['store', 'register']`) and mapping React handlers to native DOM event listeners.
-
-### 3. 🎨 Design System Integration
-* **CSS Custom Properties for Design Tokens**:
-  - Internal component styling references customizable design tokens with sensible fallbacks (`var(--stepper-border-color, #cbd5e1)`).
-* **`::part()` Styling Hooks**:
-  - Expose internal elements via `part="button"` and `part="input"` for fine-grained host styling overrides.
-* **Constructable Stylesheets**:
-  - Memory-efficient `static override styles = css`...`` responsive to host dark mode (`:host-context([data-theme="dark"])`).
-* **Adobe React Aria Compatibility**:
-  - Fully synced with React Aria Component states (`data-focus-visible`, `data-hovered`, `data-disabled`).
-
-### 4. 🧩 Web Component Implementation Conventions
-* **Runtime Selection**:
-  - **Lit (`@context-action/lit`)**: Zero VDOM, native browser template literal rendering, W3C standards; ideal for enterprise design systems.
-  - **Preact (`@context-action/preact`)**: Micro VDOM (3KB) + Preact Signals fine-grained reactivity; ideal for React/JSX-friendly micro-frontend widgets.
-* **W3C Context Protocol (`@lit/context`) Support**:
-  - Automatic dependency injection of Stores and ActionRegisters across Shadow DOM boundaries without manual prop drilling.
-* **Deterministic Lifecycle & Zero Memory Leaks**:
-  - Synchronous unbinding of store subscriptions, event listeners, and cancellation of in-flight actions (`AbortSignal`) on `disconnectedCallback`. Clean re-synchronization on `connectedCallback`.
-* **Form-Associated Custom Elements (FACE)**:
-  - Full `ElementInternals` participation in native `<form>` and `new FormData()` extraction with `onFormReset()` lifecycle recovery.
-
----
-
-## 🎯 Why Context-Action?
-
-### ❌ Problems with Existing Libraries
-- **High React Coupling** → Difficult component modularization
-- **Binary State Approach** → Poor scope-based separation  
-- **Complex Boilerplate** → Verbose setup and maintenance
-
-### ✅ Context-Action's Solution
-- **🎯 Document-Centric Design** → Context separation based on domain boundaries
-- **🏗️ MVVM Architecture** → Perfect separation: Model, ViewModel, View layers
-- **🔒 Type-First Approach** → Zero runtime errors with full TypeScript support
-- **⚡ Zero Boilerplate** → Minimal code, maximum functionality
-
-### 🚀 Key Benefits
-```typescript
-// Before: Complex setup with multiple libraries
-const store = createStore(reducer);
-const dispatch = useDispatch();
-const selector = useSelector(state => state.user);
-const actions = bindActionCreators(userActions, dispatch);
-
-// After: One line with Context-Action
-const { profile, updateProfile } = useUserPage(); // All logic in hook
-```
+</details>
 
 ---
 

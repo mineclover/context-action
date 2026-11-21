@@ -242,7 +242,6 @@
       ],
       "knownUnpaired": {
         "onlyEn": [
-          "index.md",
           "patterns/action/react-integration.md",
           "patterns/store/batching-patterns.md",
           "patterns/store/comparison-strategies.md",
@@ -256,10 +255,7 @@
           "patterns/store/subscription-optimization.md",
           "patterns/store/useComputedStore-basic.md",
           "patterns/store/useComputedStore-overview.md",
-          "pipeline/advanced-filtering.md",
-          "test-sync-demo.md",
-          "troubleshooting.md",
-          "type-inference.md"
+          "pipeline/advanced-filtering.md"
         ],
         "onlyKo": [
           "action-handlers.md",
@@ -278,23 +274,17 @@
     {
       "id": "doc-troubleshooting",
       "authorityClass": "authoritative",
-      "pairingPolicy": "tracked-partial",
+      "pairingPolicy": "strict-paired",
       "enDir": "docs/en/troubleshooting",
       "koDir": "docs/ko/troubleshooting",
       "paths": [
         "docs/en/troubleshooting",
         "docs/ko/troubleshooting"
       ],
-      "knownUnpaired": {
-        "onlyEn": [
-          "infinite-loop-issues.md"
-        ],
-        "onlyKo": []
-      },
       "owner": "Documentation Maintainers",
       "purpose": {
-        "en": "Diagnostic guides for action, store, ref, and performance issues with explicit tracking of pending Korean translations.",
-        "ko": "액션, 스토어, Ref, 성능 문제 진단 가이드이며 미번역 페이지를 명시적으로 추적합니다."
+        "en": "Diagnostic guides for action, store, ref, infinite-loop, and performance issues paired across English and Korean.",
+        "ko": "액션, 스토어, Ref, 무한 루프, 성능 문제 해결을 한영 1:1 쌍으로 제공하는 진단 가이드입니다."
       },
       "verificationGate": "pnpm verify:surface-catalog && pnpm docs:check"
     },

@@ -100,7 +100,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:71
 
 ### comparisonOptions?
 
-> `optional` **comparisonOptions?**: `Partial`\<`ComparisonOptions`&lt;`T`&gt;\>
+> `optional` **comparisonOptions?**: `Partial`\<[`ComparisonOptions`](../advanced/interfaces/ComparisonOptions.md)&lt;`T`&gt;\>
 
 Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:72](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L72)
 

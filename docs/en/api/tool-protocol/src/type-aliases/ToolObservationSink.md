@@ -8,7 +8,7 @@
 
 > **ToolObservationSink** = (`record`) => `void`
 
-Defined in: [packages/tool-protocol/src/observability.ts:102](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L102)
+Defined in: [packages/tool-protocol/src/observability.ts:101](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L101)
 
 ## Parameters
 

@@ -21,12 +21,11 @@
 21. **[Priority Management](en/guide/priority-management.md)** (guide) - Priority: 95
 22. **[Real Time State Access](en/guide/real-time-state-access.md)** (guide) - Priority: 95
 23. **[Ref Context Setup](en/guide/ref-context-setup.md)** (guide) - Priority: 95
-24. **[Test Sync Demo](en/guide/test-sync-demo.md)** (guide) - Priority: 95
-25. **[Timeout Protection](en/guide/timeout-protection.md)** (guide) - Priority: 95
-26. **[Wait Then Execute](en/guide/wait-then-execute.md)** (guide) - Priority: 95
-27. **[Untitled](llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/llms-architecture-guide-100.md)** (guide) - Priority: 95
-28. **[Untitled](llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/priority-management-100.md)** (guide) - Priority: 95
-29. **[test-llms-optional.md](llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional.md-100.md)** (test-llms-optional.md) - Priority: 70
-30. **[Untitled](llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional-100.md)** (test-llms-optional.md) - Priority: 50
-31. **[Untitled](llmsData/Users/junwoobang/project/context-action/llmsData/en/test-post-commit.md/test-post-commit-100.md)** (test-post-commit.md) - Priority: 50
-32. **[Untitled](llmsData/Users/junwoobang/project/context-action/llmsData/en/test-simple-sync.md/test-simple-sync-100.md)** (test-simple-sync.md) - Priority: 50
+24. **[Timeout Protection](en/guide/timeout-protection.md)** (guide) - Priority: 95
+25. **[Wait Then Execute](en/guide/wait-then-execute.md)** (guide) - Priority: 95
+26. **[Untitled](llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/llms-architecture-guide-100.md)** (guide) - Priority: 95
+27. **[Untitled](llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/priority-management-100.md)** (guide) - Priority: 95
+28. **[test-llms-optional.md](llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional.md-100.md)** (test-llms-optional.md) - Priority: 70
+29. **[Untitled](llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional-100.md)** (test-llms-optional.md) - Priority: 50
+30. **[Untitled](llmsData/Users/junwoobang/project/context-action/llmsData/en/test-post-commit.md/test-post-commit-100.md)** (test-post-commit.md) - Priority: 50
+31. **[Untitled](llmsData/Users/junwoobang/project/context-action/llmsData/en/test-simple-sync.md/test-simple-sync-100.md)** (test-simple-sync.md) - Priority: 50
