@@ -17,12 +17,20 @@ export function useOrderSubmissionHandlers() {
   const layoutDispatch = useOrderLayoutDispatch();
   const submissionEpochRef = useRef(0);
   const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingResolveRef = useRef<((completed: boolean) => void) | null>(
+    null
+  );
 
   const cancelPendingSubmission = useCallback(() => {
     submissionEpochRef.current += 1;
     if (timeoutIdRef.current !== null) {
       clearTimeout(timeoutIdRef.current);
       timeoutIdRef.current = null;
+    }
+    if (pendingResolveRef.current !== null) {
+      const resolvePending = pendingResolveRef.current;
+      pendingResolveRef.current = null;
+      resolvePending(false);
     }
   }, []);
 
@@ -96,10 +104,18 @@ export function useOrderSubmissionHandlers() {
         { type: 'submission_started', quantity: draft.quantity },
       ]);
 
+      if (pendingResolveRef.current !== null) {
+        const resolvePending = pendingResolveRef.current;
+        pendingResolveRef.current = null;
+        resolvePending(false);
+      }
+
       // 모의 서버 비동기 지연 (600ms)
       const completed = await new Promise<boolean>((resolve) => {
+        pendingResolveRef.current = resolve;
         timeoutIdRef.current = setTimeout(() => {
           timeoutIdRef.current = null;
+          pendingResolveRef.current = null;
           resolve(submissionEpochRef.current === epoch);
         }, 600);
       });

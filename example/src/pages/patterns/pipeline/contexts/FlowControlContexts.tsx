@@ -39,6 +39,7 @@ interface _FlowControlStores {
 export const {
   Provider: SecurityActionProvider,
   useActionDispatch: useSecurityAction,
+  useActionDispatchWithResult: useSecurityActionWithResult,
   useActionHandler: useSecurityActionHandler,
 } = createActionContext<SecurityActions>('SecurityActions');
 
@@ -46,6 +47,7 @@ export const {
 export const {
   Provider: CacheActionProvider,
   useActionDispatch: useCacheAction,
+  useActionDispatchWithResult: useCacheActionWithResult,
   useActionHandler: useCacheActionHandler,
 } = createActionContext<CacheActions>('CacheActions');
 
@@ -53,6 +55,7 @@ export const {
 export const {
   Provider: OrderActionProvider,
   useActionDispatch: useOrderAction,
+  useActionDispatchWithResult: useOrderActionWithResult,
   useActionHandler: useOrderActionHandler,
 } = createActionContext<OrderActions>('OrderActions');
 
@@ -60,6 +63,7 @@ export const {
 export const {
   Provider: ApiActionProvider,
   useActionDispatch: useApiAction,
+  useActionDispatchWithResult: useApiActionWithResult,
   useActionHandler: useApiActionHandler,
 } = createActionContext<ApiActions>('ApiActions');
 

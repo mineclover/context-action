@@ -15,7 +15,7 @@ export function useOrderActions() {
   );
 
   const resetDraft = useCallback(
-    () => businessDispatch('resetDraft'),
+    () => businessDispatch('resetDraft', undefined, { immediate: true }),
     [businessDispatch]
   );
 
@@ -25,7 +25,7 @@ export function useOrderActions() {
   );
 
   const retrySubmission = useCallback(
-    () => businessDispatch('retrySubmission'),
+    () => businessDispatch('retrySubmission', undefined, { immediate: true }),
     [businessDispatch]
   );
 

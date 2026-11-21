@@ -32,10 +32,14 @@ export function CacheHandlers({
       if (payload.bustCache) {
         console.log('💥 Cache bust requested, clearing memory cache');
 
-        // Use store.update() to modify cache following Context-Action conventions
+        // Use store.update() with cloned Maps so Store shallow reference changes properly
         cacheStore.update((currentCache) => {
-          currentCache.memoryCache.delete(payload.key);
-          return currentCache;
+          const memoryCache = new Map(currentCache.memoryCache);
+          memoryCache.delete(payload.key);
+          return {
+            ...currentCache,
+            memoryCache,
+          };
         });
 
         onExecutionStep('💥 Cache Busted - Skip Memory Cache');
@@ -80,10 +84,14 @@ export function CacheHandlers({
         console.log('🎯 Redis cache HIT - Populate memory cache and return');
         onExecutionStep('🎯 Redis Cache HIT - Early Return');
 
-        // Populate memory cache for next time using store.update()
+        // Populate memory cache for next time using immutable Map update
         cacheStore.update((currentCache) => {
-          currentCache.memoryCache.set(payload.key, cachedData);
-          return currentCache;
+          const memoryCache = new Map(currentCache.memoryCache);
+          memoryCache.set(payload.key, cachedData);
+          return {
+            ...currentCache,
+            memoryCache,
+          };
         });
 
         // Early return - stop pipeline execution completely
@@ -126,11 +134,16 @@ export function CacheHandlers({
       console.log('✅ Database fetch successful - Populating caches');
       onExecutionStep('✅ Database Fetch Complete - Populating Caches');
 
-      // Populate both cache levels using store.update()
+      // Populate both cache levels using immutable Map updates
       cacheStore.update((currentCache) => {
-        currentCache.memoryCache.set(payload.key, freshData);
-        currentCache.redisCache.set(payload.key, freshData);
-        return currentCache;
+        const memoryCache = new Map(currentCache.memoryCache);
+        const redisCache = new Map(currentCache.redisCache);
+        memoryCache.set(payload.key, freshData);
+        redisCache.set(payload.key, freshData);
+        return {
+          memoryCache,
+          redisCache,
+        };
       });
 
       controller.return({

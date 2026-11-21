@@ -51,6 +51,7 @@ export function OrderWorkspaceView() {
 
         <button
           type="button"
+          data-testid="theme-toggle-button"
           onClick={() => void toggleTheme()}
           style={{
             padding: '8px 16px',
@@ -85,6 +86,7 @@ export function OrderWorkspaceView() {
               주문서 초안 (Tier 1 Domain Contract)
             </h2>
             <span
+              data-testid="submission-phase-badge"
               style={{
                 fontSize: '12px',
                 padding: '4px 10px',
@@ -109,6 +111,7 @@ export function OrderWorkspaceView() {
                 상품 선택
               </label>
               <select
+                data-testid="product-select"
                 ref={fieldRefs.productId.setRef}
                 value={draft.productId}
                 disabled={isSubmitting}
@@ -128,7 +131,7 @@ export function OrderWorkspaceView() {
                 <option value="prod-astryx-003">TypeSpec Evidence CI Linter Platform</option>
               </select>
               {fieldErrors.productId && (
-                <span style={{ fontSize: '12px', color: 'var(--color-error)', marginTop: '4px', display: 'block' }}>
+                <span data-testid="field-error-productId" style={{ fontSize: '12px', color: 'var(--color-error)', marginTop: '4px', display: 'block' }}>
                   {fieldErrors.productId}
                 </span>
               )}
@@ -139,6 +142,7 @@ export function OrderWorkspaceView() {
                 주문 수량
               </label>
               <input
+                data-testid="quantity-input"
                 ref={fieldRefs.quantity.setRef}
                 type="number"
                 min="0"
@@ -157,7 +161,7 @@ export function OrderWorkspaceView() {
                 }}
               />
               {fieldErrors.quantity && (
-                <span style={{ fontSize: '12px', color: 'var(--color-error)', marginTop: '4px', display: 'block' }}>
+                <span data-testid="field-error-quantity" style={{ fontSize: '12px', color: 'var(--color-error)', marginTop: '4px', display: 'block' }}>
                   {fieldErrors.quantity}
                 </span>
               )}
@@ -168,6 +172,7 @@ export function OrderWorkspaceView() {
                 배송지 주소
               </label>
               <input
+                data-testid="shipping-address-input"
                 ref={fieldRefs.shippingAddress.setRef}
                 type="text"
                 value={draft.shippingAddress}
@@ -185,7 +190,7 @@ export function OrderWorkspaceView() {
                 }}
               />
               {fieldErrors.shippingAddress && (
-                <span style={{ fontSize: '12px', color: 'var(--color-error)', marginTop: '4px', display: 'block' }}>
+                <span data-testid="field-error-shippingAddress" style={{ fontSize: '12px', color: 'var(--color-error)', marginTop: '4px', display: 'block' }}>
                   {fieldErrors.shippingAddress}
                 </span>
               )}
@@ -236,6 +241,7 @@ export function OrderWorkspaceView() {
           <div style={{ display: 'flex', gap: '12px', marginTop: '28px' }}>
             <button
               type="button"
+              data-testid="submit-order-button"
               onClick={() => void submitOrder()}
               disabled={isSubmitting || isSuccess}
               style={{
@@ -256,8 +262,8 @@ export function OrderWorkspaceView() {
 
             <button
               type="button"
+              data-testid="reset-draft-button"
               onClick={() => void resetDraft()}
-              disabled={isSubmitting}
               style={{
                 flex: 1,
                 padding: '12px',
@@ -267,17 +273,18 @@ export function OrderWorkspaceView() {
                 borderRadius: '8px',
                 fontSize: '14px',
                 fontWeight: '500',
-                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
             >
-              초기화
+              {isSubmitting ? '취소 및 초기화' : '초기화'}
             </button>
           </div>
 
           {/* Result Alert Box */}
           {submission.orderId && (
             <div
+              data-testid="order-success-banner"
               style={{
                 marginTop: '20px',
                 padding: '16px',
@@ -291,10 +298,11 @@ export function OrderWorkspaceView() {
                 🎉 주문 체결 완료!
               </div>
               <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                발급된 주문번호: <strong style={{ color: 'var(--color-text-primary)' }}>{submission.orderId}</strong>
+                발급된 주문번호: <strong data-testid="order-id-value" style={{ color: 'var(--color-text-primary)' }}>{submission.orderId}</strong>
               </div>
               <button
                 type="button"
+                data-testid="retry-submission-button"
                 onClick={() => void retrySubmission()}
                 style={{
                   marginTop: '10px',
@@ -333,6 +341,7 @@ export function OrderWorkspaceView() {
             </h3>
             <button
               type="button"
+              data-testid="activity-toggle-button"
               onClick={() => setIsActivityOpen(!isActivityOpen)}
               style={{
                 background: 'none',
@@ -349,6 +358,7 @@ export function OrderWorkspaceView() {
 
           {isActivityOpen && (
             <div
+              data-testid="activity-log-list"
               style={{
                 flex: 1,
                 backgroundColor: 'var(--color-background-body)',

@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { createDefaultOrderDraft, type OrderDraft } from '../business/orderDraft';
+import { transitionOrderState } from '../business/orderStateMachine';
 import {
   useOrderBusinessActionCommandHandler,
   useOrderStore,
@@ -9,6 +10,7 @@ export function useOrderDraftHandlers() {
   const draftStore = useOrderStore('draft');
   const activityStore = useOrderStore('activityLog');
   const validationStore = useOrderStore('validationIssues');
+  const submissionStore = useOrderStore('submission');
 
   useOrderBusinessActionCommandHandler(
     'updateDraft',
@@ -17,8 +19,17 @@ export function useOrderDraftHandlers() {
         const current = draftStore.getValue();
         draftStore.setValue({ ...current, ...updates });
         validationStore.setValue([]);
+        const currentSubmission = submissionStore.getValue();
+        if (
+          currentSubmission.phase === 'success' ||
+          currentSubmission.phase === 'failed'
+        ) {
+          submissionStore.setValue(
+            transitionOrderState(currentSubmission, { type: 'draft_edited' })
+          );
+        }
       },
-      [draftStore, validationStore]
+      [draftStore, submissionStore, validationStore]
     ),
     { id: 'order-update-draft-command' }
   );

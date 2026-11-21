@@ -257,16 +257,16 @@ Sections: 개요 | 기본 사용법 | 고급 기능 | 장점 | 기존 디스패�
 Actions 기반 디스패칭은 Context-Action에서 액션을 디스패치하는 더 직관적이고 함수형 접근 방식을 제공합니다. 기존의 registry.dispatch() 메서드 대신 registry.actions 속성을 통해 액션을 직접 함수로 호출할 수 있습니다. actions 속성은 각 등록된 액션이 호출 가능한 함수가 되는 함수형 인터페이스를 제공합니다. 이 접근 방식은 향상된 타입 안전성과 더 직관적인 구문으로 더 나은 개발자 경험을 제공합니다. ActionResultMap은 액션 키와 핸들러·디스패치 결과 타입을 연결합니다. 비차단 핸들러 오류는 파이프라인 자체가 완료됐으므로 success는 true로 유지되고 outcome: 'completed_with_errors'로 보고됩니다. 완료, 부분 성공, 실패, 취소, 디바운스, 스로틀 상태를 구분할 때는 outcome을 사용하세요. 먼저 ActionPayloadMap 인터페이스를 사용하여 액션 타입을 정의합니다: 액션...
 
 ===================[ DOC: ko/guide/best-practices.md ]===================
-# 모범 사례
-Sections: 🧭 빠른 팀 요약 | 🔧 보안 및 성능 가이드라인 | 네이밍 컨벤션 | 파일 구조 | 패턴 사용법 | 타입 정의 | 성능 가이드라인 | 패턴 조합
+# 모범 사례 (Best Practices)
+Sections: ⚡ 빠른 팀 요약 | 적정 구현(Right-Sized Adoption) 의사결정 매트릭스 | CI 강제 규칙 vs 권장 설계 가이드 | 실전 Do / Don't 체크리스트 | 검증된 단계별 적정 구현(Right-Sized) 예제 | 관련 문서
 
-Context-Action 프레임워크를 사용할 때 따라야 할 컨벤션과 모범 사례입니다. 팀에서 “이 프레임워크를 권장 방식대로 어떻게 개발해야 하는가”만 빠르게 맞추고 싶다면 아래 규칙부터 공유하면 됩니다. 1. contexts에서 액션/스토어/리프 컨텍스트 경계를 먼저 정의합니다. 2. 비즈니스 규칙과 계산은 business 또는 순수 함수로 분리합니다. 3. 최신 store 값 읽기, side effect, API 호출은 handlers가 담당합니다. 4. actions는 view에서 직접 dispatch 문자열을 쓰지 않도록 helper를 제공합니다. 5. hooks는 useStoreValue() 중심으로 구독과 파생 값을 노출합니다. 6. views는 렌더링과 사용자 입력 전달만 담당하고 business logic을 넣지 않습니다. 7. action handler에서는 컴포넌트 스코프 값을 쓰지 말고 항상 store.getValue()로 최신 값을 읽습니다. 8. han...
+유지보수 가능한 Context-Action 애플리케이션을 설계하기 위한 팀 컨벤션, 런타임 안전 가드레일, 단계별 적정 구현(Right-Sized Adoption) 예제 모음입니다. > 전체 6-Layer 거버넌스 규격이나 스토어 프리미티브 선택 기준은 아키텍처 컨벤션, 컨벤션 인덱스, 스토어 선택 및 사용 가이드를 함께 참고하세요. 팀에서 “Context-Action을 권장 방식대로 어떻게 개발해야 하는가”를 빠르게 맞출 때 아래 6가지 규칙부터 공유하면 됩니다: 1. UI보다 경계를 먼저 정의합니다: 뷰 컴포넌트를 작성하기 전에 타입이 선언된 actions/ + contexts/ 계약과 순수 도메인 헬퍼(business/)를 먼저 세웁니다. 2. 핸들러에서는 지연 조회(store.getValue()), 뷰에서만 구독합니다: handlers/ 내부에서는 항상 store.getValue()를 호출하고, useStoreValue, useStoreSelector, useStoreP...
 
 ===================[ DOC: ko/guide/code-patterns.md ]===================
-# 코드 패턴
-Sections: 📁 패턴 모음 | 빠른 참조
+# 코드 패턴 (Code Patterns)
+Sections: 상황별 적정 패턴 선택표 | 카테고리별 패턴 모음 | 런타임 테스트 체크리스트
 
-Context-Action 프레임워크의 RefContext와 useWaitForRefs 핵심 기능 패턴입니다. 자세한 예제와 구현 가이드라인은 정리된 패턴 모음을 참조하세요: - RefContext 설정 - TypeScript 타입을 포함한 기본 설정 - 조건부 대기 - 핵심 useWaitForRefs 동작 - 대기 후 실행 - 안전한 DOM 조작 - 실시간 상태 접근 - 클로저 함정 방지 - 타임아웃 보호 - 무한 대기 방지 - useWaitForRefs가 포함된 핸들러에서 useCallback 사용 - store.getValue()로 실시간 상태 접근 - try-catch로 에러 처리 - 마운트/언마운트 시나리오 모두 테스트 - 직접 DOM 쿼리 사용 (document.getElementById) - 핸들러에서 컴포넌트 스코프 값에 의존 - 에러 처리 무시 - 중요한 경로에서 타임아웃 보호 생략
+설정, 액션 디스패치, 스토어 반응성, 비동기 파이프라인, 고빈도 DOM RefContext 전반을 다루는 Context-Action 패턴 디렉터리 및 적정 구현 레시피 안내입니다. > 언제 Level 1 Lite, Level 2 Headless-First Symmetric DI, Level 3 Full 6-Layer를 고를지와 CI가 강제하는 컨벤션은 모범 사례에서 먼저 확인하세요. | 필요한 동작 | 권장 패턴 / 레시피 | 참고 문서 | |---|---|---| | 단일 도메인 React 위젯 (1 Action + 1 Store + Registry) | Level 1 · Lite | 모범 사례 — Level 1 · 기본 설정 예제 | | React 없이도 실행되고 언마운트/재마운트 간 상태를 유지하는 엔진 | Level 2 · Headless-First Symmetric DI (ownership="shared") | 모범 사례 — Level 2 | | BusinessAct...
 
 ===================[ DOC: ko/guide/getting-started.md ]===================
 # 시작하기

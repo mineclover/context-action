@@ -351,7 +351,7 @@ function collectDeprecatedEffectHandlerCalls(sourceFile) {
   return hits;
 }
 
-function collectStoreAccessViolationsInActionFile(sourceFile) {
+function collectRuntimeImportMatches(sourceFile, pattern) {
   const hits = [];
 
   function visit(node) {
@@ -361,7 +361,7 @@ function collectStoreAccessViolationsInActionFile(sourceFile) {
       !node.importClause.isTypeOnly
     ) {
       const clause = node.importClause;
-      if (clause.name && STORE_ACCESS_IMPORT_PATTERN.test(clause.name.text)) {
+      if (clause.name && pattern.test(clause.name.text)) {
         hits.push({
           line: getLineNumber(node, sourceFile),
           symbol: clause.name.text,
@@ -372,7 +372,7 @@ function collectStoreAccessViolationsInActionFile(sourceFile) {
         for (const element of clause.namedBindings.elements) {
           if (element.isTypeOnly) continue;
           const importedName = (element.propertyName ?? element.name).text;
-          if (STORE_ACCESS_IMPORT_PATTERN.test(importedName)) {
+          if (pattern.test(importedName)) {
             hits.push({
               line: getLineNumber(element, sourceFile),
               symbol: importedName,
@@ -382,18 +382,6 @@ function collectStoreAccessViolationsInActionFile(sourceFile) {
         }
       }
     }
-
-    if (ts.isCallExpression(node)) {
-      const calleeName = getCalleeName(node);
-      if (calleeName && STORE_ACCESS_CALL_PATTERN.test(calleeName)) {
-        hits.push({
-          line: getLineNumber(node, sourceFile),
-          symbol: calleeName,
-          kind: 'call',
-        });
-      }
-    }
-
     ts.forEachChild(node, visit);
   }
 
@@ -401,16 +389,17 @@ function collectStoreAccessViolationsInActionFile(sourceFile) {
   return hits;
 }
 
-function collectStoreSubscriptionsInHandlerFile(sourceFile) {
+function collectCallMatches(sourceFile, pattern) {
   const hits = [];
 
   function visit(node) {
     if (ts.isCallExpression(node)) {
       const calleeName = getCalleeName(node);
-      if (calleeName && STORE_SUBSCRIPTION_CALL_PATTERN.test(calleeName)) {
+      if (calleeName && pattern.test(calleeName)) {
         hits.push({
           line: getLineNumber(node, sourceFile),
           symbol: calleeName,
+          kind: 'call',
         });
       }
     }
@@ -419,6 +408,20 @@ function collectStoreSubscriptionsInHandlerFile(sourceFile) {
 
   visit(sourceFile);
   return hits;
+}
+
+function collectStoreAccessViolationsInActionFile(sourceFile) {
+  return [
+    ...collectRuntimeImportMatches(sourceFile, STORE_ACCESS_IMPORT_PATTERN),
+    ...collectCallMatches(sourceFile, STORE_ACCESS_CALL_PATTERN),
+  ];
+}
+
+function collectStoreSubscriptionsInHandlerFile(sourceFile) {
+  return [
+    ...collectRuntimeImportMatches(sourceFile, STORE_SUBSCRIPTION_CALL_PATTERN),
+    ...collectCallMatches(sourceFile, STORE_SUBSCRIPTION_CALL_PATTERN),
+  ];
 }
 
 function loadTransitionalAllowlist(allowlistPath, baseDir) {
@@ -731,14 +734,22 @@ export function runContextLayeredConventionCheck(options = {}) {
       const layerDirectory = path.join(root, layer);
       if (!fs.existsSync(layerDirectory)) continue;
 
+      if (layer === 'actions') {
+        for (const nestedFile of collectSourceFiles(layerDirectory)) {
+          canonicalActionsFileSet.add(path.resolve(nestedFile));
+        }
+      } else if (layer === 'handlers') {
+        for (const nestedFile of collectSourceFiles(layerDirectory)) {
+          canonicalHandlersFileSet.add(path.resolve(nestedFile));
+        }
+      }
+
       const entries = fs.readdirSync(layerDirectory, { withFileTypes: true });
       for (const entry of entries) {
         if (!entry.isFile() || !/\.(?:ts|tsx)$/.test(entry.name)) {
           continue;
         }
         const filePath = path.join(layerDirectory, entry.name);
-        if (layer === 'actions') canonicalActionsFileSet.add(filePath);
-        if (layer === 'handlers') canonicalHandlersFileSet.add(filePath);
 
         if (!fileNamePattern.test(entry.name)) {
           layerConventionViolations.push({

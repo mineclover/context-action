@@ -258,15 +258,15 @@ Action-based dispatching provides a more intuitive and function-like approach to
 
 ===================[ DOC: en/guide/best-practices.md ]===================
 # Best Practices
-Sections: 📚 Comprehensive Pattern Documentation | ⚠️ Critical Best Practices | 📋 Quick Reference | 📖 Detailed Documentation | 🚨 Common Pitfalls | 🎯 Migration Guide | 📚 Additional Resources
+Sections: ⚡ Quick Team Summary | Right-Sized Adoption Matrix | CI-Enforced Rules vs Advisory Conventions | Production Do / Don't Checklist | Verified Right-Sized Implementation Examples | Related Resources
 
-Essential best practices for Context-Action framework development. This document provides quick references and links to comprehensive pattern guides. This guide has been reorganized for better maintainability. For detailed implementations, see the Pattern Collection: - Action Patterns - Pure action dispatching without state management - Store Patterns - Type-safe state management (Recommended) - RefContext Patterns - Direct DOM manipulation with zero re-renders - Architecture Patterns - Syste...
+Engineering conventions, runtime safety guardrails, and right-sized adoption examples for building maintainable Context-Action applications. > Looking for the full 6-layer governance specification or store primitive matrix? See Conventions, Convention Index, and Store Selection and Usage Guide. Share these 6 rules first when aligning a team on Context-Action: 1. Define boundaries before UI: Declare typed actions/ + contexts/ contracts and pure domain helpers (business/) before writing view co...
 
 ===================[ DOC: en/guide/code-patterns.md ]===================
 # Code Patterns
-Sections: 🎯 Core Framework Patterns | 🏗️ Architecture Patterns | ⚡ Advanced Patterns | Quick Reference
+Sections: Right-Sized Recipe Selector | Pattern Collection by Category | Testing Checklist for Runtime Recipes
 
-📁 For comprehensive patterns and implementation guides, visit: Pattern Collection This section has been reorganized into the dedicated patterns directory with clear categorization: - Action Only Pattern - Pure action dispatching - Store Only Pattern - Type-safe state management - RefContext Pattern - Zero re-render DOM manipulation - Pattern Composition - Combining patterns for complex apps - MVVM Architecture - Single domain architectural layers - Domain Context Architecture - Multi-domain...
+Catalog of core Context-Action patterns across setup, action dispatch, store reactivity, async pipelines, and high-frequency refs — paired with right-sized recipes. > Need guidance on when to pick Level 1 Lite vs Level 2 Headless-First Symmetric DI vs Level 3 6-Layer, and which rules CI enforces? Start with Best Practices. | Need | Recommended Recipe | Reference | |---|---|---| | Single-domain React widget (1 Action + 1 Store + Registry) | Level 1 · Lite | Best Practices — Level 1 & Basic Set...
 
 ===================[ DOC: en/guide/getting-started.md ]===================
 # Getting Started

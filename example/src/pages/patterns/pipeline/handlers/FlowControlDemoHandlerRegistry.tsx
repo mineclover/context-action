@@ -1,23 +1,29 @@
+import type { ExecutionResult } from '@context-action/core';
 import { useCallback, useEffect } from 'react';
 import { useActionLogger } from '@/components/LogMonitor';
 import {
-  useApiAction,
-  useCacheAction,
+  useApiActionWithResult,
+  useCacheActionWithResult,
   useFlowControlDemoActionCommandHandler,
   useFlowControlStore,
-  useOrderAction,
-  useSecurityAction,
+  useOrderActionWithResult,
+  useSecurityActionWithResult,
 } from '../contexts/FlowControlContexts';
-import type { ApiResult } from '../scenarios/types';
+import type {
+  ApiResult,
+  CacheResult,
+  OrderResult,
+  SecurityResult,
+} from '../scenarios/types';
 
 export function FlowControlDemoHandlerRegistry() {
   const demoStateStore = useFlowControlStore('demoState');
   const cacheStore = useFlowControlStore('cache');
 
-  const securityDispatch = useSecurityAction();
-  const cacheDispatch = useCacheAction();
-  const orderDispatch = useOrderAction();
-  const apiDispatch = useApiAction();
+  const securityAction = useSecurityActionWithResult();
+  const cacheAction = useCacheActionWithResult();
+  const orderAction = useOrderActionWithResult();
+  const apiAction = useApiActionWithResult();
 
   // Log Monitor 연동
   const logger = useActionLogger();
@@ -67,15 +73,16 @@ export function FlowControlDemoHandlerRegistry() {
   useFlowControlDemoActionCommandHandler(
     'toggleBusinessHours',
     useCallback(() => {
-      const currentState = demoStateStore.getValue();
-      const newBusinessHours = !currentState.isBusinessHours;
-
-      demoStateStore.setValue({
-        ...currentState,
-        isBusinessHours: newBusinessHours,
+      let nextBusinessHours = false;
+      demoStateStore.update((currentState) => {
+        nextBusinessHours = !currentState.isBusinessHours;
+        return {
+          ...currentState,
+          isBusinessHours: nextBusinessHours,
+        };
       });
 
-      console.log(`🕐 Business hours: ${newBusinessHours ? 'ON' : 'OFF'}`);
+      console.log(`🕐 Business hours: ${nextBusinessHours ? 'ON' : 'OFF'}`);
     }, [demoStateStore])
   );
 
@@ -83,12 +90,10 @@ export function FlowControlDemoHandlerRegistry() {
     'adjustSystemLoad',
     useCallback(
       ({ load }) => {
-        const currentState = demoStateStore.getValue();
-
-        demoStateStore.setValue({
+        demoStateStore.update((currentState) => ({
           ...currentState,
           systemLoad: load,
-        });
+        }));
 
         console.log(`⚡ System load adjusted to: ${(load * 100).toFixed(0)}%`);
       },
@@ -100,12 +105,10 @@ export function FlowControlDemoHandlerRegistry() {
     'setSelectedScenario',
     useCallback(
       ({ scenario }) => {
-        const currentState = demoStateStore.getValue();
-
-        demoStateStore.setValue({
+        demoStateStore.update((currentState) => ({
           ...currentState,
           selectedScenario: scenario,
-        });
+        }));
       },
       [demoStateStore]
     )
@@ -115,16 +118,21 @@ export function FlowControlDemoHandlerRegistry() {
     'recordExecutionStep',
     useCallback(
       ({ step }) => {
-        const currentState = demoStateStore.getValue();
+        let scenarioSnapshot = '';
+        let stepNumber = 0;
 
-        demoStateStore.setValue({
-          ...currentState,
-          executionPath: [...currentState.executionPath, step],
+        demoStateStore.update((currentState) => {
+          scenarioSnapshot = currentState.selectedScenario;
+          stepNumber = currentState.executionPath.length + 1;
+          return {
+            ...currentState,
+            executionPath: [...currentState.executionPath, step],
+          };
         });
 
         logger.info(`🔀 Pipeline Step: ${step}`, {
-          scenario: currentState.selectedScenario,
-          step: currentState.executionPath.length + 1,
+          scenario: scenarioSnapshot,
+          step: stepNumber,
           timestamp: new Date().toISOString(),
         });
       },
@@ -135,12 +143,10 @@ export function FlowControlDemoHandlerRegistry() {
   useFlowControlDemoActionCommandHandler(
     'recordHandlerExecution',
     useCallback(() => {
-      const currentState = demoStateStore.getValue();
-
-      demoStateStore.setValue({
+      demoStateStore.update((currentState) => ({
         ...currentState,
         handlerExecutions: currentState.handlerExecutions + 1,
-      });
+      }));
     }, [demoStateStore])
   );
 
@@ -148,18 +154,17 @@ export function FlowControlDemoHandlerRegistry() {
     'executeScenario',
     useCallback(
       async ({ scenario, payload }) => {
-        const currentState = demoStateStore.getValue();
+        const initialState = demoStateStore.getValue();
+        if (initialState.isExecuting) return;
 
-        if (currentState.isExecuting) return;
-
-        // Reset execution state
-        demoStateStore.setValue({
+        // Reset execution state atomically
+        demoStateStore.update((currentState) => ({
           ...currentState,
           isExecuting: true,
           executionResults: [],
           executionPath: [],
           handlerExecutions: 0,
-        });
+        }));
 
         console.log(`\n🧪 Executing scenario: ${scenario}`);
 
@@ -171,44 +176,74 @@ export function FlowControlDemoHandlerRegistry() {
         });
 
         try {
-          let result: any;
+          let executionResult: ExecutionResult<unknown>;
 
           switch (scenario) {
             case 'securityEscalation':
             case 'securitySuccess':
             case 'securityNormal':
-              result = await securityDispatch('processRequest', payload);
+              executionResult = await securityAction.dispatchWithResult<
+                'processRequest',
+                SecurityResult
+              >('processRequest', payload);
               break;
             case 'cacheOptimization':
             case 'cacheRedisHit':
             case 'cacheMissAll':
-              result = await cacheDispatch('fetchData', payload);
+              executionResult = await cacheAction.dispatchWithResult<
+                'fetchData',
+                CacheResult
+              >('fetchData', payload);
               break;
             case 'businessHourRouting':
-              result = await orderDispatch('processOrder', payload);
+              executionResult = await orderAction.dispatchWithResult<
+                'processOrder',
+                OrderResult
+              >('processOrder', payload);
               break;
             case 'errorRecovery':
-              result = await apiDispatch('apiCall', payload);
+              executionResult = await apiAction.dispatchWithResult<
+                'apiCall',
+                ApiResult
+              >('apiCall', payload);
               break;
             default:
               throw new Error(`Unknown scenario: ${scenario}`);
           }
 
-          const finalState = demoStateStore.getValue();
-          demoStateStore.setValue({
-            ...finalState,
-            executionResults: [result],
-            isExecuting: false,
+          const displayResult =
+            executionResult.result ??
+            (executionResult.aborted
+              ? {
+                  aborted: true,
+                  reason: executionResult.abortReason,
+                  outcome: executionResult.outcome,
+                }
+              : {
+                  success: executionResult.success,
+                  outcome: executionResult.outcome,
+                });
+
+          let executionSteps = 0;
+          let handlersExecuted = 0;
+          demoStateStore.update((currentState) => {
+            executionSteps = currentState.executionPath.length;
+            handlersExecuted = currentState.handlerExecutions;
+            return {
+              ...currentState,
+              executionResults: [displayResult as any],
+              isExecuting: false,
+            };
           });
 
-          console.log('✅ Scenario completed:', result);
+          console.log('✅ Scenario completed:', displayResult);
 
           // Log scenario success to monitor
           logger.info(`✅ Scenario Completed: ${scenario}`, {
             scenario,
-            result,
-            executionSteps: finalState.executionPath.length,
-            handlersExecuted: finalState.handlerExecutions,
+            result: displayResult,
+            executionSteps,
+            handlersExecuted,
             timestamp: new Date().toISOString(),
           });
         } catch (error) {
@@ -219,9 +254,8 @@ export function FlowControlDemoHandlerRegistry() {
             context: `Scenario: ${scenario}, Timestamp: ${new Date().toISOString()}`,
           });
 
-          const finalState = demoStateStore.getValue();
-          demoStateStore.setValue({
-            ...finalState,
+          demoStateStore.update((currentState) => ({
+            ...currentState,
             executionResults: [
               {
                 success: false,
@@ -231,16 +265,16 @@ export function FlowControlDemoHandlerRegistry() {
               } as ApiResult,
             ],
             isExecuting: false,
-          });
+          }));
         }
       },
       [
-        apiDispatch,
-        cacheDispatch,
+        apiAction,
+        cacheAction,
         demoStateStore,
         logger,
-        orderDispatch,
-        securityDispatch,
+        orderAction,
+        securityAction,
       ]
     )
   );

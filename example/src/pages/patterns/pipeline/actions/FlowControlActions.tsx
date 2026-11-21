@@ -29,13 +29,13 @@ export function useFlowControlActions() {
 
   const onExecutionStep = useCallback(
     (step: string) => {
-      void demoDispatch('recordExecutionStep', { step });
+      void demoDispatch('recordExecutionStep', { step }, { immediate: true });
     },
     [demoDispatch]
   );
 
   const onHandlerExecution = useCallback(() => {
-    void demoDispatch('recordHandlerExecution');
+    void demoDispatch('recordHandlerExecution', undefined, { immediate: true });
   }, [demoDispatch]);
 
   const executeScenario = useCallback(

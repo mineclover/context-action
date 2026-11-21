@@ -1,22 +1,25 @@
 import { useCallback } from 'react';
-import { useOrderActionHandler } from '../contexts/FlowControlContexts';
+import {
+  useFlowControlStore,
+  useOrderActionHandler,
+} from '../contexts/FlowControlContexts';
 
 // import type { OrderResult } from '../scenarios/types';
 
 interface OrderHandlerProps {
   onExecutionStep: (step: string) => void;
   onHandlerExecution: () => void;
-  isBusinessHours: boolean;
 }
 
 export function OrderHandlers({
   onExecutionStep,
   onHandlerExecution,
-  isBusinessHours,
 }: OrderHandlerProps) {
+  const demoStateStore = useFlowControlStore('demoState');
   // Business Rules Handler (P:100) - Route based on business logic
   const businessRulesHandler = useCallback(
     async (payload: any, controller: any): Promise<void> => {
+      const { isBusinessHours } = demoStateStore.getValue();
       onExecutionStep('📋 Business Rules Handler (P:100)');
       onHandlerExecution();
 
@@ -66,7 +69,7 @@ export function OrderHandlers({
       onExecutionStep('📝 Continue to Standard Processing');
       return;
     },
-    [onExecutionStep, onHandlerExecution, isBusinessHours]
+    [demoStateStore, onExecutionStep, onHandlerExecution]
   );
 
   // Expedited Handler (P:800)

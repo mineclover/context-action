@@ -27,10 +27,8 @@ import {
 // Import existing components (reusable)
 import { scenarios } from './scenarios';
 
-// Handler registration and integration component
+// Handler registration and integration component (zero store subscription -> no pipeline churn re-renders)
 function FlowControlHandlers() {
-  const demoStateStore = useFlowControlStore('demoState');
-  const demoState = useStoreValue(demoStateStore);
   const { onExecutionStep, onHandlerExecution } = useFlowControlActions();
 
   return (
@@ -38,7 +36,6 @@ function FlowControlHandlers() {
       <SecurityHandlers
         onExecutionStep={onExecutionStep}
         onHandlerExecution={onHandlerExecution}
-        isBusinessHours={demoState.isBusinessHours}
       />
       <CacheHandlers
         onExecutionStep={onExecutionStep}
@@ -47,7 +44,6 @@ function FlowControlHandlers() {
       <OrderHandlers
         onExecutionStep={onExecutionStep}
         onHandlerExecution={onHandlerExecution}
-        isBusinessHours={demoState.isBusinessHours}
       />
       <ApiHandlers
         onExecutionStep={onExecutionStep}

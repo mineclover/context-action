@@ -27,6 +27,7 @@ export type OrderSubmissionEvent =
   | { type: 'validation_failed'; errorCode: OrderValidationCode }
   | { type: 'server_succeeded'; orderId: string }
   | { type: 'server_failed'; errorCode: 'submission_failed' }
+  | { type: 'draft_edited' }
   | { type: 'reset' };
 
 export function transitionOrderState(
@@ -57,6 +58,11 @@ export function transitionOrderState(
     case 'server_failed':
       return current.phase === 'submitting'
         ? { phase: 'failed', orderId: null, errorCode: event.errorCode }
+        : current;
+
+    case 'draft_edited':
+      return current.phase === 'success' || current.phase === 'failed'
+        ? { phase: 'idle', orderId: null, errorCode: null }
         : current;
 
     case 'reset':

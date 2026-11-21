@@ -17923,255 +17923,463 @@ Actions-based dispatching provides a more intuitive and developer-friendly way t
 ===================[ DOC: en/guide/best-practices.md ]===================
 # Best Practices
 
-Essential best practices for Context-Action framework development. This document provides quick references and links to comprehensive pattern guides.
+Engineering conventions, runtime safety guardrails, and right-sized adoption examples for building maintainable **Context-Action** applications.
 
-<!-- Updated for sync-docs testing -->
+> Looking for the full 6-layer governance specification or store primitive matrix? See [Conventions](../concept/conventions.md), [Convention Index](../context-layered/convention-index.md), and [Store Selection and Usage Guide](../context-layered/store-selection-and-usage-guide.md).
 
-## 📚 Comprehensive Pattern Documentation
+---
 
-This guide has been reorganized for better maintainability. For detailed implementations, see the [**Pattern Collection**](./patterns/setup/index.md):
+## ⚡ Quick Team Summary
 
-### 🎯 Core Framework Patterns
-- **[Action Patterns](./patterns/action/)** - Pure action dispatching without state management
-- **[Store Patterns](./patterns/store/basic-usage.md)** - Type-safe state management (Recommended)  
-- **[RefContext Patterns](./patterns/ref/basic-usage.md)** - Direct DOM manipulation with zero re-renders
+Share these 6 rules first when aligning a team on Context-Action:
 
-### 🏗️ Advanced Patterns
-- **[Architecture Patterns](../context-layered/context-layered-guide.md)** - System architecture and design patterns
-- **[Async Patterns](./patterns/async/)** - Asynchronous operation patterns and control flow
-- **[Performance Patterns](./patterns/store/path-based-subscription.md)** - Performance optimization techniques
-- **[Debug Patterns](./troubleshooting.md)** - Production debugging and troubleshooting
+1. **Define boundaries before UI**: Declare typed `actions/` + `contexts/` contracts and pure domain helpers (`business/`) before writing view components.
+2. **Read stores lazily in handlers, subscribe only in views**: Inside `handlers/`, call `store.getValue()`; never call `useStoreValue`, `useStoreSelector`, or `useStorePath` in handler code.
+3. **Keep `actions/` dispatch-only and handle return values explicitly**: `actions/` hooks only wrap `dispatch` / `dispatchWithResult`; use `dispatchWithResult()` whenever callers need handler return values or abort reasons (`dispatch()` returns `Promise<void>`).
+4. **Bypass serialized queues on interrupt/telemetry actions**: `createActionContext` enables `useConcurrencyQueue: true` by default — always pass `{ immediate: true }` to cancel, reset, retry, or live execution-step actions dispatched alongside an active async handler.
+5. **Update Stores immutably**: Always return a new root object and shallow-clone collections (`new Map(prev.map)`, `[...prev.items]`) inside `store.update(...)`.
+6. **Right-size your structure**: Match complexity to **Level 1 (Lite)**, **Level 2 (Headless-First Symmetric DI)**, or **Level 3 (Full 6-Layer)** instead of forcing 6 layers onto simple local UI.
 
-## ⚠️ Critical Best Practices
+---
 
-### 🔴 Must-Read Critical Patterns
+## Right-Sized Adoption Matrix
 
-These patterns address common pitfalls that can cause serious issues in production:
+Adopt the lightest structure that keeps ownership explicit and tests fast:
 
-#### 1. **Handler State Access** - ⚠️ **CRITICAL**
-Avoid closure traps when accessing store values in action handlers.
+| Level | Best Fit | Modules / Primitives | Verification Focus | When NOT to Over-Engineer |
+|---|---|---|---|---|
+| **Local React State** | Single-component hover, accordion toggle, ephemeral UI flag | React `useState` / `useReducer` | Component test | Never create Actions or Stores just to toggle a local dropdown or tab |
+| **Level 1 · Lite** | Single-domain widget or form with shared validation + derived state | 1× `createActionContext`, 1× `createStoreContext`, 1× `Registry` component + `View` | React Testing Library behavior test | Skip splitting into 6 folders until domain logic or cross-panel coordination grows |
+| **Level 2 · Headless-First Symmetric DI** | Shared engine across vanilla JS, SSR/workers, multiple React trees, or unmount/remount persistence | Pure TS `ActionRegister` + `createStore`, `registerGuard/Result/Observer`, React `Provider ownership="shared"` | Pure Node/Vitest/Jest engine test + thin React mount/unmount DI test | Skip 6-layer route folders if the module exposes one cohesive engine API |
+| **Level 3 · Full 6-Layer** | Multi-concern product feature, team-owned route, complex async flows + layout intents | `contexts / business / handlers / actions / hooks / views` + `BusinessActionIntent` vs `LayoutActionIntent` | `pnpm convention:check`, pure `business/` unit tests, Playwright/RTL flow tests | Do not use Level 3 for small utility popovers or isolated widgets |
+
+---
+
+## CI-Enforced Rules vs Advisory Conventions
+
+Context-Action separates rules checked automatically by scripts (`pnpm convention:check`, `pnpm verify:surface-catalog`, `pnpm package-boundary:check`) from architectural guidelines reviewed during code review.
+
+### Enforced by CI (`pnpm convention:check` & Boundary Gates)
+
+1. **No store subscriptions in handlers (`no-store-subscription-in-handlers`)**: Static analysis rejects direct or aliased calls to `useStoreValue`, `useStoreSelector`, `useStorePath`, and reactive subscriptions inside `handlers/**`. Read `store.getValue()` inside callbacks instead.
+2. **No `actions/` imports inside `handlers/` (`no-actions-import-in-handlers`)**: Handlers must not couple themselves to React action dispatch wrappers. Wire UI callbacks via props/injector interfaces or keep pure calculations in `business/`.
+3. **Separated action intents (`no-mixed-intent-payloads`)**: Keep `BusinessActionIntent` (validation, API submission, state transitions) separate from `LayoutActionIntent` (focus management, panel scroll, viewport layout).
+4. **Dispatch-only `actions/` hooks (`actions-dispatch-only`)**: Modules in `actions/` only expose `useCallback`-wrapped `dispatch` / `dispatchWithResult` helpers — no domain branching or store subscriptions.
+5. **No raw DOM objects or events in Stores**: Reactive stores hold serializable/domain state only. Imperative DOM elements (`HTMLInputElement`, `ResizeObserver`, scroll containers) belong in `RefContext`.
+6. **Single-source state owner**: Avoid duplicating identical mutable fields across multiple stores or React `useState` mirrors.
+7. **Canonical package boundaries**: Workspace consumers import published entrypoints and package subpaths verified by `pnpm package-boundary:check`.
+
+### Advisory Design Practices
+
+- **Strict 6-layer directory layout (`Level 3`)**: Recommended for multi-developer features; optional for Level 1/2 widgets.
+- **Observer `{ when: 'always' }`**: Recommended whenever an observer records validation failures, aborted dispatches, or audit timelines (`registerObserver` defaults to post-completion unless configured).
+- **Queue preemption (`{ immediate: true }`)**: Design judgment per action based on whether it interrupts or observes an active handler.
+
+---
+
+## Production Do / Don't Checklist
+
+### 1. Read State Lazily in Handlers (`store.getValue()`)
+
+Subscribing to a Store inside a Handler component forces every handler hook and `useCallback` registration to churn on state changes and risks stale closures.
 
 ```tsx
-// ❌ WRONG: Component scope values create closure traps
-function BadComponent() {
-  const user = useStoreValue(userStore); // Trapped in closure!
-  
-  useActionHandler('updateUser', async (payload) => {
-    if (user.isActive) {  // STALE VALUE!
-      await updateUserAPI(payload);
-    }
-  });
-}
+// ❌ Don't: subscribes handler registry to every draft update
+const draft = useStoreValue(draftStore);
+useActionCommandHandler('submitOrder', useCallback(async () => {
+  await submit(draft);
+}, [draft]));
 
-// ✅ CORRECT: Always get fresh state from store
-function GoodComponent() {
-  useActionHandler('updateUser', useCallback(async (payload) => {
-    const currentUser = userStore.getValue(); // Real-time value!
-    
-    if (currentUser.isActive) {
-      await updateUserAPI(payload);
-    }
-  }, [userStore]));
-}
+// ✅ Do: read latest snapshot on demand inside the handler
+useActionCommandHandler('submitOrder', useCallback(async () => {
+  const latestDraft = draftStore.getValue();
+  await submit(latestDraft);
+}, [draftStore]));
 ```
 
-**📖 Read More**: [Handler State Access Patterns](./patterns/action/handler-state-access.md)
+### 2. Choose `dispatch()` vs `dispatchWithResult()` Intentionally
 
-#### 2. **Production Debugging** - 🐛 **ESSENTIAL**
-Critical issues like duplicate handlers, race conditions, and component lifecycle conflicts.
+`dispatch()` resolves to `Promise<void>`. Calling `controller.return(value)` or `controller.abort(reason)` is dropped for callers unless you use `dispatchWithResult()`.
 
-**📖 Read More**: [Troubleshooting Guide](./troubleshooting.md)
+- Use **`dispatch(action, payload)`** for fire-and-forget UI commands whose side effects flow cleanly into Stores.
+- Use **`dispatchWithResult(action, payload)`** when the caller inspects `execution.outcome` (`'completed' | 'cancelled'`), `execution.result`, or `execution.abortReason` (such as cache hits, multi-tier fallback pipelines, or guarded edits).
 
-#### 3. **Real-time State Access** - ⚡ **IMPORTANT**
-Proper async patterns for accessing current state values.
+### 3. Preempt Serialized Queues with `{ immediate: true }`
 
-**📖 Read More**: [Real-time State Access](./patterns/async/real-time-state-access.md)
+`createActionContext` sets `useConcurrencyQueue: true` by default so actions on the same context serialize deterministically. Two classes of actions **must** pass `{ immediate: true }`:
 
-## 📋 Quick Reference
-
-### Essential Development Rules
-
-#### ✅ Always Do
-- Use `useCallback` for action handlers
-- Access real-time state with `store.getValue()` in handlers
-- Choose appropriate comparison strategies for stores
-- Handle errors with try-catch in action handlers
-- Test both mounted/unmounted scenarios
-
-#### ❌ Never Do
-- Use component scope values in action handlers (closure traps!)
-- Register handlers without `useCallback`
-- Use direct DOM queries (`document.getElementById`)
-- Ignore error handling in critical operations
-- Skip timeout protection for async operations
-
-### Pattern Selection Guide
+1. **Interrupt, cancel, reset, or retry actions** triggered while an async `submitOrder` or `fetchData` handler is awaiting — otherwise the reset stays blocked behind the slow promise it is trying to cancel.
+2. **Live telemetry / progress actions** dispatched *from inside* a running handler on the same `ActionContext` — otherwise step logs wait until the parent scenario completes.
 
 ```tsx
-// 🎯 Action Only: Pure event handling
-const { useActionDispatch, useActionHandler } = createActionContext<Actions>('MyActions');
+const resetDraft = useCallback(
+  () => businessDispatch('resetDraft', undefined, { immediate: true }),
+  [businessDispatch]
+);
+```
 
-// 🏪 Store Only: Pure state management (Recommended)
-const { useStore, useStoreManager } = createStoreContext('MyStores', {
-  data: initialData,
-  isLoading: false
+### 4. Update Collections & State Objects Immutably
+
+`Store` notifies subscribers by comparing references (`Object.is`). Mutating a `Map`, `Set`, or array returned by `store.update` skips notifications or leaks shared references across renders.
+
+```ts
+// ❌ Don't: mutates the existing Map instance in place
+cacheStore.update((prev) => {
+  prev.entries.set(key, entry);
+  return prev;
 });
 
-// 🔧 RefContext: High-performance DOM manipulation
-const { useRefHandler } = createRefContext<Refs>('MyRefs');
+// ✅ Do: clone the Map and return a new root object
+cacheStore.update((prev) => {
+  const nextEntries = new Map(prev.entries);
+  nextEntries.set(key, entry);
+  return { ...prev, entries: nextEntries };
+});
+```
 
-// 🏗️ Composition: Complex applications
-function App() {
+### 5. Settle Cancelled Async Promises & Reset Terminal UI Phases
+
+When an in-flight async workflow supports cancellation (`resetDraft`, `abort`, unmount cleanup):
+
+- Track the active promise resolver/AbortController in a ref (`pendingResolveRef`) and resolve it (`resolve(false)`) during cancel and unmount cleanup so callers never hang forever or leak stale `await` continuations.
+- Model an explicit user-edit transition (for example `{ type: 'draft_edited' }`) in pure domain state machines so a `'success'` or `'failed'` banner cleanly transitions back to `'idle'` when the user edits an input again.
+
+### 6. Separate `BusinessActionIntent` from `LayoutActionIntent` & Drive DOM with `RefContext`
+
+Keep business validation in `businessDispatch('submitOrder')` and UI imperatives (scrolling, focusing an invalid field) in `layoutDispatch('focusField', { field })` backed by `createRefContext`. For RAF-batched stores (`Store` default `notificationMode: 'batched'`), keep 60fps imperative coordinates inside `RefContext` rather than dispatching Store updates on every frame — and remember in tests under fake timers that `Store` updates flush on a 16ms `requestAnimationFrame` tick.
+
+---
+
+## Verified Right-Sized Implementation Examples
+
+All TypeScript examples below are compile-checked automatically by `pnpm verify:doc-snippets` (`<!-- @context-action-compile -->`).
+
+### Level 1 · Lite (Single-Domain Coupon Widget)
+
+Ideal for an interactive calculator, coupon bar, or filter panel in one React subtree. No separate `business/` or `actions/` directories are required until the domain grows.
+
+<!-- @context-action-compile -->
+```tsx
+import { useCallback } from 'react';
+import type { ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+
+interface CouponQuote {
+  readonly appliedCode: string | null;
+  readonly totalAmount: number;
+  readonly errorCode: 'empty_code' | 'unknown_coupon' | null;
+}
+
+const VALID_COUPONS: Record<string, number> = { SAVE10: 10, TEAM25: 25 };
+
+function evaluateCoupon(rawCode: string, subtotal: number): CouponQuote {
+  const code = rawCode.trim().toUpperCase();
+  if (!code) return { appliedCode: null, totalAmount: subtotal, errorCode: 'empty_code' };
+  const pct = VALID_COUPONS[code];
+  if (pct === undefined) {
+    return { appliedCode: null, totalAmount: subtotal, errorCode: 'unknown_coupon' };
+  }
+  return {
+    appliedCode: code,
+    totalAmount: Math.round(subtotal * (1 - pct / 100)),
+    errorCode: null,
+  };
+}
+
+interface LiteCouponActions extends ActionPayloadMap {
+  applyCoupon: { code: string };
+  clearCoupon: void;
+}
+
+const {
+  Provider: LiteCouponActionProvider,
+  useActionDispatch: useLiteCouponDispatch,
+  useActionCommandHandler: useLiteCouponCommand,
+} = createActionContext<LiteCouponActions>('LiteCouponActions');
+
+const {
+  Provider: LiteCouponStoreProvider,
+  useStore: useLiteCouponStore,
+} = createStoreContext('LiteCouponStores', {
+  subtotal: 100,
+  quote: { appliedCode: null, totalAmount: 100, errorCode: null } as CouponQuote,
+});
+
+function LiteCouponRegistry() {
+  const subtotalStore = useLiteCouponStore('subtotal');
+  const quoteStore = useLiteCouponStore('quote');
+
+  useLiteCouponCommand(
+    'applyCoupon',
+    useCallback(
+      ({ code }) => {
+        quoteStore.setValue(evaluateCoupon(code, subtotalStore.getValue()));
+      },
+      [quoteStore, subtotalStore]
+    )
+  );
+
+  useLiteCouponCommand(
+    'clearCoupon',
+    useCallback(() => {
+      quoteStore.setValue({
+        appliedCode: null,
+        totalAmount: subtotalStore.getValue(),
+        errorCode: null,
+      });
+    }, [quoteStore, subtotalStore])
+  );
+
+  return null;
+}
+
+export function LiteCouponWidget() {
+  const quote = useStoreValue(useLiteCouponStore('quote'));
+  const dispatch = useLiteCouponDispatch();
+
   return (
-    <MyActionProvider>
-      <MyStoreProvider>
-        <MyRefProvider>
-          <AppContent />
-        </MyRefProvider>
-      </MyStoreProvider>
-    </MyActionProvider>
+    <div>
+      <span>{quote.totalAmount}</span>
+      <button type="button" onClick={() => void dispatch('applyCoupon', { code: 'SAVE10' })}>
+        Apply SAVE10
+      </button>
+      <button type="button" onClick={() => void dispatch('clearCoupon')}>
+        Clear
+      </button>
+    </div>
+  );
+}
+
+export function LiteCouponFeature() {
+  return (
+    <LiteCouponActionProvider>
+      <LiteCouponStoreProvider>
+        <LiteCouponRegistry />
+        <LiteCouponWidget />
+      </LiteCouponStoreProvider>
+    </LiteCouponActionProvider>
   );
 }
 ```
 
-## 📖 Detailed Documentation
+### Level 2 · Headless-First Symmetric DI (`ActionRegister` + `createStore` + Shared Provider)
 
-### Core Concepts
-For naming conventions, file structure, and type definitions, see:
-- **[Conventions Guide](../concept/conventions.md)** - Complete coding conventions
-- **[Architecture Guide](../concept/architecture-guide.md)** - MVVM architecture guide
-- **[Pattern Guide](../concept/pattern-guide.md)** - Pattern selection guide
+Ideal when domain execution must run identically **with or without React mounted** (unit tests, SSR prefetch, Web Workers, multi-pane desktop state surviving unmounts). Inject the framework-neutral instances using `ownership="shared"`.
 
-### Implementation Guides
-For step-by-step implementation details, see:
-- **[Basic Examples](../examples/basic-setup.md)** - Working code examples
-- **[Pattern Collection](./patterns/setup/index.md)** - Comprehensive implementation guides
-
-## 🚨 Common Pitfalls
-
-### ⚠️ Critical Issues to Avoid
-
-1. **Closure Traps**: Never use component scope values in handlers
-2. **Duplicate Handlers**: Check for multiple registrations of same handler
-3. **Race Conditions**: Use processing state flags for critical actions
-4. **Memory Leaks**: Clean up refs, animations, and event listeners
-5. **Stale State**: Always use `store.getValue()` for current state
-6. **Event Object Storage**: Never store DOM events or React event objects in stores
-7. **Cross-Platform Compatibility**: Use proper timeout types for browser/Node.js environments
-
-**📖 Detailed Solutions**: [Store Issues Troubleshooting](../troubleshooting/store-issues.md)
-
-### 🔧 Security & Performance Guidelines
-
-#### Event Object Handling
-Never store DOM event objects in stores as they can cause memory leaks:
-
+<!-- @context-action-compile -->
 ```tsx
-// ❌ WRONG: Storing event objects causes memory leaks
-function BadHandler() {
-  useActionHandler('handleClick', async (event) => {
-    // This will trigger an error and prevent storage
-    store.setValue({ clickEvent: event }); 
-  });
+import { useCallback } from 'react';
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createStore,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+
+interface QuoteResult {
+  readonly appliedCode: string | null;
+  readonly totalAmount: number;
+  readonly errorCode: 'unknown_coupon' | null;
 }
 
-// ✅ CORRECT: Extract needed data from events
-function GoodHandler() {
-  useActionHandler('handleClick', async (event) => {
-    // Extract only the data you need
-    const clickData = {
-      clientX: event.clientX,
-      clientY: event.clientY,
-      target: event.target?.tagName,
-      timestamp: Date.now()
-    };
-    store.setValue({ clickData });
+interface HeadlessCouponActions extends ActionPayloadMap {
+  applyCoupon: { code: string; subtotal: number };
+}
+
+interface HeadlessCouponResultMap {
+  applyCoupon: QuoteResult;
+}
+
+export function createCouponEngine() {
+  const register = new ActionRegister<HeadlessCouponActions, HeadlessCouponResultMap>({
+    name: 'CouponEngine',
   });
+  const quoteStore = createStore<QuoteResult>('couponQuote', {
+    appliedCode: null,
+    totalAmount: 200,
+    errorCode: null,
+  });
+  const auditStore = createStore<string[]>('couponAudit', []);
+
+  register.registerGuard(
+    'applyCoupon',
+    ({ code, subtotal }, controller) => {
+      if (code.trim().toUpperCase() !== 'TEAM25') {
+        quoteStore.setValue({ appliedCode: null, totalAmount: subtotal, errorCode: 'unknown_coupon' });
+        controller.abort('unknown_coupon');
+      }
+    },
+    { id: 'coupon-guard', priority: 100 }
+  );
+
+  register.registerResult(
+    'applyCoupon',
+    ({ code, subtotal }) => {
+      const next: QuoteResult = {
+        appliedCode: code.trim().toUpperCase(),
+        totalAmount: Math.round(subtotal * 0.75),
+        errorCode: null,
+      };
+      quoteStore.setValue(next);
+      return next;
+    },
+    { id: 'coupon-result', priority: 10 }
+  );
+
+  register.registerObserver(
+    'applyCoupon',
+    (event) => {
+      auditStore.update((prev) => [...prev, `${event.outcome}:${event.payload.code.toUpperCase()}`]);
+    },
+    { id: 'coupon-audit', priority: 1, when: 'always' }
+  );
+
+  const CouponActions = createActionContext<HeadlessCouponActions, HeadlessCouponResultMap>(
+    'CouponActions'
+  );
+  const CouponStores = createStoreContext('CouponStores', {
+    couponQuote: { appliedCode: null, totalAmount: 200, errorCode: null } as QuoteResult,
+  });
+
+  return { register, quoteStore, auditStore, CouponActions, CouponStores };
+}
+
+export async function runHeadlessCouponCheck() {
+  const engine = createCouponEngine();
+  const execution = await engine.register.dispatchWithResult('applyCoupon', {
+    code: 'team25',
+    subtotal: 200,
+  });
+  return { execution, quote: engine.quoteStore.getValue(), audit: engine.auditStore.getValue() };
+}
+
+export function MountedCouponPanel({ engine }: { engine: ReturnType<typeof createCouponEngine> }) {
+  function TelemetryObserver() {
+    engine.CouponActions.useActionObserver(
+      'applyCoupon',
+      useCallback((event) => {
+        void event.outcome;
+      }, []),
+      { id: 'react-ui-observer', when: 'always' }
+    );
+    return null;
+  }
+
+  function View() {
+    const dispatch = engine.CouponActions.useActionDispatch();
+    const quote = useStoreValue(engine.CouponStores.useStore('couponQuote'));
+    return (
+      <button
+        type="button"
+        onClick={() => void dispatch('applyCoupon', { code: 'TEAM25', subtotal: 200 })}
+      >
+        Total: {quote.totalAmount}
+      </button>
+    );
+  }
+
+  return (
+    <engine.CouponActions.Provider register={engine.register} ownership="shared">
+      <engine.CouponStores.Provider stores={{ couponQuote: engine.quoteStore }} ownership="shared">
+        <TelemetryObserver />
+        <View />
+      </engine.CouponStores.Provider>
+    </engine.CouponActions.Provider>
+  );
 }
 ```
 
-#### Memory Management
-The framework automatically handles memory-heavy objects:
+### Level 3 · Full 6-Layer Feature Architecture
 
-```tsx
-// EventBus automatically prevents memory leaks by:
-// 1. Detecting DOM elements and React components
-// 2. Storing only essential metadata instead of full objects
-// 3. Cleaning up problematic references automatically
-```
+When a route owns multi-step async workflows, form/draft validation, focus/scroll layout intents, theme tokens, and audit logs across multiple components:
 
-#### Error Handling
-Use the centralized error handling system:
-
-```tsx
-// Framework provides ErrorHandlers for:
-// - Store operation errors
-// - Event handler failures  
-// - Ref mount callback errors
-// - Async operation failures with proper context
-```
-
-## 🎯 Migration Guide
-
-If you're migrating from other state management libraries or updating existing code:
-
-1. **Identify Pattern Types**: Determine which patterns (Action, Store, RefContext) you need
-2. **Check Critical Patterns**: Review handler state access and async patterns
-3. **Update Conventions**: Follow naming and file structure conventions
-4. **Test Thoroughly**: Especially focus on handler behavior and state updates
-
-**📖 Complete Migration Guide**: [Pattern Guide](../concept/pattern-guide.md#migration-guide)
+- Separate modules into `contexts/`, `business/`, `handlers/` (4-role hooks: `useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`), `actions/` (`dispatch`-only wrappers with `{ immediate: true }` on cancel/reset), `hooks/`, and `views/`.
+- See the production reference implementation in `packages/template-react/src/features/order-workspace/` and its companion walkthroughs:
+  - [Canonical Order Form](../examples/canonical-order-form.md)
+  - [Spec-to-Code Authoring Guide](../context-layered/spec-to-code-authoring-guide.md)
+  - [Context-Layered Architecture Guide](../context-layered/context-layered-guide.md)
 
 ---
 
-## 📚 Additional Resources
+## Related Resources
 
-### Documentation Links
-- [Repository API Surface Catalog](../context-layered/repository-surface-catalog.md) - Package & API surface catalog
-- [Example Code](https://github.com/mineclover/context-action/tree/main/example) - Working example application
-- [Pattern Collection](./patterns/setup/index.md) - Comprehensive pattern guides
-
-### External Resources
-- [Context-Action GitHub](https://github.com/mineclover/context-action) - Source code and issues
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/) - TypeScript best practices
+- [Code Patterns Quick Reference](./code-patterns.md)
+- [Action Pipeline Guide](../concept/action-pipeline-guide.md)
+- [Hooks Reference](../concept/hooks-reference.md)
+- [Handler Registry Architecture](../context-layered/architecture/handler-registry.md)
+- [Stability & Test Cycle](../context-layered/stability-test-cycle.md)
+- [Troubleshooting](./troubleshooting.md)
 
 ===================[ DOC: en/guide/code-patterns.md ]===================
 # Code Patterns
 
-**📁 For comprehensive patterns and implementation guides, visit: [Pattern Collection](./patterns/setup/index.md)**
+Catalog of core Context-Action patterns across setup, action dispatch, store reactivity, async pipelines, and high-frequency refs — paired with right-sized recipes.
 
-This section has been reorganized into the dedicated [patterns directory](./patterns/setup/index.md) with clear categorization:
+> Need guidance on **when** to pick Level 1 Lite vs Level 2 Headless-First Symmetric DI vs Level 3 6-Layer, and which rules CI enforces? Start with [Best Practices](./best-practices.md).
 
-## 🎯 Core Framework Patterns
-- **[Action Only Pattern](../examples/action-only.md)** - Pure action dispatching
-- **[Store Only Pattern](../examples/store-only.md)** - Type-safe state management  
-- **[RefContext Pattern](./patterns/ref/basic-usage.md)** - Zero re-render DOM manipulation
+---
 
-## 🏗️ Architecture Patterns
-- **[Pattern Composition](../examples/pattern-composition.md)** - Combining patterns for complex apps
-- **[MVVM Architecture](../concept/architecture-guide.md)** - Single domain architectural layers
-- **[Domain Context Architecture](../context-layered/context-layered-guide.md)** - Multi-domain business separation
+## Right-Sized Recipe Selector
 
-## ⚡ Advanced Patterns
-- **[Async Patterns](./patterns/async/index.md)** - Real-time state, element waiting, timeout protection
+| Need | Recommended Recipe | Reference |
+|---|---|---|
+| Single-domain React widget (`1` Action + `1` Store + `Registry`) | Level 1 · Lite | [Best Practices — Level 1](./best-practices.md#level-1--lite-single-domain-coupon-widget) & [Basic Setup](../examples/basic-setup.md) |
+| Shared engine runnable headlessly & across React unmount/remount | Level 2 · Headless-First Symmetric DI (`ownership="shared"`) | [Best Practices — Level 2](./best-practices.md#level-2--headless-first-symmetric-di-actionregister--createstore--shared-provider) |
+| Multi-concern feature with `BusinessActionIntent` vs `LayoutActionIntent` | Level 3 · Full 6-Layer (`contexts/business/handlers/actions/hooks/views`) | [Canonical Order Form](../examples/canonical-order-form.md) |
+| Returning early cache hits, validation results, or abort reasons | `dispatchWithResult()` + `controller.return(...)` / `controller.abort(...)` | [Dispatch Patterns](./patterns/action/dispatch-patterns.md) |
+| Cancelling/resetting async handlers or recording live progress steps | `dispatch(..., { immediate: true })` queue bypass | [Best Practices — Queue Preemption](./best-practices.md#_3-preempt-serialized-queues-with--immediate-true-) |
+| Focusing fields or driving 60fps scroll/DOM without Store re-renders | `createRefContext` (`useWaitForRefs`) | [RefContext Setup](./patterns/setup/ref-context-setup.md) & [Ref Basic Usage](./patterns/ref/basic-usage.md) |
 
-> **Migration Note**: All individual pattern files have been consolidated and organized. Please use the [patterns directory](./patterns/setup/index.md) for the most up-to-date documentation.
+---
 
-## Quick Reference
+## Pattern Collection by Category
 
-### Essential Rules
+### Setup & Context Boundaries
+- [Setup Overview](./patterns/setup/index.md) — Choosing providers and boundary composition
+- [Basic Action Setup](./patterns/setup/basic-action-setup.md) — Typed action contracts with `createActionContext`
+- [Basic Store Setup](./patterns/setup/basic-store-setup.md) — Type-safe store bundles with `createStoreContext`
+- [RefContext Setup](./patterns/setup/ref-context-setup.md) — Imperative DOM & hardware ref containers
+- [Multi-Context Setup](./patterns/setup/multi-context-setup.md) — Composing multiple business and layout domains
+- [Provider Composition Setup](./patterns/setup/provider-composition-setup.md) — Clean app-level provider nesting (`composeProviders`)
 
-#### ✅ Do
-- Use `useCallback` for handlers with useWaitForRefs
-- Access real-time state with `store.getValue()`
-- Handle errors with try-catch
-- Test both mounted/unmounted scenarios
+### Action Pipeline & Handler Registration
+- [Action Patterns Overview](./patterns/action/index.md)
+- [Basic Action Usage](./patterns/action/basic-usage.md) — Defining payload maps and dispatching actions
+- [Dispatch Access](./patterns/action/dispatch-access.md) — `useActionDispatch`, `useActionDispatchWithResult`, and handler hooks
+- [Dispatch Patterns](./patterns/action/dispatch-patterns.md) — Priority execution, `dispatchWithResult()`, and queue options
+- [Handler State Access](./patterns/action/handler-state-access.md) — Lazy `store.getValue()` snapshots without stale closures
+- [Register Patterns](./patterns/action/register-patterns.md) — Organizing handler registration and cleanup
+- [Type System](./patterns/action/type-system.md) — `ActionPayloadMap`, result typing, and inference
+- [Advanced Patterns](./patterns/action/advanced-patterns.md) — Guards, priority jumps (`controller.jumpToPriority`), and abort handling
 
-#### ❌ Don't
-- Use direct DOM queries (`document.getElementById`)
-- Rely on component scope values in handlers
-- Ignore error handling
-- Skip timeout protection for critical paths
+### Store Reactivity & Subscriptions
+- [Basic Store Usage](./patterns/store/basic-usage.md) — Creating, reading, and updating Stores cleanly
+- [useStoreValue Patterns](./patterns/store/useStoreValue-patterns.md) — Subscribing safely in React views with selectors
+- [Path-Based Subscription](./patterns/store/path-based-subscription.md) — Granular JSON-pointer subscriptions via `useStorePath`
+- [useStoreManager API](./patterns/store/useStoreManager-api.md) — Low-level store registry access inside handler setup
+- [Store Configuration](./patterns/store/store-configuration.md) — Custom comparators, equality checks, and batched/immediate notification modes
+
+### Async Execution & Concurrency
+- [Async Patterns Overview](./patterns/async/index.md)
+- [Real-Time State Access](./patterns/async/real-time-state-access.md) — Reading latest store snapshots across `await` boundaries
+- [Wait Then Execute](./patterns/async/wait-then-execute.md) — Debouncing, awaiting DOM refs, and cancellable async pipelines
+
+### Imperative DOM & RefContext
+- [RefContext Basic Usage](./patterns/ref/basic-usage.md) — `useRefHandler`, `waitForRefs`, and non-reactive animation/scroll loops
+- [React Refs Architecture Guide](../concept/react-refs-guide.md) — When to choose `RefContext` vs `Store`
+
+---
+
+## Testing Checklist for Runtime Recipes
+
+- **Wrap UI events in `act(...)` / `userEvent` cleanly** and account for `Store`'s default RAF batching (`16ms` under fake timers or `waitFor(...)` under real timers). See [Stability & Test Cycle](../context-layered/stability-test-cycle.md).
+- **Assert observers with `{ when: 'always' }`** when verifying guard rejections and aborted flows.
+- **Test pure `business/` transitions headlessly** before mounting React views.
 
 ===================[ DOC: en/guide/getting-started.md ]===================
 # Getting Started

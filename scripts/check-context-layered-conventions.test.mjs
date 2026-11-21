@@ -210,11 +210,44 @@ test('fails on useStoreValue/Selector/Path calls inside handlers/ and *HandlerRe
     });
     assert.equal(result.ok, false);
     const hits = result.astRuleViolations['no-store-subscription-in-handlers'];
-    assert.equal(hits.length, 2);
+    assert.equal(hits.length, 4);
     assert.deepEqual(
       hits.map((hit) => hit.symbol),
-      ['useStoreValue', 'useStoreSelector']
+      ['useStoreSelector', 'useStoreValue', 'useStoreValue', 'useStoreSelector']
     );
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('fails on aliased useStoreValue import inside handlers/ (no-store-subscription-in-handlers)', () => {
+  const tmpDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'ca-conv-handler-alias-')
+  );
+  try {
+    createCanonicalFeatureFixture(tmpDir);
+    writeFixtureFile(
+      tmpDir,
+      'src/features/demo/handlers/DemoHandlerRegistry.tsx',
+      [
+        "import { useStoreValue as readStore, type Store } from '@context-action/react';",
+        "import { useDemoStore } from '../contexts/DemoContexts';",
+        'export function DemoHandlerRegistry() {',
+        "  const countStore: Store<number> = useDemoStore('count');",
+        '  readStore(countStore);',
+        '  return null;',
+        '}',
+      ].join('\n')
+    );
+
+    const result = runContextLayeredConventionCheck({
+      baseDir: tmpDir,
+      roots: ['src'],
+    });
+    assert.equal(result.ok, false);
+    const hits = result.astRuleViolations['no-store-subscription-in-handlers'];
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0].symbol, 'useStoreValue');
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
