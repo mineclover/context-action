@@ -1,31 +1,31 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-21T10:12:11.260Z",
-  "commitSha": "9db3f34ea899641c1afe6c5e79c5f98080148d11",
-  "branch": "refactor/unify-docs-remove-typedoc-and-llmsdata",
+  "timestamp": "2026-11-21T10:32:37.216Z",
+  "commitSha": "6e727982f0df9a5a1ee6fc0c6f231516a7648b4b",
+  "branch": "refactor/cleanup-overrides-orphans-and-agent-docs",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
     "platform": "darwin",
     "arch": "arm64"
   },
-  "inputDigest": "sha256:ac50bab66511957ad9f8cde0541a8f2a3109f76cadf06925f8ea927611e815d9",
+  "inputDigest": "sha256:a204966139afe5016c39851ee2526ad0750a31d7f2a654e5790538479c8460f4",
   "workingTree": "clean",
-  "treeDigest": "sha256:cc216b1fd62fc515db94ee82d836b765416de72d65a60e9f9bfbb8bbc6ddaadf",
+  "treeDigest": "sha256:b0b0613f5d47f0f3c5782d1f846d35d114d89b8a08ae2d1582a9c37ab5203ccd",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 17,
+      "durationSec": 18.31,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.82,
+      "durationSec": 0.84,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 3.1,
+      "durationSec": 2.94,
       "status": "passed"
     },
     {
@@ -50,7 +50,7 @@
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.36,
+      "durationSec": 1.85,
       "status": "passed"
     },
     {
@@ -60,5 +60,5 @@
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:283f8db2c81852dd0c821d059fbe2c8e40a48675fea24eba440fb1a677f957e0"
+  "receiptDigest": "sha256:2490cf7161098ac7496356a44296a2cdbec2d47fafbb654c7050796701633b2a"
 }
