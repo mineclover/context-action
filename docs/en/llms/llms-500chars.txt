@@ -190,6 +190,12 @@ Sections: Outcome and planning rule | Historical baseline and final outcome | Op
 
 status: completed canonical: false translationOf: docs/ko/context-layered/v1-release-roadmap.md translationRevision: v1-r3 syncedAtCommit: b21284fff2c6253eb2ce43634a1baffbc52163e2 roadmapRevision: v1-r3 artifactCommit: 63f790a521e3428a7a2825677747338f8f05ccf3 promotionRun: 31347327623 completedAt: 2026-08-10 releaseStatus: promoted Release principle: v1.0.0 is a contract freeze, not a version-number change. The v1.0.0 release is ready only when Context-Action can make, and keep through the 1....
 
+===================[ DOC: en/context-layered/v5-migration-readiness.md ]===================
+# Phase 2 (v5) Migration & Readiness Guide
+Sections: Phase 1 (4.x Non-Breaking) vs. Phase 2 (v5 Major) Boundary | Consumer Migration Recipes (Safe in 4.x, Ready for v5) | Automated Readiness Auditor (pnpm audit:v5-readiness) | Phase 2 (v5) Admission Checklist
+
+This guide prepares application teams, template starters, and external consumers for Phase 2 (v5 major breaking cleanup) under CA-VNEXT-ARCHITECTURE-001. Every preparation step in this document runs on top of the current 4.x release line without breaking existing root imports or freezing active development. - Status: Active 4.x preparation track (packages/template-react already compliant; v5 breaking removals remain deferred pending release approval) - Prerequisite Baseline: CA-VNEXT-ARCHITEC...
+
 ===================[ DOC: en/context-layered/vnext-architecture-handoff.md ]===================
 # vNext Architecture & Cross-Project Handoff Guide
 Sections: Baseline & Freeze Rules | Required Reading Map | Open Feedback Decision Gates (Resolve Before Implementation) | Copy-Pasteable Instruction / Prompt Kit

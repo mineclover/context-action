@@ -190,6 +190,12 @@ Sections: 목표와 계획 원칙 | Historical baseline and final outcome | 운�
 
 status: completed canonical: true sourceLocale: ko roadmapRevision: v1-r3 artifactCommit: 63f790a521e3428a7a2825677747338f8f05ccf3 promotionRun: 31347327623 completedAt: 2026-08-10 releaseStatus: promoted translation: en: docs/en/context-layered/v1-release-roadmap.md 릴리스 원칙: v1.0.0은 버전 번호 변경이 아니라 공개 계약의 동결이다. v1.0.0은 Context-Action이 1.x 전체에서 아래 약속을 지킬 수 있을 때만 준비된 것으로 판단한다. > 공개 API, 런타임 의미론, 수명주기 동작, 패키지 호환성이 문서화되어 있고 서로 > 일치하며, 소비자 관점에서 재현 가능한 증거로 검증되어 있다. 이 문서는 그 상태에 도달하기 위해 필요한 단일 개발 계획이다....
 
+===================[ DOC: ko/context-layered/v5-migration-readiness.md ]===================
+# Phase 2 (v5) 마이그레이션 및 준비 가이드
+Sections: Phase 1 (4.x 무중단) vs. Phase 2 (v5 메이저) 경계 | 소비자 마이그레이션 레시피 (4.x 호환 & v5 준비) | 자동 준비도 감사기 (pnpm audit:v5-readiness) | Phase 2 (v5) 진입 승인 체크리스트
+
+이 문서는 CA-VNEXT-ARCHITECTURE-001의 Phase 2 (v5 메이저 호환성 정리) 를 대비해 애플리케이션 팀, 스타터 템플릿, 외부 소비자가 사전에 준비할 수 있는 절차를 정리합니다. 여기에 포함된 모든 준비 단계는 기존 루트 import나 4.x 호환성을 깨지 않고 현재 4.x 브랜치에서 점진적으로 적용할 수 있습니다. - 상태: 4.x 사전 준비 진행 중 (packages/template-react 준수 완료, v5 breaking 제거는 릴리스 승인 전까지 유보) - 선행 기준선: CA-VNEXT-ARCHITECTURE-001 (stage에 M0–M4 Phase 1 완료) · vNext 아키텍처 핸드오프 가이드 Phase 1은 기존 4.x 소비자의 호환성을 100% 유지하면서 점진적 전환에 필요한 프리미티브를 먼저 제공했습니다: | 영역 | 현재 4.x에서 사용 가능 (무중단 Opt-In) | Phase 2 (v5 메이저)로 이월된 정리 항목 | | :...
+
 ===================[ DOC: ko/context-layered/vnext-architecture-handoff.md ]===================
 # vNext 아키텍처 & 타 프로젝트 핸드오프 가이드
 Sections: 기준선 및 동결 원칙 | 필독 문서 지도 (저장소 경로) | 구현 전 피드백이 필요한 4가지 의사결정 게이트 | 바로 복사해 지시할 수 있는 프롬프트 키트

@@ -73,7 +73,9 @@ PR 전 로컬 우선 검증 및 영수증 발급([Local-First Verification Polic
 - [상호작용 의도 계약에서 구현까지의 흐름](/ko/context-layered/interaction-intent-implementation-flow)
   - Context-Action 레이어별 설계·구현 매핑과 집중 evidence gate
 - [아키텍처 결정 기록](/ko/context-layered/decisions/)
-  - package, protocol, persistence, compatibility 결정을 위한 지속 위치와 형식 ([CA-SPEC-EVIDENCE-001](/ko/context-layered/decisions/CA-SPEC-EVIDENCE-001) 및 제안 초안 [CA-VNEXT-ARCHITECTURE-001](/ko/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001) 포함)
+  - package, protocol, persistence, compatibility 결정을 위한 지속 위치와 형식 ([CA-SPEC-EVIDENCE-001](/ko/context-layered/decisions/CA-SPEC-EVIDENCE-001) 및 승인된 vNext 청사진 [CA-VNEXT-ARCHITECTURE-001](/ko/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001) 포함)
+- [Phase 2 (`v5`) 마이그레이션 및 준비 가이드](/ko/context-layered/v5-migration-readiness)
+  - `4.x` 무중단 사전 준비 레시피, `pnpm audit:v5-readiness` AST 기준선 및 Phase 2(`v5` 메이저) 진입 게이트
 - [통합 트라이어드(`ttsc-ex` · `oa-sdk`) 책임 분리 및 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide)
   - 3대 워크스페이스 책임 경계, 생성 계약 `@evidenceReview` 잠금, 인텐트 분리 및 자율 Pull 절차
 - [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)

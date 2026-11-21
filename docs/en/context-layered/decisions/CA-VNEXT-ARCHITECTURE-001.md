@@ -241,6 +241,7 @@ Cross-project audit evidence (Subsection 2.1) pairs each of the 4 open gates wit
   - OOP × React Hook Documentation & Integration Proof — 5 paired archetype guides indexed in [Code Patterns](../../guide/code-patterns.md), `packages/react/__tests__/patterns/oop-react-hooks-patterns.integration.test.tsx` (`9/9` tests passing), and `71` compile-checked documentation snippets (`pnpm verify:doc-snippets`)
 - **Authoritative Contracts & Guides:**
   - [vNext Architecture & Cross-Project Handoff Guide](../vnext-architecture-handoff.md)
+  - [Phase 2 (`v5`) Migration & Readiness Guide](../v5-migration-readiness.md)
   - [Decisions Index](./index.md) · [Convention Index](../convention-index.md) · [Code Patterns](../../guide/code-patterns.md)
   - [Core Action Contracts](../../../../packages/core/docs/action-contracts.md)
   - [Core Element Interop Guide](../../../../packages/core/docs/element-interop.md)

@@ -19,8 +19,9 @@
 
 설계 피드백을 작성하거나 소비자 코드를 점검할 때 아래 페어링 문서를 순서대로 확인하세요:
 
-1. **vNext 아키텍처 청사진 및 1차 출처 근거 (`proposed`):**
+1. **vNext 아키텍처 청사진 및 1차 출처 근거 (`accepted` · Phase 2 준비):**
    - [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) — Hub-and-Spoke 목표 구조, 트랙 A/B/C 후보안, 파일·라인 단위 실증 근거, 4.x / v5 단계적 로드맵.
+   - [Phase 2 (`v5`) 마이그레이션 및 준비 가이드](./v5-migration-readiness.md) — `4.x` 무중단 사전 준비 레시피, `pnpm audit:v5-readiness` AST 기준선, Phase 2 진입 승인 체크리스트.
 2. **작성 기준 및 단계별 적정 구현:**
    - [모범 사례 (Best Practices)](../guide/best-practices.md) — Level 1(Lite) / Level 2(Headless-First Symmetric DI) / Level 3(Full 6-Layer) 선택 기준 및 CI 강제 7대 규칙(`pnpm convention:check`).
    - [개발 컨벤션 인덱스](./convention-index.md) — 전체 아키텍처·거버넌스 문서 진입점.

@@ -19,8 +19,9 @@ This document equips a sibling consumer project or the next architecture review 
 
 Read these paired documents before proposing API changes or migrating consumer code:
 
-1. **Architecture Blueprint & Evidence (Proposed Draft):**
+1. **Architecture Blueprint & Evidence (Accepted Phase 1 · Phase 2 Readiness):**
    - [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) — Hub-and-Spoke target architecture, verified file/line evidence across Tracks A/B/C, and phased 4.x / v5 roadmap.
+   - [Phase 2 (`v5`) Migration & Readiness Guide](./v5-migration-readiness.md) — `4.x` non-breaking preparation recipes, `pnpm audit:v5-readiness` AST baseline, and Phase 2 admission criteria.
 2. **Authoring Standards & Right-Sized Adoption:**
    - [Best Practices](../guide/best-practices.md) — Level 1 (Lite) / Level 2 (Headless-First Symmetric DI) / Level 3 (Full 6-Layer) ladder and the 7 CI-enforced rules (`pnpm convention:check`).
    - [Convention Index](./convention-index.md) — Central governance entrypoint and verification scopes.

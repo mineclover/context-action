@@ -241,6 +241,7 @@ const engine = CouponRuntime.create();
   - OOP × React 기본 Hook 문서화 및 통합 검증 — [코드 패턴](../../guide/code-patterns.md)에 연결된 5개 페어링 패턴 가이드, `packages/react/__tests__/patterns/oop-react-hooks-patterns.integration.test.tsx` (`9/9` 통과), `71`개 컴파일 스니펫(`pnpm verify:doc-snippets`) 통과
 - **권위 계약 및 참조 문서:**
   - [vNext 아키텍처 & 타 프로젝트 핸드오프 가이드](../vnext-architecture-handoff.md)
+  - [Phase 2 (`v5`) 마이그레이션 및 준비 가이드](../v5-migration-readiness.md)
   - [아키텍처 결정 기록 인덱스](./index.md) · [개발 컨벤션 인덱스](../convention-index.md) · [코드 패턴](../../guide/code-patterns.md)
   - [Core Action Contracts](../../../../packages/core/docs/action-contracts.md)
   - [Core Element Interop 가이드](../../../../packages/core/docs/element-interop.md)
