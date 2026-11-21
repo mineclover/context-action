@@ -23,6 +23,7 @@ import {
   ActionObserverEvent,
   ActionObserverHandler,
   ActionPayloadMap,
+  ActionPolicyConfig,
   ActionRegisterConfig,
   ActionRegistryInfo,
   ActionResult,
@@ -260,7 +261,9 @@ export class ActionRegister<
   private lastRegisteredTimestamps = new Map<keyof T, Date>();
   
   public readonly name: string;
-  private readonly registryConfig: ActionRegisterConfig['registry'];
+  private readonly registryConfig: ActionRegisterConfig<T>['registry'];
+  private readonly actionPolicies?: Partial<Record<ActionNames<T>, ActionPolicyConfig>>;
+  private readonly useGlobalConcurrencyQueue: boolean;
 
   // 🆕 Performance optimizations
   private readonly isDebugMode: boolean;
@@ -300,7 +303,7 @@ export class ActionRegister<
     (...args: any[]) => Promise<unknown>
   >();
 
-  constructor(config: ActionRegisterConfig = {}) {
+  constructor(config: ActionRegisterConfig<T> = {}) {
     this.name = config.name || 'ActionRegister';
     this.registryConfig = config.registry;
     this.maxHandlersPerAction = normalizePositiveLimit(
@@ -314,12 +317,42 @@ export class ActionRegister<
       'maxJumps',
     );
     this.isDebugMode = this.registryConfig?.debug === true;
-    
+
+    if (config.actions) {
+      const validated: Partial<Record<ActionNames<T>, ActionPolicyConfig>> = {};
+      for (const [actionName, policy] of Object.entries(config.actions) as Array<
+        [string, ActionPolicyConfig | undefined]
+      >) {
+        if (!policy) continue;
+        if (
+          policy.queue !== undefined
+          && policy.queue !== 'serial'
+          && policy.queue !== 'immediate'
+        ) {
+          throw new TypeError(
+            `Action "${actionName}" queue policy must be "serial" or "immediate".`
+          );
+        }
+        validateNonNegativeFiniteNumber(policy.timeout, `actions.${actionName}.timeout`);
+        validated[actionName as ActionNames<T>] = {
+          ...(policy.queue !== undefined && { queue: policy.queue }),
+          ...(policy.timeout !== undefined && { timeout: policy.timeout }),
+        };
+      }
+      this.actionPolicies = validated;
+    }
+
     // Guard creation with improved cleanup handling
     this.actionGuard = new ActionGuard(this.registryConfig?.autoCleanup !== false);
     
     // 🆕 Conditional queue system initialization
-    if (config.registry?.useConcurrencyQueue === true) {
+    this.useGlobalConcurrencyQueue = config.registry?.useConcurrencyQueue === true;
+    const hasSerialActionPolicy = this.actionPolicies
+      ? (Object.values(this.actionPolicies) as Array<ActionPolicyConfig | undefined>).some(
+          policy => policy?.queue === 'serial'
+        )
+      : false;
+    if (this.useGlobalConcurrencyQueue || hasSerialActionPolicy) {
       this.dispatchQueue = new OperationQueue(`${this.name}-Dispatch`);
     }
     
@@ -924,7 +957,8 @@ export class ActionRegister<
   // Implementation (least specific)
   dispatch<K extends ActionNames<T>>(action: K, ...args: DispatchArgs<T[K]>): Promise<void> {
     this.assertStringActionKey(action);
-    const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
+    const [payload, rawOptions] = args as [T[K] | undefined, DispatchOptions | undefined];
+    const options = this.resolveActionDispatchOptions(action, rawOptions);
     validateDispatchTimingOptions(options);
     const trace = this.beginDispatchTrace(String(action), options);
     if (this.lifecycleState !== 'active') {
@@ -1099,11 +1133,11 @@ export class ActionRegister<
         return;
       }
 
-      if (timeoutScope.options?.immediate || !this.dispatchQueue) {
+      if (!this.shouldQueueDispatch(action, timeoutScope.options)) {
         return pipelineOperation();
       }
 
-      const queued = this.dispatchQueue.enqueueWithHandle(
+      const queued = this.dispatchQueue!.enqueueWithHandle(
         pipelineOperation,
         timeoutScope.options?.queuePriority ?? 0
       );
@@ -1349,6 +1383,49 @@ export class ActionRegister<
 
       signal?.addEventListener('abort', abort, { once: true });
     });
+  }
+
+  private resolveActionDispatchOptions<K extends ActionNames<T>>(
+    action: K,
+    options?: DispatchOptions
+  ): DispatchOptions | undefined {
+    const policy = this.actionPolicies?.[action];
+    if (!policy) return options;
+
+    const resolvedImmediate = options?.immediate !== undefined
+      ? options.immediate
+      : policy.queue === 'immediate'
+        ? true
+        : policy.queue === 'serial'
+          ? false
+          : undefined;
+    const resolvedTimeout = options?.timeout !== undefined
+      ? options.timeout
+      : policy.timeout;
+
+    if (
+      resolvedImmediate === options?.immediate
+      && resolvedTimeout === options?.timeout
+    ) {
+      return options;
+    }
+
+    return {
+      ...options,
+      ...(resolvedImmediate !== undefined && { immediate: resolvedImmediate }),
+      ...(resolvedTimeout !== undefined && { timeout: resolvedTimeout }),
+    };
+  }
+
+  private shouldQueueDispatch<K extends ActionNames<T>>(
+    action: K,
+    options?: DispatchOptions
+  ): boolean {
+    if (!this.dispatchQueue) return false;
+    if (options?.immediate === true) return false;
+    if (options?.immediate === false) return true;
+    if (this.useGlobalConcurrencyQueue) return true;
+    return this.actionPolicies?.[action]?.queue === 'serial';
   }
 
   /** Build a wall-clock timeout that also participates in pipeline cancellation. */
@@ -1966,7 +2043,8 @@ export class ActionRegister<
     ...args: DispatchArgs<T[K]>
   ): Promise<ExecutionResult<R>> {
     this.assertStringActionKey(action);
-    const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
+    const [payload, rawOptions] = args as [T[K] | undefined, DispatchOptions | undefined];
+    const options = this.resolveActionDispatchOptions(action, rawOptions);
     validateDispatchTimingOptions(options);
     const trace = this.beginDispatchTrace(String(action), options);
     if (this.lifecycleState !== 'active') {
@@ -2160,11 +2238,11 @@ export class ActionRegister<
 
       admissionEndedAt = Date.now();
 
-      if (timeoutScope.options?.immediate || !this.dispatchQueue) {
+      if (!this.shouldQueueDispatch(action, timeoutScope.options)) {
         return pipelineOperation();
       }
 
-      const queued = this.dispatchQueue.enqueueWithHandle(
+      const queued = this.dispatchQueue!.enqueueWithHandle(
         pipelineOperation,
         timeoutScope.options?.queuePriority ?? 0
       );

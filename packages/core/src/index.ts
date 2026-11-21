@@ -34,6 +34,8 @@ export type {
   ActionHandlerStats,
   ActionNames,
   ActionPayload,
+  ActionPolicyConfig,
+  ActionQueuePolicy,
   ActionResultHandler,
   ActionPayloadMap,
   ActionDispatchTrace,

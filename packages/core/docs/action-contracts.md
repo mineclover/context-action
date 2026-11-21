@@ -52,12 +52,15 @@ register.register('outer', async () => {
 });
 ```
 
-Without `immediate: true`, the nested dispatch waits behind the outer handler
+Without `immediate: true` (or a contract-level `actions: { inner: { queue: 'immediate' } }`
+policy on `ActionRegister`), the nested dispatch waits behind the outer handler
 while the outer handler waits for the nested promise, so the two operations
-cannot settle. `queuePriority` only orders work that is already waiting; it
-does not make an awaited nested dispatch re-entrant. Use an explicit immediate
-dispatch for nested orchestration, or dispatch the follow-up after the outer
-action has settled.
+cannot settle. Explicit call-site `DispatchOptions.immediate` / `timeout` take
+precedence over contract-level `actions[key]` defaults when supplied. `queuePriority`
+only orders work that is already waiting; it does not make an awaited nested
+dispatch re-entrant. Use a contract-level `queue: 'immediate'` policy or an
+explicit immediate dispatch for nested orchestration, or dispatch the follow-up
+after the outer action has settled.
 
 ## Maintenance rule
 

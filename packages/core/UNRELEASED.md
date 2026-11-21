@@ -22,3 +22,4 @@ release commit.
 
 - Preserve uninvoked `once` handlers when a parallel/race precondition throws, including their cleanup ownership for a later dispatch.
 - Prevent concurrent dispatches from invoking the same `once` observer after waiting for a higher-priority observer.
+- Add contract-level per-action policy defaults via `ActionRegisterConfig<T>.actions` (`ActionPolicyConfig`: `queue?: 'serial' | 'immediate'` and `timeout?: number`) while keeping `registry.useConcurrencyQueue` defaults and call-site `DispatchOptions` precedence intact (`CA-VNEXT-ARCHITECTURE-001` M2).

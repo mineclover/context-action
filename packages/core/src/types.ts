@@ -677,6 +677,25 @@ export interface PipelineContext<T = unknown, R = void> {
 }
 
 /**
+ * Per-action dispatch queue scheduling policy declared at ActionRegister construction time.
+ *
+ * @public
+ */
+export type ActionQueuePolicy = 'serial' | 'immediate';
+
+/**
+ * Contract-level per-action scheduling and timeout defaults.
+ *
+ * @public
+ */
+export interface ActionPolicyConfig {
+  /** Queue mode for this action when caller does not specify `DispatchOptions.immediate`. */
+  queue?: ActionQueuePolicy;
+  /** Default wall-clock timeout (ms) when caller does not specify `DispatchOptions.timeout`. */
+  timeout?: number;
+}
+
+/**
  * Configuration options for ActionRegister initialization
  * 
  * Provides comprehensive configuration options for customizing ActionRegister
@@ -707,9 +726,17 @@ export interface PipelineContext<T = unknown, R = void> {
  * 
  * @public
  */
-export interface ActionRegisterConfig {
+export interface ActionRegisterConfig<
+  T extends ActionPayloadMap = ActionPayloadMap,
+> {
   /** Name identifier for this ActionRegister instance */
   name?: string;
+
+  /**
+   * Optional per-action contract policies (queue scheduling and timeout defaults).
+   * Explicit call-site `DispatchOptions` take precedence when provided.
+   */
+  actions?: Partial<Record<ActionNames<T>, ActionPolicyConfig>>;
   
   /** Registry-specific configuration options */
   registry?: {
