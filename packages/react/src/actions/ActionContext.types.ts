@@ -52,13 +52,15 @@ export type ActionContextHandler<T, R = void> = (
  * });
  * ```
  */
-export interface ActionContextConfig extends Omit<ActionRegisterConfig, 'name'> {
+export interface ActionContextConfig<
+  T extends ActionPayloadMap = ActionPayloadMap,
+> extends Omit<ActionRegisterConfig<T>, 'name'> {
   /**
    * Action schema map for runtime payload validation
    * Uses the core validator contract; no tool protocol or schema library is required.
    * Shorthand for config.registry.schema
    */
-  schema?: NonNullable<ActionRegisterConfig['registry']>['schema'];
+  schema?: NonNullable<ActionRegisterConfig<T>['registry']>['schema'];
 }
 
 /**
@@ -109,6 +111,20 @@ export interface ProviderDispatchLifecycle {
   scheduleHandlerCleanup(cleanup: () => void): void;
   // biome-ignore lint/suspicious/noExplicitAny: cross-context lifecycle boundary.
   shutdown(register: ActionRegister<any, any>, options?: ProviderShutdownOptions): Promise<void>;
+}
+
+/**
+ * Return value of `useActionScope()` (and `useActionDispatchWithResult()`), providing
+ * component-scoped dispatch helpers together with manual/unmount abort controls.
+ */
+export interface ActionScopeReturn<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+> {
+  dispatch: ActionRegister<T, TResultMap>['dispatch'];
+  dispatchWithResult: ActionRegister<T, TResultMap>['dispatchWithResult'];
+  abortAll: () => void;
+  resetAbortScope: () => void;
 }
 
 /**
@@ -174,11 +190,16 @@ export interface ActionContextReturn<
     config?: HandlerConfig<T[K]>
   ) => void;
   useActionRegister: () => ActionRegister<T, TResultMap> | null;
-  useActionDispatchWithResult: () => {
-    dispatch: ActionRegister<T, TResultMap>['dispatch'];
-    dispatchWithResult: ActionRegister<T, TResultMap>['dispatchWithResult'];
-    abortAll: () => void;
-    resetAbortScope: () => void;
-  };
+  /**
+   * Symmetric function-returning counterpart to `useActionDispatch()` for actions
+   * that produce typed results via `useActionResultHandler()`.
+   */
+  useActionResultDispatch: () => ActionRegister<T, TResultMap>['dispatchWithResult'];
+  /**
+   * Component-scoped dispatch and abort lifecycle hook returning
+   * `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }`.
+   */
+  useActionScope: () => ActionScopeReturn<T, TResultMap>;
+  useActionDispatchWithResult: () => ActionScopeReturn<T, TResultMap>;
   context: React.Context<ActionContextType<T, TResultMap> | null>;
 }

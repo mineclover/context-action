@@ -59,6 +59,13 @@ through the coordinator path.
 
 The current public classes remain compatible while these contracts are introduced. New code should depend on the role interfaces and use the concrete classes only at composition boundaries.
 
+## Direct framework-neutral reader & backend interoperability
+
+- **Native hook acceptance**: `useStoreValue`, `useStoreValues`, `useStoreSelector`, and `useStorePath` accept structural `StateReader<T, StateSnapshot<T>>` (`SubscribableStore<T>`) and `PatchAwareStore<T>` inputs directly, falling back cleanly when optional `getValue()` or `subscribeWithPatches()` methods are omitted. `useTimeTravelControls`, `useTimeTravelPath`, and `useTimeTravelSelector` accept framework-neutral `TimelineReader<T> & TimelineWriter` / `TimelineBackend` instances (`TimeTravelControlsStore<T>`, `TimeTravelPathStore<T>`) directly alongside `TimeTravelStore<T>`.
+- **Provider DI acceptance**: `ExternalStoresMap<T>` (`ExternalStoreInput<T>`) in `createStoreContext().Provider stores={...}` accepts `Store<T>`, `BackendStore<T, any>`, and raw `StateBackend<T, any>` (such as `createStateStore()` or `createMutativeStateBackend()`). `StoreManager` automatically adapts raw `StateBackend` instances via `createBackendStore(..., { ownership })`, keeping adapted wrapper listeners detached on `dispose()` while preserving `'shared'` vs `'owned'` lifetime semantics on the underlying backend.
+- **Timeline DI acceptance**: `ExternalTimeTravelStoresMap<T>` (`ExternalTimeTravelStoreInput<T>`) in `createTimeTravelStoreContext().Provider stores={...}` accepts `Store`, `TimeTravelStore`, `BackendStore`, `StateBackend`, and `TimelineBackend` (such as `createMutativeTimelineBackend()`), keeping timeline backends unwrapped so `undo`/`redo`/`goTo`/`reset`/`getHistoryLength()` and `subscribeWithPatches()` operate natively.
+- **Opt-in subpaths & symmetric dispatch hooks**: `@context-action/react/refs` (Mutative-free Tier 3 refs), `@context-action/react/time-travel`, and `@context-action/react/transactions` mirror the specialized surfaces opt-in while root `.` preserves 100% 4.x compatibility. `createActionContext` adds symmetric `useActionResultDispatch()` and `useActionScope()` (`ActionScopeReturn`) alongside `useActionDispatchWithResult()`.
+
 ## Shared contracts and legacy compatibility
 
 The canonical type-only protocols live in `@context-action/store-core` and are

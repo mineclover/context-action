@@ -83,7 +83,9 @@
             "executeRace",
             "executeSequential",
             "ActionTimeoutError",
-            "ActionValidationError"
+            "ActionValidationError",
+            "ActionQueuePolicy",
+            "ActionPolicyConfig"
           ]
         },
         {
@@ -291,7 +293,9 @@
             "TimeTravel",
             "createTimeTravel",
             "MutativeStateBackend",
-            "MutativeTimelineBackend"
+            "MutativeTimelineBackend",
+            "createMutativeStateBackend",
+            "createMutativeTimelineBackend"
           ]
         }
       ],
@@ -515,17 +519,65 @@
             "useStoreValue",
             "useStoreSelector",
             "useStorePath",
+            "SubscribableStore",
+            "TimeTravelControlsStore",
+            "TimeTravelPathStore",
             "StoreTransactionCoordinator",
             "bindActionTransactions",
             "ActionProviderProps",
+            "ActionScopeReturn",
             "ProviderShutdownOptions",
+            "ExternalStoreInput",
             "ExternalStoresMap",
             "StoreManagerOptions",
             "StoreProviderProps",
             "StoreContextReturn",
+            "ExternalTimeTravelStoreInput",
             "ExternalTimeTravelStoresMap",
             "TimeTravelStoreManagerOptions",
             "TimeTravelStoreProviderProps"
+          ]
+        },
+        {
+          "subpath": "./refs",
+          "purpose": "Opt-in RefContext surface for Tier 3 imperative DOM and 60fps reference control without Store or Mutative dependencies.",
+          "keySymbols": [
+            "createRefContext",
+            "CreateRefContextOptions",
+            "RefContextReturn",
+            "RefController",
+            "RefTarget",
+            "RefOperation",
+            "RefOperationOptions",
+            "RefOperationResult"
+          ]
+        },
+        {
+          "subpath": "./time-travel",
+          "purpose": "Opt-in undo/redo timeline store, declarative time-travel context, and timeline path/control hooks.",
+          "keySymbols": [
+            "createTimeTravelStore",
+            "createTimeTravelStoreContext",
+            "TimeTravelStore",
+            "TimeTravelStoreManager",
+            "useTimeTravelControls",
+            "useTimeTravelPath",
+            "useTimeTravelSelector",
+            "TimeTravelControlsStore",
+            "TimeTravelPathStore",
+            "ExternalTimeTravelStoreInput"
+          ]
+        },
+        {
+          "subpath": "./transactions",
+          "purpose": "Opt-in multi-store atomic transaction coordinator, core dispatch bridge, and DevTools inspector hook.",
+          "keySymbols": [
+            "StoreTransactionCoordinator",
+            "bindActionTransactions",
+            "useStoreTransactionInspector",
+            "StoreTransactionMeta",
+            "StoreTransactionOptions",
+            "StoreTransactionParticipant"
           ]
         },
         {

@@ -6,7 +6,10 @@
  */
 
 import { useCallback, useDebugValue, useMemo, useRef, useSyncExternalStore } from 'react';
-import { TimeTravelStore } from '../core/TimeTravelStore';
+import type { TimelineReader, TimelineWriter } from '../core/contracts';
+
+/** Structural store contract accepted by `useTimeTravelControls` (`TimeTravelStore` or `TimelineBackend`). */
+export type TimeTravelControlsStore<T = unknown> = TimelineReader<T> & TimelineWriter;
 
 function formatTimeTravelControlsDebugValue(state: {
   position: number;
@@ -72,7 +75,7 @@ const SERVER_SNAPSHOT: TimeTravelState = {
  * ```
  */
 export function useTimeTravelControls<T>(
-  store: TimeTravelStore<T>
+  store: TimeTravelControlsStore<T>
 ): TimeTravelControlsState {
   // Cache for getSnapshot result - must return same reference if values haven't changed
   const cacheRef = useRef<TimeTravelState | null>(null);

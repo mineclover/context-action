@@ -5,8 +5,9 @@
  * Uses JSON patches from Store to determine if subscribed paths are affected.
  */
 
+import type { StateSnapshot } from '@context-action/store-core';
 import { useCallback, useDebugValue, useRef, useSyncExternalStore } from 'react';
-import type { Snapshot, Unsubscribe } from '../core/types';
+import type { Unsubscribe } from '../core/types';
 import { patchesAffectPath, type StorePathPatch } from '../utils/patch-affects-path';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
 import { defaultEqualityFn } from './useStoreSelector';
@@ -23,11 +24,11 @@ export type { StorePathPatch } from '../utils/patch-affects-path';
  * Patch payloads are observed, never mutated or copied by this boundary.
  */
 export interface PatchAwareStore<T> {
-  getValue(): T;
+  getValue?(): T;
   /** Stable external-store snapshot; custom legacy stores may omit it. */
-  getSnapshot?: () => Snapshot<T>;
+  getSnapshot?: () => StateSnapshot<T>;
   subscribe(listener: () => void): Unsubscribe;
-  subscribeWithPatches(listener: (patches: readonly StorePathPatch[] | null) => void): Unsubscribe;
+  subscribeWithPatches?(listener: (patches: readonly StorePathPatch[] | null) => void): Unsubscribe;
 }
 
 /**
@@ -61,7 +62,13 @@ function getValueAtPath<T, R>(obj: T, path: Readonly<StorePath>): R {
 
 function readStoreValue<T>(store: PatchAwareStore<T>): T {
   // null/undefined can be intentional state, not a missing snapshot capability.
-  return store.getSnapshot ? store.getSnapshot().value : store.getValue();
+  if (typeof store.getSnapshot === 'function') {
+    return store.getSnapshot().value;
+  }
+  if (typeof store.getValue === 'function') {
+    return store.getValue();
+  }
+  throw new Error('Store must implement getSnapshot() or getValue()');
 }
 
 /**
@@ -122,15 +129,18 @@ export function useStorePath<T, R = unknown>(
     cacheRef.current = { value: undefined as R, initialized: false, pathSignature, store };
   }
 
-  // Subscribe with patch awareness
+  // Subscribe with patch awareness when supported, falling back to regular subscribe
   const subscribe = useCallback(
     (callback: () => void) => {
-      return store.subscribeWithPatches((patches) => {
-        // Check if patches affect our path
-        if (patchesAffectPath(patches, stablePath)) {
-          callback();
-        }
-      });
+      if (typeof store.subscribeWithPatches === 'function') {
+        return store.subscribeWithPatches((patches) => {
+          // Check if patches affect our path
+          if (patchesAffectPath(patches, stablePath)) {
+            callback();
+          }
+        });
+      }
+      return store.subscribe(callback);
     },
     [store, stablePath]
   );
@@ -230,11 +240,11 @@ export function useStoreSelectorWithPaths<T, R>(
     cacheRef.current = undefined;
   }
 
-  // Subscribe with patch awareness
+  // Subscribe with patch awareness when supported
   const subscribe = useCallback(
     (callback: () => void) => {
-      if (!stablePaths) {
-        // No path hints - subscribe to all changes
+      if (!stablePaths || typeof store.subscribeWithPatches !== 'function') {
+        // No path hints or patchless store - subscribe to all changes
         return store.subscribe(callback);
       }
 

@@ -3,6 +3,13 @@
 These changes are not included in the published versions listed in [CHANGELOG.md](./CHANGELOG.md).
 They do not authorize a version change or publication.
 
+## vNext Phase 1 (4.x additive) Layer 0/1 interoperability & opt-in subpaths
+
+- Widen React subscription and timeline hooks (`useStoreValue`, `useStoreValues`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`, `useTimeTravelSelector`) to accept framework-neutral `StateReader<T>` / `StateBackend<T>` / `TimelineBackend<T>` (`SubscribableStore`, `TimeTravelControlsStore`, `TimeTravelPathStore`) natively without manual `BackendStore` wrapping.
+- Widen `ExternalStoresMap<T>` (`ExternalStoreInput<T>`) and `ExternalTimeTravelStoresMap<T>` (`ExternalTimeTravelStoreInput<T>`) on `createStoreContext().Provider` / `createTimeTravelStoreContext().Provider` to accept `StateBackend` and `TimelineBackend` inputs directly (automatically adapting non-timeline `StateBackend` via `createBackendStore`, cleaning up wrapper subscriptions on `dispose()`, keeping `TimelineBackend` unwrapped, and respecting `ownership="shared" | "owned"`).
+- Add opt-in subpaths `@context-action/react/refs` (Mutative-free), `@context-action/react/time-travel`, and `@context-action/react/transactions` while retaining all existing root `.` exports for full 4.x backward compatibility.
+- Add symmetric dispatch hooks `useActionResultDispatch()` (Provider-scoped `dispatchWithResult` function) and `useActionScope()` (`ActionScopeReturn`) on `createActionContext` alongside `useActionDispatchWithResult()`, and forward contract-level `actions` queue/timeout policies to `ActionRegister`.
+
 ## Store notification modes, Ref controller isolation & hook diagnostics
 
 - Expose `notificationMode?: 'batched' | 'immediate'` (`StoreOptions` / `StoreNotificationMode`) on `Store`, `createStore`, `StoreConfig`, `TimeTravelStoreConfig`, and `useLocalStore`, plus `getNotificationMode()` / `setNotificationMode(mode)` on `Store` and `TimeTravelStore` with safe pending-frame flushing when switching to `'immediate'`.

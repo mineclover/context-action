@@ -17,6 +17,36 @@
         "default": "./dist/index.cjs"
       }
     },
+    "./refs": {
+      "import": {
+        "types": "./dist/refs.d.ts",
+        "default": "./dist/refs.js"
+      },
+      "require": {
+        "types": "./dist/refs.d.cts",
+        "default": "./dist/refs.cjs"
+      }
+    },
+    "./time-travel": {
+      "import": {
+        "types": "./dist/time-travel.d.ts",
+        "default": "./dist/time-travel.js"
+      },
+      "require": {
+        "types": "./dist/time-travel.d.cts",
+        "default": "./dist/time-travel.cjs"
+      }
+    },
+    "./transactions": {
+      "import": {
+        "types": "./dist/transactions.d.ts",
+        "default": "./dist/transactions.js"
+      },
+      "require": {
+        "types": "./dist/transactions.d.cts",
+        "default": "./dist/transactions.cjs"
+      }
+    },
     "./backend": {
       "import": {
         "types": "./dist/backend.d.ts",

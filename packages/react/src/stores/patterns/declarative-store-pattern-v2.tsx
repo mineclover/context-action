@@ -11,10 +11,11 @@
  * making it the recommended approach for state management in the Context-Action framework.
  */
 
+import type { StateBackend } from '@context-action/store-core';
 import React, { createContext, ReactNode, useCallback, useContext, useInsertionEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { StoreErrorBoundary } from '../components/StoreErrorBoundary';
-import type { Store, StoreNotificationMode } from '../core/Store';
-import { createStore } from '../core/Store';
+import { BackendStore, createBackendStore } from '../core/BackendStore';
+import { createStore, Store, type StoreNotificationMode } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
 import type { ComparisonOptions } from '../utils/comparison';
 import {
@@ -138,14 +139,30 @@ export type InferStoreTypes<T extends StoreDefinitions> = {
 export type StoreSchema<T extends Record<string, any>> = InitialStores<T>;
 
 /**
- * Map of externally created Store instances injected into createStoreContext().Provider.
+ * Supported external store or framework-neutral backend input accepted by
+ * `ExternalStoresMap<T>` in `createStoreContext().Provider`.
+ *
+ * Raw `StateBackend` instances (such as `createStateStore()` or
+ * `createMutativeStateBackend()`) are automatically wrapped in a `BackendStore`
+ * adapter inside `StoreManager` while respecting `ownership`.
+ *
+ * @public
+ */
+export type ExternalStoreInput<T> =
+  | Store<T>
+  | BackendStore<T, any>
+  | StateBackend<T, any>;
+
+/**
+ * Map of externally created Store or StateBackend instances injected into
+ * createStoreContext().Provider.
  * Partial injection lets callers pre-wire headless domain stores while allowing
  * non-injected keys in `initialStores` to still be lazily instantiated by the manager.
  *
  * @public
  */
 export type ExternalStoresMap<T extends Record<string, any>> = {
-  [K in keyof T]?: Store<T[K]>;
+  [K in keyof T]?: ExternalStoreInput<T[K]>;
 };
 
 /**
@@ -208,6 +225,7 @@ export class StoreManager<T extends Record<string, any>> {
   public readonly initialStores: InitialStores<T>;
   public readonly stores = new Map<keyof T, Store<any>>();
   private readonly externalStoreKeys = new Set<keyof T>();
+  private readonly adaptedExternalStores = new Set<keyof T>();
   private readonly externalOwnership: 'shared' | 'owned';
   private lifecycle: 'active' | 'disposed' = 'active';
   private version = 0;
@@ -230,8 +248,26 @@ export class StoreManager<T extends Record<string, any>> {
         if (!externalStore) continue;
         const key = rawKey as keyof T;
         this.externalStoreKeys.add(key);
-        this.stores.set(key, externalStore);
-        this.registry.register(String(key), externalStore, {
+
+        let registeredStore: Store<any>;
+        if (externalStore instanceof Store) {
+          registeredStore = externalStore;
+        } else if (externalStore instanceof BackendStore) {
+          registeredStore = externalStore as unknown as Store<any>;
+        } else {
+          // Wrap raw StateBackend instances so StoreManager keeps full snapshot,
+          // patch, and ownership cleanup semantics without caller boilerplate.
+          const adapted = createBackendStore(
+            String(key),
+            externalStore as StateBackend<any, any>,
+            { ownership: this.externalOwnership }
+          );
+          this.adaptedExternalStores.add(key);
+          registeredStore = adapted as unknown as Store<any>;
+        }
+
+        this.stores.set(key, registeredStore);
+        this.registry.register(String(key), registeredStore, {
           name: String(key),
         });
       }
@@ -365,6 +401,8 @@ export class StoreManager<T extends Record<string, any>> {
       store?.dispose();
       this.registry.unregister(String(key));
       this.stores.delete(key);
+      this.externalStoreKeys.delete(key);
+      this.adaptedExternalStores.delete(key);
     }
 
     this.version += 1;
@@ -378,11 +416,19 @@ export class StoreManager<T extends Record<string, any>> {
     if (this.lifecycle === 'disposed') return;
     this.lifecycle = 'disposed';
     this.stores.forEach((store, key) => {
-      if (this.externalOwnership === 'owned' || !this.externalStoreKeys.has(key)) {
+      // Adapted BackendStore wrappers must always dispose to detach listeners from
+      // external backends; BackendStore itself forwards disposal only when owned.
+      if (
+        this.adaptedExternalStores.has(key) ||
+        this.externalOwnership === 'owned' ||
+        !this.externalStoreKeys.has(key)
+      ) {
         store.dispose();
       }
     });
     this.stores.clear();
+    this.externalStoreKeys.clear();
+    this.adaptedExternalStores.clear();
     this.listeners.clear();
     this.infoListeners.clear();
     this.registry.dispose();

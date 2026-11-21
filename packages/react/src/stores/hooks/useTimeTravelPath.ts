@@ -5,11 +5,18 @@
  * Uses JSON patches from TimeTravelStore to determine if subscribed paths are affected.
  */
 
+import type { StateSnapshot } from '@context-action/store-core';
 import { useCallback, useDebugValue, useRef, useSyncExternalStore } from 'react';
-import { TimeTravelStore } from '../core/TimeTravelStore';
-import { patchesAffectPath } from '../utils/patch-affects-path';
+import { patchesAffectPath, type StorePathPatch } from '../utils/patch-affects-path';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
 import { defaultEqualityFn } from './useStoreSelector';
+
+/** Structural external store contract accepted by `useTimeTravelPath` and `useTimeTravelSelector`. */
+export interface TimeTravelPathStore<T> {
+  getSnapshot(): StateSnapshot<T>;
+  subscribe(listener: () => void): () => void;
+  subscribeWithPatches?(listener: (patches: readonly StorePathPatch[] | null) => void): () => void;
+}
 
 function formatTimeTravelPathDebugValue([key, value]: readonly [string, unknown]): string {
   return `${key || '(root)'}: ${typeof value === 'object' && value !== null ? 'object' : String(value)}`;
@@ -78,7 +85,7 @@ function getValueAtPath<T, R>(obj: T, path: StorePath): R {
  * ```
  */
 export function useTimeTravelPath<T, R = unknown>(
-  store: TimeTravelStore<T>,
+  store: TimeTravelPathStore<T>,
   path: StorePath,
   options: UseTimeTravelPathOptions<R> = {}
 ): R {
@@ -97,7 +104,7 @@ export function useTimeTravelPath<T, R = unknown>(
   const stablePath = stablePathRef.current.path;
 
   // Cache for value comparison
-  const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string; store: TimeTravelStore<T> }>({
+  const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string; store: TimeTravelPathStore<T> }>({
     value: undefined as R,
     initialized: false,
     pathSignature,
@@ -108,15 +115,18 @@ export function useTimeTravelPath<T, R = unknown>(
     cacheRef.current = { value: undefined as R, initialized: false, pathSignature, store };
   }
 
-  // Subscribe with patch awareness
+  // Subscribe with patch awareness when available
   const subscribe = useCallback(
     (callback: () => void) => {
-      return store.subscribeWithPatches((patches) => {
-        // Check if patches affect our path
-        if (patchesAffectPath(patches, stablePath)) {
-          callback();
-        }
-      });
+      if (typeof store.subscribeWithPatches === 'function') {
+        return store.subscribeWithPatches((patches) => {
+          // Check if patches affect our path
+          if (patchesAffectPath(patches, stablePath)) {
+            callback();
+          }
+        });
+      }
+      return store.subscribe(callback);
     },
     [store, stablePath]
   );
@@ -180,14 +190,14 @@ export interface UseTimeTravelSelectorOptions<R> {
 }
 
 export function useTimeTravelSelector<T, R>(
-  store: TimeTravelStore<T>,
+  store: TimeTravelPathStore<T>,
   selector: (value: T) => R,
   options: UseTimeTravelSelectorOptions<R> = {}
 ): R {
   const { dependsOn, equalityFn = defaultEqualityFn } = options;
 
   // Cache for value comparison
-  const cacheRef = useRef<{ store: TimeTravelStore<T>; value: R } | undefined>(undefined);
+  const cacheRef = useRef<{ store: TimeTravelPathStore<T>; value: R } | undefined>(undefined);
 
   const depsKey = createPathsSignature(dependsOn);
   const stablePathsRef = useRef<{
@@ -207,11 +217,11 @@ export function useTimeTravelSelector<T, R>(
 
   const stablePaths = stablePathsRef.current.paths;
 
-  // Subscribe with patch awareness
+  // Subscribe with patch awareness when available
   const subscribe = useCallback(
     (callback: () => void) => {
-      if (!stablePaths) {
-        // No path hints - subscribe to all changes
+      if (!stablePaths || typeof store.subscribeWithPatches !== 'function') {
+        // No path hints or patchless store - subscribe to all changes
         return store.subscribe(callback);
       }
 

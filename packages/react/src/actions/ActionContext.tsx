@@ -35,6 +35,7 @@ import type {
   ActionContextReturn,
   ActionContextType,
   ActionProviderProps,
+  ActionScopeReturn,
   ProviderDispatchLifecycle,
   ProviderShutdownOptions,
 } from './ActionContext.types';
@@ -269,6 +270,32 @@ export function withProviderDispatchSignal(
   };
 }
 
+function dispatchRegisterWithResult<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T>,
+  K extends ActionNames<T>,
+  R,
+>(
+  register: ActionRegister<T, TResultMap>,
+  action: K,
+  payload: T[K] | undefined,
+  options: DispatchOptions | undefined,
+  signal: AbortSignal,
+): Promise<ExecutionResult<R>> {
+  const dispatchResult = register.dispatchWithResult.bind(register) as unknown as <
+    ActionKey extends ActionNames<T>,
+    Result = void,
+  >(
+    action: ActionKey,
+    ...dispatchArgs: DispatchArgs<T[ActionKey]>
+  ) => Promise<ExecutionResult<Result>>;
+
+  return dispatchResult<K, R>(
+    action,
+    ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
+  );
+}
+
 /**
  * @fileoverview createActionContext - Advanced type-safe action context factory
  * Provides enhanced type compatibility and automatic type inference for complex applications
@@ -297,7 +324,7 @@ export function createActionContext<
   TResultMap extends ActionResultMap<T> = {},
 >(
   contextName: string,
-  config?: ActionContextConfig
+  config?: ActionContextConfig<T>
 ): ActionContextReturn<T, TResultMap>;
 
 // Implementation
@@ -306,7 +333,7 @@ export function createActionContext<
   TResultMap extends ActionResultMap<T> = {},
 >(
   contextName: string,
-  config?: ActionContextConfig
+  config?: ActionContextConfig<T>
 ): ActionContextReturn<T, TResultMap> {
   if (typeof contextName !== 'string' || contextName.trim().length === 0) {
     throw new TypeError(
@@ -314,7 +341,7 @@ export function createActionContext<
     );
   }
 
-  let effectiveConfig: ActionContextConfig & Pick<ActionRegisterConfig, 'name'> = {
+  let effectiveConfig: ActionContextConfig<T> & Pick<ActionRegisterConfig<T>, 'name'> = {
     ...config,
     registry: {
       ...config?.registry,
@@ -681,8 +708,38 @@ export function createActionContext<
    * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-with-result
    */
 
-  // Hook for enhanced dispatch with abort control
-  const useFactoryActionDispatchWithResult = () => {
+  // Symmetric function-returning dispatchWithResult hook (Provider-scoped)
+  const useFactoryActionResultDispatch = (): ActionRegister<T, TResultMap>['dispatchWithResult'] => {
+    const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
+
+    return useCallback(<K extends ActionNames<T>, R = void>(
+      action: K,
+      ...args: DispatchArgs<T[K]>
+    ): Promise<ExecutionResult<R>> => {
+      const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
+      const register = actionRegisterRef.current;
+      if (!register) {
+        throw new Error(
+          'ActionRegister is not initialized. ' +
+          'Make sure the ActionContext Provider is properly set up.'
+        );
+      }
+
+      return dispatchLifecycle.run(
+        [options?.signal],
+        signal => dispatchRegisterWithResult<T, TResultMap, K, R>(
+          register,
+          action,
+          payload,
+          options,
+          signal,
+        )
+      );
+    }, [actionRegisterRef, dispatchLifecycle]) as ActionRegister<T, TResultMap>['dispatchWithResult'];
+  };
+
+  // Hook for enhanced dispatch with scoped abort control
+  const useFactoryActionDispatchWithResult = (): ActionScopeReturn<T, TResultMap> => {
     const context = useFactoryActionContext();
     const activeControllersRef = useRef<Set<AbortController>>(new Set());
 
@@ -727,19 +784,14 @@ export function createActionContext<
       const scopeController = new AbortController();
       activeControllersRef.current.add(scopeController);
 
-      const dispatchResult = register.dispatchWithResult.bind(register) as unknown as <
-        ActionKey extends ActionNames<T>,
-        Result = void,
-      >(
-        action: ActionKey,
-        ...dispatchArgs: DispatchArgs<T[ActionKey]>
-      ) => Promise<ExecutionResult<Result>>;
-
       const trackedPromise = context.dispatchLifecycle.run(
         [options?.signal, scopeController.signal],
-        signal => dispatchResult<K, R>(
+        signal => dispatchRegisterWithResult<T, TResultMap, K, R>(
+          register,
           action,
-          ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
+          payload,
+          options,
+          signal,
         )
       ).finally(() => {
         activeControllersRef.current.delete(scopeController);
@@ -775,7 +827,7 @@ export function createActionContext<
     
     return {
       dispatch,
-      dispatchWithResult,
+      dispatchWithResult: dispatchWithResult as ActionRegister<T, TResultMap>['dispatchWithResult'],
       abortAll,
       resetAbortScope,
     };
@@ -792,6 +844,8 @@ export function createActionContext<
     useActionObserver,
     useActionResultHandler,
     useActionRegister: useFactoryActionRegister,
+    useActionResultDispatch: useFactoryActionResultDispatch,
+    useActionScope: useFactoryActionDispatchWithResult,
     useActionDispatchWithResult: useFactoryActionDispatchWithResult,
     context: FactoryActionContext,
   } satisfies ActionContextReturn<T, TResultMap>;

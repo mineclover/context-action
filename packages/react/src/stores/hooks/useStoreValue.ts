@@ -1,7 +1,7 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: generic store implementation boundary.
 
+import type { StateReader, StateSnapshot } from '@context-action/store-core';
 import { useDebugValue, useMemo } from 'react';
-import type { IStore } from '../core/types';
 import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
 import { defaultEqualityFn, shallowEqual } from './useStoreSelector';
 
@@ -61,36 +61,37 @@ export interface StoreValueOptions<R> {
   name?: string;
 }
 
-type StoreValueOf<S extends IStore<any>> = ReturnType<S['getValue']>;
+type ReadableStore<T = any> = StateReader<T, StateSnapshot<T>>;
+type StoreValueOf<S extends ReadableStore<any>> = ReturnType<S['getSnapshot']>['value'];
 
 // Store가 확정된 경우 - 기본 구독
-export function useStoreValue<S extends IStore<any>>(
+export function useStoreValue<S extends ReadableStore<any>>(
   store: S,
   options?: StoreValueOptions<StoreValueOf<S>>
 ): StoreValueOf<S>;
 
 // Store가 undefined일 수 있는 경우 - 안전한 구독
-export function useStoreValue<S extends IStore<any>>(
+export function useStoreValue<S extends ReadableStore<any>>(
   store: S | undefined | null,
   options?: StoreValueOptions<StoreValueOf<S>>
 ): StoreValueOf<S> | undefined;
 
 // Store가 확정된 경우 + selector - 선택적 구독
-export function useStoreValue<S extends IStore<any>, R>(
+export function useStoreValue<S extends ReadableStore<any>, R>(
   store: S,
   selector: (value: StoreValueOf<S>) => R,
   options?: StoreValueOptions<R>
 ): R;
 
 // Store가 undefined일 수 있는 경우 + selector - 안전한 선택적 구독
-export function useStoreValue<S extends IStore<any>, R>(
+export function useStoreValue<S extends ReadableStore<any>, R>(
   store: S | undefined | null,
   selector: (value: StoreValueOf<S>) => R,
   options?: StoreValueOptions<R>
 ): R | undefined;
 
 export function useStoreValue<T, R>(
-  store: IStore<T> | undefined | null,
+  store: StateReader<T, StateSnapshot<T>> | undefined | null,
   selectorOrOptions?: ((value: T) => R) | StoreValueOptions<T>,
   options?: StoreValueOptions<R>
 ): T | R | undefined {
@@ -150,7 +151,7 @@ export function useStoreValue<T, R>(
  *
  * @public\n */
 export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
-  store: IStore<T> | undefined | null,
+  store: StateReader<T, StateSnapshot<T>> | undefined | null,
   selectors: S
 ): { [K in keyof S]: ReturnType<S[K]> } | undefined {
   "use memo";

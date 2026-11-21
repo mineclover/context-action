@@ -110,19 +110,25 @@ async function expectArtifactAbsent(relativePath, description) {
 }
 
 async function main() {
-  const [rootEsm, rootCjs, rootTypes, backendEsm, backendCjs, backendTypes, compiledStoreChunkEsm, compiledStoreChunkCjs] = await Promise.all([
+  const [rootEsm, rootCjs, rootTypes, refsEsm, refsCjs, refsTypes, backendEsm, backendCjs, backendTypes, compiledStoreChunkEsm, compiledStoreChunkCjs] = await Promise.all([
     readArtifact('index.js'),
     readArtifact('index.cjs'),
     readArtifact('index.d.ts'),
+    readArtifact('refs.js'),
+    readArtifact('refs.cjs'),
+    readArtifact('refs.d.ts'),
     readArtifact('backend.js'),
     readArtifact('backend.cjs'),
     readArtifact('backend.d.ts'),
-    readArtifact('chunks/StoreRegistry.js'),
-    readArtifact('chunks/StoreRegistry.cjs'),
+    readArtifact('chunks/useStoreValue.js'),
+    readArtifact('chunks/useStoreValue.cjs'),
   ]);
 
   failures.push(...await verifyBasicArtifactGraph(reactDistDirectory, [
     'index.js', 'index.cjs', 'index.d.ts', 'index.d.cts',
+    'refs.js', 'refs.cjs', 'refs.d.ts', 'refs.d.cts',
+    'time-travel.js', 'time-travel.cjs', 'time-travel.d.ts', 'time-travel.d.cts',
+    'transactions.js', 'transactions.cjs', 'transactions.d.ts', 'transactions.d.cts',
     'backend.js', 'backend.cjs', 'backend.d.ts', 'backend.d.cts',
     'advanced.js', 'advanced.cjs', 'advanced.d.ts', 'advanced.d.cts',
     'utils.js', 'utils.cjs', 'utils.d.ts', 'utils.d.cts',
@@ -164,8 +170,21 @@ async function main() {
   }
 
   for (const [relativePath, content] of [
-    ['chunks/StoreRegistry.js', compiledStoreChunkEsm],
-    ['chunks/StoreRegistry.cjs', compiledStoreChunkCjs],
+    ['refs.js', refsEsm],
+    ['refs.cjs', refsCjs],
+    ['refs.d.ts', refsTypes],
+  ]) {
+    expectAbsent(
+      content,
+      relativePath,
+      mutativeRuntimePattern,
+      'the refs entry must remain independent of the Mutative runtime',
+    );
+  }
+
+  for (const [relativePath, content] of [
+    ['chunks/useStoreValue.js', compiledStoreChunkEsm],
+    ['chunks/useStoreValue.cjs', compiledStoreChunkCjs],
   ]) {
     expectPresent(
       content,

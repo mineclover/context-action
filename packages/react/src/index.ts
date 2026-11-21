@@ -9,6 +9,7 @@ export type {
   ActionContextReturn,
   ActionContextType,
   ActionProviderProps,
+  ActionScopeReturn,
   ProviderShutdownOptions,
 } from './actions/ActionContext.types';
 
@@ -27,14 +28,15 @@ export {
 } from './stores/core/TimeTravelStore';
 export type { TimeTravelStoreOptions } from './stores/core/TimeTravelStore';
 export { useStoreValue } from './stores/hooks/useStoreValue';
+export type { SubscribableStore } from './stores/utils/sync-external-store-utils';
 export { useStoreSelector } from './stores/hooks/useStoreSelector';
 export { useStorePath, useStoreSelectorWithPaths } from './stores/hooks/useStorePath';
 export type { PatchAwareStore, StorePathPatch, StorePath, UseStorePathOptions, UseStoreSelectorWithPathsOptions } from './stores/hooks/useStorePath';
 export { useTimeTravelControls } from './stores/hooks/useTimeTravelControls';
 export { useStoreTransactionInspector } from './stores/hooks/useStoreTransactionInspector';
-export type { TimeTravelControlsState } from './stores/hooks/useTimeTravelControls';
+export type { TimeTravelControlsState, TimeTravelControlsStore } from './stores/hooks/useTimeTravelControls';
 export { useTimeTravelPath, useTimeTravelSelector } from './stores/hooks/useTimeTravelPath';
-export type { UseTimeTravelPathOptions, UseTimeTravelSelectorOptions } from './stores/hooks/useTimeTravelPath';
+export type { TimeTravelPathStore, UseTimeTravelPathOptions, UseTimeTravelSelectorOptions } from './stores/hooks/useTimeTravelPath';
 export type { IStore, Snapshot } from './stores/core/types';
 export type { StoreReader, StoreWriter, TimelineReader, TimelineWriter } from './stores/core/contracts';
 export { StoreTransactionCoordinator } from './stores/core/StoreTransactionCoordinator';
@@ -56,6 +58,7 @@ export type {
   StoreConfig,
   ExplicitStoreValue,
   WithProviderConfig,
+  ExternalStoreInput,
   ExternalStoresMap,
   StoreManagerOptions,
   StoreProviderProps,
@@ -70,6 +73,7 @@ export type {
   // Context-level controls alias kept distinct from hook-level `TimeTravelControlsState` (`useTimeTravelControls`).
   TimeTravelControlsState as TimeTravelContextControlsState,
   InferTimeTravelStoreTypes,
+  ExternalTimeTravelStoreInput,
   ExternalTimeTravelStoresMap,
   TimeTravelStoreManagerOptions,
   TimeTravelStoreProviderProps,

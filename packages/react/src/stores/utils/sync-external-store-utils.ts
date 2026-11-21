@@ -6,8 +6,11 @@
  */
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import type { IStore, Snapshot } from '../core/types';
+import type { StateReader, StateSnapshot } from '@context-action/store-core';
 import { deepEquals, referenceEquals, shallowEquals } from './comparison';
+
+/** Structural external store contract accepted by React subscription hooks. */
+export type SubscribableStore<T = unknown> = StateReader<T, StateSnapshot<T>>;
 
 /**
  * 향상된 구독 옵션
@@ -30,8 +33,8 @@ export interface EnhancedSubscriptionOptions {
 }
 
 interface SelectedServerSnapshotCache<T, R> {
-  store: IStore<T>;
-  sourceSnapshot: Snapshot<T>;
+  store: SubscribableStore<T>;
+  sourceSnapshot: StateSnapshot<T>;
   selector: ((value: T) => R) | undefined;
   equalityFn: ((a: R, b: R) => boolean) | undefined;
   value: R | T;
@@ -42,7 +45,7 @@ interface SelectedServerSnapshotCache<T, R> {
  * useSyncExternalStore를 기반으로 한 안전한 구독
  */
 export function useSafeStoreSubscription<T, R = T>(
-  store: IStore<T> | undefined | null,
+  store: SubscribableStore<T> | undefined | null,
   selector?: (value: T) => R,
   options: EnhancedSubscriptionOptions & {
     equalityFn?: (a: R, b: R) => boolean;
@@ -71,7 +74,7 @@ export function useSafeStoreSubscription<T, R = T>(
 
   // Cached snapshots keep external-store reads referentially stable.
   const cachedSnapshotRef = useRef<{
-    store: IStore<T> | undefined | null;
+    store: SubscribableStore<T> | undefined | null;
     value: R | T | undefined;
   } | undefined>(undefined);
   const stableGetSnapshot = useCallback((): R | T | undefined => {
