@@ -1,9 +1,9 @@
 import {
   type ActionPayloadMap,
   createActionContext,
-  createRefContext,
   createStoreContext,
 } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 import type { ReactNode } from 'react';
 import type { OrderActivityEvent } from '../business/orderActivity';
 import type { OrderDraft } from '../business/orderDraft';
@@ -49,7 +49,12 @@ export const {
   useActionGuard: useOrderBusinessActionGuard,
   useActionCommandHandler: useOrderBusinessActionCommandHandler,
   useActionObserver: useOrderBusinessActionObserver,
-} = createActionContext<OrderBusinessActions>('OrderBusinessActions');
+} = createActionContext<OrderBusinessActions>('OrderBusinessActions', {
+  actions: {
+    resetDraft: { queue: 'immediate' },
+    retrySubmission: { queue: 'immediate' },
+  },
+});
 
 export const {
   Provider: OrderLayoutActionProvider,
