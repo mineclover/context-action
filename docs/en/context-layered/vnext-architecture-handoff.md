@@ -47,6 +47,25 @@ Sibling/consumer feedback should explicitly take a position on the 4 open decisi
 3. **Mutative / TimeTravel Placement:** Extract `Store` & `TimeTravelStore` into a framework-neutral Layer 1 package (shared across React/Lit/Preact), or limit Phase 1 to accepting `StateReader<T>` / `StateBackend<T>` natively inside `@context-action/react`?
 4. **Semver Target:** Prioritize non-breaking **4.x additive** steps first, or lock a complete **v5 major** breaking blueprint?
 
+### 3.1 Cross-Project Audit Findings & Recommended Resolutions (7 Consumer Repos)
+
+| Decision Gate | Empirical Evidence from 7 Consumer Repositories | Recommended Resolution |
+|---|---|---|
+| **1. Default `Store` Notification Mode** | `packages/react/UNRELEASED.md:6-10` already adds non-breaking `notificationMode?: 'batched' | 'immediate'` opt-in on 4.x while keeping existing RAF timing intact for legacy callers (`iframe-demo`, `graph-hub`, `ae-editor`). | **Keep `'batched'` default in 4.x** with opt-in `'immediate'`; revisit flipping the default only in **v5**. |
+| **2. `defineRuntime` / `bindReactRuntime`** | `google-tools` (`runtime.ts:1-24`) and `browser-studio` (`shared.ts:86-90`) repeatedly hand-write `{ store, actions, dispose }` runtime facades, while `houdini-flow` and Level 3 apps rely on explicit separation. | Keep **independent primitives primary**; evaluate an optional Level 1↔2 bridge only after M1/M3 land. |
+| **3. `StateBackend` & TimeTravel Placement** | `macrostructure` (`interface-intent-runtime-react.ts:15-32`) mirrors stores via `useEffect` because React `useStoreValue` rejects `StateReader<T>`, `google-tools` contrasts Lit's native `StateStore` acceptance, and `browser-studio` + `ae-editor` `.mjs` tests prove non-React demand for `TimeTravelStore`. | **M1 (P0):** Native `StateReader<T>` / `StateBackend<T>` in React hooks & `createStoreContext`.<br>**M3 (P1):** Framework-neutral Timeline/TimeTravel engine with React `.` re-exports preserved. |
+| **4. Semver Horizon** | `ae-editor`, `iframe-demo`, `graph-hub`, and `macrostructure` all import directly from `@context-action/react` root `.` (`0.8.x`–`3.0.0`/`4.x`). | Commit **Phase 1 strictly to 4.x Non-Breaking (Additive)**; defer breaking cleanups to **v5 Major**. |
+
+### 3.2 Phase 1 (4.x Additive) Execution Plan Summary (`M0–M4`)
+
+Full contract targets, file ownership, and acceptance commands live in Section 9 of [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md):
+
+- **M0 (Baseline Sync Prerequisite):** Let active concurrent `packages/react` 4.x edits (`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP docs) settle and commit cleanly on `stage`.
+- **M1 (P0 · Track A1):** Widen `useStoreValue`, `useStoreSelector`, and `ExternalStoresMap<T>` (`createStoreContext().Provider stores={...}`) to accept `StateReader<T>` / `StateBackend<T>` directly without manual `BackendStore` wrapping.
+- **M2 (P1 · Track B1):** Add optional per-action scheduling policy (`actions?: Partial<Record<ActionNames<T>, { queue?: 'serial' | 'immediate'; timeout?: number }>>`) in `@context-action/core` while preserving current defaults.
+- **M3 (P1 · Track A2):** Extract framework-neutral `TimeTravelStore` / `TimelineBackend<T>` capabilities into Layer 1 while retaining full backward-compatible re-exports on `@context-action/react` root `.`.
+- **M4 (P2 · Track C1 & B2):** Add opt-in React subpaths (`./refs`, `./time-travel`, `./transactions`) and symmetric dispatch hooks (`useActionResultDispatch()`, `useActionScope()`) with root `.` intact and full `api-surface.v1.json` + doc/boundary gate parity.
+
 ---
 
 ## 4. Copy-Pasteable Instruction / Prompt Kit

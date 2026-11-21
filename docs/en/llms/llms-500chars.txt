@@ -72,9 +72,9 @@ Status: accepted Owner: Framework Architecture & Documentation Governance Relate
 
 ===================[ DOC: en/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001.md ]===================
 # CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, State Unification, and React Surface Blueprint
-Sections: Context & Cross-Project Freeze Note | Verified Primary-Source Evidence Inventory | Hub-and-Spoke Target Architecture | Options Considered & Detailed Track Blueprints | Consequences, Invariants & Non-Goals | Open Feedback Decisions (Decision Gates Before Acceptance) | Verification Evidence & Authoritative References | Admission & Reversal Conditions
+Sections: Context & Cross-Project Freeze Note | Verified Primary-Source Evidence Inventory | Hub-and-Spoke Target Architecture | Options Considered & Detailed Track Blueprints | Consequences, Invariants & Non-Goals | Open Feedback Decisions & Evidence-Backed Resolutions | Verification Evidence & Authoritative References | Admission & Reversal Conditions
 
-Status: proposed (discussion draft — no runtime/API changes applied; external cross-project work active) Owner: Framework Core & React Runtime Related issue/spec: CA-VNEXT-ARCHITECTURE-001 (builds on CA-SURFACE-CATALOG-001, CA-ELEMENT-INTEROP-001, CA-STATECHART-EFFECT-001, CA-SPEC-EVIDENCE-001) Baseline: stage @ d21aff4a (@context-action/core@1.3.1, @context-action/store-core@0.1.4, @context-action/mutative-core@0.8.14, @context-action/mutative@0.8.15, @context-action/react@4.0.7, @context-ac...
+Status: proposed — Phase 1 (4.x additive) execution plan ready; cross-project audit completed across 7 consumer repos (no runtime changes applied by this record) Owner: Framework Core & React Runtime Related issue/spec: CA-VNEXT-ARCHITECTURE-001 (builds on CA-SURFACE-CATALOG-001, CA-ELEMENT-INTEROP-001, CA-STATECHART-EFFECT-001, CA-SPEC-EVIDENCE-001) Baseline: stage @ d21aff4a (@context-action/core@1.3.1, @context-action/store-core@0.1.4, @context-action/mutative-core@0.8.14, @context-action/...
 
 ===================[ DOC: en/context-layered/decisions/index.md ]===================
 # Architecture Decision Records

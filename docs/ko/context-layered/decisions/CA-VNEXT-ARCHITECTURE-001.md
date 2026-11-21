@@ -1,6 +1,6 @@
 # CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, 상태 계층 통합 및 React 표면 슬림화 청사진
 
-**상태:** proposed (논의 초안 — 런타임/API 코드 변경 미적용, 타 프로젝트 병행 작업 고려 동결)  
+**상태:** proposed — Phase 1 (4.x 무중단) 실행 계획 수립 완료, 7개 소비자 저장소 교차 감사 완료 (본 문서로 런타임 코드 변경 미적용)  
 **소유자:** Framework Core & React Runtime  
 **관련 이슈/스펙:** `CA-VNEXT-ARCHITECTURE-001` ([CA-SURFACE-CATALOG-001](./CA-SURFACE-CATALOG-001.md), [CA-ELEMENT-INTEROP-001](./CA-ELEMENT-INTEROP-001.md), [CA-STATECHART-EFFECT-001](./CA-STATECHART-EFFECT-001.md), [CA-SPEC-EVIDENCE-001](./CA-SPEC-EVIDENCE-001.md) 기반)  
 **기준선(Baseline):** `stage` @ `d21aff4a` (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`)
@@ -27,6 +27,20 @@
 | **축 2: Core vs React 큐 기본값 역전 및 교착 위험** | `ActionRegister`는 `config.registry?.useConcurrencyQueue === true`일 때만 직렬 큐를 켜고 재진입 규칙을 명시(`packages/core/docs/action-contracts.md`)하지만, `@context-action/react`의 `createActionContext`는 `?? true`로 기본값을 뒤집습니다. 실제로 `stage` 안정화(`c07882b1`) 중 `template-react`의 `resetDraft`/`retrySubmission`과 `FlowControlActions`의 `recordExecutionStep`/`recordHandlerExecution`에서 교착이 확인되어 호출부에 `{ immediate: true }`와 `void` 페이로드용 `undefined` 자리 채우기를 수동 추가해야 했습니다. | `packages/core/src/ActionRegister.ts:322`, `packages/core/src/types.ts` (`DispatchArgs`), `packages/core/docs/action-contracts.md:43-60`, `packages/react/src/actions/ActionContext.tsx:314`, `packages/template-react/src/features/order-workspace/actions/useOrderActions.ts:17-30`, `example/src/pages/patterns/pipeline/actions/FlowControlActions.tsx:30-39` |
 | **축 2b: 디스패치 훅 비대칭 & Level 1↔2 2중 선언** | `useActionDispatch()`는 단일 함수를 반환하는 반면 `useActionDispatchWithResult()`는 `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }` 4개 필드 객체를 반환해 API 형태가 비대칭입니다. 또한 Level 1 Lite에서 Level 2 Headless-First Symmetric DI로 전환할 때 `ActionRegister`+`createStore` 선언과 `createActionContext`+`createStoreContext` 선언을 중복 작성하고 `ownership="shared"` Provider를 중첩 배선해야 합니다. | `packages/react/src/actions/ActionContext.types.ts:123,177-182`, `packages/react/__tests__/patterns/right-sized-adoption.integration.test.tsx:186-248,310-323` |
 | **축 3: `@context-action/react` 루트 표면 비대화 및 Legacy 잔존** | `packages/react/src/index.ts` 루트(`.`)에 Action, Store, TimeTravel, Transactions(`StoreTransactionCoordinator`, `ActionTransactionBridge`), `StoreErrorBoundary`, `RefContext`, `ActionRegister`, React 헬퍼와 deprecated 심볼(`useActionEffectHandler`, `StoreConfig.compareStrategy`, `StoreSchema`, 레거시 `TransactionBackend`)이 한데 혼재해 있습니다. | `packages/react/src/index.ts:1-102`, `packages/react/src/actions/ActionContext.types.ts:137-150`, `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:53,136`, `packages/react/src/stores/core/contracts.ts:26-38` |
+
+### 2.1 교차 프로젝트 소비자 감사 근거 (7개 실사용 저장소)
+
+`@context-action/*`를 실제 소비 중인 워크스페이스 7곳을 읽기 전용으로 감사해 위 구조적 긴장과 대조한 결과입니다:
+
+| 소비자 저장소 | 의존 패키지 / 버전 | 실사용 패턴 및 마찰 근거 (검증됨) |
+|---|---|---|
+| **`browser-studio`** | `@context-action/core@^1.3.1`, `@context-action/store-core@^0.1.4`, `@context-action/xstate@^0.1.0` *(React 미사용)* | • `TimeTravelStore`가 `@context-action/react`에 묶여 있어 `createStateStore()` 위에 수동 `history[]` + `historyCursor` + `structuredClone` Undo/Redo를 직접 구현 중입니다 (`browser-studio/packages/blueprint-core/src/blueprint-graph-context.ts:125-126,588-619,1489-1561`).<br>• `SyncActionPipeline` + `StateStore` 조합을 위해 커스텀 `SyncCommandMethods`·`defineEditorContextSpec` 글루를 자체 구성했습니다 (`browser-studio/packages/editor-platform-core/src/contexts/shared.ts:86-90`). |
+| **`google-tools`** (`video-prompt-book-studio`, `video-prompt-book-ui`) | `@context-action/core@^1.3.1`, `@context-action/store-core@^0.1.4`, `@context-action/lit@^0.1.4`, `@context-action/lit-ui@^0.1.4` | • 프레임워크 중립 `{ store: StateStore, actions: ActionRegister, dispose }` 런타임을 `@context-action/lit-ui`(`createStoreContext` + `ContextStoreController`)에 직결합니다. Lit은 `StateStore`를 네이티브 수용하는 반면 React는 `BackendStore` 래퍼가 필요한 비대칭이 확인되었습니다 (`src/domain/runtime.ts:1-24`, `src/components/studio-context.ts:1-30`). |
+| **`macrostructure-first-reference-v0.4.0`** | `@context-action/core@^1.1.0`, `@context-action/react@3.0.0`, `@context-action/lit@^0.1.3`, `@context-action/lit-ui@^0.1.3` | • React `useStoreValue`가 `StateReader<T>`를 직접 받지 못해 `useRef`에 미러 `createStore`를 만들고 `useEffect`로 스냅샷을 수동 복사하는 우회 코드를 사용 중입니다 (`src/runtime/interface-intent-runtime-react.ts:15-32`).<br>• `lit@0.1.3`·`lit-ui@0.1.3` 기준 SSR/hydration 요청은 모두 종결되었습니다 (`docs/proposals/context-action-lit-hydration-request.md:159`). |
+| **`houdini-flow`** | `@context-action/core@^1.3.0` | • React 없이 순수 `ActionRegister<PayloadMap, ResultMap>` + 커스텀 `HoudiniFlowStore`로 동작하며 Layer 0 Core의 zero-dep 순수성이 필수임을 뒷받침합니다 (`src/pipeline/actions.ts:7-88`). |
+| **`clip-spike-react/packages/ae-editor`** | `@context-action/core@^0.8.6`, `@context-action/react@^0.8.6` | • `src/context/contexts.ts:1,189,198`에서 `@context-action/react` 루트(`.`)로부터 `createActionContext`, `createStoreContext`, `createTimeTravelStoreContext`를 import하며, 순수 Node `.mjs` 모델 테스트(`test/editor-history-model.test.mjs:5`, `test/clip-authoring-store-model.test.mjs:5`)에서도 `createTimeTravelStore`를 `@context-action/react`에서 가져다 씁니다. |
+| **`iframe-gsap-studio/packages/iframe-demo`** & **`webs/packages/graph-hub`** | `@context-action/react@^0.8.3` / `latest` | • `createActionContext`, `createStoreContext`, `useStoreValue`, `ActionPayloadMap`을 모두 `@context-action/react` 루트(`.`)에서 직접 import하므로 4.x 기간 동안 루트 호환성 유지가 필수입니다. |
+| **병행 `packages/react` 4.x 작업 (진행 중)** | `@context-action/react` 4.x 미출시 작업 | • `'batched'` 기본값을 깨지 않으면서 `notificationMode?: 'batched' | 'immediate'`(`StoreOptions`/`StoreNotificationMode`), `useRefController`, `useDebugValue`, `useLocalStore` 내 `useId()`를 무중단으로 추가 중입니다 (`packages/react/UNRELEASED.md:6-10`). |
 
 ---
 
@@ -196,12 +210,22 @@ const engine = CouponRuntime.create();
 
 ---
 
-## 6. 미확정 피드백 의사결정 (구현 착수 전 게이트 4가지)
+## 6. 미확정 피드백 의사결정 및 실증 기반 권고 해법
 
-1. **기본 Store 알림 모드 (`Store.ts:105`):** 차기 메이저에서 `Store` 기본 `notificationMode`를 `'batched'`(16ms RAF)에서 동기 `'immediate'`(`createStateStore()` 및 React 18/19 자동 배칭과 정합)로 바꿀지, `'raf'`를 명시적 opt-in + `RefContext`로 유도할지?
-2. **`defineRuntime` + `bindReactRuntime` 도입 vs. 순수 분리 철학:** Level 1 → Level 2 보일러플레이트 절감 효용이 Action·Store·Ref를 독립 선언으로 두는 명시성보다 큰지?
-3. **Mutative / TimeTravel 위치:** `@context-action/react` 내부 `Store`·`TimeTravelStore`를 프레임워크 중립 Layer 1 패키지로 추출해 Lit/Preact와 공유할 만큼 우선순위가 높은지, 아니면 Phase 1에서는 React의 `StateBackend` 직접 수용까지만 끊을지?
-4. **Semver 우선순위:** 단기 후속 작업 기준을 **4.x 무중단(Additive) 확장**으로 둘지, **v5 메이저 재설계 청사진** 중심으로 먼저 평가할지?
+섹션 2.1의 7개 실사용 저장소 감사 근거를 바탕으로 4가지 게이트 각각에 대한 Phase 1 권고 해법을 도출했습니다 (최종 승인 대기):
+
+1. **기본 Store 알림 모드 (`Store.ts:105`):**
+   - *질문:* `Store` 기본 `notificationMode`를 `'batched'`(16ms RAF)에서 동기 `'immediate'`로 바꿀지, 현행 유지할지?
+   - *권고 해법:* **4.x에서는 `'batched'` 기본값을 유지하고 무중단 opt-in `notificationMode?: 'batched' | 'immediate'` 제공** (`packages/react/UNRELEASED.md:6-10`에서 병행 반영 중, `iframe-demo`·`graph-hub`·`ae-editor` 호환성 보호). 기본값의 `'immediate'` 전환은 **Phase 2 (v5 Major)** 로 유보합니다.
+2. **`defineRuntime` + `bindReactRuntime` 도입 vs. 순수 분리 철학:**
+   - *질문:* Level 1 → Level 2 보일러플레이트 절감용 통합 팩토리를 둘지, `Action`·`Store`·`Ref` 독립 선언 명시성을 유지할지?
+   - *권고 해법:* **독립 `ActionRegister` + `StateStore` 프리미티브를 1원칙으로 유지**합니다 (`houdini-flow` 및 Level 3 6-Layer 인텐트 분리 필수 요건). M1(`StateReader`/`StateBackend` 직결)과 M3(`TimeTravel` 추출)가 `google-tools`·`browser-studio`의 구조적 래핑 마찰을 해소한 뒤에 선택적 Level 1↔2 조합 헬퍼 필요성을 재평가합니다.
+3. **`StateBackend` 수용 및 Mutative / TimeTravel 배치:**
+   - *질문:* `Store`·`TimeTravelStore`를 프레임워크 중립 Layer 1 패키지로 추출할지, Phase 1에서는 React의 `StateBackend` 직접 수용까지만 멈출지?
+   - *권고 해법:* **무중단 마일스톤으로 순차 분리 실행합니다:** **M1 (P0)** 에서 React 훅과 `createStoreContext`가 `StateReader<T>`/`StateBackend<T>`를 직접 수용하도록 확장해 `macrostructure`의 `useEffect` 미러 Store 우회를 제거하고, **M3 (P1)** 에서 `TimeTravelStore`/`TimelineBackend` 엔진을 Layer 1로 추출하되 `@context-action/react` 루트 `.` re-export를 유지해 `browser-studio`와 순수 Node `ae-editor` `.mjs` 테스트 요구를 모두 충족합니다.
+4. **Semver 우선순위:**
+   - *질문:* 4.x 무중단(Additive) 경로를 우선할지, v5 메이저 재설계를 먼저 고정할지?
+   - *권고 해법:* **Phase 1 (`M0–M4`)은 전면 4.x 무중단(Additive) 진화로 확정**해 기존 `@context-action/react` 루트(`.`) 소비자들을 100% 보호하고, deprecated 제거 및 루트 슬림화는 **Phase 2 (v5 Major)** 로 분리합니다.
 
 ---
 
@@ -229,3 +253,17 @@ const engine = CouponRuntime.create();
 1. 현재 `@context-action/*` 공개 API에 의존하는 타 프로젝트·연계 워크스페이스의 병행 수정이 안정화되어 동기화 윈도우가 열리기 전에는 서브패스 추가나 패키지 분리를 적용하지 않습니다.
 2. 이 초안의 항목을 실제 구현으로 승격할 때는 섹션 6의 결정 게이트를 확정한 뒤 본 문서를 `accepted`로 갱신하거나 영역별 후속 `CA-*` 결정 기록으로 대체하고, `catalog/repository-surface/api-surface.v1.json`과 packed ESM/CJS·React 18/19 호환성 게이트(`pnpm verify:all`)를 모두 통과해야 합니다.
 3. 위 절차가 완료되기 전까지 현행 4.x / 1.x / 0.x 공개 계약이 유일한 기준선으로 유지됩니다.
+
+---
+
+## 9. Phase 1 (4.x 무중단) 계약 우선 구현 계획 (M0–M4)
+
+아래 마일스톤은 모두 **4.x 하위 호환을 100% 보장하는 무중단(Additive) 단계**로 설계되었으며, `@context-action/core`·`store-core`·`react`의 기존 루트(`.`) export를 그대로 보존합니다.
+
+| 마일스톤 | 범위 및 트랙 | 대상 파일 / 문서 | 계약 목표 및 소비자 마찰 해소 | 인수 테스트 및 검증 게이트 |
+|---|---|---|---|---|
+| **M0 — 기준선 동기화 선행** | 병행 4.x React 작업 정렬 | `packages/react/UNRELEASED.md`, `packages/react/src/**`, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/guide/**` | M1 착수 전 진행 중인 병행 변경(`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP 문서)을 `stage`에 안정적으로 마감합니다. | `pnpm docs:llms && pnpm docs:check && pnpm --filter @context-action/react type-check && pnpm --filter @context-action/react test && pnpm verify:quick && pnpm verify:receipt` |
+| **M1 — P0: React `StateReader` / `StateBackend` 네이티브 수용** | 트랙 A1 | `packages/react/src/stores/hooks/useStoreValue.ts`, `useStoreSelector.ts`, `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx`, `packages/react/src/stores/core/contracts.ts`, `packages/react/docs/state-contracts.md` | `useStoreValue`, `useStoreSelector`, `ExternalStoresMap<T>`(`createStoreContext().Provider stores={...}`)가 `StateReader<T>`/`StateBackend<T>`를 직접 받도록 확장합니다 (`macrostructure`의 `useEffect` 미러 Store 우회 및 수동 `BackendStore` 래핑 제거, `IStore`/`Store` 완전 호환). | `createStateStore()`를 `createStoreContext().Provider stores={...}` 및 `useStoreValue`에 직결하는 통합 테스트; `pnpm --filter @context-action/react type-check && pnpm --filter @context-action/react test && pnpm verify:react-artifact-boundary && pnpm package-boundary:check` |
+| **M2 — P1: Core 계약 레벨 액션 큐 정책** | 트랙 B1 | `packages/core/src/types.ts`, `packages/core/src/ActionRegister.ts`, `packages/core/docs/action-contracts.md` | 선택적 액션별 정책 선언(`actions?: Partial<Record<ActionNames<T>, { queue?: 'serial' \| 'immediate'; timeout?: number }>>`)을 추가해 선점 액션이 호출부 `{ immediate: true }`에만 의존하지 않도록 개선합니다 (Core·React 4.x 기본 `useConcurrencyQueue` 값은 보존). | 활성 `'serial'` 큐를 호출부 플래그 없이 선점하는 `'immediate'` 계약 단위 테스트; `pnpm --filter @context-action/core test && pnpm verify:core-artifact-parity` |
+| **M3 — P1: 프레임워크 중립 Timeline / TimeTravel 분리** | 트랙 A2 | Layer 1 프레임워크 중립 `TimeTravelStore`(`TimelineBackend<T>` 구현), `packages/react/src/index.ts` 호환 re-export, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/context-layered/store-selection-and-usage-guide.md` | Undo/Redo 타임라인 엔진을 React에서 분리해 비-React 소비자(`browser-studio`, 순수 Node `.mjs` 기반 `ae-editor` 테스트)가 React peer나 수동 `history[]`/`structuredClone` 구현 없이 재사용할 수 있게 합니다 (React 루트 `.` re-export 유지). | 순수 Node 비-React 타임라인 계약 테스트 + 기존 React `TimeTravelStore` 회귀 스위트 + packed tarball export 검증; `pnpm build && pnpm test && pnpm verify:package-exports && pnpm verify:package-tarballs` |
+| **M4 — P2: Opt-In React 서브패스 및 대칭 디스패치 훅** | 트랙 C1 & B2 | `packages/react/package.json` (`./refs`, `./time-travel`, `./transactions`), `tsdown.config.ts`, `ActionContext.types.ts`, `ActionContext.tsx`(additive `useActionResultDispatch()`, `useActionScope()`), `catalog/repository-surface/api-surface.v1.json`, `scripts/verify-react-artifact-boundary.mjs` | 슬림한 opt-in 서브패스와 함수형 결과 디스패치 훅을 추가하되, 루트 `.` export 및 deprecated 심볼 제거는 **Phase 2 (v5 Major)** 로 유보해 무중단 도입을 보장합니다. | 루트 `.` + 신규 서브패스 packed ESM/CJS 소비자 검증 및 React 18/19 호환 매트릭스; `pnpm verify:surface-catalog && pnpm verify:react-artifact-boundary && pnpm docs:llms && pnpm docs:check && pnpm verify:doc-snippets && pnpm verify` |

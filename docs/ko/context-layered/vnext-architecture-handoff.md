@@ -47,6 +47,25 @@
 3. **Mutative / TimeTravel 배치:** `Store`·`TimeTravelStore`를 프레임워크 중립 Layer 1 패키지로 분리해 Lit/Preact와 공유할지, Phase 1에서는 `@context-action/react`가 `StateReader<T>` / `StateBackend<T>`를 직접 수용하는 수준으로 멈출지?
 4. **Semver 우선순위:** **4.x 무중단(Additive) 확장**을 1차 목표로 잡을지, **v5 메이저 재설계**까지 함께 확정할지?
 
+### 3.1 교차 프로젝트 감사 요약 및 권고 해법 (7개 소비자 저장소)
+
+| 의사결정 게이트 | 7개 실사용 저장소 감사 근거 | 권고 해법 |
+|---|---|---|
+| **1. 기본 `Store` 알림 모드** | `packages/react/UNRELEASED.md:6-10`에서 4.x 무중단 opt-in `notificationMode?: 'batched' | 'immediate'`가 이미 도입 중이며, 기존 소비자(`iframe-demo`, `graph-hub`, `ae-editor`)의 RAF 타이밍을 보존합니다. | **4.x에서는 `'batched'` 기본 유지** + opt-in `'immediate'` 제공, 기본값 전환은 **v5**에서만 검토 |
+| **2. `defineRuntime` / `bindReactRuntime`** | `google-tools`(`runtime.ts:1-24`)·`browser-studio`(`shared.ts:86-90`)는 `{ store, actions, dispose }` 런타임을 반복 래핑하나, `houdini-flow`와 Level 3 앱은 독립 분리를 유지합니다. | **독립 프리미티브 우선 유지** — M1/M3 완료 후 얇은 Level 1↔2 헬퍼 필요성 재평가 |
+| **3. `StateBackend` & TimeTravel 위치** | `macrostructure`(`interface-intent-runtime-react.ts:15-32`)는 React 미지원 탓에 `useRef`+`useEffect` 미러 Store를 쓰며, `google-tools`는 Lit만 `StateStore`를 직접 받는 비대칭을 보입니다. `browser-studio`·`ae-editor`(`.mjs`)는 비-React `TimeTravelStore` 수요를 증명합니다. | **M1 (P0):** React 훅·`createStoreContext`의 `StateReader<T>`/`StateBackend<T>` 네이티브 수용<br>**M3 (P1):** Layer 1 프레임워크 중립 타임라인 추출(React `.` re-export 유지) |
+| **4. Semver 우선순위** | `ae-editor`, `iframe-demo`, `graph-hub`, `macrostructure`가 모두 `@context-action/react` 루트(`.`)에 직접 의존합니다. | **Phase 1 = 4.x 무중단(Additive) 확정**, 루트 축소·breaking 정리는 **v5 Major**로 분리 |
+
+### 3.2 Phase 1 (4.x 무중단) 계약 우선 실행 계획 요약 (`M0–M4`)
+
+세부 대상 파일, 계약 목표, 검증 명령은 [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) 섹션 9를 따릅니다:
+
+- **M0 (기준선 동기화 선행):** 병행 중인 `packages/react` 4.x 변경(`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP 문서)의 `stage` 커밋 완료.
+- **M1 (P0 · 트랙 A1):** `useStoreValue`, `useStoreSelector`, `ExternalStoresMap<T>`(`createStoreContext().Provider stores={...}`)가 수동 `BackendStore` 래핑 없이 `StateReader<T>`/`StateBackend<T>`를 직접 받도록 확장.
+- **M2 (P1 · 트랙 B1):** `@context-action/core`에 액션별 스케줄링 정책(`actions?: Partial<Record<ActionNames<T>, { queue?: 'serial' | 'immediate'; timeout?: number }>>`)을 기존 기본값 유지 상태로 추가.
+- **M3 (P1 · 트랙 A2):** `TimeTravelStore` / `TimelineBackend<T>` 엔진을 Layer 1 프레임워크 중립 모듈로 추출하되 `@context-action/react` 루트 `.` 하위 호환 re-export 보존.
+- **M4 (P2 · 트랙 C1 & B2):** opt-in React 서브패스(`./refs`, `./time-travel`, `./transactions`)와 대칭 디스패치 훅(`useActionResultDispatch()`, `useActionScope()`)을 루트 `.` 유지·`api-surface.v1.json` 동기화와 함께 추가.
+
 ---
 
 ## 4. 바로 복사해 지시할 수 있는 프롬프트 키트

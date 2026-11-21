@@ -2423,7 +2423,7 @@ Bump catalog schema versions (`*.v2.json`) if package layers, stability tiers, o
 ===================[ DOC: en/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001.md ]===================
 # CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, State Unification, and React Surface Blueprint
 
-**Status:** proposed (discussion draft — no runtime/API changes applied; external cross-project work active)  
+**Status:** proposed — Phase 1 (4.x additive) execution plan ready; cross-project audit completed across 7 consumer repos (no runtime changes applied by this record)  
 **Owner:** Framework Core & React Runtime  
 **Related issue/spec:** `CA-VNEXT-ARCHITECTURE-001` (builds on [CA-SURFACE-CATALOG-001](./CA-SURFACE-CATALOG-001.md), [CA-ELEMENT-INTEROP-001](./CA-ELEMENT-INTEROP-001.md), [CA-STATECHART-EFFECT-001](./CA-STATECHART-EFFECT-001.md), [CA-SPEC-EVIDENCE-001](./CA-SPEC-EVIDENCE-001.md))  
 **Baseline:** `stage` @ `d21aff4a` (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`)
@@ -2450,6 +2450,20 @@ Every architectural tension analyzed in this proposal is grounded directly in th
 | **Axis 2: Core vs. React Queue Asymmetry & Deadlock Risk** | `ActionRegister` enables `useConcurrencyQueue` only when `config.registry?.useConcurrencyQueue === true` (and documents re-entry rules in `packages/core/docs/action-contracts.md`). `createActionContext` in `@context-action/react` flips the default to `useConcurrencyQueue: config?.registry?.useConcurrencyQueue ?? true`. During stabilization (`stage` commit `c07882b1`), two production/demo flows deadlocked until `{ immediate: true }` (with explicit `undefined` placeholders for `void` payloads per `DispatchArgs<P>`) was added at call sites: `resetDraft`/`retrySubmission` in `template-react` and `recordExecutionStep`/`recordHandlerExecution` in `FlowControlActions`. | `packages/core/src/ActionRegister.ts:322`, `packages/core/src/types.ts` (`DispatchArgs`), `packages/core/docs/action-contracts.md:43-60`, `packages/react/src/actions/ActionContext.tsx:314`, `packages/template-react/src/features/order-workspace/actions/useOrderActions.ts:17-30`, `example/src/pages/patterns/pipeline/actions/FlowControlActions.tsx:30-39` |
 | **Axis 2b: Dispatch Hook Asymmetry & Level 1↔2 Boilerplate** | `useActionDispatch()` returns a single dispatch function while `useActionDispatchWithResult()` returns a 4-field object (`{ dispatch, dispatchWithResult, abortAll, resetAbortScope }`). Escalating from Level 1 Lite to Level 2 Headless-First Symmetric DI duplicates definitions (`new ActionRegister()` + `createStore()` alongside `createActionContext()` + `createStoreContext()`) and requires nested `ownership="shared"` Providers. | `packages/react/src/actions/ActionContext.types.ts:123,177-182`, `packages/react/__tests__/patterns/right-sized-adoption.integration.test.tsx:186-248,310-323` |
 | **Axis 3: React Root Barrel Sprawl & Carry-Over Deprecations** | `packages/react/src/index.ts` exports Action, Store, TimeTravel, Transactions (`StoreTransactionCoordinator`, `ActionTransactionBridge`), `StoreErrorBoundary`, `RefContext`, `ActionRegister`, React helpers, and deprecated legacy contracts (`useActionEffectHandler`, `StoreConfig.compareStrategy`, `StoreSchema`, legacy `TransactionBackend` in React state contracts) from the single root `.` surface. | `packages/react/src/index.ts:1-102`, `packages/react/src/actions/ActionContext.types.ts:137-150`, `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:53,136`, `packages/react/src/stores/core/contracts.ts:26-38` |
+
+### 2.1 Cross-Project Consumer Audit Evidence (7 Live Repositories)
+
+Read-only auditing across sibling workspaces actively consuming `@context-action/*` validated every structural axis above:
+
+| Consumer Repository | Dependency Baseline | Observed Integration Pattern & Real Friction Evidence |
+|---|---|---|
+| **`browser-studio`** | `@context-action/core@^1.3.1`, `@context-action/store-core@^0.1.4`, `@context-action/xstate@^0.1.0` *(no React adapter)* | • Hand-rolls `history[]` + `historyCursor` + `structuredClone` undo/redo on top of `createStateStore()` because `TimeTravelStore` resides inside `@context-action/react` (`browser-studio/packages/blueprint-core/src/blueprint-graph-context.ts:125-126,588-619,1489-1561`).<br>• Builds custom `SyncCommandMethods` / `defineEditorContextSpec` glue over `SyncActionPipeline` + `StateStore` (`browser-studio/packages/editor-platform-core/src/contexts/shared.ts:86-90`). |
+| **`google-tools`** (`video-prompt-book-studio`, `video-prompt-book-ui`) | `@context-action/core@^1.3.1`, `@context-action/store-core@^0.1.4`, `@context-action/lit@^0.1.4`, `@context-action/lit-ui@^0.1.4` | • Wires framework-neutral `{ store: StateStore, actions: ActionRegister, dispose }` directly into `@context-action/lit-ui` (`createStoreContext` + `ContextStoreController`), confirming Lit accepts `StateStore` natively whereas React requires `BackendStore` (`src/domain/runtime.ts:1-24`, `src/components/studio-context.ts:1-30`). |
+| **`macrostructure-first-reference-v0.4.0`** | `@context-action/core@^1.1.0`, `@context-action/react@3.0.0`, `@context-action/lit@^0.1.3`, `@context-action/lit-ui@^0.1.3` | • Works around `useStoreValue` not accepting `StateReader<T>` by allocating a mirror `createStore` in `useRef` and syncing via `useEffect` (`src/runtime/interface-intent-runtime-react.ts:15-32`).<br>• Closed all `lit@0.1.3` / `lit-ui@0.1.3` SSR/hydration requests (`docs/proposals/context-action-lit-hydration-request.md:159`). |
+| **`houdini-flow`** | `@context-action/core@^1.3.0` | • Uses pure `ActionRegister<PayloadMap, ResultMap>` + custom `HoudiniFlowStore` with zero React dependency (`src/pipeline/actions.ts:7-88`), reaffirming Layer 0 core purity. |
+| **`clip-spike-react/packages/ae-editor`** | `@context-action/core@^0.8.6`, `@context-action/react@^0.8.6` | • Imports `createActionContext`, `createStoreContext`, and `createTimeTravelStoreContext` from `@context-action/react` root `.` (`src/context/contexts.ts:1,189,198`), and imports `createTimeTravelStore` from `@context-action/react` in headless `.mjs` model tests (`test/editor-history-model.test.mjs:5`, `test/clip-authoring-store-model.test.mjs:5`). |
+| **`iframe-gsap-studio/packages/iframe-demo`** & **`webs/packages/graph-hub`** | `@context-action/react@^0.8.3` / `latest` | • Import `createActionContext`, `createStoreContext`, `useStoreValue`, and `ActionPayloadMap` directly from `@context-action/react` root `.`, establishing that root `.` compatibility must stay unbroken throughout 4.x. |
+| **Concurrent `packages/react` 4.x Track (WIP)** | `@context-action/react` 4.x unreleased work | • Additive `notificationMode?: 'batched' | 'immediate'` (`StoreOptions` / `StoreNotificationMode`), `useRefController`, `useDebugValue`, and `useId` in `useLocalStore` while keeping `'batched'` default non-breaking (`packages/react/UNRELEASED.md:6-10`). |
 
 ---
 
@@ -2619,12 +2633,22 @@ If any part of this blueprint is later promoted to implementation, the following
 
 ---
 
-## 6. Open Feedback Decisions (Decision Gates Before Acceptance)
+## 6. Open Feedback Decisions & Evidence-Backed Resolutions
 
-1. **Default Store Notification Mode (`Store.ts:105`):** Should vNext change `Store` default `notificationMode` from `'batched'` (16ms RAF) to synchronous `'immediate'` (matching `createStateStore()` and React 18/19 automatic batching), keeping `'raf'` strictly opt-in alongside `RefContext`?
-2. **`defineRuntime` + `bindReactRuntime` vs. Pure Primitive Composition:** Does the Level 1 → Level 2 boilerplate reduction justify adding a combined factory helper, or is keeping Action Contexts, Store Contexts, and Ref Contexts visibly separate more valuable for long-term architectural clarity?
-3. **Mutative / TimeTravel Placement:** Is extracting `Store` & `TimeTravelStore` out of `@context-action/react` into a framework-neutral Layer 1 package worth the multi-package version bump (so Lit/Preact share them natively), or is Phase 1 React acceptance of `StateBackend` sufficient?
-4. **Target Semver Horizon:** Should upcoming design feedback optimize first for a minimal **4.x additive surface**, or evaluate a full **v5 major redesign**?
+Cross-project audit evidence (Subsection 2.1) pairs each of the 4 open gates with a recommended Phase 1 resolution awaiting final acceptance sign-off:
+
+1. **Default Store Notification Mode (`Store.ts:105`):**
+   - *Question:* Switch `Store` default `notificationMode` from `'batched'` (16ms RAF) to synchronous `'immediate'`, or keep `'batched'`?
+   - *Recommended Resolution:* **Keep `'batched'` default across 4.x with additive `notificationMode?: 'batched' | 'immediate'` opt-in** (actively landing in `packages/react/UNRELEASED.md:6-10`, protecting legacy `iframe-demo` / `graph-hub` / `ae-editor` callers). Defer changing the default mode to `'immediate'` until **Phase 2 (v5 Major)**.
+2. **`defineRuntime` + `bindReactRuntime` vs. Pure Primitive Composition:**
+   - *Question:* Add an optional combined factory to reduce Level 1 → Level 2 boilerplate, or keep `Action`, `Store`, and `Ref` declarations visibly separate?
+   - *Recommended Resolution:* **Keep independent `ActionRegister` + `StateStore` primitives primary** (required by `houdini-flow` and Level 3 6-Layer intent separation). Re-evaluate an optional Level 1↔2 composition helper only after M1 (`StateReader`/`StateBackend` compatibility) and M3 (`TimeTravel` extraction) eliminate structural wrapping friction observed in `google-tools` and `browser-studio`.
+3. **`StateBackend` Acceptance & Mutative / TimeTravel Placement:**
+   - *Question:* Extract `Store` & `TimeTravelStore` into a framework-neutral Layer 1 package (shared by Lit/Preact), or stop at Phase 1 React `StateBackend` acceptance?
+   - *Recommended Resolution:* **Execute both sequentially as non-breaking milestones:** **M1 (P0)** widens React hooks and `createStoreContext` to accept `StateReader<T>`/`StateBackend<T>` natively (eliminating `macrostructure`'s `useEffect` mirror-store workaround); **M3 (P1)** extracts framework-neutral `TimeTravelStore`/`TimelineBackend` capabilities into Layer 1 while preserving `@context-action/react` root `.` re-exports (serving `browser-studio` and headless `ae-editor` `.mjs` tests).
+4. **Target Semver Horizon:**
+   - *Question:* Prioritize a non-breaking 4.x additive release path, or lock a v5 major breaking redesign?
+   - *Recommended Resolution:* **Commit Phase 1 (`M0–M4`) strictly to 4.x Non-Breaking (Additive) evolution** so active consumer imports on `@context-action/react` root `.` stay intact; stage breaking removals and root barrel slimming solely for **Phase 2 (v5 Major)**.
 
 ---
 
@@ -2652,6 +2676,20 @@ If any part of this blueprint is later promoted to implementation, the following
 1. External and sibling-project changes currently relying on existing `@context-action/*` exports must reach a coordinated synchronization window before introducing new subpaths or package extractions.
 2. Each section promoted from this draft requires resolving the corresponding decision gate in Section 6, updating this record's status (or superseding it with area-specific accepted `CA-*` records), updating `catalog/repository-surface/api-surface.v1.json`, and passing full packed ESM/CJS compatibility gates (`pnpm verify:all`, including React 18/19 compatibility and published/local consumer smokes).
 3. Until those gates pass, all existing 4.x / 1.x / 0.x APIs remain authoritative and unchanged.
+
+---
+
+## 9. Phase 1 (4.x Additive) Contract-First Implementation Plan (M0–M4)
+
+All milestones below are strictly **4.x non-breaking (additive)** and preserve root `.` exports across `@context-action/core`, `@context-action/store-core`, and `@context-action/react`.
+
+| Milestone | Scope & Track | Target Files / Docs | Contract Goal & Consumer Relief | Acceptance Tests & Verification Gates |
+|---|---|---|---|---|
+| **M0 — Baseline Sync Prerequisite** | Sync active concurrent 4.x React work | `packages/react/UNRELEASED.md`, `packages/react/src/**`, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/guide/**` | Land active concurrent changes (`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP docs) cleanly on `stage` before starting M1. | `pnpm docs:llms && pnpm docs:check && pnpm --filter @context-action/react type-check && pnpm --filter @context-action/react test && pnpm verify:quick && pnpm verify:receipt` |
+| **M1 — P0: Native `StateReader` / `StateBackend` in React** | Track A1 | `packages/react/src/stores/hooks/useStoreValue.ts`, `useStoreSelector.ts`, `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx`, `packages/react/src/stores/core/contracts.ts`, `packages/react/docs/state-contracts.md` | Widen `useStoreValue`, `useStoreSelector`, and `ExternalStoresMap<T>` (`createStoreContext().Provider stores={...}`) to accept `StateReader<T>` / `StateBackend<T>` directly (eliminates `macrostructure`'s `useEffect` mirror-store workaround & mandatory `BackendStore` wrapping while preserving `IStore<T>`/`Store<T>`). | New React integration test wiring `createStateStore()` directly into `createStoreContext().Provider stores={...}` & `useStoreValue`; `pnpm --filter @context-action/react type-check && pnpm --filter @context-action/react test && pnpm verify:react-artifact-boundary && pnpm package-boundary:check` |
+| **M2 — P1: Contract-Level Action Queue Policy** | Track B1 | `packages/core/src/types.ts`, `packages/core/src/ActionRegister.ts`, `packages/core/docs/action-contracts.md` | Add optional per-action policy declaration (`actions?: Partial<Record<ActionNames<T>, { queue?: 'serial' \| 'immediate'; timeout?: number }>>`) so preemption actions never rely solely on manual `{ immediate: true }` at call sites; preserve existing `useConcurrencyQueue` defaults across Core & React in 4.x. | Core unit tests for contract-level `'immediate'` bypassing active `'serial'` queue without call-site flags; `pnpm --filter @context-action/core test && pnpm verify:core-artifact-parity` |
+| **M3 — P1: Framework-Neutral Timeline / TimeTravel** | Track A2 | Layer 1 framework-neutral `TimeTravelStore` implementing `TimelineBackend<T>`, compatibility re-exports on `packages/react/src/index.ts`, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/context-layered/store-selection-and-usage-guide.md` | Decouple time-travel history/timeline execution from React so non-React consumers (`browser-studio`, headless Node `.mjs` suites like `ae-editor`) consume `TimelineBackend<T>` without pulling React peers or hand-rolling `history[]`/`structuredClone`. | Pure Node / non-React timeline contract tests + existing React `TimeTravelStore` compatibility suite + packed tarball export verification; `pnpm build && pnpm test && pnpm verify:package-exports && pnpm verify:package-tarballs` |
+| **M4 — P2: Opt-In React Subpaths & Symmetric Dispatch** | Track C1 & B2 | `packages/react/package.json` (`./refs`, `./time-travel`, `./transactions`), `tsdown.config.ts`, `packages/react/src/actions/ActionContext.types.ts`, `ActionContext.tsx` (additive `useActionResultDispatch()`, `useActionScope()`), `catalog/repository-surface/api-surface.v1.json`, `scripts/verify-react-artifact-boundary.mjs` | Expose slim opt-in React subpaths and symmetric function-returning result dispatcher while retaining 100% of root `.` exports and deprecated APIs until **Phase 2 (v5 Major)**. | Packed ESM/CJS consumer imports across root `.` and new subpaths + React 18/19 compatibility matrix; `pnpm verify:surface-catalog && pnpm verify:react-artifact-boundary && pnpm docs:llms && pnpm docs:check && pnpm verify:doc-snippets && pnpm verify` |
 
 ===================[ DOC: en/context-layered/decisions/index.md ]===================
 # Architecture Decision Records
@@ -7479,6 +7517,25 @@ Sibling/consumer feedback should explicitly take a position on the 4 open decisi
 2. **`defineRuntime` + `bindReactRuntime` vs. Independent Primitives:** Should Context-Action add an optional Level 1↔2 bridge factory, or preserve strictly separate `Action` / `Store` / `Ref` declarations?
 3. **Mutative / TimeTravel Placement:** Extract `Store` & `TimeTravelStore` into a framework-neutral Layer 1 package (shared across React/Lit/Preact), or limit Phase 1 to accepting `StateReader<T>` / `StateBackend<T>` natively inside `@context-action/react`?
 4. **Semver Target:** Prioritize non-breaking **4.x additive** steps first, or lock a complete **v5 major** breaking blueprint?
+
+### 3.1 Cross-Project Audit Findings & Recommended Resolutions (7 Consumer Repos)
+
+| Decision Gate | Empirical Evidence from 7 Consumer Repositories | Recommended Resolution |
+|---|---|---|
+| **1. Default `Store` Notification Mode** | `packages/react/UNRELEASED.md:6-10` already adds non-breaking `notificationMode?: 'batched' | 'immediate'` opt-in on 4.x while keeping existing RAF timing intact for legacy callers (`iframe-demo`, `graph-hub`, `ae-editor`). | **Keep `'batched'` default in 4.x** with opt-in `'immediate'`; revisit flipping the default only in **v5**. |
+| **2. `defineRuntime` / `bindReactRuntime`** | `google-tools` (`runtime.ts:1-24`) and `browser-studio` (`shared.ts:86-90`) repeatedly hand-write `{ store, actions, dispose }` runtime facades, while `houdini-flow` and Level 3 apps rely on explicit separation. | Keep **independent primitives primary**; evaluate an optional Level 1↔2 bridge only after M1/M3 land. |
+| **3. `StateBackend` & TimeTravel Placement** | `macrostructure` (`interface-intent-runtime-react.ts:15-32`) mirrors stores via `useEffect` because React `useStoreValue` rejects `StateReader<T>`, `google-tools` contrasts Lit's native `StateStore` acceptance, and `browser-studio` + `ae-editor` `.mjs` tests prove non-React demand for `TimeTravelStore`. | **M1 (P0):** Native `StateReader<T>` / `StateBackend<T>` in React hooks & `createStoreContext`.<br>**M3 (P1):** Framework-neutral Timeline/TimeTravel engine with React `.` re-exports preserved. |
+| **4. Semver Horizon** | `ae-editor`, `iframe-demo`, `graph-hub`, and `macrostructure` all import directly from `@context-action/react` root `.` (`0.8.x`–`3.0.0`/`4.x`). | Commit **Phase 1 strictly to 4.x Non-Breaking (Additive)**; defer breaking cleanups to **v5 Major**. |
+
+### 3.2 Phase 1 (4.x Additive) Execution Plan Summary (`M0–M4`)
+
+Full contract targets, file ownership, and acceptance commands live in Section 9 of [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md):
+
+- **M0 (Baseline Sync Prerequisite):** Let active concurrent `packages/react` 4.x edits (`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP docs) settle and commit cleanly on `stage`.
+- **M1 (P0 · Track A1):** Widen `useStoreValue`, `useStoreSelector`, and `ExternalStoresMap<T>` (`createStoreContext().Provider stores={...}`) to accept `StateReader<T>` / `StateBackend<T>` directly without manual `BackendStore` wrapping.
+- **M2 (P1 · Track B1):** Add optional per-action scheduling policy (`actions?: Partial<Record<ActionNames<T>, { queue?: 'serial' | 'immediate'; timeout?: number }>>`) in `@context-action/core` while preserving current defaults.
+- **M3 (P1 · Track A2):** Extract framework-neutral `TimeTravelStore` / `TimelineBackend<T>` capabilities into Layer 1 while retaining full backward-compatible re-exports on `@context-action/react` root `.`.
+- **M4 (P2 · Track C1 & B2):** Add opt-in React subpaths (`./refs`, `./time-travel`, `./transactions`) and symmetric dispatch hooks (`useActionResultDispatch()`, `useActionScope()`) with root `.` intact and full `api-surface.v1.json` + doc/boundary gate parity.
 
 ---
 
@@ -18675,11 +18732,11 @@ Catalog of core Context-Action patterns across setup, action dispatch, store rea
 
 | Archetype | React Scope | Primitives + Built-in Hooks | Reference |
 |---|---|---|---|
-| **1. Encapsulated OOP Widget Control** | React 18 / 19 | `createRefContext` + `ActionContext` + `useImperativeHandle` (`[]` deps + `Object.freeze`) | [Imperative Handle Facade](./patterns/ref/imperative-handle-facade.md) |
+| **1. Encapsulated OOP Widget Control** | React 18 / 19 | `createRefContext` (`useRefController`) + `ActionContext` + `useImperativeHandle` (`[]` deps + `Object.freeze`) | [Imperative Handle Facade](./patterns/ref/imperative-handle-facade.md) |
 | **2. Local Store / Reducer Encapsulation** | React 18 / 19 | `useLocalStore` or `useReducer` + `useImperativeHandle` | [Local State Imperative Handle](./patterns/ref/local-state-imperative-handle.md) |
-| **3. High-Frequency Store → Non-Blocking View** | React 18 / 19 | `useStorePath` / `useStoreValue` + `useDeferredValue` + `React.memo` | [Deferred View Subscription](./patterns/store/deferred-view-subscription.md) |
-| **4. Committed Store + Optimistic / Form Overlay** | React 19+ | `useStoreValue` + `dispatchWithResult` + `useOptimistic` / `useTransition` / `useActionState` | [Optimistic & Transition UI (React 19)](./patterns/async/optimistic-and-transition-ui.md) |
-| **5. External Imperative OOP Runtime Bridge** | React 18 / 19 | `createRefContext` (`setRef`) + isomorphic `useLayoutEffect` / `useEffect` | [External OOP Lifecycle Bridge](./patterns/ref/external-oop-lifecycle.md) |
+| **3. High-Frequency Store → Non-Blocking View** | React 18 / 19 | `useStorePath` / `useStoreValue` (`'batched'` or `'immediate'`) + `useDeferredValue` + `React.memo` | [Deferred View Subscription](./patterns/store/deferred-view-subscription.md) |
+| **4. Committed Store + Optimistic / Form Overlay** | React 19+ | `StoreConfig` (`notificationMode: 'immediate'`) + `useStoreValue` + `dispatchWithResult` + `useOptimistic` / `useTransition` / `useActionState` | [Optimistic & Transition UI (React 19)](./patterns/async/optimistic-and-transition-ui.md) |
+| **5. External Imperative OOP Runtime Bridge** | React 18 / 19 | `createRefContext` (`useRefController` `setRef`) + isomorphic `useLayoutEffect` / `useEffect` | [External OOP Lifecycle Bridge](./patterns/ref/external-oop-lifecycle.md) |
 
 ---
 
@@ -22215,8 +22272,8 @@ Keep optimistic rollback logic out of your `Store`:
 3. Inside `startTransition(async () => { ... })`, call `addOptimistic(...)` and `await dispatchWithResult(...)`.
 4. Only commit to `store.setValue(...)` when the server/business operation succeeds; if `useActionGuard` aborts or an error occurs, React automatically discards the optimistic overlay and reverts to `committed`.
 
-> [!WARNING]
-> **1-Frame RAF Flicker with Default `Store`:** Context-Action's default `Store` batches `useSyncExternalStore` notifications on the next `requestAnimationFrame` (~16ms). If `startTransition` finishes immediately after `articleStore.setValue(committed)`, `useOptimistic` can drop its overlay 1 frame *before* `useStoreValue` receives the committed snapshot, causing a brief dip back to the old value. Await one animation frame (`waitForNextFrame()`) after a successful commit before exiting `startTransition`, or use an `immediate`-mode store (`TimeTravelStore` or a synchronous custom `BackendStore`).
+> [!TIP]
+> **Avoiding 1-Frame RAF Flicker with `notificationMode: 'immediate'`:** Context-Action's default `Store` batches `useSyncExternalStore` notifications on the next `requestAnimationFrame` (~16ms). Configure `{ initialValue, notificationMode: 'immediate' }` on optimistic/transition stores so `articleStore.setValue(committed)` notifies React synchronously before `startTransition` finishes—preventing `useOptimistic` from dropping its overlay 1 frame early. If a Store must stay in default `'batched'` mode, `await waitForNextFrame()` right before exiting `startTransition` (as shown in Pattern B below).
 
 <!-- @context-action-compile -->
 ```tsx
@@ -22227,16 +22284,6 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-
-function waitForNextFrame(): Promise<void> {
-  return new Promise((resolve) => {
-    if (typeof requestAnimationFrame === 'function') {
-      requestAnimationFrame(() => resolve());
-    } else {
-      setTimeout(resolve, 0);
-    }
-  });
-}
 
 export interface ArticleState {
   readonly liked: boolean;
@@ -22262,7 +22309,10 @@ const {
   Provider: LikeStoreProvider,
   useStore: useLikeStore,
 } = createStoreContext('OptimisticLikeStore', {
-  article: { liked: false, count: 10 } as ArticleState,
+  article: {
+    initialValue: { liked: false, count: 10 } as ArticleState,
+    notificationMode: 'immediate' as const,
+  },
 });
 
 function LikeHandlers({ children }: { children: React.ReactNode }) {
@@ -22317,15 +22367,10 @@ function LikeButtonPanel() {
     const nextLiked = !committed.liked;
     startTransition(async () => {
       applyOptimisticLike(nextLiked);
-      const execution = await dispatchWithResult('toggleLike', {
+      await dispatchWithResult('toggleLike', {
         nextLiked,
         simulateReject,
       });
-      // Default `Store` notifies subscribers on the next RAF tick; wait one frame
-      // after a successful commit so the optimistic overlay never drops early.
-      if (!execution.aborted && execution.success) {
-        await waitForNextFrame();
-      }
     });
   };
 
@@ -22517,7 +22562,7 @@ export function ProfileFormWithActionState() {
 
 - **Keep `Store` as committed truth**: Never write unverified optimistic flags into the persistent domain `Store` when `useOptimistic` handles transient UI display cleanly and rolls back automatically.
 - **Inspect `execution.aborted` and `execution.success`**: Always use `dispatchWithResult` (never fire-and-forget `dispatch`) inside `useActionState` so `useActionGuard` rejections translate into deterministic form feedback.
-- **Align RAF-batched Store commits with React transitions**: Either await one animation frame after `store.setValue` before returning from `startTransition` / `useActionState` (so `useSyncExternalStore` observes the committed snapshot before the overlay drops or `<form>` resets), or back the view with an `immediate`-mode store (`TimeTravelStore`).
+- **Align Store commits with React transitions**: Configure `notificationMode: 'immediate'` on the `Store` (via `StoreConfig` or `createStore` options) so committed updates reach `useSyncExternalStore` before `startTransition` ends, or await one animation frame (`waitForNextFrame()`) after committing to a default `'batched'` Store.
 - **Preserve user draft input on `<form action>` aborts**: Return `draftName` and key uncontrolled `defaultValue` (or use controlled state) so React 19's automatic form reset does not erase invalid input.
 
 ===================[ DOC: en/guide/patterns/async/real-time-state-access.md ]===================
@@ -23338,7 +23383,7 @@ const {
 
 const {
   Provider: ViewportRefProvider,
-  useRefHandler: useViewportRef,
+  useRefController: useViewportController,
 } = createRefContext<{ engine: ViewportEngineHandle }>('ViewportEngineRefs');
 
 function ViewportCanvas({
@@ -23347,8 +23392,7 @@ function ViewportCanvas({
   onRegionFocused?: (regionId: string) => void;
 }) {
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const engineRef = useViewportRef('engine');
-  const { setRef } = engineRef;
+  const { setRef } = useViewportController('engine');
 
   // React 18/19-safe latest callback indirection:
   // prevents recreating the heavy OOP engine when parent passes an inline callback.
@@ -23384,8 +23428,7 @@ function ViewportCanvas({
 }
 
 function ViewportCoordinator({ children }: { children: React.ReactNode }) {
-  // Destructure `withTarget` so the command handler stays stable across `isMounted` changes.
-  const { withTarget } = useViewportRef('engine');
+  const { withTarget } = useViewportController('engine');
 
   useViewportCommand(
     'focusRegion',
@@ -23437,8 +23480,8 @@ export function ExternalOopViewport({
 
 ## Key Invariants
 
-1. **Destructure `setRef` / `withTarget` (keep dependencies stable)**: `setRef` and `withTarget` returned by `useRefHandler` stay referentially stable across `isMounted` changes, whereas the wrapper object returned by `useRefHandler` changes identity when `isMounted` flips.
-2. **Understand `useRefHandler` mount subscription**: `useRefHandler` internally subscribes to `useRefMountState` (`useSyncExternalStore`), so calling `useViewportRef('engine')` inside `ViewportCanvas` triggers one synchronous mount re-render (`isMounted: false -> true`) when `setRef(facade)` runs in `useLayoutEffect`. If `ViewportCanvas` renders heavy children and even that single mount re-render must be avoided, memoize those children or pass `setRef` down from a lightweight parent.
+1. **Use `useRefController` inside engine hosts & coordinators**: `useRefController` gives both `ViewportCanvas` (`setRef`) and `ViewportCoordinator` (`withTarget`) a stable reference without subscribing to `isMounted` changes, triggering **zero** mount-state re-renders when `setRef(facade)` attaches.
+2. **Subscribe to mount status separately when needed**: Only call `useRefMountState('engine')` (or `useRefHandler('engine')`) in UI components that actually display loading/ready indicators for the external runtime.
 3. **Detach `setRef(null)` before `instance.dispose()`**: Clears the `RefContext` handle first so no queued `withTarget` callback attempts to invoke a disposed instance.
 4. **Hide `dispose()` from `RefContext` consumers**: Exposing a frozen `ViewportEngineHandle` ensures `ActionContext` handlers can command the engine (`focusRegion`, `resize`) while only the owning React Effect controls teardown.
 5. **React 19.2 `useEffectEvent` note**: When targeting React 19.2+ exclusively, `onRegionFocusedRef` can be replaced by `useEffectEvent` inside the Effect callback; keep the ref indirection when supporting React 18 or when callbacks are also invoked outside Effects.
@@ -23594,12 +23637,12 @@ const {
 
 const {
   Provider: FormRefProvider,
-  useRefHandler: useFormRef,
+  useRefController: useFormRefController,
 } = createRefContext<{ emailField: FieldHandle }>('FormFacadeRefs');
 
 function FormCoordinator({ children }: { children: React.ReactNode }) {
-  // Destructure `withTarget` so handler callbacks do not re-register when `isMounted` toggles.
-  const { withTarget } = useFormRef('emailField');
+  // `useRefController` does not subscribe to mount state and stays stable across mounts.
+  const { withTarget } = useFormRefController('emailField');
 
   useFormCommand(
     'submitForm',
@@ -23625,7 +23668,7 @@ function FormCoordinator({ children }: { children: React.ReactNode }) {
 }
 
 function ProfileFormContent() {
-  const emailField = useFormRef('emailField');
+  const emailField = useFormRefController('emailField');
   const dispatch = useFormDispatch();
 
   return (
@@ -23661,7 +23704,7 @@ export function ProfileFormSection() {
 1. **Empty dependency array (`[]`) for `useImperativeHandle`**: Ensure `setRef` receives a single stable handle reference for the entire mount lifecycle.
 2. **Freeze the facade (`Object.freeze`)**: Prevents callers from mutating or monkey-patching imperative methods exposed through `RefContext`.
 3. **Sync refs on commit and inside events/commands**: Sync `latestRef` inside `useIsomorphicLayoutEffect` (avoiding render-phase ref writes under Concurrent React / React Compiler), and update `latestRef` synchronously inside `onChange` / `reset` so back-to-back calls (`handle.reset(); handle.getValue()`) read fresh values before the next commit.
-4. **Destructure `{ withTarget }` / `{ setRef }` in coordinators**: `useRefHandler()` returns a new wrapper object whenever `isMounted` toggles, whereas `withTarget` and `setRef` keep stable identities across mount state changes.
+4. **Prefer `useRefController` for command-only writers and coordinators**: `useRefController` returns a mount-lifetime-stable `{ setRef, withTarget, waitForMount, onMount, executeIfMounted, checkMountState, target }` handle with **zero mount-state re-renders**. Reserve `useRefMountState` (or `useRefHandler`) for components that render reactive `isMounted` / `isWaitingForMount` UI badges.
 5. **Never leak raw DOM nodes & preserve `forwardRef`**: Parents and `ActionContext` handlers only see `FieldHandle`, never `HTMLInputElement`, and `forwardRef` preserves React 18/19 portability.
 
 ## Related Patterns
@@ -27228,7 +27271,7 @@ At the same time, Context-Action's default `Store` uses **RAF batching (`notific
 
 To keep typing crisp **and** keep heavy downstream rendering non-blocking:
 
-1. Keep the controlled `<input>` synchronous with local `useState` (or use an `immediate`-notification store such as `TimeTravelStore` with default `notificationMode: 'immediate'`) and push updates into the shared Store.
+1. Either keep the controlled `<input>` synchronous with local `useState` (recommended when the Store should keep `'batched'` notifications) **or** configure `notificationMode: 'immediate'` on the Store (`createStoreContext` `StoreConfig` or `createStore(name, initial, { notificationMode: 'immediate' })`) so direct Store-bound inputs update synchronously.
 2. Read the Store in the results view with `useStorePath` or `useStoreValue`.
 3. Pass the read value through `useDeferredValue(query)` and wrap the expensive child subtree in `React.memo(...)` so it renders only with the deferred value and yields cleanly when urgent input arrives.
 
@@ -27374,7 +27417,7 @@ export function DeferredCatalogScreen() {
 ## Key Invariants
 
 - **Memoize the deferred child (`React.memo`)**: Without `React.memo` (or `useMemo` keyed on `deferredQuery`), the heavy subtree re-runs during the urgent render anyway, defeating `useDeferredValue`.
-- **Keep controlled `<input>` synchronous**: Never drive a controlled text `<input>` directly from an RAF-batched `Store` (`notificationMode: 'batched'`); keep the input synchronous via local `useState` (or use an `immediate`-mode store such as `TimeTravelStore` when the input value must live solely in a Store), and never bind `<input value>` to `deferredQuery`.
+- **Keep controlled `<input>` synchronous**: Never drive a controlled text `<input>` directly from an RAF-batched `Store` (`notificationMode: 'batched'`); either keep the input synchronous via local `useState`, or configure `{ initialValue: ..., notificationMode: 'immediate' }` in `StoreConfig` / `createStore(..., { notificationMode: 'immediate' })` when binding directly to `useStorePath`, and never bind `<input value>` to `deferredQuery`.
 - **Avoid passing inline object/array literals alongside `deferredQuery`**: Pass stable Store slices (`items` from `useStorePath`) so `React.memo` shallow prop checks pass during urgent renders.
 
 ===================[ DOC: en/guide/patterns/store/path-based-subscription.md ]===================
