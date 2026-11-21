@@ -6,7 +6,7 @@
 import { cpus } from 'os'
 
 // Dynamic configuration based on project size
-const projectSize = 'medium' // small (<50 files), medium (50-200), large (>200)
+const projectSize = 'large' // small (<50 files), medium (50-200), large (>200)
 
 const sizeConfigs = {
   small: {
@@ -35,13 +35,18 @@ export default {
   packageMapping: {
     'core': 'core',
     'store-core': 'store-core',
+    'mutative-core': 'mutative-core',
     'mutative': 'mutative',
     'xstate': 'xstate',
     'tool-protocol': 'tool-protocol',
     'ai-sdk': 'ai-sdk',
     'webmcp': 'webmcp',
     'tool-durable-operations': 'tool-durable-operations',
-    'react': 'react'
+    'react': 'react',
+    'lit': 'lit',
+    'lit-ui': 'lit-ui',
+    'preact': 'preact',
+    'preact-ui': 'preact-ui'
   },
   
   // Smart caching configuration - optimized for performance

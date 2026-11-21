@@ -77,17 +77,17 @@ All 20 workspace packages declared under `packages/*/package.json` (excluding un
 | --- | --- | --- | --- | --- | --- |
 | `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | none | Yes (`.`, `./element`, `./element/react`) |
 | `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | none | Yes (`.`) |
-| `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | none | No |
+| `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | none | Yes (`.`) |
 | `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | none | Yes (`.`) |
 | `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | none | Yes (`.`) |
 | `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peers: `tool-protocol`, `webmcp`) | Yes (all 5 exports) |
 | `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | Yes (`.`) |
-| `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | No |
-| `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | No |
-| `@context-action/lit-ui` (`0.1.4`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr`, `./hydrate` | `core`, `lit` | No |
-| `@context-action/preact-ui` (`0.2.1`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | No |
+| `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | Yes (`.`) |
+| `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | Yes (`.`) |
+| `@context-action/lit-ui` (`0.1.4`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr`, `./hydrate` | `core`, `lit` | Yes (all 4 exports) |
+| `@context-action/preact-ui` (`0.2.1`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | Yes (all 3 exports) |
 | `@context-action/ai-sdk` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.` | `tool-protocol` | Yes (`.`) |
-| `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | Yes (`.`) |
+| `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | Yes (all 2 exports) |
 | `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | Yes (`.`, `./effect`) |
 | `@context-action/llms-generator` (`0.8.7`) | `tooling` | `public` / `tooling` | `.`, `./cli` | none | No |
 | `@context-action/typedoc-vitepress-sync` (`0.8.8`) | `tooling` | `public` / `tooling` | `.`, `./cli` | none | No |
@@ -97,7 +97,7 @@ All 20 workspace packages declared under `packages/*/package.json` (excluding un
 | `@context-action/template-react` (`1.0.0`) | `private-host-support` | `private` / `private` | `(no exports)` | `core`, `react` | No |
 
 > [!NOTE]
-> **TypeDoc Coverage Gap**: `typedoc.json` currently targets 16 source entrypoints across **9 of 16 public packages** (providing complete subpath coverage for `core`, `react`, and `xstate`, alongside `store-core`, `mutative`, `tool-protocol`, `ai-sdk`, `webmcp`, and `tool-durable-operations`). The remaining 7 public packages (`lit`, `lit-ui`, `preact`, `preact-ui`, `mutative-core`, `llms-generator`, `typedoc-vitepress-sync`) and subpath entries such as `@context-action/webmcp/profiles/chrome-legacy` are explicitly cataloged in `api-surface.v1.json` until added to TypeDoc.
+> **TypeDoc Coverage Scope**: `typedoc.json` targets **27 source entrypoints across 14 of 16 public packages** (`14 / 14` public consumer runtime packages and all their public subpaths: `core`, `store-core`, `mutative-core`, `mutative`, `xstate`, `tool-protocol`, `ai-sdk`, `webmcp`, `tool-durable-operations`, `react`, `lit`, `lit-ui`, `preact`, `preact-ui`). Only the 2 CLI/build tooling packages (`llms-generator`, `typedoc-vitepress-sync`, maintained with standalone `packages/*/docs/` documentation) remain intentionally excluded from the runtime API reference.
 
 ### 3.1 Package Roles by Layer
 

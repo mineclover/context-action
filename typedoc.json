@@ -4,20 +4,31 @@
     "./packages/core/src/element.ts",
     "./packages/core/src/element-react.ts",
     "./packages/store-core/src/index.ts",
+    "./packages/mutative-core/src/index.ts",
     "./packages/mutative/src/index.ts",
     "./packages/xstate/src/index.ts",
     "./packages/xstate/src/effect.ts",
     "./packages/tool-protocol/src/index.ts",
     "./packages/ai-sdk/src/index.ts",
     "./packages/webmcp/src/index.ts",
+    "./packages/webmcp/src/profiles/chrome-legacy.ts",
     "./packages/tool-durable-operations/src/index.ts",
     "./packages/react/src/index.ts",
     "./packages/react/src/backend.ts",
     "./packages/react/src/advanced.ts",
     "./packages/react/src/utils.ts",
-    "./packages/react/src/webmcp.ts"
+    "./packages/react/src/webmcp.ts",
+    "./packages/lit/src/index.ts",
+    "./packages/lit-ui/src/index.ts",
+    "./packages/lit-ui/src/react-bridge.ts",
+    "./packages/lit-ui/src/ssr.ts",
+    "./packages/lit-ui/src/hydrate.ts",
+    "./packages/preact/src/index.ts",
+    "./packages/preact-ui/src/index.ts",
+    "./packages/preact-ui/src/react-bridge.ts",
+    "./packages/preact-ui/src/ssr.ts"
   ],
-  "tsconfig": "./tsconfig.json",
+  "tsconfig": "./tsconfig.typedoc.json",
   "out": "./docs/api/generated",
   "cleanOutputDir": true,
   "plugin": ["typedoc-plugin-markdown"],
@@ -31,7 +42,7 @@
     "@mergeModuleWith", "@prop", "@property", "@return", "@satisfies", "@since",
     "@sortStrategy", "@template", "@this", "@type", "@typedef", "@summary",
     "@preventInline", "@inlineType", "@preventExpand", "@expandType",
-    "@implements", "@memberof"
+    "@implements", "@memberof", "@fileoverview"
   ],
   "readme": "none",
   "excludePrivate": true,
@@ -46,6 +57,7 @@
   "categoryOrder": [
     "Core",
     "Store Core",
+    "Mutative Core",
     "Mutative",
     "XState",
     "Tool Protocol",
@@ -53,6 +65,10 @@
     "WebMCP",
     "Tool Durable Operations",
     "React",
+    "Lit",
+    "Lit UI",
+    "Preact",
+    "Preact UI",
     "*"
   ],
   "groupOrder": [
@@ -109,6 +125,9 @@
   "externalSymbolLinkMappings": {
     "@types/react": {
       "React.NewLifecycle.getSnapshotBeforeUpdate": "#"
+    },
+    "@lit/reactive-element": {
+      "css": "https://lit.dev/docs/api/styles/#css"
     }
   },
   "githubPages": false
