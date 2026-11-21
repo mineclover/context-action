@@ -263,6 +263,9 @@ export class ActionRegister<
   public readonly name: string;
   private readonly registryConfig: ActionRegisterConfig<T>['registry'];
   private readonly actionPolicies?: Partial<Record<ActionNames<T>, ActionPolicyConfig>>;
+  private readonly actionDefaultDispatchOptions?: Partial<
+    Record<ActionNames<T>, Readonly<DispatchOptions>>
+  >;
   private readonly useGlobalConcurrencyQueue: boolean;
 
   // 🆕 Performance optimizations
@@ -320,6 +323,9 @@ export class ActionRegister<
 
     if (config.actions) {
       const validated: Partial<Record<ActionNames<T>, ActionPolicyConfig>> = {};
+      const defaultDispatchOptions: Partial<
+        Record<ActionNames<T>, Readonly<DispatchOptions>>
+      > = {};
       for (const [actionName, policy] of Object.entries(config.actions) as Array<
         [string, ActionPolicyConfig | undefined]
       >) {
@@ -338,8 +344,20 @@ export class ActionRegister<
           ...(policy.queue !== undefined && { queue: policy.queue }),
           ...(policy.timeout !== undefined && { timeout: policy.timeout }),
         };
+        if (policy.queue !== undefined || policy.timeout !== undefined) {
+          // Pre-freeze default dispatch options so default dispatches allocate nothing per call.
+          defaultDispatchOptions[actionName as ActionNames<T>] = Object.freeze({
+            ...(policy.queue === 'immediate'
+              ? { immediate: true }
+              : policy.queue === 'serial'
+                ? { immediate: false }
+                : {}),
+            ...(policy.timeout !== undefined && { timeout: policy.timeout }),
+          });
+        }
       }
       this.actionPolicies = validated;
+      this.actionDefaultDispatchOptions = defaultDispatchOptions;
     }
 
     // Guard creation with improved cleanup handling
@@ -1389,23 +1407,27 @@ export class ActionRegister<
     action: K,
     options?: DispatchOptions
   ): DispatchOptions | undefined {
+    if (options === undefined) {
+      return this.actionDefaultDispatchOptions?.[action];
+    }
+
     const policy = this.actionPolicies?.[action];
     if (!policy) return options;
 
-    const resolvedImmediate = options?.immediate !== undefined
+    const resolvedImmediate = options.immediate !== undefined
       ? options.immediate
       : policy.queue === 'immediate'
         ? true
         : policy.queue === 'serial'
           ? false
           : undefined;
-    const resolvedTimeout = options?.timeout !== undefined
+    const resolvedTimeout = options.timeout !== undefined
       ? options.timeout
       : policy.timeout;
 
     if (
-      resolvedImmediate === options?.immediate
-      && resolvedTimeout === options?.timeout
+      resolvedImmediate === options.immediate
+      && resolvedTimeout === options.timeout
     ) {
       return options;
     }

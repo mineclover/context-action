@@ -2,7 +2,7 @@ import {
   ActionRegister,
   type ActionPayloadMap,
   ActionTimeoutError,
-} from '../src';
+} from '../../src';
 
 interface TestActions extends ActionPayloadMap {
   serialWork: { id: string };
@@ -188,5 +188,27 @@ describe('M2 · ActionRegister contract-level action queue & timeout policies', 
           },
         })
     ).toThrow(TypeError);
+  });
+
+  it('preserves frozen default action policy options across repeated dispatches and overrides', async () => {
+    const register = new ActionRegister<TestActions>({
+      name: 'CachedPolicyDefaults',
+      actions: {
+        timedWork: { queue: 'immediate', timeout: 25 },
+      },
+    });
+
+    const observed: number[] = [];
+    register.register('timedWork', async () => {
+      observed.push(observed.length + 1);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    });
+
+    await expect(register.dispatch('timedWork')).resolves.toBeUndefined();
+    await expect(register.dispatch('timedWork', undefined, { timeout: 100 })).resolves.toBeUndefined();
+    await expect(register.dispatch('timedWork')).resolves.toBeUndefined();
+    expect(observed).toEqual([1, 2, 3]);
+
+    register.destroy();
   });
 });
