@@ -70,9 +70,15 @@ Sections: 맥락 | 검토한 선택지 | 결정 | 결과와 invariant | 검증 �
 
 상태: accepted 소유자: Framework Architecture & Documentation Governance 관련 이슈/스펙: CA-SURFACE-CATALOG-001 (저장소 표면 카탈로그, 패키지 경계 및 코드베이스 관리 컨벤션, 스펙·이슈·문서 관리 컨벤션) 현재 저장소는 워크스페이스 패키지(packages/), example/ 앱 내 정식 라우트, 독립 데모(demos/bolt-style-editor, examples/vanilla-js), 패키지 로컬 examples/, 내러티브 예제 가이드, 루트 마크다운 파일, 한영 문서 트리, 릴리스 매니페스트, 파생 LLMS 번들 산출물로 구성되어 있습니다 (최신 수치는 JSON 카탈로그 참조). 기존에는 이러한 표면이 package.json, example/src/App.tsx, sidebars.ts, package-boundary-convention.md 등에 흩어져 있어(@context-action/lit, @...
 
+===================[ DOC: ko/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001.md ]===================
+# CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, 상태 계층 통합 및 React 표면 슬림화 청사진
+Sections: 맥락 및 타 프로젝트 병행 작업 안내 | 검증된 1차 출처(Primary-Source) 근거 인벤토리 | 목표 아키텍처: 대칭형 Hub-and-Spoke 구조 | 검토한 선택지 및 트랙별 상세 청사진 | 결과 및 불변 조건 (Consequences & Invariants) | 미확정 피드백 의사결정 (구현 착수 전 게이트 4가지) | 검증 근거 및 권위 참조 문서 | 승격 및 되돌림 조건 (Admission & Reversal Conditions)
+
+상태: proposed (논의 초안 — 런타임/API 코드 변경 미적용, 타 프로젝트 병행 작업 고려 동결) 소유자: Framework Core & React Runtime 관련 이슈/스펙: CA-VNEXT-ARCHITECTURE-001 (CA-SURFACE-CATALOG-001, CA-ELEMENT-INTEROP-001, CA-STATECHART-EFFECT-001, CA-SPEC-EVIDENCE-001 기반) 기준선(Baseline): stage @ d21aff4a (@context-action/core@1.3.1, @context-action/store-core@0.1.4, @context-action/mutative-core@0.8.14, @context-action/mutative@0.8.15, @context-action/react@4.0.7, @context-action/lit@0.1.4, @context-action/preact@0.1.3) 현재 타 프로젝트 및...
+
 ===================[ DOC: ko/context-layered/decisions/index.md ]===================
 # 아키텍처 결정 기록
-Sections: 산출물별 소유권 | 작성 시점 | 필수 형식 | 기존 참조 결정
+Sections: 산출물별 소유권 | 작성 시점 | 필수 형식 | 기존 참조 결정 | 제안 / 초안 청사진
 
 결정 기록은 지속되는 아키텍처 선택을 해당 컨벤션 가까이에 보관합니다. 이는 runtime registry가 아니며 package README나 공개 가이드를 중복하지 않습니다. | 산출물 | 소유하는 것 | 대체하지 않는 것 | | --- | --- | --- | | decision record | 지속 경계를 선택한 이유, 대안, invariant, 되돌림 조건 | 구현 세부나 소비자 사용법 | | package README | 발견 경로, public entry point, quickstart | 전체 동작 또는 아키텍처 계약 | | 권위 가이드 | 현재 동작, 제한, 운영 안내 | 결정 이력 | | 테스트와 집중 gate | 실행 가능한 증거 | 의도에 대한 설명 | 더 넓은 변경에서 어떤 문서 원본과 검증 명령을 선택할지는 문서 및 개발 관리 컨벤션을 따릅니다. package 소유권 또는 의존성 방향, provider/handler/store 경계, protocol 계...
 
@@ -184,6 +190,12 @@ Sections: 목표와 계획 원칙 | Historical baseline and final outcome | 운�
 
 status: completed canonical: true sourceLocale: ko roadmapRevision: v1-r3 artifactCommit: 63f790a521e3428a7a2825677747338f8f05ccf3 promotionRun: 31347327623 completedAt: 2026-08-10 releaseStatus: promoted translation: en: docs/en/context-layered/v1-release-roadmap.md 릴리스 원칙: v1.0.0은 버전 번호 변경이 아니라 공개 계약의 동결이다. v1.0.0은 Context-Action이 1.x 전체에서 아래 약속을 지킬 수 있을 때만 준비된 것으로 판단한다. > 공개 API, 런타임 의미론, 수명주기 동작, 패키지 호환성이 문서화되어 있고 서로 > 일치하며, 소비자 관점에서 재현 가능한 증거로 검증되어 있다. 이 문서는 그 상태에 도달하기 위해 필요한 단일 개발 계획이다....
 
+===================[ DOC: ko/context-layered/vnext-architecture-handoff.md ]===================
+# vNext 아키텍처 & 타 프로젝트 핸드오프 가이드
+Sections: 기준선 및 동결 원칙 | 필독 문서 지도 (저장소 경로) | 구현 전 피드백이 필요한 4가지 의사결정 게이트 | 바로 복사해 지시할 수 있는 프롬프트 키트
+
+상태: 타 프로젝트 병행 피드백 수집용 활성 핸드오프 기준 문서 기준선(Baseline): stage 브랜치 (@context-action/core@1.3.1, @context-action/store-core@0.1.4, @context-action/mutative-core@0.8.14, @context-action/mutative@0.8.15, @context-action/react@4.0.7, @context-action/lit@0.1.4, @context-action/preact@0.1.3) 이 문서는 병행 작업 중인 타 프로젝트 또는 다음 설계/검토 세션이 현재 안정화된 기준선을 깨지 않고 구조화된 설계 피드백과 후속 구현 지시를 이어갈 수 있도록 동결 원칙 · 필독 지도 · 미확정 의사결정 4가지 · 바로 복사해 쓸 수 있는 지시 프롬프트를 정리한 레퍼런스입니다. - 작업 브랜치: stage (릴리스 승인 전까지 main 직접 병합·버전 범프·배포 금지). - 공개 계...
+
 ===================[ DOC: ko/concept/action-pipeline-guide.md ]===================
 # Context-Action 액션 파이프라인 시스템 가이드
 Sections: 개요 | 핵심 구성 요소 | 우선순위 기반 실행 | 파이프라인 제어 메서드 | 실행 모드 | 결과 수집 | 에러 처리 | 실제 예제: 인증 플로우
@@ -264,7 +276,7 @@ Sections: ⚡ 빠른 팀 요약 | 적정 구현(Right-Sized Adoption) 의사결�
 
 ===================[ DOC: ko/guide/code-patterns.md ]===================
 # 코드 패턴 (Code Patterns)
-Sections: 상황별 적정 패턴 선택표 | 카테고리별 패턴 모음 | 런타임 테스트 체크리스트
+Sections: 상황별 적정 패턴 선택표 | OOP × React 기본 Hook 활용 패턴 | 카테고리별 패턴 모음 | 런타임 테스트 체크리스트
 
 설정, 액션 디스패치, 스토어 반응성, 비동기 파이프라인, 고빈도 DOM RefContext 전반을 다루는 Context-Action 패턴 디렉터리 및 적정 구현 레시피 안내입니다. > 언제 Level 1 Lite, Level 2 Headless-First Symmetric DI, Level 3 Full 6-Layer를 고를지와 CI가 강제하는 컨벤션은 모범 사례에서 먼저 확인하세요. | 필요한 동작 | 권장 패턴 / 레시피 | 참고 문서 | |---|---|---| | 단일 도메인 React 위젯 (1 Action + 1 Store + Registry) | Level 1 · Lite | 모범 사례 — Level 1 · 기본 설정 예제 | | React 없이도 실행되고 언마운트/재마운트 간 상태를 유지하는 엔진 | Level 2 · Headless-First Symmetric DI (ownership="shared") | 모범 사례 — Level 2 | | BusinessAct...
 
@@ -334,6 +346,12 @@ Sections: 필수 조건 | 설정 개요 | 비동기 패턴 사양 | 설정 기�
 
 Context-Action 프레임워크에서 비동기 작업, 엘리먼트 대기, DOM 안전성 패턴을 처리하기 위한 완전한 설정 가이드입니다. - 기본 액션 설정 - 비동기 핸들러를 위한 액션 컨텍스트 설정 - 기본 스토어 설정 - 비동기 상태 관리를 위한 스토어 컨텍스트 - RefContext 설정 - DOM 엘리먼트 추적을 위한 Ref 컨텍스트 - 멀티 컨텍스트 설정 - 여러 컨텍스트를 사용하는 복잡한 비동기 아키텍처 비동기 패턴은 최적의 안전성과 성능을 위해 세 가지 주요 컨텍스트 간의 조정된 설정이 필요합니다: 비동기 작업 및 비즈니스 로직 처리를 위해: 비동기 작업 상태 관리를 위해: DOM 엘리먼트 가용성 추적을 위해: 설정 사양: 액션 컨텍스트 + 스토어 컨텍스트 - 목적: store.getValue()를 사용한 클로저 트랩 방지 - 필수 설정: 기본 액션 설정 + 기본 스토어 설정 - 핵심 구현: 비동기 핸들러에서 실시간 상태 접근 - 문서: 실시간 상태 접근 설정 사양:...
 
+===================[ DOC: ko/guide/patterns/async/optimistic-and-transition-ui.md ]===================
+# 확정 Store 기반 낙관적 UI & 전환 (React 19)
+Sections: 사전 요구사항 | Pattern A: 확정 Store + useOptimistic + 비동기 useTransition | Pattern B: <form action={...}> + useActionState + dispatchWithResult | 핵심 불변식
+
+Context-Action의 확정(committed) Store 상태와 dispatchWithResult 위에 React 19의 useOptimistic, 비동기 useTransition, useActionState를 겹쳐 쓰는 패턴입니다. > [!NOTE] > React 19+ 전용 사용 패턴: useOptimistic, useActionState, 비동기 startTransition은 React 19 이상에서 동작합니다. @context-action/react는 react: ^18.0.0 || ^19.0.0 peer 호환성을 유지하므로, 이러한 훅을 코어 래퍼 API로 감싸지 않고 사용 패턴으로 제공합니다. React 18 환경에서는 useState로 pending/error를 로컬 관리하고 dispatchWithResult와 조합하세요. - 경계 역할: Store는 확정된 도메인 진실(committed truth) 만 보유하고, 임시 낙관적 상태와 폼 제출 피드백은 Rea...
+
 ===================[ DOC: ko/guide/patterns/async/real-time-state-access.md ]===================
 # 실시간 상태 접근 패턴
 Sections: 사전 요구사항 | 문제점: 클로저 트랩 | 해결책: 실시간 접근 | 완전한 예시 | 고급 패턴 | 주요 이점
@@ -351,6 +369,24 @@ Sections: 전제 조건 | 기본 패턴 | 고급 예제 | Store 통합 패턴 | 
 Sections: 가져오기 | 기능 | 선행 요건 | 설정 패턴 | 기본 사용 예제 | 커스텀 훅 패턴 | 사용 가능한 훅 | 실제 사례
 
 타입 안전 ref 관리와 리렌더링 없는 기본 RefContext 패턴입니다. - ✅ DOM 조작 시 React 리렌더링 없음 - ✅ 하드웨어 가속 변환 - ✅ 타입 안전 ref 관리 - ✅ 자동 라이프사이클 관리 - ✅ 완벽한 관심사 분리 - ✅ 자동 정리를 통한 메모리 효율성 필수 읽기: RefContext 설정 가이드 이 문서는 표준화된 설정 패턴을 사용하여 사용 패턴을 보여줍니다: - 타입 정의 → DOM 요소 Refs - 컨텍스트 생성 → 기본 RefContext 설정 - 프로바이더 설정 → 단일 RefContext 프로바이더 - 초기화 패턴 → 지연 초기화 - useRefHandler(name) - 이름으로 타입화된 ref 핸들러 가져오기 - useWaitForRefs() - 여러 ref가 마운트되기까지 대기 - useGetAllRefs() - 모든 마운트된 ref 액세스 - refHandler.setRef - ref 콜백 설정 - refHandler.target -...
+
+===================[ DOC: ko/guide/patterns/ref/external-oop-lifecycle.md ]===================
+# 외부 OOP 라이프사이클 브릿지 (createRefContext + useLayoutEffect / useEffect)
+Sections: 사전 요구사항 | Effect 경계 규칙: 라이브러리 Provider vs 애플리케이션 OOP 브릿지 | 표준 패턴: 멱등 Attach/Dispose + 최신 콜백 Ref 우회 | 핵심 불변식
+
+Canvas/WebGL/Three.js 렌더러, Monaco/CodeMirror 에디터, Chart.js, 지도 SDK, 미디어 컨트롤러처럼 React 외부에 존재하는 명령형 OOP 엔진을 createRefContext, isomorphic useLayoutEffect, ActionContext와 결합해 안전하게 마운트·제어·해제하는 패턴입니다. - React 호환성: React 18 / 19 (React 19.2 useEffectEvent 참고 안내 포함) - 경계 역할: 원시 DOM 노드나 직렬화 불가능한 OOP 인스턴스를 Store에 넣지 않고 RefContext 수명 주기에 연결합니다. - 래퍼 API 대신 패턴으로 유지하는 이유: 외부 엔진마다 초기화 타이밍(페인트 전 동기 레이아웃 결합 vs 수동 구독)과 정리(dispose/destroy) 규칙이 다릅니다. 수명 주기 연결 코드를 명시적 패턴으로 유지해야 <StrictMode> 이중 실행과 <Activity> hid...
+
+===================[ DOC: ko/guide/patterns/ref/imperative-handle-facade.md ]===================
+# Imperative Handle Facade (useImperativeHandle + createRefContext)
+Sections: 사전 요구사항 | 핵심 함정: useImperativeHandle 의존성 배열에 상태 넣기 | 표준 패턴: 동결된 안정 Facade (deps: []) + 지연 조회 Ref | 핵심 불변식 | 관련 패턴
+
+React 위젯에서 useImperativeHandle로 동결(frozen)되고 캡슐화된 OOP 명령 Facade를 노출하고, 이를 createRefContext에 연결한 뒤 ActionContext 핸들러의 withTarget으로 제어하는 패턴입니다. - React 호환성: React 18 / 19 (react: ^18.0.0 || ^19.0.0 peer 호환을 위해 forwardRef 유지) - 경계 역할: Tier 3 명령형 프레젠테이션 경계 — 도메인 상태는 Store + ActionContext에 두고, 컴포넌트 경계를 넘는 명령형 제어(focus, validate, reset, getValue)만 RefContext로 전달합니다. - 래퍼 API 대신 패턴으로 유지하는 이유: forwardRef + useImperativeHandle + Object.freeze는 표준 React 조합입니다. 별도 래퍼 API로 숨기지 않고 패턴으로 두면 React ref 수명 주기를...
+
+===================[ DOC: ko/guide/patterns/ref/local-state-imperative-handle.md ]===================
+# 로컬 상태 캡슐화 핸들 (useLocalStore / useReducer + useImperativeHandle)
+Sections: 사전 요구사항 | Variant A vs Variant B 선택 기준 | Variant A: useLocalStore + useImperativeHandle | Variant B: useReducer + useImperativeHandle | 핵심 불변식
+
+재사용 가능한 위젯 내부에 반응형 Store (useLocalStore) 또는 결정론적 상태 머신 (useReducer)을 소유하면서도, 외부(부모/컨트롤러)에는 useImperativeHandle로 도메인에 한정된 안전한 명령만 노출하는 캡슐화 패턴입니다. - React 호환성: React 18 / 19 - 래퍼 API 대신 패턴으로 유지하는 이유: 내부 상태 소유 방식과 외부 명령 경계를 분리하는 설계 결정이며, @context-action/react/advanced의 useLocalStore와 React의 useReducer 자체가 이미 useImperativeHandle 안정성에 필요한 불변 참조(store / dispatch)를 제공합니다. - Imperative Handle Facade - Store별 선택 및 사용법 가이드 | 비교 축 | Variant A: useLocalStore + useImperativeHandle | Variant B: useReducer...
 
 ===================[ DOC: ko/guide/patterns/setup/basic-action-setup.md ]===================
 # 기본 액션 설정
@@ -393,6 +429,12 @@ Context-Action 프레임워크에서 직접 DOM 조작 및 싱글톤 객체 관�
 Sections: 가져오기 | 주요 기능 | 사전 요구사항 | 사용 패턴 | 프로바이더 설정 | 컴포넌트 사용법 | 사용 가능한 훅 | 실제 예제
 
 뛰어난 타입 추론과 간단한 API를 제공하는 기본 스토어 전용 패턴. - ✅ 수동 타입 어노테이션 없이 뛰어난 타입 추론 - ✅ 스토어 관리에 집중된 간단한 API - ✅ 직접 값 또는 설정 객체 지원 - ✅ 별도의 createStore 호출 불필요 스토어 정의, 컨텍스트 생성, 프로바이더 설정을 포함한 완전한 설정 지침은 기본 스토어 설정 을 참조하세요. 이 문서는 스토어 설정을 사용한 사용 패턴을 보여줍니다: - 스토어 정의 → 타입 추론 설정 - 컨텍스트 생성 → 단일 도메인 스토어 컨텍스트 - 프로바이더 설정 → 단일 프로바이더 설정 - useUserStore(name) - 이름으로 타입이 지정된 사용자 도메인 스토어 가져오기 (주요 API) - useUserStoreManager() - 사용자 스토어 매니저 접근 (고급 사용) - useStoreInfo() - 반응형 레지스트리 정보 가져오기 (스토어 생성·초기화 시 갱신) - useStoreClear() - 모든 스토...
+
+===================[ DOC: ko/guide/patterns/store/deferred-view-subscription.md ]===================
+# 지연 뷰 구독 (useStorePath / useStoreValue + useDeferredValue)
+Sections: 사전 요구사항 | useSyncExternalStore 환경에서 useDeferredValue가 필요한 이유 | 표준 패턴: 동기 입력 제어 + 메모이제이션된 지연 하위 트리 | 선택 기준: useDeferredValue vs 타이밍 제어 (debounce / throttle / ActionGuard) | 핵심 불변식
+
+useStorePath 또는 useStoreValue의 즉시(urgent) 외부 Store 읽기와 무거운 파생 UI(대용량 필터링 리스트, 차트, 코드 프리뷰)의 비차단 렌더링을 React 기본 훅 useDeferredValue로 분리하는 패턴입니다. - React 호환성: React 18 / 19 - 래퍼 API 대신 패턴으로 유지하는 이유: useDeferredValue는 렌더 비용이 존재하는 뷰 경계에서 선택하는 표준 React 스케줄링 프리미티브입니다. Store 구독은 tear-free 일관성을 위해 즉시성을 유지하고, 무거운 파생 뷰 prop만 지연 처리하면 커스텀 Store 스케줄러 API 없이도 입력 반응성을 지킬 수 있습니다. - useStoreValue 패턴 - 경로 기반 구독 - 코드 패턴 Context-Action의 Store 구독 훅(useStoreValue, useStoreSelector, useStorePath)은 모두 useSyncExternalSt...
 
 ===================[ DOC: ko/guide/patterns/store/path-based-subscription.md ]===================
 # 경로 기반 구독 (Path-Based Subscription)

@@ -19,6 +19,21 @@ Catalog of core Context-Action patterns across setup, action dispatch, store rea
 
 ---
 
+## OOP × React Built-in Hook Patterns
+
+> [!NOTE]
+> These 5 archetypes are intentionally authored as **usage patterns** combining Context-Action primitives with React's built-in hooks—keeping `@context-action/react` lightweight across `react: ^18.0.0 || ^19.0.0` without thin wrapper APIs.
+
+| Archetype | React Scope | Primitives + Built-in Hooks | Reference |
+|---|---|---|---|
+| **1. Encapsulated OOP Widget Control** | React 18 / 19 | `createRefContext` + `ActionContext` + `useImperativeHandle` (`[]` deps + `Object.freeze`) | [Imperative Handle Facade](./patterns/ref/imperative-handle-facade.md) |
+| **2. Local Store / Reducer Encapsulation** | React 18 / 19 | `useLocalStore` or `useReducer` + `useImperativeHandle` | [Local State Imperative Handle](./patterns/ref/local-state-imperative-handle.md) |
+| **3. High-Frequency Store → Non-Blocking View** | React 18 / 19 | `useStorePath` / `useStoreValue` + `useDeferredValue` + `React.memo` | [Deferred View Subscription](./patterns/store/deferred-view-subscription.md) |
+| **4. Committed Store + Optimistic / Form Overlay** | React 19+ | `useStoreValue` + `dispatchWithResult` + `useOptimistic` / `useTransition` / `useActionState` | [Optimistic & Transition UI (React 19)](./patterns/async/optimistic-and-transition-ui.md) |
+| **5. External Imperative OOP Runtime Bridge** | React 18 / 19 | `createRefContext` (`setRef`) + isomorphic `useLayoutEffect` / `useEffect` | [External OOP Lifecycle Bridge](./patterns/ref/external-oop-lifecycle.md) |
+
+---
+
 ## Pattern Collection by Category
 
 ### Setup & Context Boundaries
@@ -43,6 +58,7 @@ Catalog of core Context-Action patterns across setup, action dispatch, store rea
 - [Basic Store Usage](./patterns/store/basic-usage.md) — Creating, reading, and updating Stores cleanly
 - [useStoreValue Patterns](./patterns/store/useStoreValue-patterns.md) — Subscribing safely in React views with selectors
 - [Path-Based Subscription](./patterns/store/path-based-subscription.md) — Granular JSON-pointer subscriptions via `useStorePath`
+- [Deferred View Subscription](./patterns/store/deferred-view-subscription.md) — Keeping urgent Store reads non-blocking with `useDeferredValue`
 - [useStoreManager API](./patterns/store/useStoreManager-api.md) — Low-level store registry access inside handler setup
 - [Store Configuration](./patterns/store/store-configuration.md) — Custom comparators, equality checks, and batched/immediate notification modes
 
@@ -50,9 +66,13 @@ Catalog of core Context-Action patterns across setup, action dispatch, store rea
 - [Async Patterns Overview](./patterns/async/index.md)
 - [Real-Time State Access](./patterns/async/real-time-state-access.md) — Reading latest store snapshots across `await` boundaries
 - [Wait Then Execute](./patterns/async/wait-then-execute.md) — Debouncing, awaiting DOM refs, and cancellable async pipelines
+- [Optimistic & Transition UI (React 19)](./patterns/async/optimistic-and-transition-ui.md) — Committed Stores + `useOptimistic`, `useTransition`, and `useActionState`
 
 ### Imperative DOM & RefContext
 - [RefContext Basic Usage](./patterns/ref/basic-usage.md) — `useRefHandler`, `waitForRefs`, and non-reactive animation/scroll loops
+- [Imperative Handle Facade](./patterns/ref/imperative-handle-facade.md) — Frozen `useImperativeHandle` facades wired into `createRefContext` + `ActionContext`
+- [Local State Imperative Handle](./patterns/ref/local-state-imperative-handle.md) — Encapsulating `useLocalStore` / `useReducer` behind safe imperative commands
+- [External OOP Lifecycle Bridge](./patterns/ref/external-oop-lifecycle.md) — Idempotent `useLayoutEffect` / `useEffect` mount/dispose for non-React OOP engines
 - [React Refs Architecture Guide](../concept/react-refs-guide.md) — When to choose `RefContext` vs `Store`
 
 ---

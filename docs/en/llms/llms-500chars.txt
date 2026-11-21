@@ -70,9 +70,15 @@ Sections: Context | Options considered | Decision | Consequences and invariants 
 
 Status: accepted Owner: Framework Architecture & Documentation Governance Related issue/spec: CA-SURFACE-CATALOG-001 (Repository Surface Catalog, Package Boundary Convention, Specification, Issue, and Documentation Management) The repository spans workspace packages (packages/), canonical example routes inside example/, standalone demos (demos/bolt-style-editor, examples/vanilla-js), package-local examples/ suites, narrative example walkthroughs, root markdown files, bilingual documentation t...
 
+===================[ DOC: en/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001.md ]===================
+# CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, State Unification, and React Surface Blueprint
+Sections: Context & Cross-Project Freeze Note | Verified Primary-Source Evidence Inventory | Hub-and-Spoke Target Architecture | Options Considered & Detailed Track Blueprints | Consequences, Invariants & Non-Goals | Open Feedback Decisions (Decision Gates Before Acceptance) | Verification Evidence & Authoritative References | Admission & Reversal Conditions
+
+Status: proposed (discussion draft — no runtime/API changes applied; external cross-project work active) Owner: Framework Core & React Runtime Related issue/spec: CA-VNEXT-ARCHITECTURE-001 (builds on CA-SURFACE-CATALOG-001, CA-ELEMENT-INTEROP-001, CA-STATECHART-EFFECT-001, CA-SPEC-EVIDENCE-001) Baseline: stage @ d21aff4a (@context-action/core@1.3.1, @context-action/store-core@0.1.4, @context-action/mutative-core@0.8.14, @context-action/mutative@0.8.15, @context-action/react@4.0.7, @context-ac...
+
 ===================[ DOC: en/context-layered/decisions/index.md ]===================
 # Architecture Decision Records
-Sections: What belongs where | When to create one | Required shape | Existing reference decisions
+Sections: What belongs where | When to create one | Required shape | Existing reference decisions | Proposed / Draft Blueprints
 
 Decision records keep durable architectural choices close to the conventions that govern them. They are not a runtime registry and do not duplicate a package README or public guide. | Artifact | Owns | Does not replace | | --- | --- | --- | | Decision record | why a durable boundary was chosen, alternatives, invariants, and reversal conditions | implementation details or consumer usage | | Package README | discovery, public entry points, and a quickstart | the complete behavior or architectur...
 
@@ -184,6 +190,12 @@ Sections: Outcome and planning rule | Historical baseline and final outcome | Op
 
 status: completed canonical: false translationOf: docs/ko/context-layered/v1-release-roadmap.md translationRevision: v1-r3 syncedAtCommit: b21284fff2c6253eb2ce43634a1baffbc52163e2 roadmapRevision: v1-r3 artifactCommit: 63f790a521e3428a7a2825677747338f8f05ccf3 promotionRun: 31347327623 completedAt: 2026-08-10 releaseStatus: promoted Release principle: v1.0.0 is a contract freeze, not a version-number change. The v1.0.0 release is ready only when Context-Action can make, and keep through the 1....
 
+===================[ DOC: en/context-layered/vnext-architecture-handoff.md ]===================
+# vNext Architecture & Cross-Project Handoff Guide
+Sections: Baseline & Freeze Rules | Required Reading Map | Open Feedback Decision Gates (Resolve Before Implementation) | Copy-Pasteable Instruction / Prompt Kit
+
+Status: Active handoff reference for cross-project feedback Baseline: stage branch (@context-action/core@1.3.1, @context-action/store-core@0.1.4, @context-action/mutative-core@0.8.14, @context-action/mutative@0.8.15, @context-action/react@4.0.7, @context-action/lit@0.1.4, @context-action/preact@0.1.3) This document equips a sibling consumer project or the next architecture review session with exact baseline rules, reading paths, open feedback gates, and ready-to-paste prompts so design feedba...
+
 ===================[ DOC: en/concept/action-pipeline-guide.md ]===================
 # Action Pipeline Guide: ActionPayloadMap & ActionRegister
 Sections: Table of Contents | Overview | ActionPayloadMap: Type Foundation | ActionRegister: Pipeline Engine | Handler Registration Patterns | Pipeline Execution Strategies | Advanced Pipeline Patterns | Real-world Examples
@@ -264,7 +276,7 @@ Engineering conventions, runtime safety guardrails, and right-sized adoption exa
 
 ===================[ DOC: en/guide/code-patterns.md ]===================
 # Code Patterns
-Sections: Right-Sized Recipe Selector | Pattern Collection by Category | Testing Checklist for Runtime Recipes
+Sections: Right-Sized Recipe Selector | OOP × React Built-in Hook Patterns | Pattern Collection by Category | Testing Checklist for Runtime Recipes
 
 Catalog of core Context-Action patterns across setup, action dispatch, store reactivity, async pipelines, and high-frequency refs — paired with right-sized recipes. > Need guidance on when to pick Level 1 Lite vs Level 2 Headless-First Symmetric DI vs Level 3 6-Layer, and which rules CI enforces? Start with Best Practices. | Need | Recommended Recipe | Reference | |---|---|---| | Single-domain React widget (1 Action + 1 Store + Registry) | Level 1 · Lite | Best Practices — Level 1 & Basic Set...
 
@@ -334,6 +346,12 @@ Sections: Prerequisites | Setup Overview | Async Pattern Specifications | Setup-
 
 Complete setup guide for handling asynchronous operations, element waiting, and DOM safety patterns in the Context-Action framework. - Basic Action Setup - Action context setup for async handlers - Basic Store Setup - Store context for async state management - RefContext Setup - Ref context for DOM element tracking - Multi-Context Setup - Complex async architectures with multiple contexts Async patterns require coordinated setup across three main contexts for optimal safety and performance: F...
 
+===================[ DOC: en/guide/patterns/async/optimistic-and-transition-ui.md ]===================
+# Optimistic & Transition UI with Committed Stores (React 19)
+Sections: Prerequisites | Pattern A: Committed Store + useOptimistic + Async useTransition | Pattern B: <form action={...}> + useActionState + dispatchWithResult | Key Invariants
+
+Layer React 19's useOptimistic, async useTransition, and useActionState on top of Context-Action's committed Store state and dispatchWithResult. > [!NOTE] > React 19+ Usage Pattern: useOptimistic, useActionState, and async startTransition require React 19+. Because @context-action/react supports react: ^18.0.0 || ^19.0.0, these integrations intentionally live as usage patterns rather than package wrapper APIs. On React 18, track pending/optimistic UI locally via useState paired with dispatchW...
+
 ===================[ DOC: en/guide/patterns/async/real-time-state-access.md ]===================
 # Real-time State Access Pattern
 Sections: Prerequisites | The Problem: Closure Traps | The Solution: Real-time Access | Complete Example | Advanced Patterns | Key Benefits
@@ -351,6 +369,24 @@ Pattern for safely executing DOM operations after ensuring element availability.
 Sections: Import | Features | Prerequisites | Setup Pattern | Basic Usage Example | Custom Hooks Pattern | Available Hooks | Real-World Examples
 
 Fundamental RefContext pattern with type-safe ref management and zero re-renders. - ✅ Zero React re-renders for DOM manipulation - ✅ Hardware-accelerated transforms - ✅ Type-safe ref management - ✅ Automatic lifecycle management - ✅ Perfect separation of concerns - ✅ Memory efficient with automatic cleanup Required Reading: RefContext Setup Guide This document demonstrates usage patterns using standardized setup patterns: - Type definitions → DOM Element Refs - Context creation → Basic RefCon...
+
+===================[ DOC: en/guide/patterns/ref/external-oop-lifecycle.md ]===================
+# External OOP Runtime Lifecycle Bridge (createRefContext + useLayoutEffect / useEffect)
+Sections: Prerequisites | Effect Boundary Rule: Library Providers vs Application OOP Bridges | Canonical Pattern: Idempotent Attach/Dispose + Latest-Callback Ref | Key Invariants
+
+Mount, synchronize, and deterministically dispose non-React imperative OOP engines (Canvas/WebGL/Three.js renderers, Monaco/CodeMirror editors, Chart.js, Map SDKs, media players) using createRefContext, isomorphic useLayoutEffect, and ActionContext. - React Compatibility: React 18 / 19 (note on React 19.2 useEffectEvent included below) - Boundary Role: Bridges external mutable OOP object lifecycles into Context-Action's RefContext without storing raw DOM nodes or non-serializable engine insta...
+
+===================[ DOC: en/guide/patterns/ref/imperative-handle-facade.md ]===================
+# Imperative Handle Facade (useImperativeHandle + createRefContext)
+Sections: Prerequisites | The Critical Pitfall: State Dependencies in useImperativeHandle | Canonical Pattern: Frozen Stable Facade (deps: []) + Lazy Read Ref | Key Invariants | Related Patterns
+
+Expose a frozen, encapsulated OOP command facade from a React widget using useImperativeHandle, connect it to createRefContext, and orchestrate commands from ActionContext handlers via withTarget. - React Compatibility: React 18 / 19 (forwardRef preserved for react: ^18.0.0 || ^19.0.0 peer compatibility) - Boundary Role: Tier 3 Imperative Presentation Boundary — domain state stays in Store + ActionContext; imperative commands (focus, validate, reset, getValue) cross component boundaries via R...
+
+===================[ DOC: en/guide/patterns/ref/local-state-imperative-handle.md ]===================
+# Local State Encapsulation + Imperative Handle (useLocalStore / useReducer)
+Sections: Prerequisites | Choosing Variant A vs Variant B | Variant A: useLocalStore + useImperativeHandle | Variant B: useReducer + useImperativeHandle | Key Invariants
+
+Encapsulate an internal reactive Store (useLocalStore) or deterministic state machine (useReducer) inside a reusable widget, while exposing only safe, domain-scoped imperative commands via useImperativeHandle. - React Compatibility: React 18 / 19 - Why a Usage Pattern (not a Wrapper API): Exposing a restricted command surface over internal state is an architectural boundary choice. Both useLocalStore (from @context-action/react/advanced) and React's useReducer already provide referentially st...
 
 ===================[ DOC: en/guide/patterns/setup/basic-action-setup.md ]===================
 # Basic Action Setup
@@ -393,6 +429,12 @@ Shared RefContext setup patterns for direct DOM manipulation and singleton objec
 Sections: Import | Key Features | Prerequisites | Usage Patterns | Provider Setup | Component Usage | Available Hooks | Real-World Examples
 
 Fundamental Store Only pattern with excellent type inference and simplified API. - ✅ Excellent type inference without manual type annotations - ✅ Simplified API focused on store management - ✅ Direct value or configuration object support - ✅ No need for separate createStore calls For complete setup instructions including store definitions, context creation, and provider configuration, see Basic Store Setup. This document demonstrates usage patterns using the store setup: - Store definitions →...
+
+===================[ DOC: en/guide/patterns/store/deferred-view-subscription.md ]===================
+# Deferred View Subscription (useStorePath / useStoreValue + useDeferredValue)
+Sections: Prerequisites | Why useDeferredValue Is Needed with useSyncExternalStore | Canonical Pattern: Synchronous Input Control + Deferred Subtree | Decision Guide: useDeferredValue vs Timing Controls (debounce / throttle / ActionGuard) | Key Invariants
+
+Separate urgent external Store reads (input controls, live store snapshots) from non-blocking derived UI rendering (large filtered lists, heavy charts, markdown/code previews) by layering React's useDeferredValue on top of useStorePath or useStoreValue. - React Compatibility: React 18 / 19 - Why a Usage Pattern (not a Wrapper API): useDeferredValue is a standard React scheduling primitive that belongs at the view boundary where render cost exists — not inside the Store runtime. Keeping Store...
 
 ===================[ DOC: en/guide/patterns/store/path-based-subscription.md ]===================
 # Path-Based Subscription

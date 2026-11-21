@@ -73,7 +73,7 @@ For local pre-PR receipt verification ([Local-First Verification Policy](../../L
 - [Interaction Intent to Implementation Flow](/en/context-layered/interaction-intent-implementation-flow)
   - design-to-code mapping across Context-Action layers and focused evidence gates
 - [Architecture Decision Records](/en/context-layered/decisions/)
-  - durable home and template for package, protocol, persistence, and compatibility decisions (including [CA-SPEC-EVIDENCE-001](/en/context-layered/decisions/CA-SPEC-EVIDENCE-001))
+  - durable home and template for package, protocol, persistence, and compatibility decisions (including [CA-SPEC-EVIDENCE-001](/en/context-layered/decisions/CA-SPEC-EVIDENCE-001) and proposed vNext blueprint [CA-VNEXT-ARCHITECTURE-001](/en/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001))
 - [Unified Triad (`ttsc-ex` · `oa-sdk`) Responsibility Split and Self-Serve Sync Guide](/en/context-layered/triad-evidence-sync-guide)
   - 3-workspace responsibility boundaries, generated contract `@evidenceReview` locks, intent separation, and self-serve pull workflow
 - [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)

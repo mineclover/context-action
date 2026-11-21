@@ -19,6 +19,21 @@
 
 ---
 
+## OOP × React 기본 Hook 활용 패턴
+
+> [!NOTE]
+> 아래 5가지 유형은 불필요한 래퍼 API를 늘리지 않고 `react: ^18.0.0 || ^19.0.0` 호환성을 지키기 위해, Context-Action 프리미티브와 React 기본 훅을 조합하는 **사용 패턴**으로 정의되어 있습니다.
+
+| 유형 | React 지원 범위 | Context-Action + 기본 Hook 조합 | 참고 문서 |
+|---|---|---|---|
+| **1. 캡슐화된 OOP 위젯 제어** | React 18 / 19 | `createRefContext` + `ActionContext` + `useImperativeHandle` (`[]` deps + `Object.freeze`) | [Imperative Handle Facade](./patterns/ref/imperative-handle-facade.md) |
+| **2. 로컬 스토어/리듀서 캡슐화** | React 18 / 19 | `useLocalStore` 또는 `useReducer` + `useImperativeHandle` | [로컬 상태 캡슐화 핸들](./patterns/ref/local-state-imperative-handle.md) |
+| **3. 고빈도 Store → 비차단 파생 뷰** | React 18 / 19 | `useStorePath` / `useStoreValue` + `useDeferredValue` + `React.memo` | [지연 뷰 구독 (useDeferredValue)](./patterns/store/deferred-view-subscription.md) |
+| **4. 확정 Store + 낙관적/폼 전환 UI** | React 19+ | `useStoreValue` + `dispatchWithResult` + `useOptimistic` / `useTransition` / `useActionState` | [낙관적 UI & 전환 (React 19)](./patterns/async/optimistic-and-transition-ui.md) |
+| **5. 외부 명령형 OOP 런타임 브릿지** | React 18 / 19 | `createRefContext` (`setRef`) + isomorphic `useLayoutEffect` / `useEffect` | [외부 OOP 라이프사이클 브릿지](./patterns/ref/external-oop-lifecycle.md) |
+
+---
+
 ## 카테고리별 패턴 모음
 
 ### 설정 및 컨텍스트 경계 (Setup)
@@ -43,6 +58,7 @@
 - [기본 스토어 사용법](./patterns/store/basic-usage.md) — Store 생성, 조회 및 불변 업데이트
 - [useStoreValue 패턴](./patterns/store/useStoreValue-patterns.md) — 뷰 컴포넌트에서의 안전한 셀렉터 구독
 - [경로 기반 구독](./patterns/store/path-based-subscription.md) — `useStorePath`를 통한 세밀한 부분 구독
+- [지연 뷰 구독 (useDeferredValue)](./patterns/store/deferred-view-subscription.md) — `useDeferredValue`로 즉시 Store 읽기와 무거운 파생 렌더 분리
 - [useStoreManager API](./patterns/store/useStoreManager-api.md) — 핸들러 설정 계층에서 스토어 레지스트리 접근
 - [스토어 설정](./patterns/store/store-configuration.md) — 비교기, 동등성 검사, `batched` vs `immediate` 알림 모드
 
@@ -50,9 +66,13 @@
 - [비동기 패턴 개요](./patterns/async/index.md)
 - [실시간 상태 접근](./patterns/async/real-time-state-access.md) — `await` 경계를 넘는 최신 Store 스냅샷 조회
 - [대기 후 실행](./patterns/async/wait-then-execute.md) — 디바운스, Ref 대기, 취소 가능한 비동기 흐름
+- [낙관적 UI & 전환 (React 19)](./patterns/async/optimistic-and-transition-ui.md) — 확정 Store + `useOptimistic`, `useTransition`, `useActionState` 조합
 
 ### 명령형 DOM 및 RefContext (Ref)
 - [RefContext 기본 사용법](./patterns/ref/basic-usage.md) — `useRefHandler`, `waitForRefs`, 비반응형 애니메이션·스크롤 루프
+- [Imperative Handle Facade](./patterns/ref/imperative-handle-facade.md) — 동결된 `useImperativeHandle` Facade를 `createRefContext` + `ActionContext`에 연결
+- [로컬 상태 캡슐화 핸들](./patterns/ref/local-state-imperative-handle.md) — `useLocalStore` / `useReducer`를 안전한 명령형 핸들 뒤로 은닉
+- [외부 OOP 라이프사이클 브릿지](./patterns/ref/external-oop-lifecycle.md) — 비-React OOP 엔진의 멱등 `useLayoutEffect` / `useEffect` 마운트·해제 브릿지
 - [React Refs 아키텍처 가이드](../concept/react-refs-guide.md) — `RefContext`와 `Store` 선택 기준
 
 ---
