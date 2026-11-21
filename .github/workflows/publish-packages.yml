@@ -172,10 +172,8 @@ jobs:
 
       - name: Verify source and packed release changelogs
         run: |
-          node scripts/verify-tool-protocol-changelog.mjs --package typedoc-vitepress-sync --forbid-unreleased --require-release-date
           node scripts/verify-tool-protocol-changelog.mjs --package ai-sdk --forbid-unreleased --require-release-date
           node scripts/verify-tool-protocol-changelog.mjs --package tool-durable-operations --forbid-unreleased --require-release-date
-          node scripts/verify-tool-protocol-changelog.mjs --package llms-generator --forbid-unreleased --require-release-date
 
       - name: Re-verify approved source immediately before publication
         run: |
@@ -191,22 +189,20 @@ jobs:
           pnpm publish:packages -- reports/npm-publish-summary.json --dist-tag next \
             --require-all-unpublished \
             --resume-matching-existing \
-            --scope @context-action/typedoc-vitepress-sync \
             --scope @context-action/ai-sdk \
-            --scope @context-action/tool-durable-operations \
-            --scope @context-action/llms-generator
+            --scope @context-action/tool-durable-operations
 
       - name: Verify published tool package consumer install
         if: success()
         env:
           NODE_AUTH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_auth == 'token' && secrets.NPM_TOKEN || '' }}
-        run: pnpm verify:published-tool-consumers -- --tag next --packages "@context-action/typedoc-vitepress-sync,@context-action/ai-sdk,@context-action/tool-durable-operations,@context-action/llms-generator"
+        run: pnpm verify:published-tool-consumers -- --tag next --packages "@context-action/ai-sdk,@context-action/tool-durable-operations"
 
       - name: Capture registry evidence
         if: success()
         run: |
           pnpm capture:published-release -- --tag next \
-            --packages "@context-action/typedoc-vitepress-sync,@context-action/ai-sdk,@context-action/tool-durable-operations,@context-action/llms-generator" \
+            --packages "@context-action/ai-sdk,@context-action/tool-durable-operations" \
             --consumer-status passed --output reports/npm-publish-registry-evidence.json
 
       - name: Upload npm publish evidence

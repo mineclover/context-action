@@ -44,8 +44,6 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 | `@context-action/preact` | public preview framework adapter | Core 계약 위의 Preact dispatch context와 읽기 전용 Signals projection | DOM root ownership, SSR 렌더링, 업무 상태, React 통합 |
 | `@context-action/preact-ui` | public preview UI runtime | 소유한 Preact root, template mount, SSR/hydration helper, disposal, Custom Element shell | 업무 상태 정책, action orchestration, React store 구현 |
 | `@context-action/webmcp` | integration adapter | `document.modelContext`를 통해 allowlist 기반 정식 도구를 노출하는 선택적 브라우저 WebMCP 명령형 scope(`createWebMCPToolScope`) | `ToolContext`를 우회하는 두 번째 실행 경로, React 또는 모델 프로바이더 의존성 |
-| `@context-action/llms-generator` | documentation generator | LLMS summary, priority, derived artifact | runtime behavior, architecture policy |
-| `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress 동기화 | handwritten guide, runtime code |
 | `@context-action/style-testing` | UI verification tool | style/browser 분석과 CLI | core state contract |
 | `@context-action/live-code-editor` | private integration | live editor 실험 | promotion 전 stable runtime contract |
 | `@context-action/openrouter-browser-storage` | private integration | OpenRouter example browser persistence | core/react용 generic storage abstraction |
@@ -54,9 +52,11 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 `example/`과 `demos/`는 library가 아니라 integration host다. public package를 조합하고 아키텍처를 보여줄 수
 있지만 재사용 구현은 다른 패키지가 import하기 전에 package로 승격한다.
 
-기존 test-driven documentation package와 repository-owned example은 0.8/0.9 안정화 과정에서 제거했다. 공개
-API 문서는 exported source와 JSDoc → TypeDoc → `typedoc-vitepress-sync` → VitePress라는 단일 경로를 사용한다.
-LLMS summary는 canonical `docs/`에서 파생하며 별도의 API SSOT가 아니다.
+기존 test-driven documentation package와 repository-owned example은 0.8/0.9 안정화 과정에서 제거되었고,
+저장소 차원의 TypeDoc 생성 파이프라인도 2-계층 문서 단일화 체계로 대체되었습니다. 공개 API 계약은
+exported TypeScript 선언(`.d.ts`), `packages/*/README.md`, `packages/*/docs/*.md`, 그리고
+`catalog/repository-surface/api-surface.v1.json`에서 직접 관리합니다. LLMS 번들은 `pnpm docs:llms`로
+canonical `docs/{en,ko}/**`에서 파생하며 별도의 API SSOT가 아닙니다.
 
 ## 3. 의존성 방향
 

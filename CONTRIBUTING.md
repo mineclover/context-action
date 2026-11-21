@@ -62,7 +62,7 @@ See the [Convention Index](docs/en/context-layered/convention-index.md), [Reposi
 ```
 context-action/
 ├── catalog/                  # Integration profiles & repository-surface catalogs (CA-SURFACE-CATALOG-001)
-├── packages/                 # 20 workspace packages across 6 layers (see Repository Surface Catalog)
+├── packages/                 # 18 workspace packages across 6 layers (see Repository Surface Catalog)
 │   ├── core/                 # @context-action/core
 │   ├── store-core/           # @context-action/store-core
 │   ├── mutative-core/        # @context-action/mutative-core
@@ -72,8 +72,8 @@ context-action/
 │   ├── lit/, lit-ui/         # Lit controllers & Web Components
 │   ├── preact/, preact-ui/   # Preact Signals adapters & UI runtime
 │   ├── tool-protocol/, tool-durable-operations/, ai-sdk/, webmcp/
-│   └── llms-generator/, typedoc-vitepress-sync/, style-testing/, template-react/, ...
-├── example/                  # Example application (72 canonical routes)
+│   └── style-testing/, template-react/, ...
+├── example/                  # Example application (77 canonical routes)
 ├── demos/                    # Standalone demos (e.g. bolt-style-editor)
 ├── skills/                   # Implementation Playbook agent skills
 ├── releases/                 # Protected release plans & cohorts

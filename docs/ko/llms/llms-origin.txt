@@ -3081,8 +3081,6 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 | `@context-action/preact` | public preview framework adapter | Core 계약 위의 Preact dispatch context와 읽기 전용 Signals projection | DOM root ownership, SSR 렌더링, 업무 상태, React 통합 |
 | `@context-action/preact-ui` | public preview UI runtime | 소유한 Preact root, template mount, SSR/hydration helper, disposal, Custom Element shell | 업무 상태 정책, action orchestration, React store 구현 |
 | `@context-action/webmcp` | integration adapter | `document.modelContext`를 통해 allowlist 기반 정식 도구를 노출하는 선택적 브라우저 WebMCP 명령형 scope(`createWebMCPToolScope`) | `ToolContext`를 우회하는 두 번째 실행 경로, React 또는 모델 프로바이더 의존성 |
-| `@context-action/llms-generator` | documentation generator | LLMS summary, priority, derived artifact | runtime behavior, architecture policy |
-| `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress 동기화 | handwritten guide, runtime code |
 | `@context-action/style-testing` | UI verification tool | style/browser 분석과 CLI | core state contract |
 | `@context-action/live-code-editor` | private integration | live editor 실험 | promotion 전 stable runtime contract |
 | `@context-action/openrouter-browser-storage` | private integration | OpenRouter example browser persistence | core/react용 generic storage abstraction |
@@ -3091,9 +3089,11 @@ Context-Action 저장소에서 패키지 경계는 폴더 구분만이 아니라
 `example/`과 `demos/`는 library가 아니라 integration host다. public package를 조합하고 아키텍처를 보여줄 수
 있지만 재사용 구현은 다른 패키지가 import하기 전에 package로 승격한다.
 
-기존 test-driven documentation package와 repository-owned example은 0.8/0.9 안정화 과정에서 제거했다. 공개
-API 문서는 exported source와 JSDoc → TypeDoc → `typedoc-vitepress-sync` → VitePress라는 단일 경로를 사용한다.
-LLMS summary는 canonical `docs/`에서 파생하며 별도의 API SSOT가 아니다.
+기존 test-driven documentation package와 repository-owned example은 0.8/0.9 안정화 과정에서 제거되었고,
+저장소 차원의 TypeDoc 생성 파이프라인도 2-계층 문서 단일화 체계로 대체되었습니다. 공개 API 계약은
+exported TypeScript 선언(`.d.ts`), `packages/*/README.md`, `packages/*/docs/*.md`, 그리고
+`catalog/repository-surface/api-surface.v1.json`에서 직접 관리합니다. LLMS 번들은 `pnpm docs:llms`로
+canonical `docs/{en,ko}/**`에서 파생하며 별도의 API SSOT가 아닙니다.
 
 ## 3. 의존성 방향
 
@@ -3440,8 +3440,8 @@ stateDiagram-v2
 
 이 문서는 저장소 내 세 가지 핵심 표면의 **원칙**, **기본 규격(스키마·분류·검증 규칙)**, 그리고 **전체 목록**을 정의합니다.
 
-1. **API 전체 구성**: 20개 워크스페이스 패키지(`packages/*`), 공개 `exports` 서브패스, 워크스페이스 의존성, 안정성 등급
-2. **예제가 설명하는 것**: `example/` 앱 내 13개 의미 그룹(77개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 7개 패키지 로컬 `examples/`, 9개 내러티브 예제 문서
+1. **API 전체 구성**: 18개 워크스페이스 패키지(`packages/*`), 공개 `exports` 서브패스, 워크스페이스 의존성, 안정성 등급
+2. **예제가 설명하는 것**: `example/` 앱 내 13개 의미 그룹(77개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 5개 패키지 로컬 `examples/`, 9개 내러티브 예제 문서
 3. **관리되는 문서 구조**: 9개 루트 마크다운 문서, 12개 관리 문서 영역(권한 등급·한영 쌍 정책·추적 중인 번역 공백), 파생 LLMS 번들 산출물
 
 관련 기준 문서는 [패키지 경계 및 코드베이스 관리 컨벤션](/ko/context-layered/package-boundary-convention), [스펙·이슈·문서 관리 컨벤션](/ko/context-layered/change-management-convention), [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions), ADR [CA-SURFACE-CATALOG-001](/ko/context-layered/decisions/CA-SURFACE-CATALOG-001)입니다.
@@ -3468,7 +3468,7 @@ stateDiagram-v2
 | `framework-adapter` | 프레임워크 바인딩 (`react`, `mutative`, `lit`, `preact`) | `stable`, `public-preview` |
 | `ui-runtime` | DOM 루트 소유권, 웹 컴포넌트, FACE, SSR/하이드레이션 (`lit-ui`, `preact-ui`) | `public-preview` |
 | `integration-adapter` | 외부 프로토콜·런타임 어댑터 (`ai-sdk`, `webmcp`, `xstate`) | `public-preview` |
-| `tooling` | 빌드·문서·스타일 검증 도구 (`llms-generator`, `typedoc-vitepress-sync`, `style-testing`) | `tooling`, `private` |
+| `tooling` | 빌드·문서·스타일 검증 도구 (`style-testing`) | `private` |
 | `private-host-support` | 비공개 데모·스타터 지원 (`live-code-editor`, `openrouter-browser-storage`, `template-react`) | `private` |
 
 ### 문서 권한 분류 및 한영 쌍 정책 (`document-surface.v1.json`)
@@ -3499,9 +3499,9 @@ stateDiagram-v2
 
 ---
 
-## 3. 표면 1: 레포지토리 API 전체 구성 (20개 패키지)
+## 3. 표면 1: 레포지토리 API 전체 구성 (18개 패키지)
 
-`packages/*/package.json` 기준 전체 20개 워크스페이스 패키지 목록입니다 (`package.json`이 없는 로컬 잔여 디렉터리는 제외).
+`packages/*/package.json` 기준 전체 18개 워크스페이스 패키지 목록입니다 (`package.json`이 없는 로컬 잔여 디렉터리는 제외).
 
 | 패키지 | 계층 | 공개성 / 안정성 | 공개 `exports` | 워크스페이스 의존성 (+Peer) | 권위 참조 문서 |
 | --- | --- | --- | --- | --- | --- |
@@ -3519,15 +3519,13 @@ stateDiagram-v2
 | `@context-action/ai-sdk` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.` | `tool-protocol` | `packages/ai-sdk/README.md`, `usecase-tool-calling-web-studio.md` |
 | `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | `packages/webmcp/README.md`, `docs/ko/guide/webmcp.md` |
 | `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | `packages/xstate/README.md`, `xstate-effect-integration.md` |
-| `@context-action/llms-generator` (`0.8.7`) | `tooling` | `public` / `tooling` | `.`, `./cli` | 없음 | `packages/llms-generator/README.md`, `packages/llms-generator/docs/` |
-| `@context-action/typedoc-vitepress-sync` (`0.8.8`) | `tooling` | `public` / `tooling` | `.`, `./cli` | 없음 | `packages/typedoc-vitepress-sync/README.md`, `packages/typedoc-vitepress-sync/docs/` |
 | `@context-action/style-testing` (`0.1.0`) | `tooling` | `private` / `private` | `.`, `./babel-plugin` | 없음 | `packages/style-testing/README.md` |
 | `@context-action/live-code-editor` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | 없음 | `packages/live-code-editor/README.md` |
 | `@context-action/openrouter-browser-storage` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | 없음 | `packages/openrouter-browser-storage/README.md` |
 | `@context-action/template-react` (`1.0.0`) | `private-host-support` | `private` / `private` | `(없음)` | `core`, `react` | `packages/template-react/README.md` |
 
 > [!NOTE]
-> **API 표면 단일 소스(SSOT)**: 저장소 차원의 대량 TypeDoc 마크다운 트리(`docs/en/api/**`) 대신, 14개 공개 소비자 런타임 패키지와 2개 공개 도구 패키지는 각 패키지 `README.md`, `packages/*/docs/*.md`, TypeScript `.d.ts` 선언 및 [`catalog/repository-surface/api-surface.v1.json`](../../../catalog/repository-surface/api-surface.v1.json)에서 공개 API 계약을 직접 관리합니다. `@context-action/llms-generator`와 `@context-action/typedoc-vitepress-sync`는 독립 공개 도구 패키지로 유지됩니다.
+> **API 표면 단일 소스(SSOT)**: 저장소 차원의 대량 TypeDoc 마크다운 트리(`docs/en/api/**`) 대신, 14개 공개 런타임 패키지는 각 패키지 `README.md`, `packages/*/docs/*.md`, TypeScript `.d.ts` 선언 및 [`catalog/repository-surface/api-surface.v1.json`](../../../catalog/repository-surface/api-surface.v1.json)에서 공개 API 계약을 직접 관리합니다.
 
 ### 3.1 계층별 패키지 용도 요약
 
@@ -3535,7 +3533,7 @@ stateDiagram-v2
 - **Framework Adapters (`4`)**: `react`(React 18/19 Action/Store/TimeTravel/Ref 컨텍스트, 훅, 트랜잭션, `./backend`, `./advanced`, `./webmcp`), `mutative`(`TimeTravel` + `MutativeStateBackend`/`MutativeTimelineBackend`), `lit`(`StoreController`, `ActionController`, `ControllerScope`), `preact`(`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`).
 - **UI Runtimes (`2`)**: `lit-ui`(Lit 웹 컴포넌트, W3C Context Protocol, FACE, `./react-bridge`, `./ssr`, `./hydrate`), `preact-ui`(소유된 Preact DOM 루트, `mountPreact`/`hydratePreact`, `createDisposalScope`, `./react-bridge`, `./ssr`).
 - **Integration Adapters (`3`)**: `xstate`(`.`의 XState v5/v6 액터 브리지 + `./effect`의 Effect v4 / `@xstate/effect` / Standard Schema v1 / 트랜잭션 스코프), `ai-sdk`(AI SDK v7 턴 범위 `ToolSet` 어댑터), `webmcp`(allowlist 기반 `document.modelContext` 브라우저 어댑터).
-- **Tooling (`3`)**: `llms-generator`(LLMS 요약·우선순위·불일치 탐지), `typedoc-vitepress-sync`(TypeDoc-to-VitePress API 문서·사이드바 동기화), `style-testing`(비공개 Playwright 스타일 추출 및 Babel 플러그인).
+- **Tooling (`1`)**: `style-testing`(비공개 Playwright 스타일 추출 및 Babel 플러그인).
 - **Private Host Support (`3`)**: `live-code-editor`(라이브 에디터 워크스페이스 스냅샷·iframe 미리보기 브리지), `openrouter-browser-storage`(데모용 API 키 브라우저 저장소), `template-react`(Context-Layered + Astryx 스타터 템플릿).
 
 패키지 전반의 상태 저장소 선택 기준과 구체적인 사용법은 [Store별 선택 기준 및 사용법 가이드](./store-selection-and-usage-guide.md)를 참고하세요.
@@ -3564,7 +3562,7 @@ stateDiagram-v2
 | `ex-app-integrations` | `/integrations/action-lifecycle`, `react-aria-reference`, `preact-web-components`, `lit-web-components`, `xstate-statechart`, `webmcp-scope`, `ai-sdk-tools`, `business/chat`, `advanced/form-builder`, `advanced/concurrent-actions` (**10**) | Action Lifecycle Workbench, React Aria 계층형 하이드레이션, Preact/Lit 웹 컴포넌트 브리지, XState/Effect, WebMCP, AI SDK v7 도구 스코프, 실시간 채팅, 동적 폼 빌더, 동시성 격리 | `ActionRegister`, `@context-action/core/element`, `preact-ui/react-bridge`, `lit-ui/react-bridge`, `@context-action/xstate`, `@context-action/webmcp`, `@context-action/ai-sdk` | `pnpm verify:react-aria-reference-hydration && pnpm verify:element-interop && pnpm --filter example test` |
 | `ex-app-utilities` | `/utilities/dev-tools/{logger,toast-config,warning-demo,store-scenarios}`, `source-directory`, `testing/enhanced-search` (**6**) | LogMonitor 트레이싱, 토스트 설정, 경고 진단, 스토어 비교 벤치마크, 소스 링크 디렉터리, 취소형 검색 테스트 하네스 | `ActionRegister`, `createStoreContext`, `createActionContext` | `pnpm --filter example check && pnpm --filter example build` |
 
-### 4.2 독립 데모 (2종) 및 패키지 로컬 예제 (7종)
+### 4.2 독립 데모 (2종) 및 패키지 로컬 예제 (5종)
 
 | 구분 | 경로 | 상태 | 설명하는 내용 | 검증 게이트 |
 | --- | --- | --- | --- | --- |
@@ -3575,8 +3573,6 @@ stateDiagram-v2
 | 패키지 예제 | `packages/preact-ui/examples` | `verified` | Projected Order 6계층 워크스페이스, Layer Panel 계약 재사용, 모듈형 Signals 웹 컴포넌트, SSR | `pnpm --filter @context-action/preact-ui test:browser` |
 | 패키지 예제 | `packages/react/examples` | `verified` | 패키지 수준 훅, RefContext(`GameUI`/`SimpleForm`), 선언적/통합 Store 패턴 예제 | `pnpm --filter @context-action/react exec tsc --noEmit -p tsconfig.examples.json && pnpm --filter @context-action/react test` |
 | 패키지 예제 | `packages/mutative/examples` | `experimental` | 워크스페이스 전용 `travels@3` + `mutative@2` 호환성 프로토타입 (`travels-v3`) | `pnpm --filter @context-action/mutative test:travels-v3` |
-| 패키지 예제 | `packages/llms-generator/examples` | `reference` | `EnhancedConfigManager`, `DEFAULT_CONFIG` 및 CLI 워크플로우 사용 예제 | `pnpm build:llms-generator && node packages/llms-generator/examples/library-usage.js` |
-| 패키지 예제 | `packages/typedoc-vitepress-sync/examples` | `reference` | `TypeDocVitePressSync` Node.js 기본·고급 설정 예제 | `pnpm --filter @context-action/typedoc-vitepress-sync test` |
 
 ### 4.3 내러티브 예제 가이드 (`docs/{en,ko}/examples/*.md`, 한영 9쌍)
 

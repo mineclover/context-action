@@ -132,9 +132,9 @@ Sections: 언제 쓰는가 | 핵심 개념 | Context-Layered에서의 역할 분
 
 ===================[ DOC: ko/context-layered/repository-surface-catalog.md ]===================
 # 저장소 표면 카탈로그 (API · 예제 · 관리 문서 기준 규격)
-Sections: 5대 기본 원칙 | 기본 규격 | 표면 1: 레포지토리 API 전체 구성 (20개 패키지) | 표면 2: 예제가 설명하는 것 | 표면 3: 관리되는 문서 구조 | 검증 명령
+Sections: 5대 기본 원칙 | 기본 규격 | 표면 1: 레포지토리 API 전체 구성 (18개 패키지) | 표면 2: 예제가 설명하는 것 | 표면 3: 관리되는 문서 구조 | 검증 명령
 
-상태: Active 스펙 / 결정 ID: CA-SURFACE-CATALOG-001 소유자: Framework Architecture & Documentation Governance 정식 JSON 카탈로그: - catalog/repository-surface/api-surface.v1.json - catalog/repository-surface/example-surface.v1.json - catalog/repository-surface/document-surface.v1.json 이 문서는 저장소 내 세 가지 핵심 표면의 원칙, 기본 규격(스키마·분류·검증 규칙), 그리고 전체 목록을 정의합니다. 1. API 전체 구성: 20개 워크스페이스 패키지(packages/), 공개 exports 서브패스, 워크스페이스 의존성, 안정성 등급 2. 예제가 설명하는 것: example/ 앱 내 13개 의미 그룹(77개 정식 라우트 전체), 독립 데모 2종(demos/bolt-style-ed...
+상태: Active 스펙 / 결정 ID: CA-SURFACE-CATALOG-001 소유자: Framework Architecture & Documentation Governance 정식 JSON 카탈로그: - catalog/repository-surface/api-surface.v1.json - catalog/repository-surface/example-surface.v1.json - catalog/repository-surface/document-surface.v1.json 이 문서는 저장소 내 세 가지 핵심 표면의 원칙, 기본 규격(스키마·분류·검증 규칙), 그리고 전체 목록을 정의합니다. 1. API 전체 구성: 18개 워크스페이스 패키지(packages/), 공개 exports 서브패스, 워크스페이스 의존성, 안정성 등급 2. 예제가 설명하는 것: example/ 앱 내 13개 의미 그룹(77개 정식 라우트 전체), 독립 데모 2종(demos/bolt-style-ed...
 
 ===================[ DOC: ko/context-layered/spec-to-code-authoring-guide.md ]===================
 # 스펙 기반 코드 작성 가이드 (Spec-to-Code Authoring Guide)

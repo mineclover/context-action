@@ -12,7 +12,7 @@ const githubSuccessCondition = '$' + '{{ success() }}';
 const githubFailureOrCancelledCondition = '$' + '{{ failure() || cancelled() }}';
 const prereleaseDistTagExpression = '$' + '{{ inputs.dist_tag }}';
 const releaseCommitExpression = '$' + '{{ inputs.release_commit }}';
-const regularPackageCohort = '@context-action/typedoc-vitepress-sync,@context-action/ai-sdk,@context-action/tool-durable-operations,@context-action/llms-generator';
+const regularPackageCohort = '@context-action/ai-sdk,@context-action/tool-durable-operations';
 const prereleasePackageCohort = '@context-action/core,@context-action/react,@context-action/tool-durable-operations,@context-action/tool-protocol,@context-action/webmcp';
 const stableCandidatePackageCohort = '@context-action/core,@context-action/react,@context-action/tool-protocol';
 const coordinatedStablePackageCohort = '@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react';
@@ -90,7 +90,7 @@ const requiredRootScripts = {
   'verify:v1-release-workflows': 'node scripts/verify-v1-release-workflows.mjs',
   'verify:v1-supply-chain': 'node scripts/verify-v1-supply-chain.mjs',
   'tool-durable:test:evidence': 'node --test scripts/verify-durable-operation-evidence-schema.test.mjs',
-  lint: 'biome lint packages/core/src packages/tool-protocol/src packages/ai-sdk/src packages/webmcp/src packages/tool-durable-operations/src packages/react/src packages/mutative-core/src packages/mutative/src packages/llms-generator/src packages/typedoc-vitepress-sync/src packages/preact/src packages/preact-ui/src packages/preact-ui/examples packages/lit/src packages/lit-ui/src packages/lit-ui/examples scripts/security-audit.mjs scripts/verify-private-tools.mjs scripts/verify-package-boundaries.mjs scripts/verify-package-boundaries.test.mjs scripts/verify-durable-operation-evidence-schema.mjs scripts/verify-durable-operation-evidence-schema.test.mjs scripts/verify-ai-sdk-runtime.mjs scripts/verify-ai-sdk-tool-protocol-contract.mjs scripts/verify-react-aria-reference-hydration.mjs scripts/verify-doc-snippets.mjs scripts/verify-react-compatibility.mjs scripts/verify-lit-react-compatibility.mjs scripts/verify-lit-packed-consumer.mjs scripts/verify-lit-public-release.mjs scripts/verify-lit-public-release.test.mjs scripts/verify-lit-public-workflows.mjs scripts/verify-lit-public-provenance.mjs scripts/verify-lit-public-consumer-smoke.mjs scripts/promote-core-public.mjs scripts/promote-lit-public.mjs scripts/verify-core-artifact-parity.mjs scripts/verify-tool-protocol-changelog.mjs scripts/verify-maintenance-patch-version.mjs scripts/verify-maintenance-patch-provenance.mjs scripts/refuse-direct-release.mjs scripts/publish-packages.cjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.cjs scripts/verify-published-tool-consumers.test.cjs scripts/maintenance-release-safety.test.mjs scripts/coordinated-stable-release.test.mjs scripts/verify-coordinated-stable-release-plan.mjs scripts/verify-coordinated-stable-provenance.mjs scripts/promote-coordinated-stable.mjs scripts/verify-preact-public-provenance.mjs scripts/promote-preact-public.mjs scripts/verify-preact-public-release.mjs scripts/verify-preact-public-release.test.mjs scripts/verify-preact-public-workflows.mjs scripts/write-release-evidence.mjs scripts/verify-release-evidence.mjs scripts/release-evidence.test.mjs scripts/generate-release-inventory.mjs scripts/verify-v1-release-roadmap-alignment.mjs scripts/verify-v1-release-state-alignment.mjs scripts/verify-react-webmcp-isolation.mjs scripts/verify-v1-core-migration-fixture.mjs scripts/verify-v1-lifecycle-contract.mjs scripts/verify-v1-release-manifest.mjs scripts/verify-v1-release-workflows.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-stable-publish-authorization.mjs scripts/verify-v1-published-provenance.mjs scripts/verify-v1-promotion-authorization.mjs scripts/verify-v1-promotion-governance.mjs scripts/verify-v1-supply-chain.mjs scripts/verify-v1-supply-chain.test.mjs scripts/capture-published-release.mjs scripts/verify-prerelease-dist-tags.cjs scripts/sync-llms-bundles.mjs scripts/sync-llms-bundles.test.mjs',
+  lint: 'biome lint packages/core/src packages/tool-protocol/src packages/ai-sdk/src packages/webmcp/src packages/tool-durable-operations/src packages/react/src packages/mutative-core/src packages/mutative/src packages/preact/src packages/preact-ui/src packages/preact-ui/examples packages/lit/src packages/lit-ui/src packages/lit-ui/examples scripts/security-audit.mjs scripts/verify-private-tools.mjs scripts/verify-package-boundaries.mjs scripts/verify-package-boundaries.test.mjs scripts/verify-durable-operation-evidence-schema.mjs scripts/verify-durable-operation-evidence-schema.test.mjs scripts/verify-ai-sdk-runtime.mjs scripts/verify-ai-sdk-tool-protocol-contract.mjs scripts/verify-react-aria-reference-hydration.mjs scripts/verify-doc-snippets.mjs scripts/verify-react-compatibility.mjs scripts/verify-lit-react-compatibility.mjs scripts/verify-lit-packed-consumer.mjs scripts/verify-lit-public-release.mjs scripts/verify-lit-public-release.test.mjs scripts/verify-lit-public-workflows.mjs scripts/verify-lit-public-provenance.mjs scripts/verify-lit-public-consumer-smoke.mjs scripts/promote-core-public.mjs scripts/promote-lit-public.mjs scripts/verify-core-artifact-parity.mjs scripts/verify-tool-protocol-changelog.mjs scripts/verify-maintenance-patch-version.mjs scripts/verify-maintenance-patch-provenance.mjs scripts/refuse-direct-release.mjs scripts/publish-packages.cjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.cjs scripts/verify-published-tool-consumers.test.cjs scripts/maintenance-release-safety.test.mjs scripts/coordinated-stable-release.test.mjs scripts/verify-coordinated-stable-release-plan.mjs scripts/verify-coordinated-stable-provenance.mjs scripts/promote-coordinated-stable.mjs scripts/verify-preact-public-provenance.mjs scripts/promote-preact-public.mjs scripts/verify-preact-public-release.mjs scripts/verify-preact-public-release.test.mjs scripts/verify-preact-public-workflows.mjs scripts/write-release-evidence.mjs scripts/verify-release-evidence.mjs scripts/release-evidence.test.mjs scripts/generate-release-inventory.mjs scripts/verify-v1-release-roadmap-alignment.mjs scripts/verify-v1-release-state-alignment.mjs scripts/verify-react-webmcp-isolation.mjs scripts/verify-v1-core-migration-fixture.mjs scripts/verify-v1-lifecycle-contract.mjs scripts/verify-v1-release-manifest.mjs scripts/verify-v1-release-workflows.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-stable-publish-authorization.mjs scripts/verify-v1-published-provenance.mjs scripts/verify-v1-promotion-authorization.mjs scripts/verify-v1-promotion-governance.mjs scripts/verify-v1-supply-chain.mjs scripts/verify-v1-supply-chain.test.mjs scripts/capture-published-release.mjs scripts/verify-prerelease-dist-tags.cjs scripts/sync-llms-bundles.mjs scripts/sync-llms-bundles.test.mjs',
   'convention:check': 'node scripts/verify-context-action-conventions.mjs',
   'docs:management': 'node scripts/verify-documentation-management.mjs',
   'llms:check': 'node scripts/sync-llms-bundles.mjs --check',
@@ -125,10 +125,8 @@ const requiredDurablePackageScripts = {
   'verify:queue': 'pnpm run build && node scripts/verify-queue-side-effect.mjs',
 };
 const requiredPublicationBuildScripts = new Map([
-  ['@context-action/typedoc-vitepress-sync', 'pnpm build'],
   ['@context-action/ai-sdk', 'pnpm run build'],
   ['@context-action/tool-durable-operations', 'pnpm run build'],
-  ['@context-action/llms-generator', 'pnpm run build'],
   ['@context-action/mutative-core', 'pnpm run build:prod'],
   ['@context-action/mutative', 'pnpm run build:prod'],
   ['@context-action/core', 'pnpm run build'],
@@ -430,10 +428,8 @@ const publishWorkflowPolicies = new Map([
     uploadPath: 'reports/npm-publish-*.json',
     uploadMissingPolicy: 'error',
     publishScopes: [
-      '@context-action/typedoc-vitepress-sync',
       '@context-action/ai-sdk',
       '@context-action/tool-durable-operations',
-      '@context-action/llms-generator',
     ],
     allowedPublicationCommandPatterns: [
       /^pnpm\s+(?:run\s+)?publish:packages\b/u,
@@ -462,10 +458,8 @@ const publishWorkflowPolicies = new Map([
       ],
       [
         [
-          'node scripts/verify-tool-protocol-changelog.mjs --package typedoc-vitepress-sync --forbid-unreleased --require-release-date',
           'node scripts/verify-tool-protocol-changelog.mjs --package ai-sdk --forbid-unreleased --require-release-date',
           'node scripts/verify-tool-protocol-changelog.mjs --package tool-durable-operations --forbid-unreleased --require-release-date',
-          'node scripts/verify-tool-protocol-changelog.mjs --package llms-generator --forbid-unreleased --require-release-date',
         ],
         'must run every regular changelog gate as one straight-line fail-closed step',
       ],
@@ -483,10 +477,8 @@ const publishWorkflowPolicies = new Map([
       [/^pnpm\s+(?:run\s+)?publish:packages\b.*--dist-tag next(?:\s|$)/u, 'must pass the approved regular dist-tag to the publish helper'],
       [/^pnpm\s+(?:run\s+)?publish:packages\b.*--require-all-unpublished(?:\s|$)/u, 'must require every regular candidate version to be unpublished before mutation'],
       [/^pnpm\s+(?:run\s+)?publish:packages\b.*--resume-matching-existing(?:\s|$)/u, 'must bind strict recovery to matching registry artifacts'],
-      [/^pnpm\s+(?:run\s+)?publish:packages\b.*--scope @context-action\/typedoc-vitepress-sync(?:\s|$)/u, 'must publish typedoc-vitepress-sync through the regular publisher'],
       [/^pnpm\s+(?:run\s+)?publish:packages\b.*--scope @context-action\/ai-sdk(?:\s|$)/u, 'must publish ai-sdk through the regular publisher'],
       [/^pnpm\s+(?:run\s+)?publish:packages\b.*--scope @context-action\/tool-durable-operations(?:\s|$)/u, 'must publish durable operations through the regular publisher'],
-      [/^pnpm\s+(?:run\s+)?publish:packages\b.*--scope @context-action\/llms-generator(?:\s|$)/u, 'must publish llms-generator through the regular publisher'],
     ],
     forbiddenCommandPatterns: [
       [/^pnpm\s+(?:run\s+)?publish:packages\b.*--scope @context-action\/mutative-core(?:\s|$)/u, 'must leave mutative-core exclusively to the protected Mutative publisher'],
@@ -499,10 +491,8 @@ const publishWorkflowPolicies = new Map([
       [/^pnpm\s+tool-durable:verify:postgres$/u, 'must run the Postgres integration smoke test before publication'],
       [/^pnpm\s+tool-durable:verify:http$/u, 'must run the HTTP bridge smoke test before publication'],
       [/^pnpm\s+tool-durable:verify:queue$/u, 'must run the queue bridge smoke test before publication'],
-      [/^node\s+scripts\/verify-tool-protocol-changelog\.mjs\s+--package typedoc-vitepress-sync\s+--forbid-unreleased\s+--require-release-date$/u, 'must verify the typedoc-vitepress-sync source and packed changelog before publication'],
       [/^node\s+scripts\/verify-tool-protocol-changelog\.mjs\s+--package ai-sdk\s+--forbid-unreleased\s+--require-release-date$/u, 'must verify the ai-sdk source and packed changelog before publication'],
       [/^node\s+scripts\/verify-tool-protocol-changelog\.mjs\s+--package tool-durable-operations\s+--forbid-unreleased\s+--require-release-date$/u, 'must verify the durable-operations source and packed changelog before publication'],
-      [/^node\s+scripts\/verify-tool-protocol-changelog\.mjs\s+--package llms-generator\s+--forbid-unreleased\s+--require-release-date$/u, 'must verify the llms-generator source and packed changelog before publication'],
     ],
     requiredConditionalPrepublicationSteps: [
       [

@@ -839,8 +839,8 @@ test('requires the complete regular package consumer cohort', async () => {
     const workflowPath = path.join(root, '.github', 'workflows', 'publish-packages.yml');
     const source = await readFile(workflowPath, 'utf8');
     await writeFile(workflowPath, source.replace(
-      '--packages "@context-action/typedoc-vitepress-sync,@context-action/ai-sdk,@context-action/tool-durable-operations,@context-action/llms-generator"',
-      '--packages "@context-action/typedoc-vitepress-sync,@context-action/ai-sdk,@context-action/tool-durable-operations"',
+      '--packages "@context-action/ai-sdk,@context-action/tool-durable-operations"',
+      '--packages "@context-action/ai-sdk"',
     ));
     const result = await runVerifier(root);
     assert.equal(result.code, 1);
@@ -904,7 +904,7 @@ test('does not accept a consumer command hidden in inactive shell control flow',
   await withFixture(async root => {
     const workflowPath = path.join(root, '.github', 'workflows', 'publish-packages.yml');
     const source = await readFile(workflowPath, 'utf8');
-    const command = 'pnpm verify:published-tool-consumers -- --tag next --packages "@context-action/typedoc-vitepress-sync,@context-action/ai-sdk,@context-action/tool-durable-operations,@context-action/llms-generator"';
+    const command = 'pnpm verify:published-tool-consumers -- --tag next --packages "@context-action/ai-sdk,@context-action/tool-durable-operations"';
     await writeFile(workflowPath, source.replace(
       `        run: ${command}`,
       `        run: |\n          if false; then\n            ${command}\n          fi`,
@@ -948,12 +948,12 @@ test('requires every regular changelog gate before publication', async () => {
     const workflowPath = path.join(root, '.github', 'workflows', 'publish-packages.yml');
     const source = await readFile(workflowPath, 'utf8');
     await writeFile(workflowPath, source.replace(
-      '          node scripts/verify-tool-protocol-changelog.mjs --package llms-generator --forbid-unreleased --require-release-date\n',
+      '          node scripts/verify-tool-protocol-changelog.mjs --package ai-sdk --forbid-unreleased --require-release-date\n',
       '',
     ));
     const result = await runVerifier(root);
     assert.equal(result.code, 1);
-    assert.match(result.stderr, /must verify the llms-generator source and packed changelog before publication/u);
+    assert.match(result.stderr, /must verify the ai-sdk source and packed changelog before publication/u);
   });
 });
 

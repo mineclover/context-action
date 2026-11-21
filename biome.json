@@ -15,8 +15,6 @@
       "packages/mutative/src/**/*.ts",
       "packages/mutative/examples/travels-v3/**/*.ts",
       "packages/xstate/src/**/*.ts",
-      "packages/llms-generator/src/**/*.ts",
-      "packages/typedoc-vitepress-sync/src/**/*.ts",
       "scripts/**/*.cjs",
       "scripts/**/*.mjs",
       "packages/preact/src/**/*.ts",

@@ -393,10 +393,8 @@ export function validateReleaseWorkflowSources({
     'General publish workflow must verify the release commit is contained in main',
   );
   for (const name of [
-    '@context-action/typedoc-vitepress-sync',
     '@context-action/ai-sdk',
     '@context-action/tool-durable-operations',
-    '@context-action/llms-generator',
   ]) {
     if (!generalPublication.includes(`--scope ${name}`)) {
       errors.push(`General publish workflow must use the approved regular-package allow-list entry ${name}`);

@@ -204,9 +204,9 @@ function createValidFixture(root) {
 test('real repository passes repository surface catalog verification with expected counts', () => {
   const result = verifyRepositorySurfaceCatalog();
   assert.equal(result.ok, true, `Expected 0 errors, got: ${result.errors.join('; ')}`);
-  assert.equal(result.summary.packages, 20);
+  assert.equal(result.summary.packages, 18);
   assert.equal(result.summary.canonicalRouteCount, 77);
-  assert.equal(result.summary.packageExampleCount, 7);
+  assert.equal(result.summary.packageExampleCount, 5);
   assert.equal(result.summary.narrativeDocCount, 9);
   assert.equal(result.summary.rootDocumentCount, 9);
 });

@@ -35,13 +35,7 @@ const processlessExportSkips = new Map([
     new Set(['./react-bridge']),
   ],
 ]);
-const runtimeExportSkips = new Map([
-  [
-    'packages/typedoc-vitepress-sync',
-    // This legacy CLI calls program.parse() as soon as it is imported.
-    new Set(['./cli']),
-  ],
-]);
+const runtimeExportSkips = new Map();
 
 const failures = [];
 let targetCount = 0;

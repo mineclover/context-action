@@ -17,7 +17,6 @@ const securityPackagePaths = [
   rootPackagePath,
   path.join(repositoryRoot, 'packages/core/package.json'),
   path.join(repositoryRoot, 'packages/react/package.json'),
-  path.join(repositoryRoot, 'packages/llms-generator/package.json'),
 ];
 
 const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';

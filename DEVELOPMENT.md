@@ -5,19 +5,19 @@ Comprehensive development setup and workflow guide for the Context-Action framew
 ## 🏗️ Project Architecture
 
 ### Monorepo Structure
-See [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) (`catalog/repository-surface/api-surface.v1.json`) and [Store Selection and Usage Guide](docs/en/context-layered/store-selection-and-usage-guide.md) for the complete 20-package inventory and Store selection matrix.
+See [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) (`catalog/repository-surface/api-surface.v1.json`) and [Store Selection and Usage Guide](docs/en/context-layered/store-selection-and-usage-guide.md) for the complete 18-package inventory and Store selection matrix.
 
 ```
 context-action/
 ├── catalog/                           # Integration profiles & repository-surface catalogs (CA-SURFACE-CATALOG-001)
-├── packages/                          # 20 workspace packages across 6 layers
+├── packages/                          # 18 workspace packages across 6 layers
 │   ├── core/, store-core/, mutative-core/, tool-protocol/, tool-durable-operations/
 │   ├── react/, mutative/, lit/, preact/
 │   ├── lit-ui/, preact-ui/
 │   ├── xstate/, ai-sdk/, webmcp/
-│   ├── llms-generator/, typedoc-vitepress-sync/, style-testing/
+│   ├── style-testing/
 │   └── live-code-editor/, openrouter-browser-storage/, template-react/
-├── example/                           # Comprehensive example app (72 canonical routes)
+├── example/                           # Comprehensive example app (77 canonical routes)
 ├── demos/                             # Standalone demos (e.g., bolt-style-editor)
 ├── skills/                            # Context-Action Implementation Playbook skills
 ├── releases/                          # Protected release guide and cohort manifests
@@ -130,7 +130,6 @@ pnpm build
 # Build specific package
 pnpm build:core
 pnpm build:react
-pnpm build:llms-generator
 
 # Clean all build artifacts
 pnpm clean
@@ -291,9 +290,6 @@ pnpm verify:doc-snippets
 ```bash
 # Regenerate docs/{en,ko}/llms/llms-{minimal,500chars,origin}.txt from docs/{en,ko}/**
 pnpm docs:llms
-
-# Standalone tooling packages (@context-action/llms-generator, @context-action/typedoc-vitepress-sync)
-# remain independently tested and built in packages/*/
 ```
 
 ## 🏷️ Release Management
