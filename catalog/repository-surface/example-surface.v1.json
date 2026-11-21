@@ -6,8 +6,8 @@
       "id": "ex-app-hub",
       "category": "hub-and-catalog",
       "summary": {
-        "en": "Entry pages, category catalogs, and conceptual overviews indexing the 76 canonical routes inside example/.",
-        "ko": "example/ 내부 76개 정식 라우트를 안내하는 진입 페이지, 카테고리 카탈로그 및 개념 개요 화면입니다."
+        "en": "Entry pages, category catalogs, and conceptual overviews indexing the 77 canonical routes inside example/.",
+        "ko": "example/ 내부 77개 정식 라우트를 안내하는 진입 페이지, 카테고리 카탈로그 및 개념 개요 화면입니다."
       },
       "primaryApis": [
         "createActionContext",
@@ -208,8 +208,13 @@
         "ko": "React Action/Store Provider 조합, 선택적 스토어 훅, 결과 수집 디스패치 및 명령형 ref 제어를 설명합니다."
       },
       "primaryApis": [
+        "ActionRegister",
         "createActionContext",
+        "createStore",
         "createStoreContext",
+        "createTimeTravelStore",
+        "createTimeTravelStoreContext",
+        "TimeTravelStoreManager",
         "createRefContext",
         "useStoreValue",
         "useStoreSelector",
@@ -259,6 +264,13 @@
           "explains": {
             "en": "Bridging React useImperativeHandle and createRefContext for imperative UI control without prop drilling.",
             "ko": "prop drilling 없는 명령형 UI 제어를 위해 useImperativeHandle과 createRefContext를 결합한 예제입니다."
+          }
+        },
+        {
+          "path": "/foundations/react/headless-di",
+          "explains": {
+            "en": "Headless-First Symmetric DI assembling ActionRegister, Store, and TimeTravelStoreManager outside React with ownership='shared' surviving view unmounts.",
+            "ko": "React 바깥 순수 TS에서 ActionRegister, Store, TimeTravelStoreManager를 조립해 ownership='shared'로 주입하고 뷰 언마운트 이후에도 상태와 히스토리를 유지하는 대칭 DI 예제입니다."
           }
         }
       ]

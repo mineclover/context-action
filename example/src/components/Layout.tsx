@@ -264,6 +264,13 @@ const NAV_ITEMS: NavItem[] = [
     label: '12. 🎯 useImperativeHandle + Ref Context',
     category: 'react',
   },
+  {
+    path: '/foundations/react/headless-di',
+    label: '13. 🧬 Headless-First Symmetric DI',
+    category: 'react',
+    description:
+      'Inject external ActionRegister, Store, and TimeTravelStoreManager via ownership="shared"',
+  },
 
   // === Practical Examples (실용 예제) ===
   {

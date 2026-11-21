@@ -208,6 +208,23 @@ const coreConcepts: CoreConcept[] = [
     order: 12,
     icon: '🎯',
   },
+  {
+    id: 'headless-di',
+    title: 'Headless-First Symmetric DI',
+    description:
+      'Assemble ActionRegister, Store, and TimeTravelStoreManager in pure TS outside React and inject them with ownership="shared"',
+    path: '/foundations/react/headless-di',
+    category: 'patterns',
+    concepts: [
+      'ActionRegister',
+      'createStore',
+      'TimeTravelStoreManager',
+      'ownership="shared"',
+    ],
+    difficulty: 'Intermediate',
+    order: 13,
+    icon: '🧬',
+  },
 ];
 
 function CoreConceptsOverview() {
