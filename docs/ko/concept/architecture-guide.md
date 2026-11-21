@@ -1,46 +1,109 @@
-# Context-Action 스토어 통합 아키텍처
+# Context-Action 아키텍처 및 핵심 철학
 
-## 1. 개요 및 핵심 개념
+## 1. 핵심 철학 및 설계 원칙
 
-### Context-Action 아키텍처란?
+### 왜 Context-Action인가
 
-Context-Action 프레임워크는 문서 중심의 컨텍스트 분리와 효과적인 아티팩트 관리를 통해 기존 라이브러리의 근본적인 한계를 극복하도록 설계된 **혁신적인 상태 관리 시스템**입니다.
+애플리케이션 상태 관리가 복잡해지는 핵심 원인은 세 가지 관심사가 뒤섞일 때 발생합니다:
 
-#### 프로젝트 철학
+- **UI 생명주기 결합**: 비즈니스 워크플로와 비동기 파이프라인이 React 컴포넌트·`useEffect`·커스텀 훅에 갇혀 화면 밖에서 단독 테스트하거나 재사용하기 어려워집니다.
+- **이진 상태 함정**: 거대한 전역 싱글턴 아니면 파편화된 로컬 `useState` 사이를 오가며 명확한 도메인 경계가 사라집니다.
+- **비정형 비동기 파이프라인**: 검증 가드, 우선순위 실행, `AbortSignal` 취소, 다중 스토어 정합성, 정리(teardown) 로직을 이벤트 핸들러마다 중복 구현하게 됩니다.
 
-Context-Action 프레임워크는 현대 상태 관리의 중요한 문제들을 해결합니다:
+Context-Action은 이를 **5가지 핵심 원칙**으로 해결합니다:
 
-**기존 라이브러리의 문제점:**
-- **높은 React 결합도**: 강한 통합으로 컴포넌트 모듈화와 props 처리가 어려움
-- **이진 상태 접근법**: 단순한 전역/로컬 상태 이분법으로는 특정 범위 기반 분리를 처리하기 어려움  
-- **부적절한 핸들러/트리거 관리**: 복잡한 상호작용과 비즈니스 로직 처리에 대한 부족한 지원
-
-**Context-Action의 솔루션:**
-- **문서-아티팩트 중심 설계**: 문서 테마와 결과물 관리를 기반으로 한 컨텍스트 분리
-- **완벽한 관심사 분리**: 
-  - 뷰 디자인 격리 → 디자인 컨텍스트
-  - 개발 아키텍처 격리 → 아키텍처 컨텍스트
-  - 비즈니스 로직 격리 → 비즈니스 컨텍스트  
-  - 데이터 검증 격리 → 검증 컨텍스트
-- **명확한 경계**: 구현 결과가 뚜렷하고 잘 정의된 도메인 경계를 유지
-- **효과적인 문서-아티팩트 관리**: 문서와 결과물 간의 관계를 적극적으로 지원하는 상태 관리 라이브러리
-
-### 아키텍처 구현
-
-프레임워크는 완전한 도메인 격리를 위한 **세 가지 핵심 패턴**을 통해 MVVM에서 영감을 받은 패턴으로 깔끔한 관심사 분리를 구현합니다:
-
-- **액션**은 `createActionContext`를 통해 비즈니스 로직과 조정을 처리 (ViewModel 레이어)
-- **선언적 스토어 패턴**은 `createStoreContext`을 통해 도메인 격리로 상태를 관리 (Model 레이어)
-- **RefContext**는 `createRefContext`를 통해 제로 리렌더링으로 직접 DOM 조작 제공 (Performance 레이어)
-- **컴포넌트**는 UI를 렌더링 (View 레이어)
-- **컨텍스트 경계**는 기능 도메인을 격리
-- **타입 안전한 통합**은 도메인별 훅을 통해 구현
+1. **Action–Store 분리 & Read/Write 분리**: View는 타입이 지정된 **Action**을 디스패치해 *의도*만 전달하고(`ActionRegister`), 핸들러는 **Store**(`Store` / `StateStore`)를 갱신하며, View는 선택적 Store 구독으로 상태만 읽어 클로저 오염과 비즈니스 로직 혼입을 막습니다.
+2. **Headless-First / DI 경계로서의 Context**: UI 생명주기와 무관한 도메인 오케스트레이션과 상태는 순수 TypeScript 모듈에서 `ActionRegister` + `Store` / `StoreManager` / `createStateStore`로 조립합니다. React Context Provider(`<ActionProvider register={...} />`, `<StoreProvider stores={...} />` 또는 `manager={...}`)는 이를 주입만 하는 얇은 DI 경계로 동작합니다(기본값 `ownership="shared"`, 회수 위임 시 `ownership="owned"`).
+3. **도메인 경계 격리 & 3계층 상태 모델**: 단일 전역 스토어 대신 도메인 단위로 파이프라인과 상태를 격리하며, 상태를 **Tier 1 외부·영속 계약**, **Tier 2 도메인 오케스트레이션 상태**, **Tier 3 UI 표출 상태**(모달·호버·120fps `RefContext`)로 나눕니다.
+4. **역할이 드러나는 명시적 파이프라인**: Guard(`registerGuard` / `useActionGuard`), Command(`registerCommand` / `useActionCommandHandler`), Result(`registerResult` / `useActionResultHandler`), Observer(`useActionObserver`)로 파이프라인 단계를 분리하고 우선순위와 `AbortSignal`을 일급으로 다룹니다.
+5. **점진적 도입 + 계약 기반 일관성**: `Level 1`(단일 스토어/액션 컨텍스트)로 시작해 필요할 때 `Level 2`(헤드리스 DI + 역할별 훅)와 `Level 3`(6계층 Context-Layered, `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, Lit/Preact 브리지)로 확장하며 `CA-SURFACE-CATALOG-001` 계약 검증을 유지합니다.
 
 ### 핵심 아키텍처 흐름
 
+```text
+[순수 TS 도메인 모듈: ActionRegister + Store / StateStore]
+                         │  (React DI 주입: ownership="shared" | "owned")
+                         ▼
+[View] ──dispatch──▶ [<ActionProvider register>] ──▶ [Handlers / Guards] ──▶ [<StoreProvider stores>] ──subscribe──▶ [View]
 ```
-[컴포넌트] → dispatch → [액션 파이프라인] → handlers → [스토어] → subscribe → [컴포넌트]
+
+### Headless-First 대칭 DI 예제
+
+React 바깥에서 도메인 상태와 파이프라인을 완성한 뒤, Action과 Store를 대칭적으로 React Context에 주입합니다:
+
+<!-- @context-action-compile -->
+```tsx
+import type React from 'react';
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createStore,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+
+interface BillingActions extends ActionPayloadMap {
+  charge: { invoiceId: string; amount: number };
+}
+
+interface BillingStores {
+  summary: { lastInvoiceId: string | null; totalCharged: number };
+}
+
+// 1. 프레임워크 중립 도메인 엔진 (React 임포트 없이 순수 TS 테스트 가능)
+export const billingRegister = new ActionRegister<BillingActions>({ name: 'HeadlessBilling' });
+export const billingSummaryStore = createStore<BillingStores['summary']>('summary', {
+  lastInvoiceId: null,
+  totalCharged: 0,
+});
+
+billingRegister.registerCommand('charge', ({ invoiceId, amount }) => {
+  const prev = billingSummaryStore.getValue();
+  billingSummaryStore.setValue({
+    lastInvoiceId: invoiceId,
+    totalCharged: prev.totalCharged + amount,
+  });
+}, { id: 'domain-charge' });
+
+// 2. 얇은 React Context DI 경계 (기본 ownership="shared")
+const BillingActionsContext = createActionContext<BillingActions>('BillingActions');
+const BillingStoresContext = createStoreContext<BillingStores>('BillingStores', {
+  summary: { lastInvoiceId: null, totalCharged: 0 },
+});
+
+function BillingPanel() {
+  const dispatch = BillingActionsContext.useActionDispatch();
+  const summary = useStoreValue(BillingStoresContext.useStore('summary'));
+
+  return (
+    <button
+      type="button"
+      onClick={() => void dispatch('charge', { invoiceId: 'INV-100', amount: 50 })}
+    >
+      합계: {summary.totalCharged} ({summary.lastInvoiceId ?? '없음'})
+    </button>
+  );
+}
+
+export function BillingFeature(): React.JSX.Element {
+  return (
+    <BillingActionsContext.Provider register={billingRegister} ownership="shared">
+      <BillingStoresContext.Provider stores={{ summary: billingSummaryStore }} ownership="shared">
+        <BillingPanel />
+      </BillingStoresContext.Provider>
+    </BillingActionsContext.Provider>
+  );
+}
 ```
+
+### 아키텍처 구현 레이어
+
+- **도메인 엔진 (헤드리스)**: `ActionRegister` (`@context-action/core`) + `Store` / `StoreManager` / `createStateStore` (`@context-action/store-core`)
+- **Action Context (ViewModel DI 경계)**: `createActionContext` (내부 생성 또는 외부 `ActionRegister` 주입)
+- **선언적 Store Context (Model DI 경계)**: `createStoreContext` (내부 생성 또는 외부 `StoreManager` / `stores` 맵 주입)
+- **RefContext (제로 리렌더 성능 레이어)**: `createRefContext` (DOM·Canvas·Three.js 직접 참조)
+- **선택적 구독**: `useStoreValue`, `useStoreSelector`, `useStorePath`, `useStoreSelectorWithPaths`
+- **프레젠테이션 (View 레이어)**: 의도를 디스패치하고 구독 상태를 그리는 순수 React/Lit/Preact 컴포넌트
 
 ### 컨텍스트 분리 전략
 

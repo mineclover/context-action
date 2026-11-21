@@ -111,7 +111,7 @@ useCheckoutValidateHandler({
 
 ### React Context Integration
 - Handler registration within Context boundaries
-- Every handler is registered by the domain Handler Registry, including one-handler features
+- React-mounted UI/screen handlers register through the domain Handler Registry, including one-handler UI features (domain pipelines independent of React lifecycle can be registered headless outside React and injected via `ActionRegister` DI)
 - Automatic lifecycle management
 - Type-safe context usage
 
@@ -193,41 +193,60 @@ Not every feature needs all 6 folders on day one. Choose the level that matches 
 | Level | Folder Shape | When to Choose |
 | --- | --- | --- |
 | **Level 1 · Lite** | 1–2 files (`contexts.ts` + feature component/hooks) | Self-contained form, local filter panel, or small CRUD widget |
-| **Level 2 · Standard** | `contexts/`, pure `business/`, optional headless `ActionRegister` + `StateStore` (`<Provider register={...}>`), role hooks (`useActionGuard` / `useActionCommandHandler` / `useActionObserver`) | Non-trivial async orchestration, unit-testing domain pipelines without React, 120fps `RefContext` views |
+| **Level 2 · Standard** | `contexts/`, pure `business/`, optional headless `ActionRegister` + `Store` / `StoreManager` (`<ActionProvider register={...}>` + `<StoreProvider stores={...}>`), role hooks (`useActionGuard` / `useActionCommandHandler` / `useActionObserver`) | Non-trivial async orchestration, unit-testing domain pipelines without React, 120fps `RefContext` views |
 | **Level 3 · Full 6-Layer** | `contexts / business / handlers / actions / hooks / views` (+ `Facade → Recipe → Primitive` when bound to Astryx) | Multi-team domains, complex multi-step workflows, approval/escalation playbooks, strict architectural parity |
 
-## 🧭 Handler Ownership: React Handler Registry vs. Headless-First `ActionRegister` DI
+## 🧭 Handler & Store Ownership: React Handler Registry vs. Headless-First DI
 
-You have two supported ways to assemble action handlers depending on whether orchestration belongs to a UI mount lifecycle or outlives React components:
+Depending on whether orchestration belongs to a UI mount lifecycle or outlives React components, choose or compose the ownership model cleanly:
 
 | Ownership Model | How It Works | Best Fit |
 | --- | --- | --- |
-| **React-Mounted Handler Registry** (`<DomainHandlerRegistry />` using `useActionHandler`) | Handlers subscribe and clean up within the Provider's React insertion-effect lifetime (including React 19 `<Activity>` hide/reveal and props-based DI) | Screen-scoped orchestration needing React context DI, props-injected UI callbacks, or per-route lifecycle isolation |
-| **Headless-First `ActionRegister` DI** (`<DomainActionProvider register={headlessRegister} />`) | Pure TypeScript modules instantiate `ActionRegister` + `createStateStore` outside React; `<Provider register={...}>` injects the live register (`ownership="shared"` by default) | Portable domain logic shared across non-React hosts/workers/Lit/Preact, zero-React pipeline unit tests, orchestration surviving view unmounts |
+| **React-Mounted Handler Registry** (`<DomainHandlerRegistry />` using `useActionHandler`) | Handlers and React-owned stores subscribe and clean up within the Provider's React insertion-effect lifetime (including React 19 `<Activity>` hide/reveal and props-based DI) | Screen-scoped orchestration needing React context DI, props-injected UI callbacks, or per-route lifecycle isolation |
+| **Headless-First DI** (`<DomainActionProvider register={...} />` + `<DomainStoreProvider stores={...} \| manager={...} />`) | Pure TypeScript modules instantiate `ActionRegister` + `createStore` / `StoreManager` (or `createStateStore`) outside React; Providers inject live references (`ownership="shared"` by default) | Portable domain logic shared across non-React hosts/workers/Lit/Preact, zero-React pipeline unit tests, orchestration and state surviving view unmounts |
 
-Both models compose cleanly—you can register headless `registerCommand` / `registerResult` pipelines outside React and still mount UI-bound `useActionGuard` / `useActionObserver` listeners inside a child component:
+Both models compose cleanly—assemble headless domain commands/stores outside React and add UI-scoped guards, observers, or local stores lazily inside React:
 
 <!-- @context-action-compile -->
 ```tsx
 import type React from 'react';
 import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
-import { createActionContext } from '@context-action/react';
+import {
+  createActionContext,
+  createStore,
+  createStoreContext,
+} from '@context-action/react';
 
 interface BillingActions extends ActionPayloadMap {
   charge: { invoiceId: string; amount: number };
 }
 
+interface BillingStores {
+  lastCharge: { invoiceId: string | null; amount: number };
+}
+
 export const billingRegister = new ActionRegister<BillingActions>({ name: 'Billing' });
-billingRegister.registerCommand('charge', async ({ invoiceId, amount }) => {
-  await Promise.resolve({ invoiceId, amount });
+export const lastChargeStore = createStore<BillingStores['lastCharge']>('lastCharge', {
+  invoiceId: null,
+  amount: 0,
 });
 
-const BillingActionsContext = createActionContext<BillingActions>('Billing');
+billingRegister.registerCommand('charge', async ({ invoiceId, amount }) => {
+  await Promise.resolve({ invoiceId, amount });
+  lastChargeStore.setValue({ invoiceId, amount });
+});
+
+const BillingActionsContext = createActionContext<BillingActions>('BillingActions');
+const BillingStoresContext = createStoreContext<BillingStores>('BillingStores', {
+  lastCharge: { invoiceId: null, amount: 0 },
+});
 
 export function BillingFeature({ children }: { children: React.ReactNode }) {
   return (
     <BillingActionsContext.Provider register={billingRegister} ownership="shared">
-      {children}
+      <BillingStoresContext.Provider stores={{ lastCharge: lastChargeStore }} ownership="shared">
+        {children}
+      </BillingStoresContext.Provider>
     </BillingActionsContext.Provider>
   );
 }

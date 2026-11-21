@@ -1,47 +1,109 @@
-# Context-Action Store Integration Architecture
+# Context-Action Architecture & Core Philosophy
 
-## 1. Overview & Core Concepts
+## 1. Core Philosophy & Principles
 
-### What is Context-Action Architecture?
+### Why Context-Action Exists
 
-The Context-Action framework is a **revolutionary state management system** designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+Application state grows hard to maintain when three concerns collapse together:
 
-#### Project Philosophy
+- **UI Lifecycle Coupling**: Business workflows and async pipelines get trapped inside React components, effects, and hook trees, making them impossible to test or reuse outside a mounted screen.
+- **Binary State Trap**: Codebases bounce between an overgrown global singleton store and fragmented local `useState`, leaving domain boundaries implicit.
+- **Ad-Hoc Async Pipelines**: Validation guards, priority ordering, `AbortSignal` cancellation, multi-store coordination, and teardown end up re-implemented inside ad-hoc event handlers.
 
-The Context-Action framework addresses critical issues in modern state management:
+Context-Action resolves these with **five core principles**:
 
-**Problems with Existing Libraries:**
-- **High React Coupling**: Tight integration makes component modularization and props handling difficult
-- **Binary State Approach**: Simple global/local state dichotomy fails to handle specific scope-based separation  
-- **Inadequate Handler/Trigger Management**: Poor support for complex interactions and business logic processing
-
-**Context-Action's Solution:**
-- **Document-Artifact Centered Design**: Context separation based on document themes and deliverable management
-- **Perfect Separation of Concerns**: 
-  - View design in isolation → Design Context
-  - Development architecture in isolation → Architecture Context
-  - Business logic in isolation → Business Context  
-  - Data validation in isolation → Validation Context
-- **Clear Boundaries**: Implementation results maintain distinct, well-defined domain boundaries
-- **Effective Document-Artifact Management**: State management library that actively supports the relationship between documentation and deliverables
-
-### Architecture Implementation
-
-The framework implements a clean separation of concerns through an MVVM-inspired pattern with **four core architectural strategies** for complete domain isolation:
-
-- **Actions** handle business logic and coordination (ViewModel layer) via `createActionContext`
-- **Declarative Store Pattern** manages state with domain isolation (Model layer) via `createStoreContext`
-- **RefContext** provides direct DOM manipulation with zero re-renders (Performance layer) via `createRefContext`
-- **Selective Subscription** optimizes performance through strategic subscription management (Optimization layer)
-- **Components** render UI (View layer)
-- **Context Boundaries** isolate functional domains
-- **Type-Safe Integration** through domain-specific hooks
+1. **Action–Store & Read/Write Separation**: Views express *intent* by dispatching typed **Actions** (`ActionRegister`), handlers mutate **Stores** (`Store` / `StateStore`), and Views read state through selective store subscriptions—never invoking business rules directly or reading mutated closure snapshots.
+2. **Headless-First / Context as DI Boundary**: Assemble framework-neutral `ActionRegister` pipelines and standalone `Store` / `StoreManager` / `StateStore` instances in plain TypeScript modules first, free of React lifecycle dependencies. Treat React Context Providers (`<ActionProvider register={...} />` and `<StoreProvider stores={...} />` or `manager={...}`) strictly as thin dependency-injection boundaries (`ownership="shared"` by default; `ownership="owned"` when transferring teardown).
+3. **Domain Boundaries & 3-Tier State**: Scope state and action pipelines per domain context rather than one monolithic store, separating **Tier 1 External/Persistent Contracts**, **Tier 2 Domain Orchestration State**, and **Tier 3 UI Presentation State** (modals, hover, 120fps `RefContext` animations).
+4. **Role-Explicit Pipelines**: Split execution stages across dedicated contracts—Guard (`registerGuard` / `useActionGuard`), Command (`registerCommand` / `useActionCommandHandler`), Result (`registerResult` / `useActionResultHandler`), and Observer (`useActionObserver`)—with explicit priorities and `AbortSignal` propagation.
+5. **Progressive Adoption + Contract-First Consistency**: Start with a minimal scoped Store or Action Context (`Level 1`), step up to headless DI + role hooks (`Level 2`), and scale into the 6-layer Context-Layered architecture, multi-store `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, or Lit/Preact adapters (`Level 3`) with machine-checked surface parity (`CA-SURFACE-CATALOG-001`).
 
 ### Core Architecture Flow
 
+```text
+[Pure TS Domain Module: ActionRegister + Store / StateStore]
+                         │  (Injected via React DI: ownership="shared" | "owned")
+                         ▼
+[View] ──dispatch──▶ [<ActionProvider register>] ──▶ [Handlers / Guards] ──▶ [<StoreProvider stores>] ──subscribe──▶ [View]
 ```
-[Component] → dispatch → [Action Pipeline] → handlers → [Store] → subscribe → [Component]
+
+### Headless-First Symmetric DI Example
+
+Assemble domain state and orchestration completely outside React, then inject both symmetrically into React components:
+
+<!-- @context-action-compile -->
+```tsx
+import type React from 'react';
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createStore,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+
+interface BillingActions extends ActionPayloadMap {
+  charge: { invoiceId: string; amount: number };
+}
+
+interface BillingStores {
+  summary: { lastInvoiceId: string | null; totalCharged: number };
+}
+
+// 1. Framework-neutral domain engine (unit-testable with zero React imports)
+export const billingRegister = new ActionRegister<BillingActions>({ name: 'HeadlessBilling' });
+export const billingSummaryStore = createStore<BillingStores['summary']>('summary', {
+  lastInvoiceId: null,
+  totalCharged: 0,
+});
+
+billingRegister.registerCommand('charge', ({ invoiceId, amount }) => {
+  const prev = billingSummaryStore.getValue();
+  billingSummaryStore.setValue({
+    lastInvoiceId: invoiceId,
+    totalCharged: prev.totalCharged + amount,
+  });
+}, { id: 'domain-charge' });
+
+// 2. Thin React Contexts acting strictly as DI boundaries (ownership defaults to 'shared')
+const BillingActionsContext = createActionContext<BillingActions>('BillingActions');
+const BillingStoresContext = createStoreContext<BillingStores>('BillingStores', {
+  summary: { lastInvoiceId: null, totalCharged: 0 },
+});
+
+function BillingPanel() {
+  const dispatch = BillingActionsContext.useActionDispatch();
+  const summary = useStoreValue(BillingStoresContext.useStore('summary'));
+
+  return (
+    <button
+      type="button"
+      onClick={() => void dispatch('charge', { invoiceId: 'INV-100', amount: 50 })}
+    >
+      Total: {summary.totalCharged} ({summary.lastInvoiceId ?? 'none'})
+    </button>
+  );
+}
+
+export function BillingFeature(): React.JSX.Element {
+  return (
+    <BillingActionsContext.Provider register={billingRegister} ownership="shared">
+      <BillingStoresContext.Provider stores={{ summary: billingSummaryStore }} ownership="shared">
+        <BillingPanel />
+      </BillingStoresContext.Provider>
+    </BillingActionsContext.Provider>
+  );
+}
 ```
+
+### Architecture Implementation Layers
+
+- **Domain Engine (Headless)**: `ActionRegister` (`@context-action/core`) + `Store` / `StoreManager` / `createStateStore` (`@context-action/store-core`)
+- **Action Context (ViewModel DI Boundary)**: `createActionContext` (wraps or injects `ActionRegister`)
+- **Declarative Store Context (Model DI Boundary)**: `createStoreContext` (wraps or injects `StoreManager` / `stores`)
+- **RefContext (Zero Re-render Performance Layer)**: `createRefContext` (direct DOM/Canvas/Three.js references)
+- **Selective Subscription**: `useStoreValue`, `useStoreSelector`, `useStorePath`, `useStoreSelectorWithPaths`
+- **Presentation (View Layer)**: Pure React/Lit/Preact components forwarding intents and rendering subscribed state
 
 ### Context Separation Strategy
 

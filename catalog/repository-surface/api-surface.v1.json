@@ -575,7 +575,11 @@
             "StoreTransactionCoordinator",
             "bindActionTransactions",
             "ActionProviderProps",
-            "ProviderShutdownOptions"
+            "ProviderShutdownOptions",
+            "ExternalStoresMap",
+            "StoreManagerOptions",
+            "StoreProviderProps",
+            "StoreContextReturn"
           ]
         },
         {

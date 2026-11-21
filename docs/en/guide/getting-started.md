@@ -9,7 +9,7 @@ Start at Level 1 and expand only when complexity demands it:
 | Level | Scope | Primitives | Best For |
 | --- | --- | --- | --- |
 | **Level 1 · Lite** | Scoped state or commands | `createStoreContext`, `createActionContext` (or `createStateStore` + `ActionRegister`) | Component trees, forms, lightweight workflows |
-| **Level 2 · Standard** | Headless pipelines, roles, 120fps DOM | `<ActionProvider register={...}>`, role hooks (`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`), `useStorePath`, `createRefContext` | Async orchestration, testable pure-TS pipelines, canvas/DOM refs |
+| **Level 2 · Standard** | Headless pipelines, roles, 120fps DOM | `<ActionProvider register={...}>`, `<StoreProvider stores={...} \| manager={...}>`, role hooks (`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`), `useStorePath`, `createRefContext` | Async orchestration, testable pure-TS pipelines, canvas/DOM refs |
 | **Level 3 · Enterprise** | Full domain architecture & integrations | 6-layer Context-Layered structure, `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, Lit/Preact UI bridges | Large teams, atomic multi-store undo/redo, AI/MCP tools, micro-frontends |
 
 See the [Store Selection and Usage Guide](../context-layered/store-selection-and-usage-guide.md) for the complete comparison matrix across all state primitives.
@@ -22,7 +22,7 @@ Choose the right pattern for your use case:
 |---------|----------|--------|----------|
 | **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
 | **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
-| **🏗️ Headless-First** | Pure-TS pipeline + React DI | `ActionRegister` + `<Provider register={...}>` | UI-independent business orchestration, portable domain modules |
+| **🏗️ Headless-First** | Pure-TS pipeline + stores + React DI | `ActionRegister` + `Store` / `StoreManager` + `<Provider register / stores>` | UI-independent business orchestration, portable domain modules |
 | **🔧 Ref Context** *(Advanced)* | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
 
 ## 🎯 Action Only Pattern
@@ -123,36 +123,45 @@ function UserComponent() {
 }
 ```
 
-## 🏗️ Headless-First Pattern (`ActionRegister` DI)
+## 🏗️ Headless-First Pattern (`ActionRegister` + `Store` DI)
 
-When orchestration should outlive a UI mount or remain framework-agnostic, assemble your `ActionRegister` and `createStateStore` outside React and inject the register via `<Provider register={...}>`. By default, `ownership` is `'shared'`, so unmounting the React Provider unregisters React handlers without destroying the external pipeline.
+When orchestration and state should outlive a UI mount or remain framework-agnostic, assemble your `ActionRegister` and `createStore` (or `StoreManager`) outside React and inject both symmetrically via `<ActionProvider register={...}>` and `<StoreProvider stores={...} | manager={...}>`. By default, `ownership` is `'shared'`, so unmounting React Providers detaches UI listeners without destroying your external register or stores (pass `ownership="owned"` when transferring teardown ownership).
 
 <!-- @context-action-compile -->
 ```tsx
 import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
-import { createStateStore } from '@context-action/store-core';
-import { createActionContext, useStoreValue } from '@context-action/react';
-import { createBackendStore } from '@context-action/react/backend';
+import {
+  createActionContext,
+  createStore,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
 
 interface CounterActions extends ActionPayloadMap {
   increment: { amount: number };
 }
 
+interface CounterStores {
+  counter: { count: number };
+}
+
 // 1. Framework-neutral state + command pipeline (testable without React)
-export const counterBackend = createStateStore('counter', { count: 0 });
+export const counterStore = createStore<CounterStores['counter']>('counter', { count: 0 });
 export const counterRegister = new ActionRegister<CounterActions>({ name: 'HeadlessCounter' });
 
 counterRegister.registerCommand('increment', ({ amount }) => {
-  counterBackend.update(prev => ({ count: prev.count + amount }));
+  counterStore.update(prev => ({ count: prev.count + amount }));
 });
 
-// 2. Thin React bridge + Context DI
-const counterStore = createBackendStore('counter', counterBackend, { ownership: 'shared' });
-const CounterActionsContext = createActionContext<CounterActions>('Counter');
+// 2. Thin React Context DI boundaries (ownership defaults to 'shared')
+const CounterActionsContext = createActionContext<CounterActions>('CounterActions');
+const CounterStoresContext = createStoreContext<CounterStores>('CounterStores', {
+  counter: { count: 0 },
+});
 
 function CounterPanel() {
   const dispatch = CounterActionsContext.useActionDispatch();
-  const state = useStoreValue(counterStore);
+  const state = useStoreValue(CounterStoresContext.useStore('counter'));
 
   return (
     <button type="button" onClick={() => void dispatch('increment', { amount: 1 })}>
@@ -164,7 +173,9 @@ function CounterPanel() {
 export function HeadlessCounterApp() {
   return (
     <CounterActionsContext.Provider register={counterRegister} ownership="shared">
-      <CounterPanel />
+      <CounterStoresContext.Provider stores={{ counter: counterStore }} ownership="shared">
+        <CounterPanel />
+      </CounterStoresContext.Provider>
     </CounterActionsContext.Provider>
   );
 }

@@ -9,7 +9,7 @@ Level 1부터 시작해 요구사항이 커질 때만 다음 단계로 확장하
 | 단계 | 적용 범위 | 핵심 API | 적합한 상황 |
 | --- | --- | --- | --- |
 | **Level 1 · Lite** | 스코프 단위 상태 또는 커맨드 | `createStoreContext`, `createActionContext` (또는 `createStateStore` + `ActionRegister`) | 컴포넌트 트리, 일반 폼, 가벼운 인터랙션 |
-| **Level 2 · Standard** | 헤드리스 파이프라인, 역할별 훅, 120fps DOM | `<ActionProvider register={...}>`, 역할별 훅 (`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`), `useStorePath`, `createRefContext` | 비동기 오케스트레이션, React 무관 순수 TS 테스트, 캔버스/DOM 직접 제어 |
+| **Level 2 · Standard** | 헤드리스 파이프라인, 역할별 훅, 120fps DOM | `<ActionProvider register={...}>`, `<StoreProvider stores={...} \| manager={...}>`, 역할별 훅 (`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`), `useStorePath`, `createRefContext` | 비동기 오케스트레이션, React 무관 순수 TS 테스트, 캔버스/DOM 직접 제어 |
 | **Level 3 · Enterprise** | 도메인 아키텍처·트랜잭션·통합 어댑터 | 6계층 Context-Layered 구조, `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, Lit/Preact UI 브리지 | 다중 팀 협업, 다중 스토어 원자 Undo/Redo, AI/MCP 도구, 마이크로 프론트엔드 |
 
 전체 상태 관리 수단 비교는 [Store별 선택 기준 및 사용법 가이드](../context-layered/store-selection-and-usage-guide.md)를 참고하세요.
@@ -22,7 +22,7 @@ Level 1부터 시작해 요구사항이 커질 때만 다음 단계로 확장하
 |---------|----------|--------|----------|
 | **🎯 Action Only** | 스토어 없이 액션 디스패칭 | `createActionContext` | 이벤트 시스템, 커맨드 패턴 |
 | **🏪 Store Only** | 액션 없이 상태 관리 | `createStoreContext` | 순수 상태 관리, 데이터 레이어 |
-| **🏗️ Headless-First** | 순수 TS 파이프라인 + React DI | `ActionRegister` + `<Provider register={...}>` | UI 수명주기와 분리된 도메인 오케스트레이션, 이식 가능한 로직 |
+| **🏗️ Headless-First** | 순수 TS 파이프라인 + 스토어 + React DI | `ActionRegister` + `Store` / `StoreManager` + `<Provider register / stores>` | UI 수명주기와 분리된 도메인 오케스트레이션, 이식 가능한 로직 |
 | **🔧 Ref Context** *(고급)* | 제로 리렌더링 직접 DOM 조작 | `createRefContext` | 고성능 UI, 애니메이션, 실시간 인터랙션 |
 
 ## 🎯 Action Only 패턴
@@ -123,36 +123,45 @@ function UserComponent() {
 }
 ```
 
-## 🏗️ Headless-First 패턴 (`ActionRegister` DI)
+## 🏗️ Headless-First 패턴 (`ActionRegister` + `Store` DI)
 
-오케스트레이션이 UI 마운트 수명을 넘어 유지되어야 하거나 React와 독립적으로 테스트되어야 할 때는 `ActionRegister`와 `createStateStore`를 React 밖에서 조립한 뒤 `<Provider register={...}>`로 주입합니다. `register`를 넘길 때 기본 `ownership`은 `'shared'`이므로 Provider가 언마운트되어도 React 핸들러만 정리될 뿐 외부 레지스터는 파괴되지 않습니다.
+오케스트레이션과 상태가 UI 마운트 수명을 넘어 유지되어야 하거나 React와 독립적으로 테스트되어야 할 때는 `ActionRegister`와 `createStore`(또는 `StoreManager`)를 React 밖에서 조립한 뒤 `<ActionProvider register={...}>`와 `<StoreProvider stores={...} | manager={...}>`로 대칭 주입합니다. 기본 `ownership`은 `'shared'`이므로 Provider가 언마운트되어도 React 리스너만 정리되고 외부 레지스터·스토어는 유지됩니다(수명 위임이 필요할 때 `ownership="owned"` 전달).
 
 <!-- @context-action-compile -->
 ```tsx
 import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
-import { createStateStore } from '@context-action/store-core';
-import { createActionContext, useStoreValue } from '@context-action/react';
-import { createBackendStore } from '@context-action/react/backend';
+import {
+  createActionContext,
+  createStore,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
 
 interface CounterActions extends ActionPayloadMap {
   increment: { amount: number };
 }
 
+interface CounterStores {
+  counter: { count: number };
+}
+
 // 1. 프레임워크 중립 상태 + 커맨드 파이프라인 (React 없이 단독 테스트 가능)
-export const counterBackend = createStateStore('counter', { count: 0 });
+export const counterStore = createStore<CounterStores['counter']>('counter', { count: 0 });
 export const counterRegister = new ActionRegister<CounterActions>({ name: 'HeadlessCounter' });
 
 counterRegister.registerCommand('increment', ({ amount }) => {
-  counterBackend.update(prev => ({ count: prev.count + amount }));
+  counterStore.update(prev => ({ count: prev.count + amount }));
 });
 
-// 2. 얇은 React 연결 어댑터 + Context DI
-const counterStore = createBackendStore('counter', counterBackend, { ownership: 'shared' });
-const CounterActionsContext = createActionContext<CounterActions>('Counter');
+// 2. 얇은 React Context DI 경계 (기본 ownership="shared")
+const CounterActionsContext = createActionContext<CounterActions>('CounterActions');
+const CounterStoresContext = createStoreContext<CounterStores>('CounterStores', {
+  counter: { count: 0 },
+});
 
 function CounterPanel() {
   const dispatch = CounterActionsContext.useActionDispatch();
-  const state = useStoreValue(counterStore);
+  const state = useStoreValue(CounterStoresContext.useStore('counter'));
 
   return (
     <button type="button" onClick={() => void dispatch('increment', { amount: 1 })}>
@@ -164,7 +173,9 @@ function CounterPanel() {
 export function HeadlessCounterApp() {
   return (
     <CounterActionsContext.Provider register={counterRegister} ownership="shared">
-      <CounterPanel />
+      <CounterStoresContext.Provider stores={{ counter: counterStore }} ownership="shared">
+        <CounterPanel />
+      </CounterStoresContext.Provider>
     </CounterActionsContext.Provider>
   );
 }

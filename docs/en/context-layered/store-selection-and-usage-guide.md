@@ -214,34 +214,43 @@ export async function addItemWithRollback() {
 - **`useComputedStore(store, computeFn, config?)`**: derives and memoizes a computed projection from an upstream store with optional `equalityFn`, `initialValue`, `onError`, and `debounceMs`.
 - **`StoreRegistry`**: reserved for advanced dynamic store registration, lookup, and cleanup by string key.
 
-### 2.8 Headless-First Composition (`ActionRegister` DI + `StateStore` / `BackendStore`)
+### 2.8 Headless-First Composition (`ActionRegister` DI + `Store` / `StoreManager` / `BackendStore`)
 
-Assemble pure TypeScript state (`createStateStore` from `@context-action/store-core` or standalone `createStore`) alongside a headless `ActionRegister`, then inject both into React through `<ActionContext.Provider register={...}>` (`ownership="shared"` by default) and `createBackendStore`:
+Assemble pure TypeScript orchestration (`ActionRegister`) and state (`createStore`, `StoreManager`, or `@context-action/store-core` `createStateStore`) outside React, then inject both symmetrically into React via `<ActionContext.Provider register={...}>` and `<StoreContext.Provider stores={...} | manager={...}>` (`ownership="shared"` by default):
 
 <!-- @context-action-compile -->
 ```tsx
 import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
-import { createStateStore } from '@context-action/store-core';
-import { createActionContext, useStoreValue } from '@context-action/react';
-import { createBackendStore } from '@context-action/react/backend';
+import {
+  createActionContext,
+  createStore,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
 
 interface CartActions extends ActionPayloadMap {
   addSku: { sku: string };
 }
 
-export const cartBackend = createStateStore('cart', { items: [] as string[] });
+interface CartStores {
+  cart: { items: string[] };
+}
+
+export const cartStore = createStore<CartStores['cart']>('cart', { items: [] });
 export const cartRegister = new ActionRegister<CartActions>({ name: 'HeadlessCart' });
 
 cartRegister.registerCommand('addSku', ({ sku }) => {
-  cartBackend.update((prev) => ({ items: [...prev.items, sku] }));
+  cartStore.update((prev) => ({ items: [...prev.items, sku] }));
 });
 
-const cartStore = createBackendStore('cart', cartBackend, { ownership: 'shared' });
-const CartActionsContext = createActionContext<CartActions>('Cart');
+const CartActionsContext = createActionContext<CartActions>('CartActions');
+const CartStoresContext = createStoreContext<CartStores>('CartStores', {
+  cart: { items: [] },
+});
 
 function CartSummary() {
   const dispatch = CartActionsContext.useActionDispatch();
-  const cart = useStoreValue(cartStore);
+  const cart = useStoreValue(CartStoresContext.useStore('cart'));
   return (
     <button type="button" onClick={() => void dispatch('addSku', { sku: 'BOOK-1' })}>
       Items: {cart.items.length}
@@ -252,11 +261,15 @@ function CartSummary() {
 export function HeadlessCartView() {
   return (
     <CartActionsContext.Provider register={cartRegister} ownership="shared">
-      <CartSummary />
+      <CartStoresContext.Provider stores={{ cart: cartStore }} ownership="shared">
+        <CartSummary />
+      </CartStoresContext.Provider>
     </CartActionsContext.Provider>
   );
 }
 ```
+
+> Need to adapt an external framework-neutral `StateBackend` (e.g., `createStateStore` from `@context-action/store-core`, Redux/Zustand bridges, or storage backends) directly to React hooks? Use `createBackendStore('cart', cartBackend, { ownership: 'shared' })` from `@context-action/react/backend`.
 
 ---
 

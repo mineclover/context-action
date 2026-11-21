@@ -110,7 +110,7 @@ Adopt only the boundaries your feature needs today:
 | Level | When to Use | Core Primitives |
 | --- | --- | --- |
 | **Level 1 · Lite** | Single component/feature state or typed commands | `createStoreContext`, `createActionContext` (or `createStateStore` + `ActionRegister`) |
-| **Level 2 · Standard** | Headless orchestration, role-based validation, high-frequency DOM | `<ActionProvider register={headlessRegister}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `createRefContext` |
+| **Level 2 · Standard** | Headless orchestration, role-based validation, high-frequency DOM | `<ActionProvider register={...}>`, `<StoreProvider stores={...} \| manager={...}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `createRefContext` |
 | **Level 3 · Enterprise** | Multi-team domains, atomic undo/redo, AI/MCP tools, micro-frontends | 6-Layer Context-Layered Architecture, `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, `@context-action/lit-ui` / `preact-ui` |
 
 ---
@@ -124,7 +124,7 @@ Adopt only the boundaries your feature needs today:
 
 ### ✅ Context-Action's Approach
 - **🎯 Explicit Domain Boundaries** → Scope state and action pipelines per domain context instead of one giant global store
-- **🏗️ Headless-First + MVVM Separation** → Compose framework-neutral `ActionRegister` / `StateStore` pipelines outside React and inject them cleanly via Provider DI (`<Provider register={...}>`)
+- **🏗️ Headless-First + MVVM Separation** → Compose framework-neutral `ActionRegister` + `Store` / `StoreManager` / `StateStore` pipelines outside React and inject both symmetrically via Provider DI (`<ActionProvider register={...}>`, `<StoreProvider stores={...}>` / `manager={...}>`)
 - **🔒 Type-First Contracts** → Compile-time inference across action payloads, typed results, guards, and stores
 - **📈 Progressive Complexity** → Start with one store context; add role hooks, 6-layer structure, transactions, or AI/Web Component adapters only when needed
 
@@ -737,7 +737,7 @@ Context-Action Framework organizes application state, logic, and views around ex
 ### 📖 Complete Guides
 - **[📚 Official Documentation](https://mineclover.github.io/context-action/)** - Complete guide & API portal
 - **[🚀 Getting Started Guide](https://mineclover.github.io/context-action/en/guide/getting-started)** - 5-minute setup
-- **[📋 Architecture Overview](https://mineclover.github.io/context-action/en/concept/architecture-guide)** - Framework concepts
+- **[📋 Core Philosophy & Architecture](https://mineclover.github.io/context-action/en/concept/architecture-guide)** - 5 Core Principles, Headless-First DI, and MVVM separation
 - **[⚡ Best Practices](https://mineclover.github.io/context-action/en/guide/best-practices)** - Production patterns
 - **[📜 Documentation & Change Management Conventions](https://mineclover.github.io/context-action/en/concept/documentation-development-conventions)** - Authoritative doc workflow & gates
 

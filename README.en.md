@@ -63,7 +63,7 @@ function App() {
 | Level | When to Use | Core Primitives |
 | --- | --- | --- |
 | **Level 1 · Lite** | Single component/feature state or typed commands | `createStoreContext`, `createActionContext` (or `createStateStore` + `ActionRegister`) |
-| **Level 2 · Standard** | Headless orchestration, role-based validation, high-frequency DOM | `<ActionProvider register={headlessRegister}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `createRefContext` |
+| **Level 2 · Standard** | Headless orchestration, role-based validation, high-frequency DOM | `<ActionProvider register={...}>`, `<StoreProvider stores={...} \| manager={...}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `createRefContext` |
 | **Level 3 · Enterprise** | Multi-team domains, atomic undo/redo, AI/MCP tools, micro-frontends | 6-Layer Context-Layered Architecture, `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, `@context-action/lit-ui` / `preact-ui` |
 
 ---
@@ -77,7 +77,7 @@ function App() {
 
 ### ✅ Context-Action's Solution
 - **🎯 Explicit Domain Boundaries** → Context separation based on domain boundaries
-- **🏗️ Headless-First + MVVM Separation** → Compose `ActionRegister` / `StateStore` pipelines outside React and inject them cleanly via `<Provider register={...}>`
+- **🏗️ Headless-First + MVVM Separation** → Compose `ActionRegister` + `Store` / `StoreManager` / `StateStore` pipelines outside React and inject both symmetrically via `<ActionProvider register={...}>` and `<StoreProvider stores={...}>` / `manager={...}`
 - **🔒 Type-First Contracts** → Compile-time inference across payloads, results, guards, and stores
 - **📈 Progressive Complexity** → Start with one store context and adopt role hooks or 6-layer structure only as complexity grows
 
@@ -576,7 +576,7 @@ interface UserActions extends ActionPayloadMap {
 - **[🧭 Convention Index](https://mineclover.github.io/context-action/en/context-layered/convention-index)** - Central task-based index for standards & gates
 - **[📦 Repository Surface Catalog](https://mineclover.github.io/context-action/en/context-layered/repository-surface-catalog)** - Workspace packages, canonical example routes, and managed docs (`CA-SURFACE-CATALOG-001`)
 - **[🏪 Store Selection and Usage Guide](https://mineclover.github.io/context-action/en/context-layered/store-selection-and-usage-guide)** - Decision matrix across all store/state packages
-- **[📋 Architecture Overview](https://mineclover.github.io/context-action/en/concept/architecture-guide)** - Framework concepts
+- **[📋 Core Philosophy & Architecture](https://mineclover.github.io/context-action/en/concept/architecture-guide)** - 5 Core Principles, Headless-First DI, and MVVM separation
 - **[⚡ Best Practices](https://mineclover.github.io/context-action/en/guide/best-practices)** - Production patterns
 - **[📜 Documentation & Change Management Conventions](https://mineclover.github.io/context-action/en/concept/documentation-development-conventions)** - Authoritative doc workflow & gates
 

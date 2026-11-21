@@ -1,13 +1,13 @@
 {
   "package": "react",
-  "generatedAt": "2026-11-21T03:32:49.616Z",
+  "generatedAt": "2026-11-21T04:09:49.052Z",
   "statistics": {
     "totalFiles": 53,
     "typeFiles": 4,
     "codeFiles": 49,
-    "totalLines": 8737,
+    "totalLines": 8849,
     "typeLines": 508,
-    "codeLines": 8229
+    "codeLines": 8341
   },
   "files": [
     {
@@ -58,7 +58,7 @@
     {
       "path": "index.ts",
       "isType": false,
-      "lines": 69
+      "lines": 73
     },
     {
       "path": "refs/createRefContext.ts",
@@ -188,7 +188,7 @@
     {
       "path": "stores/patterns/declarative-store-pattern-v2.tsx",
       "isType": false,
-      "lines": 348
+      "lines": 456
     },
     {
       "path": "stores/patterns/store-definition.ts",
