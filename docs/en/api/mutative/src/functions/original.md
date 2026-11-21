@@ -8,14 +8,14 @@
 
 > **original**&lt;`T`&gt;(`target`): `T`
 
-Defined in: [packages/mutative-core/dist/index.d.ts:210](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L210)
+Defined in: [packages/mutative-core/dist/index.d.ts:308](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L308)
 
 `original(draft)` to get original state in the draft mutation function.
 
 ## Example
 
 ```ts
-import { create, original } from '../index';
+import { create, original } from 'mutative';
 
 const baseState = { foo: { bar: 'str' }, arr: [] };
 const state = create(

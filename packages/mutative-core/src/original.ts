@@ -1,4 +1,5 @@
 import { getProxyDraft } from './utils';
+import { die, ErrorCode } from './error';
 
 /**
  * `original(draft)` to get original state in the draft mutation function.
@@ -6,7 +7,7 @@ import { getProxyDraft } from './utils';
  * ## Example
  *
  * ```ts
- * import { create, original } from '../index';
+ * import { create, original } from 'mutative';
  *
  * const baseState = { foo: { bar: 'str' }, arr: [] };
  * const state = create(
@@ -21,9 +22,7 @@ import { getProxyDraft } from './utils';
 export function original<T>(target: T): T {
   const proxyDraft = getProxyDraft(target);
   if (!proxyDraft) {
-    throw new Error(
-      `original() is only used for a draft, parameter: ${target}`
-    );
+    die(ErrorCode.OriginalOnNonDraft, target);
   }
   return proxyDraft.original;
 }

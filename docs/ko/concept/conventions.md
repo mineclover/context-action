@@ -50,7 +50,7 @@ React 19.2 전용 기능은 별도 문서에서 다룹니다. 기본 설계는 �
    `readMode: 'safe'`를 사용합니다. `notifyPath()`로 보고하는 mutable 직접 변경은
    `useStorePath()`를 사용합니다.
 9. **Immutable runtime을 별도로 추적하기.** Mutative Core는 `0.8.14`에 두고
-   scoped adapter는 `0.8.15`로 패치합니다. 둘 다 upstream `mutative@1.3.0`을
+   scoped adapter는 `0.8.15`로 패치합니다. 둘 다 upstream `mutative@2.0.2`을
    호환성 기준으로 사용하며 동기화는 검토된 lock과
    `pnpm verify:mutative-upstream`으로만
    수행합니다.

@@ -8,12 +8,9 @@
 
 > **Patches**&lt;`P`&gt; = `Patch`&lt;`P`&gt;[]
 
-Defined in: [packages/mutative-core/dist/index.d.ts:37](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L37)
+Defined in: [packages/mutative-core/dist/index.d.ts:54](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L54)
 
-@context-action/mutative
-
-Mutative-based immutability and time-travel utilities.
-Drop-in replacement for Immer with undo/redo capabilities.
+Patches in the order in which `apply()` applies them.
 
 ## Type Parameters
 

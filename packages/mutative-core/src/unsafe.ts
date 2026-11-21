@@ -1,5 +1,6 @@
 import { Options } from './interface';
 import { isDraftable } from './utils';
+import { die, ErrorCode } from './error';
 
 let readable = false;
 
@@ -14,11 +15,14 @@ export const checkReadable = (
     (!isDraftable(value, options) || ignoreCheckDraftable) &&
     !readable
   ) {
-    throw new Error(
-      `Strict mode: Mutable data cannot be accessed directly, please use 'unsafe(callback)' wrap.`
-    );
+    die(ErrorCode.StrictModeAccess);
   }
 };
+
+// Whether reads from drafts are checked now: in strict mode, outside
+// `unsafe()`.
+export const checksReads = (options: Options<any, any>) =>
+  !!options.strict && !readable;
 
 /**
  * `unsafe(callback)` to access mutable data directly in strict mode.
@@ -26,7 +30,7 @@ export const checkReadable = (
  * ## Example
  *
  * ```ts
- * import { create, unsafe } from '../index';
+ * import { create, unsafe } from 'mutative';
  *
  * class Foobar {
  *   bar = 1;
@@ -51,13 +55,12 @@ export const checkReadable = (
  * ```
  */
 export function unsafe<T>(callback: () => T): T {
-  const previousReadable = readable;
+  // A nested call hands the outer call's access back when it ends.
+  const previous = readable;
   readable = true;
-  let result: T;
   try {
-    result = callback();
+    return callback();
   } finally {
-    readable = previousReadable;
+    readable = previous;
   }
-  return result;
 }

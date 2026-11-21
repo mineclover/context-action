@@ -8,23 +8,92 @@ import {
   Result,
 } from './interface';
 import { draftify } from './draftify';
+import { releaseArrayMethods } from './array';
 import {
+  deepClone,
   getProxyDraft,
   isDraft,
   isDraftable,
   isEqual,
-  cloneIfNeeded,
   revokeProxy,
 } from './utils';
 import { current, handleReturnValue } from './current';
 import { RAW_RETURN_SYMBOL, dataTypes } from './constant';
+import { die, ErrorCode } from './error';
 
-type MakeCreator = <
+// TypeScript infers no type parameter from this deferred indexed access, so T
+// keeps its default, never, unless the call supplies the state type.
+type ExplicitState<T> = [T][T extends any ? 0 : never];
+
+type ExplicitReturn<T> = void | ExplicitState<T> | Draft<ExplicitState<T>>;
+
+// An async recipe widens the literals it returns unless a Promise is among
+// the return types of the first overload that checks it, and a literal that
+// it returns directly needs a Promise as the whole return type. Actual
+// Promises lack the impossible field and still select the async overload.
+type AsyncRecipeContext<T> = Promise<ExplicitReturn<T>> & {
+  readonly __mutativeAsyncContext: never;
+};
+
+type IsExplicitPrimitive<T> = [ExplicitState<T>] extends [
+  string | number | bigint | boolean | symbol | null | undefined,
+]
+  ? true
+  : false;
+
+type ExplicitSyncReturn<T> =
+  IsExplicitPrimitive<T> extends true
+    ? AsyncRecipeContext<T>
+    : ExplicitReturn<T> | AsyncRecipeContext<T>;
+
+type ExplicitRecipe<T, P extends any[], R> = [T] extends [never]
+  ? never
+  : (draft: Draft<ExplicitState<T>>, ...args: P) => R;
+
+// The first overload only gives the async recipes of a primitive state their
+// context, so its synchronous recipes take this one, which comes before the
+// overload of a recipe that may or may not return a Promise.
+type ExplicitPrimitiveRecipe<T, P extends any[]> =
+  IsExplicitPrimitive<T> extends true
+    ? ExplicitRecipe<T, P, ExplicitReturn<T>>
+    : never;
+
+/** @inline */ type MakeCreator = <
   _F extends boolean = false,
   _O extends PatchesOptions = false,
 >(
   options?: ExternalOptions<_O, _F>
 ) => {
+  // With an explicit state type, TypeScript infers no other type argument, and
+  // the default return type `void` of the overloads below also accepts an
+  // async recipe. These overloads tell async recipes apart by their return
+  // type; an inferred call leaves T at never and skips them.
+  <T = never, F extends boolean = _F, O extends PatchesOptions = _O>(
+    base: ExplicitState<T>,
+    mutate: ExplicitRecipe<T, [], ExplicitSyncReturn<T>>,
+    options?: ExternalOptions<O, F>
+  ): Result<ExplicitState<T>, O, F>;
+  <T = never, F extends boolean = _F, O extends PatchesOptions = _O>(
+    base: ExplicitState<T>,
+    mutate: ExplicitRecipe<T, [], Promise<ExplicitReturn<T>>>,
+    options?: ExternalOptions<O, F>
+  ): Promise<Result<ExplicitState<T>, O, F>>;
+  // A synchronous recipe of a primitive state.
+  <T = never, F extends boolean = _F, O extends PatchesOptions = _O>(
+    base: ExplicitState<T>,
+    mutate: ExplicitPrimitiveRecipe<T, []>,
+    options?: ExternalOptions<O, F>
+  ): Result<ExplicitState<T>, O, F>;
+  // A recipe that may or may not return a Promise gives either result.
+  <T = never, F extends boolean = _F, O extends PatchesOptions = _O>(
+    base: ExplicitState<T>,
+    mutate: ExplicitRecipe<
+      T,
+      [],
+      ExplicitReturn<T> | Promise<ExplicitReturn<T>>
+    >,
+    options?: ExternalOptions<O, F>
+  ): Result<ExplicitState<T>, O, F> | Promise<Result<ExplicitState<T>, O, F>>;
   <
     T extends any,
     F extends boolean = _F,
@@ -46,13 +115,71 @@ type MakeCreator = <
     options?: ExternalOptions<O, F>
   ): CreateResult<T, O, F, R>;
   <
+    T = never,
+    P extends any[] = [],
+    F extends boolean = _F,
+    O extends PatchesOptions = _O,
+  >(
+    mutate: ExplicitRecipe<T, P, ExplicitSyncReturn<T>>,
+    options?: ExternalOptions<O, F>
+  ): (base: ExplicitState<T>, ...args: P) => Result<ExplicitState<T>, O, F>;
+  <
+    T = never,
+    P extends any[] = [],
+    F extends boolean = _F,
+    O extends PatchesOptions = _O,
+  >(
+    mutate: ExplicitRecipe<T, P, Promise<ExplicitReturn<T>>>,
+    options?: ExternalOptions<O, F>
+  ): (
+    base: ExplicitState<T>,
+    ...args: P
+  ) => Promise<Result<ExplicitState<T>, O, F>>;
+  <
+    T = never,
+    P extends any[] = [],
+    F extends boolean = _F,
+    O extends PatchesOptions = _O,
+  >(
+    mutate: ExplicitPrimitiveRecipe<T, P>,
+    options?: ExternalOptions<O, F>
+  ): (base: ExplicitState<T>, ...args: P) => Result<ExplicitState<T>, O, F>;
+  <
+    T = never,
+    P extends any[] = [],
+    F extends boolean = _F,
+    O extends PatchesOptions = _O,
+  >(
+    mutate: ExplicitRecipe<
+      T,
+      P,
+      ExplicitReturn<T> | Promise<ExplicitReturn<T>>
+    >,
+    options?: ExternalOptions<O, F>
+  ): (
+    base: ExplicitState<T>,
+    ...args: P
+  ) => Result<ExplicitState<T>, O, F> | Promise<Result<ExplicitState<T>, O, F>>;
+  <
     T extends any,
     P extends any[] = [],
     F extends boolean = _F,
     O extends PatchesOptions = _O,
-    R extends void | Promise<void> = void,
+    R extends void | Promise<void> | T | Promise<T> = void,
   >(
     mutate: (draft: Draft<T>, ...args: P) => R,
+    options?: ExternalOptions<O, F>
+  ): (base: T, ...args: P) => CreateResult<T, O, F, R>;
+  // A recipe that annotates its draft with the state type itself, such as a
+  // type parameter, which TypeScript cannot match against `Draft<T>`.
+  <
+    T extends any,
+    P extends any[] = [],
+    F extends boolean = _F,
+    O extends PatchesOptions = _O,
+    R extends void | Promise<void> | T | Promise<T> = void,
+  >(
+    mutate: (draft: T, ...args: P) => R,
     options?: ExternalOptions<O, F>
   ): (base: T, ...args: P) => CreateResult<T, O, F, R>;
   <T extends any, O extends PatchesOptions = _O, F extends boolean = _F>(
@@ -67,7 +194,7 @@ type MakeCreator = <
  * ## Example
  *
  * ```ts
- * import { makeCreator } from '../index';
+ * import { makeCreator } from 'mutative';
  *
  * const baseState = { foo: { bar: 'str' }, arr: [] };
  * const create = makeCreator({ enableAutoFreeze: true });
@@ -124,6 +251,10 @@ export const makeCreator: MakeCreator = (arg) => {
       ...arg,
       ...options,
     };
+    const draftBase = isDraft(base);
+    // A nested create() detaches untouched descendants from the draft's current
+    // tree so callers cannot mutate the outer base through unedited branches.
+    const state = draftBase ? deepClone(current(base)) : base;
     const mark = Array.isArray(options.mark)
       ? (((value: unknown, types: typeof dataTypes) => {
           for (const mark of options.mark as Mark<any, any>[]) {
@@ -149,43 +280,35 @@ export const makeCreator: MakeCreator = (arg) => {
       strict,
       enablePatches,
     };
-    // A nested create() must detach from a draft's current tree. Using the
-    // draft's shallow current value would leave untouched descendants shared
-    // with the original base and allow the nested result to mutate it.
-    const state = isDraft(base) ? cloneIfNeeded(base, _options) : base;
     if (
       !isDraftable(state, _options) &&
       typeof state === 'object' &&
       state !== null
     ) {
-      throw new Error(
-        `Invalid base state: create() only supports plain objects, arrays, Set, Map or using mark() to mark the state as immutable.`
-      );
+      die(ErrorCode.InvalidBaseState);
     }
-    const [draft, finalize] = draftify(state, _options);
+    const [draft, finalize, finalities] = draftify(state, _options);
     if (typeof arg1 !== 'function') {
       if (!isDraftable(state, _options)) {
-        throw new Error(
-          `Invalid base state: create() only supports plain objects, arrays, Set, Map or using mark() to mark the state as immutable.`
-        );
+        die(ErrorCode.InvalidBaseState);
       }
+      finalities.scoped = false;
       return [draft, finalize];
+    }
+    // A failed producer revokes its drafts, without reading the root draft,
+    // which finalization may already have revoked, and releases the array
+    // method cache, which must not keep it alive.
+    function fail(error: unknown): never {
+      revokeProxy(finalities);
+      releaseArrayMethods(finalities.revoke);
+      throw error;
     }
     let result: any;
     try {
       result = mutate(draft);
     } catch (error) {
-      revokeProxy(getProxyDraft(draft));
-      throw error;
+      fail(error);
     }
-    const finalizeResult = (returnedValue: [any] | []) => {
-      try {
-        return finalize(returnedValue);
-      } catch (error) {
-        revokeProxy(getProxyDraft(draft));
-        throw error;
-      }
-    };
     const returnValue = (value: any) => {
       const proxyDraft = getProxyDraft(draft)!;
       if (!isDraft(value)) {
@@ -194,21 +317,15 @@ export const makeCreator: MakeCreator = (arg) => {
           !isEqual(value, draft) &&
           proxyDraft?.operated
         ) {
-          throw new Error(
-            `Either the value is returned as a new non-draft value, or only the draft is modified without returning any value.`
-          );
+          die(ErrorCode.MutateAndReturn);
         }
         const rawReturnValue = value?.[RAW_RETURN_SYMBOL] as [any] | undefined;
         if (rawReturnValue) {
           const _value = rawReturnValue[0];
           if (_options.strict && typeof value === 'object' && value !== null) {
-            handleReturnValue({
-              rootDraft: proxyDraft,
-              value,
-              useRawReturn: true,
-            });
+            handleReturnValue(proxyDraft, value, true);
           }
-          return finalizeResult([_value]);
+          return finalize([_value]);
         }
         if (_options.strict && value !== undefined) {
           throw new Error(
@@ -217,29 +334,41 @@ export const makeCreator: MakeCreator = (arg) => {
         }
         if (value !== undefined) {
           if (typeof value === 'object' && value !== null) {
-            handleReturnValue({ rootDraft: proxyDraft, value });
+            handleReturnValue(proxyDraft, value);
           }
-          return finalizeResult([value]);
+          return finalize([value]);
         }
       }
       if (value === draft || value === undefined) {
-        return finalizeResult([]);
+        return finalize([]);
       }
       const returnedProxyDraft = getProxyDraft(value)!;
       if (_options === returnedProxyDraft.options) {
         if (returnedProxyDraft.operated) {
-          throw new Error(`Cannot return a modified child draft.`);
+          die(ErrorCode.CannotReturnModifiedChildDraft);
         }
-        return finalizeResult([current(value)]);
+        return finalize([current(value)]);
       }
-      return finalizeResult([value]);
+      return finalize([value]);
     };
-    if (result instanceof Promise) {
-      return result.then(returnValue, (error) => {
-        revokeProxy(getProxyDraft(draft)!);
-        throw error;
-      });
+    // Returned values are checked and finalized after the recipe, and a
+    // failure there ends the producer like an error in the recipe does.
+    const finish = (value: any) => {
+      try {
+        return returnValue(value);
+      } catch (error) {
+        return fail(error);
+      } finally {
+        releaseArrayMethods(finalities.revoke);
+      }
+    };
+    try {
+      // Classifying a returned Proxy, or reading/calling an overridden then,
+      // can throw before a Promise has registered the failure handler.
+      if (result instanceof Promise) return result.then(finish, fail);
+    } catch (error) {
+      return fail(error);
     }
-    return returnValue(result);
+    return finish(result);
   };
 };

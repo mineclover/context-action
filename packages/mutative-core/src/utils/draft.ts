@@ -1,55 +1,30 @@
-import { DraftType, Mark, ProxyDraft } from '../interface';
+import { DraftType, Finalities, Mark, ProxyDraft } from '../interface';
 import { dataTypes, PROXY_DRAFT } from '../constant';
-import { has } from './proto';
 
 export function latest<T = any>(proxyDraft: ProxyDraft): T {
   return proxyDraft.copy ?? proxyDraft.original;
 }
 
-export function isLazyArrayDraft(proxyDraft: ProxyDraft) {
-  return (
-    proxyDraft.type === DraftType.Array && !proxyDraft.options.enablePatches
-  );
+// The drafts of a Set draft's items and the objects it added; see `src/set.ts`.
+export function getSetMap(target: ProxyDraft): Map<any, any> {
+  return target.setMap || (target.setMap = new Map());
 }
 
-export function isArrayIndex(key: PropertyKey): key is string | number {
-  let index: number;
-  return (
-    key !== 'length' &&
-    typeof key !== 'symbol' &&
-    Number.isInteger((index = Number(key))) &&
-    index >= 0 &&
-    (key === 0 || index === 0 || String(index) === String(key))
-  );
+// The value that an item of a Set draft stands for; `setMap` holds no
+// `undefined` value.
+export function setItemValue(target: ProxyDraft, item: any) {
+  const value = target.setMap && target.setMap.get(item);
+  return value === undefined ? item : value;
 }
 
-export function getArrayIndex(key: string | number) {
-  return Number(key);
-}
+const setValues = Set.prototype.values;
 
-export function isAssignedArrayIndex(proxyDraft: ProxyDraft, index: number) {
-  return (
-    proxyDraft.assignedMap?.get(index) === true ||
-    proxyDraft.assignedMap?.get(String(index)) === true
-  );
-}
-
-export function setAssignedArrayIndex(
-  proxyDraft: ProxyDraft,
-  index: number,
-  assigned: boolean
-) {
-  if (!assigned) {
-    proxyDraft.assignedMap?.delete(index);
-    proxyDraft.assignedMap?.delete(String(index));
-    return;
-  }
-  proxyDraft.assignedMap = proxyDraft.assignedMap ?? new Map();
-  proxyDraft.assignedMap.set(index, true);
-}
-
-export function isOriginalArrayValue(proxyDraft: ProxyDraft, value: any) {
-  return Array.prototype.indexOf.call(proxyDraft.original, value) !== -1;
+// The items of a Set in the order in which it holds them, also for a subclass
+// that iterates them otherwise, so that the positions in patch paths are those
+// that the draft iterates. A draft of an outer producer iterates them so
+// itself.
+export function iterateSet(set: Set<any>): IterableIterator<any> {
+  return isDraft(set) ? set.values() : setValues.call(set);
 }
 
 /**
@@ -64,9 +39,18 @@ export function getProxyDraft<T extends any>(value: T): ProxyDraft | null {
   return (value as { [PROXY_DRAFT]: any })?.[PROXY_DRAFT];
 }
 
+// Iterators retain draft state instead of reading through the proxy. Once
+// its scope has been revoked, use the proxy to throw the same native error.
+export function assertDraftActive(target: ProxyDraft) {
+  if (target.finalities.revoke.length === 0) getProxyDraft(target.proxy);
+}
+
 export function getValue<T extends object>(value: T): T {
   const proxyDraft = getProxyDraft(value);
-  return proxyDraft ? (proxyDraft.copy ?? proxyDraft.original) : value;
+  if (!proxyDraft) return value;
+  // A copy also exists once a child has merely been read; an unchanged draft
+  // still stands for its original, as every other finalization path decides.
+  return proxyDraft.operated ? proxyDraft.copy! : proxyDraft.original;
 }
 
 /**
@@ -86,39 +70,65 @@ export function isDraftable(value: any, options?: { mark?: Mark<any, any> }) {
   );
 }
 
+// A string path holds only strings, so a Map key of another type or a symbol
+// key would name a different key when the patch is applied. Development
+// builds check the keys of the patch paths they generate.
+export function checkPathKey(
+  type: DraftType,
+  key: unknown,
+  pathAsArray: boolean | undefined
+) {
+  if (
+    pathAsArray === false &&
+    typeof key !== 'string' &&
+    (type === DraftType.Map || typeof key === 'symbol')
+  ) {
+    throw new Error(
+      `Patches with string paths only support string Map keys and no symbol keys, got a key of type '${typeof key}'. Set 'pathAsArray' to true to keep keys of other types.`
+    );
+  }
+}
+
 export function getPath(
   target: ProxyDraft,
   path: any[] = []
 ): (string | number | object)[] | null {
-  if (Object.hasOwnProperty.call(target, 'key')) {
-    // check if the parent is a draft and the original value is not equal to the current value
-    const parentCopy = target.parent!.copy;
-    const proxyDraft = getProxyDraft(get(parentCopy, target.key!));
-    if (proxyDraft !== null && proxyDraft?.original !== target.original) {
+  const parent = target.parent;
+  if (parent) {
+    const parentCopy = parent.copy;
+    let key: any = target.key;
+    if (parent.type === DraftType.Set) {
+      // Set items are keyed by their original value; paths use positions,
+      // which patches can follow only while the Set itself is unchanged.
+      // Once the recipe added or removed items, the Set's own patches carry
+      // every changed item by value, so patches under this path would be
+      // applied to whatever sits at the position in the base Set. An
+      // unchanged Set holds its items in their original order.
+      if (parent.assignedMap!.size > 0) return null;
+      // Counted without copying the Set, as each changed item searches it.
+      let index = 0;
+      for (const item of iterateSet(parent.original)) {
+        if (item === key) break;
+        index += 1;
+      }
+      key = index;
+    } else if (get(parentCopy, key) !== target.proxy) {
+      // The child left its key: it was moved, deleted or replaced, possibly
+      // by another draft of a shared object. The parent's patches carry its
+      // value wherever it is now, so patches under this path would be stale.
       return null;
     }
-    const isSet = target.parent!.type === DraftType.Set;
-    const key = isSet
-      ? Array.from(target.parent!.setMap!.keys()).indexOf(target.key)
-      : target.key;
-    // check if the key is still in the next state parent
-    if (
-      !((isSet && parentCopy.size > (key as number)) || has(parentCopy, key!))
-    )
-      return null;
     path.push(key);
+    const resolved = getPath(parent, path);
+    // Checked once the path resolves, as a stale path emits no patches.
+    if (resolved) {
+      checkPathKey(parent.type, key, parent.options.enablePatches.pathAsArray);
+    }
+    return resolved;
   }
-  if (target.parent) {
-    return getPath(target.parent, path);
-  }
-  // `target` is root draft.
+  // `target` is the root draft. Every level above found its child at its
+  // key, so the path resolves in the root's copy.
   path.reverse();
-  try {
-    // check if the path is valid
-    resolvePath(target.copy, path);
-  } catch (e) {
-    return null;
-  }
   return path;
 }
 
@@ -142,12 +152,6 @@ export function set(target: any, key: PropertyKey, value: any) {
   }
 }
 
-export function peek(target: any, key: PropertyKey) {
-  const state = getProxyDraft(target);
-  const source = state ? latest(state) : target;
-  return source[key];
-}
-
 export function isEqual(x: any, y: any) {
   if (x === y) {
     return x !== 0 || 1 / x === 1 / y;
@@ -156,12 +160,10 @@ export function isEqual(x: any, y: any) {
   }
 }
 
-export function revokeProxy(proxyDraft: ProxyDraft | null) {
-  if (!proxyDraft) return;
-  while (proxyDraft.finalities.revoke.length > 0) {
-    const revoke = proxyDraft.finalities.revoke.pop()!;
-    revoke();
-  }
+// Revokes every draft of a producer without reading any of them.
+export function revokeProxy(finalities: Finalities) {
+  const revoke = finalities.revoke;
+  while (revoke.length > 0) revoke.pop()!();
 }
 
 // handle JSON Pointer path with spec https://www.rfc-editor.org/rfc/rfc6901
@@ -184,16 +186,4 @@ export function unescapePath(path: string | (string | number)[]) {
     .split('/')
     .map((_item) => _item.replace(/~1/g, '/').replace(/~0/g, '~'))
     .slice(1);
-}
-
-export function resolvePath(base: any, path: (string | number)[]) {
-  for (let index = 0; index < path.length - 1; index += 1) {
-    const key = path[index];
-    // use `index` in Set draft
-    base = get(getType(base) === DraftType.Set ? Array.from(base) : base, key);
-    if (typeof base !== 'object') {
-      throw new Error(`Cannot resolve patch at '${path.join('/')}'.`);
-    }
-  }
-  return base;
 }

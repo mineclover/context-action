@@ -1,12 +1,13 @@
 # @context-action/mutative-core
 
-The Context-Action maintained core implementation of Mutative. It preserves
-the upstream Mutative API while carrying the maintained fork fixes from
-[`mineclover/mutative`](https://github.com/mineclover/mutative), including lazy
-array drafts, nested `create()` isolation, and the `produce` alias.
+The Context-Action maintained core implementation of Mutative. It tracks the
+upstream `mutative@2.0.2` runtime (native copy-on-write arrays, hardened
+`apply()`, and Map/Set freezing) while keeping Context-Action's `produce` alias,
+isolated nested `create()`, Set insertion-order `replace` patches, and
+unconditional `pathAsArray: false` safety validation.
 
 The current scoped release is `@context-action/mutative-core@0.8.14`. It tracks
-the acquired upstream `mutative@1.3.0` compatibility baseline without importing
+the acquired upstream `mutative@2.0.2` compatibility baseline without importing
 the upstream package at runtime. The baseline and scoped version are separate;
 run `pnpm verify:mutative-upstream` before synchronizing the vendored source.
 

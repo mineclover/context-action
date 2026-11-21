@@ -8,12 +8,10 @@
 
 > **PatchesOptions** = `boolean` \| \{ `pathAsArray?`: `boolean`; `arrayLengthAssignment?`: `boolean`; \}
 
-Defined in: [packages/mutative-core/dist/index.d.ts:14](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L14)
+Defined in: [packages/mutative-core/dist/index.d.ts:18](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L18)
 
-@context-action/mutative
-
-Mutative-based immutability and time-travel utilities.
-Drop-in replacement for Immer with undo/redo capabilities.
+The `enablePatches` option: `true` or an object generates patches, `false`
+does not.
 
 ## Union Members
 
@@ -29,10 +27,15 @@ Drop-in replacement for Immer with undo/redo capabilities.
 
 > `optional` **pathAsArray?**: `boolean`
 
-The default value is `true`. If it's `true`, the path will be an array, otherwise it is a string.
+Whether a patch path is an array of keys, as by default, or a JSON
+Pointer string, such as `/list/0`.
 
 #### arrayLengthAssignment?
 
 > `optional` **arrayLengthAssignment?**: `boolean`
 
-The default value is `true`. If it's `true`, the array length will be included in the patches, otherwise no include array length.
+Whether an array that gets shorter gets a `replace` patch of its
+`length`, as by default, or a `remove` patch for each index that it
+loses, as JSON Patch requires.
+Recreating holes in a sparse array still uses length patches;
+JSON cannot represent holes.

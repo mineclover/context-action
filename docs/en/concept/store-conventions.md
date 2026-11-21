@@ -4,7 +4,7 @@ Complete conventions for Store, TimeTravelStore, and MutableStore patterns in th
 
 This guide targets the stable Core `1.2.6`, Store Core `0.1.3`, Mutative Core `0.8.14`, scoped
 adapter `0.8.15`, and React `4.0.7` cohort. The upstream immutable-update baseline is
-`mutative@1.3.0`; scoped adapter versions remain independent. The role and
+`mutative@2.0.2`; scoped adapter versions remain independent. The role and
 transaction contracts are maintained in [Store and time-travel
 contracts](../../../packages/react/docs/state-contracts.md).
 

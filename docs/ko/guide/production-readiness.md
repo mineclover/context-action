@@ -29,11 +29,11 @@ Store와 Action 계층은 상태 소유권, 구독, 액션 핸들링의 경계�
 | --- | --- | --- |
 | `@context-action/core` | `1.3.1` | 안정화된 액션 lifecycle·dispatch trace·observer 의미론 |
 | `@context-action/store-core` | `0.1.4` | framework-neutral state·patch·timeline backend 계약 |
-| `@context-action/mutative-core` | `0.8.14` | upstream `mutative@1.3.0` 호환성 기준과 유지보수 fork 수정 |
+| `@context-action/mutative-core` | `0.8.14` | upstream `mutative@2.0.2` 호환성 기준과 유지보수 fork 수정 |
 | `@context-action/mutative` | `0.8.15` | defensive collection snapshot, immutable update, timeline batch |
 | `@context-action/react` | `4.0.7` | React lifecycle·backend notification·declaration·SSR 계약 |
 
-upstream 기준과 scoped package 버전은 별도 계약입니다. `mutative@1.3.0`은
+upstream 기준과 scoped package 버전은 별도 계약입니다. `mutative@2.0.2`은
 인수한 source baseline이며 runtime dependency나 scoped adapter 버전이 아닙니다.
 core lock과 유지 patch는 `pnpm verify:mutative-upstream`으로 검증합니다.
 

@@ -2,12 +2,42 @@ import { Operation, DraftType } from './interface';
 import type {
   Draft,
   Patches,
+  ApplyImmutableOptions,
   ApplyMutableOptions,
   ApplyOptions,
   ApplyResult,
 } from './interface';
-import { deepClone, get, getType, isDraft, unescapePath } from './utils';
+import {
+  deepClone,
+  getProxyDraft,
+  getType,
+  has,
+  isDraft,
+  unescapePath,
+} from './utils';
 import { create } from './create';
+import { die, ErrorCode } from './error';
+
+// A draft knows its type, which `getType` would find only through the traps of
+// its proxy. Any other value is typed as before, also a proxy of the
+// application that rejects reading the symbol of drafts.
+function getPatchTargetType(value: any) {
+  try {
+    const proxyDraft = getProxyDraft(value);
+    if (proxyDraft) return proxyDraft.type;
+  } catch {
+    // Not a draft.
+  }
+  return getType(value);
+}
+
+function normalizePatchKey(key: any) {
+  // Let JavaScript perform ToPropertyKey once, including a Symbol result.
+  // Primitive keys cannot disguise a reserved name and need no conversion here.
+  return typeof key === 'object' || typeof key === 'function'
+    ? Reflect.ownKeys({ [key]: 0 })[0]
+    : key;
+}
 
 /**
  * `apply(state, patches)` to apply patches to state
@@ -15,7 +45,7 @@ import { create } from './create';
  * ## Example
  *
  * ```ts
- * import { create, apply } from '../index';
+ * import { create, apply } from 'mutative';
  *
  * const baseState = { foo: { bar: 'str' }, arr: [] };
  * const [state, patches] = create(
@@ -33,8 +63,46 @@ import { create } from './create';
 export function apply<
   T extends object,
   F extends boolean = false,
-  A extends ApplyOptions<F> = ApplyOptions<F>,
+  _A extends ApplyOptions<boolean> | undefined = ApplyImmutableOptions<F>,
+>(
+  state: T,
+  patches: Patches,
+  applyOptions?: undefined
+): ApplyResult<T, F, undefined>;
+export function apply<
+  T extends object,
+  F extends boolean = false,
+  A extends ApplyOptions<boolean> | undefined = ApplyImmutableOptions<F>,
+>(state: T, patches: Patches, applyOptions: A): ApplyResult<T, F, A>;
+// A wrapper may supply A explicitly while forwarding optional options. Keep
+// undefined in its result, but prefer the exact overload above when present.
+export function apply<
+  T extends object,
+  F extends boolean = false,
+  A extends ApplyOptions<boolean> | undefined = ApplyImmutableOptions<F>,
+>(
+  state: T,
+  patches: Patches,
+  applyOptions?: A
+): ApplyResult<T, F, A | undefined>;
+// With an explicit T, A takes its default instead of being inferred. Keep
+// mutable options available without making calls with no options return void.
+export function apply<T extends object, F extends boolean = false>(
+  state: T,
+  patches: Patches,
+  applyOptions: { mutable: true }
+): ApplyResult<T, F, { mutable: true }>;
+export function apply<T extends object, F extends boolean = false>(
+  state: T,
+  patches: Patches,
+  applyOptions: ApplyMutableOptions | undefined
+): ApplyResult<T, F, ApplyMutableOptions | undefined>;
+export function apply<
+  T extends object,
+  F extends boolean = false,
+  A extends ApplyOptions<boolean> | undefined = ApplyImmutableOptions<F>,
 >(state: T, patches: Patches, applyOptions?: A): ApplyResult<T, F, A> {
+  const mutable = (applyOptions as ApplyMutableOptions)?.mutable;
   let i: number;
   for (i = patches.length - 1; i >= 0; i -= 1) {
     const { value, op, path } = patches[i];
@@ -42,6 +110,9 @@ export function apply<
       (!path.length && op === Operation.Replace) ||
       (path === '' && op === Operation.Add)
     ) {
+      // A mutable application changes the state in place and returns nothing,
+      // so it cannot replace the state with another value.
+      if (mutable && value !== state) die(ErrorCode.ReplaceMutableRoot);
       state = value;
       break;
     }
@@ -49,60 +120,63 @@ export function apply<
   if (i > -1) {
     patches = patches.slice(i + 1);
   }
+  // The objects that a mutable application changes in place are not drafts.
+  const getTargetType = mutable ? getType : getPatchTargetType;
   const mutate = (draft: Draft<T> | T) => {
     patches.forEach((patch) => {
       const { path: _path, op } = patch;
       const path = unescapePath(_path);
       let base: any = draft;
       for (let index = 0; index < path.length - 1; index += 1) {
-        const parentType = getType(base);
+        const parentType = getTargetType(base);
         let key = path[index];
-        const keyForCheck =
-          typeof key === 'symbol' ? undefined : String(key as any);
-        if (
-          ((parentType === DraftType.Object ||
-            parentType === DraftType.Array) &&
-            keyForCheck !== undefined &&
-            (keyForCheck === '__proto__' || keyForCheck === 'constructor')) ||
-          (typeof base === 'function' &&
-            keyForCheck !== undefined &&
-            keyForCheck === 'prototype')
-        ) {
-          throw new Error(
-            `Patching reserved attributes like __proto__ and constructor is not allowed.`
-          );
+        // Map keys and Set positions retain their native identity/semantics.
+        if (parentType <= DraftType.Array) {
+          key = normalizePatchKey(key);
+          if (
+            key === '__proto__' ||
+            key === 'constructor' ||
+            (typeof base === 'function' && key === 'prototype')
+          ) {
+            die(ErrorCode.ReservedPatchAttribute);
+          }
         }
-        if (
-          (parentType === DraftType.Object ||
-            parentType === DraftType.Array ||
-            typeof base === 'function') &&
-          typeof key !== 'string' &&
-          typeof key !== 'number' &&
-          typeof key !== 'symbol'
-        ) {
-          // keyForCheck cannot be undefined here, because:
-          // - If key is a symbol, this conditional block will not be entered
-          // - All other types will be converted to String(key)
-          key = keyForCheck!;
+        if (parentType === DraftType.Set) {
+          // A Set item is found at its index in the array of the Set's items,
+          // so that no other key, such as `__proto__`, reads a property that
+          // the array inherits. No number names such a property. The key is
+          // converted once, so that the check and the read use the same key.
+          key = normalizePatchKey(key);
+          base = Array.from(base);
+          if (typeof key !== 'number' && !has(base, key))
+            die(ErrorCode.CannotApplyPatch, path);
         }
-        // use `index` in Set draft
-        base = get(parentType === DraftType.Set ? Array.from(base) : base, key);
+        base = parentType === DraftType.Map ? base.get(key) : base[key];
         if (typeof base !== 'object') {
-          throw new Error(`Cannot apply patch at '${path.join('/')}'.`);
+          die(ErrorCode.CannotApplyPatch, path);
         }
       }
 
-      const type = getType(base);
+      const type = getTargetType(base);
       // ensure the original patch is not modified.
       const value = deepClone(patch.value);
-      const key = path[path.length - 1];
+      let key = path[path.length - 1];
+      // The last segment is assigned, and an assignment to `__proto__` sets
+      // the prototype of an object or array instead of a property.
+      if (type <= DraftType.Array) {
+        // Array add/remove use splice indices, which follow ToNumber instead.
+        if (type === DraftType.Object || op === Operation.Replace) {
+          key = normalizePatchKey(key);
+        }
+        if (key === '__proto__') die(ErrorCode.ReservedPatchAttribute);
+      }
       switch (op) {
         case Operation.Replace:
           switch (type) {
             case DraftType.Map:
               return base.set(key, value);
             case DraftType.Set:
-              throw new Error(`Cannot apply replace patch to set.`);
+              return die(ErrorCode.ReplacePatchOnSet);
             default:
               return (base[key] = value);
           }
@@ -134,11 +208,11 @@ export function apply<
               return delete base[key];
           }
         default:
-          throw new Error(`Unsupported patch operation: ${op}.`);
+          die(ErrorCode.UnsupportedPatchOperation, op);
       }
     });
   };
-  if ((applyOptions as ApplyMutableOptions)?.mutable) {
+  if (mutable) {
     if (__DEV__) {
       if (
         Object.keys(applyOptions!).filter((key) => key !== 'mutable').length
@@ -153,13 +227,13 @@ export function apply<
   }
   if (isDraft(state)) {
     if (applyOptions !== undefined) {
-      throw new Error(`Cannot apply patches with options to a draft.`);
+      die(ErrorCode.ApplyOptionsToDraft);
     }
     mutate(state as Draft<T>);
     return state as ApplyResult<T, F, A>;
   }
   return create<T, F>(state, mutate, {
-    ...applyOptions,
+    ...(applyOptions as ApplyOptions<F>),
     enablePatches: false,
   }) as T as ApplyResult<T, F, A>;
 }

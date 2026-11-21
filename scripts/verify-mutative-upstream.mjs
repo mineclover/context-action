@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Verify the vendored Mutative core against the immutable upstream 1.3.0
+ * Verify the vendored Mutative core against the immutable upstream 2.0.2
  * source snapshot.  This verifier deliberately never writes source files (or
  * the lock file).  Use --inventory to produce a candidate lock document, then
  * review and commit that document before running --check in CI.
@@ -27,8 +27,8 @@ const defaultManifestPath = path.join(repositoryRoot, 'packages', 'mutative-core
 const lockSchemaVersion = 'context-action-mutative-upstream-lock.v1';
 const approvedUpstream = {
   name: 'mutative',
-  version: '1.3.0',
-  gitHead: '01945e3274e9730706799e4d432c22248a6bdeb1',
+  version: '2.0.2',
+  gitHead: '15caa67b2a15430d2d981c770bf7821d1beca3fa',
   repository: 'git+https://github.com/unadlib/mutative.git',
 };
 const sourceCategories = new Set(['unchanged', 'modified', 'added', 'removed']);
@@ -490,7 +490,7 @@ function run(options) {
     validateSyncManifest(sync, manifest, options.repository, syncPath);
   }
   const name = options.packageName ?? manifest?.upstream.name ?? 'mutative';
-  const version = options.packageVersion ?? manifest?.upstream.version ?? '1.3.0';
+  const version = options.packageVersion ?? manifest?.upstream.version ?? '2.0.2';
   if (name !== 'mutative') throw new Error(`Only the upstream mutative package is supported, received ${name}`);
   const upstream = acquireUpstream({ name, version, registry: options.registry ?? manifest?.upstream.registry });
   try {

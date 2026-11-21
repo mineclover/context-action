@@ -101,7 +101,7 @@
 
 ### 3.1 계층별 패키지 용도 요약
 
-- **Foundation (`5`)**: `core`(액션 파이프라인 + 선택적 `./element` DOM/호스트 전송), `store-core`(프레임워크 중립 상태/타임라인/트랜잭션 계약 + `createStateStore`), `mutative-core`(`mutative@1.3.0` 호환 불변 draft·patch 엔진), `tool-protocol`(Zod/JSON Schema 도구, MCP/프로바이더 어댑터, 승인 큐, 멱등성, 관측 정책), `tool-durable-operations`(lease/claim 부작용 복구 + IndexedDB/Redis/PostgreSQL 기준 백엔드).
+- **Foundation (`5`)**: `core`(액션 파이프라인 + 선택적 `./element` DOM/호스트 전송), `store-core`(프레임워크 중립 상태/타임라인/트랜잭션 계약 + `createStateStore`), `mutative-core`(`mutative@2.0.2` 호환 불변 draft·patch 엔진), `tool-protocol`(Zod/JSON Schema 도구, MCP/프로바이더 어댑터, 승인 큐, 멱등성, 관측 정책), `tool-durable-operations`(lease/claim 부작용 복구 + IndexedDB/Redis/PostgreSQL 기준 백엔드).
 - **Framework Adapters (`4`)**: `react`(React 18/19 Action/Store/TimeTravel/Ref 컨텍스트, 훅, 트랜잭션, `./backend`, `./advanced`, `./webmcp`), `mutative`(`TimeTravel` + `MutativeStateBackend`/`MutativeTimelineBackend`), `lit`(`StoreController`, `ActionController`, `ControllerScope`), `preact`(`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`).
 - **UI Runtimes (`2`)**: `lit-ui`(Lit 웹 컴포넌트, W3C Context Protocol, FACE, `./react-bridge`, `./ssr`, `./hydrate`), `preact-ui`(소유된 Preact DOM 루트, `mountPreact`/`hydratePreact`, `createDisposalScope`, `./react-bridge`, `./ssr`).
 - **Integration Adapters (`3`)**: `xstate`(`.`의 XState v5/v6 액터 브리지 + `./effect`의 Effect v4 / `@xstate/effect` / Standard Schema v1 / 트랜잭션 스코프), `ai-sdk`(AI SDK v7 턴 범위 `ToolSet` 어댑터), `webmcp`(allowlist 기반 `document.modelContext` 브라우저 어댑터).

@@ -8,7 +8,7 @@
 
 > **isDraft**(`target`): `boolean`
 
-Defined in: [packages/mutative-core/dist/index.d.ts:293](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L293)
+Defined in: [packages/mutative-core/dist/index.d.ts:391](https://github.com/mineclover/context-action/blob/main/packages/mutative-core/dist/index.d.ts#L391)
 
 Check if the value is a draft
 

@@ -16,12 +16,12 @@ export function draftify<
 >(
   baseState: T,
   options: Options<O, F>
-): [T, (returnedValue: [T] | []) => Result<T, O, F>] {
+): [T, (returnedValue: [T] | []) => Result<T, O, F>, Finalities] {
   const finalities: Finalities = {
     draft: [],
     revoke: [],
     handledSet: new WeakSet<any>(),
-    draftsCache: new WeakSet<object>(),
+    scoped: true,
   };
   let patches: Patches | undefined;
   let inversePatches: Patches | undefined;
@@ -34,12 +34,7 @@ export function draftify<
     !isDraftable(baseState, options);
   const draft = isMutable
     ? baseState
-    : createDraft({
-        original: baseState,
-        parentDraft: null,
-        finalities,
-        options,
-      });
+    : createDraft(baseState, null, undefined, finalities, options);
   return [
     draft,
     (returnedValue: [T] | [] = []) => {
@@ -57,5 +52,6 @@ export function draftify<
           : finalizedState
       ) as Result<T, O, F>;
     },
+    finalities,
   ];
 }
