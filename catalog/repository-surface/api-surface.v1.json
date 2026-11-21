@@ -579,7 +579,10 @@
             "ExternalStoresMap",
             "StoreManagerOptions",
             "StoreProviderProps",
-            "StoreContextReturn"
+            "StoreContextReturn",
+            "ExternalTimeTravelStoresMap",
+            "TimeTravelStoreManagerOptions",
+            "TimeTravelStoreProviderProps"
           ]
         },
         {

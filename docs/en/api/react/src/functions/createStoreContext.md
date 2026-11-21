@@ -12,7 +12,7 @@ Implementation function that handles both overloads
 
 > **createStoreContext**&lt;`T`&gt;(`contextName`, `storeDefinitions`): [`StoreContextReturn`](../interfaces/StoreContextReturn.md)\<`InferStoreTypes`&lt;`T`&gt;\>
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:470](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L470)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:459](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L459)
 
 Overload 1: Type inference - Types inferred from store definitions
 
@@ -44,7 +44,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
 
 > **createStoreContext**&lt;`T`&gt;(`contextName`, `initialStores`): [`StoreContextReturn`](../interfaces/StoreContextReturn.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:480](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L480)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:469](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L469)
 
 Overload 2: Explicit generic types - User provides explicit type interface
 
@@ -76,7 +76,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
 
 > **createStoreContext**(`contextName`, `initialStores`): [`StoreContextReturn`](../interfaces/StoreContextReturn.md)&lt;`any`&gt;
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:490](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L490)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:479](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L479)
 
 Reflection-friendly overload used by utilities such as
 `ReturnType<typeof createStoreContext>`. Specific calls continue to resolve

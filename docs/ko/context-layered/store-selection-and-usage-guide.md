@@ -108,7 +108,7 @@ profileStore.dispose();
 사용자가 실행 취소(Undo), 다시 실행(Redo), 히스토리 위치 탐색을 해야 할 때 사용합니다.
 
 - `createTimeTravelStore(name, initialValue, { maxHistory, mutable, notificationMode, readMode })`는 기존 구조적 공유 호환성을 위해 `readMode: 'reference'`를 기본값으로 유지합니다.
-- 선언적 `createTimeTravelStoreContext`는 `readMode: 'safe'`가 기본값입니다.
+- 선언적 `createTimeTravelStoreContext`는 `readMode: 'safe'`가 기본값이며, `<DocStores.Provider manager={externalManager} />` 또는 `<DocStores.Provider stores={externalStores} ownership="shared" />`로 Headless-First 대칭 DI를 지원해 Undo/Redo 히스토리를 React 수명주기 바깥에 둘 수 있습니다.
 - 외부 직렬화·전달 경계에서는 내부 상태 변이를 막기 위해 `store.getSafeValue()`를 사용합니다.
 
 <!-- @context-action-compile -->

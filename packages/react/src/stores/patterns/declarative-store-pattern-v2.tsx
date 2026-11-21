@@ -18,6 +18,7 @@ import { createStore } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
 import type { ComparisonOptions } from '../utils/comparison';
 import {
+  areExternalStoresEqual,
   type ExplicitStoreValue,
   isExplicitStoreValue,
   isStoreConfigShape,
@@ -424,18 +425,6 @@ export class StoreManager<T extends Record<string, any>> {
   }
 }
 
-function areExternalStoresEqual<T extends Record<string, any>>(
-  prev: ExternalStoresMap<T> | undefined,
-  next: ExternalStoresMap<T> | undefined
-): boolean {
-  if (prev === next) return true;
-  if (!prev || !next) return false;
-  const prevKeys = Object.keys(prev).filter(key => prev[key] !== undefined);
-  const nextKeys = Object.keys(next).filter(key => next[key] !== undefined);
-  if (prevKeys.length !== nextKeys.length) return false;
-  return nextKeys.every(key => prev[key] === next[key]);
-}
-
 /**
  * Context type for the store pattern
  */
@@ -690,9 +679,11 @@ function createStoreContextImpl<T extends Record<string, any>>(
           if (managerRef.current === manager) managerRef.current = null;
         };
       }, []);
-      
+
+      const contextValue = useMemo(() => ({ managerRef }), []);
+
       const provider = (
-        <StoreContext.Provider value={{ managerRef }}>
+        <StoreContext.Provider value={contextValue}>
           <Component {...props} />
         </StoreContext.Provider>
       );

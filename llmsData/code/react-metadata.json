@@ -1,13 +1,13 @@
 {
   "package": "react",
-  "generatedAt": "2026-11-21T04:09:49.052Z",
+  "generatedAt": "2026-11-21T04:29:24.748Z",
   "statistics": {
     "totalFiles": 53,
     "typeFiles": 4,
     "codeFiles": 49,
-    "totalLines": 8849,
+    "totalLines": 8956,
     "typeLines": 508,
-    "codeLines": 8341
+    "codeLines": 8448
   },
   "files": [
     {
@@ -58,7 +58,7 @@
     {
       "path": "index.ts",
       "isType": false,
-      "lines": 73
+      "lines": 76
     },
     {
       "path": "refs/createRefContext.ts",
@@ -188,17 +188,17 @@
     {
       "path": "stores/patterns/declarative-store-pattern-v2.tsx",
       "isType": false,
-      "lines": 456
+      "lines": 447
     },
     {
       "path": "stores/patterns/store-definition.ts",
       "isType": false,
-      "lines": 34
+      "lines": 45
     },
     {
       "path": "stores/patterns/time-travel-store-pattern.tsx",
       "isType": false,
-      "lines": 530
+      "lines": 632
     },
     {
       "path": "stores/utils/comparison.ts",

@@ -8,7 +8,7 @@
 
 > **TimeTravelInitialStores**&lt;`T`&gt; = \{ \[K in keyof T\]: TimeTravelStoreConfig\<T\[K\]\> \| ExplicitStoreValue\<T\[K\]\> \| T\[K\] \}
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:80](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L80)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:78](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L78)
 
 Initial stores type for time travel pattern
 

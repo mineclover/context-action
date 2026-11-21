@@ -8,7 +8,7 @@
 
 > **ExternalStoresMap**&lt;`T`&gt; = `{ [K in keyof T]?: Store<T[K]> }`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:144](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L144)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:145](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L145)
 
 Map of externally created Store instances injected into createStoreContext().Provider.
 Partial injection lets callers pre-wire headless domain stores while allowing

@@ -63,3 +63,20 @@ export function isStoreConfigShape(
 
   return Reflect.ownKeys(value).every((key) => allowedKeys.has(key));
 }
+
+/**
+ * Compare two partial external-store DI maps by their non-undefined entries.
+ *
+ * @internal
+ */
+export function areExternalStoresEqual<T extends Record<string, unknown>>(
+  prev: Partial<Record<keyof T, unknown>> | undefined,
+  next: Partial<Record<keyof T, unknown>> | undefined
+): boolean {
+  if (prev === next) return true;
+  if (!prev || !next) return false;
+  const prevKeys = Object.keys(prev).filter(key => prev[key as keyof T] !== undefined);
+  const nextKeys = Object.keys(next).filter(key => next[key as keyof T] !== undefined);
+  if (prevKeys.length !== nextKeys.length) return false;
+  return nextKeys.every(key => prev[key as keyof T] === next[key as keyof T]);
+}

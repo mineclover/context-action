@@ -6,7 +6,7 @@
 
 # Interface: TimeTravelStoreConfig\<T\>
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:58](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L58)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:56](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L56)
 
 Time travel store configuration
 
@@ -22,7 +22,7 @@ Time travel store configuration
 
 > **initialValue**: `T`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:59](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L59)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:57](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L57)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:59
 
 > `optional` **timeTravel?**: `boolean`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:61](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L61)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:59](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L59)
 
 Enable time travel (undo/redo). Default: true
 
@@ -40,7 +40,7 @@ Enable time travel (undo/redo). Default: true
 
 > `optional` **maxHistory?**: `number`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:63](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L63)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:61](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L61)
 
 Maximum undo history length
 
@@ -50,7 +50,7 @@ Maximum undo history length
 
 > `optional` **mutable?**: `boolean`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:65](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L65)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:63](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L63)
 
 Enable mutable mode for observable state
 
@@ -60,7 +60,7 @@ Enable mutable mode for observable state
 
 > `optional` **strategy?**: `"reference"` \| `"shallow"` \| `"deep"`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:67](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L67)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:65](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L65)
 
 Comparison strategy
 
@@ -70,7 +70,7 @@ Comparison strategy
 
 > `optional` **description?**: `string`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:68](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L68)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:66](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L66)
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:68
 
 > `optional` **debug?**: `boolean`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:69](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L69)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:67](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L67)
 
 ***
 
@@ -86,7 +86,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:69
 
 > `optional` **tags?**: `string`[]
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:70](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L70)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:68](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L68)
 
 ***
 
@@ -94,7 +94,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:70
 
 > `optional` **version?**: `string`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:71](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L71)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:69](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L69)
 
 ***
 
@@ -102,7 +102,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:71
 
 > `optional` **comparisonOptions?**: `Partial`\<[`ComparisonOptions`](../advanced/interfaces/ComparisonOptions.md)&lt;`T`&gt;\>
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:72](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L72)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:70](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L70)
 
 ***
 
@@ -110,6 +110,6 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:72
 
 > `optional` **readMode?**: `"reference"` \| `"safe"`
 
-Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:74](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L74)
+Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:72](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L72)
 
 Public read policy. Manager defaults to safe defensive reads.
