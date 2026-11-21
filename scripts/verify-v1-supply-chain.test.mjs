@@ -18,13 +18,11 @@ const workflowNames = [
   'publish-packages.yml',
   'publish-prerelease.yml',
   'publish-coordinated-stable-candidate.yml',
-  'publish-v1-stable-candidate.yml',
 ];
 const protectedWorkflowNames = [
   'publish-maintenance-patch.yml',
   'publish-mutative.yml',
   'publish-coordinated-stable-candidate.yml',
-  'publish-v1-stable-candidate.yml',
 ];
 const reactCompatibilityMatrixCommand = 'node scripts/verify-react-compatibility.mjs --react-version 18.3.1 --react-types 18.3.12 --react-dom-types 18.3.1 && node scripts/verify-react-compatibility.mjs --react-version 19.2.0 --react-types 19.2.0 --react-dom-types 19.2.0 && node scripts/verify-react-compatibility.mjs --react-version 19.2.8 --react-types 19.2.17 --react-dom-types 19.2.3';
 const verifyAllCommand = 'pnpm build:live-code-editor && pnpm build && pnpm verify:react-compatibility && pnpm verify:lit-react-compatibility && pnpm check:lit && pnpm test:ai-sdk-integration && pnpm verify:ai-sdk-tool-protocol-contract && pnpm verify:react-aria-reference-hydration && pnpm verify:doc-snippets && pnpm verify:core-artifact-parity && pnpm verify:react-artifact-boundary && pnpm verify:react-webmcp-isolation && pnpm verify:element-unit && pnpm verify:element-interop && pnpm verify:element-hosts && pnpm verify:package-exports && pnpm verify:package-tarballs && pnpm verify:lit-packed-consumer && pnpm verify:preact-public-release -- --require-current-source && pnpm verify:preact-public-workflows && pnpm verify:lit-public-release -- --require-current-source && pnpm verify:lit-public-workflows && pnpm verify:tool-protocol-changelog && pnpm verify:webmcp-changelog && pnpm package-boundary:check && pnpm package-boundary:test && pnpm verify:local-tool-consumers && pnpm verify:v1-lifecycle && pnpm verify:v1-release-manifest && pnpm verify:v1-release-state-alignment && pnpm verify:coordinated-stable-release-plan && pnpm test:release-safety && pnpm verify:v1-release-workflows && pnpm verify:v1-supply-chain && pnpm tool-durable:test:evidence && pnpm lint && pnpm convention:check && pnpm docs:management && pnpm llms:check && pnpm type-check && pnpm test && node --test scripts/example-route-impact.test.mjs && pnpm --filter example check && pnpm --filter example test && pnpm --filter example build && pnpm web-coding:build && pnpm docs:build && pnpm verify:private-tools';
@@ -129,7 +127,6 @@ async function createFixture() {
         'verify:all': verifyAllCommand,
         'capture:published-release': 'node scripts/capture-published-release.mjs',
         'verify:prerelease-dist-tags': 'node scripts/verify-prerelease-dist-tags.cjs',
-        'verify:stable-publish-authorization': 'node scripts/verify-stable-publish-authorization.mjs',
         'tool-durable:verify:env': 'pnpm --filter @context-action/tool-durable-operations verify:env',
         'tool-durable:verify:redis': 'pnpm --filter @context-action/tool-durable-operations verify:redis',
         'tool-durable:verify:postgres': 'pnpm --filter @context-action/tool-durable-operations verify:postgres',
@@ -535,7 +532,6 @@ test('requires Mutative to request fail-closed unpublished-cohort preflight', as
 for (const [workflowName, expectedFailure] of [
   ['publish-packages.yml', /must require every regular candidate version to be unpublished before mutation/u],
   ['publish-prerelease.yml', /must require every prerelease candidate version to be unpublished before mutation/u],
-  ['publish-v1-stable-candidate.yml', /must require every stable candidate version to be unpublished before mutation/u],
 ]) {
   test(`${workflowName} requires fail-closed unpublished-cohort preflight`, async () => {
     await withFixture(async root => {
@@ -1177,7 +1173,7 @@ test('requires the regular release gate before publication', async () => {
   });
 });
 
-for (const workflowName of ['publish-prerelease.yml', 'publish-v1-stable-candidate.yml']) {
+for (const workflowName of ['publish-prerelease.yml']) {
   test(`${workflowName} requires the root release gate before publication`, async () => {
     await withFixture(async root => {
       const workflowPath = path.join(root, '.github', 'workflows', workflowName);

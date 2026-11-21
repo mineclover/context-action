@@ -14,7 +14,6 @@ const prereleaseDistTagExpression = '$' + '{{ inputs.dist_tag }}';
 const releaseCommitExpression = '$' + '{{ inputs.release_commit }}';
 const regularPackageCohort = '@context-action/ai-sdk,@context-action/tool-durable-operations';
 const prereleasePackageCohort = '@context-action/core,@context-action/react,@context-action/tool-durable-operations,@context-action/tool-protocol,@context-action/webmcp';
-const stableCandidatePackageCohort = '@context-action/core,@context-action/react,@context-action/tool-protocol';
 const coordinatedStablePackageCohort = '@context-action/core,@context-action/store-core,@context-action/mutative-core,@context-action/mutative,@context-action/react';
 const preactPublicPackageCohort = '@context-action/preact,@context-action/preact-ui';
 const litPublicPackageCohort = '@context-action/lit,@context-action/lit-ui';
@@ -90,7 +89,7 @@ const requiredRootScripts = {
   'verify:v1-release-workflows': 'node scripts/verify-v1-release-workflows.mjs',
   'verify:v1-supply-chain': 'node scripts/verify-v1-supply-chain.mjs',
   'tool-durable:test:evidence': 'node --test scripts/verify-durable-operation-evidence-schema.test.mjs',
-  lint: 'biome lint packages/core/src packages/tool-protocol/src packages/ai-sdk/src packages/webmcp/src packages/tool-durable-operations/src packages/react/src packages/mutative-core/src packages/mutative/src packages/preact/src packages/preact-ui/src packages/preact-ui/examples packages/lit/src packages/lit-ui/src packages/lit-ui/examples scripts/security-audit.mjs scripts/verify-private-tools.mjs scripts/verify-package-boundaries.mjs scripts/verify-package-boundaries.test.mjs scripts/verify-durable-operation-evidence-schema.mjs scripts/verify-durable-operation-evidence-schema.test.mjs scripts/verify-ai-sdk-runtime.mjs scripts/verify-ai-sdk-tool-protocol-contract.mjs scripts/verify-react-aria-reference-hydration.mjs scripts/verify-doc-snippets.mjs scripts/verify-react-compatibility.mjs scripts/verify-lit-react-compatibility.mjs scripts/verify-lit-packed-consumer.mjs scripts/verify-lit-public-release.mjs scripts/verify-lit-public-release.test.mjs scripts/verify-lit-public-workflows.mjs scripts/verify-lit-public-provenance.mjs scripts/verify-lit-public-consumer-smoke.mjs scripts/promote-core-public.mjs scripts/promote-lit-public.mjs scripts/verify-core-artifact-parity.mjs scripts/verify-tool-protocol-changelog.mjs scripts/verify-maintenance-patch-version.mjs scripts/verify-maintenance-patch-provenance.mjs scripts/refuse-direct-release.mjs scripts/publish-packages.cjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.cjs scripts/verify-published-tool-consumers.test.cjs scripts/maintenance-release-safety.test.mjs scripts/coordinated-stable-release.test.mjs scripts/verify-coordinated-stable-release-plan.mjs scripts/verify-coordinated-stable-provenance.mjs scripts/promote-coordinated-stable.mjs scripts/verify-preact-public-provenance.mjs scripts/promote-preact-public.mjs scripts/verify-preact-public-release.mjs scripts/verify-preact-public-release.test.mjs scripts/verify-preact-public-workflows.mjs scripts/write-release-evidence.mjs scripts/verify-release-evidence.mjs scripts/release-evidence.test.mjs scripts/generate-release-inventory.mjs scripts/verify-v1-release-roadmap-alignment.mjs scripts/verify-v1-release-state-alignment.mjs scripts/verify-react-webmcp-isolation.mjs scripts/verify-v1-core-migration-fixture.mjs scripts/verify-v1-lifecycle-contract.mjs scripts/verify-v1-release-manifest.mjs scripts/verify-v1-release-workflows.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-stable-publish-authorization.mjs scripts/verify-v1-published-provenance.mjs scripts/verify-v1-promotion-authorization.mjs scripts/verify-v1-promotion-governance.mjs scripts/verify-v1-supply-chain.mjs scripts/verify-v1-supply-chain.test.mjs scripts/capture-published-release.mjs scripts/verify-prerelease-dist-tags.cjs scripts/sync-llms-bundles.mjs scripts/sync-llms-bundles.test.mjs',
+  lint: 'biome lint packages/core/src packages/tool-protocol/src packages/ai-sdk/src packages/webmcp/src packages/tool-durable-operations/src packages/react/src packages/mutative-core/src packages/mutative/src packages/preact/src packages/preact-ui/src packages/preact-ui/examples packages/lit/src packages/lit-ui/src packages/lit-ui/examples scripts/security-audit.mjs scripts/verify-private-tools.mjs scripts/verify-package-boundaries.mjs scripts/verify-package-boundaries.test.mjs scripts/verify-durable-operation-evidence-schema.mjs scripts/verify-durable-operation-evidence-schema.test.mjs scripts/verify-ai-sdk-runtime.mjs scripts/verify-ai-sdk-tool-protocol-contract.mjs scripts/verify-react-aria-reference-hydration.mjs scripts/verify-doc-snippets.mjs scripts/verify-react-compatibility.mjs scripts/verify-lit-react-compatibility.mjs scripts/verify-lit-packed-consumer.mjs scripts/verify-lit-public-release.mjs scripts/verify-lit-public-release.test.mjs scripts/verify-lit-public-workflows.mjs scripts/verify-lit-public-provenance.mjs scripts/verify-lit-public-consumer-smoke.mjs scripts/promote-core-public.mjs scripts/promote-lit-public.mjs scripts/verify-core-artifact-parity.mjs scripts/verify-tool-protocol-changelog.mjs scripts/verify-maintenance-patch-version.mjs scripts/verify-maintenance-patch-provenance.mjs scripts/refuse-direct-release.mjs scripts/publish-packages.cjs scripts/publish-packages.test.mjs scripts/verify-published-tool-consumers.cjs scripts/verify-published-tool-consumers.test.cjs scripts/maintenance-release-safety.test.mjs scripts/coordinated-stable-release.test.mjs scripts/verify-coordinated-stable-release-plan.mjs scripts/verify-coordinated-stable-provenance.mjs scripts/promote-coordinated-stable.mjs scripts/verify-preact-public-provenance.mjs scripts/promote-preact-public.mjs scripts/verify-preact-public-release.mjs scripts/verify-preact-public-release.test.mjs scripts/verify-preact-public-workflows.mjs scripts/write-release-evidence.mjs scripts/verify-release-evidence.mjs scripts/release-evidence.test.mjs scripts/generate-release-inventory.mjs scripts/verify-v1-release-roadmap-alignment.mjs scripts/verify-v1-release-state-alignment.mjs scripts/verify-react-webmcp-isolation.mjs scripts/verify-v1-core-migration-fixture.mjs scripts/verify-v1-lifecycle-contract.mjs scripts/verify-v1-release-manifest.mjs scripts/verify-v1-release-workflows.mjs scripts/verify-v1-release-workflows.test.mjs scripts/verify-v1-supply-chain.mjs scripts/verify-v1-supply-chain.test.mjs scripts/capture-published-release.mjs scripts/verify-prerelease-dist-tags.cjs scripts/sync-llms-bundles.mjs scripts/sync-llms-bundles.test.mjs',
   'convention:check': 'node scripts/verify-context-action-conventions.mjs',
   'docs:management': 'node scripts/verify-documentation-management.mjs',
   'llms:check': 'node scripts/sync-llms-bundles.mjs --check',
@@ -102,7 +101,6 @@ const requiredRootScripts = {
   'verify:all': verifyAllCommand,
   'capture:published-release': 'node scripts/capture-published-release.mjs',
   'verify:prerelease-dist-tags': 'node scripts/verify-prerelease-dist-tags.cjs',
-  'verify:stable-publish-authorization': 'node scripts/verify-stable-publish-authorization.mjs',
   'tool-durable:verify:env': 'pnpm --filter @context-action/tool-durable-operations verify:env',
   'tool-durable:verify:redis': 'pnpm --filter @context-action/tool-durable-operations verify:redis',
   'tool-durable:verify:postgres': 'pnpm --filter @context-action/tool-durable-operations verify:postgres',
@@ -143,7 +141,6 @@ const requiredPublicationBuildScripts = new Map([
 const reviewedInlineInterpreterSteps = new Map([
   ['publish-packages.yml:Verify scoped package identities', 'fc14508e70f9fdda14bbdb78f5da6a9d3246a7287f2b0766f0cf1ce977843252'],
   ['publish-prerelease.yml:Validate prerelease package versions', 'f19eedde7b3a48caac8fc4673928b27186eb6a715b9fdb580207c8f1f7e24b56'],
-  ['publish-v1-stable-candidate.yml:Validate stable candidate cohort', 'a2a512f62ed4d2262f153ac6cec87e23cc5d19d742af434710519e1f2aff51b0'],
   ['publish-maintenance-patch.yml:Resolve the patch package and version', 'c30dfc4b3b75de8bb8c39e24eb3abf44b665b1738b87a1e39354ad0c5cb081ed'],
   ['publish-maintenance-patch.yml:Prepare registry rollback journal', 'a0aa745f4ba41f266d798a49f1c5e1afbd38208df97c2acab4616d4c1d78c3c1'],
   ['publish-maintenance-patch.yml:Promote verified candidate to latest', '4cb75e91de8e9a9b045c498eac0844239b3720fcfe9a0630c47d434f8e2c594c'],
@@ -594,45 +591,6 @@ const publishWorkflowPolicies = new Map([
       prereleaseSourceStatements,
       { PRERELEASE_DIST_TAG: prereleaseDistTagExpression },
       'must re-verify current main, the prerelease tag, and the clean event source immediately before publication',
-    ],
-  }],
-  ['publish-v1-stable-candidate.yml', {
-    protected: true,
-    allowLatest: false,
-    publishDistTag: 'next',
-    requireAllUnpublished: true,
-    requireMatchingResume: true,
-    uploadPath: 'reports/npm-stable-candidate-*.json',
-    uploadMissingPolicy: 'error',
-    publishScopes: [
-      '@context-action/tool-protocol',
-      '@context-action/core',
-      '@context-action/react',
-    ],
-    allowedPublicationCommandPatterns: [
-      /^pnpm\s+(?:run\s+)?publish:packages\b/u,
-    ],
-    consumerArguments: ['next', stableCandidatePackageCohort],
-    captureArguments: [
-      'next',
-      stableCandidatePackageCohort,
-      'reports/npm-stable-candidate-registry-evidence.json',
-    ],
-    requiredCommandPatterns: [
-      [/^pnpm\s+(?:run\s+)?publish:packages\b.*--dist-tag next(?:\s|$)/u, 'must publish the stable candidate to next'],
-      [/^pnpm\s+(?:run\s+)?publish:packages\b.*--require-all-unpublished(?:\s|$)/u, 'must require every stable candidate version to be unpublished before mutation'],
-      [/^pnpm\s+(?:run\s+)?publish:packages\b.*--resume-matching-existing(?:\s|$)/u, 'must bind strict recovery to matching registry artifacts'],
-    ],
-    requiredPrepublicationSteps: [
-      [
-        ['pnpm release:check'],
-        'must run the root release gate as a straight-line fail-closed step',
-      ],
-    ],
-    requiredAdjacentPrepublicationStep: [
-      approvedSourceStatements,
-      { RELEASE_COMMIT: releaseCommitExpression },
-      'must re-verify the approved clean source immediately before publication',
     ],
   }],
   ['publish-coordinated-stable-candidate.yml', {
