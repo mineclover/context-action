@@ -77,8 +77,8 @@ const SERVER_SNAPSHOT: TimeTravelState = {
 export function useTimeTravelControls<T>(
   store: TimeTravelControlsStore<T>
 ): TimeTravelControlsState {
-  // Cache for getSnapshot result - must return same reference if values haven't changed
-  const cacheRef = useRef<TimeTravelState | null>(null);
+  // Cache for getSnapshot result - must return same reference if values haven't changed for this store
+  const cacheRef = useRef<{ store: TimeTravelControlsStore<T>; state: TimeTravelState } | null>(null);
 
   // Subscribe to store changes
   const subscribe = useCallback(
@@ -95,21 +95,22 @@ export function useTimeTravelControls<T>(
     const position = store.getPosition();
     const historyLength = store.getHistoryLength();
 
-    // Return cached value if nothing changed
+    // Return cached value if nothing changed on the same store instance
     const cached = cacheRef.current;
     if (
       cached &&
-      cached.canUndo === canUndo &&
-      cached.canRedo === canRedo &&
-      cached.position === position &&
-      cached.historyLength === historyLength
+      cached.store === store &&
+      cached.state.canUndo === canUndo &&
+      cached.state.canRedo === canRedo &&
+      cached.state.position === position &&
+      cached.state.historyLength === historyLength
     ) {
-      return cached;
+      return cached.state;
     }
 
     // Create and cache new state
     const newState: TimeTravelState = { canUndo, canRedo, position, historyLength };
-    cacheRef.current = newState;
+    cacheRef.current = { store, state: newState };
     return newState;
   }, [store]);
 

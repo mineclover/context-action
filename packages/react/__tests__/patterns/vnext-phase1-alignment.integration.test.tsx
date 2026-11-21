@@ -275,6 +275,32 @@ describe('CA-VNEXT-ARCHITECTURE-001 Phase 1 Alignment', () => {
       ownedRender.unmount();
       expect(ownedTimeline.isDisposed?.()).toBe(true);
     });
+
+    it('invalidates useTimeTravelControls cache cleanly when swapping TimelineBackend instances', () => {
+      const timelineA = createMutativeTimelineBackend('doc', { count: 1 });
+      const timelineB = createMutativeTimelineBackend('doc', { count: 2 });
+      act(() => {
+        timelineA.setValue({ count: 10 });
+      });
+
+      function ControlsHarness({ target }: { target: typeof timelineA }) {
+        const controls = useTimeTravelControls(target);
+        return (
+          <span data-testid="swap-controls">
+            {controls.position}/{controls.historyLength}:{String(controls.canUndo)}
+          </span>
+        );
+      }
+
+      const { rerender } = render(<ControlsHarness target={timelineA} />);
+      expect(screen.getByTestId('swap-controls').textContent).toBe('1/2:true');
+
+      rerender(<ControlsHarness target={timelineB} />);
+      expect(screen.getByTestId('swap-controls').textContent).toBe('0/1:false');
+
+      timelineA.dispose?.();
+      timelineB.dispose?.();
+    });
   });
 
   describe('M2 + M4b: Contract-level queue policy & symmetric action dispatch hooks', () => {

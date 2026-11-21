@@ -33,7 +33,7 @@ export const deepEqual = equalityFunctions.deep;
  * 
  * @param store - Store instance to subscribe to
  * @param selector - Function to extract needed data from store value
- * @param equalityFn - Function to compare previous and new values (default: Object.is)
+ * @param equalityFn - Function to compare previous and new values (default: `defaultEqualityFn` smart equality)
  * 
  * @returns The value returned by the selector function
  * 

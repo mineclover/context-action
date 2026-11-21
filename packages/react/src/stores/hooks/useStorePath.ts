@@ -71,6 +71,34 @@ function readStoreValue<T>(store: PatchAwareStore<T>): T {
   throw new Error('Store must implement getSnapshot() or getValue()');
 }
 
+function arePathSegmentsEqual(
+  left: Readonly<StorePath>,
+  right: Readonly<StorePath>
+): boolean {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  for (let index = 0; index < left.length; index += 1) {
+    if (!Object.is(left[index], right[index])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function arePathListsEqual(
+  left: readonly StorePath[] | undefined,
+  right: readonly Readonly<StorePath>[] | undefined
+): boolean {
+  if (left === right) return true;
+  if (!left || !right || left.length !== right.length) return false;
+  for (let index = 0; index < left.length; index += 1) {
+    if (!arePathSegmentsEqual(left[index]!, right[index]!)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /**
  * Hook for subscribing to a specific path in Store
  *
@@ -104,16 +132,16 @@ export function useStorePath<T, R = unknown>(
 ): R {
   const { equalityFn } = options;
 
-  const pathSignature = createPathSignature(path);
-  const stablePathRef = useRef<{ signature: string; path: StorePath }>({
-    signature: pathSignature,
-    path: [...path],
-  });
+  const stablePathRef = useRef<{ signature: string; path: StorePath } | null>(null);
 
-  if (stablePathRef.current.signature !== pathSignature) {
-    stablePathRef.current = { signature: pathSignature, path: [...path] };
+  if (stablePathRef.current === null || !arePathSegmentsEqual(stablePathRef.current.path, path)) {
+    stablePathRef.current = {
+      signature: createPathSignature(path),
+      path: [...path],
+    };
   }
 
+  const pathSignature = stablePathRef.current.signature;
   const stablePath = stablePathRef.current.path;
 
   // Cache for value comparison with path tracking for invalidation
@@ -210,22 +238,19 @@ export function useStoreSelectorWithPaths<T, R>(
 ): R {
   const { dependsOn, equalityFn = defaultEqualityFn } = options;
 
-  const depsKey = createPathsSignature(dependsOn);
   const stablePathsRef = useRef<{
     signature: string | null;
     paths: StorePath[] | undefined;
-  }>({
-    signature: depsKey,
-    paths: dependsOn?.map((path) => [...path]),
-  });
+  } | null>(null);
 
-  if (stablePathsRef.current.signature !== depsKey) {
+  if (stablePathsRef.current === null || !arePathListsEqual(stablePathsRef.current.paths, dependsOn)) {
     stablePathsRef.current = {
-      signature: depsKey,
+      signature: createPathsSignature(dependsOn),
       paths: dependsOn?.map((path) => [...path]),
     };
   }
 
+  const depsKey = stablePathsRef.current.signature;
   const stablePaths = stablePathsRef.current.paths;
 
   // Cache for value comparison with dependency tracking

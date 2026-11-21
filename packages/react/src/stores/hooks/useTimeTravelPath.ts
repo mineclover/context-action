@@ -1,15 +1,17 @@
 /**
  * @fileoverview Path-based Time Travel Subscription Hook
  *
- * Optimized hook that only triggers re-renders when specific paths change.
- * Uses JSON patches from TimeTravelStore to determine if subscribed paths are affected.
+ * Thin specialization delegating to the canonical patch-aware subscription hooks
+ * (`useStorePath` and `useStoreSelectorWithPaths`).
  */
 
 import type { StateSnapshot } from '@context-action/store-core';
-import { useCallback, useDebugValue, useRef, useSyncExternalStore } from 'react';
-import { patchesAffectPath, type StorePathPatch } from '../utils/patch-affects-path';
-import { createPathSignature, createPathsSignature } from '../utils/path-signature';
-import { defaultEqualityFn } from './useStoreSelector';
+import {
+  useStorePath,
+  useStoreSelectorWithPaths,
+  type StorePath,
+} from './useStorePath';
+import type { StorePathPatch } from '../utils/patch-affects-path';
 
 /** Structural external store contract accepted by `useTimeTravelPath` and `useTimeTravelSelector`. */
 export interface TimeTravelPathStore<T> {
@@ -18,14 +20,7 @@ export interface TimeTravelPathStore<T> {
   subscribeWithPatches?(listener: (patches: readonly StorePathPatch[] | null) => void): () => void;
 }
 
-function formatTimeTravelPathDebugValue([key, value]: readonly [string, unknown]): string {
-  return `${key || '(root)'}: ${typeof value === 'object' && value !== null ? 'object' : String(value)}`;
-}
-
-/**
- * Path type for store subscription
- */
-export type StorePath = (string | number)[];
+export type { StorePath };
 
 /**
  * Options for useTimeTravelPath
@@ -33,29 +28,6 @@ export type StorePath = (string | number)[];
 export interface UseTimeTravelPathOptions<R> {
   /** Custom equality function for the selected value */
   equalityFn?: (a: R, b: R) => boolean;
-}
-
-/**
- * Check if patches affect the target path
- * A patch affects a path if:
- * 1. The patch path is a prefix of target path (parent changed)
- * 2. The target path is a prefix of patch path (descendant changed)
- * 3. The paths are equal
- */
-/**
- * Get value at a specific path
- */
-function getValueAtPath<T, R>(obj: T, path: StorePath): R {
-  let current: unknown = obj;
-
-  for (const key of path) {
-    if (current === null || current === undefined) {
-      return undefined as R;
-    }
-    current = (current as Record<string | number, unknown>)[key];
-  }
-
-  return current as R;
 }
 
 /**
@@ -86,88 +58,10 @@ function getValueAtPath<T, R>(obj: T, path: StorePath): R {
  */
 export function useTimeTravelPath<T, R = unknown>(
   store: TimeTravelPathStore<T>,
-  path: StorePath,
+  path: Readonly<StorePath>,
   options: UseTimeTravelPathOptions<R> = {}
 ): R {
-  const { equalityFn } = options;
-
-  const pathSignature = createPathSignature(path);
-  const stablePathRef = useRef<{ signature: string; path: StorePath }>({
-    signature: pathSignature,
-    path: [...path],
-  });
-
-  if (stablePathRef.current.signature !== pathSignature) {
-    stablePathRef.current = { signature: pathSignature, path: [...path] };
-  }
-
-  const stablePath = stablePathRef.current.path;
-
-  // Cache for value comparison
-  const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string; store: TimeTravelPathStore<T> }>({
-    value: undefined as R,
-    initialized: false,
-    pathSignature,
-    store,
-  });
-
-  if (cacheRef.current.pathSignature !== pathSignature || cacheRef.current.store !== store) {
-    cacheRef.current = { value: undefined as R, initialized: false, pathSignature, store };
-  }
-
-  // Subscribe with patch awareness when available
-  const subscribe = useCallback(
-    (callback: () => void) => {
-      if (typeof store.subscribeWithPatches === 'function') {
-        return store.subscribeWithPatches((patches) => {
-          // Check if patches affect our path
-          if (patchesAffectPath(patches, stablePath)) {
-            callback();
-          }
-        });
-      }
-      return store.subscribe(callback);
-    },
-    [store, stablePath]
-  );
-
-  // Get snapshot of value at path
-  const getSnapshot = useCallback((): R => {
-    const storeValue = store.getSnapshot().value;
-    const currentValue = getValueAtPath<T, R>(storeValue, stablePath);
-
-    // First access - initialize cache
-    if (!cacheRef.current.initialized) {
-      cacheRef.current = { value: currentValue, initialized: true, pathSignature, store };
-      return currentValue;
-    }
-
-    // Compare with cached value
-    const prevValue = cacheRef.current.value;
-
-    if (equalityFn) {
-      if (equalityFn(prevValue, currentValue)) {
-        return prevValue;
-      }
-    } else {
-      // Default: reference equality for objects, value equality for primitives
-      if (Object.is(prevValue, currentValue)) {
-        return prevValue;
-      }
-    }
-
-    cacheRef.current.value = currentValue;
-    return currentValue;
-  }, [store, stablePath, pathSignature, equalityFn]);
-
-  // Server snapshot
-  const getServerSnapshot = useCallback((): R => {
-    return getValueAtPath<T, R>(store.getSnapshot().value, stablePath);
-  }, [store, stablePath]);
-
-  const selectedValue = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  useDebugValue([pathSignature, selectedValue] as const, formatTimeTravelPathDebugValue);
-  return selectedValue;
+  return useStorePath<T, R>(store, path, options);
 }
 
 /**
@@ -184,7 +78,7 @@ export function useTimeTravelPath<T, R = unknown>(
  */
 export interface UseTimeTravelSelectorOptions<R> {
   /** Paths that the selector depends on */
-  dependsOn?: StorePath[];
+  dependsOn?: readonly Readonly<StorePath>[];
   /** Custom equality function */
   equalityFn?: (a: R, b: R) => boolean;
 }
@@ -194,67 +88,5 @@ export function useTimeTravelSelector<T, R>(
   selector: (value: T) => R,
   options: UseTimeTravelSelectorOptions<R> = {}
 ): R {
-  const { dependsOn, equalityFn = defaultEqualityFn } = options;
-
-  // Cache for value comparison
-  const cacheRef = useRef<{ store: TimeTravelPathStore<T>; value: R } | undefined>(undefined);
-
-  const depsKey = createPathsSignature(dependsOn);
-  const stablePathsRef = useRef<{
-    signature: string | null;
-    paths: StorePath[] | undefined;
-  }>({
-    signature: depsKey,
-    paths: dependsOn?.map((path) => [...path]),
-  });
-
-  if (stablePathsRef.current.signature !== depsKey) {
-    stablePathsRef.current = {
-      signature: depsKey,
-      paths: dependsOn?.map((path) => [...path]),
-    };
-  }
-
-  const stablePaths = stablePathsRef.current.paths;
-
-  // Subscribe with patch awareness when available
-  const subscribe = useCallback(
-    (callback: () => void) => {
-      if (!stablePaths || typeof store.subscribeWithPatches !== 'function') {
-        // No path hints or patchless store - subscribe to all changes
-        return store.subscribe(callback);
-      }
-
-      return store.subscribeWithPatches((patches) => {
-        // Check if any dependent path is affected
-        const affected = stablePaths.some(path => patchesAffectPath(patches, path));
-        if (affected) {
-          callback();
-        }
-      });
-    },
-    [store, stablePaths]
-  );
-
-  // Get snapshot using selector
-  const getSnapshot = useCallback((): R => {
-    const storeValue = store.getSnapshot().value;
-    const currentValue = selector(storeValue);
-
-    // Compare with cached value
-    if (cacheRef.current?.store === store) {
-      const prevValue = cacheRef.current.value;
-
-      if (equalityFn(prevValue, currentValue)) {
-        return prevValue;
-      }
-    }
-
-    cacheRef.current = { store, value: currentValue };
-    return currentValue;
-  }, [store, selector, equalityFn]);
-
-  const selected = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  useDebugValue([depsKey ?? '(all)', selected] as const, formatTimeTravelPathDebugValue);
-  return selected;
+  return useStoreSelectorWithPaths<T, R>(store, selector, options);
 }

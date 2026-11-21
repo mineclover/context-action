@@ -8,6 +8,8 @@ import { TypeGuards } from '../utils/type-guards';
 import { type FrameHandle, scheduleFrame } from './frame-scheduler';
 import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } from './types';
 
+const STORE_BRAND = Symbol.for('context-action.react.store');
+
 /**
  * Listener that receives patches information for path-based optimization
  */
@@ -153,6 +155,7 @@ export class Store<T = unknown> implements IStore<T> {
   private cloningEnabled: boolean = true;
 
   constructor(name: string, initialValue: T, options?: StoreOptions) {
+    Object.defineProperty(this, STORE_BRAND, { value: true });
     this.name = name;
     this.notificationMode = options?.notificationMode ?? 'batched';
     // Own the initial value just like values passed through setValue. Keeping
@@ -1099,4 +1102,18 @@ export function createStore<T>(
   const store = new Store<T>(name, initialValue, options);
 
   return store;
+}
+
+/**
+ * Dual-package-safe instance check for React Store instances.
+ *
+ * @internal
+ */
+export function isStoreInstance(value: unknown): value is Store<any> {
+  return (
+    value instanceof Store ||
+    (typeof value === 'object' &&
+      value !== null &&
+      (value as Record<PropertyKey, unknown>)[STORE_BRAND] === true)
+  );
 }

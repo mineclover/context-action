@@ -14,8 +14,8 @@
 import type { StateBackend } from '@context-action/store-core';
 import React, { createContext, ReactNode, useCallback, useContext, useInsertionEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { StoreErrorBoundary } from '../components/StoreErrorBoundary';
-import { BackendStore, createBackendStore } from '../core/BackendStore';
-import { createStore, Store, type StoreNotificationMode } from '../core/Store';
+import { BackendStore, createBackendStore, isBackendStoreInstance } from '../core/BackendStore';
+import { createStore, isStoreInstance, Store, type StoreNotificationMode } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
 import type { ComparisonOptions } from '../utils/comparison';
 import {
@@ -250,9 +250,9 @@ export class StoreManager<T extends Record<string, any>> {
         this.externalStoreKeys.add(key);
 
         let registeredStore: Store<any>;
-        if (externalStore instanceof Store) {
+        if (isStoreInstance(externalStore)) {
           registeredStore = externalStore;
-        } else if (externalStore instanceof BackendStore) {
+        } else if (isBackendStoreInstance(externalStore)) {
           registeredStore = externalStore as unknown as Store<any>;
         } else {
           // Wrap raw StateBackend instances so StoreManager keeps full snapshot,

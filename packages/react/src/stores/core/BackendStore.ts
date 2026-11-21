@@ -2,6 +2,8 @@ import type { StateBackend, StateMutationMeta, StatePatch } from '@context-actio
 import { ErrorHandlers } from '../utils/error-handling';
 import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } from './types';
 
+const BACKEND_STORE_BRAND = Symbol.for('context-action.react.backend-store');
+
 export type BackendPatchListener<Patch = StatePatch> = (patches: readonly Patch[] | null) => void;
 
 interface PendingPatchNotification<Patch> {
@@ -57,6 +59,7 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
   private patchFlushScheduled = false;
 
   constructor(name: string, backend: StateBackend<T, Patch>, options: BackendStoreOptions = {}) {
+    Object.defineProperty(this, BACKEND_STORE_BRAND, { value: true });
     this.name = name;
     this.backend = backend;
     this.ownership = options.ownership ?? 'shared';
@@ -373,4 +376,18 @@ export function createBackendStore<T, Patch = StatePatch>(
   options?: BackendStoreOptions,
 ): BackendStore<T, Patch> {
   return new BackendStore(name, backend, options);
+}
+
+/**
+ * Dual-package-safe instance check for React BackendStore wrappers.
+ *
+ * @internal
+ */
+export function isBackendStoreInstance(value: unknown): value is BackendStore<any, any> {
+  return (
+    value instanceof BackendStore ||
+    (typeof value === 'object' &&
+      value !== null &&
+      (value as Record<PropertyKey, unknown>)[BACKEND_STORE_BRAND] === true)
+  );
 }

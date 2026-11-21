@@ -149,7 +149,8 @@ export function useStoreValue<T, R>(
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#usestoreselector-advanced-usage
  *
- * @public\n */
+ * @public
+ */
 export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
   store: StateReader<T, StateSnapshot<T>> | undefined | null,
   selectors: S

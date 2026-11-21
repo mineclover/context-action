@@ -282,17 +282,16 @@ function dispatchRegisterWithResult<
   options: DispatchOptions | undefined,
   signal: AbortSignal,
 ): Promise<ExecutionResult<R>> {
-  const dispatchResult = register.dispatchWithResult.bind(register) as unknown as <
-    ActionKey extends ActionNames<T>,
-    Result = void,
-  >(
-    action: ActionKey,
-    ...dispatchArgs: DispatchArgs<T[ActionKey]>
-  ) => Promise<ExecutionResult<Result>>;
+  const dispatchResult = register.dispatchWithResult as unknown as (
+    this: ActionRegister<T, TResultMap>,
+    action: K,
+    ...dispatchArgs: DispatchArgs<T[K]>
+  ) => Promise<ExecutionResult<R>>;
 
-  return dispatchResult<K, R>(
+  return dispatchResult.call(
+    register,
     action,
-    ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
+    ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>),
   );
 }
 
@@ -695,20 +694,11 @@ export function createActionContext<
     useActionHandler(action, handler as never, config, 'observer');
   };
 
-  // Hook to get the dispatchWithResult function with full type safety
   /**
-   * Hook that provides access to the dispatchWithResult function
-   * 
-   * This hook returns a function that dispatches actions and returns detailed
-   * execution results including collected handler results, execution metadata,
-   * and error information.
-   * 
-   * @returns dispatchWithResult function with full type safety
-   * 
+   * Symmetric function-returning dispatchWithResult hook (Provider-scoped).
+   *
    * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-with-result
    */
-
-  // Symmetric function-returning dispatchWithResult hook (Provider-scoped)
   const useFactoryActionResultDispatch = (): ActionRegister<T, TResultMap>['dispatchWithResult'] => {
     const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
 
@@ -738,7 +728,9 @@ export function createActionContext<
     }, [actionRegisterRef, dispatchLifecycle]) as ActionRegister<T, TResultMap>['dispatchWithResult'];
   };
 
-  // Hook for enhanced dispatch with scoped abort control
+  /**
+   * Hook for component-scoped dispatch with result collection and abort control.
+   */
   const useFactoryActionDispatchWithResult = (): ActionScopeReturn<T, TResultMap> => {
     const context = useFactoryActionContext();
     const activeControllersRef = useRef<Set<AbortController>>(new Set());
@@ -746,9 +738,9 @@ export function createActionContext<
     // Create wrapped dispatch using core's autoAbort
     const dispatch = useCallback(<K extends ActionNames<T>>(
       action: K,
-      payload?: T[K],
-      options?: DispatchOptions
+      ...args: DispatchArgs<T[K]>
     ): Promise<void> => {
+      const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
       const register = context.actionRegisterRef.current;
       if (!register) {
         throw new Error('ActionRegister not initialized');

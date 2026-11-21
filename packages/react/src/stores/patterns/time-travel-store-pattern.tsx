@@ -10,20 +10,29 @@
 import type { StateBackend, TimelineBackend } from '@context-action/store-core';
 import React, { createContext, ReactNode, useCallback, useContext, useInsertionEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { StoreErrorBoundary } from '../components/StoreErrorBoundary';
-import { BackendStore, createBackendStore } from '../core/BackendStore';
-import { createStore, Store, type StoreNotificationMode } from '../core/Store';
+import { BackendStore, createBackendStore, isBackendStoreInstance } from '../core/BackendStore';
+import { createStore, isStoreInstance, Store, type StoreNotificationMode } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
 import { createTimeTravelStore, isTimeTravelStore, TimeTravelStore } from '../core/TimeTravelStore';
-import type { StorePath } from '../hooks/useTimeTravelPath';
+import {
+  useStorePath as useStorePathHook,
+  useStoreSelectorWithPaths,
+  type StorePath,
+} from '../hooks/useStorePath';
+import {
+  useTimeTravelControls as useTimeTravelControlsHook,
+  type TimeTravelControlsState,
+  type TimeTravelControlsStore,
+} from '../hooks/useTimeTravelControls';
 import { compareValues, type ComparisonOptions } from '../utils/comparison';
-import { createPathSignature, createPathsSignature } from '../utils/path-signature';
-import { patchesAffectPath, type StorePathPatch } from '../utils/patch-affects-path';
 import {
   areExternalStoresEqual,
   type ExplicitStoreValue,
   isExplicitStoreValue,
   isStoreConfigShape,
 } from './store-definition';
+
+export type { TimeTravelControlsState };
 
 const TIME_TRAVEL_STORE_CONFIG_KEYS = new Set<PropertyKey>([
   'initialValue',
@@ -39,18 +48,6 @@ const TIME_TRAVEL_STORE_CONFIG_KEYS = new Set<PropertyKey>([
   'readMode',
   'notificationMode',
 ]);
-
-/**
- * Get value at a specific path
- */
-function getValueAtPath<T, R>(obj: T, path: StorePath): R {
-  let current: unknown = obj;
-  for (const key of path) {
-    if (current === null || current === undefined) return undefined as R;
-    current = (current as Record<string | number, unknown>)[key];
-  }
-  return current as R;
-}
 
 /**
  * Time travel store configuration
@@ -82,20 +79,6 @@ export interface TimeTravelStoreConfig<T = any> {
 export type TimeTravelInitialStores<T extends Record<string, any>> = {
   [K in keyof T]: TimeTravelStoreConfig<T[K]> | ExplicitStoreValue<T[K]> | T[K];
 };
-
-/**
- * Time travel controls state
- */
-export interface TimeTravelControlsState {
-  canUndo: boolean;
-  canRedo: boolean;
-  position: number;
-  historyLength: number;
-  undo: (steps?: number) => void;
-  redo: (steps?: number) => void;
-  goTo: (position: number) => void;
-  reset: () => void;
-}
 
 /**
  * Infer store types from definitions
@@ -240,9 +223,9 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
 
         let registeredStore: Store<any> | TimeTravelStore<any>;
         if (
-          externalStore instanceof Store ||
+          isStoreInstance(externalStore) ||
           isTimelineCapable(externalStore) ||
-          externalStore instanceof BackendStore
+          isBackendStoreInstance(externalStore)
         ) {
           registeredStore = externalStore as unknown as Store<any> | TimeTravelStore<any>;
         } else {
@@ -660,60 +643,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
       );
     }
 
-    const timelineStore = store;
-
-    const cacheRef = useRef<{
-      canUndo: boolean;
-      canRedo: boolean;
-      position: number;
-      historyLength: number;
-    } | null>(null);
-
-    const subscribe = useCallback(
-      (callback: () => void) => timelineStore.subscribe(callback),
-      [timelineStore]
-    );
-
-    const getSnapshot = useCallback(() => {
-      const canUndo = timelineStore.canUndo();
-      const canRedo = timelineStore.canRedo();
-      const position = timelineStore.getPosition();
-      const historyLength = timelineStore.getHistoryLength();
-
-      const cached = cacheRef.current;
-      if (
-        cached &&
-        cached.canUndo === canUndo &&
-        cached.canRedo === canRedo &&
-        cached.position === position &&
-        cached.historyLength === historyLength
-      ) {
-        return cached;
-      }
-
-      const newState = { canUndo, canRedo, position, historyLength };
-      cacheRef.current = newState;
-      return newState;
-    }, [timelineStore]);
-
-    const getServerSnapshot = useCallback(
-      () => ({ canUndo: false, canRedo: false, position: 0, historyLength: 1 }),
-      []
-    );
-
-    const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-
-    const controls = useMemo(
-      () => ({
-        undo: (steps?: number) => timelineStore.undo(steps),
-        redo: (steps?: number) => timelineStore.redo(steps),
-        goTo: (position: number) => timelineStore.goTo(position),
-        reset: () => timelineStore.reset(),
-      }),
-      [timelineStore]
-    );
-
-    return { ...state, ...controls };
+    return useTimeTravelControlsHook(store as TimeTravelControlsStore<T[K]>);
   }
 
   /**
@@ -727,72 +657,10 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
    */
   function useStorePath<K extends keyof T, R = unknown>(
     storeName: K,
-    path: StorePath
+    path: Readonly<StorePath>
   ): R {
     const store = useStore(storeName);
-    const pathSignature = createPathSignature(path);
-    const stablePathRef = useRef<{ signature: string; path: StorePath }>({
-      signature: pathSignature,
-      path: [...path],
-    });
-
-    if (stablePathRef.current.signature !== pathSignature) {
-      stablePathRef.current = { signature: pathSignature, path: [...path] };
-    }
-
-    const stablePath = stablePathRef.current.path;
-
-    const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string }>({
-      value: undefined as R,
-      initialized: false,
-      pathSignature,
-    });
-
-    if (cacheRef.current.pathSignature !== pathSignature) {
-      cacheRef.current = { value: undefined as R, initialized: false, pathSignature };
-    }
-
-    const subscribe = useCallback(
-      (callback: () => void) => {
-        const subscribeWithPatches = (store as {
-          subscribeWithPatches?: (listener: (patches: readonly StorePathPatch[] | null) => void) => () => void;
-        }).subscribeWithPatches;
-        // Patch-capable stores and TimelineBackends support path-filtered subscriptions
-        if (typeof subscribeWithPatches === 'function') {
-          return subscribeWithPatches.call(store, (patches) => {
-            if (patchesAffectPath(patches, stablePath)) {
-              callback();
-            }
-          });
-        }
-        // Regular Store without patch channel: subscribe to all changes
-        return store.subscribe(callback);
-      },
-      [store, stablePath]
-    );
-
-    const getSnapshot = useCallback((): R => {
-      const storeValue = store.getSnapshot().value;
-      const currentValue = getValueAtPath<T[K], R>(storeValue, stablePath);
-
-      if (!cacheRef.current.initialized) {
-        cacheRef.current = { value: currentValue, initialized: true, pathSignature };
-        return currentValue;
-      }
-
-      if (Object.is(cacheRef.current.value, currentValue)) {
-        return cacheRef.current.value;
-      }
-
-      cacheRef.current.value = currentValue;
-      return currentValue;
-    }, [store, stablePath, pathSignature]);
-
-    const getServerSnapshot = useCallback((): R => {
-      return getValueAtPath<T[K], R>(store.getSnapshot().value, stablePath);
-    }, [store, stablePath]);
-
-    return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+    return useStorePathHook<T[K], R>(store, path);
   }
 
   /**
@@ -809,65 +677,14 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
   function useStoreSelector<K extends keyof T, R>(
     storeName: K,
     selector: (value: T[K]) => R,
-    options: { dependsOn?: StorePath[]; equalityFn?: (a: R, b: R) => boolean } = {}
+    options: { dependsOn?: readonly Readonly<StorePath>[]; equalityFn?: (a: R, b: R) => boolean } = {}
   ): R {
     const store = useStore(storeName);
-    const { dependsOn, equalityFn } = options;
-    const cacheRef = useRef<R | undefined>(undefined);
-
-    const depsKey = createPathsSignature(dependsOn);
-    const stablePathsRef = useRef<{
-      signature: string | null;
-      paths: StorePath[] | undefined;
-    }>({
-      signature: depsKey,
-      paths: dependsOn?.map((path) => [...path]),
+    return useStoreSelectorWithPaths<T[K], R>(store, selector, {
+      dependsOn: options.dependsOn,
+      // Preserve TimeTravelStoreContext.useStoreSelector's 4.x Object.is default.
+      equalityFn: options.equalityFn ?? Object.is,
     });
-
-    if (stablePathsRef.current.signature !== depsKey) {
-      stablePathsRef.current = {
-        signature: depsKey,
-        paths: dependsOn?.map((path) => [...path]),
-      };
-    }
-
-    const stablePaths = stablePathsRef.current.paths;
-
-    const subscribe = useCallback(
-      (callback: () => void) => {
-        if (!stablePaths) {
-          return store.subscribe(callback);
-        }
-        const subscribeWithPatches = (store as {
-          subscribeWithPatches?: (listener: (patches: readonly StorePathPatch[] | null) => void) => () => void;
-        }).subscribeWithPatches;
-        // Patch-capable stores and TimelineBackends support path-filtered subscriptions
-        if (typeof subscribeWithPatches === 'function') {
-          return subscribeWithPatches.call(store, (patches) => {
-            const affected = stablePaths.some(path => patchesAffectPath(patches, path));
-            if (affected) callback();
-          });
-        }
-        // Regular Store: subscribe to all changes when dependsOn is specified
-        return store.subscribe(callback);
-      },
-      [store, stablePaths]
-    );
-
-    const getSnapshot = useCallback((): R => {
-      const currentValue = selector(store.getSnapshot().value);
-
-      if (cacheRef.current !== undefined) {
-        if (equalityFn ? equalityFn(cacheRef.current, currentValue) : Object.is(cacheRef.current, currentValue)) {
-          return cacheRef.current;
-        }
-      }
-
-      cacheRef.current = currentValue;
-      return currentValue;
-    }, [store, selector, equalityFn]);
-
-    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   }
 
   function useStoreManager(): TimeTravelStoreManager<T> {
