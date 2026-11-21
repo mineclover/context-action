@@ -21,7 +21,6 @@ function replaceAfter(source, anchor, target, replacement) {
 function releaseSources() {
   const read = relativePath => readFileSync(path.join(repositoryRoot, relativePath), 'utf8');
   return {
-    stableCandidate: read('.github/workflows/publish-v1-stable-candidate.yml'),
     coordinatedCandidate: read('.github/workflows/publish-coordinated-stable-candidate.yml'),
     coordinatedPromotion: read('.github/workflows/promote-coordinated-stable.yml'),
     generalPublish: read('.github/workflows/publish-packages.yml'),
@@ -140,7 +139,7 @@ test('requires an authenticated token before coordinated promotion mutates dist-
 
 test('does not accept a commented stable-release guard', () => {
   const sources = releaseSources();
-  sources.stableCandidate = sources.stableCandidate.replace(
+  sources.coordinatedCandidate = sources.coordinatedCandidate.replace(
     '          test "$GITHUB_REF" = "refs/heads/main"',
     '          # test "$GITHUB_REF" = "refs/heads/main"',
   );
@@ -150,7 +149,7 @@ test('does not accept a commented stable-release guard', () => {
 
 test('does not accept protected guard text emitted by another command', () => {
   const sources = releaseSources();
-  sources.stableCandidate = sources.stableCandidate.replace(
+  sources.coordinatedCandidate = sources.coordinatedCandidate.replace(
     '          test "$GITHUB_REF" = "refs/heads/main"',
     '          echo \'test "$GITHUB_REF" = "refs/heads/main"\'',
   );
@@ -158,8 +157,19 @@ test('does not accept protected guard text emitted by another command', () => {
   assert.ok(errors.some(error => /main dispatch-ref guard|reject runs outside main/u.test(error)));
 });
 
+test('Coordinated stable candidate workflow binds the provenance event SHA to the approved commit', () => {
+  const sources = releaseSources();
+  sources.coordinatedCandidate = sources.coordinatedCandidate.replace(
+    '          test "$RELEASE_COMMIT" = "$GITHUB_SHA"',
+    '          # test "$RELEASE_COMMIT" = "$GITHUB_SHA"',
+  );
+  const { errors } = validateReleaseWorkflowSources(sources);
+  assert.ok(errors.some(error =>
+    error.includes('release_commit equality with the immutable workflow event SHA'),
+  ));
+});
+
 for (const [sourceName, description] of [
-  ['stableCandidate', 'Stable candidate workflow'],
   ['mutativePublish', 'Mutative workflow'],
   ['maintenancePatch', 'Maintenance patch workflow'],
 ]) {
@@ -254,7 +264,7 @@ test('does not accept a neutralized maintenance approved-source cleanliness chec
 
 test('does not accept stable-release guards from a continue-on-error step', () => {
   const sources = releaseSources();
-  sources.stableCandidate = sources.stableCandidate.replace(
+  sources.coordinatedCandidate = sources.coordinatedCandidate.replace(
     '      - name: Verify approved main release commit\n',
     '      - name: Verify approved main release commit\n        continue-on-error: true\n',
   );
@@ -264,32 +274,12 @@ test('does not accept stable-release guards from a continue-on-error step', () =
 
 test('does not accept stable-release guards under a custom job shell', () => {
   const sources = releaseSources();
-  sources.stableCandidate = sources.stableCandidate.replace(
+  sources.coordinatedCandidate = sources.coordinatedCandidate.replace(
     '    runs-on: ubuntu-latest\n',
     '    runs-on: ubuntu-latest\n    defaults:\n      run:\n        shell: bash {0}\n',
   );
   const { errors } = validateReleaseWorkflowSources(sources);
   assert.ok(errors.some(error => /main dispatch-ref guard|reject runs outside main/u.test(error)));
-});
-
-test('requires stable authorization to be an executable prepublication command', () => {
-  const sources = releaseSources();
-  sources.stableCandidate = sources.stableCandidate.replace(
-    '        run: pnpm verify:stable-publish-authorization -- --commit "$RELEASE_COMMIT"',
-    '        run: echo \'pnpm verify:stable-publish-authorization -- --commit "$RELEASE_COMMIT"\'',
-  );
-  const { errors } = validateReleaseWorkflowSources(sources);
-  assert.ok(errors.includes('Stable candidate workflow must verify publish authorization before publication'));
-});
-
-test('does not accept stable authorization whose failure is neutralized', () => {
-  const sources = releaseSources();
-  sources.stableCandidate = sources.stableCandidate.replace(
-    '        run: pnpm verify:stable-publish-authorization -- --commit "$RELEASE_COMMIT"',
-    '        run: pnpm verify:stable-publish-authorization -- --commit "$RELEASE_COMMIT" || true',
-  );
-  const { errors } = validateReleaseWorkflowSources(sources);
-  assert.ok(errors.includes('Stable candidate workflow must verify publish authorization before publication'));
 });
 
 test('does not let a YAML comment satisfy a maintenance publication command contract', () => {

@@ -74,8 +74,10 @@ consumer 검증과 레지스트리 evidence를 기준으로 fail closed 해야 �
 일반 도구 cohort를 게시하려면 보호된 `workflow_dispatch`에서 정확한
 `release_commit`을 입력하고 `npm-stable` environment 승인을 통과해야 합니다.
 
-`publish-v1-stable-candidate.yml`은 이미 완료된 1.0.0 cohort에 고정된 역사적
-경로입니다. 새로운 minor 또는 major 안정 릴리즈에 재사용하지 않습니다.
+이미 완료된 `v1.0.0` 일회성 워크플로(`publish-v1-stable-candidate.yml`)는 승격 완료 후 은퇴했으며,
+불변 감사 근거는 [`docs/releases/v1.0.0/release-manifest.json`](../docs/releases/v1.0.0/release-manifest.json)와
+SHA-256 해시가 검증된 `release-evidence/` 번들에 보존되어 있습니다. 새로운 minor 또는 major 안정 릴리즈는
+coordinated stable 경로를 사용합니다.
 
 ## 4. Coordinated stable 경로
 

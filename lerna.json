@@ -16,9 +16,7 @@
     "packages/store-core",
     "packages/xstate",
     "packages/mutative-core",
-    "packages/mutative",
-    "packages/llms-generator",
-    "packages/typedoc-vitepress-sync"
+    "packages/mutative"
   ],
   "command": {
     "version": {

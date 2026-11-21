@@ -45,8 +45,6 @@ when an existing package cannot own the responsibility without violating depende
 | `@context-action/preact` | public preview framework adapter | Preact dispatch contexts and read-only Signals projections over Core contracts | DOM root ownership, SSR rendering, business-domain state, React integration |
 | `@context-action/preact-ui` | public preview UI runtime | owned Preact roots, template mounting, SSR/hydration helpers, disposal, and Custom Element shells | domain state policy, action orchestration, or React store implementation |
 | `@context-action/webmcp` | integration adapter | optional browser WebMCP imperative scope (`createWebMCPToolScope`) exposing allowlisted canonical tools over `document.modelContext` | second tool execution path bypassing `ToolContext`, React or model-provider dependencies |
-| `@context-action/llms-generator` | documentation generator | LLMS summaries, priorities, derived documentation artifacts | runtime package behavior or architecture policy |
-| `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress synchronization | handwritten guide content or runtime code |
 | `@context-action/style-testing` | UI verification tool | style/browser analysis and its CLI | core state management contracts |
 | `@context-action/live-code-editor` | private integration surface | live editor package experiments | stable public runtime contracts until promoted |
 | `@context-action/openrouter-browser-storage` | private integration surface | browser persistence for the OpenRouter example | generic storage abstractions for core/react |
@@ -56,9 +54,10 @@ when an existing package cannot own the responsibility without violating depende
 architecture, but a reusable implementation belongs in a package before it is imported by another package.
 
 The former test-driven documentation package and its repository-owned examples were removed during the 0.8/0.9
-stabilization. Public API documentation now has one path: exported source and JSDoc → TypeDoc →
-`typedoc-vitepress-sync` → VitePress. LLMS summaries are derived from canonical `docs/` content and are not an
-alternative API SSOT.
+stabilization, and repository-wide TypeDoc generation was superseded by the unified 2-tier documentation model.
+Public API contracts now live directly in exported TypeScript declarations, `packages/*/README.md`, `packages/*/docs/*.md`,
+and `catalog/repository-surface/api-surface.v1.json`. LLMS bundles are compiled directly from canonical `docs/{en,ko}/**`
+via `pnpm docs:llms` and are not an alternative API SSOT.
 
 ## 3. Dependency direction
 

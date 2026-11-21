@@ -267,50 +267,6 @@
       "verificationGate": "pnpm build:live-code-editor && pnpm --filter @context-action/live-code-editor check && pnpm --filter @context-action/live-code-editor test"
     },
     {
-      "id": "api-llms-generator",
-      "packageName": "@context-action/llms-generator",
-      "directory": "packages/llms-generator",
-      "layer": "tooling",
-      "visibility": "public",
-      "stability": "tooling",
-      "summary": {
-        "en": "Documentation-to-LLMS template generator, priority manager, mismatch detector, and reference combiner CLI/library.",
-        "ko": "문서-LLMS 요약 템플릿 생성기, 우선순위 관리, 불일치 탐지 및 참조 결합 CLI/라이브러리입니다."
-      },
-      "nonGoals": [
-        "Runtime state or action execution inside consumer apps",
-        "Acting as primary source of truth over handwritten docs"
-      ],
-      "exports": [
-        {
-          "subpath": ".",
-          "purpose": "Programmatic configuration manager, LLMS summary types, and DEFAULT_CONFIG exports.",
-          "keySymbols": [
-            "EnhancedConfigManager",
-            "DEFAULT_CONFIG",
-            "LLMSConfig",
-            "GenerationOptions"
-          ]
-        },
-        {
-          "subpath": "./cli",
-          "purpose": "Executable CLI entry supporting sync-docs, detect-mismatches, priority-*, generate-templates, and code-mode.",
-          "keySymbols": [
-            "main"
-          ]
-        }
-      ],
-      "workspaceDependencies": [],
-      "workspacePeerDependencies": [],
-      "readme": "packages/llms-generator/README.md",
-      "authoritativeDocs": [
-        "packages/llms-generator/docs/README.md",
-        "packages/llms-generator/docs/data-structure.md",
-        "docs/en/llms/index.md"
-      ],
-      "verificationGate": "pnpm build:llms-generator && pnpm --filter @context-action/llms-generator test"
-    },
-    {
       "id": "api-mutative",
       "packageName": "@context-action/mutative",
       "directory": "packages/mutative",
@@ -821,49 +777,6 @@
         "docs/en/context-layered/usecase-tool-calling-web-studio.md"
       ],
       "verificationGate": "pnpm --filter @context-action/tool-protocol test && pnpm verify:tool-protocol-changelog && pnpm verify:local-tool-consumers"
-    },
-    {
-      "id": "api-typedoc-vitepress-sync",
-      "packageName": "@context-action/typedoc-vitepress-sync",
-      "directory": "packages/typedoc-vitepress-sync",
-      "layer": "tooling",
-      "visibility": "public",
-      "stability": "tooling",
-      "summary": {
-        "en": "Smart-cached parallel TypeDoc-to-VitePress API markdown synchronizer, sidebar spec generator, and link quality validator.",
-        "ko": "스마트 캐싱·병렬 TypeDoc-to-VitePress API 마크다운 동기화, 사이드바 스펙 생성 및 링크 품질 검증 도구입니다."
-      },
-      "nonGoals": [
-        "Authoring handwritten conceptual guides",
-        "Runtime state management in consumer applications"
-      ],
-      "exports": [
-        {
-          "subpath": ".",
-          "purpose": "Programmatic sync orchestrator, cache/metrics managers, markdown processor, and VitePress sidebar generator.",
-          "keySymbols": [
-            "TypeDocVitePressSync",
-            "CacheManager",
-            "QualityValidator",
-            "SidebarGenerator",
-            "MarkdownProcessor"
-          ]
-        },
-        {
-          "subpath": "./cli",
-          "purpose": "CLI entrypoint for syncing TypeDoc Markdown outputs into VitePress.",
-          "keySymbols": []
-        }
-      ],
-      "workspaceDependencies": [],
-      "workspacePeerDependencies": [],
-      "readme": "packages/typedoc-vitepress-sync/README.md",
-      "authoritativeDocs": [
-        "packages/typedoc-vitepress-sync/docs/README.md",
-        "packages/typedoc-vitepress-sync/docs/architecture.md",
-        "docs/en/concept/documentation-development-conventions.md"
-      ],
-      "verificationGate": "pnpm --filter @context-action/typedoc-vitepress-sync build && pnpm --filter @context-action/typedoc-vitepress-sync test"
     },
     {
       "id": "api-webmcp",

@@ -439,7 +439,7 @@ test('release preflight runs the React 19.2 minimum and current compatibility ma
   );
 });
 
-test('packed consumers exercise every React export, the LLMS CLI module, and the durable evidence bin', () => {
+test('packed consumers exercise every React export and the durable evidence bin', () => {
   for (const exportName of Object.keys(reactManifest.exports)) {
     const specifier = exportName === '.'
       ? reactManifest.name
@@ -451,10 +451,6 @@ test('packed consumers exercise every React export, the LLMS CLI module, and the
     );
   }
 
-  assert.match(
-    publishedConsumerVerifier,
-    /specifier: '@context-action\/llms-generator\/cli', exports: \['main'\]/u,
-  );
   for (const binName of Object.keys(durableOperationsManifest.bin)) {
     assert.match(
       publishedConsumerVerifier,

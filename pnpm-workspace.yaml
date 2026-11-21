@@ -13,8 +13,6 @@ packages:
   - packages/mutative-core
   - packages/mutative
   - packages/xstate
-  - packages/llms-generator
-  - packages/typedoc-vitepress-sync
   - packages/style-testing
   - packages/live-code-editor
   - packages/openrouter-browser-storage

@@ -904,21 +904,6 @@
       "verificationGate": "pnpm --filter @context-action/lit-ui test:browser"
     },
     {
-      "id": "ex-pkg-llms-generator",
-      "packageName": "@context-action/llms-generator",
-      "path": "packages/llms-generator/examples",
-      "status": "reference",
-      "explains": {
-        "en": "TypeScript and JavaScript programmatic configuration and preset examples using EnhancedConfigManager, DEFAULT_CONFIG, and @context-action/llms-generator CLI commands.",
-        "ko": "EnhancedConfigManager, DEFAULT_CONFIG 및 CLI 워크플로우를 활용하는 TypeScript/JavaScript 설정·프리셋 사용 예제입니다."
-      },
-      "primaryApis": [
-        "EnhancedConfigManager",
-        "DEFAULT_CONFIG"
-      ],
-      "verificationGate": "pnpm build:llms-generator && node packages/llms-generator/examples/library-usage.js"
-    },
-    {
       "id": "ex-pkg-mutative",
       "packageName": "@context-action/mutative",
       "path": "packages/mutative/examples",
@@ -970,21 +955,6 @@
         "useLocalStore"
       ],
       "verificationGate": "pnpm --filter @context-action/react exec tsc --noEmit -p tsconfig.examples.json && pnpm --filter @context-action/react test"
-    },
-    {
-      "id": "ex-pkg-typedoc-vitepress-sync",
-      "packageName": "@context-action/typedoc-vitepress-sync",
-      "path": "packages/typedoc-vitepress-sync/examples",
-      "status": "reference",
-      "explains": {
-        "en": "Basic and advanced configuration examples for running TypeDocVitePressSync in Node.js scripts.",
-        "ko": "Node.js 스크립트에서 TypeDocVitePressSync를 실행하는 기본·고급 설정 예제입니다."
-      },
-      "primaryApis": [
-        "TypeDocVitePressSync",
-        "ConsoleLogger"
-      ],
-      "verificationGate": "pnpm --filter @context-action/typedoc-vitepress-sync test"
     }
   ],
   "narrativeExampleDocs": [

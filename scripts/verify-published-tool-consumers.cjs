@@ -181,27 +181,6 @@ const packages = [
       },
     ],
   },
-  {
-    name: '@context-action/typedoc-vitepress-sync',
-    directory: 'packages/typedoc-vitepress-sync',
-    supportsCjs: false,
-    imports: [{ specifier: '@context-action/typedoc-vitepress-sync', exports: ['TypeDocVitePressSync'] }],
-    cli: { name: 'typedoc-vitepress-sync', arguments: ['--help'], output: 'Usage: typedoc-vitepress-sync' },
-  },
-  {
-    name: '@context-action/llms-generator',
-    directory: 'packages/llms-generator',
-    supportsCjs: false,
-    imports: [
-      {
-        specifier: '@context-action/llms-generator',
-        exports: ['EnhancedConfigManager', 'DEFAULT_CONFIG'],
-        exportKinds: { DEFAULT_CONFIG: 'object' },
-      },
-      { specifier: '@context-action/llms-generator/cli', exports: ['main'] },
-    ],
-    cli: { name: 'llms', arguments: ['--help'], output: 'LLMS Generator' },
-  },
 ];
 
 const consumerRuntimeDependencies = [
@@ -425,7 +404,6 @@ console.log('published tool package ESM imports passed: ' + Object.keys(expected
 function runConsumerTypecheck(consumerRoot, selectedPackages) {
   const names = new Set(selectedPackages.map(({ name }) => name));
   const statements = [];
-  const esmOnlyStatements = [];
   if (names.has('@context-action/core')) {
     statements.push(`
 import { ActionRegister } from '@context-action/core';
@@ -560,30 +538,9 @@ void createWebMCPToolScope;
 void chromeLegacyWebMCPProfile;
 `);
   }
-  if (names.has('@context-action/typedoc-vitepress-sync')) {
-    esmOnlyStatements.push(`
-import { TypeDocVitePressSync, type SyncConfig } from '@context-action/typedoc-vitepress-sync';
-const syncConfig: SyncConfig = { sourceDir: 'typedoc', targetDir: 'vitepress' };
-void syncConfig;
-void TypeDocVitePressSync;
-`);
-  }
-  if (names.has('@context-action/llms-generator')) {
-    esmOnlyStatements.push(`
-import { EnhancedConfigManager, DEFAULT_CONFIG } from '@context-action/llms-generator';
-import { main as llmsCliMain } from '@context-action/llms-generator/cli';
-void EnhancedConfigManager;
-void DEFAULT_CONFIG;
-void llmsCliMain;
-`);
-  }
-  if (statements.length === 0 && esmOnlyStatements.length === 0) return;
+  if (statements.length === 0) return;
   for (const extension of ['mts', 'cts']) {
-    const source = [
-      ...statements,
-      ...(extension === 'mts' ? esmOnlyStatements : []),
-    ].join('\n');
-    if (source.length === 0) continue;
+    const source = statements.join('\n');
     const sourcePath = path.join(consumerRoot, `index.${extension}`);
     writeFileSync(sourcePath, source);
     execFileSync(

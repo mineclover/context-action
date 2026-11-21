@@ -18,8 +18,6 @@ const candidates = new Map([
   ['@context-action/tool-durable-operations', 'decision-needed'],
   ['@context-action/mutative', 'decision-needed'],
   ['@context-action/mutative-core', 'decision-needed'],
-  ['@context-action/llms-generator', 'internal'],
-  ['@context-action/typedoc-vitepress-sync', 'internal'],
 ]);
 
 function readOption(name, fallback) {

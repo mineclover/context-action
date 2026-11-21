@@ -146,7 +146,6 @@ function requireExactStepBeforePublication(
 }
 
 export function validateReleaseWorkflowSources({
-  stableCandidate,
   coordinatedCandidate,
   coordinatedPromotion,
   generalPublish,
@@ -158,7 +157,6 @@ export function validateReleaseWorkflowSources({
   changelogVerifier,
   coordinatedPlanSource,
 }) {
-  const stableInspection = inspectGitHubWorkflow(stableCandidate);
   const generalInspection = inspectGitHubWorkflow(generalPublish);
   const mutativeInspection = inspectGitHubWorkflow(mutativePublish);
   const maintenanceInspection = inspectGitHubWorkflow(maintenancePatch);
@@ -309,47 +307,6 @@ export function validateReleaseWorkflowSources({
     }
   }
 
-  if (!Object.hasOwn(stableInspection.document.on ?? {}, 'workflow_dispatch')) {
-    errors.push('Stable candidate workflow must be manually dispatched');
-  }
-  const stableReleaseInput = workflowInput(stableInspection.document, 'release_commit');
-  if (!stableReleaseInput || typeof stableReleaseInput !== 'object' || stableReleaseInput.required !== true) {
-    errors.push('Stable candidate workflow must require an explicit release_commit');
-  }
-  if (stableInspection.document.permissions?.['id-token'] !== 'write') {
-    errors.push('Stable candidate workflow must permit npm provenance through OIDC');
-  }
-  errors.push(...protectedPublicationFailures(
-    'Stable candidate workflow',
-    stableInspection,
-    workflowPublicationCommands(stableInspection),
-  ));
-  requireExecutableCommand(
-    errors,
-    stableInspection,
-    'test "$GITHUB_REF" = "refs/heads/main"',
-    'Stable candidate workflow must reject runs outside main',
-  );
-  requireExecutableCommand(
-    errors,
-    stableInspection,
-    'test "$RELEASE_COMMIT" = "$GITHUB_SHA"',
-    'Stable candidate workflow must bind npm provenance GITHUB_SHA to RELEASE_COMMIT',
-  );
-  requireCommandBeforePublication(
-    errors,
-    stableInspection,
-    /^pnpm\s+verify:stable-publish-authorization\s+--\s+--commit "\$RELEASE_COMMIT"$/u,
-    'Stable candidate workflow must verify publish authorization before publication',
-  );
-  const stablePublication = publicationCommandText(stableInspection);
-  for (const [name, version] of packages) {
-    if (name === '@context-action/webmcp') continue;
-    if (!stablePublication.includes(`--scope ${name}`)) {
-      errors.push(`Stable candidate workflow must publish ${name}@${version}`);
-    }
-  }
-
   const generalPublication = publicationCommandText(generalInspection);
   if (Object.hasOwn(generalInspection.document.on ?? {}, 'push')) {
     errors.push('General publish workflow must not publish from an automatic push or tag trigger');
@@ -393,10 +350,8 @@ export function validateReleaseWorkflowSources({
     'General publish workflow must verify the release commit is contained in main',
   );
   for (const name of [
-    '@context-action/typedoc-vitepress-sync',
     '@context-action/ai-sdk',
     '@context-action/tool-durable-operations',
-    '@context-action/llms-generator',
   ]) {
     if (!generalPublication.includes(`--scope ${name}`)) {
       errors.push(`General publish workflow must use the approved regular-package allow-list entry ${name}`);
@@ -769,8 +724,7 @@ export function validateReleaseWorkflowSources({
 }
 
 async function main() {
-  const [stableCandidate, coordinatedCandidate, coordinatedPromotion, generalPublish, mutativePublish, maintenancePatch, manifestSource, packageSource, publishHelper, changelogVerifier, coordinatedPlanSource] = await Promise.all([
-    readFile(path.join(workflowDirectory, 'publish-v1-stable-candidate.yml'), 'utf8'),
+  const [coordinatedCandidate, coordinatedPromotion, generalPublish, mutativePublish, maintenancePatch, manifestSource, packageSource, publishHelper, changelogVerifier, coordinatedPlanSource] = await Promise.all([
     readFile(path.join(workflowDirectory, 'publish-coordinated-stable-candidate.yml'), 'utf8'),
     readFile(path.join(workflowDirectory, 'promote-coordinated-stable.yml'), 'utf8'),
     readFile(path.join(workflowDirectory, 'publish-packages.yml'), 'utf8'),
@@ -783,7 +737,6 @@ async function main() {
     readFile(path.join(repositoryRoot, 'releases', 'coordinated-stable-2026-10.json'), 'utf8'),
   ]);
   const { errors, packages } = validateReleaseWorkflowSources({
-    stableCandidate,
     coordinatedCandidate,
     coordinatedPromotion,
     generalPublish,
@@ -802,7 +755,6 @@ async function main() {
     console.log(JSON.stringify({
       status: 'ok',
       workflows: [
-        'publish-v1-stable-candidate.yml',
         'publish-coordinated-stable-candidate.yml',
         'promote-coordinated-stable.yml',
         'publish-mutative.yml',

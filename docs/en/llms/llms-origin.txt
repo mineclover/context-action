@@ -3951,8 +3951,6 @@ when an existing package cannot own the responsibility without violating depende
 | `@context-action/preact` | public preview framework adapter | Preact dispatch contexts and read-only Signals projections over Core contracts | DOM root ownership, SSR rendering, business-domain state, React integration |
 | `@context-action/preact-ui` | public preview UI runtime | owned Preact roots, template mounting, SSR/hydration helpers, disposal, and Custom Element shells | domain state policy, action orchestration, or React store implementation |
 | `@context-action/webmcp` | integration adapter | optional browser WebMCP imperative scope (`createWebMCPToolScope`) exposing allowlisted canonical tools over `document.modelContext` | second tool execution path bypassing `ToolContext`, React or model-provider dependencies |
-| `@context-action/llms-generator` | documentation generator | LLMS summaries, priorities, derived documentation artifacts | runtime package behavior or architecture policy |
-| `@context-action/typedoc-vitepress-sync` | API documentation adapter | TypeDoc-to-VitePress synchronization | handwritten guide content or runtime code |
 | `@context-action/style-testing` | UI verification tool | style/browser analysis and its CLI | core state management contracts |
 | `@context-action/live-code-editor` | private integration surface | live editor package experiments | stable public runtime contracts until promoted |
 | `@context-action/openrouter-browser-storage` | private integration surface | browser persistence for the OpenRouter example | generic storage abstractions for core/react |
@@ -3962,9 +3960,10 @@ when an existing package cannot own the responsibility without violating depende
 architecture, but a reusable implementation belongs in a package before it is imported by another package.
 
 The former test-driven documentation package and its repository-owned examples were removed during the 0.8/0.9
-stabilization. Public API documentation now has one path: exported source and JSDoc → TypeDoc →
-`typedoc-vitepress-sync` → VitePress. LLMS summaries are derived from canonical `docs/` content and are not an
-alternative API SSOT.
+stabilization, and repository-wide TypeDoc generation was superseded by the unified 2-tier documentation model.
+Public API contracts now live directly in exported TypeScript declarations, `packages/*/README.md`, `packages/*/docs/*.md`,
+and `catalog/repository-surface/api-surface.v1.json`. LLMS bundles are compiled directly from canonical `docs/{en,ko}/**`
+via `pnpm docs:llms` and are not an alternative API SSOT.
 
 ## 3. Dependency direction
 
@@ -4349,8 +4348,8 @@ The transition function is pure, so it is easy to test and compose alongside pur
 
 This specification defines the principles, schema standards, and complete inventory for three repository surfaces:
 
-1. **Full Repository API Architecture**: all 20 workspace packages (`packages/*`), their public `exports`, workspace dependencies, and stability tiers.
-2. **What Examples Explain**: all 77 canonical routes across 13 semantic groups in `example/`, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), 7 package-local example suites, and 9 narrative example walkthroughs.
+1. **Full Repository API Architecture**: all 18 workspace packages (`packages/*`), their public `exports`, workspace dependencies, and stability tiers.
+2. **What Examples Explain**: all 77 canonical routes across 13 semantic groups in `example/`, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), 5 package-local example suites, and 9 narrative example walkthroughs.
 3. **Managed Documentation Architecture**: all 9 root markdown documents, 12 managed documentation areas with explicit authority and EN/KO pairing policies, and derived LLMS bundle artifacts.
 
 It complements [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention), [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention), [Documentation and Development Management](/en/concept/documentation-development-conventions), and ADR [CA-SURFACE-CATALOG-001](/en/context-layered/decisions/CA-SURFACE-CATALOG-001).
@@ -4377,7 +4376,7 @@ It complements [Package Boundary and Codebase Management](/en/context-layered/pa
 | `framework-adapter` | Framework-specific bindings (`react`, `mutative`, `lit`, `preact`) | `stable`, `public-preview` |
 | `ui-runtime` | Owned DOM roots, Web Components, FACE, SSR/hydration (`lit-ui`, `preact-ui`) | `public-preview` |
 | `integration-adapter` | External protocol & runtime bridges (`ai-sdk`, `webmcp`, `xstate`) | `public-preview` |
-| `tooling` | Build/doc/style verification tooling (`llms-generator`, `typedoc-vitepress-sync`, `style-testing`) | `tooling`, `private` |
+| `tooling` | Build/doc/style verification tooling (`style-testing`) | `private` |
 | `private-host-support` | Private demo/template support (`live-code-editor`, `openrouter-browser-storage`, `template-react`) | `private` |
 
 ### Document Authority Classes & Pairing Policies (`document-surface.v1.json`)
@@ -4408,9 +4407,9 @@ It complements [Package Boundary and Codebase Management](/en/context-layered/pa
 
 ---
 
-## 3. Surface 1: Full Repository API Architecture (20 Packages)
+## 3. Surface 1: Full Repository API Architecture (18 Packages)
 
-All 20 workspace packages declared under `packages/*/package.json` (excluding untracked local build residue without `package.json`):
+All 18 workspace packages declared under `packages/*/package.json` (excluding untracked local build residue without `package.json`):
 
 | Package | Layer | Visibility / Stability | Public `exports` | Workspace Deps (+Peers) | Authoritative Reference |
 | --- | --- | --- | --- | --- | --- |
@@ -4428,15 +4427,13 @@ All 20 workspace packages declared under `packages/*/package.json` (excluding un
 | `@context-action/ai-sdk` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.` | `tool-protocol` | `packages/ai-sdk/README.md`, `usecase-tool-calling-web-studio.md` |
 | `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | `packages/webmcp/README.md`, `docs/en/guide/webmcp.md` |
 | `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | `packages/xstate/README.md`, `xstate-effect-integration.md` |
-| `@context-action/llms-generator` (`0.8.7`) | `tooling` | `public` / `tooling` | `.`, `./cli` | none | `packages/llms-generator/README.md`, `packages/llms-generator/docs/` |
-| `@context-action/typedoc-vitepress-sync` (`0.8.8`) | `tooling` | `public` / `tooling` | `.`, `./cli` | none | `packages/typedoc-vitepress-sync/README.md`, `packages/typedoc-vitepress-sync/docs/` |
 | `@context-action/style-testing` (`0.1.0`) | `tooling` | `private` / `private` | `.`, `./babel-plugin` | none | `packages/style-testing/README.md` |
 | `@context-action/live-code-editor` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | none | `packages/live-code-editor/README.md` |
 | `@context-action/openrouter-browser-storage` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | none | `packages/openrouter-browser-storage/README.md` |
 | `@context-action/template-react` (`1.0.0`) | `private-host-support` | `private` / `private` | `(no exports)` | `core`, `react` | `packages/template-react/README.md` |
 
 > [!NOTE]
-> **API Surface Source of Truth**: Rather than maintaining a repository-wide TypeDoc HTML/Markdown generation tree (`docs/en/api/**`), the 14 public consumer runtime packages and 2 public tooling packages document their public contracts directly in `packages/*/README.md`, `packages/*/docs/*.md`, TypeScript `.d.ts` declarations, and [`catalog/repository-surface/api-surface.v1.json`](../../../catalog/repository-surface/api-surface.v1.json). `@context-action/llms-generator` and `@context-action/typedoc-vitepress-sync` remain independent public tooling packages.
+> **API Surface Source of Truth**: Rather than maintaining a repository-wide TypeDoc HTML/Markdown generation tree (`docs/en/api/**`), all 14 public runtime packages document their public contracts directly in `packages/*/README.md`, `packages/*/docs/*.md`, TypeScript `.d.ts` declarations, and [`catalog/repository-surface/api-surface.v1.json`](../../../catalog/repository-surface/api-surface.v1.json).
 
 ### 3.1 Package Roles by Layer
 
@@ -4444,7 +4441,7 @@ All 20 workspace packages declared under `packages/*/package.json` (excluding un
 - **Framework Adapters (`4`)**: `react` (React 18/19 Action/Store/TimeTravel/Ref contexts, hooks, transactions, `./backend`, `./advanced`, `./webmcp`), `mutative` (`TimeTravel` + `MutativeStateBackend`/`MutativeTimelineBackend`), `lit` (`StoreController`, `ActionController`, `ControllerScope`), `preact` (`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`).
 - **UI Runtimes (`2`)**: `lit-ui` (Lit Web Components, W3C Context Protocol, FACE, `./react-bridge`, `./ssr`, `./hydrate`), `preact-ui` (owned Preact DOM roots, `mountPreact`/`hydratePreact`, `createDisposalScope`, `./react-bridge`, `./ssr`).
 - **Integration Adapters (`3`)**: `xstate` (XState v5/v6 actor bridges in `.` and Effect v4 / `@xstate/effect` / Standard Schema v1 / transaction scopes in `./effect`), `ai-sdk` (AI SDK v7 turn-scoped `ToolSet` bridge), `webmcp` (allowlisted `document.modelContext` browser adapter).
-- **Tooling (`3`)**: `llms-generator` (LLMS summaries, priority management, mismatch check), `typedoc-vitepress-sync` (TypeDoc-to-VitePress API markdown/sidebar sync), `style-testing` (private Playwright style extraction & Babel instrumentation).
+- **Tooling (`1`)**: `style-testing` (private Playwright style extraction & Babel instrumentation).
 - **Private Host Support (`3`)**: `live-code-editor` (workspace snapshot & iframe preview bridge), `openrouter-browser-storage` (demo API key local storage), `template-react` (Context-Layered + Astryx starter template).
 
 For deciding which state/store API to use across these packages, see the [Store Selection and Usage Guide](./store-selection-and-usage-guide.md).
@@ -4473,7 +4470,7 @@ For deciding which state/store API to use across these packages, see the [Store 
 | `ex-app-integrations` | `/integrations/action-lifecycle`, `react-aria-reference`, `preact-web-components`, `lit-web-components`, `xstate-statechart`, `webmcp-scope`, `ai-sdk-tools`, `business/chat`, `advanced/form-builder`, `advanced/concurrent-actions` (**10**) | Action Lifecycle Workbench, React Aria layered hydration, Preact/Lit Web Component React bridges, XState/Effect, WebMCP, AI SDK v7 tool scope, chat, dynamic form builder, concurrency isolation | `ActionRegister`, `@context-action/core/element`, `preact-ui/react-bridge`, `lit-ui/react-bridge`, `@context-action/xstate`, `@context-action/webmcp`, `@context-action/ai-sdk` | `pnpm verify:react-aria-reference-hydration && pnpm verify:element-interop && pnpm --filter example test` |
 | `ex-app-utilities` | `/utilities/dev-tools/{logger,toast-config,warning-demo,store-scenarios}`, `source-directory`, `testing/enhanced-search` (**6**) | LogMonitor tracing, toast policies, warning diagnostics, store comparison benchmarks, source directory, abortable search test harness | `ActionRegister`, `createStoreContext`, `createActionContext` | `pnpm --filter example check && pnpm --filter example build` |
 
-### 4.2 Standalone Demos (2) & Package-Local Examples (7)
+### 4.2 Standalone Demos (2) & Package-Local Examples (5)
 
 | Surface | Path | Status | What It Explains | Verification Gate |
 | --- | --- | --- | --- | --- |
@@ -4484,8 +4481,6 @@ For deciding which state/store API to use across these packages, see the [Store 
 | Package Examples | `packages/preact-ui/examples` | `verified` | Projected Order 6-layer workspace, Layer Panel contract reuse, modular Signals Web Components, SSR | `pnpm --filter @context-action/preact-ui test:browser` |
 | Package Examples | `packages/react/examples` | `verified` | Package-level hooks, RefContext (`GameUI`/`SimpleForm`), declarative/unified Store patterns | `pnpm --filter @context-action/react exec tsc --noEmit -p tsconfig.examples.json && pnpm --filter @context-action/react test` |
 | Package Examples | `packages/mutative/examples` | `experimental` | Workspace-only `travels@3` + `mutative@2` backend prototypes (`travels-v3`) | `pnpm --filter @context-action/mutative test:travels-v3` |
-| Package Examples | `packages/llms-generator/examples` | `reference` | Programmatic `EnhancedConfigManager`, `DEFAULT_CONFIG`, and CLI workflow usage | `pnpm build:llms-generator && node packages/llms-generator/examples/library-usage.js` |
-| Package Examples | `packages/typedoc-vitepress-sync/examples` | `reference` | Basic and advanced Node.js configuration scripts for `TypeDocVitePressSync` | `pnpm --filter @context-action/typedoc-vitepress-sync test` |
 
 ### 4.3 Narrative Example Walkthroughs (`docs/{en,ko}/examples/*.md`, 9 Paired Docs)
 
