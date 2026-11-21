@@ -116,7 +116,7 @@
 
 ### 4.1 `example/` React 앱 (13개 의미 그룹 · 77개 정식 라우트)
 
-`example/src/App.tsx`는 총 121개 `<Route>`(레거시 리다이렉트 44개 포함)를 선언하며, `scripts/example-route-impact.mjs`가 인덱싱하는 **77개 정식 라우트**를 13개 의미 그룹으로 관리합니다.
+`example/src/App.tsx`는 총 **77개 정식 `<Route>`**(엔트리 모듈과 1:1 매핑, 레거시 별칭 0개)를 선언하며, `scripts/example-route-impact.mjs`가 이를 13개 의미 그룹으로 인덱싱·관리합니다:
 
 | 그룹 ID | 포함 라우트 (개수) | 설명하는 핵심 주제 | 주요 API | 검증 게이트 |
 | --- | --- | --- | --- | --- |

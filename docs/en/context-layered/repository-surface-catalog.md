@@ -116,7 +116,7 @@ For deciding which state/store API to use across these packages, see the [Store 
 
 ### 4.1 `example/` React App (77 Canonical Routes in 13 Semantic Groups)
 
-`example/src/App.tsx` defines 121 `<Route>` entries (including 44 legacy aliases/redirects) backed by **77 canonical route entries** indexed by `scripts/example-route-impact.mjs`:
+`example/src/App.tsx` defines **77 canonical `<Route>` entries** (1:1 with entry modules; 0 legacy aliases) indexed by `scripts/example-route-impact.mjs`:
 
 | Group ID | Routes (Count) | What It Explains | Primary APIs | Gate |
 | --- | --- | --- | --- | --- |

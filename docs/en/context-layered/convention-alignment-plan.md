@@ -115,7 +115,7 @@ The following classification is the baseline for migration.
 - `pnpm --dir example build:fast` passed.
 - `pnpm test:canonical-example` passed (1 suite, 4 tests).
 - `pnpm docs:build` passed.
-- The development server at `http://127.0.0.1:4000/` loaded `/react/context` and `/actionguard/conditional/permissions`; Child A and Child B interactions, permission approval, and audit output were verified.
+- The development server at `http://127.0.0.1:4000/` loaded `/foundations/react/context` and `/patterns/conditional/permissions`; Child A and Child B interactions, permission approval, and audit output were verified.
 - A fresh browser load reported zero startup warnings/errors after the LogMonitor registry readiness gate was added.
 
 ## Migration Sequence

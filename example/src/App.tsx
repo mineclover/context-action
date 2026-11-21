@@ -401,6 +401,7 @@ function AppContent() {
         >
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/demos" element={<DemosIndexPage />} />
 
             {/* 📚 CATALOG - Main overview pages with better organization */}
             <Route
@@ -559,10 +560,6 @@ function AppContent() {
               element={<MemoizationPerformancePage />}
             />
             <Route
-              path="/performance/memoization"
-              element={<MemoizationPerformancePage />}
-            />
-            <Route
               path="/performance/memoization/demo"
               element={<MemoizationDemoPage />}
             />
@@ -677,10 +674,6 @@ function AppContent() {
               element={<FormBuilderDemoPage />}
             />
             <Route
-              path="/integrations/advanced/canvas"
-              element={<AdvancedCanvasExample />}
-            />
-            <Route
               path="/integrations/advanced/concurrent-actions"
               element={<ConcurrentActionTestPage />}
             />
@@ -711,143 +704,6 @@ function AppContent() {
               element={<EnhancedAbortableSearchExample />}
             />
 
-            {/* Legacy Routes - Redirects for backward compatibility */}
-            <Route path="/core/basics" element={<CoreBasicsPage />} />
-            <Route path="/core/advanced" element={<CoreAdvancedPage />} />
-            <Route path="/store/basics" element={<StoreBasicsPage />} />
-            <Route
-              path="/store/immutability-test"
-              element={<StoreImmutabilityTestPage />}
-            />
-            <Route path="/react/provider" element={<ReactProviderPage />} />
-            <Route path="/react/context" element={<ReactContextPage />} />
-            <Route path="/react/hooks" element={<ReactHooksPage />} />
-            <Route
-              path="/react/useActionWithResult"
-              element={<UseActionWithResultPage />}
-            />
-            <Route
-              path="/react/imperativeRef"
-              element={<ImperativeRefPage />}
-            />
-            <Route path="/actionguard" element={<ActionGuardIndexPage />} />
-            <Route
-              path="/actionguard/showcase"
-              element={<ActionGuardShowcasePage />}
-            />
-            <Route
-              path="/actionguard/search"
-              element={<SearchPageRefactored />}
-            />
-            <Route
-              path="/actionguard/scroll"
-              element={<ScrollPageRefactored />}
-            />
-            <Route
-              path="/actionguard/api-blocking"
-              element={<ApiBlockingPageRefactored />}
-            />
-            <Route
-              path="/actionguard/throttle-comparison"
-              element={<ThrottleComparisonPageRefactored />}
-            />
-            <Route
-              path="/actionguard/advanced-filtering"
-              element={<AdvancedFilteringPage />}
-            />
-            <Route
-              path="/actionguard/priority-performance-advanced"
-              element={<PriorityPerformancePage />}
-            />
-            <Route
-              path="/actionguard/mouse-events"
-              element={<MouseEventsIndexPage />}
-            />
-            <Route
-              path="/actionguard/mouse-events/legacy"
-              element={<MouseEventsPage />}
-            />
-            <Route
-              path="/actionguard/mouse-events/reactive"
-              element={<EnhancedContextStorePage />}
-            />
-            <Route
-              path="/actionguard/mouse-events/non-reactive"
-              element={<NonReactiveContextStorePage />}
-            />
-            <Route
-              path="/actionguard/mouse-events/context-store-action"
-              element={<ContextStoreActionPage />}
-            />
-            <Route
-              path="/actionguard/mouse-events/canvas-ref-demo"
-              element={<CanvasRefDemoPage />}
-            />
-            <Route
-              path="/actionguard/mouse-events/context-store"
-              element={<ContextStoreMouseEventsPage />}
-            />
-            <Route
-              path="/actionguard/conditional"
-              element={<ConditionalPatternsIndex />}
-            />
-            <Route
-              path="/actionguard/conditional/permissions"
-              element={<PermissionBasedExecution />}
-            />
-            <Route
-              path="/actionguard/conditional/form-validation"
-              element={<FormValidation />}
-            />
-            <Route
-              path="/actionguard/conditional/workflow-steps"
-              element={<WorkflowSteps />}
-            />
-            <Route
-              path="/actionguard/conditional/feature-toggle"
-              element={<FeatureToggle />}
-            />
-            <Route
-              path="/pipeline/flow-control"
-              element={<FlowControlPlaygroundPage />}
-            />
-            <Route path="/refs" element={<RefsIndexPage />} />
-            <Route
-              path="/refs/waitforrefs-performance"
-              element={<WaitForRefsPerformancePage />}
-            />
-            <Route
-              path="/refs/use-ref-mount-state-test"
-              element={<UseRefMountStateTestPage />}
-            />
-            <Route path="/refs/canvas" element={<AdvancedCanvasExample />} />
-            {/* 🛡️ ACTION GUARD - Performance optimization demos */}
-            <Route path="/action-guard" element={<ActionGuardIndexPage />} />
-
-            {/* 🎭 DEMOS - Interactive demonstrations */}
-            <Route path="/demos" element={<DemosIndexPage />} />
-            <Route path="/demos/chat" element={<ChatPage />} />
-            <Route
-              path="/demos/store-scenarios"
-              element={<StoreScenariosPage />}
-            />
-            <Route
-              path="/demos/action-priority"
-              element={<ActionPriorityDemoPage />}
-            />
-            <Route
-              path="/examples/concurrent-actions"
-              element={<ConcurrentActionTestPage />}
-            />
-            <Route
-              path="/examples/toast-config"
-              element={<ToastConfigPage />}
-            />
-            <Route
-              path="/examples/enhanced-search"
-              element={<EnhancedAbortableSearchExample />}
-            />
-            <Route path="/logger/demo" element={<LoggerDemoPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>

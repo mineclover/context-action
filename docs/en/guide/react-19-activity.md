@@ -149,6 +149,6 @@ correctly, and returning to the pane reads the latest Store value. The Context-
 Action test suite covers direct Store Providers, Time Travel history, and both
 `withProvider()` variants.
 
-The example app's **Unified Provider** page (`/react/provider`) includes a
+The example app's **Unified Provider** page (`/foundations/react/provider`) includes a
 runnable Activity panel. Type into its component-local and Store-backed inputs,
 then hide and reveal the panel to observe both values being restored.
