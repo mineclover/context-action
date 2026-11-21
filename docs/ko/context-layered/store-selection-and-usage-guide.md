@@ -214,6 +214,50 @@ export async function addItemWithRollback() {
 - **`useComputedStore(store, computeFn, config?)`**: 다른 스토어에서 파생된 계산 값을 `equalityFn`, `initialValue`, `onError`, `debounceMs` 옵션으로 메모이즈 구독합니다.
 - **`StoreRegistry`**: 문자열 키 기반으로 동적 스토어를 등록·조회·정리해야 하는 고급 시나리오에만 사용합니다.
 
+### 2.8 Headless-First 조합 (`ActionRegister` DI + `StateStore` / `BackendStore`)
+
+React 바깥에서 순수 TypeScript 상태(`@context-action/store-core`의 `createStateStore` 또는 독립형 `createStore`)와 헤드리스 `ActionRegister`를 조립한 뒤, `<ActionContext.Provider register={...}>`(기본값 `ownership="shared"`)와 `createBackendStore`로 React 트리에 주입하는 패턴입니다:
+
+<!-- @context-action-compile -->
+```tsx
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+import { createStateStore } from '@context-action/store-core';
+import { createActionContext, useStoreValue } from '@context-action/react';
+import { createBackendStore } from '@context-action/react/backend';
+
+interface CartActions extends ActionPayloadMap {
+  addSku: { sku: string };
+}
+
+export const cartBackend = createStateStore('cart', { items: [] as string[] });
+export const cartRegister = new ActionRegister<CartActions>({ name: 'HeadlessCart' });
+
+cartRegister.registerCommand('addSku', ({ sku }) => {
+  cartBackend.update((prev) => ({ items: [...prev.items, sku] }));
+});
+
+const cartStore = createBackendStore('cart', cartBackend, { ownership: 'shared' });
+const CartActionsContext = createActionContext<CartActions>('Cart');
+
+function CartSummary() {
+  const dispatch = CartActionsContext.useActionDispatch();
+  const cart = useStoreValue(cartStore);
+  return (
+    <button type="button" onClick={() => void dispatch('addSku', { sku: 'BOOK-1' })}>
+      담긴 상품: {cart.items.length}
+    </button>
+  );
+}
+
+export function HeadlessCartView() {
+  return (
+    <CartActionsContext.Provider register={cartRegister} ownership="shared">
+      <CartSummary />
+    </CartActionsContext.Provider>
+  );
+}
+```
+
 ---
 
 ## 3. React 구독 훅 선택 기준

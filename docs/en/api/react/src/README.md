@@ -20,6 +20,8 @@
 
 - [ActionContextConfig](interfaces/ActionContextConfig.md)
 - [ActionContextType](interfaces/ActionContextType.md)
+- [ProviderShutdownOptions](interfaces/ProviderShutdownOptions.md)
+- [ActionProviderProps](interfaces/ActionProviderProps.md)
 - [ActionContextReturn](interfaces/ActionContextReturn.md)
 - [RefContextReturn](interfaces/RefContextReturn.md)
 - [CreateRefContextOptions](interfaces/CreateRefContextOptions.md)

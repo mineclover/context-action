@@ -206,7 +206,7 @@ Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:29
 
 ### registry
 
-> `readonly` **registry**: `StoreRegistry`
+> `readonly` **registry**: [`StoreRegistry`](../advanced/classes/StoreRegistry.md)
 
 Defined in: [packages/react/src/stores/patterns/time-travel-store-pattern.tsx:117](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/time-travel-store-pattern.tsx#L117)
 

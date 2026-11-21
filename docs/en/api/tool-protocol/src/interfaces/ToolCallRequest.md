@@ -6,7 +6,7 @@
 
 # Interface: ToolCallRequest
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:322](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L322)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:328](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L328)
 
 JSON-RPC-shaped request for MCP tools/call.
 
@@ -16,7 +16,7 @@ JSON-RPC-shaped request for MCP tools/call.
 
 > `readonly` `optional` **id?**: [`ToolCallId`](../type-aliases/ToolCallId.md)
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:323](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L323)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:329](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L329)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:323](https://github.com
 
 > `readonly` **method**: `"tools/call"`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:324](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L324)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:330](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L330)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:324](https://github.com
 
 > `readonly` **params**: `object`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:325](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L325)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:331](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L331)
 
 #### name
 

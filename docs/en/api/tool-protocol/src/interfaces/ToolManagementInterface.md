@@ -6,7 +6,7 @@
 
 # Interface: ToolManagementInterface\<TDefinition\>
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:579](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L579)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:585](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L585)
 
 Management surface implemented by a ToolContext-backed registry.
 
@@ -26,7 +26,7 @@ these methods rather than inventing another execution contract.
 
 > **listTools**(`request?`): [`ToolListResult`](ToolListResult.md)&lt;`TDefinition`&gt;
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:582](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L582)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:588](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L588)
 
 #### Parameters
 
@@ -44,7 +44,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:582](https://github.com
 
 > **getToolDefinition**(`name`): `TDefinition` \| `undefined`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:583](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L583)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:589](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L589)
 
 #### Parameters
 
@@ -62,7 +62,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:583](https://github.com
 
 > **hasTool**(`name`): `boolean`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:584](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L584)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:590](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L590)
 
 #### Parameters
 
@@ -80,7 +80,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:584](https://github.com
 
 > **callTool**(`request`, `options?`): `Promise`\<[`ToolCallResult`](ToolCallResult.md)&lt;`unknown`&gt;\>
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:585](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L585)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:591](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L591)
 
 #### Parameters
 
@@ -102,7 +102,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:585](https://github.com
 
 > **executeModelToolCall**(`call`, `options?`): `Promise`\<[`ToolCallResult`](ToolCallResult.md)&lt;`unknown`&gt;\>
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:589](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L589)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:595](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L595)
 
 #### Parameters
 

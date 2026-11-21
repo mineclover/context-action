@@ -8,7 +8,7 @@
 
 > **withToolCallId**&lt;`TResult`&gt;(`result`, `toolCallId`): [`ToolCallResult`](../interfaces/ToolCallResult.md)&lt;`TResult`&gt;
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:718](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L718)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:724](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L724)
 
 ## Type Parameters
 

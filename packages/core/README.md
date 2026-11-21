@@ -57,6 +57,8 @@ await actions.dispatch('increment');
 await actions.dispatch('setCount', 42);
 ```
 
+For production pipelines, prefer the explicit role-based contract ([`#v13-pipeline-contract`](#v13-pipeline-contract)): `registerGuard`, `registerCommand`, `registerResult`, and `registerObserver`.
+
 ## Tool protocol boundary
 
 MCP, JSON Schema, provider conversion, action schemas, and approval queues are
@@ -96,26 +98,10 @@ imported from `@context-action/tool-protocol`.
 
   <script type="module">
     import { ActionRegister } from 'https://esm.sh/@context-action/core@latest';
+    import { createStateStore } from 'https://esm.sh/@context-action/store-core@latest';
 
-    // Simple store
-    class Store {
-      constructor(initialState) {
-        this.state = initialState;
-        this.listeners = new Set();
-      }
-      getValue() { return this.state; }
-      setValue(newState) {
-        this.state = newState;
-        this.listeners.forEach(fn => fn(this.state));
-      }
-      subscribe(listener) {
-        this.listeners.add(listener);
-        return () => this.listeners.delete(listener);
-      }
-    }
-
-    // Create store and actions
-    const counterStore = new Store({ count: 0 });
+    // Zero-dependency state container + action pipeline
+    const counterStore = createStateStore('counter', { count: 0 });
     const actions = new ActionRegister({ name: 'Counter' });
 
     // Register handler
@@ -125,8 +111,8 @@ imported from `@context-action/tool-protocol`.
     });
 
     // Subscribe to updates
-    counterStore.subscribe(state => {
-      document.getElementById('counter').textContent = state.count;
+    counterStore.subscribe(() => {
+      document.getElementById('counter').textContent = String(counterStore.getValue().count);
     });
 
     // Wire up button

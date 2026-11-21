@@ -8,6 +8,6 @@
 
 > `const` **TOOL\_OBSERVATION\_SINK\_SCHEMA**: `"context-action-tool-observation-sink.v1"`
 
-Defined in: [packages/tool-protocol/src/observability.ts:86](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L86)
+Defined in: [packages/tool-protocol/src/observability.ts:85](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L85)
 
 Versioned record delivered by the safe telemetry observer adapter.

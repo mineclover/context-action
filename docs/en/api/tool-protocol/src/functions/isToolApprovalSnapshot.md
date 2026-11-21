@@ -8,7 +8,7 @@
 
 > **isToolApprovalSnapshot**(`value`): `value is ToolApprovalSnapshot`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:400](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L400)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:406](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L406)
 
 Runtime guard for approval metadata crossing a UI or audit boundary.
 

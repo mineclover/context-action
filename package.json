@@ -128,6 +128,7 @@
     "docs:api": "typedoc --options ./typedoc.json",
     "docs:sync": "pnpm --filter @context-action/typedoc-vitepress-sync build && node packages/typedoc-vitepress-sync/bin/cli.js sync --config ./typedoc-vitepress-sync.config.js",
     "docs:full": "pnpm docs:api && pnpm docs:sync && pnpm docs:build",
+    "docs:refresh": "pnpm build:llms-generator && pnpm docs:api && pnpm docs:sync && pnpm docs:check && pnpm verify:doc-snippets && pnpm verify:surface-catalog",
     "llms:priority-stats": "node packages/llms-generator/dist/cli/index.js priority-stats",
     "llms:priority-health": "node packages/llms-generator/dist/cli/index.js priority-health",
     "llms:priority-suggest": "node packages/llms-generator/dist/cli/index.js priority-suggest",

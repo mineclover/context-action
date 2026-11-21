@@ -1,40 +1,57 @@
 # 시작하기
 
-Context-Action은 완벽한 관심사 분리를 통한 확장 가능한 React 애플리케이션 구축을 위한 핵심 패턴들을 제공합니다.
+Context-Action은 타입 안전한 커맨드 실행(**Action**)과 반응형 상태(**Store**)를 분리하여, 단순한 기능부터 시작하고 복잡도가 커질 때만 아키텍처 경계를 점진적으로 확장할 수 있게 해줍니다.
+
+## 점진적 도입 단계 (Progressive Adoption)
+
+Level 1부터 시작해 요구사항이 커질 때만 다음 단계로 확장하세요:
+
+| 단계 | 적용 범위 | 핵심 API | 적합한 상황 |
+| --- | --- | --- | --- |
+| **Level 1 · Lite** | 스코프 단위 상태 또는 커맨드 | `createStoreContext`, `createActionContext` (또는 `createStateStore` + `ActionRegister`) | 컴포넌트 트리, 일반 폼, 가벼운 인터랙션 |
+| **Level 2 · Standard** | 헤드리스 파이프라인, 역할별 훅, 120fps DOM | `<ActionProvider register={...}>`, 역할별 훅 (`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`), `useStorePath`, `createRefContext` | 비동기 오케스트레이션, React 무관 순수 TS 테스트, 캔버스/DOM 직접 제어 |
+| **Level 3 · Enterprise** | 도메인 아키텍처·트랜잭션·통합 어댑터 | 6계층 Context-Layered 구조, `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, Lit/Preact UI 브리지 | 다중 팀 협업, 다중 스토어 원자 Undo/Redo, AI/MCP 도구, 마이크로 프론트엔드 |
+
+전체 상태 관리 수단 비교는 [Store별 선택 기준 및 사용법 가이드](../context-layered/store-selection-and-usage-guide.md)를 참고하세요.
 
 ## 빠른 시작
 
 사용 사례에 맞는 적합한 패턴을 선택하세요:
 
-| 패턴 | 사용 사례 | 임포트 | 최적용도 |
+| 패턴 | 사용 사례 | 임포트 | 최적 용도 |
 |---------|----------|--------|----------|
 | **🎯 Action Only** | 스토어 없이 액션 디스패칭 | `createActionContext` | 이벤트 시스템, 커맨드 패턴 |
 | **🏪 Store Only** | 액션 없이 상태 관리 | `createStoreContext` | 순수 상태 관리, 데이터 레이어 |
+| **🏗️ Headless-First** | 순수 TS 파이프라인 + React DI | `ActionRegister` + `<Provider register={...}>` | UI 수명주기와 분리된 도메인 오케스트레이션, 이식 가능한 로직 |
 | **🔧 Ref Context** *(고급)* | 제로 리렌더링 직접 DOM 조작 | `createRefContext` | 고성능 UI, 애니메이션, 실시간 인터랙션 |
 
 ## 🎯 Action Only 패턴
 
-상태 관리 없이 순수 액션 디스패칭.
+상태 관리 없이 순수 액션 디스패칭을 구성합니다.
 
 ### 기본 사용법
+
+<!-- @context-action-compile -->
 ```tsx
+import type React from 'react';
 import { createActionContext } from '@context-action/react';
+import type { ActionPayloadMap } from '@context-action/core';
 
 // 1. 액션 정의
-interface EventActions {
+interface EventActions extends ActionPayloadMap {
   userClick: { x: number; y: number };
-  analytics: { event: string; data: any };
+  analytics: { event: string; data: Record<string, unknown> };
 }
 
 // 2. 컨텍스트 생성
 const {
   Provider: EventActionProvider,
   useActionDispatch: useEventAction,
-  useActionHandler: useEventActionHandler
+  useActionCommandHandler: useEventCommandHandler,
 } = createActionContext<EventActions>('Events');
 
 // 3. Provider 설정
-function App() {
+export function App() {
   return (
     <EventActionProvider>
       <InteractiveComponent />
@@ -45,39 +62,40 @@ function App() {
 // 4. 컴포넌트 사용
 function InteractiveComponent() {
   const dispatch = useEventAction();
-  
-  useEventActionHandler('userClick', (payload) => {
+
+  useEventCommandHandler('userClick', (payload) => {
     console.log('사용자가 클릭한 위치:', payload.x, payload.y);
   });
-  
-  const handleClick = (e: MouseEvent) => {
-    dispatch('userClick', { x: e.clientX, y: e.clientY });
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    void dispatch('userClick', { x: e.clientX, y: e.clientY });
   };
-  
-  return <button onClick={handleClick}>클릭해주세요</button>;
+
+  return <button type="button" onClick={handleClick}>클릭해주세요</button>;
 }
 ```
 
 ## 🏪 Store Only 패턴
 
-액션 디스패칭 없이 타입 안전한 상태 관리.
+액션 디스패칭 없이 타입 안전한 상태 관리를 구성합니다.
 
 ### 기본 사용법
-```tsx
-import { createStoreContext } from '@context-action/react';
 
-// 1. 패턴 생성
+<!-- @context-action-compile -->
+```tsx
+import { createStoreContext, useStoreValue } from '@context-action/react';
+
+// 1. Store 컨텍스트 생성
 const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
-  useStoreManager: useAppStoreManager
 } = createStoreContext('App', {
   user: { initialValue: { name: '', email: '' } },
-  settings: { initialValue: { theme: 'light' } }
+  settings: { initialValue: { theme: 'light' as 'light' | 'dark' } },
 });
 
 // 2. Provider 설정
-function App() {
+export function App() {
   return (
     <AppStoreProvider>
       <UserComponent />
@@ -89,16 +107,15 @@ function App() {
 function UserComponent() {
   const userStore = useAppStore('user');
   const user = useStoreValue(userStore);
-  const { updateStore } = useAppStoreManager();
-  
-  const updateUser = (newUser: any) => {
-    updateStore('user', newUser);
+
+  const updateUser = () => {
+    userStore.setValue({ name: '홍길동', email: 'hong@example.com' });
   };
-  
+
   return (
     <div>
       <p>사용자: {user.name}</p>
-      <button onClick={() => updateUser({ name: '홍길동', email: 'hong@example.com' })}>
+      <button type="button" onClick={updateUser}>
         사용자 업데이트
       </button>
     </div>
@@ -106,13 +123,63 @@ function UserComponent() {
 }
 ```
 
+## 🏗️ Headless-First 패턴 (`ActionRegister` DI)
+
+오케스트레이션이 UI 마운트 수명을 넘어 유지되어야 하거나 React와 독립적으로 테스트되어야 할 때는 `ActionRegister`와 `createStateStore`를 React 밖에서 조립한 뒤 `<Provider register={...}>`로 주입합니다. `register`를 넘길 때 기본 `ownership`은 `'shared'`이므로 Provider가 언마운트되어도 React 핸들러만 정리될 뿐 외부 레지스터는 파괴되지 않습니다.
+
+<!-- @context-action-compile -->
+```tsx
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+import { createStateStore } from '@context-action/store-core';
+import { createActionContext, useStoreValue } from '@context-action/react';
+import { createBackendStore } from '@context-action/react/backend';
+
+interface CounterActions extends ActionPayloadMap {
+  increment: { amount: number };
+}
+
+// 1. 프레임워크 중립 상태 + 커맨드 파이프라인 (React 없이 단독 테스트 가능)
+export const counterBackend = createStateStore('counter', { count: 0 });
+export const counterRegister = new ActionRegister<CounterActions>({ name: 'HeadlessCounter' });
+
+counterRegister.registerCommand('increment', ({ amount }) => {
+  counterBackend.update(prev => ({ count: prev.count + amount }));
+});
+
+// 2. 얇은 React 연결 어댑터 + Context DI
+const counterStore = createBackendStore('counter', counterBackend, { ownership: 'shared' });
+const CounterActionsContext = createActionContext<CounterActions>('Counter');
+
+function CounterPanel() {
+  const dispatch = CounterActionsContext.useActionDispatch();
+  const state = useStoreValue(counterStore);
+
+  return (
+    <button type="button" onClick={() => void dispatch('increment', { amount: 1 })}>
+      카운트: {state.count}
+    </button>
+  );
+}
+
+export function HeadlessCounterApp() {
+  return (
+    <CounterActionsContext.Provider register={counterRegister} ownership="shared">
+      <CounterPanel />
+    </CounterActionsContext.Provider>
+  );
+}
+```
+
 ## 🔧 Ref Context 패턴
 
-제로 React 리렌더링으로 고성능 직접 DOM 조작.
+제로 React 리렌더링으로 고성능 직접 DOM 조작을 구현합니다.
 
 ### 기본 사용법
+
+<!-- @context-action-compile -->
 ```tsx
-import React, { useCallback } from 'react';
+import type React from 'react';
+import { useCallback, useRef } from 'react';
 import { createRefContext } from '@context-action/react';
 
 // 1. Ref 구조 정의
@@ -125,11 +192,11 @@ type MouseRefs = {
 // 2. RefContext 생성
 const {
   Provider: MouseProvider,
-  useRefHandler: useMouseRef
+  useRefHandler: useMouseRef,
 } = createRefContext<MouseRefs>('Mouse');
 
 // 3. Provider 설정
-function App() {
+export function MouseApp() {
   return (
     <MouseProvider>
       <MouseTracker />
@@ -137,44 +204,39 @@ function App() {
   );
 }
 
-// 4. 직접 DOM 조작을 사용한 컴포넌트
+// 4. 직접 DOM 조작 컴포넌트
 function MouseTracker() {
   const cursor = useMouseRef('cursor');
   const trail = useMouseRef('trail');
   const container = useMouseRef('container');
-  
-  // 직접 DOM 조작 - 제로 React 리렌더링
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+
+  // 직접 DOM 조작 - React 리렌더링 0회
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!cursor.target || !container.target) return;
-    
+
     const rect = container.target.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
-    // 하드웨어 가속 변환
+
     cursor.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    
-    // 트레일 효과 추가
+
     if (trail.target) {
-      trail.target.style.transform = `translate3d(${x-5}px, ${y-5}px, 0)`;
+      trail.target.style.transform = `translate3d(${x - 5}px, ${y - 5}px, 0)`;
       trail.target.style.opacity = '0.7';
     }
   }, [cursor, trail, container]);
-  
+
   return (
-    <div 
+    <div
       ref={container.setRef}
       onMouseMove={handleMouseMove}
       className="relative w-full h-96 bg-gray-100"
     >
-      {/* 커서 요소 */}
       <div
         ref={cursor.setRef}
         className="absolute w-4 h-4 bg-blue-500 rounded-full pointer-events-none"
         style={{ transform: 'translate3d(0, 0, 0)' }}
       />
-      
-      {/* 트레일 요소 */}
       <div
         ref={trail.setRef}
         className="absolute w-3 h-3 bg-blue-300 rounded-full pointer-events-none"
@@ -183,52 +245,39 @@ function MouseTracker() {
     </div>
   );
 }
-```
 
-### 비즈니스 로직을 포함한 고급 RefContext
-```tsx
-// 마우스 위치 관리를 위한 커스텀 훅
-function useMousePositionUpdater() {
+export function useMousePositionHistory() {
   const cursor = useMouseRef('cursor');
   const positionHistory = useRef<Array<{ x: number; y: number; timestamp: number }>>([]);
-  
+
   const updatePosition = useCallback((x: number, y: number) => {
-    // 직접 DOM 조작
     if (cursor.target) {
       cursor.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
     }
-    
-    // 비즈니스 로직 - 위치 기록 추적
     positionHistory.current.push({ x, y, timestamp: Date.now() });
-    
-    // 최근 50개 위치만 유지
     if (positionHistory.current.length > 50) {
       positionHistory.current.shift();
     }
   }, [cursor]);
-  
+
   const getVelocity = useCallback(() => {
     const history = positionHistory.current;
-    if (history.length < 2) return 0;
-    
     const latest = history[history.length - 1];
     const previous = history[history.length - 2];
-    
-    const distance = Math.sqrt(
-      (latest.x - previous.x) ** 2 + (latest.y - previous.y) ** 2
-    );
+    if (!latest || !previous) return 0;
+
+    const distance = Math.sqrt((latest.x - previous.x) ** 2 + (latest.y - previous.y) ** 2);
     const timeDiff = latest.timestamp - previous.timestamp;
-    
-    return distance / timeDiff;
+    return timeDiff === 0 ? 0 : distance / timeDiff;
   }, []);
-  
+
   return { updatePosition, getVelocity };
 }
 ```
 
 ## 패턴 조합
 
-복잡한 애플리케이션의 경우, 핵심 패턴과 고급 패턴을 조합하여 사용:
+복잡한 애플리케이션에서는 핵심 패턴과 고급 패턴을 조합해 사용합니다:
 
 ```tsx
 function ComplexApp() {
@@ -246,15 +295,15 @@ function ComplexApp() {
 
 ## 다음 단계
 
+- [Store별 선택 기준 및 사용법 가이드](../context-layered/store-selection-and-usage-guide.md) - 경계별 적합한 Store 수단 고르기
+- [Context-Layered 아키텍처](../context-layered/context-layered-guide.md) - Lite/Standard에서 6계층 도메인 구조로 확장하기
 - [React Refs 가이드](../concept/react-refs-guide.md) - RefContext 패턴 심화 학습
-- [패턴 가이드](../concept/pattern-guide.md) - 세 패턴의 예시와 함께 비교 분석
-- [액션 파이프라인](./action-pipeline.md) - 액션 처리에 대해 알아보기
-- [아키텍처](./architecture.md) - 전체 아키텍처 이해하기
-- [훅](./hooks.md) - 사용 가능한 React 훅 살펴보기
+- [패턴 가이드](../concept/pattern-guide.md) - 패턴 비교 및 실전 예시
+- [액션 파이프라인](./action-pipeline.md) - 액션 처리 파이프라인 이해하기
 - [모범 사례](./best-practices.md) - 권장 패턴 따르기
 
 ## 실제 예시
 
-- **RefContext를 사용한 마우스 이벤트**: 예시 앱에서 RefContext 마우스 이벤트 데모 확인하기
-- **스토어 통합**: 액션 핸들러와 스토어를 결합하는 방법 학습하기
-- **성능 최적화**: 직접 DOM 조작으로 제로 리렌더링 패턴 확인하기
+- **RefContext를 사용한 마우스 이벤트**: 예제 앱에서 RefContext 마우스 이벤트 데모 확인
+- **스토어 통합**: 액션 핸들러와 스토어 결합 패턴
+- **성능 최적화**: 직접 DOM 조작으로 제로 리렌더링 달성

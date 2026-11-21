@@ -16,7 +16,7 @@ Store 관련 에러들을 캐치하고 적절한 fallback UI를 제공합니다.
 
 ## Extends
 
-- `Component`\<[`StoreErrorBoundaryProps`](../interfaces/StoreErrorBoundaryProps.md), `StoreErrorBoundaryState`\>
+- `Component`\<[`StoreErrorBoundaryProps`](../interfaces/StoreErrorBoundaryProps.md), [`StoreErrorBoundaryState`](../advanced/interfaces/StoreErrorBoundaryState.md)\>
 
 ## Constructors
 
@@ -44,7 +44,7 @@ Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:45](htt
 
 ### getDerivedStateFromError()
 
-> `static` **getDerivedStateFromError**(`error`): `Partial`&lt;`StoreErrorBoundaryState`&gt;
+> `static` **getDerivedStateFromError**(`error`): `Partial`\<[`StoreErrorBoundaryState`](../advanced/interfaces/StoreErrorBoundaryState.md)\>
 
 Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:56](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/components/StoreErrorBoundary.tsx#L56)
 
@@ -56,7 +56,7 @@ Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:56](htt
 
 #### Returns
 
-`Partial`&lt;`StoreErrorBoundaryState`&gt;
+`Partial`\<[`StoreErrorBoundaryState`](../advanced/interfaces/StoreErrorBoundaryState.md)\>
 
 ***
 

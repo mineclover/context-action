@@ -75,12 +75,12 @@
 
 | 패키지 | 계층 | 공개성 / 안정성 | 공개 `exports` | 워크스페이스 의존성 (+Peer) | TypeDoc 포함 |
 | --- | --- | --- | --- | --- | --- |
-| `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | 없음 | 예 (`.`만 포함) |
+| `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | 없음 | 예 (`.`, `./element`, `./element/react`) |
 | `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | 없음 | 예 (`.`) |
 | `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | 없음 | 아니오 |
 | `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | 없음 | 예 (`.`) |
 | `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | 없음 | 예 (`.`) |
-| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | 예 (`.`, `./webmcp`) |
+| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | 예 (전체 5개 export) |
 | `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | 예 (`.`) |
 | `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | 아니오 |
 | `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | 아니오 |
@@ -88,7 +88,7 @@
 | `@context-action/preact-ui` (`0.2.1`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | 아니오 |
 | `@context-action/ai-sdk` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.` | `tool-protocol` | 예 (`.`) |
 | `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | 예 (`.`) |
-| `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | 예 (`.`만 포함) |
+| `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | 예 (`.`, `./effect`) |
 | `@context-action/llms-generator` (`0.8.7`) | `tooling` | `public` / `tooling` | `.`, `./cli` | 없음 | 아니오 |
 | `@context-action/typedoc-vitepress-sync` (`0.8.8`) | `tooling` | `public` / `tooling` | `.`, `./cli` | 없음 | 아니오 |
 | `@context-action/style-testing` (`0.1.0`) | `tooling` | `private` / `private` | `.`, `./babel-plugin` | 없음 | 아니오 |
@@ -97,7 +97,7 @@
 | `@context-action/template-react` (`1.0.0`) | `private-host-support` | `private` / `private` | `(없음)` | `core`, `react` | 아니오 |
 
 > [!NOTE]
-> **TypeDoc 커버리지 공백**: 현재 `typedoc.json`은 **공개 패키지 16개 중 9개**의 10개 엔트리(`core`, `store-core`, `mutative`, `xstate` `.`, `tool-protocol`, `ai-sdk`, `webmcp`, `tool-durable-operations`, `react` `.` 및 `./webmcp`)를 API 참조로 생성합니다. 나머지 7개 공개 패키지(`lit`, `lit-ui`, `preact`, `preact-ui`, `mutative-core`, `llms-generator`, `typedoc-vitepress-sync`)와 `@context-action/core/element`, `@context-action/react/backend`, `@context-action/react/advanced`, `@context-action/xstate/effect` 같은 서브패스는 TypeDoc에 편입되기 전까지 `api-surface.v1.json`에서 명시적으로 추적합니다.
+> **TypeDoc 커버리지 공백**: 현재 `typedoc.json`은 **공개 패키지 16개 중 9개**의 16개 엔트리(`core`, `react`, `xstate`의 전체 서브패스 및 `store-core`, `mutative`, `tool-protocol`, `ai-sdk`, `webmcp`, `tool-durable-operations`)를 API 참조로 생성합니다. 나머지 7개 공개 패키지(`lit`, `lit-ui`, `preact`, `preact-ui`, `mutative-core`, `llms-generator`, `typedoc-vitepress-sync`)와 `@context-action/webmcp/profiles/chrome-legacy` 서브패스는 TypeDoc에 편입되기 전까지 `api-surface.v1.json`에서 명시적으로 추적합니다.
 
 ### 3.1 계층별 패키지 용도 요약
 
@@ -185,8 +185,8 @@
 | `doc-concept` | `docs/{en,ko}/concept` | `authoritative` | `strict-paired` | 미번역 0건; 아키텍처, 파이프라인, 훅 레퍼런스, 에디터 구조, 문서 규칙 |
 | `doc-examples` | `docs/{en,ko}/examples` | `authoritative` | `strict-paired` | 미번역 0건; 9개 내러티브 예제 가이드 |
 | `doc-llms` | `docs/{en,ko}/llms` (`.md`) | `authoritative` | `strict-paired` | 미번역 0건 (`llms-*.txt`는 `derivedSurfaces`로 분리 관리) |
-| `doc-guide` | `docs/{en,ko}/guide` | `authoritative` | `tracked-partial` | 영문 전용 18개 (`index.md`, `patterns/action/react-integration.md`, `patterns/store/*` 12개, `pipeline/advanced-filtering.md`, `test-sync-demo.md`, `troubleshooting.md`, `type-inference.md`); 국문 전용 4개 (`action-handlers.md`, `action-pipeline.md`, `architecture.md`, `hooks.md`) |
-| `doc-troubleshooting` | `docs/{en,ko}/troubleshooting` | `authoritative` | `tracked-partial` | 영문 전용 1개 (`infinite-loop-issues.md`); 국문 전용 0개 |
+| `doc-guide` | `docs/{en,ko}/guide` | `authoritative` | `tracked-partial` | 영문 전용 14개 (`patterns/action/react-integration.md`, `patterns/store/*` 12개, `pipeline/advanced-filtering.md`); 국문 전용 4개 (`action-handlers.md`, `action-pipeline.md`, `architecture.md`, `hooks.md`) |
+| `doc-troubleshooting` | `docs/{en,ko}/troubleshooting` | `authoritative` | `strict-paired` | 미번역 0건; 액션·스토어·Ref·무한 루프·성능 진단 가이드 |
 | `doc-docs-root` | `docs/index.md`, `LOCAL_FIRST_VERIFICATION_POLICY.md`, `STORE_GUIDE.md` | `authoritative` | `single-locale` | `STORE_GUIDE.md`는 역사적 참고 문서로 명시 |
 | `doc-releases-v1` | `docs/releases`, `docs/ko/releases` | `evidence` | `single-locale` | v1.0.0 감사, 범위, 런북, 릴리스 매니페스트 |
 | `doc-releases-ops` | `releases/` | `evidence` | `single-locale` | `RELEASE.md`, 코호트 JSON 계획, 공개 프리뷰 릴리스 노트 |

@@ -577,7 +577,7 @@ Store별 비교 옵션 설정
 
 ##### options
 
-`Partial`\<`ComparisonOptions`&lt;`T`&gt;\>
+`Partial`\<[`ComparisonOptions`](../advanced/interfaces/ComparisonOptions.md)&lt;`T`&gt;\>
 
 비교 옵션
 

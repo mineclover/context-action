@@ -5,9 +5,9 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/mineclover/context-action/ci.yml?branch=main&style=flat-square)](https://github.com/mineclover/context-action/actions)
 
-**Revolutionary TypeScript state management with document-centric context separation and MVVM architecture.**
+**TypeScript state management and typed command pipelines with explicit domain boundaries and progressive adoption.**
 
-**🎯 Perfect separation of concerns** • **🔒 Full type safety** • **⚡ Zero boilerplate** • **🏗️ Scalable architecture**
+**🎯 Separation of concerns** • **🔒 Full type safety** • **🧩 Progressive adoption** • **🏗️ Headless-first architecture**
 
 [📚 Documentation](https://mineclover.github.io/context-action/) • [🎮 Live Demo](https://mineclover.github.io/context-action/example/) • [⚡ Web Coding Studio](https://mineclover.github.io/context-action/web-coding/) • [🚀 Quick Start](#-quick-start)
 
@@ -18,26 +18,32 @@
 ### Installation
 ```bash
 npm install @context-action/react
-# or
-npm install @context-action/core  # Pure TypeScript
+# or framework-neutral core + store:
+npm install @context-action/core @context-action/store-core
 ```
 
 ### 30-Second Example
-```typescript
+```tsx
 import { createStoreContext, useStoreValue } from '@context-action/react';
-import { useCallback } from 'react';
 
-// 1. Create context
+// 1. Create scoped store context
 const { Provider, useStore } = createStoreContext('User', {
   profile: { name: 'John', email: 'john@example.com' }
 });
 
-// 2. Use in component  
+// 2. Read and update cleanly
 function UserProfile() {
   const profileStore = useStore('profile');
   const profile = useStoreValue(profileStore);
-  
-  return <h1>Welcome, {profile.name}!</h1>;
+
+  return (
+    <div>
+      <h1>Welcome, {profile.name}!</h1>
+      <button onClick={() => profileStore.setValue({ ...profile, name: 'Jane' })}>
+        Rename
+      </button>
+    </div>
+  );
 }
 
 // 3. Wrap with provider
@@ -50,33 +56,35 @@ function App() {
 }
 ```
 
-**That's it!** 🎉 Full type safety, reactive updates, and clean architecture.
+---
+
+## 📈 Progressive Adoption (Start Small, Scale Cleanly)
+
+| Level | When to Use | Core Primitives |
+| --- | --- | --- |
+| **Level 1 · Lite** | Single component/feature state or typed commands | `createStoreContext`, `createActionContext` (or `createStateStore` + `ActionRegister`) |
+| **Level 2 · Standard** | Headless orchestration, role-based validation, high-frequency DOM | `<ActionProvider register={headlessRegister}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `createRefContext` |
+| **Level 3 · Enterprise** | Multi-team domains, atomic undo/redo, AI/MCP tools, micro-frontends | 6-Layer Context-Layered Architecture, `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, `@context-action/lit-ui` / `preact-ui` |
 
 ---
 
 ## 🎯 Why Context-Action?
 
 ### ❌ Problems with Existing Libraries
-- **High React Coupling** → Difficult component modularization
-- **Binary State Approach** → Poor scope-based separation  
-- **Complex Boilerplate** → Verbose setup and maintenance
+- **High React Coupling** → Business logic trapped in components
+- **Binary State Approach** → Weak scope-based separation between global and local state
+- **Ad-Hoc Async Control** → Priority ordering, cancellation (`AbortSignal`), guards, and rollback bolted on manually
 
 ### ✅ Context-Action's Solution
-- **🎯 Document-Centric Design** → Context separation based on domain boundaries
-- **🏗️ MVVM Architecture** → Perfect separation: Model, ViewModel, View layers
-- **🔒 Type-First Approach** → Zero runtime errors with full TypeScript support
-- **⚡ Zero Boilerplate** → Minimal code, maximum functionality
+- **🎯 Explicit Domain Boundaries** → Context separation based on domain boundaries
+- **🏗️ Headless-First + MVVM Separation** → Compose `ActionRegister` / `StateStore` pipelines outside React and inject them cleanly via `<Provider register={...}>`
+- **🔒 Type-First Contracts** → Compile-time inference across payloads, results, guards, and stores
+- **📈 Progressive Complexity** → Start with one store context and adopt role hooks or 6-layer structure only as complexity grows
 
 ### 🚀 Key Benefits
 ```typescript
-// Before: Complex setup with multiple libraries
-const store = createStore(reducer);
-const dispatch = useDispatch();
-const selector = useSelector(state => state.user);
-const actions = bindActionCreators(userActions, dispatch);
-
-// After: One line with Context-Action
-const { profile, updateProfile } = useUserPage(); // All logic in hook
+// Clean separation of state reads and actions in a single feature hook:
+const { profile, updateProfile } = useUserPage();
 ```
 
 ---

@@ -173,6 +173,53 @@ handler는 필요할 때 store에서 최신 값을 읽고, 그 결과를 다시 
 
 처럼 역할을 나눌 수 있어서, 동일 기능을 여러 사람이 병렬로 다루기 쉬워집니다.
 
+## 📈 점진적 도입: Lite · Standard · Full 6-Layer
+
+처음부터 모든 기능에 6개 폴더를 강제할 필요는 없습니다. 도메인 복잡도에 맞춰 단계적으로 확장하세요:
+
+| 단계 | 구조 | 적합한 상황 |
+| --- | --- | --- |
+| **Level 1 · Lite** | 1~2개 파일 (`contexts.ts` + 기능 컴포넌트/훅) | 단일 폼, 로컬 필터 패널, 작은 CRUD 위젯 |
+| **Level 2 · Standard** | `contexts/`, 순수 `business/`, 헤드리스 `ActionRegister` + `StateStore` (`<Provider register={...}>`), 역할별 훅 (`useActionGuard` / `useActionCommandHandler` / `useActionObserver`) | 비동기 오케스트레이션, React 없이 도메인 파이프라인 단독 테스트, 120fps `RefContext` 뷰 |
+| **Level 3 · Enterprise** | `contexts / business / handlers / actions / hooks / views` (+ 디자인 시스템 결합 시 `Facade → Recipe → Primitive`) | 다중 팀 협업, 복합 승인/에스컬레이션 워크플로, 엄격한 아키텍처 일관성 |
+
+## 🧭 핸들러 소유권: React 마운트 Handler Registry vs. Headless-First `ActionRegister` DI
+
+오케스트레이션이 UI 마운트 수명에 묶이는지 여부에 따라 두 가지 소유권 모델 중 하나를 선택하거나 조합할 수 있습니다:
+
+| 소유권 모델 | 동작 방식 | 적합한 상황 |
+| --- | --- | --- |
+| **React 마운트 Handler Registry** (`<DomainHandlerRegistry />` + `useActionHandler`) | Provider의 insertion effect 수명에 맞춰 핸들러가 자동 등록·해제됨 (React 19 `<Activity>` hide/reveal 및 props 기반 DI 지원) | 화면/라우트 스코프에 종속되는 흐름, props 기반 UI 의존성 주입 |
+| **Headless-First `ActionRegister` DI** (`<DomainActionProvider register={headlessRegister} />`) | 순수 TypeScript 모듈에서 React 밖의 `ActionRegister` + `createStateStore`를 조립하고 `<Provider register={...}>`로 주입 (기본값 `ownership="shared"`) | React 없이 테스트/재사용해야 하는 핵심 도메인 엔진, Lit/Preact/워커와 공유되는 파이프라인, 뷰 언마운트 뒤에도 유지되어야 하는 레지스터 |
+
+두 방식은 상호 배타적이지 않습니다. React 밖에서 `registerCommand` / `registerResult`로 핵심 파이프라인을 구성하고, React 하위 컴포넌트에서는 `useActionGuard` / `useActionObserver`로 UI 연동 훅만 덧붙일 수 있습니다:
+
+<!-- @context-action-compile -->
+```tsx
+import type React from 'react';
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+import { createActionContext } from '@context-action/react';
+
+interface BillingActions extends ActionPayloadMap {
+  charge: { invoiceId: string; amount: number };
+}
+
+export const billingRegister = new ActionRegister<BillingActions>({ name: 'Billing' });
+billingRegister.registerCommand('charge', async ({ invoiceId, amount }) => {
+  await Promise.resolve({ invoiceId, amount });
+});
+
+const BillingActionsContext = createActionContext<BillingActions>('Billing');
+
+export function BillingFeature({ children }: { children: React.ReactNode }) {
+  return (
+    <BillingActionsContext.Provider register={billingRegister} ownership="shared">
+      {children}
+    </BillingActionsContext.Provider>
+  );
+}
+```
+
 ## 언제 쓰는 것이 좋은가
 
 ### 잘 맞는 경우

@@ -8,7 +8,7 @@
 
 > **createToolObservationSink**(`sink`, `policy?`): [`ToolCallObserver`](../type-aliases/ToolCallObserver.md)
 
-Defined in: [packages/tool-protocol/src/observability.ts:270](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L270)
+Defined in: [packages/tool-protocol/src/observability.ts:276](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L276)
 
 Creates an observer that crosses a telemetry boundary with a safe record.
 The callback never receives the canonical ToolCallEvent, request arguments,

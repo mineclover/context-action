@@ -6,7 +6,7 @@
 
 # Interface: ToolCallError
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:258](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L258)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:264](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L264)
 
 Structured error returned to the model instead of leaking an exception.
 
@@ -16,7 +16,7 @@ Structured error returned to the model instead of leaking an exception.
 
 > `readonly` **code**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:260](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L260)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:266](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L266)
 
 Canonical codes are listed in TOOL_CALL_ERROR_CODES; applications may add their own.
 
@@ -26,7 +26,7 @@ Canonical codes are listed in TOOL_CALL_ERROR_CODES; applications may add their 
 
 > `readonly` **message**: `string`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:261](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L261)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:267](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L267)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:261](https://github.com
 
 > `readonly` `optional` **retryable?**: `boolean`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:262](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L262)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:268](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L268)
 
 ***
 
@@ -42,4 +42,4 @@ Defined in: [packages/tool-protocol/src/tool-protocol.ts:262](https://github.com
 
 > `readonly` `optional` **details?**: `unknown`
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:263](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L263)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:269](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L269)

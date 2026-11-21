@@ -34,7 +34,9 @@ import type {
   ActionContextConfig,
   ActionContextReturn,
   ActionContextType,
-  ProviderDispatchLifecycle
+  ActionProviderProps,
+  ProviderDispatchLifecycle,
+  ProviderShutdownOptions,
 } from './ActionContext.types';
 
 const useInsertionCommitEffect = useInsertionEffect;
@@ -203,14 +205,17 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
   }
 
   // biome-ignore lint/suspicious/noExplicitAny: cross-context lifecycle boundary.
-  shutdown(register: ActionRegister<any, any>): Promise<void> {
+  shutdown(register: ActionRegister<any, any>, options?: ProviderShutdownOptions): Promise<void> {
     if (this.shutdownPromise) return this.shutdownPromise;
 
+    const destroyRegister = options?.destroyRegister !== false;
     this.accepting = false;
     this.controllers.forEach(controller => {
       if (!controller.signal.aborted) controller.abort(createProviderAbortError());
     });
-    const registerShutdown = register.destroyAsync({ deferCleanup: true });
+    const registerShutdown = destroyRegister
+      ? register.destroyAsync({ deferCleanup: true })
+      : Promise.resolve();
 
     // Provider callers need a prompt completion signal after dispatches have
     // been aborted. Handler cleanup remains deferred until the register and
@@ -328,35 +333,55 @@ export function createActionContext<
   // Create the factory-specific context with a default value
   const FactoryActionContext = createContext<ActionContextType<T, TResultMap> | null>(null);
 
-  // Provider component with abort support
-  const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const actionRegisterRef = useRef<ActionRegister<T, TResultMap> | null>(null);
-    const dispatchLifecycleRef = useRef<ProviderDispatchLifecycleImpl | null>(null);
-    if (!actionRegisterRef.current) {
-      actionRegisterRef.current = new ActionRegister<T, TResultMap>(effectiveConfig);
+  // Provider component with optional headless ActionRegister DI and abort support
+  const Provider: React.FC<ActionProviderProps<T, TResultMap>> = ({
+    children,
+    register: externalRegister,
+    ownership,
+  }) => {
+    const ownedRegisterRef = useRef<ActionRegister<T, TResultMap> | null>(null);
+    if (!externalRegister && !ownedRegisterRef.current) {
+      ownedRegisterRef.current = new ActionRegister<T, TResultMap>(effectiveConfig);
     }
-    if (!dispatchLifecycleRef.current) {
-      dispatchLifecycleRef.current = new ProviderDispatchLifecycleImpl();
+    const activeRegister = externalRegister ?? ownedRegisterRef.current!;
+    const shouldDestroyRegister = externalRegister ? ownership === 'owned' : true;
+
+    const actionRegisterRef = useRef<ActionRegister<T, TResultMap> | null>(activeRegister);
+    actionRegisterRef.current = activeRegister;
+
+    const lifecycleEntryRef = useRef<{
+      register: ActionRegister<T, TResultMap>;
+      lifecycle: ProviderDispatchLifecycleImpl;
+    } | null>(null);
+    if (!lifecycleEntryRef.current || lifecycleEntryRef.current.register !== activeRegister) {
+      lifecycleEntryRef.current = {
+        register: activeRegister,
+        lifecycle: new ProviderDispatchLifecycleImpl(),
+      };
     }
-    const dispatchLifecycle = dispatchLifecycleRef.current;
+    const dispatchLifecycle = lifecycleEntryRef.current.lifecycle;
+
+    // Track current ownership in an insertion effect so swapping from a
+    // shared register to an owned register still shuts down the outgoing
+    // register with its own ownership policy before the new effect commits.
+    const destroyOnUnmountRef = useRef(shouldDestroyRegister);
+    useInsertionCommitEffect(() => {
+      destroyOnUnmountRef.current = shouldDestroyRegister;
+    }, [activeRegister, shouldDestroyRegister]);
 
     // React Activity disconnects layout/passive effects while preserving the
     // mounted tree. Insertion effects remain connected, so ownership here keeps
     // the register and its handlers usable throughout hide/reveal and reserves
-    // shutdown for an actual Provider unmount.
+    // shutdown for an actual Provider unmount or register replacement.
     useInsertionCommitEffect(() => {
-      const register = actionRegisterRef.current;
-      if (!register) {
-        throw new Error('Action provider resources were not initialized before commit.');
-      }
-
       return () => {
-        // Insertion effects stay mounted through Activity hide/reveal and are
-        // cleaned only for a real unmount. Begin closing synchronously so a
-        // stale dispatch cannot enter before deferred user cleanup runs.
-        void dispatchLifecycle.shutdown(register);
+        const destroyRegister = destroyOnUnmountRef.current;
+        void dispatchLifecycle.shutdown(activeRegister, { destroyRegister });
+        if (ownedRegisterRef.current === activeRegister && destroyRegister) {
+          ownedRegisterRef.current = null;
+        }
       };
-    }, [dispatchLifecycle]);
+    }, [activeRegister, dispatchLifecycle]);
 
     const contextValue = useMemo(() => ({
       actionRegisterRef,

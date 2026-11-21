@@ -8,6 +8,6 @@
 
 > `const` **TOOL\_OBSERVABILITY\_POLICY\_SCHEMA**: `"context-action-tool-observability-policy.v1"`
 
-Defined in: [packages/tool-protocol/src/observability.ts:10](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L10)
+Defined in: [packages/tool-protocol/src/observability.ts:9](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L9)
 
 Versioned policy metadata for bounded, redacted tool observations.

@@ -75,12 +75,12 @@ All 20 workspace packages declared under `packages/*/package.json` (excluding un
 
 | Package | Layer | Visibility / Stability | Public `exports` | Workspace Deps (+Peers) | TypeDoc Covered |
 | --- | --- | --- | --- | --- | --- |
-| `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | none | Yes (`.` only) |
+| `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | none | Yes (`.`, `./element`, `./element/react`) |
 | `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | none | Yes (`.`) |
 | `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | none | No |
 | `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | none | Yes (`.`) |
 | `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | none | Yes (`.`) |
-| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peers: `tool-protocol`, `webmcp`) | Yes (`.`, `./webmcp`) |
+| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peers: `tool-protocol`, `webmcp`) | Yes (all 5 exports) |
 | `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | Yes (`.`) |
 | `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | No |
 | `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | No |
@@ -88,7 +88,7 @@ All 20 workspace packages declared under `packages/*/package.json` (excluding un
 | `@context-action/preact-ui` (`0.2.1`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | No |
 | `@context-action/ai-sdk` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.` | `tool-protocol` | Yes (`.`) |
 | `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | Yes (`.`) |
-| `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | Yes (`.` only) |
+| `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | Yes (`.`, `./effect`) |
 | `@context-action/llms-generator` (`0.8.7`) | `tooling` | `public` / `tooling` | `.`, `./cli` | none | No |
 | `@context-action/typedoc-vitepress-sync` (`0.8.8`) | `tooling` | `public` / `tooling` | `.`, `./cli` | none | No |
 | `@context-action/style-testing` (`0.1.0`) | `tooling` | `private` / `private` | `.`, `./babel-plugin` | none | No |
@@ -97,7 +97,7 @@ All 20 workspace packages declared under `packages/*/package.json` (excluding un
 | `@context-action/template-react` (`1.0.0`) | `private-host-support` | `private` / `private` | `(no exports)` | `core`, `react` | No |
 
 > [!NOTE]
-> **TypeDoc Coverage Gap**: `typedoc.json` currently targets 10 source entrypoints across **9 of 16 public packages** (`core`, `store-core`, `mutative`, `xstate` `.`, `tool-protocol`, `ai-sdk`, `webmcp`, `tool-durable-operations`, `react` `.` & `./webmcp`). The remaining 7 public packages (`lit`, `lit-ui`, `preact`, `preact-ui`, `mutative-core`, `llms-generator`, `typedoc-vitepress-sync`) and subpath entries such as `@context-action/core/element`, `@context-action/react/backend`, `@context-action/react/advanced`, and `@context-action/xstate/effect` are explicitly cataloged in `api-surface.v1.json` until added to TypeDoc.
+> **TypeDoc Coverage Gap**: `typedoc.json` currently targets 16 source entrypoints across **9 of 16 public packages** (providing complete subpath coverage for `core`, `react`, and `xstate`, alongside `store-core`, `mutative`, `tool-protocol`, `ai-sdk`, `webmcp`, and `tool-durable-operations`). The remaining 7 public packages (`lit`, `lit-ui`, `preact`, `preact-ui`, `mutative-core`, `llms-generator`, `typedoc-vitepress-sync`) and subpath entries such as `@context-action/webmcp/profiles/chrome-legacy` are explicitly cataloged in `api-surface.v1.json` until added to TypeDoc.
 
 ### 3.1 Package Roles by Layer
 
@@ -185,8 +185,8 @@ For deciding which state/store API to use across these packages, see the [Store 
 | `doc-concept` | `docs/{en,ko}/concept` | `authoritative` | `strict-paired` | 0 unpaired; architecture, pipeline, hooks, editor architecture, docs rules |
 | `doc-examples` | `docs/{en,ko}/examples` | `authoritative` | `strict-paired` | 0 unpaired; 9 example walkthroughs |
 | `doc-llms` | `docs/{en,ko}/llms` (`.md`) | `authoritative` | `strict-paired` | 0 unpaired (`llms-*.txt` tracked under `derivedSurfaces`) |
-| `doc-guide` | `docs/{en,ko}/guide` | `authoritative` | `tracked-partial` | 18 EN-only (`index.md`, `patterns/action/react-integration.md`, 12 `patterns/store/*`, `pipeline/advanced-filtering.md`, `test-sync-demo.md`, `troubleshooting.md`, `type-inference.md`); 4 KO-only (`action-handlers.md`, `action-pipeline.md`, `architecture.md`, `hooks.md`) |
-| `doc-troubleshooting` | `docs/{en,ko}/troubleshooting` | `authoritative` | `tracked-partial` | 1 EN-only (`infinite-loop-issues.md`); 0 KO-only |
+| `doc-guide` | `docs/{en,ko}/guide` | `authoritative` | `tracked-partial` | 14 EN-only (`patterns/action/react-integration.md`, 12 `patterns/store/*`, `pipeline/advanced-filtering.md`); 4 KO-only (`action-handlers.md`, `action-pipeline.md`, `architecture.md`, `hooks.md`) |
+| `doc-troubleshooting` | `docs/{en,ko}/troubleshooting` | `authoritative` | `strict-paired` | 0 unpaired; diagnostic guides for action, store, ref, infinite loops, and performance |
 | `doc-docs-root` | `docs/index.md`, `LOCAL_FIRST_VERIFICATION_POLICY.md`, `STORE_GUIDE.md` | `authoritative` | `single-locale` | `STORE_GUIDE.md` is explicitly marked historical |
 | `doc-releases-v1` | `docs/releases`, `docs/ko/releases` | `evidence` | `single-locale` | v1.0.0 audit, scope, runbooks, release manifest |
 | `doc-releases-ops` | `releases/` | `evidence` | `single-locale` | `RELEASE.md`, cohort JSON plans, public preview release notes |

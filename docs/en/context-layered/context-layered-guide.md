@@ -186,6 +186,53 @@ For product-facing features, the recommended composition is `Provider → Handle
 - [Migration Guide](./migration-guide.md) - Migrate from traditional MVVM to Context-Layered
 - [Next Work and Documentation Ownership](./next-work.md) - single backlog and source-of-truth map
 
+## 📈 Progressive Adoption: Lite vs. Standard vs. Full 6-Layer
+
+Not every feature needs all 6 folders on day one. Choose the level that matches the domain's real surface area:
+
+| Level | Folder Shape | When to Choose |
+| --- | --- | --- |
+| **Level 1 · Lite** | 1–2 files (`contexts.ts` + feature component/hooks) | Self-contained form, local filter panel, or small CRUD widget |
+| **Level 2 · Standard** | `contexts/`, pure `business/`, optional headless `ActionRegister` + `StateStore` (`<Provider register={...}>`), role hooks (`useActionGuard` / `useActionCommandHandler` / `useActionObserver`) | Non-trivial async orchestration, unit-testing domain pipelines without React, 120fps `RefContext` views |
+| **Level 3 · Full 6-Layer** | `contexts / business / handlers / actions / hooks / views` (+ `Facade → Recipe → Primitive` when bound to Astryx) | Multi-team domains, complex multi-step workflows, approval/escalation playbooks, strict architectural parity |
+
+## 🧭 Handler Ownership: React Handler Registry vs. Headless-First `ActionRegister` DI
+
+You have two supported ways to assemble action handlers depending on whether orchestration belongs to a UI mount lifecycle or outlives React components:
+
+| Ownership Model | How It Works | Best Fit |
+| --- | --- | --- |
+| **React-Mounted Handler Registry** (`<DomainHandlerRegistry />` using `useActionHandler`) | Handlers subscribe and clean up within the Provider's React insertion-effect lifetime (including React 19 `<Activity>` hide/reveal and props-based DI) | Screen-scoped orchestration needing React context DI, props-injected UI callbacks, or per-route lifecycle isolation |
+| **Headless-First `ActionRegister` DI** (`<DomainActionProvider register={headlessRegister} />`) | Pure TypeScript modules instantiate `ActionRegister` + `createStateStore` outside React; `<Provider register={...}>` injects the live register (`ownership="shared"` by default) | Portable domain logic shared across non-React hosts/workers/Lit/Preact, zero-React pipeline unit tests, orchestration surviving view unmounts |
+
+Both models compose cleanly—you can register headless `registerCommand` / `registerResult` pipelines outside React and still mount UI-bound `useActionGuard` / `useActionObserver` listeners inside a child component:
+
+<!-- @context-action-compile -->
+```tsx
+import type React from 'react';
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+import { createActionContext } from '@context-action/react';
+
+interface BillingActions extends ActionPayloadMap {
+  charge: { invoiceId: string; amount: number };
+}
+
+export const billingRegister = new ActionRegister<BillingActions>({ name: 'Billing' });
+billingRegister.registerCommand('charge', async ({ invoiceId, amount }) => {
+  await Promise.resolve({ invoiceId, amount });
+});
+
+const BillingActionsContext = createActionContext<BillingActions>('Billing');
+
+export function BillingFeature({ children }: { children: React.ReactNode }) {
+  return (
+    <BillingActionsContext.Provider register={billingRegister} ownership="shared">
+      {children}
+    </BillingActionsContext.Provider>
+  );
+}
+```
+
 ## 🎯 When to Use Context-Layered Architecture
 
 ### ✅ Ideal for:

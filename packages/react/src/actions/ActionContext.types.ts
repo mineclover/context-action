@@ -72,6 +72,34 @@ export interface ActionContextType<
   dispatchLifecycle: ProviderDispatchLifecycle;
 }
 
+/** Shutdown options passed to ProviderDispatchLifecycle.shutdown(). */
+export interface ProviderShutdownOptions {
+  /** Whether to destroy the underlying ActionRegister on shutdown (defaults to true). */
+  destroyRegister?: boolean;
+}
+
+/** Props accepted by the Provider returned from createActionContext(). */
+export interface ActionProviderProps<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+> {
+  children: ReactNode;
+  /**
+   * Optional externally constructed ActionRegister instance for headless-first
+   * orchestration and dependency injection. When omitted, the Provider creates
+   * and owns its own ActionRegister instance.
+   */
+  register?: ActionRegister<T, TResultMap>;
+  /**
+   * Controls whether Provider unmount destroys an injected external `register`.
+   * Defaults to `'shared'` when `register` is supplied (Provider unregisters
+   * React-mounted handlers and aborts Provider dispatches without destroying
+   * the external register). Set to `'owned'` to transfer destruction ownership
+   * to the Provider. Ignored when `register` is omitted (always `'owned'`).
+   */
+  ownership?: 'shared' | 'owned';
+}
+
 /** Internal Provider-owned dispatch and teardown lifecycle. */
 export interface ProviderDispatchLifecycle {
   run<R>(
@@ -80,7 +108,7 @@ export interface ProviderDispatchLifecycle {
   ): Promise<R>;
   scheduleHandlerCleanup(cleanup: () => void): void;
   // biome-ignore lint/suspicious/noExplicitAny: cross-context lifecycle boundary.
-  shutdown(register: ActionRegister<any, any>): Promise<void>;
+  shutdown(register: ActionRegister<any, any>, options?: ProviderShutdownOptions): Promise<void>;
 }
 
 /**
@@ -90,7 +118,7 @@ export interface ActionContextReturn<
   T extends ActionPayloadMap,
   TResultMap extends ActionResultMap<T> = {},
 > {
-  Provider: React.FC<{ children: ReactNode }>;
+  Provider: React.FC<ActionProviderProps<T, TResultMap>>;
   useActionContext: () => ActionContextType<T, TResultMap>;
   useActionDispatch: () => ActionRegister<T, TResultMap>['dispatch'];
   useActionHandler: <K extends ActionNames<T>, R = ActionResult<TResultMap, K>>(

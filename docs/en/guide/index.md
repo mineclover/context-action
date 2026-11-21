@@ -65,4 +65,4 @@ Looking for something specific?
 
 ---
 
-*The Context-Action framework provides a revolutionary approach to state management with perfect separation of concerns. Start with the patterns that match your current needs and expand as your application grows.*
+*Context-Action separates typed command pipelines from reactive stores and refs so you can start simple and adopt stricter architectural boundaries only as complexity grows.*

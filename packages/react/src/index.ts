@@ -7,7 +7,9 @@ export { createActionContext } from './actions/ActionContext';
 export type { 
   ActionContextConfig,
   ActionContextReturn,
-  ActionContextType
+  ActionContextType,
+  ActionProviderProps,
+  ProviderShutdownOptions,
 } from './actions/ActionContext.types';
 
 // Store System (Core functionality)

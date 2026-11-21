@@ -8,7 +8,7 @@
 
 > **projectToolCallObservation**(`event`, `policy?`): [`ToolObservation`](../interfaces/ToolObservation.md)
 
-Defined in: [packages/tool-protocol/src/observability.ts:208](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L208)
+Defined in: [packages/tool-protocol/src/observability.ts:214](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L214)
 
 Projects a canonical lifecycle event without copying request arguments,
 result content, structured payloads, or error messages into the sink value.

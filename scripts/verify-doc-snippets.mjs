@@ -111,6 +111,8 @@ const snippets = [];
 const markdownFiles = [
   ...await collectMarkdownFiles(docsRoot),
   join(repositoryRoot, 'packages', 'core', 'README.md'),
+  join(repositoryRoot, 'packages', 'store-core', 'README.md'),
+  join(repositoryRoot, 'packages', 'react', 'README.md'),
 ];
 for (const file of markdownFiles) {
   const source = await readFile(file, 'utf8');

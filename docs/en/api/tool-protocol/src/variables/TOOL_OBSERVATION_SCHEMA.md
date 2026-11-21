@@ -8,6 +8,6 @@
 
 > `const` **TOOL\_OBSERVATION\_SCHEMA**: `"context-action-tool-observation.v1"`
 
-Defined in: [packages/tool-protocol/src/observability.ts:45](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L45)
+Defined in: [packages/tool-protocol/src/observability.ts:44](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/observability.ts#L44)
 
 Versioned metadata-only projection suitable for a telemetry sink.

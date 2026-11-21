@@ -8,7 +8,7 @@
 
 > **toOpenAIToolDefinitions**(`definitions`): [`OpenAIToolDefinition`](../interfaces/OpenAIToolDefinition.md)[]
 
-Defined in: [packages/tool-protocol/src/tool-protocol.ts:692](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L692)
+Defined in: [packages/tool-protocol/src/tool-protocol.ts:698](https://github.com/mineclover/context-action/blob/main/packages/tool-protocol/src/tool-protocol.ts#L698)
 
 Convert canonical tools/list definitions to OpenAI function tools.
 

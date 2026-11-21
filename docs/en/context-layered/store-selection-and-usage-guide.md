@@ -214,6 +214,50 @@ export async function addItemWithRollback() {
 - **`useComputedStore(store, computeFn, config?)`**: derives and memoizes a computed projection from an upstream store with optional `equalityFn`, `initialValue`, `onError`, and `debounceMs`.
 - **`StoreRegistry`**: reserved for advanced dynamic store registration, lookup, and cleanup by string key.
 
+### 2.8 Headless-First Composition (`ActionRegister` DI + `StateStore` / `BackendStore`)
+
+Assemble pure TypeScript state (`createStateStore` from `@context-action/store-core` or standalone `createStore`) alongside a headless `ActionRegister`, then inject both into React through `<ActionContext.Provider register={...}>` (`ownership="shared"` by default) and `createBackendStore`:
+
+<!-- @context-action-compile -->
+```tsx
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+import { createStateStore } from '@context-action/store-core';
+import { createActionContext, useStoreValue } from '@context-action/react';
+import { createBackendStore } from '@context-action/react/backend';
+
+interface CartActions extends ActionPayloadMap {
+  addSku: { sku: string };
+}
+
+export const cartBackend = createStateStore('cart', { items: [] as string[] });
+export const cartRegister = new ActionRegister<CartActions>({ name: 'HeadlessCart' });
+
+cartRegister.registerCommand('addSku', ({ sku }) => {
+  cartBackend.update((prev) => ({ items: [...prev.items, sku] }));
+});
+
+const cartStore = createBackendStore('cart', cartBackend, { ownership: 'shared' });
+const CartActionsContext = createActionContext<CartActions>('Cart');
+
+function CartSummary() {
+  const dispatch = CartActionsContext.useActionDispatch();
+  const cart = useStoreValue(cartStore);
+  return (
+    <button type="button" onClick={() => void dispatch('addSku', { sku: 'BOOK-1' })}>
+      Items: {cart.items.length}
+    </button>
+  );
+}
+
+export function HeadlessCartView() {
+  return (
+    <CartActionsContext.Provider register={cartRegister} ownership="shared">
+      <CartSummary />
+    </CartActionsContext.Provider>
+  );
+}
+```
+
 ---
 
 ## 3. Choosing the Right React Subscription Hook

@@ -89,6 +89,6 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 ### comparisonOptions?
 
-> `optional` **comparisonOptions?**: `Partial`\<`ComparisonOptions`&lt;`T`&gt;\>
+> `optional` **comparisonOptions?**: `Partial`\<[`ComparisonOptions`](../advanced/interfaces/ComparisonOptions.md)&lt;`T`&gt;\>
 
 Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:58](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L58)

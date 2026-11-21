@@ -22,70 +22,106 @@ npm install @context-action/react
 pnpm add @context-action/react
 ```
 
-### Basic Usage
+### Basic Usage (Level 1)
 
+See the [Store Selection and Usage Guide](../../docs/en/context-layered/store-selection-and-usage-guide.md) when choosing between `createStoreContext`, headless backends, time-travel stores, and RefContext.
+
+<!-- @context-action-compile -->
 ```tsx
-import { 
+import {
   createStoreContext,
   createActionContext,
   useStoreValue,
-  ActionPayloadMap 
+  type ActionPayloadMap,
 } from '@context-action/react';
 
-// 1. Define your actions
 interface AppActions extends ActionPayloadMap {
   updateUser: { name: string; email: string };
-  resetUser: void;
 }
 
-// 2. Create Action Context
 const {
   Provider: UserActionProvider,
   useActionDispatch,
-  useActionHandler
+  useActionCommandHandler,
 } = createActionContext<AppActions>('UserActions');
 
-// 3. Create Store Pattern
 const {
+  Provider: UserStoreProvider,
   useStore: useUserStore,
-  withProvider
 } = createStoreContext('User', {
-  profile: { initialValue: { name: 'John Doe', email: 'john@example.com' } }
+  profile: { initialValue: { name: 'John Doe', email: 'john@example.com' } },
 });
 
-// 4. Create component with automatic providers
-const UserProfile = withProvider(() => {
+function UserLogic({ children }: { children: React.ReactNode }) {
+  const profileStore = useUserStore('profile');
+
+  useActionCommandHandler('updateUser', payload => {
+    profileStore.setValue(payload);
+  });
+
+  return <>{children}</>;
+}
+
+export function UserProfile() {
   const dispatch = useActionDispatch();
   const profileStore = useUserStore('profile');
   const user = useStoreValue(profileStore);
-  
-  // Register action handler
-  useActionHandler('updateUser', async (payload) => {
-    profileStore.setValue(payload);
-  });
-  
-  const handleUpdate = () => {
-    dispatch('updateUser', { 
-      name: 'Updated User', 
-      email: 'updated@example.com' 
-    });
-  };
-  
+
   return (
     <div>
       <h1>Welcome, {user.name}!</h1>
       <p>Email: {user.email}</p>
-      <button onClick={handleUpdate}>Update Profile</button>
+      <button
+        type="button"
+        onClick={() => dispatch('updateUser', {
+          name: 'Updated User',
+          email: 'updated@example.com',
+        })}
+      >
+        Update Profile
+      </button>
     </div>
   );
-});
+}
 
-// 5. The HOC already owns the Store Provider. Add only the Action Provider.
-function App() {
+export function App() {
   return (
     <UserActionProvider>
-      <UserProfile />
+      <UserStoreProvider>
+        <UserLogic>
+          <UserProfile />
+        </UserLogic>
+      </UserStoreProvider>
     </UserActionProvider>
+  );
+}
+```
+
+### Headless-First ActionRegister DI
+
+Assemble framework-neutral orchestration outside React with `ActionRegister` and inject it into `createActionContext`'s `Provider`. By default `ownership` is `'shared'` when `register` is supplied, so unmounting the React Provider unregisters React handlers and aborts Provider dispatches without destroying your external register (pass `ownership="owned"` to transfer teardown ownership):
+
+<!-- @context-action-compile -->
+```tsx
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+import { createActionContext } from '@context-action/react';
+
+interface OrderActions extends ActionPayloadMap {
+  submit: { orderId: string };
+}
+
+export const orderRegister = new ActionRegister<OrderActions>({ name: 'HeadlessOrders' });
+orderRegister.registerCommand('submit', payload => {
+  console.info('Submitting', payload.orderId);
+});
+
+const OrderActionsContext = createActionContext<OrderActions>('Orders');
+
+export function OrderWorkspace({ children }: { children: React.ReactNode }) {
+  return (
+    <OrderActionsContext.Provider register={orderRegister} ownership="shared">
+      {children}
+    </OrderActionsContext.Provider>
   );
 }
 ```
@@ -538,15 +574,22 @@ const UserStores = createStoreContext('User', {
 // userStore is fully typed as Store<{id: string, name: string}>
 const userStore = UserStores.useStore('profile');
 
-// Actions are type-checked
+// Actions are type-checked via the context factory hooks
 interface MyActions extends ActionPayloadMap {
   updateUser: { id: string; name: string };
   deleteUser: { id: string };
 }
 
-const dispatch = useActionDispatch<MyActions>();
-dispatch('updateUser', { id: '1', name: 'John' }); // ✅ Type safe
-dispatch('updateUser', { wrong: 'data' });         // ❌ Type error
+const MyActionContext = createActionContext<MyActions>('MyActions');
+
+function ProfileActions() {
+  const dispatch = MyActionContext.useActionDispatch();
+  return (
+    <button onClick={() => dispatch('updateUser', { id: '1', name: 'John' })}>
+      Save
+    </button>
+  );
+}
 ```
 
 ## License
