@@ -143,7 +143,7 @@ cd packages/core && pnpm build --watch
 - **ESM**: `dist/index.js` (ES modules)
 - **CJS**: `dist/index.cjs` (CommonJS)
 - **Types**: `dist/index.d.ts` (TypeScript declarations)
-- **Bundle Analysis**: `reports/bundle-size.json`
+- **Bundle Size Check**: Verified automatically in CI (`size-check` job on `packages/*/dist/index.js`)
 
 ## 🧪 Testing Strategy
 
@@ -436,9 +436,9 @@ pnpm --parallel dev  # All packages
 
 ### Bundle Analysis
 ```bash
-# Generate bundle analysis
+# Build all packages and inspect raw/gzipped bundle sizes
 pnpm build
-cat reports/bundle-size.json
+ls -lh packages/*/dist/index.js
 ```
 
 ### Test Coverage

@@ -1,29 +1,16 @@
 # Gemini-AI Agent Project Context
 
-This document provides workspace guidance for Gemini agents working in the `context-action` repository.
+Entry context for Gemini agents working in `context-action`. See **[AGENTS.md](./AGENTS.md)** as the single source of truth for workspace commands, 20-package boundaries, build order, and protected release rules.
 
-## Project Overview
+## Contract-First Development & Documentation Workflow
 
-`context-action` is a modular TypeScript monorepo for managing application state and business logic through framework-neutral **Action Pipelines** and reactive **Stores**. It organizes applications around the **Context-Layered 6-layer architecture** (`contexts / business / handlers / actions / hooks / views`) and explicit separation between view presentation, orchestration handlers, pure business logic, and state stores.
-
-- **Workspace Packages (20 across 6 layers)**: `core`, `store-core`, `mutative-core`, `mutative`, `react`, `xstate`, `preact`, `preact-ui`, `lit`, `lit-ui`, `tool-protocol`, `tool-durable-operations`, `ai-sdk`, `webmcp`, `openrouter-browser-storage`, `live-code-editor`, `style-testing`, `template-react`, `llms-generator`, and `typedoc-vitepress-sync`.
-- **Canonical Inventories & Selection Guides**:
-  - [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) (`catalog/repository-surface/{api,example,document}-surface.v1.json`, `CA-SURFACE-CATALOG-001`)
-  - [Package Boundary and Codebase Management Convention](docs/en/context-layered/package-boundary-convention.md)
-  - [Store Selection and Usage Guide](docs/en/context-layered/store-selection-and-usage-guide.md)
-  - [Convention Index](docs/en/context-layered/convention-index.md)
-
-## Development & Documentation Workflow
-
-The repository follows a contract-first, documentation-synced development loop:
-
-1. **Specify the Contract**: Define public types, state transitions, or durable architecture boundaries in the owning package or decision record (`docs/en/context-layered/decisions/`). Keep 6-layer Context-Layered separation (`contexts / business / handlers / actions / hooks / views`) and `BusinessActionIntent` vs `LayoutActionIntent` separation when authoring React scenarios (`skills/context-action-implementation-playbook/SKILL.md`).
-2. **Implement in Layer Order**: Build lower-level runtime packages before consumers (`pnpm build` runs Lerna in dependency order; after changing `core` or `react`, run `pnpm build:core && pnpm build:react` before checking `example`).
-3. **Update Authoritative Docs & Surface Catalogs**: Keep paired `docs/en/**` and `docs/ko/**` guides aligned per [Documentation and Development Management Conventions](docs/en/concept/documentation-development-conventions.md) and [Change Management Convention](docs/en/context-layered/change-management-convention.md). Update `catalog/repository-surface/*.v1.json` whenever packages, exports, canonical routes, or managed document areas change.
-4. **Sync Derived Outputs**:
-   - After editing `docs/(en|ko)/**/*.md`: run `pnpm docs:llms` to regenerate `docs/{en,ko}/llms/llms-{minimal,500chars,origin}.txt`.
+1. **Specify the Contract**: Define public types, state transitions, or durable architecture boundaries in the owning package or decision record (`docs/en/context-layered/decisions/`). Keep 6-layer Context-Layered separation (`contexts / business / handlers / actions / hooks / views`, plus optional pure-TS `runtime/`) and `BusinessActionIntent` vs `LayoutActionIntent` separation when authoring React scenarios (`skills/context-action-implementation-playbook/SKILL.md`).
+2. **Implement in Layer Order**: Build lower-level packages before consumers (`pnpm build` runs Lerna in topological order; after editing `core` or `react`, run `pnpm build:core && pnpm build:react` before checking `example`).
+3. **Update Authoritative Docs & Surface Catalogs**: Keep paired `docs/en/**` and `docs/ko/**` aligned per [Documentation Conventions](docs/en/concept/documentation-development-conventions.md) and [Change Management Convention](docs/en/context-layered/change-management-convention.md). Update `catalog/repository-surface/*.v1.json` whenever packages, exports, canonical routes, or managed/root docs change.
+4. **Sync Derived LLMS Bundles**:
+   - After editing `docs/{en,ko}/**/*.md`: run `pnpm docs:llms` to regenerate `docs/{en,ko}/llms/llms-{minimal,500chars,origin}.txt`.
    - When changing public TypeScript APIs/exports: update package `README.md`, `packages/*/docs/*.md`, and `catalog/repository-surface/api-surface.v1.json`.
 5. **Verify Locally Before Commit/PR** ([Local-First Verification Policy](docs/LOCAL_FIRST_VERIFICATION_POLICY.md)):
-   - Full / quick receipt generation (on a clean tree before PR): `pnpm verify` or `pnpm verify:quick` (verified via `pnpm verify:receipt`).
-   - Documentation & catalog gates: `pnpm docs:check`, `pnpm verify:doc-snippets`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm package-boundary:check`.
-   - Static checks & tests: `pnpm lint` (Biome), `pnpm type-check`, `pnpm test`.
+   - Clean-tree receipt generation: `pnpm verify:quick` (or `pnpm verify`), verified via `pnpm verify:receipt`.
+   - Docs & catalog gates: `pnpm docs:check`, `pnpm verify:doc-snippets`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm package-boundary:check`.
+   - Static checks & tests: `pnpm lint`, `pnpm type-check`, `pnpm test`.

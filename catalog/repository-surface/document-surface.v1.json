@@ -23,8 +23,8 @@
       "authorityClass": "discovery",
       "owner": "Framework Maintainers",
       "purpose": {
-        "en": "Repository operating instructions, development commands, release rules, and workflow conventions for Codex and coding agents.",
-        "ko": "Codex 및 코딩 에이전트를 위한 저장소 운영 지침, 개발 명령, 릴리스 규칙 및 워크플로 컨벤션입니다."
+        "en": "Canonical single source of truth for agent workspace rules, build order, verification gates, and release rules (referenced by CLAUDE.md and gemini.md).",
+        "ko": "에이전트 워크스페이스 규칙, 빌드 순서, 검증 게이트, 릴리스 규칙의 정식 단일 기준 문서입니다 (CLAUDE.md 및 gemini.md가 이를 참조)."
       },
       "lifecycle": "active"
     },
@@ -45,8 +45,8 @@
       "authorityClass": "discovery",
       "owner": "Framework Maintainers",
       "purpose": {
-        "en": "Repository guidance entry for Claude Code summarizing architecture, commands, and conventions.",
-        "ko": "Claude Code용 저장소 가이드 진입점으로 아키텍처, 명령어, 컨벤션을 요약합니다."
+        "en": "Thin entry pointer for Claude Code routing to AGENTS.md and authoritative Context-Layered guides.",
+        "ko": "AGENTS.md와 권위 있는 Context-Layered 가이드로 연결하는 Claude Code용 경량 진입 포인터입니다."
       },
       "lifecycle": "active"
     },
@@ -73,57 +73,13 @@
       "lifecycle": "active"
     },
     {
-      "id": "root-ecosystem",
-      "path": "ECOSYSTEM.md",
-      "authorityClass": "transitional",
-      "owner": "Documentation Maintainers",
-      "purpose": {
-        "en": "Ecosystem tooling overview retained alongside newer LLMS and package-boundary conventions.",
-        "ko": "최신 LLMS 및 패키지 경계 컨벤션과 함께 유지되는 생태계 도구 개요 문서입니다."
-      },
-      "lifecycle": "transitional"
-    },
-    {
-      "id": "root-optimization-analysis",
-      "path": "OPTIMIZATION_ANALYSIS.md",
-      "authorityClass": "historical",
-      "owner": "Framework Core",
-      "purpose": {
-        "en": "Point-in-time bundle size and performance optimization analysis snapshot.",
-        "ko": "특정 시점의 번들 크기 및 성능 최적화 분석 스냅샷 보고서입니다."
-      },
-      "lifecycle": "historical"
-    },
-    {
-      "id": "root-react-compiler-migration",
-      "path": "REACT_COMPILER_MIGRATION.md",
-      "authorityClass": "historical",
-      "owner": "Framework React",
-      "purpose": {
-        "en": "Migration note documenting the React 19.2 and pre-compiled React Compiler baseline.",
-        "ko": "React 19.2 및 사전 컴파일된 React Compiler 기준선 전환 메모입니다."
-      },
-      "lifecycle": "historical"
-    },
-    {
       "id": "root-readme",
       "path": "README.md",
       "authorityClass": "discovery",
       "owner": "Framework Maintainers",
       "purpose": {
-        "en": "Primary GitHub landing README linking to packages, authoritative guides, and examples without duplicating specs.",
-        "ko": "스펙을 복제하지 않고 패키지, 권위 가이드, 예제로 연결하는 GitHub 기본 진입 README입니다."
-      },
-      "lifecycle": "active"
-    },
-    {
-      "id": "root-readme-en",
-      "path": "README.en.md",
-      "authorityClass": "discovery",
-      "owner": "Framework Maintainers",
-      "purpose": {
-        "en": "English companion landing README paired with README.ko.md and README.md.",
-        "ko": "README.ko.md 및 README.md와 짝을 이루는 영문 진입 README입니다."
+        "en": "Primary English GitHub landing README linking to packages, authoritative guides, and examples without duplicating specs.",
+        "ko": "스펙을 복제하지 않고 패키지, 권위 가이드, 예제로 연결하는 GitHub 기본 영문 진입 README입니다."
       },
       "lifecycle": "active"
     },
@@ -155,8 +111,8 @@
       "authorityClass": "discovery",
       "owner": "Framework Maintainers",
       "purpose": {
-        "en": "Gemini agent workspace context summarizing Context-Layered 6-layer architecture, surface catalogs (CA-SURFACE-CATALOG-001), store guides, and Local-First verification.",
-        "ko": "Context-Layered 6계층 아키텍처, 표면 카탈로그(CA-SURFACE-CATALOG-001), 스토어 가이드 및 Local-First 검증 절차를 안내하는 Gemini 에이전트 컨텍스트 문서입니다."
+        "en": "Thin Gemini workspace pointer routing to AGENTS.md, surface catalogs (CA-SURFACE-CATALOG-001), and contract-first doc rules.",
+        "ko": "AGENTS.md, 표면 카탈로그(CA-SURFACE-CATALOG-001) 및 계약 우선 문서 규칙으로 안내하는 경량 Gemini 워크스페이스 포인터입니다."
       },
       "lifecycle": "active"
     }
@@ -349,21 +305,6 @@
         "ko": "저장소 로컬 Context-Action Implementation Playbook 스킬 정의 및 스캐폴딩 체크리스트입니다 (.agents/skills는 gitignored 로컬 미러)."
       },
       "verificationGate": "pnpm convention:check"
-    },
-    {
-      "id": "doc-design-tasks",
-      "authorityClass": "historical",
-      "pairingPolicy": "not-applicable",
-      "paths": [
-        "design-docs",
-        "tasks"
-      ],
-      "owner": "Framework Maintainers",
-      "purpose": {
-        "en": "Historical design specifications and archived implementation task briefs.",
-        "ko": "보존된 설계 명세 및 아카이브된 구현 작업 명세입니다."
-      },
-      "verificationGate": "pnpm verify:surface-catalog"
     }
   ],
   "derivedSurfaces": [
