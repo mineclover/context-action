@@ -785,7 +785,7 @@ pnpm dev  # Start example app
 ### Project Resources
 - **[📋 Local-First Verification Policy](./docs/LOCAL_FIRST_VERIFICATION_POLICY.md)** - Local-first verification & receipt contract (`pnpm verify:quick`)
 - **[🤝 Contributing Guide](./CONTRIBUTING.md)** - How to contribute
-- **[🌐 Ecosystem](./ECOSYSTEM.md)** - Tools and generators  
+- **[🗺️ Repository Surface Catalog](./docs/en/context-layered/repository-surface-catalog.md)** - Packages, canonical routes, and managed docs inventory
 - **[🛠️ Development Guide](./DEVELOPMENT.md)** - Detailed development setup
 
 ---

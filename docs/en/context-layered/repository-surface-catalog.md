@@ -12,7 +12,7 @@ This specification defines the principles, schema standards, and complete invent
 
 1. **Full Repository API Architecture**: all 20 workspace packages (`packages/*`), their public `exports`, workspace dependencies, and stability tiers.
 2. **What Examples Explain**: all 77 canonical routes across 13 semantic groups in `example/`, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), 7 package-local example suites, and 9 narrative example walkthroughs.
-3. **Managed Documentation Architecture**: all 13 root markdown documents, 13 managed documentation areas with explicit authority and EN/KO pairing policies, and derived LLMS bundle artifacts.
+3. **Managed Documentation Architecture**: all 9 root markdown documents, 12 managed documentation areas with explicit authority and EN/KO pairing policies, and derived LLMS bundle artifacts.
 
 It complements [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention), [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention), [Documentation and Development Management](/en/concept/documentation-development-conventions), and ADR [CA-SURFACE-CATALOG-001](/en/context-layered/decisions/CA-SURFACE-CATALOG-001).
 
@@ -50,7 +50,7 @@ It complements [Package Boundary and Codebase Management](/en/context-layered/pa
 | `evidence` | Immutable release plans, v1 audit/runbook records, verification evidence |
 | `derived` | Machine-generated outputs (`docs/{en,ko}/llms/llms-*.txt` via `pnpm docs:llms`) |
 | `transitional` | Retained bridge documentation pending consolidation |
-| `historical` | Preserved point-in-time snapshot (`CHANGELOG.md`, `OPTIMIZATION_ANALYSIS.md`, `REACT_COMPILER_MIGRATION.md`) |
+| `historical` | Preserved point-in-time snapshot (`CHANGELOG.md`) |
 
 | Pairing Policy | Enforcement Rule |
 | --- | --- |
@@ -58,7 +58,7 @@ It complements [Package Boundary and Codebase Management](/en/context-layered/pa
 | `tracked-partial` | `onlyEn` and `onlyKo` sets must match `knownUnpaired` 1:1 until translated |
 | `single-locale` | Single authoritative locale (`releases/`, `docs/releases/`, `packages/*/docs/`) |
 | `derived` | Generated artifact bound to a documented `sourceOfTruth` and generator command |
-| `not-applicable` | Machine schemas/skills (`catalog/`, `skills/`, `.agents/skills/`, `tasks/`) |
+| `not-applicable` | Machine schemas/skills (`catalog/`, `skills/`, `.agents/skills/`) |
 
 ### Update Loop on Surface Changes
 
@@ -164,20 +164,18 @@ For deciding which state/store API to use across these packages, see the [Store 
 
 ## 5. Surface 3: Managed Documentation Architecture
 
-### 5.1 Root Markdown Documents (13 Files)
+### 5.1 Root Markdown Documents (9 Files)
 
 | File | Authority | Lifecycle | Owner | Purpose |
 | --- | --- | --- | --- | --- |
-| `README.md`, `README.en.md`, `README.ko.md` | `discovery` | `active` | Framework Maintainers | GitHub landing & localized entry points linking to authoritative guides |
-| `AGENTS.md`, `CLAUDE.md`, `gemini.md` | `discovery` | `active` | Framework Maintainers | Agent workspace instructions, build order, catalogs & Local-First verification rules |
+| `README.md`, `README.ko.md` | `discovery` | `active` | Framework Maintainers | GitHub English & Korean landing entry points linking to authoritative guides |
+| `AGENTS.md` | `discovery` | `active` | Framework Maintainers | Canonical SSOT for agent instructions, build order, surface catalogs, and Local-First verification rules |
+| `CLAUDE.md`, `gemini.md` | `discovery` | `active` | Framework Maintainers | Thin agent entry pointers routing to `AGENTS.md` and canonical Context-Layered guides |
 | `CONTRIBUTING.md`, `DEVELOPMENT.md` | `discovery` | `active` | Framework Maintainers | Contributor setup, monorepo commands, and workflow onboarding |
 | `SECURITY.md` | `authoritative` | `active` | Security & Release Maintainers | Supported release-line security scope & disclosure policy |
-| `ECOSYSTEM.md` | `transitional` | `transitional` | Documentation Maintainers | Ecosystem tooling summary alongside newer LLMS & boundary docs |
 | `CHANGELOG.md` | `historical` | `historical` | Release Engineering | Historical monorepo changelog prior to per-package changelogs |
-| `OPTIMIZATION_ANALYSIS.md` | `historical` | `historical` | Framework Core | Point-in-time bundle/performance snapshot |
-| `REACT_COMPILER_MIGRATION.md` | `historical` | `historical` | Framework React | React 19.2 & pre-compiled React Compiler baseline note |
 
-### 5.2 Managed Documentation Areas (13 Areas)
+### 5.2 Managed Documentation Areas (12 Areas)
 
 | Area ID | Paths | Authority | Pairing Policy | Notes / Tracked Gaps |
 | --- | --- | --- | --- | --- |
@@ -193,7 +191,6 @@ For deciding which state/store API to use across these packages, see the [Store 
 | `doc-package-docs` | `packages/*/README.md`, `CHANGELOG.md`, `UNRELEASED.md`, `docs/*.md` | `authoritative` | `single-locale` | Per-package discovery & focused contracts |
 | `doc-catalogs` | `catalog/` | `authoritative` | `not-applicable` | `integration-profiles/*.json` + `repository-surface/*.v1.json` |
 | `doc-skills` | `skills/` (`.agents/skills/` gitignored mirror) | `authoritative` | `not-applicable` | Repository-local Implementation Playbook skills |
-| `doc-design-tasks` | `design-docs/`, `tasks/` | `historical` | `not-applicable` | Archived design specs and task briefs |
 
 ### 5.3 Derived / Generated Surfaces (6 Outputs)
 

@@ -12,7 +12,7 @@
 
 1. **API 전체 구성**: 20개 워크스페이스 패키지(`packages/*`), 공개 `exports` 서브패스, 워크스페이스 의존성, 안정성 등급
 2. **예제가 설명하는 것**: `example/` 앱 내 13개 의미 그룹(77개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 7개 패키지 로컬 `examples/`, 9개 내러티브 예제 문서
-3. **관리되는 문서 구조**: 13개 루트 마크다운 문서, 13개 관리 문서 영역(권한 등급·한영 쌍 정책·추적 중인 번역 공백), 파생 LLMS 번들 산출물
+3. **관리되는 문서 구조**: 9개 루트 마크다운 문서, 12개 관리 문서 영역(권한 등급·한영 쌍 정책·추적 중인 번역 공백), 파생 LLMS 번들 산출물
 
 관련 기준 문서는 [패키지 경계 및 코드베이스 관리 컨벤션](/ko/context-layered/package-boundary-convention), [스펙·이슈·문서 관리 컨벤션](/ko/context-layered/change-management-convention), [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions), ADR [CA-SURFACE-CATALOG-001](/ko/context-layered/decisions/CA-SURFACE-CATALOG-001)입니다.
 
@@ -50,7 +50,7 @@
 | `evidence` | 불변 릴리스 계획, v1 감사·런북 기록, 검증 증거 |
 | `derived` | 기계 생성 산출물 (`pnpm docs:llms`로 생성하는 `docs/{en,ko}/llms/llms-*.txt`) |
 | `transitional` | 통합 전까지 유지되는 과도기 문서 |
-| `historical` | 특정 시점 보존 스냅샷 (`CHANGELOG.md`, `OPTIMIZATION_ANALYSIS.md`, `REACT_COMPILER_MIGRATION.md`) |
+| `historical` | 특정 시점 보존 스냅샷 (`CHANGELOG.md`) |
 
 | 쌍 정책 (`pairingPolicy`) | 검증 규칙 |
 | --- | --- |
@@ -58,7 +58,7 @@
 | `tracked-partial` | `onlyEn`·`onlyKo` 실제 집합이 `knownUnpaired` 선언과 1:1 일치해야 통과 |
 | `single-locale` | 단일 언어 정본 (`releases/`, `docs/releases/`, `packages/*/docs/`) |
 | `derived` | 명시된 `sourceOfTruth`와 생성 명령에 결속된 파생물 |
-| `not-applicable` | 기계 스키마·스킬 파일 (`catalog/`, `skills/`, `.agents/skills/`, `tasks/`) |
+| `not-applicable` | 기계 스키마·스킬 파일 (`catalog/`, `skills/`, `.agents/skills/`) |
 
 ### 표면 변경 시 갱신 절차
 
@@ -164,20 +164,18 @@
 
 ## 5. 표면 3: 관리되는 문서 구조
 
-### 5.1 루트 마크다운 문서 (13개)
+### 5.1 루트 마크다운 문서 (9개)
 
 | 파일 | 권한 등급 | 수명주기 | 소유자 | 역할 |
 | --- | --- | --- | --- | --- |
-| `README.md`, `README.en.md`, `README.ko.md` | `discovery` | `active` | Framework Maintainers | GitHub 기본 진입 및 다국어 탐색용 README |
-| `AGENTS.md`, `CLAUDE.md`, `gemini.md` | `discovery` | `active` | Framework Maintainers | AI 에이전트 작업 지침, 빌드 순서, 표면 카탈로그·Local-First 검증 규칙 |
+| `README.md`, `README.ko.md` | `discovery` | `active` | Framework Maintainers | GitHub 기본 영문·국문 탐색 진입 README |
+| `AGENTS.md` | `discovery` | `active` | Framework Maintainers | 에이전트 지침, 빌드 순서, 표면 카탈로그·Local-First 검증 규칙 정본(SSOT) |
+| `CLAUDE.md`, `gemini.md` | `discovery` | `active` | Framework Maintainers | `AGENTS.md`와 핵심 Context-Layered 가이드로 연결하는 경량 에이전트 진입 포인터 |
 | `CONTRIBUTING.md`, `DEVELOPMENT.md` | `discovery` | `active` | Framework Maintainers | 기여자 온보딩, 모노레포 개발 환경 및 워크플로 안내 |
 | `SECURITY.md` | `authoritative` | `active` | Security & Release Maintainers | 지원 릴리스 라인 보안 범위 및 취약점 보고 정책 |
-| `ECOSYSTEM.md` | `transitional` | `transitional` | Documentation Maintainers | 최신 LLMS·경계 문서와 함께 유지되는 과도기 생태계 개요 |
 | `CHANGELOG.md` | `historical` | `historical` | Release Engineering | 패키지별 CHANGELOG 분리 이전의 모노레포 변경 이력 |
-| `OPTIMIZATION_ANALYSIS.md` | `historical` | `historical` | Framework Core | 특정 시점의 번들/성능 최적화 분석 스냅샷 |
-| `REACT_COMPILER_MIGRATION.md` | `historical` | `historical` | Framework React | React 19.2 및 React Compiler 기준선 전환 메모 |
 
-### 5.2 관리 문서 영역 (13개 영역)
+### 5.2 관리 문서 영역 (12개 영역)
 
 | 영역 ID | 경로 | 권한 등급 | 쌍 정책 | 비고 / 추적 중인 공백 |
 | --- | --- | --- | --- | --- |
@@ -193,7 +191,6 @@
 | `doc-package-docs` | `packages/*/README.md`, `CHANGELOG.md`, `UNRELEASED.md`, `docs/*.md` | `authoritative` | `single-locale` | 패키지별 탐색 문서 및 세부 계약 |
 | `doc-catalogs` | `catalog/` | `authoritative` | `not-applicable` | `integration-profiles/*.json` + `repository-surface/*.v1.json` |
 | `doc-skills` | `skills/` (`.agents/skills/` gitignored 미러) | `authoritative` | `not-applicable` | 저장소 로컬 Implementation Playbook 스킬 문서 |
-| `doc-design-tasks` | `design-docs/`, `tasks/` | `historical` | `not-applicable` | 아카이브된 설계 명세 및 작업 기록 |
 
 ### 5.3 파생 / 생성 산출물 (6개 출력)
 

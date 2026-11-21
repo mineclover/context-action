@@ -9,7 +9,7 @@
 
 **🎯 명확한 관심사 분리** • **🔒 완전한 타입 안전성** • **🧩 점진적 도입** • **🏗️ 헤드리스 우선 아키텍처** • **🌐 프레임워크 중립 코어**
 
-[📚 문서](https://mineclover.github.io/context-action/ko/) • [🎮 라이브 데모](https://mineclover.github.io/context-action/example/) • [⚡ Web Coding Studio](https://mineclover.github.io/context-action/web-coding/) • [🚀 빠른 시작](#-빠른-시작) • [🌟 바닐라 JS](#-바닐라-자바스크립트)
+[📚 문서](https://mineclover.github.io/context-action/ko/) • [🇺🇸 English](README.md) • [🎮 라이브 데모](https://mineclover.github.io/context-action/example/) • [⚡ Web Coding Studio](https://mineclover.github.io/context-action/web-coding/) • [🚀 빠른 시작](#-빠른-시작) • [🌟 바닐라 JS](#-바닐라-자바스크립트)
 
 ---
 
@@ -734,7 +734,7 @@ pnpm dev  # 예제 앱 시작
 ### 프로젝트 리소스
 - **[📋 Local-First 검증 정책](./docs/LOCAL_FIRST_VERIFICATION_POLICY.md)** - 로컬 우선 검증 및 서명 영수증 규약 (`pnpm verify:quick` / `pnpm verify`)
 - **[🤝 기여 가이드](./CONTRIBUTING.md)** - 기여 방법
-- **[🌐 생태계](./ECOSYSTEM.md)** - 도구와 생성기
+- **[🗺️ 저장소 표면 카탈로그](./docs/ko/context-layered/repository-surface-catalog.md)** - 패키지, 예제 라우트 및 관리 문서 목록
 - **[🛠️ 개발 가이드](./DEVELOPMENT.md)** - 상세한 개발 설정
 
 ---

@@ -63,8 +63,6 @@ function createValidFixture(root) {
   writeFile(root, 'releases/RELEASE.md', '# Release Ops\n');
   writeFile(root, 'skills/README.md', '# Skills\n');
   writeFile(root, '.agents/skills/README.md', '# Agent Skills\n');
-  writeFile(root, 'design-docs/d.md', '# Design\n');
-  writeFile(root, 'tasks/t.md', '# Tasks\n');
 
   writeFile(
     root,
@@ -210,7 +208,7 @@ test('real repository passes repository surface catalog verification with expect
   assert.equal(result.summary.canonicalRouteCount, 77);
   assert.equal(result.summary.packageExampleCount, 7);
   assert.equal(result.summary.narrativeDocCount, 9);
-  assert.equal(result.summary.rootDocumentCount, 13);
+  assert.equal(result.summary.rootDocumentCount, 9);
 });
 
 test('detects API surface drift when a package or export subpath is added without cataloging', () => {

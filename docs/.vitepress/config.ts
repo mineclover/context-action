@@ -15,7 +15,7 @@ export default defineConfig({
   // 죽은 링크 차단 (외부 배포 앱 경로와 docs/ 바깥 저장소 실파일 경로만 예외)
   ignoreDeadLinks: [
     /^\/(?:example|web-coding)\//,
-    /^\.\/(?:\.\.\/){3,}(?:packages|demos|example|releases|\.agents|skills|README\.en)(?:\/|$)/,
+    /^\.\/(?:\.\.\/){3,}(?:packages|demos|example|releases|\.agents|skills|README(?:\.ko)?)(?:\/|$)/,
   ],
   
   // 빌드에서 제외할 임시/작업 문서 경로
