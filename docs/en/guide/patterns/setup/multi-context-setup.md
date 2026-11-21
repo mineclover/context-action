@@ -646,7 +646,7 @@ This setup file provides reusable patterns for:
 - **[MVVM Architecture](../../../concept/architecture-guide.md)** - Uses complete MVVM setup
 - **[Domain Context Architecture](../../../context-layered/context-layered-guide.md)** - Uses domain separation
 - **[Context Splitting Patterns](../../../context-layered/context-layered-guide.md)** - Uses provider composition
-- **[Performance Patterns](../store/subscription-optimization.md)** - Uses RefContext patterns
+- **[Performance Patterns](../store/path-based-subscription.md)** - Uses path-based subscriptions and RefContext patterns
 
 ## Related Setup Guides
 

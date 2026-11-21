@@ -23,7 +23,7 @@ It complements [Package Boundary and Codebase Management](/en/context-layered/pa
 1. **Source-First Non-Duplication**: Runtime manifests (`packages/*/package.json`), TypeDoc entrypoints (`typedoc.json`), route registration (`example/src/App.tsx`), and handwritten guides (`docs/{en,ko}/**`) remain the canonical sources of truth. The surface catalog indexes and cross-validates them without duplicating behavior specs.
 2. **Explicit Authority vs. Derived Separation**: Every managed document is classified as `authoritative`, `discovery`, `evidence`, `derived`, `transitional`, or `historical`. Derived files (`docs/api/generated`, `docs/en/api`, `api-spec.ts`, `llmsData`, `llms-*.txt`) must be regenerated from source, never edited as canonical specs.
 3. **Three-Surface Versioned Schema Symmetry**: API (`api-surface.v1.json`), Example (`example-surface.v1.json`), and Document (`document-surface.v1.json`) share versioned schemas, stable kebab IDs, bilingual summaries (`en` / `ko`), and explicit verification gates.
-4. **Honest Bilingual Parity Accounting**: Directories expected to move in lockstep use `strict-paired` (0 unpaired files). Directories carrying legacy translation debt (`guide`, `troubleshooting`) use `tracked-partial` with an explicit `knownUnpaired` list so gaps cannot silently grow or go stale.
+4. **Honest Bilingual Parity Accounting**: Directories expected to move in lockstep use `strict-paired` (0 unpaired files; currently all 5 `docs/{en,ko}/{context-layered,concept,examples,guide,troubleshooting}` and `docs/{en,ko}/llms`). Any directory temporarily carrying tracked translation debt uses `tracked-partial` with an explicit `knownUnpaired` list so gaps cannot silently grow or go stale.
 5. **Fail-Closed Drift Verification**: Any uncataloged package, export subpath, workspace dependency, canonical example route, package example folder, root markdown file, or translation drift fails `pnpm verify:surface-catalog` and `pnpm convention:check`.
 
 ---
@@ -185,7 +185,7 @@ For deciding which state/store API to use across these packages, see the [Store 
 | `doc-concept` | `docs/{en,ko}/concept` | `authoritative` | `strict-paired` | 0 unpaired; architecture, pipeline, hooks, editor architecture, docs rules |
 | `doc-examples` | `docs/{en,ko}/examples` | `authoritative` | `strict-paired` | 0 unpaired; 9 example walkthroughs |
 | `doc-llms` | `docs/{en,ko}/llms` (`.md`) | `authoritative` | `strict-paired` | 0 unpaired (`llms-*.txt` tracked under `derivedSurfaces`) |
-| `doc-guide` | `docs/{en,ko}/guide` | `authoritative` | `tracked-partial` | 14 EN-only (`patterns/action/react-integration.md`, 12 `patterns/store/*`, `pipeline/advanced-filtering.md`); 4 KO-only (`action-handlers.md`, `action-pipeline.md`, `architecture.md`, `hooks.md`) |
+| `doc-guide` | `docs/{en,ko}/guide` | `authoritative` | `strict-paired` | 0 unpaired; getting-started, pipeline (`advanced-filtering.md` paired), and action/store/ref/async/setup patterns |
 | `doc-troubleshooting` | `docs/{en,ko}/troubleshooting` | `authoritative` | `strict-paired` | 0 unpaired; diagnostic guides for action, store, ref, infinite loops, and performance |
 | `doc-docs-root` | `docs/index.md`, `LOCAL_FIRST_VERIFICATION_POLICY.md`, `STORE_GUIDE.md` | `authoritative` | `single-locale` | `STORE_GUIDE.md` is explicitly marked historical |
 | `doc-releases-v1` | `docs/releases`, `docs/ko/releases` | `evidence` | `single-locale` | v1.0.0 audit, scope, runbooks, release manifest |

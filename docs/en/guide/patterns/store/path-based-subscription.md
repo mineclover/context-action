@@ -447,6 +447,5 @@ function OptimizedComponent() {
 ## Related Patterns
 
 - [useStoreValue Patterns](./useStoreValue-patterns.md) - Basic subscription patterns
-- [Subscription Optimization](./subscription-optimization.md) - General optimization strategies
-- [Memoization Patterns](./memoization-patterns.md) - Prevent unnecessary re-computations
-- [Comparison Strategies](./comparison-strategies.md) - Choose the right comparison method
+- [Store Configuration](./store-configuration.md) - Store configuration options
+- [Basic Usage](./basic-usage.md) - Fundamental store usage

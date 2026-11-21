@@ -838,6 +838,6 @@ function App() {
 
 - **[Basic Store Setup](../setup/basic-store-setup.md)** - Store context setup patterns
 - **[useStoreSelector Patterns](./useStoreValue-patterns.md)** - Multiple store selection patterns
-- **[useComputedStore Patterns](./useComputedStore-overview.md)** - Computed value patterns
-- **[Performance Patterns](./subscription-optimization.md)** - Performance optimization techniques
+- **[Store Selection Guide](../../../context-layered/store-selection-and-usage-guide.md)** - Choosing stores and derived patterns
+- **[Performance Patterns](./path-based-subscription.md)** - Performance optimization techniques
 - **[useStoreManager API](./useStoreManager-api.md)** - Low-level store management

@@ -1224,7 +1224,7 @@ function useCanvasControl() {
 }
 ```
 
-For detailed performance optimization strategies, see [Selective Subscription Patterns](../guide/patterns/store/subscription-optimization.md).
+For detailed performance optimization strategies, see [Path-Based Subscription](../guide/patterns/store/path-based-subscription.md).
 
 ### RefContext with Store Integration
 
@@ -1252,7 +1252,7 @@ function useHybridPattern() {
 
 ## Further Reading
 
-- [Selective Subscription Patterns](../guide/patterns/store/subscription-optimization.md) - Performance optimization strategies
+- [Path-Based Subscription](../guide/patterns/store/path-based-subscription.md) - Performance optimization strategies
 - [Pattern Guide](./pattern-guide.md) - Context-Action architectural patterns
 - [Performance Issues Troubleshooting](../troubleshooting/performance-issues.md#selective-subscription-patterns) - Debugging performance problems
 - [MVVM Architecture](./architecture-guide.md) - Overall architectural context

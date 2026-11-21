@@ -120,7 +120,7 @@ These setup guides integrate with pattern documentation as follows:
 
 ### Store Patterns
 - **[Store Basic Usage](../store/basic-usage.md)** → Uses [Basic Store Setup](./basic-store-setup.md)
-- **[Store Performance Patterns](../store/subscription-optimization.md)** → Uses [Basic Store Setup](./basic-store-setup.md)
+- **[Store Performance Patterns](../store/path-based-subscription.md)** → Uses [Basic Store Setup](./basic-store-setup.md)
 - **[Store Manager API](../store/useStoreManager-api.md)** → Uses [Basic Store Setup](./basic-store-setup.md)
 
 ### Architecture Patterns
@@ -134,7 +134,7 @@ These setup guides integrate with pattern documentation as follows:
 - **[Memory Optimization](../ref/basic-usage.md)** → Uses [RefContext Setup](./ref-context-setup.md)
 
 ### Performance Patterns
-- **[Optimization Techniques](../store/subscription-optimization.md)** → Uses all setup guides
+- **[Optimization Techniques](../store/path-based-subscription.md)** → Uses all setup guides
 
 ### Provider Management
 - **[withProvider Pattern](./provider-composition-setup.md)** → Uses [Provider Composition Setup](./provider-composition-setup.md)

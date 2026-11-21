@@ -310,7 +310,7 @@ function ComplexApp() {
 - [Context-Layered 아키텍처](../context-layered/context-layered-guide.md) - Lite/Standard에서 6계층 도메인 구조로 확장하기
 - [React Refs 가이드](../concept/react-refs-guide.md) - RefContext 패턴 심화 학습
 - [패턴 가이드](../concept/pattern-guide.md) - 패턴 비교 및 실전 예시
-- [액션 파이프라인](./action-pipeline.md) - 액션 처리 파이프라인 이해하기
+- [파이프라인 시스템](./pipeline/) - 액션 처리 파이프라인 이해하기
 - [모범 사례](./best-practices.md) - 권장 패턴 따르기
 
 ## 실제 예시

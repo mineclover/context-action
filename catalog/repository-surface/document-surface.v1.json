@@ -233,39 +233,17 @@
     {
       "id": "doc-guide",
       "authorityClass": "authoritative",
-      "pairingPolicy": "tracked-partial",
+      "pairingPolicy": "strict-paired",
       "enDir": "docs/en/guide",
       "koDir": "docs/ko/guide",
       "paths": [
         "docs/en/guide",
         "docs/ko/guide"
       ],
-      "knownUnpaired": {
-        "onlyEn": [
-          "patterns/action/react-integration.md",
-          "patterns/store/batching-patterns.md",
-          "patterns/store/comparison-strategies.md",
-          "patterns/store/debugging-development.md",
-          "patterns/store/error-handling-recovery.md",
-          "patterns/store/lazy-evaluation-patterns.md",
-          "patterns/store/memoization-patterns.md",
-          "patterns/store/memory-management.md",
-          "patterns/store/subscription-optimization.md",
-          "patterns/store/useComputedStore-basic.md",
-          "patterns/store/useComputedStore-overview.md",
-          "pipeline/advanced-filtering.md"
-        ],
-        "onlyKo": [
-          "action-handlers.md",
-          "action-pipeline.md",
-          "architecture.md",
-          "hooks.md"
-        ]
-      },
       "owner": "Documentation Maintainers",
       "purpose": {
-        "en": "User-facing getting-started, pipeline, action/store/ref/async/setup pattern guides with explicitly tracked EN/KO translation gaps.",
-        "ko": "시작하기, 파이프라인, 액션/스토어/Ref/비동기/설정 패턴을 다루며 한영 미번역 격차를 명시적으로 추적하는 사용자 가이드입니다."
+        "en": "User-facing getting-started, pipeline, action/store/ref/async/setup pattern guides strictly paired across English and Korean.",
+        "ko": "시작하기, 파이프라인, 액션/스토어/Ref/비동기/설정 패턴을 한영 1:1 쌍으로 제공하는 사용자 가이드입니다."
       },
       "verificationGate": "pnpm verify:surface-catalog && pnpm verify:doc-snippets && pnpm docs:check"
     },
