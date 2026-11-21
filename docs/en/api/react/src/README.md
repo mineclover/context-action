@@ -51,6 +51,9 @@
 - [UseTimeTravelPathOptions](interfaces/UseTimeTravelPathOptions.md)
 - [UseTimeTravelSelectorOptions](interfaces/UseTimeTravelSelectorOptions.md)
 - [StoreConfig](interfaces/StoreConfig.md)
+- [StoreManagerOptions](interfaces/StoreManagerOptions.md)
+- [StoreProviderProps](interfaces/StoreProviderProps.md)
+- [StoreContextReturn](interfaces/StoreContextReturn.md)
 - [WithProviderConfig](interfaces/WithProviderConfig.md)
 - [ExplicitStoreValue](interfaces/ExplicitStoreValue.md)
 - [TimeTravelStoreConfig](interfaces/TimeTravelStoreConfig.md)
@@ -66,6 +69,7 @@
 - [StoreTransactionListener](type-aliases/StoreTransactionListener.md)
 - [StorePath](type-aliases/StorePath.md)
 - [InitialStores](type-aliases/InitialStores.md)
+- [ExternalStoresMap](type-aliases/ExternalStoresMap.md)
 - [TimeTravelInitialStores](type-aliases/TimeTravelInitialStores.md)
 - [InferTimeTravelStoreTypes](type-aliases/InferTimeTravelStoreTypes.md)
 

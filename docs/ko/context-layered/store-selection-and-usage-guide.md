@@ -214,34 +214,43 @@ export async function addItemWithRollback() {
 - **`useComputedStore(store, computeFn, config?)`**: 다른 스토어에서 파생된 계산 값을 `equalityFn`, `initialValue`, `onError`, `debounceMs` 옵션으로 메모이즈 구독합니다.
 - **`StoreRegistry`**: 문자열 키 기반으로 동적 스토어를 등록·조회·정리해야 하는 고급 시나리오에만 사용합니다.
 
-### 2.8 Headless-First 조합 (`ActionRegister` DI + `StateStore` / `BackendStore`)
+### 2.8 Headless-First 조합 (`ActionRegister` DI + `Store` / `StoreManager` / `BackendStore`)
 
-React 바깥에서 순수 TypeScript 상태(`@context-action/store-core`의 `createStateStore` 또는 독립형 `createStore`)와 헤드리스 `ActionRegister`를 조립한 뒤, `<ActionContext.Provider register={...}>`(기본값 `ownership="shared"`)와 `createBackendStore`로 React 트리에 주입하는 패턴입니다:
+React 바깥에서 순수 TypeScript 오케스트레이션(`ActionRegister`)과 상태(`createStore`, `StoreManager` 또는 `@context-action/store-core`의 `createStateStore`)를 조립한 뒤, `<ActionContext.Provider register={...}>`와 `<StoreContext.Provider stores={...} | manager={...}>`(`ownership="shared"` 기본값)로 대칭 주입하는 패턴입니다:
 
 <!-- @context-action-compile -->
 ```tsx
 import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
-import { createStateStore } from '@context-action/store-core';
-import { createActionContext, useStoreValue } from '@context-action/react';
-import { createBackendStore } from '@context-action/react/backend';
+import {
+  createActionContext,
+  createStore,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
 
 interface CartActions extends ActionPayloadMap {
   addSku: { sku: string };
 }
 
-export const cartBackend = createStateStore('cart', { items: [] as string[] });
+interface CartStores {
+  cart: { items: string[] };
+}
+
+export const cartStore = createStore<CartStores['cart']>('cart', { items: [] });
 export const cartRegister = new ActionRegister<CartActions>({ name: 'HeadlessCart' });
 
 cartRegister.registerCommand('addSku', ({ sku }) => {
-  cartBackend.update((prev) => ({ items: [...prev.items, sku] }));
+  cartStore.update((prev) => ({ items: [...prev.items, sku] }));
 });
 
-const cartStore = createBackendStore('cart', cartBackend, { ownership: 'shared' });
-const CartActionsContext = createActionContext<CartActions>('Cart');
+const CartActionsContext = createActionContext<CartActions>('CartActions');
+const CartStoresContext = createStoreContext<CartStores>('CartStores', {
+  cart: { items: [] },
+});
 
 function CartSummary() {
   const dispatch = CartActionsContext.useActionDispatch();
-  const cart = useStoreValue(cartStore);
+  const cart = useStoreValue(CartStoresContext.useStore('cart'));
   return (
     <button type="button" onClick={() => void dispatch('addSku', { sku: 'BOOK-1' })}>
       담긴 상품: {cart.items.length}
@@ -252,11 +261,15 @@ function CartSummary() {
 export function HeadlessCartView() {
   return (
     <CartActionsContext.Provider register={cartRegister} ownership="shared">
-      <CartSummary />
+      <CartStoresContext.Provider stores={{ cart: cartStore }} ownership="shared">
+        <CartSummary />
+      </CartStoresContext.Provider>
     </CartActionsContext.Provider>
   );
 }
 ```
+
+> 외부 프레임워크 중립 `StateBackend`(`@context-action/store-core`의 `createStateStore`, 외부 상태 라이브러리/영속 스토리지 백엔드)를 React 훅에 직접 어댑팅해야 한다면 `@context-action/react/backend`의 `createBackendStore('cart', cartBackend, { ownership: 'shared' })`를 사용하세요.
 
 ---
 

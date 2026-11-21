@@ -50,6 +50,10 @@ export type {
   StoreConfig,
   ExplicitStoreValue,
   WithProviderConfig,
+  ExternalStoresMap,
+  StoreManagerOptions,
+  StoreProviderProps,
+  StoreContextReturn,
 } from './stores/patterns/declarative-store-pattern-v2';
 
 // Time Travel Store Pattern (Store Context with undo/redo)

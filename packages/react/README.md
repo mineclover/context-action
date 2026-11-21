@@ -97,30 +97,41 @@ export function App() {
 }
 ```
 
-### Headless-First ActionRegister DI
+### Headless-First DI (`ActionRegister` + `Store` / `StoreManager`)
 
-Assemble framework-neutral orchestration outside React with `ActionRegister` and inject it into `createActionContext`'s `Provider`. By default `ownership` is `'shared'` when `register` is supplied, so unmounting the React Provider unregisters React handlers and aborts Provider dispatches without destroying your external register (pass `ownership="owned"` to transfer teardown ownership):
+Assemble framework-neutral orchestration and state outside React with `ActionRegister` + `createStore` (or `StoreManager`), then inject both symmetrically into React via `<ActionProvider register={...}>` and `<StoreProvider stores={...} | manager={...}>`. By default `ownership` is `'shared'` when `register`, `manager`, or `stores` is supplied, so unmounting the React Providers detaches UI listeners without destroying your external instances (pass `ownership="owned"` to transfer teardown ownership):
 
 <!-- @context-action-compile -->
 ```tsx
 import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
-import { createActionContext } from '@context-action/react';
+import { createActionContext, createStore, createStoreContext } from '@context-action/react';
 
 interface OrderActions extends ActionPayloadMap {
   submit: { orderId: string };
 }
 
+interface OrderStores {
+  lastOrderId: string | null;
+}
+
 export const orderRegister = new ActionRegister<OrderActions>({ name: 'HeadlessOrders' });
+export const lastOrderIdStore = createStore<string | null>('lastOrderId', null);
+
 orderRegister.registerCommand('submit', payload => {
-  console.info('Submitting', payload.orderId);
+  lastOrderIdStore.setValue(payload.orderId);
 });
 
 const OrderActionsContext = createActionContext<OrderActions>('Orders');
+const OrderStoresContext = createStoreContext<OrderStores>('OrderStores', {
+  lastOrderId: null,
+});
 
 export function OrderWorkspace({ children }: { children: React.ReactNode }) {
   return (
     <OrderActionsContext.Provider register={orderRegister} ownership="shared">
-      {children}
+      <OrderStoresContext.Provider stores={{ lastOrderId: lastOrderIdStore }} ownership="shared">
+        {children}
+      </OrderStoresContext.Provider>
     </OrderActionsContext.Provider>
   );
 }

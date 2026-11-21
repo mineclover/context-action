@@ -112,7 +112,7 @@ function App() {
 | 단계 | 적합한 상황 | 핵심 API |
 | --- | --- | --- |
 | **Level 1 · Lite** | 단일 컴포넌트/기능 상태와 타입 안전한 커맨드 | `createStoreContext`, `createActionContext` (또는 `createStateStore` + `ActionRegister`) |
-| **Level 2 · Standard** | 헤드리스 오케스트레이션, 역할 기반 검증·실행, 고빈도 DOM 제어 | `<ActionProvider register={headlessRegister}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `createRefContext` |
+| **Level 2 · Standard** | 헤드리스 오케스트레이션, 역할 기반 검증·실행, 고빈도 DOM 제어 | `<ActionProvider register={...}>`, `<StoreProvider stores={...} \| manager={...}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `createRefContext` |
 | **Level 3 · Enterprise** | 다중 팀 도메인, 다중 스토어 원자 Undo/Redo, AI/MCP 도구, 마이크로 프론트엔드 | 6계층 Context-Layered, `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, `@context-action/lit-ui` / `preact-ui` |
 
 ---
@@ -126,7 +126,7 @@ function App() {
 
 ### ✅ Context-Action의 접근법
 - **🎯 명시적인 도메인 경계** → 하나의 전역 스토어 대신 도메인 컨텍스트 단위로 상태와 액션 파이프라인을 격리
-- **🏗️ 헤드리스 우선 + MVVM 분리** → 프레임워크 중립 `ActionRegister` / `StateStore`를 React 밖에서 조립한 뒤 `<Provider register={...}>` DI로 주입 가능
+- **🏗️ 헤드리스 우선 + MVVM 분리** → 프레임워크 중립 `ActionRegister` + `Store` / `StoreManager` / `StateStore`를 React 밖에서 조립한 뒤 `<ActionProvider register={...}>` 및 `<StoreProvider stores={...}>` / `manager={...}` DI로 대칭 주입 가능
 - **🔒 타입 우선 계약** → 액션 페이로드, 반환 결과, 가드, 스토어 전체에 걸친 컴파일 타임 타입 추론
 - **📈 점진적 확장** → 작은 스토어 컨텍스트로 시작해 필요할 때만 역할별 훅, 6계층 구조, 트랜잭션, AI/웹 컴포넌트 어댑터 추가
 
@@ -696,7 +696,7 @@ interface UserActions extends ActionPayloadMap {
 - **[🧭 개발 컨벤션 인덱스](https://mineclover.github.io/context-action/ko/context-layered/convention-index)** - 작업별 표준·게이트 중심 인덱스
 - **[📦 저장소 표면 카탈로그](https://mineclover.github.io/context-action/ko/context-layered/repository-surface-catalog)** - 워크스페이스 패키지·정식 예제 라우트·관리 문서 전체 목록 (`CA-SURFACE-CATALOG-001`)
 - **[🏪 Store별 선택 기준 및 사용법 가이드](https://mineclover.github.io/context-action/ko/context-layered/store-selection-and-usage-guide)** - 패키지 전반 Store 선택 매트릭스
-- **[📋 아키텍처 개요](https://mineclover.github.io/context-action/ko/concept/architecture-guide)** - 프레임워크 개념
+- **[📋 핵심 철학 및 아키텍처](https://mineclover.github.io/context-action/ko/concept/architecture-guide)** - 5가지 핵심 원칙, Headless-First DI, MVVM 분리
 - **[⚡ 모범 사례](https://mineclover.github.io/context-action/ko/guide/best-practices)** - 프로덕션 패턴
 - **[📜 문서 및 개발 관리 컨벤션](https://mineclover.github.io/context-action/ko/concept/documentation-development-conventions)** - 문서 작성 기준 및 검증 게이트
 

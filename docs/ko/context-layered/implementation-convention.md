@@ -20,7 +20,7 @@
 - activity log, analytics, ref focus 같은 side effect가 함께 움직인다
 - 문서, 예제, 테스트를 같은 계약으로 묶어야 한다
 
-작은 기능은 business 또는 view 파일 수를 줄일 수 있지만, action handler 등록은 아래 Handler Registry 규칙을 항상 따릅니다.
+작은 기능은 business 또는 view 파일 수를 줄일 수 있지만, React 마운트형 action handler 등록은 아래 Handler Registry 규칙을 따릅니다(React 수명과 무관한 도메인 오케스트레이션은 React 밖의 `ActionRegister` + `Store`/`StoreManager` DI로 조립할 수 있습니다).
 
 ## 표준 폴더 구조
 
@@ -87,7 +87,7 @@ scenario/
 - `useScenarioSubmissionHandlers`
 - 필요하면 `useScenarioApprovalHandlers`, `useScenarioSyncHandlers` 등으로 분리
 
-단일 handler 기능을 포함한 모든 handler는 도메인 Handler Registry를 통해 등록합니다. Page, View, Context 파일은 Registry를 마운트·조합만 하며 `use*ActionHandler`를 직접 호출하지 않습니다.
+단일 handler 기능을 포함한 모든 React 마운트형 handler는 도메인 Handler Registry를 통해 등록합니다. Page, View, Context 파일은 Registry를 마운트·조합만 하며 `use*ActionHandler`를 직접 호출하지 않습니다. UI 수명주기와 무관한 도메인 오케스트레이션은 React 밖에서 순수 `ActionRegister` + `createStore` / `StoreManager`로 조립해 `<ActionProvider register={...}>` 및 `<StoreProvider stores={...} | manager={...}>`(`ownership="shared"` 기본값)로 주입하며, `pnpm convention:check`가 감사하는 `example/src` 정식 6계층 루트는 계속 React Handler Registry 구조를 유지합니다.
 
 ### `actions/`
 

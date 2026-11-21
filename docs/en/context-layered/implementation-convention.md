@@ -20,7 +20,7 @@ Prefer this convention when at least two of these are true:
 - side effects such as activity logs, analytics, or ref focus move with the workflow
 - docs, examples, and tests should all share the same implementation contract
 
-Smaller features may use fewer business or view files, but any action handler still follows the Handler Registry rule below.
+Smaller features may use fewer business or view files, while any React-mounted action handler still follows the Handler Registry rule below (framework-independent domain orchestration may instead be registered headlessly outside React via `ActionRegister` + `Store`/`StoreManager` DI).
 
 ## Standard Folder Structure
 
@@ -87,7 +87,7 @@ Split handlers by concern:
 - `useScenarioSubmissionHandlers`
 - and later `useScenarioApprovalHandlers`, `useScenarioSyncHandlers`, etc.
 
-Every handler, including a single-handler feature, is registered through the domain Handler Registry. Pages, views, and context files mount or compose the registry; they do not call `use*ActionHandler` directly.
+Every React-mounted handler, including a single-handler UI feature, is registered through the domain Handler Registry. Pages, views, and context files mount or compose the registry; they do not call `use*ActionHandler` directly. When domain orchestration does not depend on React lifecycle, assemble handlers and stores headlessly outside React (`ActionRegister` + `createStore` / `StoreManager`) and inject them via `<ActionProvider register={...}>` and `<StoreProvider stores={...} | manager={...}>` (`ownership="shared"` by default); canonical `example/src` 6-layer roots audited by `pnpm convention:check` continue using the React Handler Registry structure.
 
 ### `actions/`
 
