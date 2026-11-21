@@ -97,9 +97,9 @@ export function App() {
 }
 ```
 
-### Headless-First DI (`ActionRegister` + `Store` / `StoreManager`)
+### Headless-First DI (`ActionRegister` + `Store` / `StoreManager` / `TimeTravelStore`)
 
-Assemble framework-neutral orchestration and state outside React with `ActionRegister` + `createStore` (or `StoreManager`), then inject both symmetrically into React via `<ActionProvider register={...}>` and `<StoreProvider stores={...} | manager={...}>`. By default `ownership` is `'shared'` when `register`, `manager`, or `stores` is supplied, so unmounting the React Providers detaches UI listeners without destroying your external instances (pass `ownership="owned"` to transfer teardown ownership):
+Assemble framework-neutral orchestration and state outside React with `ActionRegister` + `createStore` / `createTimeTravelStore` (or `StoreManager` / `TimeTravelStoreManager`), then inject both symmetrically into React via `<ActionProvider register={...}>` and `<StoreProvider stores={...} | manager={...}>` (supported on both `createStoreContext` and `createTimeTravelStoreContext`). By default `ownership` is `'shared'` when `register`, `manager`, or `stores` is supplied, so unmounting the React Providers detaches UI listeners without destroying your external instances or undo/redo history (pass `ownership="owned"` to transfer teardown ownership):
 
 <!-- @context-action-compile -->
 ```tsx

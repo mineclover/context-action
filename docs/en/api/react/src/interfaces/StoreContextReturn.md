@@ -6,7 +6,7 @@
 
 # Interface: StoreContextReturn\<T\>
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:447](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L447)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:436](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L436)
 
 Public return contract kept explicit for stable declaration consumers.
 
@@ -22,7 +22,7 @@ Public return contract kept explicit for stable declaration consumers.
 
 > `readonly` **Provider**: (`props`) => `Element`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:448](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L448)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:437](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L437)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `readonly` **useStore**: &lt;`K`&gt;(`storeName`) => [`Store`](../classes/Store.md)\<`T`\[`K`\]\>
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:449](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L449)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:438](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L438)
 
 #### Type Parameters
 
@@ -64,7 +64,7 @@ Type parameter **K**
 
 > `readonly` **useStoreManager**: () => [`StoreManager`](../classes/StoreManager.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:450](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L450)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:439](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L439)
 
 #### Returns
 
@@ -76,7 +76,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `readonly` **useStoreInfo**: () => `object`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:451](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L451)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:440](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L440)
 
 #### Returns
 
@@ -100,7 +100,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `readonly` **useStoreClear**: () => () => `void`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:456](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L456)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:445](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L445)
 
 #### Returns
 
@@ -112,7 +112,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `readonly` **withProvider**: &lt;`P`&gt;(`Component`, `config?`) => `FC`&lt;`P`&gt;
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:457](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L457)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:446](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L446)
 
 #### Type Parameters
 
@@ -140,7 +140,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `readonly` **contextName**: `string`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:461](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L461)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:450](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L450)
 
 ***
 
@@ -148,4 +148,4 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `readonly` **initialStores**: [`InitialStores`](../type-aliases/InitialStores.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:462](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L462)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:451](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L451)

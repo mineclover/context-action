@@ -62,7 +62,10 @@ export type {
   TimeTravelStoreConfig,
   TimeTravelInitialStores,
   TimeTravelControlsState as TimeTravelContextControlsState,
-  InferTimeTravelStoreTypes
+  InferTimeTravelStoreTypes,
+  ExternalTimeTravelStoresMap,
+  TimeTravelStoreManagerOptions,
+  TimeTravelStoreProviderProps,
 } from './stores/patterns/time-travel-store-pattern';
 
 // Ref System (Core functionality)

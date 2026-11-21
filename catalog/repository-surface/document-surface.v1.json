@@ -247,8 +247,6 @@
           "patterns/store/comparison-strategies.md",
           "patterns/store/debugging-development.md",
           "patterns/store/error-handling-recovery.md",
-          "patterns/store/immer-integration.md",
-          "patterns/store/immutability-comparison-integration.md",
           "patterns/store/lazy-evaluation-patterns.md",
           "patterns/store/memoization-patterns.md",
           "patterns/store/memory-management.md",

@@ -108,7 +108,7 @@ profileStore.dispose();
 Use `TimeTravelStore` whenever users need undo, redo, or bounded history navigation.
 
 - `createTimeTravelStore(name, initialValue, { maxHistory, mutable, notificationMode, readMode })` defaults `readMode` to `'reference'` for legacy structural-sharing compatibility.
-- Declarative `createTimeTravelStoreContext` defaults `readMode` to `'safe'`.
+- Declarative `createTimeTravelStoreContext` defaults `readMode` to `'safe'` and supports symmetric Headless-First DI (`<DocStores.Provider manager={externalManager} />` or `<DocStores.Provider stores={externalStores} ownership="shared" />`) so undo/redo history can live outside React component lifetimes.
 - Always read via `store.getSafeValue()` when crossing an external serialization or host boundary.
 
 <!-- @context-action-compile -->

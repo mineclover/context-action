@@ -1,8 +1,8 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-21T04:15:23.341Z",
-  "commitSha": "9d94a0918dd1910d458425e0114c2d6ce2a9813b",
-  "branch": "feat/headless-store-di-and-philosophy-alignment",
+  "timestamp": "2026-11-21T04:38:21.428Z",
+  "commitSha": "e53b9ef6fc2476102fda0722ca66a448a1715542",
+  "branch": "feat/headless-timetravel-di-and-immer-cleanup",
   "toolchain": {
     "node": "v24.22.1",
     "pnpm": "11.28.6",
@@ -11,21 +11,21 @@
   },
   "inputDigest": "sha256:d8afc802b59eb4dfdde253a6f118808544f2f57c94fc6bf727a01bdbab0b55f4",
   "workingTree": "clean",
-  "treeDigest": "sha256:9e8f300f2f181247dab6d9f1cc1ed41dc14ecbe562e51d278584961e34306f0d",
+  "treeDigest": "sha256:7ee0b9c70e4f2c9229891572a418acb851f96ec092d85e5f0d77a26eb7b39e4d",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 15.99,
+      "durationSec": 17.72,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.8,
+      "durationSec": 0.98,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 2.57,
+      "durationSec": 3.4,
       "status": "passed"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.22,
+      "durationSec": 0.23,
       "status": "passed"
     },
     {
@@ -45,20 +45,20 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.28,
+      "durationSec": 0.3,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.34,
+      "durationSec": 1.47,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.4,
+      "durationSec": 0.42,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:3f45a150baa0c7bc0867e12cbd769d649a1d11e4555e8b7f99ac24a00aac04fc"
+  "receiptDigest": "sha256:0875705c11d17391a4d31018751cd2f782eef81ce261667cb4773e218836c483"
 }

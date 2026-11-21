@@ -1,7 +1,7 @@
 # Context-Action React Package - Complete Code
 
 Total Files: 53
-Total Lines: 8849
+Total Lines: 8956
 
 ## Type Definitions
 
@@ -1405,7 +1405,10 @@ export type {
   TimeTravelStoreConfig,
   TimeTravelInitialStores,
   TimeTravelControlsState as TimeTravelContextControlsState,
-  InferTimeTravelStoreTypes
+  InferTimeTravelStoreTypes,
+  ExternalTimeTravelStoresMap,
+  TimeTravelStoreManagerOptions,
+  TimeTravelStoreProviderProps,
 } from './stores/patterns/time-travel-store-pattern';
 export { createRefContext } from './refs/createRefContext';
 export type { RefContextReturn, CreateRefContextOptions } from './refs/createRefContext';
@@ -5109,6 +5112,7 @@ import { createStore } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
 import type { ComparisonOptions } from '../utils/comparison';
 import {
+  areExternalStoresEqual,
   type ExplicitStoreValue,
   isExplicitStoreValue,
   isStoreConfigShape,
@@ -5336,17 +5340,6 @@ export class StoreManager<T extends Record<string, any>> {
     };
   }
 }
-function areExternalStoresEqual<T extends Record<string, any>>(
-  prev: ExternalStoresMap<T> | undefined,
-  next: ExternalStoresMap<T> | undefined
-): boolean {
-  if (prev === next) return true;
-  if (!prev || !next) return false;
-  const prevKeys = Object.keys(prev).filter(key => prev[key] !== undefined);
-  const nextKeys = Object.keys(next).filter(key => next[key] !== undefined);
-  if (prevKeys.length !== nextKeys.length) return false;
-  return nextKeys.every(key => prev[key] === next[key]);
-}
 interface StoreContextValue<T extends Record<string, any>> {
   managerRef: React.RefObject<StoreManager<T> | null>;
 }
@@ -5522,8 +5515,9 @@ function createStoreContextImpl<T extends Record<string, any>>(
           if (managerRef.current === manager) managerRef.current = null;
         };
       }, []);
+      const contextValue = useMemo(() => ({ managerRef }), []);
       const provider = (
-        <StoreContext.Provider value={{ managerRef }}>
+        <StoreContext.Provider value={contextValue}>
           <Component {...props} />
         </StoreContext.Provider>
       );
@@ -5597,6 +5591,17 @@ export function isStoreConfigShape(
   }
   return Reflect.ownKeys(value).every((key) => allowedKeys.has(key));
 }
+export function areExternalStoresEqual<T extends Record<string, unknown>>(
+  prev: Partial<Record<keyof T, unknown>> | undefined,
+  next: Partial<Record<keyof T, unknown>> | undefined
+): boolean {
+  if (prev === next) return true;
+  if (!prev || !next) return false;
+  const prevKeys = Object.keys(prev).filter(key => prev[key as keyof T] !== undefined);
+  const nextKeys = Object.keys(next).filter(key => next[key as keyof T] !== undefined);
+  if (prevKeys.length !== nextKeys.length) return false;
+  return nextKeys.every(key => prev[key as keyof T] === next[key as keyof T]);
+}
 ```
 
 ### stores/patterns/time-travel-store-pattern.tsx
@@ -5613,6 +5618,7 @@ import { compareValues, type ComparisonOptions } from '../utils/comparison';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
 import { patchesAffectPath } from '../utils/patch-affects-path';
 import {
+  areExternalStoresEqual,
   type ExplicitStoreValue,
   isExplicitStoreValue,
   isStoreConfigShape,
@@ -5675,10 +5681,26 @@ export type InferTimeTravelStoreTypes<T extends Record<string, any>> = {
         ? never
         : T[K];
 };
+export type ExternalTimeTravelStoresMap<T extends Record<string, any>> = {
+  [K in keyof T]?: Store<T[K]> | TimeTravelStore<T[K]>;
+};
+export interface TimeTravelStoreManagerOptions<T extends Record<string, any>> {
+  externalStores?: ExternalTimeTravelStoresMap<T>;
+  externalOwnership?: 'shared' | 'owned';
+}
+export interface TimeTravelStoreProviderProps<T extends Record<string, any> = Record<string, any>> {
+  children: ReactNode;
+  registryId?: string;
+  manager?: TimeTravelStoreManager<T>;
+  stores?: ExternalTimeTravelStoresMap<T>;
+  ownership?: 'shared' | 'owned';
+}
 export class TimeTravelStoreManager<T extends Record<string, any>> {
   public readonly registry: StoreRegistry;
   public readonly initialStores: TimeTravelInitialStores<T>;
   public readonly stores = new Map<keyof T, Store<any> | TimeTravelStore<any>>();
+  private readonly externalStoreKeys = new Set<keyof T>();
+  private readonly externalOwnership: 'shared' | 'owned';
   private lifecycle: 'active' | 'disposed' = 'active';
   private version = 0;
   private infoVersion = 0;
@@ -5688,10 +5710,26 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
   constructor(
     public readonly name: string,
     initialStores: TimeTravelInitialStores<T>,
-    private readonly defaultMaxHistory: number = 50
+    private readonly defaultMaxHistory: number = 50,
+    options?: TimeTravelStoreManagerOptions<T>
   ) {
     this.registry = new StoreRegistry(name);
     this.initialStores = initialStores;
+    this.externalOwnership = options?.externalOwnership ?? 'shared';
+    if (options?.externalStores) {
+      for (const [rawKey, externalStore] of Object.entries(options.externalStores)) {
+        if (!externalStore) continue;
+        const key = rawKey as keyof T;
+        this.externalStoreKeys.add(key);
+        this.stores.set(key, externalStore);
+        this.registry.register(String(key), externalStore as any, {
+          name: String(key),
+        });
+      }
+      if (this.externalStoreKeys.size > 0) {
+        this.infoVersion += 1;
+      }
+    }
   }
   getStore<K extends keyof T>(storeName: K): Store<T[K]> | TimeTravelStore<T[K]> {
     if (this.lifecycle === 'disposed') {
@@ -5787,9 +5825,20 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
     if (this.lifecycle === 'disposed') {
       throw new Error(`TimeTravelStoreManager "${this.name}" is disposed`);
     }
-    this.stores.forEach(store => store.dispose());
-    this.registry.clear();
-    this.stores.clear();
+    const keysToDispose: Array<keyof T> = [];
+    this.stores.forEach((_store, key) => {
+      const isSharedExternal =
+        this.externalOwnership === 'shared' && this.externalStoreKeys.has(key);
+      if (!isSharedExternal) {
+        keysToDispose.push(key);
+      }
+    });
+    for (const key of keysToDispose) {
+      const store = this.stores.get(key);
+      store?.dispose();
+      this.registry.unregister(String(key));
+      this.stores.delete(key);
+    }
     this.version += 1;
     this.infoVersion += 1;
     this.listeners.forEach(listener => listener());
@@ -5798,7 +5847,11 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
   dispose(): void {
     if (this.lifecycle === 'disposed') return;
     this.lifecycle = 'disposed';
-    this.stores.forEach(store => store.dispose());
+    this.stores.forEach((store, key) => {
+      if (this.externalOwnership === 'owned' || !this.externalStoreKeys.has(key)) {
+        store.dispose();
+      }
+    });
     this.stores.clear();
     this.listeners.clear();
     this.infoListeners.clear();
@@ -5848,28 +5901,81 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
   function Provider({
     children,
     registryId,
-  }: {
-    children: ReactNode;
-    registryId?: string;
-  }) {
+    manager: externalManager,
+    stores: externalStores,
+    ownership,
+  }: TimeTravelStoreProviderProps<T>) {
     const effectiveRegistryId = registryId || contextName;
-    const managerRef = useRef<TimeTravelStoreManager<T> | null>(null);
-    if (!managerRef.current) {
-      managerRef.current = new TimeTravelStoreManager(
-        effectiveRegistryId,
-        initialStores,
-        defaultMaxHistory
-      );
+    const ownedManagerRef = useRef<TimeTravelStoreManager<T> | null>(null);
+    const ownedStoresEntryRef = useRef<{
+      stores: ExternalTimeTravelStoresMap<T>;
+      registryId: string;
+      ownership: 'shared' | 'owned';
+      manager: TimeTravelStoreManager<T>;
+    } | null>(null);
+    let activeManager: TimeTravelStoreManager<T>;
+    if (externalManager) {
+      activeManager = externalManager;
+    } else if (externalStores) {
+      const resolvedExternalOwnership: 'shared' | 'owned' = ownership ?? 'shared';
+      const currentEntry = ownedStoresEntryRef.current;
+      if (
+        !currentEntry ||
+        currentEntry.registryId !== effectiveRegistryId ||
+        currentEntry.ownership !== resolvedExternalOwnership ||
+        !areExternalStoresEqual(currentEntry.stores, externalStores)
+      ) {
+        ownedStoresEntryRef.current = {
+          stores: externalStores,
+          registryId: effectiveRegistryId,
+          ownership: resolvedExternalOwnership,
+          manager: new TimeTravelStoreManager(effectiveRegistryId, initialStores, defaultMaxHistory, {
+            externalStores,
+            externalOwnership: resolvedExternalOwnership,
+          }),
+        };
+      }
+      activeManager = ownedStoresEntryRef.current!.manager;
+    } else {
+      if (!ownedManagerRef.current) {
+        ownedManagerRef.current = new TimeTravelStoreManager(
+          effectiveRegistryId,
+          initialStores,
+          defaultMaxHistory
+        );
+      }
+      activeManager = ownedManagerRef.current;
     }
+    const shouldDisposeManager = externalManager ? ownership === 'owned' : true;
+    const disposeOnUnmountRef = useRef(shouldDisposeManager);
     useInsertionEffect(() => {
-      const manager = managerRef.current;
+      disposeOnUnmountRef.current = shouldDisposeManager;
+    }, [activeManager, shouldDisposeManager]);
+    const activeManagerRef = useRef<TimeTravelStoreManager<T> | null>(activeManager);
+    activeManagerRef.current = activeManager;
+    useInsertionEffect(() => {
       return () => {
-        manager?.dispose();
-        if (managerRef.current === manager) managerRef.current = null;
+        const shouldDispose = disposeOnUnmountRef.current;
+        if (shouldDispose) {
+          activeManager.dispose();
+        }
+        if (ownedManagerRef.current === activeManager && shouldDispose) {
+          ownedManagerRef.current = null;
+        }
+        if (ownedStoresEntryRef.current?.manager === activeManager) {
+          ownedStoresEntryRef.current = null;
+        }
+        if (activeManagerRef.current === activeManager && shouldDispose) {
+          activeManagerRef.current = null;
+        }
       };
-    }, []);
+    }, [activeManager]);
+    const contextValue = useMemo(
+      () => ({ managerRef: activeManagerRef }),
+      [activeManager]
+    );
     return (
-      <StoreContext.Provider value={{ managerRef }}>
+      <StoreContext.Provider value={contextValue}>
         {children}
       </StoreContext.Provider>
     );
@@ -6103,8 +6209,9 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
           if (managerRef.current === manager) managerRef.current = null;
         };
       }, []);
+      const contextValue = useMemo(() => ({ managerRef }), []);
       const provider = (
-        <StoreContext.Provider value={{ managerRef }}>
+        <StoreContext.Provider value={contextValue}>
           <Component {...props} />
         </StoreContext.Provider>
       );

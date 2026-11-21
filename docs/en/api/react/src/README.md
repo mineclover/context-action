@@ -58,6 +58,8 @@
 - [ExplicitStoreValue](interfaces/ExplicitStoreValue.md)
 - [TimeTravelStoreConfig](interfaces/TimeTravelStoreConfig.md)
 - [TimeTravelContextControlsState](interfaces/TimeTravelContextControlsState.md)
+- [TimeTravelStoreManagerOptions](interfaces/TimeTravelStoreManagerOptions.md)
+- [TimeTravelStoreProviderProps](interfaces/TimeTravelStoreProviderProps.md)
 - [StorePathPatch](interfaces/StorePathPatch.md)
 
 ## Type Aliases
@@ -72,6 +74,7 @@
 - [ExternalStoresMap](type-aliases/ExternalStoresMap.md)
 - [TimeTravelInitialStores](type-aliases/TimeTravelInitialStores.md)
 - [InferTimeTravelStoreTypes](type-aliases/InferTimeTravelStoreTypes.md)
+- [ExternalTimeTravelStoresMap](type-aliases/ExternalTimeTravelStoresMap.md)
 
 ## Functions
 

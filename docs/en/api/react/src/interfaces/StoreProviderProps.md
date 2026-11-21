@@ -6,7 +6,7 @@
 
 # Interface: StoreProviderProps\<T\>
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:168](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L168)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:169](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L169)
 
 Props accepted by the Provider returned from createStoreContext().
 
@@ -22,7 +22,7 @@ Props accepted by the Provider returned from createStoreContext().
 
 > **children**: `ReactNode`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:169](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L169)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:170](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L170)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `optional` **registryId?**: `string`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:171](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L171)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:172](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L172)
 
 Optional custom registry identifier for isolation.
 
@@ -40,7 +40,7 @@ Optional custom registry identifier for isolation.
 
 > `optional` **manager?**: [`StoreManager`](../classes/StoreManager.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:177](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L177)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:178](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L178)
 
 Optional externally constructed StoreManager instance for headless-first
 orchestration and dependency injection. When both `manager` and `stores`
@@ -52,7 +52,7 @@ are provided, `manager` takes precedence.
 
 > `optional` **stores?**: [`ExternalStoresMap`](../type-aliases/ExternalStoresMap.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:182](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L182)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:183](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L183)
 
 Optional partial or full map of externally constructed Store instances created
 via `createStore(...)` outside React. Uninjected keys fall back to `initialStores`.
@@ -63,7 +63,7 @@ via `createStore(...)` outside React. Uninjected keys fall back to `initialStore
 
 > `optional` **ownership?**: `"shared"` \| `"owned"`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:189](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L189)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:190](https://github.com/mineclover/context-action/blob/main/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L190)
 
 Controls whether Provider unmount disposes injected `manager` or `stores`.
 Defaults to `'shared'` when `manager` or `stores` is supplied; set to `'owned'`
