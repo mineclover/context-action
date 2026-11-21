@@ -559,7 +559,7 @@ function createStoreContextImpl<T extends Record<string, any>>(
     const disposeOnUnmountRef = useRef(shouldDisposeManager);
     useInsertionEffect(() => {
       disposeOnUnmountRef.current = shouldDisposeManager;
-    }, [activeManager, shouldDisposeManager]);
+    }, [shouldDisposeManager]);
 
     const activeManagerRef = useRef<StoreManager<T> | null>(activeManager);
     activeManagerRef.current = activeManager;
@@ -585,6 +585,7 @@ function createStoreContextImpl<T extends Record<string, any>>(
       };
     }, [activeManager]);
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Recreate context value when activeManager swaps so consumers re-read from the new manager.
     const contextValue = useMemo(
       () => ({ managerRef: activeManagerRef }),
       [activeManager]
