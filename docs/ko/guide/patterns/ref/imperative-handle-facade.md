@@ -148,12 +148,12 @@ const {
 
 const {
   Provider: FormRefProvider,
-  useRefHandler: useFormRef,
+  useRefController: useFormRefController,
 } = createRefContext<{ emailField: FieldHandle }>('FormFacadeRefs');
 
 function FormCoordinator({ children }: { children: React.ReactNode }) {
-  // `isMounted` 변경 시 핸들러 콜백이 재등록되지 않도록 `withTarget`을 구조 분해합니다.
-  const { withTarget } = useFormRef('emailField');
+  // `useRefController`는 마운트 상태를 구독하지 않으며 마운트 변경에도 안정적인 핸들을 반환합니다.
+  const { withTarget } = useFormRefController('emailField');
 
   useFormCommand(
     'submitForm',
@@ -179,7 +179,7 @@ function FormCoordinator({ children }: { children: React.ReactNode }) {
 }
 
 function ProfileFormContent() {
-  const emailField = useFormRef('emailField');
+  const emailField = useFormRefController('emailField');
   const dispatch = useFormDispatch();
 
   return (
@@ -215,7 +215,7 @@ export function ProfileFormSection() {
 1. **`useImperativeHandle` 의존성은 빈 배열(`[]`) 유지**: 마운트 전체 수명 동안 `setRef`가 단 하나의 안정된 핸들 참조만 받도록 보장합니다.
 2. **Facade 동결 (`Object.freeze`)**: `RefContext`를 통해 전달받은 소비자가 노출 메서드를 변조하거나 임의 프로퍼티를 덮어쓰지 못하게 보호합니다.
 3. **커밋 시점·이벤트 내부에서의 ref 동기화**: 동시성 렌더링·React Compiler 순수성을 지키기 위해 `latestRef` 동기화는 `useIsomorphicLayoutEffect`에서 수행하고, `handle.reset(); handle.getValue();` 같은 동일 턴 연속 호출을 지원할 때는 `onChange`/`reset` 핸들러 내부에서도 `latestRef`를 즉시 갱신합니다.
-4. **코디네이터에서 `{ withTarget }` / `{ setRef }` 구조 분해**: `useRefHandler()` 반환 객체는 `isMounted` 변경 시 새 참조가 되지만, `withTarget`과 `setRef`는 마운트 상태 변화에도 참조가 안정적입니다.
+4. **명령 전용 등록자·코디네이터에는 `useRefController` 우선 사용**: `useRefController`는 마운트 상태 구독 **없이** 참조가 안정적인 `{ setRef, withTarget, waitForMount, onMount, executeIfMounted, checkMountState, target }` 핸들을 반환합니다. `useRefMountState`(또는 `useRefHandler`)는 `isMounted` / `isWaitingForMount` UI 배지를 실제로 렌더링하는 컴포넌트에만 사용하세요.
 5. **원시 DOM 노드 비노출 및 `forwardRef` 유지**: 부모나 `ActionContext` 핸들러는 `HTMLInputElement`가 아닌 `FieldHandle` 계약만 다루고, React 18·19 호환을 위해 `forwardRef`를 유지합니다.
 
 ## 관련 패턴

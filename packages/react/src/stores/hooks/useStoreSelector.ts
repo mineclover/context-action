@@ -8,9 +8,13 @@
  * @module stores/hooks/useStoreSelector
  */
 
-import { useSyncExternalStore, useCallback, useRef } from 'react';
+import { useCallback, useDebugValue, useRef, useSyncExternalStore } from 'react';
 import type { Store } from '../core/Store';
 import { equalityFunctions } from '../utils/sync-external-store-utils';
+
+function formatStoreSelectorDebugValue([storeName, value]: readonly [string, unknown]): string {
+  return `${storeName}: ${typeof value === 'object' && value !== null ? 'object' : String(value)}`;
+}
 
 // Re-export equality functions from utils
 export const defaultEqualityFn = equalityFunctions.smart; // 똑똑한 자동 동등성 함수
@@ -72,5 +76,7 @@ export function useStoreSelector<T, R>(
     }
   }, [store, selector, equalityFn]);
   
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const selected = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  useDebugValue([store.name, selected] as const, formatStoreSelectorDebugValue);
+  return selected;
 }

@@ -21,7 +21,7 @@ Context-Action의 Store 구독 훅(`useStoreValue`, `useStoreSelector`, `useStor
 
 입력 반응성과 무거운 파생 뷰의 비차단 렌더링을 모두 지키려면:
 
-1. 제어 `<input>`은 로컬 `useState`로 동기 제어하고(또는 입력 상태 자체를 Store에 두어야 한다면 기본값이 `notificationMode: 'immediate'`인 `TimeTravelStore` 사용), 변경을 공유 `Store`에 반영합니다.
+1. 제어 `<input>`은 로컬 `useState`로 동기 제어해 공유 `Store`에 반영하거나(`batched` 모드 유지 시 권장), Store 자체를 `notificationMode: 'immediate'`로 설정해(`createStoreContext`의 `StoreConfig` 또는 `createStore(name, initial, { notificationMode: 'immediate' })`) 직접 바인딩된 입력이 즉시 반영되게 합니다.
 2. 결과 뷰는 `useStorePath` 또는 `useStoreValue`로 `Store` 값을 구독합니다.
 3. 무거운 하위 컴포넌트로 내릴 값만 `useDeferredValue(query)`로 감싸고, 하위 컴포넌트를 `React.memo(...)`로 감싸 새 입력이 들어올 때 백그라운드 렌더가 안전하게 양보하도록 합니다.
 
@@ -166,5 +166,5 @@ export function DeferredCatalogScreen() {
 ## 핵심 불변식
 
 - **지연 하위 트리를 `React.memo`로 감싸기**: `React.memo`(또는 `deferredQuery`에 키잉된 `useMemo`)가 없으면 긴급 렌더 시 무거운 계산이 그대로 다시 실행됩니다.
-- **제어 `<input>`은 항상 동기 상태에 바인딩**: RAF 배칭 `Store`(`notificationMode: 'batched'`)에 `<input value>`를 직접 연결하지 말고 로컬 `useState`로 동기 제어(또는 `TimeTravelStore` 같은 `immediate` 모드 사용)하며, `<input value>`에 `deferredQuery`를 연결하지 마세요.
+- **제어 `<input>`은 항상 동기 상태에 바인딩**: RAF 배칭 `Store`(`notificationMode: 'batched'`)에 `<input value>`를 직접 연결하지 말고 로컬 `useState`로 동기 제어하거나 `StoreConfig` / `createStore(..., { notificationMode: 'immediate' })`를 설정한 뒤 `useStorePath`와 연결하세요. `<input value>`에 `deferredQuery`를 연결해서도 안 됩니다.
 - **불안정한 인라인 객체/배열 prop 지양**: `items`처럼 Store에서 안정 참조로 읽은 슬라이스를 함께 전달해야 `React.memo`의 얕은 비교가 불필요하게 깨지지 않습니다.

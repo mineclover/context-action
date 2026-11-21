@@ -26,11 +26,11 @@ Catalog of core Context-Action patterns across setup, action dispatch, store rea
 
 | Archetype | React Scope | Primitives + Built-in Hooks | Reference |
 |---|---|---|---|
-| **1. Encapsulated OOP Widget Control** | React 18 / 19 | `createRefContext` + `ActionContext` + `useImperativeHandle` (`[]` deps + `Object.freeze`) | [Imperative Handle Facade](./patterns/ref/imperative-handle-facade.md) |
+| **1. Encapsulated OOP Widget Control** | React 18 / 19 | `createRefContext` (`useRefController`) + `ActionContext` + `useImperativeHandle` (`[]` deps + `Object.freeze`) | [Imperative Handle Facade](./patterns/ref/imperative-handle-facade.md) |
 | **2. Local Store / Reducer Encapsulation** | React 18 / 19 | `useLocalStore` or `useReducer` + `useImperativeHandle` | [Local State Imperative Handle](./patterns/ref/local-state-imperative-handle.md) |
-| **3. High-Frequency Store → Non-Blocking View** | React 18 / 19 | `useStorePath` / `useStoreValue` + `useDeferredValue` + `React.memo` | [Deferred View Subscription](./patterns/store/deferred-view-subscription.md) |
-| **4. Committed Store + Optimistic / Form Overlay** | React 19+ | `useStoreValue` + `dispatchWithResult` + `useOptimistic` / `useTransition` / `useActionState` | [Optimistic & Transition UI (React 19)](./patterns/async/optimistic-and-transition-ui.md) |
-| **5. External Imperative OOP Runtime Bridge** | React 18 / 19 | `createRefContext` (`setRef`) + isomorphic `useLayoutEffect` / `useEffect` | [External OOP Lifecycle Bridge](./patterns/ref/external-oop-lifecycle.md) |
+| **3. High-Frequency Store → Non-Blocking View** | React 18 / 19 | `useStorePath` / `useStoreValue` (`'batched'` or `'immediate'`) + `useDeferredValue` + `React.memo` | [Deferred View Subscription](./patterns/store/deferred-view-subscription.md) |
+| **4. Committed Store + Optimistic / Form Overlay** | React 19+ | `StoreConfig` (`notificationMode: 'immediate'`) + `useStoreValue` + `dispatchWithResult` + `useOptimistic` / `useTransition` / `useActionState` | [Optimistic & Transition UI (React 19)](./patterns/async/optimistic-and-transition-ui.md) |
+| **5. External Imperative OOP Runtime Bridge** | React 18 / 19 | `createRefContext` (`useRefController` `setRef`) + isomorphic `useLayoutEffect` / `useEffect` | [External OOP Lifecycle Bridge](./patterns/ref/external-oop-lifecycle.md) |
 
 ---
 

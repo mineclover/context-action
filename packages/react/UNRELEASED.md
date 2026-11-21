@@ -3,6 +3,12 @@
 These changes are not included in the published versions listed in [CHANGELOG.md](./CHANGELOG.md).
 They do not authorize a version change or publication.
 
+## Store notification modes, Ref controller isolation & hook diagnostics
+
+- Expose `notificationMode?: 'batched' | 'immediate'` (`StoreOptions` / `StoreNotificationMode`) on `Store`, `createStore`, `StoreConfig`, `TimeTravelStoreConfig`, and `useLocalStore`, plus `getNotificationMode()` / `setNotificationMode(mode)` on `Store` and `TimeTravelStore` with safe pending-frame flushing when switching to `'immediate'`.
+- Add `useRefController` (`RefController`) on `createRefContext` for non-subscribing imperative ref commands (`setRef`, `withTarget`, `waitForMount`, `executeIfMounted`, `onMount`, `checkMountState`) without subscribing to mount-state re-renders.
+- Stabilize inline callbacks in `useOnMountStateChange`, memoize external-store callbacks in `useStoreInfo` and `useStoreClear`, replace `useLocalStore`'s module-global counter with React `useId()`, and add lazy `useDebugValue` formatters across core Store, TimeTravel, Ref, Transaction, and Action handler hooks.
+
 ## React 18/19 peer compatibility
 
 - Restore the public peer range to `^18.0.0 || ^19.0.0` and add an installed

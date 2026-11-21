@@ -88,7 +88,7 @@ const {
 
 const {
   Provider: ViewportRefProvider,
-  useRefHandler: useViewportRef,
+  useRefController: useViewportController,
 } = createRefContext<{ engine: ViewportEngineHandle }>('ViewportEngineRefs');
 
 function ViewportCanvas({
@@ -97,8 +97,7 @@ function ViewportCanvas({
   onRegionFocused?: (regionId: string) => void;
 }) {
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const engineRef = useViewportRef('engine');
-  const { setRef } = engineRef;
+  const { setRef } = useViewportController('engine');
 
   // React 18/19-safe latest callback indirection:
   // prevents recreating the heavy OOP engine when parent passes an inline callback.
@@ -134,8 +133,7 @@ function ViewportCanvas({
 }
 
 function ViewportCoordinator({ children }: { children: React.ReactNode }) {
-  // Destructure `withTarget` so the command handler stays stable across `isMounted` changes.
-  const { withTarget } = useViewportRef('engine');
+  const { withTarget } = useViewportController('engine');
 
   useViewportCommand(
     'focusRegion',
@@ -187,8 +185,8 @@ export function ExternalOopViewport({
 
 ## Key Invariants
 
-1. **Destructure `setRef` / `withTarget` (keep dependencies stable)**: `setRef` and `withTarget` returned by `useRefHandler` stay referentially stable across `isMounted` changes, whereas the wrapper object returned by `useRefHandler` changes identity when `isMounted` flips.
-2. **Understand `useRefHandler` mount subscription**: `useRefHandler` internally subscribes to `useRefMountState` (`useSyncExternalStore`), so calling `useViewportRef('engine')` inside `ViewportCanvas` triggers one synchronous mount re-render (`isMounted: false -> true`) when `setRef(facade)` runs in `useLayoutEffect`. If `ViewportCanvas` renders heavy children and even that single mount re-render must be avoided, memoize those children or pass `setRef` down from a lightweight parent.
+1. **Use `useRefController` inside engine hosts & coordinators**: `useRefController` gives both `ViewportCanvas` (`setRef`) and `ViewportCoordinator` (`withTarget`) a stable reference without subscribing to `isMounted` changes, triggering **zero** mount-state re-renders when `setRef(facade)` attaches.
+2. **Subscribe to mount status separately when needed**: Only call `useRefMountState('engine')` (or `useRefHandler('engine')`) in UI components that actually display loading/ready indicators for the external runtime.
 3. **Detach `setRef(null)` before `instance.dispose()`**: Clears the `RefContext` handle first so no queued `withTarget` callback attempts to invoke a disposed instance.
 4. **Hide `dispose()` from `RefContext` consumers**: Exposing a frozen `ViewportEngineHandle` ensures `ActionContext` handlers can command the engine (`focusRegion`, `resize`) while only the owning React Effect controls teardown.
 5. **React 19.2 `useEffectEvent` note**: When targeting React 19.2+ exclusively, `onRegionFocusedRef` can be replaced by `useEffectEvent` inside the Effect callback; keep the ref indirection when supporting React 18 or when callbacks are also invoked outside Effects.

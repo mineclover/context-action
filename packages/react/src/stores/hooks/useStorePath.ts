@@ -5,11 +5,15 @@
  * Uses JSON patches from Store to determine if subscribed paths are affected.
  */
 
-import { useCallback, useRef, useSyncExternalStore } from 'react';
+import { useCallback, useDebugValue, useRef, useSyncExternalStore } from 'react';
 import type { Snapshot, Unsubscribe } from '../core/types';
 import { patchesAffectPath, type StorePathPatch } from '../utils/patch-affects-path';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
 import { defaultEqualityFn } from './useStoreSelector';
+
+function formatStorePathDebugValue([key, value]: readonly [string, unknown]): string {
+  return `${key || '(root)'}: ${typeof value === 'object' && value !== null ? 'object' : String(value)}`;
+}
 
 export type { StorePathPatch } from '../utils/patch-affects-path';
 
@@ -165,7 +169,9 @@ export function useStorePath<T, R = unknown>(
     return getValueAtPath<T, R>(readStoreValue(store), stablePath);
   }, [store, stablePath]);
 
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const selectedValue = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  useDebugValue([pathSignature, selectedValue] as const, formatStorePathDebugValue);
+  return selectedValue;
 }
 
 /**
@@ -262,5 +268,7 @@ export function useStoreSelectorWithPaths<T, R>(
     return currentValue;
   }, [store, selector, equalityFn, depsKey]);
 
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const selected = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  useDebugValue([depsKey ?? '(all)', selected] as const, formatStorePathDebugValue);
+  return selected;
 }

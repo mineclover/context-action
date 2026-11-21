@@ -5,7 +5,16 @@
  * RefStore 클래스 없이 직접 상태 관리
  */
 
-import React, { createContext, useContext, useMemo, useRef, useCallback, ReactNode, useInsertionEffect } from 'react';
+import React, {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useDebugValue,
+  useInsertionEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import type { 
   RefTarget, 
   RefOperation, 
@@ -17,6 +26,43 @@ import type {
 import { useRefMount, useRefOperation, useRefPolling as useRefPollingHook, useRefMountState, useOnMountStateChange, useRefMountChecker, type InternalRefState, type RefPollingOptions } from './hooks';
 import { ErrorHandlers } from '../stores/utils/error-handling';
 import { disposeRefState, refDisposedError, waitForRefMount } from './ref-state';
+
+function formatRefDebugValue([ctxName, name, state]: readonly [
+  string,
+  string,
+  InternalRefState<RefTarget>,
+]): string {
+  const status = state.isMounted
+    ? 'mounted'
+    : state.mountPromise !== null
+      ? 'waiting'
+      : 'unmounted';
+  return `${ctxName}.${name} (${status})`;
+}
+
+/**
+ * Non-subscribing imperative controller handle for a single managed ref.
+ * Provides ref assignment and guarded command execution without subscribing
+ * the calling component to mount-state re-renders.
+ */
+export interface RefController<TTarget> {
+  setRef: (target: TTarget | null) => void;
+  readonly target: TTarget | null;
+  waitForMount: () => Promise<TTarget>;
+  withTarget: <Result>(
+    operation: RefOperation<TTarget & RefTarget, Result>,
+    options?: RefOperationOptions
+  ) => Promise<RefOperationResult<Result>>;
+  onMount: (callback: (target: TTarget) => void) => () => void;
+  executeIfMounted: <Result>(
+    operation: (target: TTarget & RefTarget) => Result
+  ) => Result | null;
+  checkMountState: () => {
+    isMounted: boolean;
+    isWaitingForMount: boolean;
+    target: TTarget | null;
+  };
+}
 
 // InternalRefState is now imported from ./hooks
 
@@ -41,6 +87,13 @@ export interface RefContextReturn<T> {
       operation: (target: T[K] & RefTarget) => Result
     ) => Result | null;
   };
+
+  /**
+   * Non-subscribing imperative ref controller hook.
+   * Unlike `useRefHandler`, this hook does not subscribe to mount-state changes;
+   * pair with `useRefMountState` in UI badges that need reactive status.
+   */
+  useRefController: <K extends keyof T>(refName: K) => RefController<T[K]>;
   
   useWaitForRefs: () => {
     <K extends keyof T>(...refNames: K[]): Promise<Pick<T, K>>;
@@ -239,11 +292,11 @@ export function createRefContext<T extends object | RefDefinitions>(
   };
   
   // Enhanced context hook with disposal checking
-  const useRefContext = () => {
+  const useRefContext = (hookName = 'useRefHandler') => {
     const context = useContext(RefContext);
     if (!context) {
       throw new Error(
-        `useRefHandler must be used within ${contextName}.Provider. ` +
+        `${hookName} must be used within ${contextName}.Provider. ` +
         `Wrap your component with <${contextName}.Provider>`
       );
     }
@@ -257,7 +310,7 @@ export function createRefContext<T extends object | RefDefinitions>(
   
   // 개별 ref 사용 hook - 리팩터링된 버전 (분리된 hooks 사용)
   const useRefHandler = <K extends keyof T>(refName: K) => {
-    const { getRefState, setRefTarget, definitionsRef, optionsRef } = useRefContext();
+    const { getRefState, setRefTarget, definitionsRef, optionsRef } = useRefContext('useRefHandler');
     const refNameStr = String(refName);
     
     // 현재 상태
@@ -265,6 +318,7 @@ export function createRefContext<T extends object | RefDefinitions>(
     // A callback ref can attach before passive subscriptions are installed.
     // useSyncExternalStore checks again at commit so the initial mount is not lost.
     const { isMounted, isWaitingForMount } = useRefMountState(refState);
+    useDebugValue([contextName, refNameStr, refState] as const, formatRefDebugValue);
     
     // 분리된 hooks 사용
     const { waitForMount, onMount } = useRefMount(
@@ -296,6 +350,49 @@ export function createRefContext<T extends object | RefDefinitions>(
         operation: (target: T[K] & RefTarget) => Result
       ) => Result | null
     }), [refState, setRef, waitForMount, withTarget, executeIfMounted, onMount, isMounted, isWaitingForMount]);
+  };
+
+  // Non-subscribing imperative command handle (zero re-renders on mount state changes)
+  const useRefController = <K extends keyof T>(refName: K): RefController<T[K]> => {
+    const { getRefState, setRefTarget, definitionsRef, optionsRef } = useRefContext('useRefController');
+    const refNameStr = String(refName);
+    const refState = getRefState(refNameStr);
+
+    useDebugValue([contextName, refNameStr, refState] as const, formatRefDebugValue);
+
+    const { waitForMount, onMount } = useRefMount(
+      refState,
+      refNameStr,
+      optionsRef,
+      definitionsRef
+    );
+
+    const { withTarget, executeIfMounted } = useRefOperation(refState);
+    const checkMountState = useRefMountChecker(refState);
+    const setRef = useCallback((target: T[K] | null) => {
+      setRefTarget(refNameStr, target);
+    }, [refNameStr, setRefTarget]);
+
+    return useMemo(() => ({
+      setRef,
+      get target(): T[K] | null {
+        return refState.target as T[K] | null;
+      },
+      waitForMount: waitForMount as () => Promise<T[K]>,
+      withTarget: withTarget as <Result>(
+        operation: RefOperation<T[K] & RefTarget, Result>,
+        options?: RefOperationOptions
+      ) => Promise<RefOperationResult<Result>>,
+      onMount: onMount as (callback: (target: T[K]) => void) => () => void,
+      executeIfMounted: executeIfMounted as <Result>(
+        operation: (target: T[K] & RefTarget) => Result
+      ) => Result | null,
+      checkMountState: checkMountState as () => {
+        isMounted: boolean;
+        isWaitingForMount: boolean;
+        target: T[K] | null;
+      }
+    }), [refState, setRef, waitForMount, withTarget, onMount, executeIfMounted, checkMountState]);
   };
   
   // 여러 ref 동시 대기 hook
@@ -400,6 +497,7 @@ export function createRefContext<T extends object | RefDefinitions>(
   return {
     Provider,
     useRefHandler,
+    useRefController,
     useWaitForRefs,
     useGetAllRefs,
     useRefPolling,

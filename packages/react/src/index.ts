@@ -13,7 +13,13 @@ export type {
 } from './actions/ActionContext.types';
 
 // Store System (Core functionality)
-export { createStore, Store, type PatchAwareListener } from './stores/core/Store';
+export {
+  createStore,
+  Store,
+  type PatchAwareListener,
+  type StoreNotificationMode,
+  type StoreOptions,
+} from './stores/core/Store';
 export {
   createTimeTravelStore,
   TimeTravelStore,
@@ -71,7 +77,7 @@ export type {
 
 // Ref System (Core functionality)
 export { createRefContext } from './refs/createRefContext';
-export type { RefContextReturn, CreateRefContextOptions } from './refs/createRefContext';
+export type { RefContextReturn, CreateRefContextOptions, RefController } from './refs/createRefContext';
 export type { RefTarget, RefOperationOptions, RefOperationResult } from './refs/types';
 
 // Core types from @context-action/core

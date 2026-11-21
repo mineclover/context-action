@@ -26,11 +26,11 @@
 
 | 유형 | React 지원 범위 | Context-Action + 기본 Hook 조합 | 참고 문서 |
 |---|---|---|---|
-| **1. 캡슐화된 OOP 위젯 제어** | React 18 / 19 | `createRefContext` + `ActionContext` + `useImperativeHandle` (`[]` deps + `Object.freeze`) | [Imperative Handle Facade](./patterns/ref/imperative-handle-facade.md) |
+| **1. 캡슐화된 OOP 위젯 제어** | React 18 / 19 | `createRefContext` (`useRefController`) + `ActionContext` + `useImperativeHandle` (`[]` deps + `Object.freeze`) | [Imperative Handle Facade](./patterns/ref/imperative-handle-facade.md) |
 | **2. 로컬 스토어/리듀서 캡슐화** | React 18 / 19 | `useLocalStore` 또는 `useReducer` + `useImperativeHandle` | [로컬 상태 캡슐화 핸들](./patterns/ref/local-state-imperative-handle.md) |
-| **3. 고빈도 Store → 비차단 파생 뷰** | React 18 / 19 | `useStorePath` / `useStoreValue` + `useDeferredValue` + `React.memo` | [지연 뷰 구독 (useDeferredValue)](./patterns/store/deferred-view-subscription.md) |
-| **4. 확정 Store + 낙관적/폼 전환 UI** | React 19+ | `useStoreValue` + `dispatchWithResult` + `useOptimistic` / `useTransition` / `useActionState` | [낙관적 UI & 전환 (React 19)](./patterns/async/optimistic-and-transition-ui.md) |
-| **5. 외부 명령형 OOP 런타임 브릿지** | React 18 / 19 | `createRefContext` (`setRef`) + isomorphic `useLayoutEffect` / `useEffect` | [외부 OOP 라이프사이클 브릿지](./patterns/ref/external-oop-lifecycle.md) |
+| **3. 고빈도 Store → 비차단 파생 뷰** | React 18 / 19 | `useStorePath` / `useStoreValue` (`'batched'` 또는 `'immediate'`) + `useDeferredValue` + `React.memo` | [지연 뷰 구독 (useDeferredValue)](./patterns/store/deferred-view-subscription.md) |
+| **4. 확정 Store + 낙관적/폼 전환 UI** | React 19+ | `StoreConfig` (`notificationMode: 'immediate'`) + `useStoreValue` + `dispatchWithResult` + `useOptimistic` / `useTransition` / `useActionState` | [낙관적 UI & 전환 (React 19)](./patterns/async/optimistic-and-transition-ui.md) |
+| **5. 외부 명령형 OOP 런타임 브릿지** | React 18 / 19 | `createRefContext` (`useRefController` `setRef`) + isomorphic `useLayoutEffect` / `useEffect` | [외부 OOP 라이프사이클 브릿지](./patterns/ref/external-oop-lifecycle.md) |
 
 ---
 

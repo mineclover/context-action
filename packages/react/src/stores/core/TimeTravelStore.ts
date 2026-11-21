@@ -28,6 +28,7 @@ function validateHistoryPosition(value: number): void {
 import { ErrorHandlers } from '../utils/error-handling';
 import { TypeGuards } from '../utils/type-guards';
 import { type FrameHandle, scheduleFrame } from './frame-scheduler';
+import type { StoreNotificationMode } from './Store';
 
 /**
  * Configuration options for TimeTravelStore
@@ -45,7 +46,7 @@ export interface TimeTravelStoreOptions<T> {
   /** Custom equality function */
   isEqual?: (a: T, b: T) => boolean;
   /** Notification mode: 'batched' uses RAF, 'immediate' notifies synchronously (default: 'immediate') */
-  notificationMode?: 'batched' | 'immediate';
+  notificationMode?: StoreNotificationMode;
   /** Public read policy. Reference preserves legacy structural-sharing reads. */
   readMode?: 'reference' | 'safe';
 }
@@ -85,7 +86,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   private cloningEnabled = false;
 
   // RAF-based notification batching
-  private notificationMode: 'batched' | 'immediate' = 'immediate';
+  private notificationMode: StoreNotificationMode = 'immediate';
   private pendingNotification = false;
   private animationFrameId: FrameHandle | null = null;
   private pendingPatches: Patches | null = null;
@@ -546,6 +547,27 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
 
   setCustomComparator(comparator: (a: T, b: T) => boolean): void {
     this.customComparator = comparator;
+  }
+
+  getNotificationMode(): StoreNotificationMode {
+    return this.notificationMode;
+  }
+
+  setNotificationMode(mode: StoreNotificationMode): void {
+    if (this.isDisposed) return;
+    this.notificationMode = mode;
+    if (mode === 'immediate' && this.pendingNotification) {
+      if (this.animationFrameId !== null) {
+        this.animationFrameId.cancel();
+        this.animationFrameId = null;
+      }
+      this.pendingNotification = false;
+      if (this.notificationHoldDepth === 0) {
+        this._executeNotification();
+      } else {
+        this.notificationDeferred = true;
+      }
+    }
   }
 
   // ============================================================================

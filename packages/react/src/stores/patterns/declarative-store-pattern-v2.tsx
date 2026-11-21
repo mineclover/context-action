@@ -11,9 +11,9 @@
  * making it the recommended approach for state management in the Context-Action framework.
  */
 
-import React, { createContext, ReactNode, useContext, useInsertionEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import React, { createContext, ReactNode, useCallback, useContext, useInsertionEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { StoreErrorBoundary } from '../components/StoreErrorBoundary';
-import type { Store } from '../core/Store';
+import type { Store, StoreNotificationMode } from '../core/Store';
 import { createStore } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
 import type { ComparisonOptions } from '../utils/comparison';
@@ -33,6 +33,7 @@ const STORE_CONFIG_KEYS = new Set<PropertyKey>([
   'tags',
   'version',
   'comparisonOptions',
+  'notificationMode',
 ]);
 
 /**
@@ -57,6 +58,7 @@ export interface StoreConfig<T = any> {
   tags?: string[];
   version?: string;
   comparisonOptions?: Partial<ComparisonOptions<T>>;
+  notificationMode?: StoreNotificationMode;
 }
 
 /**
@@ -274,6 +276,7 @@ export class StoreManager<T extends Record<string, any>> {
     let tags: string[] = ['declarative'];
     let version: string | undefined;
     let comparisonOptions: StoreConfig<T[K]>['comparisonOptions'];
+    let notificationMode: StoreNotificationMode | undefined;
 
     if (isExplicitStoreValue(storeConfig)) {
       initialValue = storeConfig.value as T[K];
@@ -288,6 +291,7 @@ export class StoreManager<T extends Record<string, any>> {
       tags = config.tags ? ['declarative', ...config.tags] : ['declarative', strategy];
       version = config.version;
       comparisonOptions = config.comparisonOptions;
+      notificationMode = config.notificationMode;
     } else {
       // Direct value
       initialValue = storeConfig as T[K];
@@ -295,7 +299,11 @@ export class StoreManager<T extends Record<string, any>> {
     }
 
     // Create store
-    const store = createStore(String(storeName), initialValue);
+    const store = createStore(
+      String(storeName),
+      initialValue,
+      notificationMode !== undefined ? { notificationMode } : undefined
+    );
     
     // Set comparison strategy with extended options
     const finalComparisonOptions = {
@@ -641,17 +649,21 @@ function createStoreContextImpl<T extends Record<string, any>>(
    */
   function useStoreInfo() {
     const manager = useStoreManager();
-    useSyncExternalStore(
-      listener => manager.subscribeInfo(listener),
-      () => manager.getInfoVersion(),
-      () => manager.getInfoVersion(),
+    const subscribeInfo = useMemo(
+      () => (listener: () => void) => manager.subscribeInfo(listener),
+      [manager]
     );
+    const getInfoVersion = useMemo(
+      () => () => manager.getInfoVersion(),
+      [manager]
+    );
+    useSyncExternalStore(subscribeInfo, getInfoVersion, getInfoVersion);
     return manager.getInfo();
   }
 
   function useStoreClear() {
     const manager = useStoreManager();
-    return () => manager.clear();
+    return useCallback(() => manager.clear(), [manager]);
   }
 
 

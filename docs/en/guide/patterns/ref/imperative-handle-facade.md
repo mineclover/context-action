@@ -148,12 +148,12 @@ const {
 
 const {
   Provider: FormRefProvider,
-  useRefHandler: useFormRef,
+  useRefController: useFormRefController,
 } = createRefContext<{ emailField: FieldHandle }>('FormFacadeRefs');
 
 function FormCoordinator({ children }: { children: React.ReactNode }) {
-  // Destructure `withTarget` so handler callbacks do not re-register when `isMounted` toggles.
-  const { withTarget } = useFormRef('emailField');
+  // `useRefController` does not subscribe to mount state and stays stable across mounts.
+  const { withTarget } = useFormRefController('emailField');
 
   useFormCommand(
     'submitForm',
@@ -179,7 +179,7 @@ function FormCoordinator({ children }: { children: React.ReactNode }) {
 }
 
 function ProfileFormContent() {
-  const emailField = useFormRef('emailField');
+  const emailField = useFormRefController('emailField');
   const dispatch = useFormDispatch();
 
   return (
@@ -215,7 +215,7 @@ export function ProfileFormSection() {
 1. **Empty dependency array (`[]`) for `useImperativeHandle`**: Ensure `setRef` receives a single stable handle reference for the entire mount lifecycle.
 2. **Freeze the facade (`Object.freeze`)**: Prevents callers from mutating or monkey-patching imperative methods exposed through `RefContext`.
 3. **Sync refs on commit and inside events/commands**: Sync `latestRef` inside `useIsomorphicLayoutEffect` (avoiding render-phase ref writes under Concurrent React / React Compiler), and update `latestRef` synchronously inside `onChange` / `reset` so back-to-back calls (`handle.reset(); handle.getValue()`) read fresh values before the next commit.
-4. **Destructure `{ withTarget }` / `{ setRef }` in coordinators**: `useRefHandler()` returns a new wrapper object whenever `isMounted` toggles, whereas `withTarget` and `setRef` keep stable identities across mount state changes.
+4. **Prefer `useRefController` for command-only writers and coordinators**: `useRefController` returns a mount-lifetime-stable `{ setRef, withTarget, waitForMount, onMount, executeIfMounted, checkMountState, target }` handle with **zero mount-state re-renders**. Reserve `useRefMountState` (or `useRefHandler`) for components that render reactive `isMounted` / `isWaitingForMount` UI badges.
 5. **Never leak raw DOM nodes & preserve `forwardRef`**: Parents and `ActionContext` handlers only see `FieldHandle`, never `HTMLInputElement`, and `forwardRef` preserves React 18/19 portability.
 
 ## Related Patterns

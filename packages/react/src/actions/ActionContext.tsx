@@ -24,6 +24,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useDebugValue,
   useId,
   useInsertionEffect,
   useMemo,
@@ -39,6 +40,15 @@ import type {
 } from './ActionContext.types';
 
 const useInsertionCommitEffect = useInsertionEffect;
+
+function formatActionHandlerDebugValue([ctxName, action, role, priority]: readonly [
+  string,
+  string,
+  string,
+  number,
+]): string {
+  return `${ctxName}.${action} [${role}, p=${priority}]`;
+}
 
 function createProviderAbortError(): Error {
   const error = new Error('Action provider unmounted');
@@ -473,6 +483,10 @@ export function createActionContext<
     
     // Extract config properties to stable variables
     const priority = config?.priority ?? 0;
+    useDebugValue(
+      [contextName, String(action), registrationRole, priority] as const,
+      formatActionHandlerDebugValue
+    );
     const id = config?.id || `react_${String(action)}_${actionId}`;
     const blocking = config?.blocking;
     const scheduling = config?.scheduling;

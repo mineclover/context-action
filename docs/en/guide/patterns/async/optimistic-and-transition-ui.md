@@ -24,8 +24,8 @@ Keep optimistic rollback logic out of your `Store`:
 3. Inside `startTransition(async () => { ... })`, call `addOptimistic(...)` and `await dispatchWithResult(...)`.
 4. Only commit to `store.setValue(...)` when the server/business operation succeeds; if `useActionGuard` aborts or an error occurs, React automatically discards the optimistic overlay and reverts to `committed`.
 
-> [!WARNING]
-> **1-Frame RAF Flicker with Default `Store`:** Context-Action's default `Store` batches `useSyncExternalStore` notifications on the next `requestAnimationFrame` (~16ms). If `startTransition` finishes immediately after `articleStore.setValue(committed)`, `useOptimistic` can drop its overlay 1 frame *before* `useStoreValue` receives the committed snapshot, causing a brief dip back to the old value. Await one animation frame (`waitForNextFrame()`) after a successful commit before exiting `startTransition`, or use an `immediate`-mode store (`TimeTravelStore` or a synchronous custom `BackendStore`).
+> [!TIP]
+> **Avoiding 1-Frame RAF Flicker with `notificationMode: 'immediate'`:** Context-Action's default `Store` batches `useSyncExternalStore` notifications on the next `requestAnimationFrame` (~16ms). Configure `{ initialValue, notificationMode: 'immediate' }` on optimistic/transition stores so `articleStore.setValue(committed)` notifies React synchronously before `startTransition` finishes—preventing `useOptimistic` from dropping its overlay 1 frame early. If a Store must stay in default `'batched'` mode, `await waitForNextFrame()` right before exiting `startTransition` (as shown in Pattern B below).
 
 <!-- @context-action-compile -->
 ```tsx
@@ -36,16 +36,6 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-
-function waitForNextFrame(): Promise<void> {
-  return new Promise((resolve) => {
-    if (typeof requestAnimationFrame === 'function') {
-      requestAnimationFrame(() => resolve());
-    } else {
-      setTimeout(resolve, 0);
-    }
-  });
-}
 
 export interface ArticleState {
   readonly liked: boolean;
@@ -71,7 +61,10 @@ const {
   Provider: LikeStoreProvider,
   useStore: useLikeStore,
 } = createStoreContext('OptimisticLikeStore', {
-  article: { liked: false, count: 10 } as ArticleState,
+  article: {
+    initialValue: { liked: false, count: 10 } as ArticleState,
+    notificationMode: 'immediate' as const,
+  },
 });
 
 function LikeHandlers({ children }: { children: React.ReactNode }) {
@@ -126,15 +119,10 @@ function LikeButtonPanel() {
     const nextLiked = !committed.liked;
     startTransition(async () => {
       applyOptimisticLike(nextLiked);
-      const execution = await dispatchWithResult('toggleLike', {
+      await dispatchWithResult('toggleLike', {
         nextLiked,
         simulateReject,
       });
-      // Default `Store` notifies subscribers on the next RAF tick; wait one frame
-      // after a successful commit so the optimistic overlay never drops early.
-      if (!execution.aborted && execution.success) {
-        await waitForNextFrame();
-      }
     });
   };
 
@@ -326,5 +314,5 @@ export function ProfileFormWithActionState() {
 
 - **Keep `Store` as committed truth**: Never write unverified optimistic flags into the persistent domain `Store` when `useOptimistic` handles transient UI display cleanly and rolls back automatically.
 - **Inspect `execution.aborted` and `execution.success`**: Always use `dispatchWithResult` (never fire-and-forget `dispatch`) inside `useActionState` so `useActionGuard` rejections translate into deterministic form feedback.
-- **Align RAF-batched Store commits with React transitions**: Either await one animation frame after `store.setValue` before returning from `startTransition` / `useActionState` (so `useSyncExternalStore` observes the committed snapshot before the overlay drops or `<form>` resets), or back the view with an `immediate`-mode store (`TimeTravelStore`).
+- **Align Store commits with React transitions**: Configure `notificationMode: 'immediate'` on the `Store` (via `StoreConfig` or `createStore` options) so committed updates reach `useSyncExternalStore` before `startTransition` ends, or await one animation frame (`waitForNextFrame()`) after committing to a default `'batched'` Store.
 - **Preserve user draft input on `<form action>` aborts**: Return `draftName` and key uncontrolled `defaultValue` (or use controlled state) so React 19's automatic form reset does not erase invalid input.

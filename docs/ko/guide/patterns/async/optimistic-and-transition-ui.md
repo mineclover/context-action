@@ -24,8 +24,8 @@ Context-Action의 **확정(committed) Store 상태**와 **`dispatchWithResult`**
 3. `startTransition(async () => { ... })` 안에서 `addOptimistic(...)`를 호출하고 `await dispatchWithResult(...)`를 실행합니다.
 4. 핸들러가 성공했을 때만 `store.setValue(...)`로 커밋합니다. `useActionGuard`가 중단하거나 오류가 나면 React가 전환 종료 시점에 자동으로 낙관적 상태를 버리고 `committed`로 복원합니다.
 
-> [!WARNING]
-> **기본 `Store`의 1프레임 RAF 플리커 주의:** Context-Action의 기본 `Store`는 구독자 알림을 다음 `requestAnimationFrame`(약 16ms)에 배칭 전달합니다. `articleStore.setValue(committed)` 직후 `startTransition`이 바로 끝나면, `useStoreValue`가 새 스냅샷을 받기 1프레임 전에 `useOptimistic` 오버레이가 먼저 걷히면서 이전 값으로 1프레임 튀는 현상이 생길 수 있습니다. 커밋 성공 후 전환을 끝내기 전에 한 프레임을 대기(`waitForNextFrame()`)하거나 `immediate` 알림 모드 스토어(`TimeTravelStore` 또는 동기 커스텀 `BackendStore`)를 사용하세요.
+> [!TIP]
+> **`notificationMode: 'immediate'`로 1프레임 RAF 플리커 제거:** Context-Action의 기본 `Store`는 구독자 알림을 다음 `requestAnimationFrame`(약 16ms)에 배칭 전달합니다. 낙관적/전환 UI와 결합하는 Store는 `{ initialValue, notificationMode: 'immediate' }`로 설정해 `articleStore.setValue(committed)`가 `startTransition` 종료 전에 React로 즉시 전달되도록 하세요. 기본 `'batched'` 모드를 유지해야 하는 Store라면 아래 Pattern B처럼 `startTransition` / `useActionState`가 끝나기 전에 `await waitForNextFrame()`으로 1프레임을 맞춰 주면 됩니다.
 
 <!-- @context-action-compile -->
 ```tsx
@@ -36,16 +36,6 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-
-function waitForNextFrame(): Promise<void> {
-  return new Promise((resolve) => {
-    if (typeof requestAnimationFrame === 'function') {
-      requestAnimationFrame(() => resolve());
-    } else {
-      setTimeout(resolve, 0);
-    }
-  });
-}
 
 export interface ArticleState {
   readonly liked: boolean;
@@ -71,7 +61,10 @@ const {
   Provider: LikeStoreProvider,
   useStore: useLikeStore,
 } = createStoreContext('OptimisticLikeStore', {
-  article: { liked: false, count: 10 } as ArticleState,
+  article: {
+    initialValue: { liked: false, count: 10 } as ArticleState,
+    notificationMode: 'immediate' as const,
+  },
 });
 
 function LikeHandlers({ children }: { children: React.ReactNode }) {
@@ -126,15 +119,10 @@ function LikeButtonPanel() {
     const nextLiked = !committed.liked;
     startTransition(async () => {
       applyOptimisticLike(nextLiked);
-      const execution = await dispatchWithResult('toggleLike', {
+      await dispatchWithResult('toggleLike', {
         nextLiked,
         simulateReject,
       });
-      // 기본 Store는 다음 RAF 틱에 구독자를 알리므로, 성공 커밋 후 1프레임을
-      // 기다려야 낙관적 오버레이가 일찍 걷히며 플리커가 생기는 것을 막습니다.
-      if (!execution.aborted && execution.success) {
-        await waitForNextFrame();
-      }
     });
   };
 
@@ -326,5 +314,5 @@ export function ProfileFormWithActionState() {
 
 - **`Store`는 확정된 진실만 보관**: `useOptimistic`이 일시 UI 오버레이와 자동 롤백을 처리해 주므로, 영속 도메인 `Store`에 임시 롤백 플래그를 넣지 않습니다.
 - **`execution.aborted`와 `execution.success` 확인**: `useActionState` 내부에서는 반드시 `dispatch`가 아닌 `dispatchWithResult`를 사용해 `useActionGuard`의 중단 사유(`abortReason`)를 결정론적인 폼 피드백으로 변환합니다.
-- **RAF 배칭 `Store` 커밋과 React 전환 타이밍 맞추기**: `startTransition` / `useActionState`가 끝나기 전에 1프레임을 대기해 `useSyncExternalStore`가 새 확정 스냅샷을 수신한 뒤 오버레이가 걷히거나 폼이 리셋되도록 하거나, `immediate` 모드 스토어(`TimeTravelStore`)를 사용하세요.
+- **`Store` 커밋과 React 전환 타이밍 맞추기**: `StoreConfig` 또는 `createStore` 옵션에서 `notificationMode: 'immediate'`를 설정해 `startTransition` 종료 전 확정 스냅샷이 즉시 반영되게 하거나, 기본 `'batched'` Store에서는 커밋 후 `waitForNextFrame()`으로 1프레임을 맞춰 주세요.
 - **`<form action>` 중단 시 사용자 입력 보존**: 검증 실패 시 `draftName`을 반환하고 `defaultValue` 키를 갱신해 React 19의 자동 폼 리셋으로 사용자 초안이 지워지지 않게 합니다.

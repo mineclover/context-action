@@ -5,11 +5,15 @@
  * Uses JSON patches from TimeTravelStore to determine if subscribed paths are affected.
  */
 
-import { useCallback, useRef, useSyncExternalStore } from 'react';
+import { useCallback, useDebugValue, useRef, useSyncExternalStore } from 'react';
 import { TimeTravelStore } from '../core/TimeTravelStore';
 import { patchesAffectPath } from '../utils/patch-affects-path';
 import { createPathSignature, createPathsSignature } from '../utils/path-signature';
 import { defaultEqualityFn } from './useStoreSelector';
+
+function formatTimeTravelPathDebugValue([key, value]: readonly [string, unknown]): string {
+  return `${key || '(root)'}: ${typeof value === 'object' && value !== null ? 'object' : String(value)}`;
+}
 
 /**
  * Path type for store subscription
@@ -151,7 +155,9 @@ export function useTimeTravelPath<T, R = unknown>(
     return getValueAtPath<T, R>(store.getSnapshot().value, stablePath);
   }, [store, stablePath]);
 
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const selectedValue = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  useDebugValue([pathSignature, selectedValue] as const, formatTimeTravelPathDebugValue);
+  return selectedValue;
 }
 
 /**
@@ -238,5 +244,7 @@ export function useTimeTravelSelector<T, R>(
     return currentValue;
   }, [store, selector, equalityFn]);
 
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const selected = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  useDebugValue([depsKey ?? '(all)', selected] as const, formatTimeTravelPathDebugValue);
+  return selected;
 }

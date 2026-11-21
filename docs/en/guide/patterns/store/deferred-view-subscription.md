@@ -21,7 +21,7 @@ At the same time, Context-Action's default `Store` uses **RAF batching (`notific
 
 To keep typing crisp **and** keep heavy downstream rendering non-blocking:
 
-1. Keep the controlled `<input>` synchronous with local `useState` (or use an `immediate`-notification store such as `TimeTravelStore` with default `notificationMode: 'immediate'`) and push updates into the shared Store.
+1. Either keep the controlled `<input>` synchronous with local `useState` (recommended when the Store should keep `'batched'` notifications) **or** configure `notificationMode: 'immediate'` on the Store (`createStoreContext` `StoreConfig` or `createStore(name, initial, { notificationMode: 'immediate' })`) so direct Store-bound inputs update synchronously.
 2. Read the Store in the results view with `useStorePath` or `useStoreValue`.
 3. Pass the read value through `useDeferredValue(query)` and wrap the expensive child subtree in `React.memo(...)` so it renders only with the deferred value and yields cleanly when urgent input arrives.
 
@@ -167,5 +167,5 @@ export function DeferredCatalogScreen() {
 ## Key Invariants
 
 - **Memoize the deferred child (`React.memo`)**: Without `React.memo` (or `useMemo` keyed on `deferredQuery`), the heavy subtree re-runs during the urgent render anyway, defeating `useDeferredValue`.
-- **Keep controlled `<input>` synchronous**: Never drive a controlled text `<input>` directly from an RAF-batched `Store` (`notificationMode: 'batched'`); keep the input synchronous via local `useState` (or use an `immediate`-mode store such as `TimeTravelStore` when the input value must live solely in a Store), and never bind `<input value>` to `deferredQuery`.
+- **Keep controlled `<input>` synchronous**: Never drive a controlled text `<input>` directly from an RAF-batched `Store` (`notificationMode: 'batched'`); either keep the input synchronous via local `useState`, or configure `{ initialValue: ..., notificationMode: 'immediate' }` in `StoreConfig` / `createStore(..., { notificationMode: 'immediate' })` when binding directly to `useStorePath`, and never bind `<input value>` to `deferredQuery`.
 - **Avoid passing inline object/array literals alongside `deferredQuery`**: Pass stable Store slices (`items` from `useStorePath`) so `React.memo` shallow prop checks pass during urgent renders.

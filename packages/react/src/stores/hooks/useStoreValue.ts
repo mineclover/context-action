@@ -1,9 +1,13 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: generic store implementation boundary.
 
-import { useMemo } from 'react';
+import { useDebugValue, useMemo } from 'react';
 import type { IStore } from '../core/types';
 import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
 import { defaultEqualityFn, shallowEqual } from './useStoreSelector';
+
+function formatStoreValueDebugValue([storeName, value]: readonly [string, unknown]): string {
+  return `${storeName}: ${typeof value === 'object' && value !== null ? 'object' : String(value)}`;
+}
 
 /**
  * Performance-optimized store value hook with advanced features
@@ -122,6 +126,8 @@ export function useStoreValue<T, R>(
     subscriptionOptions
   );
 
+  useDebugValue([name, value] as const, formatStoreValueDebugValue);
+
   return value;
 }
 
@@ -168,6 +174,11 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
       name: `${store?.name || 'unknown'}-values`
     }
   ) as { [K in keyof S]: ReturnType<S[K]> } | undefined;
-  
+
+  useDebugValue(
+    [`${store?.name || 'unknown'}-values`, store ? storeValue : undefined] as const,
+    formatStoreValueDebugValue
+  );
+
   return store ? storeValue : undefined;
 }

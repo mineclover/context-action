@@ -14,6 +14,23 @@ import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } fr
 export type PatchAwareListener = (patches: Patches | null) => void;
 
 /**
+ * Notification scheduling mode for Store listener delivery
+ */
+export type StoreNotificationMode = 'batched' | 'immediate';
+
+/**
+ * Configuration options for Store creation
+ */
+export interface StoreOptions {
+  /**
+   * Listener notification scheduling mode.
+   * - `'batched'` (default): coalesces rapid updates into the next animation frame.
+   * - `'immediate'`: notifies subscribers synchronously on each change.
+   */
+  notificationMode?: StoreNotificationMode;
+}
+
+/**
  * Deep freeze an object to make it immutable
  * Prevents modifications to the returned value from affecting cached state
  */
@@ -102,7 +119,7 @@ export class Store<T = unknown> implements IStore<T> {
   private updateQueue: Array<() => void> = [];
   
   // Notification mode settings
-  private notificationMode: 'batched' | 'immediate' = 'batched';
+  private notificationMode: StoreNotificationMode = 'batched';
   private pendingNotification = false;
   
   // 🚀 requestAnimationFrame 기반 알림 시스템
@@ -135,8 +152,9 @@ export class Store<T = unknown> implements IStore<T> {
   // Performance optimization: disable cloning for this store
   private cloningEnabled: boolean = true;
 
-  constructor(name: string, initialValue: T) {
+  constructor(name: string, initialValue: T, options?: StoreOptions) {
     this.name = name;
+    this.notificationMode = options?.notificationMode ?? 'batched';
     // Own the initial value just like values passed through setValue. Keeping
     // the caller's object here would let external mutation diverge from the
     // immutable snapshot created below without a store notification.
@@ -797,6 +815,29 @@ export class Store<T = unknown> implements IStore<T> {
     return this.cloningEnabled;
   }
 
+  /**
+   * Get the active listener notification scheduling mode.
+   */
+  getNotificationMode(): StoreNotificationMode {
+    return this.notificationMode;
+  }
+
+  /**
+   * Configure how store updates notify subscribers.
+   * Switching to `'immediate'` cancels any queued animation frame and flushes pending notifications.
+   */
+  setNotificationMode(mode: StoreNotificationMode): void {
+    if (this.isDisposed) return;
+    this.notificationMode = mode;
+    if (mode === 'immediate' && this.pendingNotification) {
+      if (this.animationFrameId !== null) {
+        this.animationFrameId.cancel();
+        this.animationFrameId = null;
+      }
+      this._executeNotification();
+    }
+  }
+
 
 
   /**
@@ -1050,8 +1091,12 @@ export class Store<T = unknown> implements IStore<T> {
  * 
  * @public
  */
-export function createStore<T>(name: string, initialValue: T): Store<T> {
-  const store = new Store<T>(name, initialValue);
-  
+export function createStore<T>(
+  name: string,
+  initialValue: T,
+  options?: StoreOptions
+): Store<T> {
+  const store = new Store<T>(name, initialValue, options);
+
   return store;
 }

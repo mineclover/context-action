@@ -5,8 +5,17 @@
  * Provides reactive access to canUndo, canRedo, position, and history.
  */
 
-import { useSyncExternalStore, useCallback, useMemo, useRef } from 'react';
+import { useCallback, useDebugValue, useMemo, useRef, useSyncExternalStore } from 'react';
 import { TimeTravelStore } from '../core/TimeTravelStore';
+
+function formatTimeTravelControlsDebugValue(state: {
+  position: number;
+  historyLength: number;
+  canUndo: boolean;
+  canRedo: boolean;
+}): string {
+  return `${state.position + 1}/${state.historyLength} (undo=${state.canUndo}, redo=${state.canRedo})`;
+}
 
 /**
  * Time travel control state (without functions)
@@ -106,6 +115,7 @@ export function useTimeTravelControls<T>(
 
   // Use useSyncExternalStore for React integration
   const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  useDebugValue(state, formatTimeTravelControlsDebugValue);
 
   // Memoize control functions
   const controls = useMemo(

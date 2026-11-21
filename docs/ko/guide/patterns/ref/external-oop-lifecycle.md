@@ -88,7 +88,7 @@ const {
 
 const {
   Provider: ViewportRefProvider,
-  useRefHandler: useViewportRef,
+  useRefController: useViewportController,
 } = createRefContext<{ engine: ViewportEngineHandle }>('ViewportEngineRefs');
 
 function ViewportCanvas({
@@ -97,8 +97,7 @@ function ViewportCanvas({
   onRegionFocused?: (regionId: string) => void;
 }) {
   const hostRef = useRef<HTMLDivElement | null>(null);
-  const engineRef = useViewportRef('engine');
-  const { setRef } = engineRef;
+  const { setRef } = useViewportController('engine');
 
   // React 18/19 공통 최신 콜백 우회 패턴:
   // 부모가 인라인 콜백을 넘기더라도 무거운 OOP 엔진이 재생성되지 않게 보호합니다.
@@ -134,8 +133,7 @@ function ViewportCanvas({
 }
 
 function ViewportCoordinator({ children }: { children: React.ReactNode }) {
-  // `isMounted` 변경 시 커맨드 핸들러가 재등록되지 않도록 `withTarget`을 구조 분해합니다.
-  const { withTarget } = useViewportRef('engine');
+  const { withTarget } = useViewportController('engine');
 
   useViewportCommand(
     'focusRegion',
@@ -187,8 +185,8 @@ export function ExternalOopViewport({
 
 ## 핵심 불변식
 
-1. **`setRef`와 `withTarget`을 구조 분해해 의존성 안정화**: `useRefHandler`가 반환하는 래퍼 객체는 `isMounted` 변경 시 새 참조가 되지만, 내부의 `setRef`·`withTarget`은 마운트 상태가 바뀌어도 참조가 고정되어 불필요한 Effect·핸들러 재실행 루프를 막습니다.
-2. **`useRefHandler`의 마운트 구독 인지하기**: `useRefHandler`는 내부적으로 `useRefMountState`(`useSyncExternalStore`)를 구독합니다. 따라서 `ViewportCanvas` 안에서 `useViewportRef('engine')`를 호출하면 `useLayoutEffect`에서 `setRef(facade)`가 실행될 때 `isMounted: false -> true` 전환으로 1회 동기 마운트 리렌더링이 발생합니다. 무거운 하위 트리가 있어 이 1회 리렌더링조차 피해야 한다면 하위 요소를 메모이제이션하거나 경량 부모에서 `setRef`만 prop으로 내려주세요.
+1. **엔진 호스트·코디네이터에는 `useRefController` 사용**: `useRefController`는 `isMounted` 변경을 구독하지 않고 안정된 `setRef`·`withTarget`을 제공하므로, `ViewportCanvas`에서 `setRef(facade)`를 연결할 때 마운트 리렌더링이 **전혀** 발생하지 않습니다.
+2. **마운트 상태 UI는 별도 구독**: 로딩 스피너·연결 배지 등 반응형 상태 표시가 필요한 UI 컴포넌트에서만 `useRefMountState('engine')`(또는 `useRefHandler('engine')`)을 호출하세요.
 3. **`instance.dispose()` 전에 `setRef(null)` 먼저 호출**: `RefContext` 핸들을 먼저 비워 대기 중이던 `withTarget` 작업이 이미 해제된 인스턴스를 호출하지 않게 보호합니다.
 4. **`RefContext` 소비자에게 `dispose()` 숨기기**: 동결된 `ViewportEngineHandle`만 등록하면 `ActionContext` 핸들러는 도메인 명령(`focusRegion`, `resize`)만 실행하고, 실제 해제는 소유 Effect가 전담합니다.
 5. **React 19.2 `useEffectEvent` 참고**: React 19.2 이상만 지원한다면 Effect 내부 콜백에 `onRegionFocusedRef` 대신 `useEffectEvent`를 쓸 수 있습니다. 반면 React 18 호환이 필요하거나 Effect 밖(`ActionRegister` 핸들러 등)에서 호출되는 콜백에는 기존 ref 패턴을 유지하세요.

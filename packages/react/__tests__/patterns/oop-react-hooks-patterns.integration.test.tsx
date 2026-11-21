@@ -124,8 +124,13 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       const FormRefsCtx = createRefContext<{ emailField: FieldHandle }>('StableFacadeRefs');
 
       let mountCount = 0;
+      let coordinatorRenders = 0;
+      let viewRenders = 0;
       let lastValidatedResult: boolean | null = null;
       let lastSubmittedValue: string | null = null;
+      const observedFieldControllerRef: {
+        current: ReturnType<typeof FormRefsCtx.useRefController<'emailField'>> | null;
+      } = { current: null };
 
       const EncapsulatedField = forwardRef<
         FieldHandle,
@@ -187,7 +192,8 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       });
 
       function Coordinator({ children }: { children: React.ReactNode }) {
-        const { onMount, withTarget } = FormRefsCtx.useRefHandler('emailField');
+        coordinatorRenders += 1;
+        const { onMount, withTarget } = FormRefsCtx.useRefController('emailField');
 
         useEffect(() => {
           return onMount(() => {
@@ -223,15 +229,14 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       }
 
       function View() {
-        const emailField = FormRefsCtx.useRefHandler('emailField');
+        viewRenders += 1;
+        const emailField = FormRefsCtx.useRefController('emailField');
+        observedFieldControllerRef.current = emailField;
         const dispatch = FormActionsCtx.useActionDispatch();
 
         return (
           <div>
             <EncapsulatedField ref={emailField.setRef} label="Work Email" required />
-            <span data-testid="handle-frozen">
-              {String(emailField.target ? Object.isFrozen(emailField.target) : false)}
-            </span>
             <button
               type="button"
               data-testid="submit-form-btn"
@@ -261,9 +266,10 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       );
 
       expect(mountCount).toBe(1);
-      await waitFor(() => {
-        expect(screen.getByTestId('handle-frozen')).toHaveTextContent('true');
-      });
+      expect(coordinatorRenders).toBe(1);
+      expect(viewRenders).toBe(1);
+      expect(observedFieldControllerRef.current?.target).not.toBeNull();
+      expect(Object.isFrozen(observedFieldControllerRef.current?.target)).toBe(true);
 
       // Invalid submit focuses input & shows error without remounting ref
       await act(async () => {
@@ -659,6 +665,124 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
 
       filterStore.dispose();
     });
+
+    it('supports direct Store-bound <input> + useDeferredValue via StoreConfig notificationMode: immediate', async () => {
+      interface CatalogItem {
+        readonly id: string;
+        readonly name: string;
+      }
+      interface FilterState {
+        query: string;
+        items: CatalogItem[];
+        unrelatedTick: number;
+      }
+
+      const CatalogCtx = createStoreContext('ImmediateCatalogStores', {
+        filterState: {
+          initialValue: {
+            query: '',
+            items: [
+              { id: '1', name: 'ActionRegister Pipeline' },
+              { id: '2', name: 'Store Path Subscription' },
+              { id: '3', name: 'TimeTravel Snapshot' },
+            ],
+            unrelatedTick: 0,
+          } as FilterState,
+          notificationMode: 'immediate' as const,
+        },
+      });
+
+      let heavyRenderCount = 0;
+
+      const HeavyList = memo(function HeavyList({
+        query,
+        items,
+      }: {
+        query: string;
+        items: readonly CatalogItem[];
+      }) {
+        heavyRenderCount += 1;
+        const normalized = query.trim().toLowerCase();
+        const filtered = normalized
+          ? items.filter((item) => item.name.toLowerCase().includes(normalized))
+          : items;
+        return (
+          <ul>
+            {filtered.map((item) => (
+              <li key={item.id}>{item.name}</li>
+            ))}
+          </ul>
+        );
+      });
+
+      function DirectSearchBar() {
+        const store = CatalogCtx.useStore('filterState');
+        const query = useStorePath<FilterState, string>(store, ['query']);
+
+        return (
+          <input
+            data-testid="immediate-query-input"
+            value={query}
+            onChange={(event) => {
+              const next = event.target.value;
+              store.update((draft) => {
+                draft.query = next;
+              });
+            }}
+          />
+        );
+      }
+
+      function Results() {
+        const store = CatalogCtx.useStore('filterState');
+        const query = useStorePath<FilterState, string>(store, ['query']);
+        const items = useStorePath<FilterState, readonly CatalogItem[]>(store, ['items']);
+        const deferredQuery = useDeferredValue(query);
+        return <HeavyList query={deferredQuery} items={items} />;
+      }
+
+      function TickButton() {
+        const store = CatalogCtx.useStore('filterState');
+        return (
+          <button
+            type="button"
+            data-testid="unrelated-tick-btn"
+            onClick={() => {
+              store.update((draft) => {
+                draft.unrelatedTick += 1;
+              });
+            }}
+          >
+            Tick
+          </button>
+        );
+      }
+
+      render(
+        <CatalogCtx.Provider>
+          <DirectSearchBar />
+          <Results />
+          <TickButton />
+        </CatalogCtx.Provider>,
+      );
+
+      expect(heavyRenderCount).toBe(1);
+
+      fireEvent.change(screen.getByTestId('immediate-query-input'), {
+        target: { value: 'path' },
+      });
+
+      expect(screen.getByTestId('immediate-query-input')).toHaveValue('path');
+      await waitFor(() => {
+        const items = screen.getAllByRole('listitem');
+        expect(items).toHaveLength(1);
+        expect(items[0]).toHaveTextContent('Store Path Subscription');
+      });
+
+      const rendersAfterSearch = heavyRenderCount;
+      fireEvent.click(screen.getByTestId('unrelated-tick-btn'));
+      expect(heavyRenderCount).toBe(rendersAfterSearch);
+    });
   });
 
   describe('Archetype 4 · Committed Store + Async Action Optimistic & Form Overlay (React 19)', () => {
@@ -844,6 +968,173 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
         expect(screen.getByTestId('optimistic-count')).toHaveTextContent('11');
         expect(screen.getByTestId('optimistic-liked')).toHaveTextContent('true');
         expect(screen.getByTestId('optimistic-pending')).toHaveTextContent('false');
+      });
+      expect(observedCounts).toEqual([10, 11, 10, 11]);
+    });
+
+    it('achieves zero-flicker useOptimistic + startTransition without waitForNextFrame when Store uses notificationMode: immediate', async () => {
+      interface ArticleState {
+        readonly liked: boolean;
+        readonly count: number;
+      }
+      interface LikeActions extends ActionPayloadMap {
+        toggleLike: { nextLiked: boolean; shouldReject?: boolean };
+      }
+      interface LikeResultMap {
+        toggleLike: ArticleState;
+      }
+
+      const LikeActionsCtx = createActionContext<LikeActions, LikeResultMap>(
+        'ImmediateOptimisticActions',
+      );
+      const LikeStoresCtx = createStoreContext('ImmediateOptimisticStores', {
+        article: {
+          initialValue: { liked: false, count: 10 } as ArticleState,
+          notificationMode: 'immediate' as const,
+        },
+      });
+
+      let resolvePendingFlight: (() => void) | null = null;
+      const observedCounts: number[] = [];
+
+      function LikeHandlers({ children }: { children: React.ReactNode }) {
+        const articleStore = LikeStoresCtx.useStore('article');
+
+        LikeActionsCtx.useActionResultHandler(
+          'toggleLike',
+          useCallback(
+            async ({ nextLiked, shouldReject }, controller) => {
+              await new Promise<void>((resolve) => {
+                resolvePendingFlight = resolve;
+              });
+              if (shouldReject) {
+                controller.abort('Server rejected update');
+                return articleStore.getValue();
+              }
+              const current = articleStore.getValue();
+              const committed: ArticleState = {
+                liked: nextLiked,
+                count:
+                  current.liked === nextLiked
+                    ? current.count
+                    : current.count + (nextLiked ? 1 : -1),
+              };
+              articleStore.setValue(committed);
+              return committed;
+            },
+            [articleStore],
+          ),
+        );
+
+        return <>{children}</>;
+      }
+
+      function LikePanel() {
+        const articleStore = LikeStoresCtx.useStore('article');
+        const committed = useStoreValue(articleStore);
+        const { dispatchWithResult } = LikeActionsCtx.useActionDispatchWithResult();
+        const [isPending, startTransition] = useTransition();
+
+        const [optimistic, applyOptimistic] = useOptimistic<ArticleState, boolean>(
+          committed,
+          (state, nextLiked) => ({
+            liked: nextLiked,
+            count:
+              state.liked === nextLiked
+                ? state.count
+                : state.count + (nextLiked ? 1 : -1),
+          }),
+        );
+
+        useIsomorphicLayoutEffect(() => {
+          observedCounts.push(optimistic.count);
+        }, [optimistic.count]);
+
+        const trigger = (shouldReject: boolean) => {
+          const nextLiked = !committed.liked;
+          startTransition(async () => {
+            applyOptimistic(nextLiked);
+            await dispatchWithResult('toggleLike', { nextLiked, shouldReject });
+          });
+        };
+
+        return (
+          <div>
+            <span data-testid="imm-committed-count">{committed.count}</span>
+            <span data-testid="imm-optimistic-count">{optimistic.count}</span>
+            <span data-testid="imm-optimistic-pending">{String(isPending)}</span>
+            <button
+              type="button"
+              data-testid="imm-like-btn"
+              onClick={() => trigger(false)}
+            >
+              Like
+            </button>
+            <button
+              type="button"
+              data-testid="imm-reject-btn"
+              onClick={() => trigger(true)}
+            >
+              Reject
+            </button>
+          </div>
+        );
+      }
+
+      render(
+        <LikeActionsCtx.Provider>
+          <LikeStoresCtx.Provider>
+            <LikeHandlers>
+              <LikePanel />
+            </LikeHandlers>
+          </LikeStoresCtx.Provider>
+        </LikeActionsCtx.Provider>,
+      );
+
+      expect(observedCounts).toEqual([10]);
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('imm-like-btn'));
+      });
+
+      await waitFor(() => {
+        expect(resolvePendingFlight).not.toBeNull();
+        expect(screen.getByTestId('imm-optimistic-count')).toHaveTextContent('11');
+        expect(screen.getByTestId('imm-committed-count')).toHaveTextContent('10');
+      });
+
+      const completeCommit = resolvePendingFlight!;
+      resolvePendingFlight = null;
+      await act(async () => {
+        completeCommit();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('imm-committed-count')).toHaveTextContent('11');
+        expect(screen.getByTestId('imm-optimistic-count')).toHaveTextContent('11');
+        expect(screen.getByTestId('imm-optimistic-pending')).toHaveTextContent('false');
+      });
+      // Immediate notification commits without needing waitForNextFrame(), so zero dip back to 10!
+      expect(observedCounts).toEqual([10, 11]);
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('imm-reject-btn'));
+      });
+
+      await waitFor(() => {
+        expect(resolvePendingFlight).not.toBeNull();
+        expect(screen.getByTestId('imm-optimistic-count')).toHaveTextContent('10');
+      });
+
+      const completeAbort = resolvePendingFlight!;
+      resolvePendingFlight = null;
+      await act(async () => {
+        completeAbort();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('imm-optimistic-count')).toHaveTextContent('11');
+        expect(screen.getByTestId('imm-optimistic-pending')).toHaveTextContent('false');
       });
       expect(observedCounts).toEqual([10, 11, 10, 11]);
     });
@@ -1058,7 +1349,9 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
         'TestViewportRefs',
       );
 
-      let latestObservedHandle: ViewportEngineHandle | null = null;
+      const latestObservedControllerRef: {
+        current: ReturnType<typeof ViewportRefsCtx.useRefController<'engine'>> | null;
+      } = { current: null };
 
       function ViewportCanvas({
         onRegionFocused,
@@ -1066,9 +1359,9 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
         onRegionFocused?: (regionId: string) => void;
       }) {
         const hostRef = useRef<HTMLDivElement | null>(null);
-        const engineRef = ViewportRefsCtx.useRefHandler('engine');
-        const { setRef } = engineRef;
-        latestObservedHandle = engineRef.target;
+        const engineController = ViewportRefsCtx.useRefController('engine');
+        const { setRef } = engineController;
+        latestObservedControllerRef.current = engineController;
 
         const onRegionFocusedRef = useRef(onRegionFocused);
         useIsomorphicLayoutEffect(() => {
@@ -1100,7 +1393,7 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       }
 
       function Coordinator({ children }: { children: React.ReactNode }) {
-        const { withTarget } = ViewportRefsCtx.useRefHandler('engine');
+        const { withTarget } = ViewportRefsCtx.useRefController('engine');
 
         ViewportActionsCtx.useActionCommandHandler(
           'focusRegion',
@@ -1157,9 +1450,9 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       expect(createdCount).toBeGreaterThanOrEqual(1);
       expect(liveEngines.size).toBe(1);
       expect(createdCount - disposedCount).toBe(1);
-      expect(latestObservedHandle).not.toBeNull();
-      expect(Object.isFrozen(latestObservedHandle)).toBe(true);
-      expect('dispose' in latestObservedHandle!).toBe(false);
+      expect(latestObservedControllerRef.current?.target).not.toBeNull();
+      expect(Object.isFrozen(latestObservedControllerRef.current?.target)).toBe(true);
+      expect('dispose' in latestObservedControllerRef.current!.target!).toBe(false);
 
       await act(async () => {
         fireEvent.click(screen.getByTestId('focus-hero-btn'));
@@ -1206,6 +1499,8 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       const liveEngines = new Set<ViewportEngine>();
       let createdCount = 0;
       let disposedCount = 0;
+      let canvasRenders = 0;
+      let coordinatorRenders = 0;
 
       class ViewportEngine {
         private disposed = false;
@@ -1238,8 +1533,9 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       );
 
       function ViewportCanvas() {
+        canvasRenders += 1;
         const hostRef = useRef<HTMLDivElement | null>(null);
-        const { setRef } = ViewportRefsCtx.useRefHandler('engine');
+        const { setRef } = ViewportRefsCtx.useRefController('engine');
 
         useIsomorphicLayoutEffect(() => {
           const hostElement = hostRef.current;
@@ -1262,7 +1558,8 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       }
 
       function Coordinator({ children }: { children: React.ReactNode }) {
-        const { withTarget } = ViewportRefsCtx.useRefHandler('engine');
+        coordinatorRenders += 1;
+        const { withTarget } = ViewportRefsCtx.useRefController('engine');
 
         ViewportActionsCtx.useActionCommandHandler(
           'focusRegion',
@@ -1312,16 +1609,20 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       expect(createdCount).toBe(1);
       expect(disposedCount).toBe(0);
       expect(liveEngines.size).toBe(1);
+      expect(canvasRenders).toBe(1);
+      expect(coordinatorRenders).toBe(1);
 
       view.rerender(renderTree('hidden'));
 
       expect(liveEngines.size).toBe(0);
       expect(disposedCount).toBe(1);
+      expect(coordinatorRenders).toBe(2);
 
       view.rerender(renderTree('visible'));
 
       expect(createdCount).toBe(2);
       expect(liveEngines.size).toBe(1);
+      expect(coordinatorRenders).toBe(3);
 
       await act(async () => {
         fireEvent.click(screen.getByTestId('activity-focus-hero-btn'));

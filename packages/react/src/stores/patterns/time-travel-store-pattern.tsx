@@ -10,7 +10,7 @@
 import type { Patches } from '@context-action/mutative';
 import React, { createContext, ReactNode, useCallback, useContext, useInsertionEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { StoreErrorBoundary } from '../components/StoreErrorBoundary';
-import { createStore, Store } from '../core/Store';
+import { createStore, Store, type StoreNotificationMode } from '../core/Store';
 import { StoreRegistry } from '../core/StoreRegistry';
 import { createTimeTravelStore, isTimeTravelStore, TimeTravelStore } from '../core/TimeTravelStore';
 import type { StorePath } from '../hooks/useTimeTravelPath';
@@ -36,6 +36,7 @@ const TIME_TRAVEL_STORE_CONFIG_KEYS = new Set<PropertyKey>([
   'version',
   'comparisonOptions',
   'readMode',
+  'notificationMode',
 ]);
 
 /**
@@ -70,6 +71,8 @@ export interface TimeTravelStoreConfig<T = any> {
   comparisonOptions?: Partial<ComparisonOptions<T>>;
   /** Public read policy. Manager defaults to safe defensive reads. */
   readMode?: 'reference' | 'safe';
+  /** Listener notification scheduling mode */
+  notificationMode?: StoreNotificationMode;
 }
 
 /**
@@ -226,6 +229,7 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
     let tags: string[] = ['time-travel'];
     let version: string | undefined;
     let comparisonOptions: TimeTravelStoreConfig<T[K]>['comparisonOptions'];
+    let notificationMode: StoreNotificationMode | undefined;
 
     if (isExplicitStoreValue(storeConfig)) {
       initialValue = storeConfig.value as T[K];
@@ -244,6 +248,7 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
         : (config.tags ? ['store', ...config.tags] : ['store', strategy]);
       version = config.version;
       comparisonOptions = config.comparisonOptions;
+      notificationMode = config.notificationMode;
     } else {
       initialValue = storeConfig as T[K];
       tags = ['time-travel', strategy];
@@ -255,6 +260,7 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
       store = createTimeTravelStore(String(storeName), initialValue, {
         maxHistory,
         mutable,
+        ...(notificationMode !== undefined && { notificationMode }),
         readMode: (storeConfig && isStoreConfigShape(storeConfig, TIME_TRAVEL_STORE_CONFIG_KEYS))
           ? (storeConfig as TimeTravelStoreConfig<T[K]>).readMode ?? 'safe'
           : 'safe',
@@ -268,7 +274,11 @@ export class TimeTravelStoreManager<T extends Record<string, any>> {
         ),
       });
     } else {
-      store = createStore(String(storeName), initialValue);
+      store = createStore(
+        String(storeName),
+        initialValue,
+        notificationMode !== undefined ? { notificationMode } : undefined
+      );
       store.setComparisonOptions({
         strategy,
         ...comparisonOptions,
@@ -797,17 +807,21 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
 
   function useStoreInfo() {
     const manager = useStoreManager();
-    useSyncExternalStore(
-      listener => manager.subscribeInfo(listener),
-      () => manager.getInfoVersion(),
-      () => manager.getInfoVersion(),
+    const subscribeInfo = useMemo(
+      () => (listener: () => void) => manager.subscribeInfo(listener),
+      [manager]
     );
+    const getInfoVersion = useMemo(
+      () => () => manager.getInfoVersion(),
+      [manager]
+    );
+    useSyncExternalStore(subscribeInfo, getInfoVersion, getInfoVersion);
     return manager.getInfo();
   }
 
   function useStoreClear() {
     const manager = useStoreManager();
-    return () => manager.clear();
+    return useCallback(() => manager.clear(), [manager]);
   }
 
   function withProvider<P extends {}>(
