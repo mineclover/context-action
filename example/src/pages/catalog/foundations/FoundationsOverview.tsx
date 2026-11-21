@@ -172,6 +172,14 @@ export default function FoundationsOverview() {
                 ImperativeRef + Ref Context
               </Link>
             </li>
+            <li>
+              <Link
+                to="/foundations/react/headless-di"
+                className="text-blue-600 hover:underline"
+              >
+                Headless-First Symmetric DI
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

@@ -11,7 +11,7 @@
 이 문서는 저장소 내 세 가지 핵심 표면의 **원칙**, **기본 규격(스키마·분류·검증 규칙)**, 그리고 **전체 목록**을 정의합니다.
 
 1. **API 전체 구성**: 20개 워크스페이스 패키지(`packages/*`), 공개 `exports` 서브패스, 워크스페이스 의존성, 안정성 등급, TypeDoc 포함 범위
-2. **예제가 설명하는 것**: `example/` 앱 내 13개 의미 그룹(76개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 7개 패키지 로컬 `examples/`, 9개 내러티브 예제 문서
+2. **예제가 설명하는 것**: `example/` 앱 내 13개 의미 그룹(77개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 7개 패키지 로컬 `examples/`, 9개 내러티브 예제 문서
 3. **관리되는 문서 구조**: 13개 루트 마크다운 문서, 13개 관리 문서 영역(권한 등급·한영 쌍 정책·추적 중인 번역 공백), 파생 TypeDoc/LLMS 산출물
 
 관련 기준 문서는 [패키지 경계 및 코드베이스 관리 컨벤션](/ko/context-layered/package-boundary-convention), [스펙·이슈·문서 관리 컨벤션](/ko/context-layered/change-management-convention), [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions), ADR [CA-SURFACE-CATALOG-001](/ko/context-layered/decisions/CA-SURFACE-CATALOG-001)입니다.
@@ -114,16 +114,16 @@
 
 ## 4. 표면 2: 예제가 설명하는 것
 
-### 4.1 `example/` React 앱 (13개 의미 그룹 · 76개 정식 라우트)
+### 4.1 `example/` React 앱 (13개 의미 그룹 · 77개 정식 라우트)
 
-`example/src/App.tsx`는 총 120개 `<Route>`(레거시 리다이렉트 44개 포함)를 선언하며, `scripts/example-route-impact.mjs`가 인덱싱하는 **76개 정식 라우트**를 13개 의미 그룹으로 관리합니다.
+`example/src/App.tsx`는 총 121개 `<Route>`(레거시 리다이렉트 44개 포함)를 선언하며, `scripts/example-route-impact.mjs`가 인덱싱하는 **77개 정식 라우트**를 13개 의미 그룹으로 관리합니다.
 
 | 그룹 ID | 포함 라우트 (개수) | 설명하는 핵심 주제 | 주요 API | 검증 게이트 |
 | --- | --- | --- | --- | --- |
 | `ex-app-hub` | `/`, `/demos`, 6개 `/catalog/*`, 3개 `/overview/*` (**11**) | 진입 홈, 영역별 카탈로그, MCP/함수 호출 카탈로그 레지스트리, 핵심 개념 개요 | `createActionContext`, `createStoreContext`, `ToolContext` | `pnpm --filter example check && pnpm --filter example build` |
 | `ex-app-foundations-core` | `/foundations/core/basics`, `/foundations/core/advanced` (**2**) | 프레임워크 중립 `ActionRegister` 페이로드 타입, 우선순위 실행, 비동기 모드 및 중단 처리 | `ActionRegister`, `executeParallel`, `executeSequential`, `executeRace`, `useActionGuard`, `useActionCommandHandler`, `useActionObserver` | `pnpm --filter example test && pnpm --filter example build` |
 | `ex-app-foundations-store` | `/foundations/store/basics`, `immutability-test`, `time-travel`, `time-travel-context`, `backend-transactions` (**5**) | Store 반응성, Mutative 불변성 보장, `TimeTravelStore`, `createBackendStore`, `StoreTransactionCoordinator` | `createStore`, `createTimeTravelStore`, `createStateStore`, `createBackendStore`, `StoreTransactionCoordinator` | `pnpm --filter example test && pnpm --filter example build` |
-| `ex-app-foundations-react` | `/foundations/react/provider`, `context`, `hooks`, `useActionWithResult`, `imperativeRef` (**5**) | 분리된 Provider, 다중 컨텍스트 격리, 선택적 구독 훅, `dispatchWithResult`, `useImperativeHandle + RefContext` | `createActionContext`, `createStoreContext`, `createRefContext`, `useStoreValue`, `useStoreSelector`, `dispatchWithResult`, `useActionGuard`, `useActionResultHandler`, `useActionCommandHandler`, `useActionObserver` | `pnpm --filter example test && pnpm --filter example build` |
+| `ex-app-foundations-react` | `/foundations/react/provider`, `context`, `hooks`, `useActionWithResult`, `imperativeRef`, `headless-di` (**6**) | 분리된 Provider, 다중 컨텍스트 격리, 선택적 구독 훅, `dispatchWithResult`, `useImperativeHandle + RefContext`, Headless-First 대칭 DI | `ActionRegister`, `createActionContext`, `createStore`, `createStoreContext`, `createTimeTravelStore`, `createTimeTravelStoreContext`, `TimeTravelStoreManager`, `createRefContext`, `useStoreValue`, `useStoreSelector`, `dispatchWithResult`, `useActionGuard`, `useActionResultHandler`, `useActionCommandHandler`, `useActionObserver` | `pnpm --filter example test && pnpm --filter example build` |
 | `ex-app-performance-action-guard` | `/performance/action-guard`, `showcase`, `search`, `scroll`, `api-blocking`, `throttle-comparison`, `advanced-filtering` (**7**) | 디바운스, 스로틀, 중복 API 요청 차단, 취소 가능한 검색, 우선순위 점프 및 필터링 | `ActionGuard`, `ActionRegister`, `PipelineController` | `pnpm --filter example check && pnpm --filter example test` |
 | `ex-app-performance-priority` | `/performance/priority/advanced`, `/performance/priority/demo` (**2**) | 다중 핸들러 우선순위 스케줄링 벤치마크 및 실시간 실행 순서 튜닝 | `ActionRegister`, `useActionHandler` | `pnpm --filter example build` |
 | `ex-app-performance-mouse-events` | `/performance/mouse-events`, `legacy`, `reactive`, `non-reactive`, `context-store-action`, `canvas-ref-demo`, `context-store` (**7**) | 120fps 포인터 부하에서 반응형 Store 구독 vs 리렌더링 0회 `RefContext` 직접 DOM/Canvas 제어 비교 | `createStoreContext`, `createRefContext`, `createActionContext` | `pnpm --filter example verify:mouse-action && verify:mouse-pattern && verify:mouse-enhanced` |

@@ -11,7 +11,7 @@
 This specification defines the principles, schema standards, and complete inventory for three repository surfaces:
 
 1. **Full Repository API Architecture**: all 20 workspace packages (`packages/*`), their public `exports`, workspace dependencies, stability tiers, and TypeDoc coverage.
-2. **What Examples Explain**: all 76 canonical routes across 13 semantic groups in `example/`, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), 7 package-local example suites, and 9 narrative example walkthroughs.
+2. **What Examples Explain**: all 77 canonical routes across 13 semantic groups in `example/`, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), 7 package-local example suites, and 9 narrative example walkthroughs.
 3. **Managed Documentation Architecture**: all 13 root markdown documents, 13 managed documentation areas with explicit authority and EN/KO pairing policies, and derived TypeDoc/LLMS artifacts.
 
 It complements [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention), [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention), [Documentation and Development Management](/en/concept/documentation-development-conventions), and ADR [CA-SURFACE-CATALOG-001](/en/context-layered/decisions/CA-SURFACE-CATALOG-001).
@@ -114,16 +114,16 @@ For deciding which state/store API to use across these packages, see the [Store 
 
 ## 4. Surface 2: What Examples Explain
 
-### 4.1 `example/` React App (76 Canonical Routes in 13 Semantic Groups)
+### 4.1 `example/` React App (77 Canonical Routes in 13 Semantic Groups)
 
-`example/src/App.tsx` defines 120 `<Route>` entries (including 44 legacy aliases/redirects) backed by **76 canonical route entries** indexed by `scripts/example-route-impact.mjs`:
+`example/src/App.tsx` defines 121 `<Route>` entries (including 44 legacy aliases/redirects) backed by **77 canonical route entries** indexed by `scripts/example-route-impact.mjs`:
 
 | Group ID | Routes (Count) | What It Explains | Primary APIs | Gate |
 | --- | --- | --- | --- | --- |
 | `ex-app-hub` | `/`, `/demos`, 6 `/catalog/*`, 3 `/overview/*` (**11**) | Entry home, category catalogs, MCP/function-calling catalog registry, conceptual overviews | `createActionContext`, `createStoreContext`, `ToolContext` | `pnpm --filter example check && pnpm --filter example build` |
 | `ex-app-foundations-core` | `/foundations/core/basics`, `/foundations/core/advanced` (**2**) | Framework-neutral `ActionRegister` payload typing, priority ordering, async modes, abort signals | `ActionRegister`, `executeParallel`, `executeSequential`, `executeRace`, `useActionGuard`, `useActionCommandHandler`, `useActionObserver` | `pnpm --filter example test && pnpm --filter example build` |
 | `ex-app-foundations-store` | `/foundations/store/basics`, `immutability-test`, `time-travel`, `time-travel-context`, `backend-transactions` (**5**) | Store reactivity, Mutative structural immutability, `TimeTravelStore`, `createBackendStore`, and `StoreTransactionCoordinator` | `createStore`, `createTimeTravelStore`, `createStateStore`, `createBackendStore`, `StoreTransactionCoordinator` | `pnpm --filter example test && pnpm --filter example build` |
-| `ex-app-foundations-react` | `/foundations/react/provider`, `context`, `hooks`, `useActionWithResult`, `imperativeRef` (**5**) | Separated Providers, multi-context isolation, selective hooks, `dispatchWithResult`, `useImperativeHandle + RefContext` | `createActionContext`, `createStoreContext`, `createRefContext`, `useStoreValue`, `useStoreSelector`, `dispatchWithResult`, `useActionGuard`, `useActionResultHandler`, `useActionCommandHandler`, `useActionObserver` | `pnpm --filter example test && pnpm --filter example build` |
+| `ex-app-foundations-react` | `/foundations/react/provider`, `context`, `hooks`, `useActionWithResult`, `imperativeRef`, `headless-di` (**6**) | Separated Providers, multi-context isolation, selective hooks, `dispatchWithResult`, `useImperativeHandle + RefContext`, Headless-First Symmetric DI | `ActionRegister`, `createActionContext`, `createStore`, `createStoreContext`, `createTimeTravelStore`, `createTimeTravelStoreContext`, `TimeTravelStoreManager`, `createRefContext`, `useStoreValue`, `useStoreSelector`, `dispatchWithResult`, `useActionGuard`, `useActionResultHandler`, `useActionCommandHandler`, `useActionObserver` | `pnpm --filter example test && pnpm --filter example build` |
 | `ex-app-performance-action-guard` | `/performance/action-guard`, `showcase`, `search`, `scroll`, `api-blocking`, `throttle-comparison`, `advanced-filtering` (**7**) | Debounce, throttle, in-flight API deduplication, abortable search, priority jumping & filtering | `ActionGuard`, `ActionRegister`, `PipelineController` | `pnpm --filter example check && pnpm --filter example test` |
 | `ex-app-performance-priority` | `/performance/priority/advanced`, `/performance/priority/demo` (**2**) | Multi-handler priority scheduling benchmarks and live execution trace tuning | `ActionRegister`, `useActionHandler` | `pnpm --filter example build` |
 | `ex-app-performance-mouse-events` | `/performance/mouse-events`, `legacy`, `reactive`, `non-reactive`, `context-store-action`, `canvas-ref-demo`, `context-store` (**7**) | Reactive Store updates vs zero-re-render `RefContext` direct DOM/Canvas updates under 120fps pointer streams | `createStoreContext`, `createRefContext`, `createActionContext` | `pnpm --filter example verify:mouse-action && verify:mouse-pattern && verify:mouse-enhanced` |

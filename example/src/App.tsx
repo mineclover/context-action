@@ -67,6 +67,9 @@ const UseActionWithResultPage = lazy(
 const ImperativeRefPage = lazy(
   () => import('./pages/foundations/react/ImperativeRefPage')
 );
+const HeadlessDiPage = lazy(
+  () => import('./pages/foundations/react/headless-di/HeadlessDiPage')
+);
 
 // Performance - Action Guard (heavy performance components)
 const ActionGuardIndexPage = lazy(
@@ -478,6 +481,10 @@ function AppContent() {
             <Route
               path="/foundations/react/imperativeRef"
               element={<ImperativeRefPage />}
+            />
+            <Route
+              path="/foundations/react/headless-di"
+              element={<HeadlessDiPage />}
             />
 
             {/* ⚡ PERFORMANCE - Optimization, Action Guard, Priority */}
