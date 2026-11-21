@@ -1,7 +1,7 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-21T13:24:00.391Z",
-  "commitSha": "58e6cd142b8dbb2a15fd202c73f6a5ac85649188",
+  "timestamp": "2026-11-21T14:24:35.547Z",
+  "commitSha": "8826b8ae966d0d8c4aa2b4582b145f9b16de5a27",
   "branch": "stage",
   "toolchain": {
     "node": "v24.22.1",
@@ -11,94 +11,54 @@
   },
   "inputDigest": "sha256:e19b57559319dc6a6ecfb09ac98c102a59a521313940b63b9f57f78672fac7de",
   "workingTree": "clean",
-  "treeDigest": "sha256:b7750400976fbe636d6eaa2f8a353b1f5e7a849549728b77c94bb74c4855f9a8",
+  "treeDigest": "sha256:2f1a279a73ca4a6a7d047fe5dadeebfbcb735ab54f1f73fbdd7e9c3705f200b0",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 16.41,
+      "durationSec": 16.94,
       "status": "passed"
     },
     {
-      "name": "2. Workspace Package Boundaries Check & Test",
+      "name": "2. Workspace Package Boundaries Check",
       "durationSec": 0.77,
       "status": "passed"
     },
     {
-      "name": "3. Package Boundary Unit Test Suite",
-      "durationSec": 3.39,
+      "name": "3. Context-Action Conventions & Catalog Check",
+      "durationSec": 3.48,
       "status": "passed"
     },
     {
-      "name": "4. Context-Action Conventions & Catalog Check",
-      "durationSec": 3.65,
-      "status": "passed"
-    },
-    {
-      "name": "5. Core Artifact Parity Check",
+      "name": "4. Core & React Artifact Parity / Isolation",
       "durationSec": 0.06,
       "status": "passed"
     },
     {
-      "name": "6. React Production Artifact Boundary Check",
-      "durationSec": 0.21,
+      "name": "5. React Production Artifact Boundary",
+      "durationSec": 0.22,
       "status": "passed"
     },
     {
-      "name": "7. React WebMCP Isolation Check",
+      "name": "6. React WebMCP Isolation",
       "durationSec": 0.03,
       "status": "passed"
     },
     {
-      "name": "8. AI SDK & Tool Protocol Contract Check",
-      "durationSec": 5.62,
+      "name": "7. Durable Operations Evidence Schema Test",
+      "durationSec": 0.29,
       "status": "passed"
     },
     {
-      "name": "9. React Aria Hydration Reference Check",
-      "durationSec": 18.34,
+      "name": "8. Core Element Unit Contract Test",
+      "durationSec": 1.45,
       "status": "passed"
     },
     {
-      "name": "10. Documentation Snippets Check",
-      "durationSec": 0.84,
-      "status": "passed"
-    },
-    {
-      "name": "11. Durable Operations Evidence Schema Test",
-      "durationSec": 0.28,
-      "status": "passed"
-    },
-    {
-      "name": "12. Core Element Unit Contract Test",
-      "durationSec": 1.46,
-      "status": "passed"
-    },
-    {
-      "name": "13. Element Interop Packed Consumer Contract",
-      "durationSec": 16.01,
-      "status": "passed"
-    },
-    {
-      "name": "14. Element Host Lifecycle Contract",
-      "durationSec": 24.34,
-      "status": "passed"
-    },
-    {
-      "name": "15. Element Host Browser Contract",
-      "durationSec": 24.78,
-      "status": "passed"
-    },
-    {
-      "name": "16. V1 Supply Chain & Pinned Action Policy Audit",
-      "durationSec": 0.21,
-      "status": "passed"
-    },
-    {
-      "name": "17. Release Safety Regression Suite (current test set)",
-      "durationSec": 69.15,
+      "name": "9. Element Host Browser Evidence Parser Test",
+      "durationSec": 0.4,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:8ec214cd5387cee40a509934df59dcef04497e13c9715ec3ca18c7f0324d6162"
+  "receiptDigest": "sha256:d8c24d2aec974064c64109376609fa4e2e2fe2d07a0c0b4c76259824fc1b44f2"
 }
