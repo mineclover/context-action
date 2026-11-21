@@ -8,7 +8,7 @@ overrides:
   lerna: 10.1.1
   esbuild@<=0.24.2: 0.25.0
   '@types/react': 19.2.17
-  preact@>=10.27.0 <10.27.3: 10.27.3
+  '@docsearch/js>preact': 10.27.3
   js-yaml@<4.0.0: 3.15.2
   js-yaml@>=4.0.0 <4.3.2: 4.3.2
   mdast-util-to-hast@>=13.0.0 <13.2.1: 13.2.1
@@ -58,7 +58,7 @@ overrides:
   source-map-js@<1.2.2: 1.2.2
   undici@>=6.0.0 <6.29.1: 6.29.1
   undici@>=7.0.0 <7.30.1: 7.30.1
-  zod@>=4.0.0 <4.6.6: 4.6.6
+  zod@>=4.0.0 <4.6.7: 4.6.7
 
 importers:
 
@@ -140,8 +140,8 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       zod:
-        specifier: 4.6.6
-        version: 4.6.6
+        specifier: ^4.6.7
+        version: 4.6.7
     devDependencies:
       '@biomejs/biome':
         specifier: 2.5.15
@@ -166,7 +166,7 @@ importers:
     dependencies:
       '@ai-sdk/openai-compatible':
         specifier: 3.0.60
-        version: 3.0.60(zod@4.6.6)
+        version: 3.0.60(zod@4.6.7)
       '@context-action/ai-sdk':
         specifier: workspace:*
         version: link:../packages/ai-sdk
@@ -210,11 +210,11 @@ importers:
         specifier: 3.12.4
         version: 3.12.4
       '@preact/signals':
-        specifier: ^2.11.3
-        version: 2.11.3(preact@10.27.3)
+        specifier: ^2.11.4
+        version: 2.11.4(preact@11.2.0)
       ai:
         specifier: 7.0.123
-        version: 7.0.123(zod@4.6.6)
+        version: 7.0.123(zod@4.6.7)
       clsx:
         specifier: 2.1.1
         version: 2.1.1
@@ -225,8 +225,8 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       preact:
-        specifier: ^10.27.3
-        version: 10.27.3
+        specifier: ^11.2.0
+        version: 11.2.0(preact-render-to-string@6.8.3)
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -240,8 +240,8 @@ importers:
         specifier: 7.18.4
         version: 7.18.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       zod:
-        specifier: 4.6.6
-        version: 4.6.6
+        specifier: ^4.6.7
+        version: 4.6.7
     devDependencies:
       '@babel/core':
         specifier: 7.29.7
@@ -324,7 +324,7 @@ importers:
         version: 24.19.2
       ai:
         specifier: 7.0.123
-        version: 7.0.123(zod@4.6.6)
+        version: 7.0.123(zod@4.6.7)
       jest:
         specifier: 30.5.2
         version: 30.5.2(@types/node@24.19.2)(supports-color@8.1.1)
@@ -395,8 +395,8 @@ importers:
         specifier: 4.1.12
         version: 4.1.12(@opentelemetry/api@1.9.0)(@types/node@24.19.2)(jsdom@26.1.0(supports-color@8.1.1))(vite@8.1.6(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.6.1)(terser@5.43.1)(yaml@2.9.1))
       zod:
-        specifier: 4.6.6
-        version: 4.6.6
+        specifier: ^4.6.7
+        version: 4.6.7
 
   packages/lit:
     dependencies:
@@ -537,14 +537,14 @@ importers:
         specifier: 24.19.2
         version: 24.19.2
       mutative:
-        specifier: 2.0.0
-        version: 2.0.0
+        specifier: 2.0.2
+        version: 2.0.2
       rimraf:
         specifier: ^6.1.3
         version: 6.1.3
       travels:
         specifier: 3.0.1
-        version: 3.0.1(mutative@2.0.0)
+        version: 3.0.1(mutative@2.0.2)
       tsdown:
         specifier: 0.23.0
         version: 0.23.0(typescript@6.0.3)(unrun@0.2.33(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(synckit@0.11.13))
@@ -595,11 +595,11 @@ importers:
         version: link:../core
     devDependencies:
       '@preact/signals':
-        specifier: 2.11.3
-        version: 2.11.3(preact@10.27.3)
+        specifier: 2.11.4
+        version: 2.11.4(preact@11.2.0)
       preact:
-        specifier: 10.27.3
-        version: 10.27.3
+        specifier: 11.2.0
+        version: 11.2.0(preact-render-to-string@6.8.3)
       tsdown:
         specifier: 0.23.0
         version: 0.23.0(typescript@6.0.3)(unrun@0.2.33(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(synckit@0.11.13))
@@ -620,8 +620,8 @@ importers:
         version: link:../preact
     devDependencies:
       '@preact/signals':
-        specifier: 2.11.3
-        version: 2.11.3(preact@10.27.3)
+        specifier: 2.11.4
+        version: 2.11.4(preact@11.2.0)
       '@types/node':
         specifier: 24.19.2
         version: 24.19.2
@@ -635,11 +635,11 @@ importers:
         specifier: 26.1.0
         version: 26.1.0(supports-color@8.1.1)
       preact:
-        specifier: 10.27.3
-        version: 10.27.3
+        specifier: 11.2.0
+        version: 11.2.0(preact-render-to-string@6.8.3)
       preact-render-to-string:
-        specifier: 6.7.0
-        version: 6.7.0(preact@10.27.3)
+        specifier: 6.8.3
+        version: 6.8.3(preact@11.2.0)
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -756,8 +756,8 @@ importers:
         specifier: 6.0.3
         version: 6.0.3
       zod:
-        specifier: 4.6.6
-        version: 4.6.6
+        specifier: ^4.6.7
+        version: 4.6.7
 
   packages/store-core:
     devDependencies:
@@ -884,8 +884,8 @@ importers:
   packages/tool-protocol:
     dependencies:
       zod:
-        specifier: 4.6.6
-        version: 4.6.6
+        specifier: ^4.6.7
+        version: 4.6.7
     devDependencies:
       '@swc/core':
         specifier: 1.16.13
@@ -1026,19 +1026,19 @@ packages:
     resolution: {integrity: sha512-lBMXWbNSAb3eQD/F8ja9Egi32PsL9lLajC4DUvionnWO8V+X0nYw9hWJVBJdZ0SftfE/OyKySkoHRfIg/UafYg==}
     engines: {node: '>=22'}
     peerDependencies:
-      zod: 4.6.6
+      zod: 4.6.7
 
   '@ai-sdk/openai-compatible@3.0.60':
     resolution: {integrity: sha512-+yuu4jzanve1HQI0YQXS+nvhX6kc4v5O1f7u355fSxytrLrFfxR42Mgl1uJPaEQTVxR+cyyA2NV5lUFxv7Maiw==}
     engines: {node: '>=22'}
     peerDependencies:
-      zod: 4.6.6
+      zod: 4.6.7
 
   '@ai-sdk/provider-utils@5.0.52':
     resolution: {integrity: sha512-PWWa14kVJlBj/G4E85D+IMM28H9W9SC3cQ/yyRHTMzRmtLkNgmDOLhSYBJ9ZT+w83a+DQ9+QIcCaY36iuD89mw==}
     engines: {node: '>=22'}
     peerDependencies:
-      zod: 4.6.6
+      zod: 4.6.7
 
   '@ai-sdk/provider@4.0.20':
     resolution: {integrity: sha512-daWW1Jxnvcn6+VhUuPqR7i5DtbdontcPCC5pH3QYU2r/x0hl31AIGiejWThGU499pJYA9DzwnBm+tc3EMKQeLQ==}
@@ -2468,13 +2468,13 @@ packages:
     resolution: {integrity: sha512-SEeaJLb3qBNF/OaXnaR1NmmBbFYk1zC0ZH/52fATcRPLFg/p791YrcyFFy44Bo9sLaGuSuLp5Q6axbb/O+v/RA==}
     engines: {node: ^14.18.0 || >=16.0.0}
 
-  '@preact/signals-core@1.14.4':
-    resolution: {integrity: sha512-HNB6HYeYKhQbJ1aKl+YRjrS4+QWHLKX6qKoUsfS/m0vqzsVaEBiZiaKbG/e+NKk2ch5ALQr/ihWaMHxiCuuWHA==}
+  '@preact/signals-core@1.14.5':
+    resolution: {integrity: sha512-vcRv7Ityz5JVmeiVqIluLFzT/PDS/AlhHUpw3/aUWqcVUs6bDGIPXE/6RSC4evBNWYvnniozg5Syfj33al3gkg==}
 
-  '@preact/signals@2.11.3':
-    resolution: {integrity: sha512-mttwFM98G/JiriTgMwU+UWygL6sfVmYEiNcPSKkUnv4PxPpZhmP2ugGC4qi360+ZIHyQ8NY05bfJT3b4RUIGlw==}
+  '@preact/signals@2.11.4':
+    resolution: {integrity: sha512-Rb+5RPo9gWSaHtzJeauhHxiC8KP/IF2DEPkHPEOGOnuy2wnJzRqyeLRankUCYd6ADqtxS6GnWGv6Ie343d8aYw==}
     peerDependencies:
-      preact: 10.27.3
+      preact: '>= 10.25.0 || >=11.0.0-0'
 
   '@quansync/fs@1.1.0':
     resolution: {integrity: sha512-qAPG/t3HqML1TlN7sY/pTbEjzFVAKsMjNNMGheyDosro+kT4iw2KCUoHcVdmliwWjorm4elZbgNQyU2eD97eDg==}
@@ -4036,7 +4036,7 @@ packages:
     resolution: {integrity: sha512-blyApVMNpQfendoGLAQRjQgh0EdbwhAI4SJYBTS4Dw+BygPzdj/Pcgt6AaClvy5+ibV8v+d+k8PABam0QxORtw==}
     engines: {node: '>=22'}
     peerDependencies:
-      zod: 4.6.6
+      zod: 4.6.7
 
   ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
@@ -5907,8 +5907,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  mutative@2.0.0:
-    resolution: {integrity: sha512-HCb6TyEvwUChR3K+sssLk2LqEAOobSlu1ZATUvoa7Kh952kzhyX+huPddmIFc0LYEctFRJb0+ioQybKMkFLO6A==}
+  mutative@2.0.2:
+    resolution: {integrity: sha512-9mlCkp5FQ6eZ5LuKWVEgcrfhcm5P13jqPebLimb2OKGoziBOUzes8D3spqZ4WIOugAv9ZQMDNwh0LBueVGoYEg==}
     engines: {node: '>=14.0'}
 
   mute-stream@3.0.0:
@@ -6317,13 +6317,21 @@ packages:
     resolution: {integrity: sha512-C+y9x90UElAddDZmV4qOx9W53B61PO7cIqWz2dQsWlwswuq4mr8NEwytdGKboYbQlGZ3awrkTeNvcZiZNHnQ8A==}
     engines: {node: '>=20'}
 
-  preact-render-to-string@6.7.0:
-    resolution: {integrity: sha512-Z4WR8fmLMRpdYqJ9i7vrlXSsSrxVJydwrkEXHapexfARbWfGb7vGcnvNQnIzN0cXciMVOlz/XLoiMCi9gUsy9Q==}
+  preact-render-to-string@6.8.3:
+    resolution: {integrity: sha512-yg04edGH7f5yfBUV4uyL2brzPB3e26AimLO5WNfUtwoCv8LBJ7Z+dElG8P5v+o8UqMUM6kZhnn4I/HEXNyP0ZQ==}
     peerDependencies:
-      preact: 10.27.3
+      preact: '>=10 || >= 11.0.0-0'
 
   preact@10.27.3:
     resolution: {integrity: sha512-ZieIP3zQHiQsNF3BA+SNVS8dcuRIg/nsxlkFbCMBLS2L1Ww4Bkxd9n6Md2A1crfTZsEbQPADV0neYmh/EElgeQ==}
+
+  preact@11.2.0:
+    resolution: {integrity: sha512-/HfHI/7N84e6GrWBJ3J280z3mLaRJiDcSvj/A+y/4AbLnND/1UlGHe1sR6oYuTGwId0nP7dqDU9OnLxMPZ7xBg==}
+    peerDependencies:
+      preact-render-to-string: '>=6.7.0'
+    peerDependenciesMeta:
+      preact-render-to-string:
+        optional: true
 
   pretty-format@27.5.1:
     resolution: {integrity: sha512-Qb1gy5OrP5+zDf2Bvnzdl3jsTf1qXVMazbvCoKhtKqVs4/YK4ozX4gKQJJVyNe+cajNPn0KoC0MC3FUmaHWEmQ==}
@@ -7699,8 +7707,8 @@ packages:
     resolution: {integrity: sha512-XrBh9ZiQK5mJVRxZBAvD6LwRyAYrK3MFtH3+onyuxFL5hFD44EC3QOmIC1FjTj6H2MMwq46/NAI+NZxLZPZgxg==}
     engines: {node: '>=14.18.0'}
 
-  zod@4.6.6:
-    resolution: {integrity: sha512-4UmzQUF5fxvfcYHlbjBmejU+w+hbDnWFx4aS8kBx7nPBHcO2SqPbpAG8snbdg+Xse4pRefR98hgjFgIMCI/UhA==}
+  zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -7709,27 +7717,27 @@ snapshots:
 
   '@adobe/css-tools@4.5.0': {}
 
-  '@ai-sdk/gateway@4.0.101(zod@4.6.6)':
+  '@ai-sdk/gateway@4.0.101(zod@4.6.7)':
     dependencies:
       '@ai-sdk/provider': 4.0.20
-      '@ai-sdk/provider-utils': 5.0.52(zod@4.6.6)
+      '@ai-sdk/provider-utils': 5.0.52(zod@4.6.7)
       '@vercel/oidc': 3.2.0
-      zod: 4.6.6
+      zod: 4.6.7
 
-  '@ai-sdk/openai-compatible@3.0.60(zod@4.6.6)':
+  '@ai-sdk/openai-compatible@3.0.60(zod@4.6.7)':
     dependencies:
       '@ai-sdk/provider': 4.0.20
-      '@ai-sdk/provider-utils': 5.0.52(zod@4.6.6)
-      zod: 4.6.6
+      '@ai-sdk/provider-utils': 5.0.52(zod@4.6.7)
+      zod: 4.6.7
 
-  '@ai-sdk/provider-utils@5.0.52(zod@4.6.6)':
+  '@ai-sdk/provider-utils@5.0.52(zod@4.6.7)':
     dependencies:
       '@ai-sdk/provider': 4.0.20
       '@standard-schema/spec': 1.1.0
       '@workflow/serde': 4.1.0
       eventsource-parser: 3.1.1
       undici: 7.30.1
-      zod: 4.6.6
+      zod: 4.6.7
 
   '@ai-sdk/provider@4.0.20':
     dependencies:
@@ -9178,12 +9186,12 @@ snapshots:
 
   '@pkgr/core@0.3.6': {}
 
-  '@preact/signals-core@1.14.4': {}
+  '@preact/signals-core@1.14.5': {}
 
-  '@preact/signals@2.11.3(preact@10.27.3)':
+  '@preact/signals@2.11.4(preact@11.2.0)':
     dependencies:
-      '@preact/signals-core': 1.14.4
-      preact: 10.27.3
+      '@preact/signals-core': 1.14.5
+      preact: 11.2.0(preact-render-to-string@6.8.3)
 
   '@quansync/fs@1.1.0':
     dependencies:
@@ -10396,12 +10404,12 @@ snapshots:
 
   agent-base@9.0.0: {}
 
-  ai@7.0.123(zod@4.6.6):
+  ai@7.0.123(zod@4.6.7):
     dependencies:
-      '@ai-sdk/gateway': 4.0.101(zod@4.6.6)
+      '@ai-sdk/gateway': 4.0.101(zod@4.6.7)
       '@ai-sdk/provider': 4.0.20
-      '@ai-sdk/provider-utils': 5.0.52(zod@4.6.6)
-      zod: 4.6.6
+      '@ai-sdk/provider-utils': 5.0.52(zod@4.6.7)
+      zod: 4.6.7
 
   ajv-formats@3.0.1(ajv@8.20.0):
     optionalDependencies:
@@ -12585,7 +12593,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  mutative@2.0.0: {}
+  mutative@2.0.2: {}
 
   mute-stream@3.0.0: {}
 
@@ -13099,11 +13107,15 @@ snapshots:
 
   powershell-utils@0.2.1: {}
 
-  preact-render-to-string@6.7.0(preact@10.27.3):
+  preact-render-to-string@6.8.3(preact@11.2.0):
     dependencies:
-      preact: 10.27.3
+      preact: 11.2.0(preact-render-to-string@6.8.3)
 
   preact@10.27.3: {}
+
+  preact@11.2.0(preact-render-to-string@6.8.3):
+    optionalDependencies:
+      preact-render-to-string: 6.8.3(preact@11.2.0)
 
   pretty-format@27.5.1:
     dependencies:
@@ -13873,9 +13885,9 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  travels@3.0.1(mutative@2.0.0):
+  travels@3.0.1(mutative@2.0.2):
     dependencies:
-      mutative: 2.0.0
+      mutative: 2.0.2
 
   tree-kill@1.2.2: {}
 
@@ -14652,6 +14664,6 @@ snapshots:
       '@yuku-toolchain/types': 0.19.0
       yuku-core: 0.19.0
 
-  zod@4.6.6: {}
+  zod@4.6.7: {}
 
   zwitch@2.0.4: {}

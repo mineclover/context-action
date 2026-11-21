@@ -67,7 +67,7 @@
     "tslib": "^2.8.1",
     "typescript": "6.0.3",
     "travels": "3.0.1",
-    "mutative": "2.0.0",
+    "mutative": "2.0.2",
     "vitest": "4.1.12"
   },
   "engines": {

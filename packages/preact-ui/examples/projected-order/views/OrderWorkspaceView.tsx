@@ -1,3 +1,4 @@
+import type { TargetedEvent } from 'preact';
 import { useState } from 'preact/hooks';
 import { useOrderActions } from '../actions/use-order-actions.js';
 import { useOrderProjection } from '../projections/use-order-projection.js';
@@ -66,7 +67,7 @@ export function OrderWorkspaceView({ idPrefix }: { idPrefix: string }) {
   const shippingAddressError = getFieldError('shippingAddress');
   const itemsError = getFieldError('items');
 
-  const handleAddItem = (e: preact.JSX.TargetedEvent<HTMLFormElement>) => {
+  const handleAddItem = (e: TargetedEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!itemNameInput.trim()) return;
     const unitPrice = parseFloat(itemPriceInput) || 10;

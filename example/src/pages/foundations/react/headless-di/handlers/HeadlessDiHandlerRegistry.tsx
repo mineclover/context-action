@@ -42,7 +42,19 @@ function HeadlessDiHandlerRegistry({
   useEffect(() => {
     runtime.notifyTopologyChange();
     return () => {
+      // ActionContext unregisters React-scoped observers asynchronously via
+      // microtask/shutdown cleanup; re-check topology after cleanup settles.
       runtime.notifyTopologyChange();
+      queueMicrotask(() => {
+        queueMicrotask(() => {
+          queueMicrotask(() => {
+            runtime.notifyTopologyChange();
+          });
+        });
+      });
+      setTimeout(() => {
+        runtime.notifyTopologyChange();
+      }, 0);
     };
   }, [runtime]);
 

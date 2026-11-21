@@ -80,7 +80,8 @@
           "complexity": {
             "noArguments": "off",
             "noCommaOperator": "off",
-            "noUselessTypeConstraint": "off"
+            "noUselessTypeConstraint": "off",
+            "useOptionalChain": "off"
           },
           "correctness": {
             "noSwitchDeclarations": "off",
@@ -93,9 +94,24 @@
             "noConstEnum": "off",
             "noConfusingVoidType": "off",
             "noExplicitAny": "off",
+            "noImplicitAnyLet": "off",
             "noPrototypeBuiltins": "off",
             "noSelfCompare": "off",
             "noShadowRestrictedNames": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "scripts/coordinated-stable-release.test.mjs",
+        "scripts/verify-v1-release-workflows.mjs",
+        "scripts/verify-v1-release-workflows.test.mjs"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noTemplateCurlyInString": "off"
           }
         }
       }
