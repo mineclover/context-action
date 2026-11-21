@@ -1,4 +1,3 @@
-import { useStoreValue } from '@context-action/react';
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
   createInitialScrollMetrics,
@@ -36,9 +35,10 @@ export function ScrollHandlerRegistry({
   const virtualizationStore = useScrollStore('virtualization');
   const metricsStore = useScrollStore('metrics');
 
-  const autoScrolling = useStoreValue(autoScrollingStore);
-  const scrollSpeed = useStoreValue(scrollSpeedStore) || 2;
   const rafIdRef = useRef<number | null>(null);
+  const autoScrollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null
+  );
 
   const cancelScrollAnimation = useCallback(() => {
     if (rafIdRef.current !== null) {
@@ -47,7 +47,19 @@ export function ScrollHandlerRegistry({
     }
   }, []);
 
-  useEffect(() => cancelScrollAnimation, [cancelScrollAnimation]);
+  const stopAutoScrollInterval = useCallback(() => {
+    if (autoScrollIntervalRef.current !== null) {
+      clearInterval(autoScrollIntervalRef.current);
+      autoScrollIntervalRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      cancelScrollAnimation();
+      stopAutoScrollInterval();
+    };
+  }, [cancelScrollAnimation, stopAutoScrollInterval]);
 
   useScrollActionHandler(
     'updateScrollPosition',
@@ -180,6 +192,7 @@ export function ScrollHandlerRegistry({
     'resetScroll',
     useCallback(async () => {
       cancelScrollAnimation();
+      stopAutoScrollInterval();
       contentStore.setValue(generateScrollContent(0, 15, 0));
       scrollDataStore.setValue(initialScrollData);
       currentPageStore.setValue(0);
@@ -201,6 +214,7 @@ export function ScrollHandlerRegistry({
       currentPageStore,
       metricsStore,
       scrollDataStore,
+      stopAutoScrollInterval,
       virtualizationStore,
     ])
   );
@@ -211,8 +225,35 @@ export function ScrollHandlerRegistry({
       async (payload) => {
         autoScrollingStore.setValue(payload.enabled);
         scrollSpeedStore.setValue(payload.speed);
+        stopAutoScrollInterval();
+
+        if (!payload.enabled) {
+          return;
+        }
+
+        autoScrollIntervalRef.current = setInterval(() => {
+          const container = containerRef.target;
+          if (!container) return;
+
+          const speed = scrollSpeedStore.getValue() || 2;
+          const newScrollTop = container.scrollTop + speed;
+          const maxScroll = container.scrollHeight - container.clientHeight;
+
+          if (newScrollTop >= maxScroll) {
+            stopAutoScrollInterval();
+            dispatch('setAutoScroll', { enabled: false, speed });
+          } else {
+            container.scrollTop = newScrollTop;
+          }
+        }, 16);
       },
-      [autoScrollingStore, scrollSpeedStore]
+      [
+        autoScrollingStore,
+        containerRef,
+        dispatch,
+        scrollSpeedStore,
+        stopAutoScrollInterval,
+      ]
     )
   );
 
@@ -227,26 +268,6 @@ export function ScrollHandlerRegistry({
       [virtualizationStore]
     )
   );
-
-  useEffect(() => {
-    if (!autoScrolling) return;
-
-    const interval = setInterval(() => {
-      const container = containerRef.target;
-      if (!container) return;
-
-      const newScrollTop = container.scrollTop + scrollSpeed;
-      const maxScroll = container.scrollHeight - container.clientHeight;
-
-      if (newScrollTop >= maxScroll) {
-        dispatch('setAutoScroll', { enabled: false, speed: scrollSpeed });
-      } else {
-        container.scrollTop = newScrollTop;
-      }
-    }, 16);
-
-    return () => clearInterval(interval);
-  }, [autoScrolling, containerRef, dispatch, scrollSpeed]);
 
   return <>{children}</>;
 }

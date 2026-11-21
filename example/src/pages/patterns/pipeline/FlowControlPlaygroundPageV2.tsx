@@ -3,10 +3,7 @@
 import { useStoreValue } from '@context-action/react';
 import { LogMonitor, LogMonitorProvider } from '@/components/LogMonitor';
 import { Container, Grid } from '@/components/ui';
-import {
-  FlowControlActions,
-  useFlowControlActions,
-} from './actions/FlowControlActions';
+import { useFlowControlActions } from './actions/FlowControlActions';
 import {
   ExecutionMetrics,
   ExecutionPath,
@@ -23,6 +20,7 @@ import {
 import {
   ApiHandlers,
   CacheHandlers,
+  FlowControlDemoHandlerRegistry,
   OrderHandlers,
   SecurityHandlers,
 } from './handlers';
@@ -168,10 +166,9 @@ export function FlowControlPlaygroundPageV2() {
       initialConfig={{ enableToast: true, maxLogs: 100 }}
     >
       <FlowControlProvider>
-        <FlowControlActions>
-          <FlowControlHandlers />
-          <FlowControlUI />
-        </FlowControlActions>
+        <FlowControlDemoHandlerRegistry />
+        <FlowControlHandlers />
+        <FlowControlUI />
       </FlowControlProvider>
     </LogMonitorProvider>
   );

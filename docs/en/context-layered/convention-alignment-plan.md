@@ -1,7 +1,7 @@
 # Context-Layered Convention Alignment Plan
 
-**Status:** Direct-registration inventory closed; remaining structural gates tracked
-**Last reviewed:** 2026-11-20
+**Status:** Structural & promoted AST gates enforced across `example/src` + `packages/template-react/src`; ongoing guidance centralized in `convention-index.md` and `spec-to-code-authoring-guide.md`
+**Last reviewed:** 2026-11-21
 
 This document records the repository-level decision for aligning existing examples and documentation with the Context-Layered architecture. It sits beside the implementation convention because it describes the current-state classification, the fixed provider composition, and the migration gates needed to make the convention enforceable.
 
@@ -105,7 +105,8 @@ The following classification is the baseline for migration.
 - The generic `createObjectContextHooks` factory now delegates its Action → Manager → Store synchronization to `lib/patterns/handlers/ObjectContextHandlerRegistry.tsx`; `ObjectContextManager.dispatch` is the domain-safe bridge instead of exposing its internal ActionRegister.
 - The convention checker now validates Provider nesting through the object-context factory, Flow Control, API Blocking, memoization, priority, and mouse-event compositions; `pnpm convention:check` reports zero provider-order violations.
 - The convention checker now discovers canonical roots for layer paths, file names, and import boundaries; the conditional permission, action-based mouse, context-store mouse, and enhanced context-store mouse usecases now expose their Context-Action boundaries under `contexts/`, packet/quote calculations remain in playbook Data Hooks, and the checker reports zero layer-path/name violations. The current root count is reported by `pnpm convention:check` rather than stored in this document.
-- `tools/context-action-lint/layered-surface-classification.json` now records the only remaining non-canonical `handlers/` surface: the compatibility object-context root; unclassified additions and stale classifications fail `convention:check`.
+- The convention checker now validates both `example/src` and `packages/template-react/src` by default (plus external consumer directories via `--root <dir>`), and enforces the three promoted AST invariants (`no-deprecated-effect-handler`, `no-store-access-in-actions`, `no-store-subscription-in-handlers`) with unit tests in `scripts/check-context-layered-conventions.test.mjs`.
+- `tools/context-action-lint/layered-surface-classification.json` records every non-canonical `handlers/` surface (`advanced` live web-coding integration host + `compatibility` object-context root), while `tools/context-action-lint/rule-exceptions.json` tracks justified AST rule exemptions (such as the intentional non-memoized benchmark subscription in `ComparisonHandlerRegistry.tsx`); unclassified additions and stale entries fail `convention:check`.
 - `docs/en/concept/conventions.md` describes strict MVVM and must be linked as migration/legacy guidance rather than a parallel standard.
 - Existing documentation and examples contain both adjacent provider orders. A repository search found 19 action-then-store occurrences and 20 store-then-action occurrences; this is a structural inventory, not a runtime failure report.
 
@@ -147,4 +148,4 @@ This inventory is intentionally separated from the canonical playbook examples. 
 - English and Korean convention documents describe the same rules.
 - CI fails when the structural convention drifts.
 
-The direct-registration, Provider-order, canonical layer-path/name, and migration-classification gates are complete. The advanced comparison inventory is now empty; keep the remaining compatibility export documented and do not add new handler registrations outside Registry modules.
+The direct-registration, Provider-order, canonical layer-path/name, multi-root (`example/src` + `packages/template-react/src`), and promoted AST gates are active and verified. Any remaining deviations must live explicitly with rationale in `layered-surface-classification.json` or `rule-exceptions.json`. For day-to-day authoring, progressive adoption, and governance rules, start from [Convention Index](./convention-index.md) and [Spec-to-Code Authoring Guide](./spec-to-code-authoring-guide.md).

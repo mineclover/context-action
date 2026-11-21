@@ -693,10 +693,11 @@
       "workspacePeerDependencies": [],
       "readme": "packages/template-react/README.md",
       "authoritativeDocs": [
+        "docs/en/context-layered/spec-to-code-authoring-guide.md",
         "docs/en/context-layered/decisions/CA-SPEC-EVIDENCE-001.md",
         "docs/en/context-layered/triad-evidence-sync-guide.md"
       ],
-      "verificationGate": "pnpm --filter @context-action/template-react type-check && pnpm --filter @context-action/template-react build"
+      "verificationGate": "pnpm convention:check && pnpm --filter @context-action/template-react type-check && pnpm --filter @context-action/template-react build"
     },
     {
       "id": "api-tool-durable-operations",

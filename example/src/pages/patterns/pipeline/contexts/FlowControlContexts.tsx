@@ -1,4 +1,8 @@
-import { createActionContext, createStoreContext } from '@context-action/react';
+import {
+  type ActionPayloadMap,
+  createActionContext,
+  createStoreContext,
+} from '@context-action/react';
 import React from 'react';
 import type {
   ApiActions,
@@ -59,6 +63,22 @@ export const {
   useActionHandler: useApiActionHandler,
 } = createActionContext<ApiActions>('ApiActions');
 
+export interface FlowControlDemoActions extends ActionPayloadMap {
+  clearCache: void;
+  toggleBusinessHours: void;
+  adjustSystemLoad: { load: number };
+  setSelectedScenario: { scenario: ScenarioKey };
+  recordExecutionStep: { step: string };
+  recordHandlerExecution: void;
+  executeScenario: { scenario: ScenarioKey; payload: any };
+}
+
+export const {
+  Provider: FlowControlDemoActionProvider,
+  useActionDispatch: useFlowControlDemoAction,
+  useActionCommandHandler: useFlowControlDemoActionCommandHandler,
+} = createActionContext<FlowControlDemoActions>('FlowControlDemoActions');
+
 // Store context for demo state management
 export const {
   Provider: FlowControlStoreProvider,
@@ -92,7 +112,9 @@ export function FlowControlProvider({
       <CacheActionProvider>
         <OrderActionProvider>
           <ApiActionProvider>
-            <FlowControlStoreProvider>{children}</FlowControlStoreProvider>
+            <FlowControlDemoActionProvider>
+              <FlowControlStoreProvider>{children}</FlowControlStoreProvider>
+            </FlowControlDemoActionProvider>
           </ApiActionProvider>
         </OrderActionProvider>
       </CacheActionProvider>

@@ -38,13 +38,13 @@ Context-Layered Architecture는 Context-Action 프레임워크를 사용하는 R
 # Context-Layered 컨벤션 정합성 계획
 Sections: 확정 사항 | 린트와 컨벤션 검사 | 현재 상태 분류 | 마이그레이션 순서 | 남은 직접 등록 인벤토리 | 완료 조건
 
-상태: 직접 등록 인벤토리 종료, 잔여 구조 게이트 추적 중 최근 검토: 2026-11-20 이 문서는 기존 예제와 문서를 Context-Layered 구조에 맞추기 위한 저장소 단위 결정을 기록합니다. 구현 표준 문서와 같은 위치에서 현재 상태 분류, Provider 중첩 순서, 컨벤션을 강제하기 위한 완료 조건을 관리합니다. 새 시나리오는 다음 레이어를 사용합니다. strict MVVM 자료는 마이그레이션 참고 자료로 유지하지만, 신규 implementation-playbook의 두 번째 표준으로 취급하지 않습니다. 기능 규모에 따른 예외를 두지 않습니다. - Context 파일은 경계와 Provider를 정의·조합하며 handler를 등록하지 않습니다. - 모든 도메인은 HandlerRegistry 또는 동등한 Registry 컴포넌트를 제공합니다. - 모든 useActionHandler 호출은 Registry 또는 그 하위 handler 모듈에 둡니다. - Page와 V...
+상태: example/src 및 packages/template-react/src 대상 구조·승격 AST 게이트 상시 강제 중 (일상 작성 기준은 convention-index.md · spec-to-code-authoring-guide.md로 통합) 최근 검토: 2026-11-21 이 문서는 기존 예제와 문서를 Context-Layered 구조에 맞추기 위한 저장소 단위 결정을 기록합니다. 구현 표준 문서와 같은 위치에서 현재 상태 분류, Provider 중첩 순서, 컨벤션을 강제하기 위한 완료 조건을 관리합니다. 새 시나리오는 다음 레이어를 사용합니다. strict MVVM 자료는 마이그레이션 참고 자료로 유지하지만, 신규 implementation-playbook의 두 번째 표준으로 취급하지 않습니다. 기능 규모에 따른 예외를 두지 않습니다. - Context 파일은 경계와 Provider를 정의·조합하며 handler를 등록하지 않습니다. - 모든 도메인은 Handler...
 
 ===================[ DOC: ko/context-layered/convention-index.md ]===================
 # 개발 컨벤션 인덱스
-Sections: 작업별 시작점 | 문서 역할별 분류 | 강제 범위: CI 강제 게이트 vs. 권고 / 크로스-레포 규칙 | 팀 컨벤션으로 굳힐 때 읽는 순서 | 코드와 같이 볼 때 | 한 줄 요약
+Sections: 아키텍처·품질·의도 관리 체계 한눈에 보기 | 작업별 시작점 | 문서 역할별 분류 | 강제 범위: CI 강제 게이트 vs. 권고 / 크로스-레포 규칙 | 팀 컨벤션으로 굳힐 때 읽는 순서 | 스타터 템플릿 및 예제 앱과 같이 볼 때 | 한 줄 요약
 
-이 문서는 Context-Action 저장소에서 implementation-playbook 계열 개발 컨벤션을 굳히기 위해 가장 먼저 봐야 할 중심 인덱스입니다. 문서가 많아졌기 때문에, 어떤 문서가 “원칙”, 어떤 문서가 “예제”, 어떤 문서가 “검증”인지 한 번에 묶어보는 용도로 씁니다. 어떤 산출물을 소유하는지 먼저 정하고 그에 맞는 경로를 선택합니다. 필요한 모든 문서를 처음부터 읽을 필요는 없습니다. | 바꾸려는 대상 | 먼저 읽을 문서 | 이어서 사용할 것 | | --- | --- | --- | | 스펙·의도·Store 선택에서 코드 작성·게이트까지 한 번에 연결할 때 | 스펙 기반 코드 작성 가이드 | pnpm convention:check && pnpm docs:check | | package 책임, dependency, export | 패키지 경계 및 코드베이스 관리 | pnpm package-boundary:check | | 레포지토리 API 전체 구성, 예제...
+이 문서는 Context-Action 저장소에서 implementation-playbook 계열 개발 컨벤션을 굳히기 위해 가장 먼저 봐야 할 중심 인덱스입니다. 문서가 많아졌기 때문에, 어떤 문서가 “원칙”, 어떤 문서가 “예제”, 어떤 문서가 “검증”인지 한 번에 묶어보는 용도로 씁니다. Context-Action은 핵심 3축을 중심으로 도메인 크기에 맞게 3단계로 점진 도입하며, 규칙을 CI 자동 차단 게이트와 권고·리뷰 규율로 명확히 나누어 관리합니다: - 핵심 3축 (Core 3 Axes): 1. Action Pipeline (@context-action/core, ActionContext) — 승인(Guard) → 실행·결과(Command/Result) → 정산 후 관찰(Observer) 4-역할 파이프라인. 2. Reactive Store (@context-action/store-core, Store, TimeTravelStore) — handlers/에서는 sto...
 
 ===================[ DOC: ko/context-layered/decisions/CA-ELEMENT-INTEROP-001.md ]===================
 # CA-ELEMENT-INTEROP-001: Core subpath와 호스트 중립 Element binding
@@ -138,7 +138,7 @@ Sections: 5대 기본 원칙 | 기본 규격 | 표면 1: 레포지토리 API 전
 
 ===================[ DOC: ko/context-layered/spec-to-code-authoring-guide.md ]===================
 # 스펙 기반 코드 작성 가이드 (Spec-to-Code Authoring Guide)
-Sections: End-to-End 스펙-코드 파이프라인 | 스펙 ↔ 레이어 ↔ 검증 게이트 매핑 매트릭스 | 권장 4-Role Action API 위계 | End-to-End 코드 작성 예시 (Spec → Headless Runtime → React DI) | 멀티 호스트 Store Reader 브리지 (React · Preact · Lit) | 대표 라이브 예제 및 PR 전 검증 체크리스트
+Sections: End-to-End 스펙-코드 파이프라인 | 스펙 ↔ 레이어 ↔ 검증 게이트 매핑 매트릭스 | 권장 4-Role Action API 위계 | End-to-End 코드 작성 예시 (Spec → Headless Runtime → React DI) | 멀티 호스트 Store Reader 브리지 (React · Preact · Lit) | 점진적 도입, 결함 예방 효과 및 부채 거버넌스 | 대표 라이브 예제 및 PR 전 검증 체크리스트
 
 상태: Active 스펙 / 결정 ID: CA-SURFACE-CATALOG-001, CA-SPEC-EVIDENCE-001, CA-STATECHART-EFFECT-001, CA-ELEMENT-INTEROP-001 소유자: Framework Core, React Runtime & Architecture Governance 관련 명세: - 개발 컨벤션 인덱스 - Implementation Playbook 표준 컨벤션 - Store별 선택 및 사용법 가이드 - Core Action Contracts - React State Contracts - 상호작용 의도 계약에서 구현까지의 흐름 - 통합 트라이어드 자율 동기화 가이드 Context-Action은 스펙의 설계 의도, 도메인 상태, 실행 파이프라인, UI 바인딩, 자동 검증 게이트가 서로 1:1로 대응되도록 설계된 프레임워크입니다. 새 기능을 구현할 때마다 여러 문서를 왕복하지 않고, 설계 스펙에서 실제 코드와 검증 명령까지 한 번에...
 

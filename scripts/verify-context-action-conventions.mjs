@@ -9,6 +9,11 @@ const repositoryRoot = path.resolve(
 
 const checks = [
   ['Context-Layered layout', 'scripts/check-context-layered-conventions.mjs'],
+  [
+    'Context-Layered layout tests',
+    'scripts/check-context-layered-conventions.test.mjs',
+    ['--test'],
+  ],
   ['Interaction Intent Contract', 'scripts/verify-iic-conventions.mjs'],
   [
     'documentation management',

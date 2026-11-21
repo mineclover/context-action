@@ -23,3 +23,14 @@ export function createBrandTheme(name: string, mode: ThemeMode): BrandTheme {
     tokens: toAstryxTokens(semantics),
   };
 }
+
+export function applyThemeToDocument(theme: BrandTheme): void {
+  if (typeof document === 'undefined') {
+    return;
+  }
+  const root = document.documentElement;
+  root.setAttribute('data-theme', theme.mode);
+  for (const [key, val] of Object.entries(theme.tokens)) {
+    root.style.setProperty(key, val);
+  }
+}

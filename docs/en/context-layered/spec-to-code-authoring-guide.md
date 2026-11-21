@@ -246,10 +246,34 @@ export const preactSession = connectSourceSignal(fromStateReader(sharedSessionSt
 
 ---
 
-## 6. Canonical Live Examples & Verification Checklist
+## 6. Progressive Adoption, Defect Prevention & Debt Governance
+
+Avoid over-engineering simple UI widgets while guaranteeing strict invariants once workflows scale.
+
+### 6.1 3-Level Progressive Adoption Matrix
+
+| Adoption Level | Minimal Directory Shape | Required Primitives | Promote Next When… |
+| --- | --- | --- | --- |
+| **Level 1 · Lite** | `contexts/`, `handlers/`, `views/` | `createActionContext` + `createStoreContext` + `useActionHandler` | Business validation or async transitions need unit testing outside React |
+| **Level 2 · Headless-First Symmetric DI** | Add `business/`, pure-TS `runtime/` | `ActionRegister` + `createStateStore`/`createStore` + `ownership="shared"` Providers | Multiple UI views/runtimes (`React`, `Preact`, `Lit`, Workers) share the same engine |
+| **Level 3 · Full 6-Layer** | Full `contexts / business / runtime (opt.) / handlers / actions / hooks / views` | Separated `Business` vs. `Layout` ActionContexts, `RefContext`, 4-role hooks, structured FSM/events | Teams enforce long-lived domain contracts, IIC traceability, and TypeSpec Evidence (`packages/template-react` starter) |
+
+### 6.2 What Each Pattern Induces (Intent & Quality Guarantees)
+
+- **Handler-only lazy reads (`no-store-subscription-in-handlers`) + `useCallback`**: Prevents stale-closure reads, unintended handler unregistration/re-registration churn, and circular re-render loops.
+- **Dispatch-only `actions/` helpers (`no-store-access-in-actions`)**: Keeps components unable to bypass Guards or Observers with ad-hoc `store.setValue()` mutations.
+- **Separated `BusinessActionIntent` vs. `LayoutActionIntent`**: Stops ephemeral layout events (`drawerToggle`, `focusField`) from triggering business analytics, persistence, or TimeTravel undo entries.
+- **Structured domain codes & events in `business/` → UI text mapping in `hooks/`**: Ensures domain tests and analytics remain immune to UX wording changes and keeps localization in the binding layer.
+- **Explicit Debt Ledgers (`layered-surface-classification.json` & `rule-exceptions.json`)**: Every allowed deviation must declare a non-empty rationale and fails closed once stale, stopping architectural rot before it spreads.
+
+---
+
+## 7. Canonical Live Examples & Verification Checklist
 
 Inspect these live repository implementations that prove different slices of the architecture:
 
+- **Canonical Starter Template (`OrderWorkspace`, 6-Layer + Core 3 Axes + 4-Role Pipeline):**
+  - `@context-action/template-react` (`packages/template-react/src/features/order-workspace/`)
 - **Enterprise 6-Layer Playbooks (React Registry + Business + Explicit FSM + IIC):**
   - `/patterns/implementation-playbook` (`example/src/pages/patterns/implementation-playbook/`)
   - `/patterns/implementation-playbook/access-request`
@@ -260,10 +284,11 @@ Inspect these live repository implementations that prove different slices of the
 - **Tool-Calling AI Workspace (`tool-protocol` + `ai-sdk` + `webmcp` + `tool-durable-operations`):**
   - Standalone `/web-coding/` (`demos/bolt-style-editor/`)
 
-Before opening a PR, run the matching gates cleanly from the repository root:
+Before opening a PR (or validating external starter projects with `--root`), run the matching gates from the repository root:
 
 ```bash
 pnpm convention:check
+node scripts/check-context-layered-conventions.mjs --root packages/template-react/src
 pnpm package-boundary:check
 pnpm verify:surface-catalog
 pnpm verify:doc-snippets

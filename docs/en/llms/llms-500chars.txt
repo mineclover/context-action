@@ -38,13 +38,13 @@ A comprehensive architecture pattern for Context-Action framework applications, 
 # Context-Layered Convention Alignment Plan
 Sections: Decisions | Lint and convention enforcement | Current-State Classification | Migration Sequence | Remaining Direct-Registration Inventory | Completion Gates
 
-Status: Direct-registration inventory closed; remaining structural gates tracked Last reviewed: 2026-11-20 This document records the repository-level decision for aligning existing examples and documentation with the Context-Layered architecture. It sits beside the implementation convention because it describes the current-state classification, the fixed provider composition, and the migration gates needed to make the convention enforceable. New scenarios use these layers: Strict MVVM materia...
+Status: Structural & promoted AST gates enforced across example/src + packages/template-react/src; ongoing guidance centralized in convention-index.md and spec-to-code-authoring-guide.md Last reviewed: 2026-11-21 This document records the repository-level decision for aligning existing examples and documentation with the Context-Layered architecture. It sits beside the implementation convention because it describes the current-state classification, the fixed provider composition, and the migr...
 
 ===================[ DOC: en/context-layered/convention-index.md ]===================
 # Convention Index
-Sections: Start Here by Task | Grouped by Role | Enforcement Scope: CI-Enforced vs. Advisory / Cross-Repo | Reading Paths by Goal | Read Alongside the Example App | One-Line Summary
+Sections: Architecture & Quality System at a Glance | Start Here by Task | Grouped by Role | Enforcement Scope: CI-Enforced vs. Advisory / Cross-Repo | Reading Paths by Goal | Read Alongside the Starter Template & Example App | One-Line Summary
 
-This document is the central entry point for the implementation-playbook style conventions in the Context-Action repository. The docs have grown enough that it helps to group which documents define the rules, which ones demonstrate the pattern, and which ones lock the verification model. Choose the path that matches the change; do not read the whole library before you know which artifact you own. | If you are changing… | Read first | Then use | | --- | --- | --- | | a feature end-to-end from...
+This document is the central entry point for the implementation-playbook style conventions in the Context-Action repository. The docs have grown enough that it helps to group which documents define the rules, which ones demonstrate the pattern, and which ones lock the verification model. Context-Action organizes applications around three core axes, adopts structure progressively by domain size, and splits governance cleanly between CI-enforced invariants and advisory architecture practices: -...
 
 ===================[ DOC: en/context-layered/decisions/CA-ELEMENT-INTEROP-001.md ]===================
 # CA-ELEMENT-INTEROP-001: Core subpaths and host-neutral Element bindings
@@ -138,7 +138,7 @@ Status: Active Spec / Decision ID: CA-SURFACE-CATALOG-001 Owner: Framework Archi
 
 ===================[ DOC: en/context-layered/spec-to-code-authoring-guide.md ]===================
 # Spec-to-Code Authoring Guide
-Sections: End-to-End Spec-to-Code Pipeline | Spec-to-Layer-to-Gate Mapping Matrix | Recommended 4-Role Action API Hierarchy | End-to-End Authoring Walkthrough (Spec -> Headless Runtime -> React DI) | Multi-Host Store Reader Bridges (React · Preact · Lit) | Canonical Live Examples & Verification Checklist
+Sections: End-to-End Spec-to-Code Pipeline | Spec-to-Layer-to-Gate Mapping Matrix | Recommended 4-Role Action API Hierarchy | End-to-End Authoring Walkthrough (Spec -> Headless Runtime -> React DI) | Multi-Host Store Reader Bridges (React · Preact · Lit) | Progressive Adoption, Defect Prevention & Debt Governance | Canonical Live Examples & Verification Checklist
 
 Status: Active Spec / Decision IDs: CA-SURFACE-CATALOG-001, CA-SPEC-EVIDENCE-001, CA-STATECHART-EFFECT-001, CA-ELEMENT-INTEROP-001 Owner: Framework Core, React Runtime & Architecture Governance Related Specifications: - Convention Index - Implementation Convention - Store Selection and Usage Guide - Core Action Contracts - React State Contracts - Interaction Intent to Implementation Flow - Unified Triad Self-Serve Sync Guide Context-Action is designed so that specification intent, domain stat...
 

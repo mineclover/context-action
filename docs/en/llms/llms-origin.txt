@@ -1807,8 +1807,8 @@ This architecture provides a solid foundation for scalable, maintainable React a
 ===================[ DOC: en/context-layered/convention-alignment-plan.md ]===================
 # Context-Layered Convention Alignment Plan
 
-**Status:** Direct-registration inventory closed; remaining structural gates tracked
-**Last reviewed:** 2026-11-20
+**Status:** Structural & promoted AST gates enforced across `example/src` + `packages/template-react/src`; ongoing guidance centralized in `convention-index.md` and `spec-to-code-authoring-guide.md`
+**Last reviewed:** 2026-11-21
 
 This document records the repository-level decision for aligning existing examples and documentation with the Context-Layered architecture. It sits beside the implementation convention because it describes the current-state classification, the fixed provider composition, and the migration gates needed to make the convention enforceable.
 
@@ -1912,7 +1912,8 @@ The following classification is the baseline for migration.
 - The generic `createObjectContextHooks` factory now delegates its Action → Manager → Store synchronization to `lib/patterns/handlers/ObjectContextHandlerRegistry.tsx`; `ObjectContextManager.dispatch` is the domain-safe bridge instead of exposing its internal ActionRegister.
 - The convention checker now validates Provider nesting through the object-context factory, Flow Control, API Blocking, memoization, priority, and mouse-event compositions; `pnpm convention:check` reports zero provider-order violations.
 - The convention checker now discovers canonical roots for layer paths, file names, and import boundaries; the conditional permission, action-based mouse, context-store mouse, and enhanced context-store mouse usecases now expose their Context-Action boundaries under `contexts/`, packet/quote calculations remain in playbook Data Hooks, and the checker reports zero layer-path/name violations. The current root count is reported by `pnpm convention:check` rather than stored in this document.
-- `tools/context-action-lint/layered-surface-classification.json` now records the only remaining non-canonical `handlers/` surface: the compatibility object-context root; unclassified additions and stale classifications fail `convention:check`.
+- The convention checker now validates both `example/src` and `packages/template-react/src` by default (plus external consumer directories via `--root <dir>`), and enforces the three promoted AST invariants (`no-deprecated-effect-handler`, `no-store-access-in-actions`, `no-store-subscription-in-handlers`) with unit tests in `scripts/check-context-layered-conventions.test.mjs`.
+- `tools/context-action-lint/layered-surface-classification.json` records every non-canonical `handlers/` surface (`advanced` live web-coding integration host + `compatibility` object-context root), while `tools/context-action-lint/rule-exceptions.json` tracks justified AST rule exemptions (such as the intentional non-memoized benchmark subscription in `ComparisonHandlerRegistry.tsx`); unclassified additions and stale entries fail `convention:check`.
 - `docs/en/concept/conventions.md` describes strict MVVM and must be linked as migration/legacy guidance rather than a parallel standard.
 - Existing documentation and examples contain both adjacent provider orders. A repository search found 19 action-then-store occurrences and 20 store-then-action occurrences; this is a structural inventory, not a runtime failure report.
 
@@ -1954,12 +1955,34 @@ This inventory is intentionally separated from the canonical playbook examples. 
 - English and Korean convention documents describe the same rules.
 - CI fails when the structural convention drifts.
 
-The direct-registration, Provider-order, canonical layer-path/name, and migration-classification gates are complete. The advanced comparison inventory is now empty; keep the remaining compatibility export documented and do not add new handler registrations outside Registry modules.
+The direct-registration, Provider-order, canonical layer-path/name, multi-root (`example/src` + `packages/template-react/src`), and promoted AST gates are active and verified. Any remaining deviations must live explicitly with rationale in `layered-surface-classification.json` or `rule-exceptions.json`. For day-to-day authoring, progressive adoption, and governance rules, start from [Convention Index](./convention-index.md) and [Spec-to-Code Authoring Guide](./spec-to-code-authoring-guide.md).
 
 ===================[ DOC: en/context-layered/convention-index.md ]===================
 # Convention Index
 
 This document is the central entry point for the implementation-playbook style conventions in the Context-Action repository. The docs have grown enough that it helps to group which documents define the rules, which ones demonstrate the pattern, and which ones lock the verification model.
+
+## Architecture & Quality System at a Glance
+
+Context-Action organizes applications around **three core axes**, adopts structure progressively by domain size, and splits governance cleanly between **CI-enforced invariants** and **advisory architecture practices**:
+
+- **Core 3 Axes**:
+  1. **Action Pipeline** (`@context-action/core`, `ActionContext`) — sequential admission (`Guard`), execution (`Command`/`Result`), and post-settlement observation (`Observer`).
+  2. **Reactive Store** (`@context-action/store-core`, `Store`, `TimeTravelStore`) — explicit snapshots read lazily in `handlers/` (`store.getValue()`) and subscribed declaratively in `hooks/` (`useStoreValue` / `useStoreSelector` / `useStorePath`).
+  3. **Imperative Ref** (`RefContext`) — high-frequency DOM, canvas, or element-host operations without React re-renders.
+- **3-Level Progressive Adoption Ladder**:
+  - **Level 1 · Lite**: Single-domain `createActionContext` + `createStoreContext` + `useActionHandler` inside a local Registry.
+  - **Level 2 · Headless-First Symmetric DI**: Pure domain `business/` + framework-neutral `runtime/` (`ActionRegister` + `createStore` / `createStateStore`), injected into React via `ownership="shared"` Providers (`/foundations/react/headless-di`).
+  - **Level 3 · Full 6-Layer**: Strict `contexts / business / runtime (optional) / handlers / actions / hooks / views` split with separated `Business` vs. `Layout` intents, domain codes/events, and explicit state machines ([packages/template-react](../../../packages/template-react/README.md) starter & `/patterns/implementation-playbook`).
+- **7 CI-Enforced Rules (`pnpm convention:check`, scanning `example/src` + `packages/template-react/src`, or external consumer `--root <dir>`)**:
+  1. Handler registration placement (`handlers/` or `*HandlerRegistry` only)
+  2. Fixed Provider nesting (`Action -> Store -> Ref -> HandlerRegistry`)
+  3. Canonical layer file names & import boundaries (`contexts / business / runtime / handlers / actions / hooks / views`)
+  4. Explicit non-canonical `handlers/` classification (`tools/context-action-lint/layered-surface-classification.json`)
+  5. `no-deprecated-effect-handler` (blocks deprecated `use*ActionEffectHandler` / `registerEffect`)
+  6. `no-store-access-in-actions` (blocks runtime store imports and `use*Store` / `getStore` / `setValue` / `update` in canonical `actions/`)
+  7. `no-store-subscription-in-handlers` (blocks `use*StoreValue` / `use*StoreSelector` / `use*StorePath` in `handlers/` & `*HandlerRegistry`; justifies rare intentional exceptions fail-closed via `tools/context-action-lint/rule-exceptions.json`)
+- **Advisory / Cross-Repo Discipline**: 4-role handler hooks, `BusinessActionIntent` vs. `LayoutActionIntent` separation (`No Mixed Payloads`), `useCallback` stability, domain codes/events translated in `hooks/`, IIC (`CA-IIC-*`), 2-Second State Rule (`CA-SPEC-EVIDENCE-001`), and Unified Triad (`ttsc-ex` · `oa-sdk`) locks.
 
 ## Start Here by Task
 
@@ -2076,8 +2099,8 @@ Not every rule in this index has the same enforcement mechanism:
 
 | Scope | Conventions Covered | How It Is Checked |
 | --- | --- | --- |
-| **CI-Enforced in this repo** | `package-boundary-convention`, `repository-surface-catalog` (`CA-SURFACE-CATALOG-001`), `documentation-development-conventions`, `implementation-convention`, `change-management-convention`, `LOCAL_FIRST_VERIFICATION_POLICY` | Automated scripts & PR CI: `pnpm package-boundary:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`, `pnpm verify:doc-snippets`, `pnpm change:traceability`, `pnpm verify:quick` / `pnpm verify:receipt` |
-| **Advisory / Cross-Repo** | `interaction-intent-contract` (IIC checklists), `triad-evidence-sync-guide` (`ttsc-ex` · `oa-sdk` companion locks), `usecase-panel-layout` (panel UX heuristics) | Design/PR review guidance and optional sibling-workspace tooling; local `context-action` CI checks repo-local docs/convention parity only |
+| **CI-Enforced in this repo** | `package-boundary-convention`, `repository-surface-catalog` (`CA-SURFACE-CATALOG-001`), `documentation-development-conventions`, `implementation-convention` (all 7 structural & AST rules + fail-closed `layered-surface-classification.json` / `rule-exceptions.json` across `example/src` and `packages/template-react/src`), `change-management-convention`, `LOCAL_FIRST_VERIFICATION_POLICY` | Automated scripts & PR CI: `pnpm package-boundary:check`, `pnpm verify:surface-catalog`, `pnpm convention:check` (`--root <dir>` for external consumers), `pnpm docs:check`, `pnpm verify:doc-snippets`, `pnpm change:traceability`, `pnpm verify:quick` / `pnpm verify:receipt` |
+| **Advisory / Cross-Repo** | 4-role hooks (`Guard`/`Command`/`Result`/`Observer`), `BusinessActionIntent` vs. `LayoutActionIntent` split, domain events, `interaction-intent-contract` (IIC checklists), 2-Second State Rule (`CA-SPEC-EVIDENCE-001`), `triad-evidence-sync-guide` (`ttsc-ex` · `oa-sdk`), `usecase-panel-layout` | Design/PR review guidance, `packages/template-react` starter reference, and optional sibling-workspace tooling; local `context-action` CI checks repo-local docs/convention parity only |
 
 ## Reading Paths by Goal
 
@@ -2119,14 +2142,16 @@ explicit transaction with named participants.
 4. [Tool-Calling Editor Architecture](/en/concept/tool-calling-editor-architecture)
 5. [Standalone Web Studio README](../../../demos/bolt-style-editor/README.md)
 
-## Read Alongside the Example App
+## Read Alongside the Starter Template & Example App
 
-The docs make more sense when paired with the live demos:
+The docs make more sense when paired with the canonical starter template and live demos:
 
+- `@context-action/template-react` starter (`packages/template-react/src/features/order-workspace/`)
 - `/patterns/implementation-playbook`
 - `/patterns/implementation-playbook/access-request`
 - `/patterns/implementation-playbook/incident-escalation`
 - `/patterns/implementation-playbook/renewal-risk-review`
+- `/foundations/react/headless-di`
 - standalone `/web-coding/` release
 
 ## One-Line Summary
@@ -2605,7 +2630,9 @@ The current gate enforces:
   `use*ActionResultHandler`, `use*ActionObserver`, `use*ActionHandler`, and
   `use*ActionEffectHandler` calls outside `handlers/` / `*HandlerRegistry` are
   rejected.
-- `actions/` files use `*Actions` or `*ActionHandlers` names.
+- `actions/` files use `*Actions` / `*actions` (plus `index`) names and remain strictly free of runtime Store imports, `.getStore()`, `.setValue()`, or `.update()` calls (`no-store-access-in-actions`).
+- `handlers/` modules (and `*HandlerRegistry` files) must read stores lazily via `store.getValue()` and must not subscribe with `use*StoreValue` / `use*StoreSelector` / `use*StorePath` (`no-store-subscription-in-handlers`).
+- Deprecated `use*ActionEffectHandler` and `registerEffect` calls are forbidden across all scanned sources (`no-deprecated-effect-handler`).
 - `hooks/` files use `use*` names, with `index` and `types` entry points.
 - `views/` files use `*View`, `*Views`, or a named composite such as `*Grid`.
 - Context modules do not import downstream layer folders, and views do not
@@ -2614,32 +2641,25 @@ The current gate enforces:
 Derived business values belong in a hook or facade before they reach a view.
 For example, the implementation-playbook packet and quote previews are
 computed by their Data Hooks, while the views only render the returned model.
-Run the gate together with the usecase-specific checks:
+Run the gate together with the usecase-specific checks (by default `pnpm convention:check` scans both `example/src` and `packages/template-react/src`, and `node scripts/check-context-layered-conventions.mjs --root <dir>` supports external consumer projects):
 
 ```bash
 pnpm convention:check
+node scripts/check-context-layered-conventions.mjs --root packages/template-react/src
 pnpm --filter example check
 ```
 
-The gate discovers the current canonical roots from the repository structure and
-currently reports zero layer-path/name violations. Run `pnpm convention:check` for
-the current count; advanced and compatibility roots remain explicitly outside this
-automatic naming scope until their migration classification changes. Repository-wide package imports are governed
-separately by `pnpm package-boundary:check`.
+The gate discovers the current canonical roots across the scanned directories and
+currently reports zero violations across naming, import boundaries, Provider order, and promoted AST rules. Run `pnpm convention:check` for the live root and exception counts; `advanced` and `compatibility` roots remain explicitly outside this automatic naming scope until their migration classification changes. Repository-wide package imports are governed separately by `pnpm package-boundary:check`.
 
-Non-canonical `handlers/` directories are not silently ignored. Their current
-classification and rationale live in
-`tools/context-action-lint/layered-surface-classification.json`; the checker
-requires every such directory to be listed as either `advanced` or
-`compatibility`. The current manifest contains no advanced comparison surfaces
-and one compatibility object-context surface. The conditional permission,
+Non-canonical `handlers/` directories and rare intentional AST rule exceptions are never silently ignored. Non-canonical handler directories are cataloged with rationale in `tools/context-action-lint/layered-surface-classification.json` (each entry classified as `advanced` or `compatibility`; live counts reported by `pnpm convention:check`, currently 1 `advanced` integration surface and 1 `compatibility` object-context surface), and justified AST rule exemptions live fail-closed in `tools/context-action-lint/rule-exceptions.json` (requiring a valid rule, file, and non-empty `reason`, and failing if stale). The conditional permission,
 action-based mouse, context-store mouse, and enhanced context-store mouse
 usecases now expose canonical `contexts/` and `handlers/` surfaces. The
 enhanced context-store usecase also separates its semantic commands under
 `actions/`, pure transitions under `business/`, and provider composition under
 `providers/`. The memoization comparison has also migrated into canonical
 `contexts/` and `actions/` boundaries with its old model and hook paths
-retained as compatibility re-exports.
+retained as compatibility re-exports (and its non-memoized benchmark lane explicitly recorded in `rule-exceptions.json`).
 
 ## Explicit State Machine Rule
 
@@ -4798,10 +4818,34 @@ export const preactSession = connectSourceSignal(fromStateReader(sharedSessionSt
 
 ---
 
-## 6. Canonical Live Examples & Verification Checklist
+## 6. Progressive Adoption, Defect Prevention & Debt Governance
+
+Avoid over-engineering simple UI widgets while guaranteeing strict invariants once workflows scale.
+
+### 6.1 3-Level Progressive Adoption Matrix
+
+| Adoption Level | Minimal Directory Shape | Required Primitives | Promote Next When… |
+| --- | --- | --- | --- |
+| **Level 1 · Lite** | `contexts/`, `handlers/`, `views/` | `createActionContext` + `createStoreContext` + `useActionHandler` | Business validation or async transitions need unit testing outside React |
+| **Level 2 · Headless-First Symmetric DI** | Add `business/`, pure-TS `runtime/` | `ActionRegister` + `createStateStore`/`createStore` + `ownership="shared"` Providers | Multiple UI views/runtimes (`React`, `Preact`, `Lit`, Workers) share the same engine |
+| **Level 3 · Full 6-Layer** | Full `contexts / business / runtime (opt.) / handlers / actions / hooks / views` | Separated `Business` vs. `Layout` ActionContexts, `RefContext`, 4-role hooks, structured FSM/events | Teams enforce long-lived domain contracts, IIC traceability, and TypeSpec Evidence (`packages/template-react` starter) |
+
+### 6.2 What Each Pattern Induces (Intent & Quality Guarantees)
+
+- **Handler-only lazy reads (`no-store-subscription-in-handlers`) + `useCallback`**: Prevents stale-closure reads, unintended handler unregistration/re-registration churn, and circular re-render loops.
+- **Dispatch-only `actions/` helpers (`no-store-access-in-actions`)**: Keeps components unable to bypass Guards or Observers with ad-hoc `store.setValue()` mutations.
+- **Separated `BusinessActionIntent` vs. `LayoutActionIntent`**: Stops ephemeral layout events (`drawerToggle`, `focusField`) from triggering business analytics, persistence, or TimeTravel undo entries.
+- **Structured domain codes & events in `business/` → UI text mapping in `hooks/`**: Ensures domain tests and analytics remain immune to UX wording changes and keeps localization in the binding layer.
+- **Explicit Debt Ledgers (`layered-surface-classification.json` & `rule-exceptions.json`)**: Every allowed deviation must declare a non-empty rationale and fails closed once stale, stopping architectural rot before it spreads.
+
+---
+
+## 7. Canonical Live Examples & Verification Checklist
 
 Inspect these live repository implementations that prove different slices of the architecture:
 
+- **Canonical Starter Template (`OrderWorkspace`, 6-Layer + Core 3 Axes + 4-Role Pipeline):**
+  - `@context-action/template-react` (`packages/template-react/src/features/order-workspace/`)
 - **Enterprise 6-Layer Playbooks (React Registry + Business + Explicit FSM + IIC):**
   - `/patterns/implementation-playbook` (`example/src/pages/patterns/implementation-playbook/`)
   - `/patterns/implementation-playbook/access-request`
@@ -4812,10 +4856,11 @@ Inspect these live repository implementations that prove different slices of the
 - **Tool-Calling AI Workspace (`tool-protocol` + `ai-sdk` + `webmcp` + `tool-durable-operations`):**
   - Standalone `/web-coding/` (`demos/bolt-style-editor/`)
 
-Before opening a PR, run the matching gates cleanly from the repository root:
+Before opening a PR (or validating external starter projects with `--root`), run the matching gates from the repository root:
 
 ```bash
 pnpm convention:check
+node scripts/check-context-layered-conventions.mjs --root packages/template-react/src
 pnpm package-boundary:check
 pnpm verify:surface-catalog
 pnpm verify:doc-snippets

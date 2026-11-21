@@ -1257,8 +1257,8 @@ export function BillingFeature({ children }: { children: React.ReactNode }) {
 ===================[ DOC: ko/context-layered/convention-alignment-plan.md ]===================
 # Context-Layered 컨벤션 정합성 계획
 
-**상태:** 직접 등록 인벤토리 종료, 잔여 구조 게이트 추적 중
-**최근 검토:** 2026-11-20
+**상태:** `example/src` 및 `packages/template-react/src` 대상 구조·승격 AST 게이트 상시 강제 중 (일상 작성 기준은 `convention-index.md` · `spec-to-code-authoring-guide.md`로 통합)
+**최근 검토:** 2026-11-21
 
 이 문서는 기존 예제와 문서를 Context-Layered 구조에 맞추기 위한 저장소 단위 결정을 기록합니다. 구현 표준 문서와 같은 위치에서 현재 상태 분류, Provider 중첩 순서, 컨벤션을 강제하기 위한 완료 조건을 관리합니다.
 
@@ -1362,7 +1362,8 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - 범용 `createObjectContextHooks` factory는 Action → Manager → Store 동기화를 `lib/patterns/handlers/ObjectContextHandlerRegistry.tsx`에 위임합니다. 내부 ActionRegister를 노출하는 대신 `ObjectContextManager.dispatch`를 도메인 경계의 안전한 bridge로 사용합니다.
 - 컨벤션 검사기는 object-context factory, Flow Control, API Blocking, memoization, priority, mouse-event 조합의 Provider 중첩도 검증합니다. `pnpm convention:check` 결과 Provider 순서 위반은 0건입니다.
 - 컨벤션 검사기는 저장소 구조에서 발견한 canonical root의 레이어 경로, 파일 명명, import 경계도 검증합니다. conditional permission, action-based mouse, context-store mouse, enhanced context-store mouse usecase의 Context-Action 경계를 `contexts/` 아래로 이동했고, implementation-playbook View의 packet·quote는 Data Hook에서 계산하며 레이어 경로·명명 위반은 0건입니다. 현재 root 수는 `pnpm convention:check`에서 확인합니다.
-- `tools/context-action-lint/layered-surface-classification.json`에는 유일하게 남은 비정형 `handlers/` 표면인 compatibility object-context root만 기록했습니다. 분류되지 않은 추가와 stale 분류는 `convention:check`를 실패시킵니다.
+- 컨벤션 검사기는 기본적으로 `example/src`와 `packages/template-react/src`를 함께 검사하고(`--root <dir>`로 외부 앱 검사 지원), 승격된 3대 AST 불변식(`no-deprecated-effect-handler`, `no-store-access-in-actions`, `no-store-subscription-in-handlers`)과 `scripts/check-context-layered-conventions.test.mjs` 단위 테스트를 함께 강제합니다.
+- `tools/context-action-lint/layered-surface-classification.json`은 모든 비정형 `handlers/` 표면(`advanced` live web-coding 통합 호스트 + `compatibility` object-context root)을 기록하고, `tools/context-action-lint/rule-exceptions.json`은 불가피한 AST 규칙 예외(예: `ComparisonHandlerRegistry.tsx`의 비메모이제이션 벤치마크 레인)를 관리하며, 미등록 추가와 stale 항목 모두 `convention:check`를 실패시킵니다.
 - `docs/en/concept/conventions.md`는 strict MVVM을 설명하므로 병렬 표준이 아니라 migration/legacy 안내로 연결해야 합니다.
 - 기존 문서와 예제에는 두 Provider 순서가 모두 존재합니다. 저장소 검색 결과 action-then-store 19건, store-then-action 20건이 확인되었으며, 이는 런타임 실패가 아닌 구조 인벤토리입니다.
 
@@ -1404,12 +1405,34 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - 영어·한국어 컨벤션 문서가 동일한 규칙을 설명합니다.
 - 구조적 drift가 발생하면 CI가 실패합니다.
 
-직접 등록, Provider 순서, canonical 레이어 경로·명명, 마이그레이션 분류 게이트는 완료되었습니다. advanced 비교 표면 인벤토리도 비어 있으므로, 남은 compatibility export를 문서화하고 Registry 모듈 밖에 새로운 handler 등록을 추가하지 않습니다.
+직접 등록, Provider 순서, canonical 레이어 경로·명명, 멀티 루트(`example/src` + `packages/template-react/src`) 및 승격된 AST 규칙 게이트가 활성화되어 있습니다. 불가피한 예외는 모두 `layered-surface-classification.json` 또는 `rule-exceptions.json`에 사유와 함께 기록하며, 일상적인 설계·도입·품질/의도 관리 절차는 [개발 컨벤션 인덱스](./convention-index.md)와 [스펙 기반 코드 작성 가이드](./spec-to-code-authoring-guide.md)에서 시작하세요.
 
 ===================[ DOC: ko/context-layered/convention-index.md ]===================
 # 개발 컨벤션 인덱스
 
 이 문서는 Context-Action 저장소에서 implementation-playbook 계열 개발 컨벤션을 굳히기 위해 가장 먼저 봐야 할 중심 인덱스입니다. 문서가 많아졌기 때문에, 어떤 문서가 “원칙”, 어떤 문서가 “예제”, 어떤 문서가 “검증”인지 한 번에 묶어보는 용도로 씁니다.
+
+## 아키텍처·품질·의도 관리 체계 한눈에 보기
+
+Context-Action은 **핵심 3축**을 중심으로 도메인 크기에 맞게 **3단계로 점진 도입**하며, 규칙을 **CI 자동 차단 게이트**와 **권고·리뷰 규율**로 명확히 나누어 관리합니다:
+
+- **핵심 3축 (Core 3 Axes)**:
+  1. **Action Pipeline** (`@context-action/core`, `ActionContext`) — 승인(`Guard`) → 실행·결과(`Command`/`Result`) → 정산 후 관찰(`Observer`) 4-역할 파이프라인.
+  2. **Reactive Store** (`@context-action/store-core`, `Store`, `TimeTravelStore`) — `handlers/`에서는 `store.getValue()`로 지연 읽기만 수행하고, `hooks/`에서 선언적으로 구독(`useStoreValue` / `useStoreSelector` / `useStorePath`).
+  3. **Imperative Ref** (`RefContext`) — 고빈도 DOM, 캔버스, 커스텀 엘리먼트 제어를 리렌더 없이 수행.
+- **3단계 점진 도입 사다리 (Progressive Adoption)**:
+  - **Level 1 · Lite**: 단일 도메인의 `createActionContext` + `createStoreContext` + 로컬 Registry 내 `useActionHandler`.
+  - **Level 2 · Headless-First Symmetric DI**: 순수 `business/` + 프레임워크 중립 `runtime/`(`ActionRegister` + `createStore` / `createStateStore`) 조립 후 React에서 `ownership="shared"`로 주입(`/foundations/react/headless-di`).
+  - **Level 3 · Full 6-Layer**: `contexts / business / runtime(선택) / handlers / actions / hooks / views` 분리, `Business` vs. `Layout` 인텐트 분리, 도메인 코드·이벤트 및 명시적 상태 머신([packages/template-react](../../../packages/template-react/README.md) 스타터 및 `/patterns/implementation-playbook`).
+- **CI 자동 차단 7대 규칙 (`pnpm convention:check` — `example/src` + `packages/template-react/src` 기본 검사, 외부 앱은 `--root <dir>`)**:
+  1. 핸들러 등록 위치 제한 (`handlers/` 또는 `*HandlerRegistry` 바깥 등록 차단)
+  2. Provider 중첩 순서 고정 (`Action → Store → Ref → HandlerRegistry`)
+  3. 정식 레이어 파일명 및 단방향 import 경계 (`contexts / business / runtime / handlers / actions / hooks / views`)
+  4. 비정형 `handlers/` 표면 명시 분류 (`tools/context-action-lint/layered-surface-classification.json`)
+  5. `no-deprecated-effect-handler` (deprecated `use*ActionEffectHandler` / `registerEffect` 호출 차단)
+  6. `no-store-access-in-actions` (`actions/` 내 런타임 Store import 및 `use*Store` / `getStore` / `setValue` / `update` 직접 변이 차단)
+  7. `no-store-subscription-in-handlers` (`handlers/` 및 `*HandlerRegistry` 내 `use*StoreValue` / `use*StoreSelector` / `use*StorePath` 반응형 구독 차단; 의도적 예외는 `tools/context-action-lint/rule-exceptions.json`에 사유를 등록하고 stale/미등록 시 fail-closed)
+- **권고 / 크로스-레포 규율**: 4-역할 핸들러 훅 우선 사용, `BusinessActionIntent` vs. `LayoutActionIntent` 분리(`No Mixed Payloads`), 핸들러 `useCallback` 안정화, `hooks/`에서 도메인 코드·이벤트 문자열 번역, IIC(`CA-IIC-*`), 2-Second State Rule(`CA-SPEC-EVIDENCE-001`), 통합 트라이어드(`ttsc-ex` · `oa-sdk`) 잠금.
 
 ## 작업별 시작점
 
@@ -1526,8 +1549,8 @@ pnpm convention:check
 
 | 구분 | 해당 컨벤션 | 검증 방식 |
 | --- | --- | --- |
-| **레포 내 CI 강제 (`CI-Enforced`)** | `package-boundary-convention`, `repository-surface-catalog` (`CA-SURFACE-CATALOG-001`), `documentation-development-conventions`, `implementation-convention`, `change-management-convention`, `LOCAL_FIRST_VERIFICATION_POLICY` | 자동 스크립트 및 PR CI: `pnpm package-boundary:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`, `pnpm verify:doc-snippets`, `pnpm change:traceability`, `pnpm verify:quick` / `pnpm verify:receipt` |
-| **권고 / 크로스-레포 (`Advisory / Cross-Repo`)** | `interaction-intent-contract`(IIC 체크리스트), `triad-evidence-sync-guide`(`ttsc-ex` · `oa-sdk` 연동 잠금), `usecase-panel-layout`(패널 UX 휴리스틱) | 설계·PR 리뷰 가이드 및 인접 워크스페이스 도구 기준; `context-action` 로컬 CI는 저장소 내 문서/컨벤션 정합성만 검증 |
+| **레포 내 CI 강제 (`CI-Enforced`)** | `package-boundary-convention`, `repository-surface-catalog` (`CA-SURFACE-CATALOG-001`), `documentation-development-conventions`, `implementation-convention` (`example/src` + `packages/template-react/src` 대상 7대 구조·AST 규칙 및 fail-closed `layered-surface-classification.json` / `rule-exceptions.json`), `change-management-convention`, `LOCAL_FIRST_VERIFICATION_POLICY` | 자동 스크립트 및 PR CI: `pnpm package-boundary:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`(외부 소비자는 `--root <dir>`), `pnpm docs:check`, `pnpm verify:doc-snippets`, `pnpm change:traceability`, `pnpm verify:quick` / `pnpm verify:receipt` |
+| **권고 / 크로스-레포 (`Advisory / Cross-Repo`)** | 4-역할 훅(`Guard`/`Command`/`Observer`/`Result`), `BusinessActionIntent` vs. `LayoutActionIntent` 분리, 도메인 이벤트, `interaction-intent-contract`(IIC 체크리스트), 2-Second State Rule(`CA-SPEC-EVIDENCE-001`), `triad-evidence-sync-guide`(`ttsc-ex` · `oa-sdk`), `usecase-panel-layout` | 설계·PR 리뷰 가이드, `packages/template-react` 표준 스타터 참조 및 인접 워크스페이스 도구 기준; `context-action` 로컬 CI는 저장소 내 문서/컨벤션 정합성만 검증 |
 
 ## 팀 컨벤션으로 굳힐 때 읽는 순서
 
@@ -1569,14 +1592,16 @@ participant를 가진 transaction을 시작합니다.
 4. [Tool-calling Editor Architecture](/ko/concept/tool-calling-editor-architecture)
 5. [Standalone Web Studio README](../../../demos/bolt-style-editor/README.md)
 
-## 코드와 같이 볼 때
+## 스타터 템플릿 및 예제 앱과 같이 볼 때
 
-문서만 보지 말고 예제 앱도 같이 보는 것이 가장 좋습니다.
+문서만 보지 말고 표준 스타터 템플릿과 라이브 예제 앱도 함께 확인하는 것이 좋습니다.
 
+- `@context-action/template-react` 표준 스타터 (`packages/template-react/src/features/order-workspace/`)
 - `/patterns/implementation-playbook`
 - `/patterns/implementation-playbook/access-request`
 - `/patterns/implementation-playbook/incident-escalation`
 - `/patterns/implementation-playbook/renewal-risk-review`
+- `/foundations/react/headless-di`
 - standalone `/web-coding/` release
 
 ## 한 줄 요약
@@ -2048,7 +2073,9 @@ compatibility 표면에는 canonical 명명 규칙을 일괄 적용하지 않습
   `handlers/` 또는 `*HandlerRegistry` 바깥의 `use*ActionGuard`,
   `use*ActionCommandHandler`, `use*ActionResultHandler`, `use*ActionObserver`,
   `use*ActionHandler`, `use*ActionEffectHandler` 직접 호출을 차단합니다.
-- `actions/` 파일은 `*Actions` 또는 `*ActionHandlers`로 이름 짓습니다.
+- `actions/` 파일은 `*Actions` / `*actions`(또는 `index`)로 이름 지으며, 런타임 Store import와 `.getStore()` · `.setValue()` · `.update()` 직접 호출을 금지합니다(`no-store-access-in-actions`).
+- `handlers/` 모듈(및 `*HandlerRegistry` 파일)은 `store.getValue()`로 지연 읽기만 수행하며 `use*StoreValue` · `use*StoreSelector` · `use*StorePath` 반응형 구독을 금지합니다(`no-store-subscription-in-handlers`).
+- deprecated된 `use*ActionEffectHandler`와 `registerEffect` 호출은 전체 검사 대상에서 차단합니다(`no-deprecated-effect-handler`).
 - `hooks/` 파일은 `use*` 명명을 사용하며 `index`, `types` 진입점을
   허용합니다.
 - `views/` 파일은 `*View`, `*Views` 또는 `*Grid` 같은 명시적 composite
@@ -2059,30 +2086,23 @@ compatibility 표면에는 canonical 명명 규칙을 일괄 적용하지 않습
 파생 business 값은 View에 도달하기 전에 Hook 또는 Facade에서 계산합니다.
 예를 들어 implementation-playbook의 packet과 quote preview는 Data Hook이
 계산하고 View는 반환된 model만 렌더링합니다. usecase 전용 검사와 함께 다음
-게이트를 실행합니다.
+게이트를 실행합니다(`pnpm convention:check`는 기본적으로 `example/src`와 `packages/template-react/src`를 함께 스캔하며, 외부 앱은 `node scripts/check-context-layered-conventions.mjs --root <dir>`로 검증합니다):
 
 ```bash
 pnpm convention:check
+node scripts/check-context-layered-conventions.mjs --root packages/template-react/src
 pnpm --filter example check
 ```
 
-현재 게이트는 저장소 구조에서 canonical root를 발견하며 레이어 경로·명명
-위반은 0건입니다. 현재 root 수는 `pnpm convention:check` 출력으로 확인하고,
-advanced 및 compatibility root는 마이그레이션 분류가 바뀔 때까지 이 자동
-명명 범위에서 명시적으로 제외합니다. 저장소 전체 package
-import는 별도로 `pnpm package-boundary:check`가 관리합니다.
+현재 게이트는 스캔 대상 전반에서 canonical root를 자동 발견하며 레이어 경로·명명, import 경계, Provider 순서, 승격된 3대 AST 규칙 위반 모두 0건입니다. 실시간 root 수와 예외 건수는 `pnpm convention:check` 출력이 source of truth이며, `advanced` 및 `compatibility` root는 마이그레이션 분류가 바뀔 때까지 자동 명명 범위에서 명시적으로 제외합니다. 저장소 전체 package import는 별도로 `pnpm package-boundary:check`가 관리합니다.
 
-비정형 `handlers/` 디렉터리를 조용히 무시하지 않습니다. 현재 분류와 근거는
-`tools/context-action-lint/layered-surface-classification.json`에 두며, 검사기는
-모든 비정형 디렉터리가 `advanced` 또는 `compatibility` 중 하나로 등록되어
-있는지 확인합니다. 현재 manifest에는 advanced 비교 표면이 없고
-compatibility object-context 표면 1곳이 있습니다. conditional permission,
+비정형 `handlers/` 디렉터리와 불가피한 AST 규칙 예외는 조용히 무시하지 않습니다. 비정형 `handlers/` 분류와 근거는 `tools/context-action-lint/layered-surface-classification.json`에 `advanced` 또는 `compatibility`로 등록하고(실시간 카운트는 `pnpm convention:check` 출력 기준, 현재 `advanced` 통합 표면 1곳 및 `compatibility` object-context 표면 1곳), 불가피한 AST 규칙 예외는 `tools/context-action-lint/rule-exceptions.json`에 사유(`reason`)와 함께 fail-closed로 등록하며 더 이상 트리거되지 않으면(stale) 게이트가 실패합니다. conditional permission,
 action-based mouse, context-store mouse, enhanced context-store mouse
 usecase는 canonical `contexts/`와 `handlers/` 표면에 편입되었습니다.
 enhanced context-store usecase는 semantic command를 `actions/`, 순수 전이를
 `business/`, Provider 조합을 `providers/`에서 분리합니다. memoization 비교도
 canonical `contexts/`와 `actions/` 경계로 이동했으며 기존 model과 hook 경로는
-compatibility re-export로 유지합니다.
+compatibility re-export로 유지합니다(비메모이제이션 비교 레인은 `rule-exceptions.json`에 사유를 명시적으로 등록).
 
 ## 명시적 상태 머신 규칙
 
@@ -3890,10 +3910,34 @@ export const preactSession = connectSourceSignal(fromStateReader(sharedSessionSt
 
 ---
 
-## 6. 대표 라이브 예제 및 PR 전 검증 체크리스트
+## 6. 점진적 도입, 결함 예방 효과 및 부채 거버넌스
 
-저장소 내 다음 라이브 경로에서 각 아키텍처 패턴의 실제 구현을 확인할 수 있습니다:
+단순 위젯에 과도한 보일러플레이트를 강제하지 않으면서도, 워크플로가 커질 때 핵심 불변식을 자동으로 보장하도록 설계되어 있습니다.
 
+### 6.1 3단계 점진적 도입 기준
+
+| 도입 단계 | 최소 폴더 구성 | 핵심 프리미티브 | 다음 단계로 승격할 시점 |
+| --- | --- | --- | --- |
+| **Level 1 · Lite** | `contexts/`, `handlers/`, `views/` | `createActionContext` + `createStoreContext` + `useActionHandler` | 검증 규칙·비동기 전이를 React 바깥에서 단독 단위 테스트하고 싶을 때 |
+| **Level 2 · Headless-First Symmetric DI** | `business/`, 순수 TS `runtime/` 추가 | `ActionRegister` + `createStateStore`/`createStore` + `ownership="shared"` Provider | 여러 뷰·호스트(`React`, `Preact`, `Lit`, Worker)가 동일 엔진을 공유할 때 |
+| **Level 3 · Full 6-Layer** | `contexts / business / runtime(선택) / handlers / actions / hooks / views` | 분리된 `Business` vs. `Layout` ActionContext, `RefContext`, 4-역할 훅, 명시적 FSM/이벤트 | 장기 계약, IIC 추적성, TypeSpec Evidence 거버넌스를 적용할 때 (`packages/template-react` 스타터 기준) |
+
+### 6.2 각 코드 패턴이 유도하는 품질·의도 보장 효과
+
+- **핸들러 지연 읽기(`no-store-subscription-in-handlers`) + `useCallback`**: stale closure 오동작, 핸들러 불필요 재등록(churn), 순환 리렌더를 원천 차단합니다.
+- **`actions/`의 순수 `dispatch` 위임(`no-store-access-in-actions`)**: UI 계층이 Guard/Observer 파이프라인을 우회해 `store.setValue()`를 직접 호출하지 못하도록 커밋 권한을 `handlers/`로 단일화합니다.
+- **`BusinessActionIntent` vs. `LayoutActionIntent` 분리**: 패널 열기·포커스 이동 같은 UI 제어가 비즈니스 감사 로그·Undo 히스토리·원격 동기화에 섞이는 현상을 막습니다.
+- **`business/` 도메인 코드·이벤트 → `hooks/` 문구 번역**: UI 문구 수정이나 다국어화가 비즈니스 로직 테스트와 분석 이벤트를 깨뜨리지 않도록 격리합니다.
+- **Fail-Closed 부채 장부(`layered-surface-classification.json` & `rule-exceptions.json`)**: 불가피한 예외는 비어 있지 않은 사유(`reason`)와 함께 명시적으로 등록하며, 해결 후에도 방치되면(stale) 즉시 게이트를 실패시켜 기술 부채가 조용히 누적되는 것을 막습니다.
+
+---
+
+## 7. 대표 라이브 예제 및 PR 전 검증 체크리스트
+
+저장소 내 다음 스타터 템플릿과 라이브 경로에서 각 아키텍처 패턴의 실제 구현을 확인할 수 있습니다:
+
+- **표준 React 스타터 템플릿 (`OrderWorkspace`, 6-Layer + Core 3축 + 4-Role 파이프라인):**
+  - `@context-action/template-react` (`packages/template-react/src/features/order-workspace/`)
 - **Enterprise 6-Layer Playbook (React HandlerRegistry + 순수 business + 명시적 FSM + IIC):**
   - `/patterns/implementation-playbook` (`example/src/pages/patterns/implementation-playbook/`)
   - `/patterns/implementation-playbook/access-request`
@@ -3904,10 +3948,11 @@ export const preactSession = connectSourceSignal(fromStateReader(sharedSessionSt
 - **도구 호출형 AI 워크스페이스 (`tool-protocol` + `ai-sdk` + `webmcp` + `tool-durable-operations`):**
   - 독립 데모 `/web-coding/` (`demos/bolt-style-editor/`)
 
-PR을 올리기 전에는 루트에서 다음 게이트들을 실행해 스펙·문서·코드 경계가 모두 맞물리는지 확인하세요:
+PR을 올리기 전(또는 `--root`로 외부 소비자 앱을 점검할 때) 루트에서 다음 게이트들을 실행해 스펙·문서·코드 경계가 모두 맞물리는지 확인하세요:
 
 ```bash
 pnpm convention:check
+node scripts/check-context-layered-conventions.mjs --root packages/template-react/src
 pnpm package-boundary:check
 pnpm verify:surface-catalog
 pnpm verify:doc-snippets

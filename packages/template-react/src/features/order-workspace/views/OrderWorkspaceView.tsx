@@ -1,30 +1,31 @@
-import React, { useState } from 'react';
-import { useOrderData } from '../hooks/useOrderData';
+/** @evidenceExclude */
+import { useState } from 'react';
+import { useTheme } from '../../../theme/useTheme';
 import { useOrderActions } from '../actions/useOrderActions';
-import { useThemeActionDispatch, useThemeStore } from '../../../theme/ThemeContext';
-import { useStoreValue } from '@context-action/react';
+import { useOrderData } from '../hooks/useOrderData';
 
 /**
  * Tier 3: Presentation View
- * 
+ *
  * Astryx 디자인 시스템 CSS 변수를 전면 활용하며,
- * 뷰 내부의 모달 개폐 등 휘발성 상태는 컴포넌트 로컬 상태로 관리합니다 (Tier 3 Waiver 준수).
+ * 뷰 내부의 모달/활동 로그 개폐 등 휘발성 상태는 컴포넌트 로컬 상태로 관리합니다 (Tier 3 Waiver 준수).
  */
 export function OrderWorkspaceView() {
-  const { draft, validationIssues, submission, activityLog, isSubmitting, isSuccess } = useOrderData();
-  const { updateDraft, resetDraft, submitOrder, retrySubmission } = useOrderActions();
-
-  // Astryx 테마 전환
-  const themeStore = useThemeStore('currentTheme');
-  const currentTheme = useStoreValue(themeStore);
-  const themeDispatch = useThemeActionDispatch();
+  const {
+    draft,
+    fieldErrors,
+    submission,
+    activityMessages,
+    isSubmitting,
+    isSuccess,
+    fieldRefs,
+  } = useOrderData();
+  const { updateDraft, resetDraft, submitOrder, retrySubmission } =
+    useOrderActions();
+  const { currentTheme, toggleTheme } = useTheme();
 
   // Tier 3: Volatile Presentation State (Waiver 대상: 로컬 useState로만 관리)
   const [isActivityOpen, setIsActivityOpen] = useState(true);
-
-  const getFieldError = (field: string) => {
-    return validationIssues.find((i) => i.field === field)?.message;
-  };
 
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 16px', width: '100%' }}>
@@ -49,7 +50,8 @@ export function OrderWorkspaceView() {
         </div>
 
         <button
-          onClick={() => themeDispatch('toggleTheme')}
+          type="button"
+          onClick={() => void toggleTheme()}
           style={{
             padding: '8px 16px',
             backgroundColor: 'var(--color-background-surface)',
@@ -107,14 +109,15 @@ export function OrderWorkspaceView() {
                 상품 선택
               </label>
               <select
+                ref={fieldRefs.productId.setRef}
                 value={draft.productId}
                 disabled={isSubmitting}
-                onChange={(e) => updateDraft({ productId: e.target.value })}
+                onChange={(e) => void updateDraft({ productId: e.target.value })}
                 style={{
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '8px',
-                  border: `1px solid ${getFieldError('productId') ? 'var(--color-error)' : 'var(--color-border)'}`,
+                  border: `1px solid ${fieldErrors.productId ? 'var(--color-error)' : 'var(--color-border)'}`,
                   backgroundColor: 'var(--color-background-body)',
                   color: 'var(--color-text-primary)',
                   fontSize: '14px',
@@ -124,9 +127,9 @@ export function OrderWorkspaceView() {
                 <option value="prod-astryx-002">Context-Action Enterprise License</option>
                 <option value="prod-astryx-003">TypeSpec Evidence CI Linter Platform</option>
               </select>
-              {getFieldError('productId') && (
+              {fieldErrors.productId && (
                 <span style={{ fontSize: '12px', color: 'var(--color-error)', marginTop: '4px', display: 'block' }}>
-                  {getFieldError('productId')}
+                  {fieldErrors.productId}
                 </span>
               )}
             </div>
@@ -136,25 +139,26 @@ export function OrderWorkspaceView() {
                 주문 수량
               </label>
               <input
+                ref={fieldRefs.quantity.setRef}
                 type="number"
                 min="0"
                 max="100"
                 value={draft.quantity}
                 disabled={isSubmitting}
-                onChange={(e) => updateDraft({ quantity: parseInt(e.target.value, 10) || 0 })}
+                onChange={(e) => void updateDraft({ quantity: parseInt(e.target.value, 10) || 0 })}
                 style={{
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '8px',
-                  border: `1px solid ${getFieldError('quantity') ? 'var(--color-error)' : 'var(--color-border)'}`,
+                  border: `1px solid ${fieldErrors.quantity ? 'var(--color-error)' : 'var(--color-border)'}`,
                   backgroundColor: 'var(--color-background-body)',
                   color: 'var(--color-text-primary)',
                   fontSize: '14px',
                 }}
               />
-              {getFieldError('quantity') && (
+              {fieldErrors.quantity && (
                 <span style={{ fontSize: '12px', color: 'var(--color-error)', marginTop: '4px', display: 'block' }}>
-                  {getFieldError('quantity')}
+                  {fieldErrors.quantity}
                 </span>
               )}
             </div>
@@ -164,24 +168,25 @@ export function OrderWorkspaceView() {
                 배송지 주소
               </label>
               <input
+                ref={fieldRefs.shippingAddress.setRef}
                 type="text"
                 value={draft.shippingAddress}
                 disabled={isSubmitting}
                 placeholder="도로명 주소 입력"
-                onChange={(e) => updateDraft({ shippingAddress: e.target.value })}
+                onChange={(e) => void updateDraft({ shippingAddress: e.target.value })}
                 style={{
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '8px',
-                  border: `1px solid ${getFieldError('shippingAddress') ? 'var(--color-error)' : 'var(--color-border)'}`,
+                  border: `1px solid ${fieldErrors.shippingAddress ? 'var(--color-error)' : 'var(--color-border)'}`,
                   backgroundColor: 'var(--color-background-body)',
                   color: 'var(--color-text-primary)',
                   fontSize: '14px',
                 }}
               />
-              {getFieldError('shippingAddress') && (
+              {fieldErrors.shippingAddress && (
                 <span style={{ fontSize: '12px', color: 'var(--color-error)', marginTop: '4px', display: 'block' }}>
-                  {getFieldError('shippingAddress')}
+                  {fieldErrors.shippingAddress}
                 </span>
               )}
             </div>
@@ -213,19 +218,25 @@ export function OrderWorkspaceView() {
                       value={method}
                       checked={draft.paymentMethod === method}
                       disabled={isSubmitting}
-                      onChange={() => updateDraft({ paymentMethod: method })}
+                      onChange={() => void updateDraft({ paymentMethod: method })}
                     />
                     {method === 'credit_card' ? '신용카드' : '계좌이체'}
                   </label>
                 ))}
               </div>
+              {fieldErrors.paymentMethod && (
+                <span style={{ fontSize: '12px', color: 'var(--color-error)', marginTop: '4px', display: 'block' }}>
+                  {fieldErrors.paymentMethod}
+                </span>
+              )}
             </div>
           </div>
 
           {/* Form Actions */}
           <div style={{ display: 'flex', gap: '12px', marginTop: '28px' }}>
             <button
-              onClick={submitOrder}
+              type="button"
+              onClick={() => void submitOrder()}
               disabled={isSubmitting || isSuccess}
               style={{
                 flex: 2,
@@ -244,7 +255,8 @@ export function OrderWorkspaceView() {
             </button>
 
             <button
-              onClick={resetDraft}
+              type="button"
+              onClick={() => void resetDraft()}
               disabled={isSubmitting}
               style={{
                 flex: 1,
@@ -282,7 +294,8 @@ export function OrderWorkspaceView() {
                 발급된 주문번호: <strong style={{ color: 'var(--color-text-primary)' }}>{submission.orderId}</strong>
               </div>
               <button
-                onClick={retrySubmission}
+                type="button"
+                onClick={() => void retrySubmission()}
                 style={{
                   marginTop: '10px',
                   padding: '8px 14px',
@@ -319,6 +332,7 @@ export function OrderWorkspaceView() {
               실시간 활동 로그
             </h3>
             <button
+              type="button"
               onClick={() => setIsActivityOpen(!isActivityOpen)}
               style={{
                 background: 'none',
@@ -351,7 +365,7 @@ export function OrderWorkspaceView() {
                 gap: '8px',
               }}
             >
-              {activityLog.map((log, index) => (
+              {activityMessages.map((log, index) => (
                 <div key={index} style={{ color: 'var(--color-text-primary)', wordBreak: 'break-all' }}>
                   {log}
                 </div>

@@ -12,11 +12,12 @@ Do not default every request to a full demo. Start with the smallest shape that 
 ## What this skill produces
 
 - a `contexts / business / handlers / actions / hooks / views` 6-layer split (plus an optional pure-TS `runtime/` directory for headless domain orchestration outside React)
+- progressive adoption matched to domain size: **Level 1 Lite** (`createActionContext` + `createStoreContext`) -> **Level 2 Headless-First Symmetric DI** (`runtime/` + `ownership="shared"`) -> **Level 3 Full 6-Layer** (`packages/template-react` & `example/src/pages/patterns/implementation-playbook/`)
 - `BusinessActionIntent` vs `LayoutActionIntent` separation (`No Mixed Payloads`)
-- pure business modules (`*Draft.ts`, `*Validation.ts`, `*Result.ts`, `*Activity.ts`, `*StateMachine.ts`) with `ttsc@0.33.1` / `@wrtnlabs/evidence@0.8.0` Policy Hopping locks (`@evidenceReview ./generated/dto.ts#... #hash`, Heading-Form `## @evidence`, or detached `evidenceFiles`)
-- handlers split by concern (`Draft` vs `Submission` / `Hydration`) using the 4-role handler hooks (`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`) and `Promise.allSettled` for parallel `@entityRoot` + `@aspectOf` aspect hydration
-- thin views adhering to the 6-Level layout hierarchy, Two Golden Rules, 4-Tier Semantic Z-Index tokens (`--z-base: 1` ~ `--z-toast: 1100`), and Tier 3 Presentation State Waiver (file-header `@evidenceExclude`)
-- source registration, paired KO/EN docs linkage, `catalog/repository-surface/example-surface.v1.json` registration, and local verification gates (`pnpm docs:llms`, `pnpm docs:management`, `pnpm llms:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`)
+- pure business modules (`*Draft.ts`, `*Validation.ts`, `*Result.ts`, `*Activity.ts`, `*StateMachine.ts`) returning domain codes/events rather than UI strings, with `ttsc@0.33.1` / `@wrtnlabs/evidence@0.8.0` Policy Hopping locks (`@evidenceReview ./generated/dto.ts#... #hash`, Heading-Form `## @evidence`, or detached `evidenceFiles`)
+- handlers split by concern (`Draft` vs `Submission` / `Layout` / `Hydration`) using the 4-role handler hooks (`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`), lazy `store.getValue()` reads (no `useStoreValue` subscriptions inside handlers), and `Promise.allSettled` for parallel `@entityRoot` + `@aspectOf` aspect hydration
+- thin views adhering to the 6-Level layout hierarchy, Two Golden Rules, 4-Tier Semantic Z-Index tokens (`--z-base: 1` ~ `--z-toast: 1100`), zero `@context-action/*` runtime imports, and Tier 3 Presentation State Waiver (file-header `@evidenceExclude`)
+- source registration, paired KO/EN docs linkage, `catalog/repository-surface/example-surface.v1.json` registration, and local verification gates (`pnpm docs:llms`, `pnpm docs:management`, `pnpm llms:check`, `pnpm verify:surface-catalog`, `pnpm convention:check` including `packages/template-react/src` and custom `--root <dir>` support with fail-closed `tools/context-action-lint/rule-exceptions.json`, `pnpm docs:check`)
 
 ## Read these references first
 
@@ -109,6 +110,11 @@ If the user is working in English, also read:
 
 - **Zero-Dependency Runtime Preservation**: Never add `@typespec/*`, `@oa-sdk/*`, `ttsc`, or `@wrtnlabs/evidence` as runtime dependencies of `@context-action/*` packages
 - **No Mixed Payloads**: Never mix `BusinessActionIntent` and `LayoutActionIntent` in the same action payload contract
+- **CI-Enforced AST Invariants (`pnpm convention:check`)**:
+  - Never use deprecated `use*ActionEffectHandler` / `registerEffect` (`no-deprecated-effect-handler`)
+  - Never import stores or call `.getStore`/`.setValue`/`.update` inside `actions/` (`no-store-access-in-actions`)
+  - Never subscribe with `use*StoreValue` / `use*StoreSelector` / `use*StorePath` inside `handlers/` or `*HandlerRegistry` (`no-store-subscription-in-handlers`); always read lazily via `store.getValue()`
+  - Record any justified exception in `tools/context-action-lint/rule-exceptions.json` with a non-empty `reason` (fail-closed if stale or missing), or run `node scripts/check-context-layered-conventions.mjs --root <dir>` on external starter consumers (verified against `packages/template-react/src`)
 - **Generated Contract Locking**: Do not point `.ts` `@evidenceReview` directly at `.tsp` files; always lock generated TypeScript declarations (`./generated/dto.ts#... #hash`) or use detached `evidenceFiles`
 - **Presentation State Waiver**: Never model Tier 3 UI flags (`isOpen`, `activeTab`, `isHovered`, `isFocused`) in TypeSpec or Evidence
 - **Layout & Z-Index Hygiene**: Never mount global modals inside a transformed canvas (`transform: matrix(...)`) or use arbitrary z-index magic numbers (`9999`)
