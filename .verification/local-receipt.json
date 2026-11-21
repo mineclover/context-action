@@ -1,7 +1,7 @@
 {
   "schemaVersion": "local-verification-receipt/v1",
-  "timestamp": "2026-11-21T15:30:52.655Z",
-  "commitSha": "1d84d30a7c3e3ce85e7ffb614115a5b0b985e32b",
+  "timestamp": "2026-11-21T15:54:21.902Z",
+  "commitSha": "a828a26ecb80d78d144b2fe800b932199456b004",
   "branch": "stage",
   "toolchain": {
     "node": "v24.22.1",
@@ -11,21 +11,21 @@
   },
   "inputDigest": "sha256:e19b57559319dc6a6ecfb09ac98c102a59a521313940b63b9f57f78672fac7de",
   "workingTree": "clean",
-  "treeDigest": "sha256:81b45cfd7ba705d2d47ac66959c848288e3bb1fccd661bb0cbf6edfbbed28a6f",
+  "treeDigest": "sha256:663dd7d397f60a0735e69882812db749940ccb6ac29f539e97634c4df06f55cb",
   "suites": [
     {
       "name": "1. Monorepo Typecheck (all workspace projects)",
-      "durationSec": 19.33,
+      "durationSec": 17.16,
       "status": "passed"
     },
     {
       "name": "2. Workspace Package Boundaries Check",
-      "durationSec": 0.86,
+      "durationSec": 0.76,
       "status": "passed"
     },
     {
       "name": "3. Context-Action Conventions & Catalog Check",
-      "durationSec": 3.54,
+      "durationSec": 3.46,
       "status": "passed"
     },
     {
@@ -35,7 +35,7 @@
     },
     {
       "name": "5. React Production Artifact Boundary",
-      "durationSec": 0.23,
+      "durationSec": 0.27,
       "status": "passed"
     },
     {
@@ -45,20 +45,20 @@
     },
     {
       "name": "7. Durable Operations Evidence Schema Test",
-      "durationSec": 0.32,
+      "durationSec": 0.29,
       "status": "passed"
     },
     {
       "name": "8. Core Element Unit Contract Test",
-      "durationSec": 1.43,
+      "durationSec": 1.36,
       "status": "passed"
     },
     {
       "name": "9. Element Host Browser Evidence Parser Test",
-      "durationSec": 0.47,
+      "durationSec": 0.41,
       "status": "passed"
     }
   ],
   "status": "passed",
-  "receiptDigest": "sha256:edcb7ba49e23546ca15c31792811fe646d347bdac188dca4a6a07c79731e678c"
+  "receiptDigest": "sha256:99b1488a483d43a7e9e5b717b93cdf3baa3e59c2cd5e867d1e6902424c5e462a"
 }
