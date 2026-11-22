@@ -127,3 +127,44 @@ test('AST scanner passes --strict-template on synthetic v5-ready consumer code',
     await rm(tempRoot, { recursive: true, force: true });
   }
 });
+
+test('AST scanner does not false-positive on spread payloads in dispatch options and enforces --strict-all', async () => {
+  const tempRoot = await mkdtemp(path.join(os.tmpdir(), 'ca-v5-audit-spread-'));
+  try {
+    const templateDir = path.join(tempRoot, 'packages/template-react/src');
+    const exampleDir = path.join(tempRoot, 'example/src');
+    await mkdir(templateDir, { recursive: true });
+    await mkdir(exampleDir, { recursive: true });
+
+    await writeFile(
+      path.join(templateDir, 'spread.ts'),
+      [
+        'export function dispatchWithSpread(dispatch: any, extra?: Record<string, unknown>) {',
+        "  dispatch('a', { id: 1, ...(extra && { extra }) });",
+        "  dispatch('b', { id: 2, ...extra });",
+        '}',
+        '',
+      ].join('\n'),
+      'utf8'
+    );
+
+    await writeFile(
+      path.join(exampleDir, 'legacy.ts'),
+      ["import { createRefContext } from '@context-action/react';", 'void createRefContext;', ''].join('\n'),
+      'utf8'
+    );
+
+    const templateStrict = await runCli(['--root', tempRoot, '--strict-template', '--json']);
+    assert.equal(templateStrict.code, 0, templateStrict.stderr);
+    const templateReport = JSON.parse(templateStrict.stdout);
+    assert.equal(templateReport.scopes.template.counts.manualImmediateDispatches, 0);
+    assert.equal(templateReport.scopes.template.blockingTotal, 0);
+    assert.equal(templateReport.scopes.example.blockingTotal, 1);
+
+    const allStrict = await runCli(['--root', tempRoot, '--strict-all', '--json']);
+    assert.equal(allStrict.code, 1);
+    assert.match(allStrict.stderr, /strict all check failed/);
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});

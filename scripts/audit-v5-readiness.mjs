@@ -162,10 +162,12 @@ function isDispatchCallExpression(node) {
   return false;
 }
 
-function hasObjectProperty(objectLiteral, propertyName, valuePredicate) {
+function hasObjectProperty(objectLiteral, propertyName, valuePredicate, options = {}) {
+  const treatSpreadAsMatch = Boolean(options.treatSpreadAsMatch);
   for (const prop of objectLiteral.properties) {
     if (ts.isSpreadAssignment(prop)) {
-      return true;
+      if (treatSpreadAsMatch) return true;
+      continue;
     }
     if (ts.isShorthandPropertyAssignment(prop)) {
       if (prop.name.text === propertyName) {
@@ -333,7 +335,9 @@ function auditSourceFile(repositoryRoot, scope, filePath) {
         const hasExplicitMode =
           optionsArg &&
           ts.isObjectLiteralExpression(optionsArg) &&
-          hasObjectProperty(optionsArg, 'notificationMode');
+          hasObjectProperty(optionsArg, 'notificationMode', undefined, {
+            treatSpreadAsMatch: true,
+          });
         if (!hasExplicitMode) {
           record(
             'implicitStoreNotificationMode',
@@ -365,8 +369,12 @@ function auditSourceFile(repositoryRoot, scope, filePath) {
             const init = prop.initializer;
             const isExplicitConfigWithMode =
               ts.isObjectLiteralExpression(init) &&
-              hasObjectProperty(init, 'initialValue') &&
-              hasObjectProperty(init, 'notificationMode');
+              hasObjectProperty(init, 'initialValue', undefined, {
+                treatSpreadAsMatch: true,
+              }) &&
+              hasObjectProperty(init, 'notificationMode', undefined, {
+                treatSpreadAsMatch: true,
+              });
 
             if (!isExplicitConfigWithMode) {
               record(
@@ -424,6 +432,7 @@ function resolveScanScopes(repositoryRoot) {
 export function auditV5Readiness(options = {}) {
   const repositoryRoot = path.resolve(options.root ?? defaultRepositoryRoot);
   const strictTemplate = Boolean(options.strictTemplate);
+  const strictAll = Boolean(options.strictAll);
   const scopesToScan = resolveScanScopes(repositoryRoot);
 
   const findings = [];
@@ -469,11 +478,14 @@ export function auditV5Readiness(options = {}) {
 
   const strictScopeKey = scopeSummaries.template ? 'template' : 'custom';
   const strictScopeSummary = scopeSummaries[strictScopeKey];
-  const strictPassed = !strictTemplate || (strictScopeSummary?.blockingTotal ?? 0) === 0;
+  const strictPassed =
+    (!strictTemplate || (strictScopeSummary?.blockingTotal ?? 0) === 0) &&
+    (!strictAll || blockingTotal === 0);
 
   return {
     repositoryRoot,
     strictTemplate,
+    strictAll,
     strictScope: strictScopeKey,
     strictPassed,
     blockingTotal,
@@ -488,6 +500,7 @@ function parseArguments(argv) {
   let root = defaultRepositoryRoot;
   let json = false;
   let strictTemplate = false;
+  let strictAll = false;
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -500,6 +513,8 @@ function parseArguments(argv) {
       json = true;
     } else if (arg === '--strict-template') {
       strictTemplate = true;
+    } else if (arg === '--strict-all') {
+      strictAll = true;
     } else if (arg === '--') {
       // ignore pnpm pass-through separator
     } else {
@@ -507,7 +522,7 @@ function parseArguments(argv) {
     }
   }
 
-  return { root, json, strictTemplate };
+  return { root, json, strictTemplate, strictAll };
 }
 
 function formatTextReport(result) {
@@ -515,6 +530,7 @@ function formatTextReport(result) {
   lines.push('Context-Action v5 Migration Readiness Audit');
   lines.push(`- repository root: ${result.repositoryRoot}`);
   lines.push(`- strict template gate: ${result.strictTemplate ? 'enabled' : 'disabled'}`);
+  lines.push(`- strict all gate: ${result.strictAll ? 'enabled' : 'disabled'}`);
 
   for (const [scopeName, summary] of Object.entries(result.scopes)) {
     lines.push(
@@ -566,10 +582,16 @@ if (isEntrypoint) {
   }
 
   if (!report.strictPassed) {
-    process.stderr.write(
-      `v5 readiness strict template check failed in '${report.strictScope}' scope ` +
-        `(${report.scopes[report.strictScope].blockingTotal} blocking finding(s)).\n`
-    );
+    if (report.strictAll && report.blockingTotal > 0) {
+      process.stderr.write(
+        `v5 readiness strict all check failed (${report.blockingTotal} blocking finding(s)).\n`
+      );
+    } else {
+      process.stderr.write(
+        `v5 readiness strict template check failed in '${report.strictScope}' scope ` +
+          `(${report.scopes[report.strictScope].blockingTotal} blocking finding(s)).\n`
+      );
+    }
     process.exit(1);
   }
 }
