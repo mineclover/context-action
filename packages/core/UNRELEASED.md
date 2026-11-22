@@ -23,3 +23,9 @@ release commit.
 - Preserve uninvoked `once` handlers when a parallel/race precondition throws, including their cleanup ownership for a later dispatch.
 - Prevent concurrent dispatches from invoking the same `once` observer after waiting for a higher-priority observer.
 - Add contract-level per-action policy defaults via `ActionRegisterConfig<T>.actions` (`ActionPolicyConfig`: `queue?: 'serial' | 'immediate'` and `timeout?: number`) while keeping `registry.useConcurrencyQueue` defaults and call-site `DispatchOptions` precedence intact (`CA-VNEXT-ARCHITECTURE-001` M2).
+
+## Dispatch performance & execution stability
+
+- Cache compiled per-action pipeline metadata (`CompiledActionPipeline`) with deterministic invalidation across register, replace, remove, and clear mutations.
+- Add a zero-allocation fast sequential `dispatch()` path with seamless sync-to-async transition (`await-before-next` and `start-and-continue`) alongside single-attempt retry and zero-timeout/zero-trace allocation bypasses.
+- Unify role controller creation (`createRoleController`) and lazily allocate controller/error/non-blocking tracking state in execution modes while enforcing fast/slow path differential parity (cooperative abort/destroy cancellation, non-`Error` `condition` normalization, original-payload `errorHandler` delivery, and throwing `.then` getter handling).

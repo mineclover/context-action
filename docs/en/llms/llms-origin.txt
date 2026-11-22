@@ -7977,23 +7977,43 @@ const actionRegister = new ActionRegister<AppActions>({
 ### Configuration Options
 
 ```typescript
-interface ActionRegisterConfig {
+interface ActionRegisterConfig<T extends ActionPayloadMap = ActionPayloadMap> {
   /** Name identifier for this ActionRegister instance */
   name?: string;
-  
+
+  /** Contract-level per-action queue and timeout defaults */
+  actions?: Partial<Record<ActionNames<T>, {
+    queue?: 'serial' | 'immediate';
+    timeout?: number;
+  }>>;
+
   /** Registry-specific configuration options */
   registry?: {
     /** Debug mode for registry operations */
     debug?: boolean;
-    
-    /** Auto-cleanup configuration for one-time handlers */
+
+    /** Auto-cleanup configuration for idle guards and one-time handlers */
     autoCleanup?: boolean;
-    
+
+    /** Default execution mode for actions ('sequential' | 'parallel' | 'race') */
+    defaultExecutionMode?: ExecutionMode;
+
+    /** Serialize independent dispatches through OperationQueue. Default: false */
+    useConcurrencyQueue?: boolean;
+
     /** Optional finite handler limit; defaults to Infinity and rejects overflow */
     maxHandlersPerAction?: number;
-    
-    /** Default execution mode for actions */
-    defaultExecutionMode?: ExecutionMode;
+
+    /** Maximum controller priority jumps in one dispatch. Default: 10 */
+    maxJumps?: number;
+
+    /** Global error handler invoked once with the original dispatch payload */
+    errorHandler?: (error: Error, context: unknown) => void | Promise<void>;
+
+    /** Optional schema map and dispatch validation policy */
+    schema?: Record<string, ActionSchemaLike>;
+    validateOnDispatch?: boolean;
+    validationMode?: 'strict' | 'warn' | 'silent';
   };
 }
 ```
@@ -8001,18 +8021,128 @@ interface ActionRegisterConfig {
 ### Pipeline Lifecycle
 
 ```typescript
-// 1. Handler Registration Phase
-actionRegister.register('updateUser', handler, config);
+// 1. Handler Registration Phase (role-based or compatibility register())
+actionRegister.registerGuard('updateUser', validateInput, { priority: 100 });
+actionRegister.registerCommand('updateUser', updateStore, { priority: 50 });
 
-// 2. Pipeline Dispatch Phase  
+// 2. Pipeline Dispatch Phase (dispatch() or dispatchWithResult())
 await actionRegister.dispatch('updateUser', payload);
 
 // 3. Pipeline Execution Phase (internal)
-//    - Priority sorting
-//    - Condition evaluation
-//    - Handler execution
-//    - Flow control
-//    - Cleanup
+//    - CompiledActionPipeline lookup (cached per action until pipeline mutates)
+//    - Fast sequential hot path vs full orchestration slow path
+//    - Guard preflight -> Result/Command handlers -> Terminal observers
+//    - Once claiming, cleanup, and drain tracking
+```
+
+### 2-Tier Dispatch Engine & Compiled Pipeline Cache
+
+`ActionRegister` lazily compiles and caches a `CompiledActionPipeline` per action (`guards`, `nonGuards`, `results`, `observers`, `hasOnce`, and timing guard limits `debounceMs`/`throttleMs`) and invalidates it only when handlers are registered, replaced, removed, or cleared.
+
+```text
+dispatch() / dispatchWithResult() / actions.* Proxy
+   │
+   ├─ Eligible default sequential dispatch():
+   │    no trace listeners · no options · queue off · no schema ·
+   │    no guards · no observers · no debounce/throttle · no once · mode='sequential'
+   │    └─► Fast Sequential Path (dispatchFastSequential → continueFastSequentialAsync)
+   │          • Zero PipelineContext / outcome / AbortController allocations
+   │          • Seamless sync-to-async transition on the first Promise return
+   │          • Enforces parity on cooperative abort/destroy, condition Error
+   │            normalization, original-payload errorHandler, and throwing .then getters
+   │
+   └─► Full Orchestration Path (_dispatchWithResult):
+        Admission (schema + ActionGuard) ─► OperationQueue ─► Guard Preflight ─►
+        Retry Loop (executeWithRetry) ─► Execution Mode (sequential/parallel/race) ─►
+        Result Aggregation ─► Terminal Observers ─► Dispatch Trace Settlement
+```
+
+### Role-Based Registration & Controller Surfaces
+
+Prefer explicit role-specific registration methods for production pipelines so admission, side effects, result generation, and post-result observation remain cleanly isolated:
+
+| Role | API | Phase | Controller Surface | Result Participation |
+|---|---|---|---|---|
+| `guard` | `registerGuard` | Preflight (`sequential`, `fatal`) | `signal`, `getPayload`, `modifyPayload`, `abort` | No |
+| `command` | `registerCommand` | Pipeline (Phase 2 void side effect) | `signal`, `getPayload`, `abort` | No |
+| `result` | `registerResult` | Pipeline (`TResultMap` typed value) | `signal`, `getPayload`, `abort`, `return`, `setResult`, `getResults`, `mergeResult` | Yes |
+| `legacy` | `register` | Pipeline (1.x compatibility) | All result controls + `modifyPayload`, `jumpToPriority` | Yes |
+| `observer` | `registerObserver` | Settlement (after terminal outcome) | None (`ActionObserverEvent` immutable snapshot) | No |
+
+<!-- @context-action-compile -->
+```typescript
+import {
+  ActionRegister,
+  isActionTimeoutError,
+  type ActionPayloadMap,
+  type ActionResultMap,
+} from '@context-action/core';
+
+interface OrderActions extends ActionPayloadMap {
+  submitOrder: { orderId: string; valid: boolean };
+  audit: { orderId: string };
+}
+
+interface OrderResults extends ActionResultMap<OrderActions> {
+  submitOrder: { receiptId: string };
+}
+
+const register = new ActionRegister<OrderActions, OrderResults>({
+  name: 'OrderPipeline',
+  actions: {
+    submitOrder: { queue: 'serial', timeout: 5000 },
+    audit: { queue: 'immediate' },
+  },
+  registry: {
+    errorHandler: (error, context) => {
+      console.error('Dispatch error:', error.message, context);
+    },
+  },
+});
+
+const stopTrace = register.subscribeDispatchTrace(event => {
+  console.info(event.dispatchId, event.phase, event.status);
+});
+
+// 1. Preflight guard: sequential & fatal
+register.registerGuard('submitOrder', payload => {
+  if (!payload.valid) throw new Error('Invalid order payload');
+}, { id: 'guard-valid' });
+
+// 2. Phase 2 void command: side effect without result arbitration
+register.registerCommand('submitOrder', payload => {
+  console.info('Recording audit intent for', payload.orderId);
+}, { id: 'command-audit', priority: 20 });
+
+// 3. Typed result handler
+register.registerResult('submitOrder', async payload => {
+  await Promise.resolve();
+  return { receiptId: `rcpt-${payload.orderId}` };
+}, { id: 'result-receipt', scheduling: 'await-before-next', errorPolicy: 'fatal' });
+
+// 4. Terminal observer: receives frozen outcome snapshot
+register.registerObserver('submitOrder', event => {
+  console.info('Settled:', event.outcome, event.result);
+}, { when: 'always' });
+
+async function submit() {
+  try {
+    const execution = await register.dispatchWithResult('submitOrder', {
+      orderId: 'ORD-1',
+      valid: true,
+    });
+    console.info(execution.outcome, execution.result);
+  } catch (error) {
+    if (isActionTimeoutError(error)) {
+      console.warn('Timeout after ms:', error.timeout);
+    }
+  } finally {
+    stopTrace();
+    await register.destroyAsync();
+  }
+}
+
+void submit;
 ```
 
 ## Handler Registration Patterns
@@ -9182,13 +9312,13 @@ The ActionPayloadMap and ActionRegister system provides a powerful, type-safe fo
 
 ### Latest Features Summary:
 
-- **Enhanced HandlerConfig** with timing controls, lifecycle options, and metadata
-- **Advanced Filtering System** for selective handler execution  
-- **Result Collection & Processing** with multiple strategies and custom mergers
-- **Auto AbortController Management** for better cancellation control
-- **Comprehensive ExecutionResult** with detailed execution information
-- **Registry Management APIs** for monitoring and statistics
-- **Performance Metrics** with timing and error collection
+- **Role-Based Pipeline Contract (`registerGuard`, `registerCommand`, `registerResult`, `registerObserver`)** with strictly scoped controller surfaces
+- **Compiled Pipeline Cache & 2-Tier Fast Sequential Execution** minimizing allocations and preserving full abort/error parity with `dispatchWithResult`
+- **Per-Action Policies (`actions[key].queue`, `actions[key].timeout`)** and **Dispatch Lifecycle Tracing (`subscribeDispatchTrace`)**
+- **Enhanced `HandlerConfig`** with explicit `scheduling`, `errorPolicy`, timing controls, `once` claiming, and metadata
+- **Advanced Filtering System** for selective handler execution without bypassing guards
+- **Result Collection & Processing** (`first` | `last` | `all` | `merge` | `custom`) and cooperative `ActionTimeoutError` cancellation
+- **Graceful Shutdown (`destroyAsync({ deferCleanup? })`)** draining active dispatches and started handlers before running cleanup
 
 For more advanced patterns and integration examples, see the [Context-Action Framework Documentation](../../../README.md) and other concept guides in this directory.
 
@@ -30518,22 +30648,31 @@ function AdvancedUserComponent() {
 
 ### Timeout Configuration
 
-Prevent indefinite hanging with timeouts:
+Prevent indefinite hanging with timeouts. Exceeding `timeout` aborts the dispatch signal and **rejects** the returned promise with `ActionTimeoutError` (detectable via `isActionTimeoutError(error)`), while internal work continues draining safely until settlement:
 
 ```typescript
-// Dispatch with timeout
-const result = await actionRegister.dispatchWithResult('longOperation', 
-  { data: 'large-dataset' },
-  { 
-        result: { collect: true },
-    timeout: 10000  // 10 second timeout
-  }
-);
+import { isActionTimeoutError } from '@context-action/core';
 
-if (result.terminated) {
-  console.log('Operation timed out');
+try {
+  const result = await actionRegister.dispatchWithResult(
+    'longOperation',
+    { data: 'large-dataset' },
+    {
+      result: { collect: true },
+      timeout: 10000, // 10 second wall-clock timeout (includes queue wait & retries)
+    },
+  );
+  console.log('Completed with outcome:', result.outcome, 'terminated early:', result.terminated);
+} catch (error) {
+  if (isActionTimeoutError(error)) {
+    console.log(`Action "${error.action}" timed out after ${error.timeout}ms`);
+  } else {
+    throw error;
+  }
 }
 ```
+
+> Note: `result.terminated === true` indicates that a handler explicitly ended the pipeline early via `controller.return(value)`, not a timeout.
 
 ### Result Collection Options
 
@@ -30636,6 +30775,8 @@ function BatchDispatcher() {
 ### Error Handling in Dispatch
 
 ```typescript
+import { isActionTimeoutError, isActionValidationError } from '@context-action/core';
+
 function ErrorHandlingDispatcher() {
   const { dispatchWithResult } = useActionDispatchWithResult();
   
@@ -30649,23 +30790,31 @@ function ErrorHandlingDispatcher() {
         }
       );
       
-      if (result.aborted) {
-        console.log('Operation was aborted:', result.abortReason);
-        // Handle abortion gracefully
-      } else if (result.terminated) {
-        console.log('Operation timed out');
-        // Handle timeout
-      } else if (result.success) {
-        console.log('Operation completed:', result.results);
-        // Handle success
-      } else {
-        console.log('Operation failed with errors');
-        // Handle general failure
+      switch (result.outcome) {
+        case 'cancelled':
+          console.log('Operation was aborted:', result.abortReason);
+          break;
+        case 'debounced':
+        case 'throttled':
+          console.log('Skipped by timing guard:', result.outcome);
+          break;
+        case 'completed':
+        case 'completed_with_errors':
+          console.log('Operation completed:', result.result, result.successResults);
+          break;
+        case 'failed':
+          console.log('Operation failed with fatal errors:', result.errors);
+          break;
       }
       
     } catch (error) {
-      console.error('Dispatch failed:', error);
-      // Handle dispatch-level errors
+      if (isActionTimeoutError(error)) {
+        console.error('Operation timed out:', error.timeout);
+      } else if (isActionValidationError(error)) {
+        console.error('Invalid payload:', error.issues);
+      } else {
+        console.error('Dispatch failed:', error);
+      }
     }
   };
   
@@ -30675,88 +30824,160 @@ function ErrorHandlingDispatcher() {
 
 ## Dispatch Result Structure
 
-### Success Result
+`dispatchWithResult()` resolves to `ExecutionResult<R>` (matching `packages/core/src/types.ts`). Caller timeouts (`ActionTimeoutError`), strict schema failures (`ActionValidationError`), and dispatches after shutdown (`ActionRegisterDestroyedError`) reject as errors rather than returning `ExecutionResult`.
 
 ```typescript
-interface DispatchResult<T = any> {
-  success: true;
-  aborted: false;
-  terminated: false;
-  results: T[];           // All handler return values
-  errors: never[];        // Empty for successful operations
+interface ExecutionResult<R = void> {
+  success: boolean;
+  aborted: boolean;
+  abortReason: string | undefined;
+  terminated: boolean; // True when ended early via controller.return()
+  outcome: 'completed' | 'completed_with_errors' | 'failed' | 'cancelled' | 'debounced' | 'throttled';
+  validation?: {
+    passed: boolean;
+    errors: string[];
+  };
+  result: R | R[] | undefined;   // Aggregated final result (by strategy)
+  successResults: R[];           // Non-undefined handler results
+  results: Array<R | undefined>; // Raw collected results
+  failedResults: Array<{
+    handlerId: string;
+    error: Error;
+    expectedType: string;
+  }>;
   execution: {
+    duration: number;
+    admissionDuration: number;
+    queueWaitDuration: number;
+    pipelineDuration: number;
+    retryDelayDuration?: number;
+    resultProcessingDuration?: number;
+    attempts?: Array<{
+      startTime: number;
+      endTime: number;
+      duration: number;
+      outcome: 'succeeded' | 'failed' | 'retried' | 'cancelled';
+    }>;
     handlersExecuted: number;
+    handlersSkipped: number;
+    handlersFailed: number;
     startTime: number;
     endTime: number;
-    duration: number;
-    mode: 'sequential' | 'parallel' | 'race';
   };
-  metadata?: {
-    handlerIds: string[];
-    priorities: number[];
-    payload: any;           // Final payload state
+  handlers: HandlerExecutionOutcome<R>[];
+  raceDiagnostics?: {
+    winnerId?: string;
+    winner?: HandlerExecutionOutcome<R>;
+    loserSnapshots: HandlerExecutionOutcome<R>[];
+    pendingLosersAtReturn: number;
+    observedLoserFailures: number;
   };
+  errors: HandlerError[];
 }
 ```
 
-### Aborted Result
+### Verified Dispatch & Outcome Handling Example
 
+<!-- @context-action-compile -->
 ```typescript
-interface AbortedResult {
-  success: false;
-  aborted: true;
-  terminated: false;
-  abortReason: string;     // Reason provided to controller.abort()
-  abortedBy: string;       // Handler ID that caused abort
-  results: any[];          // Results from handlers that executed before abort
-  errors: Error[];
-  execution: {
-    handlersExecuted: number;
-    startTime: number;
-    endTime: number;
-    duration: number;
-  };
-}
-```
+import {
+  ActionRegister,
+  isActionTimeoutError,
+  type ActionPayloadMap,
+  type ActionResultMap,
+  type ExecutionResult,
+} from '@context-action/core';
 
-### Timeout Result
-
-```typescript
-interface TimeoutResult {
-  success: false;
-  aborted: false;
-  terminated: true;
-  timeoutMs: number;       // Configured timeout value
-  results: any[];          // Partial results before timeout
-  errors: Error[];
-  execution: {
-    handlersExecuted: number;
-    startTime: number;
-    endTime: number;
-    duration: number;
-  };
+interface ApiActions extends ActionPayloadMap {
+  fetchUser: { userId: string };
+  notify: { message: string };
 }
+
+interface ApiResults extends ActionResultMap<ApiActions> {
+  fetchUser: { name: string };
+}
+
+const registry = new ActionRegister<ApiActions, ApiResults>({
+  name: 'DispatchGuide',
+  actions: {
+    fetchUser: { queue: 'serial', timeout: 5000 },
+    notify: { queue: 'immediate' },
+  },
+});
+
+registry.registerResult('fetchUser', async payload => {
+  await Promise.resolve();
+  return { name: `User-${payload.userId}` };
+});
+
+registry.registerCommand('notify', payload => {
+  console.info(payload.message);
+});
+
+async function runDispatchExamples() {
+  // Fast-path eligible sequential dispatch
+  await registry.dispatch('notify', { message: 'hello' });
+  await registry.actions.notify({ message: 'via-proxy' });
+
+  // Detailed execution result inspection
+  try {
+    const execution: ExecutionResult<{ name: string }> =
+      await registry.dispatchWithResult(
+        'fetchUser',
+        { userId: '123' },
+        { result: { collect: true, strategy: 'first' } },
+      );
+
+    switch (execution.outcome) {
+      case 'completed':
+      case 'completed_with_errors':
+        console.info(execution.result, execution.terminated);
+        break;
+      case 'cancelled':
+        console.warn('Aborted:', execution.abortReason);
+        break;
+      case 'debounced':
+      case 'throttled':
+        console.info('Skipped by timing guard:', execution.outcome);
+        break;
+      case 'failed':
+        console.error('Failed:', execution.errors);
+        break;
+    }
+  } catch (error) {
+    if (isActionTimeoutError(error)) {
+      console.error(`Action "${error.action}" timed out after ${error.timeout}ms`);
+    }
+  } finally {
+    await registry.destroyAsync();
+  }
+}
+
+void runDispatchExamples;
 ```
 
 ## Performance Optimization
 
-### Efficient Dispatching
+### Efficient Dispatching & 2-Tier Fast Path
+
+Reusing a long-lived `ActionRegister` instance preserves both the internal `CompiledActionPipeline` cache (skipping repeated handler sorting, role separation, and timing checks) and cached `actions` / `actionsWithResult` Proxy dispatchers.
+
+In addition, default `dispatch()` calls without trace listeners, options, queueing, schema validation, guards, observers, timing guards, or `once` handlers automatically run on the zero-allocation sequential fast path while keeping identical abort and error semantics to `dispatchWithResult()`:
 
 ```typescript
-// ✅ Good - reuse action register instance
+// ✅ Good - reuse ActionRegister to preserve CompiledActionPipeline & Proxy caches
 const register = new ActionRegister<MyActions>();
 
 function OptimizedComponent() {
   const handleMultipleActions = async () => {
-    // Reuse the same register for multiple dispatches
     await register.dispatch('action1', { data: 'a' });
-    await register.dispatch('action2', { data: 'b' });
+    await register.actions.action2({ data: 'b' });
     await register.dispatch('action3', { data: 'c' });
   };
 }
 
-// ❌ Avoid - creating new registers repeatedly
-function InfficientComponent() {
+// ❌ Avoid - creating new registers repeatedly discards compiled pipeline caches
+function InefficientComponent() {
   const handleAction = async () => {
     const newRegister = new ActionRegister<MyActions>(); // Expensive!
     await newRegister.dispatch('action', { data: 'test' });

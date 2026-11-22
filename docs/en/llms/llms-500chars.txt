@@ -476,7 +476,7 @@ Powerful handler filtering capabilities for precise action execution control in 
 # Dispatch Methods
 Sections: Core Dispatch Methods | React Integration Dispatch | Dispatch Options | Advanced Dispatch Patterns | Dispatch Result Structure | Performance Optimization | Dispatch Patterns by Use Case | Live Example: Result Collection with Dispatch
 
-Different ways to trigger action pipelines with varying levels of control and result collection. Simple action execution without result collection: Comprehensive execution with detailed results: Basic dispatching in React components: Result collection in React components: Prevent indefinite hanging with timeouts: Control what results are collected: See comprehensive dispatch patterns in the UseActionWithResult Demo: This example demonstrates real-world usage of dispatchWithResult with compreh...
+Different ways to trigger action pipelines with varying levels of control and result collection. Simple action execution without result collection: Comprehensive execution with detailed results: Basic dispatching in React components: Result collection in React components: Prevent indefinite hanging with timeouts. Exceeding timeout aborts the dispatch signal and rejects the returned promise with ActionTimeoutError (detectable via isActionTimeoutError(error)), while internal work continues drai...
 
 ===================[ DOC: en/guide/pipeline/index.md ]===================
 # Pipeline System

@@ -9,12 +9,12 @@ which are not reachable from the default runtime or declaration graph.
 
 | Category | Contract | Owner |
 |---|---|---|
-| Registration | action key, handler role, priority, lifecycle | `ActionRegister` |
-| Admission | guard, abort, payload validation, timeout | `ActionGuard` / pipeline controller |
-| Execution | sequential, parallel, race, scheduling | execution modes |
-| Results | typed result collection and error policy | result handlers / `dispatchWithResult` |
-| Observation | success/failure/always observers | observer handlers |
-| Lifecycle | closing, destroyed, active dispatch cleanup | `ActionRegister` |
+| Registration | action key, handler role (`guard`/`command`/`result`/`observer`/`legacy`), priority, compiled pipeline cache (`CompiledActionPipeline`) | `ActionRegister` |
+| Admission | guard, abort, payload normalization/validation, timeout, debounce/throttle | `ActionGuard` / `ActionRegister` |
+| Execution | 2-tier fast sequential dispatch (`dispatchFastSequential`), plus general sequential, parallel, and race orchestration | `ActionRegister` / `execution-modes` |
+| Results | typed result collection (`result`/`legacy`), aggregation strategies, and `errorPolicy` | result handlers / `dispatchWithResult` |
+| Observation | immutable terminal `ActionObserverEvent` (`success`/`failure`/`always`) and `subscribeDispatchTrace` | observer handlers / `ActionRegister` |
+| Lifecycle | closing, destroyed, active dispatch & handler promise draining, deferred cleanup | `ActionRegister` |
 | State commit | snapshot, store mutation, undo/redo | `@context-action/react` store layer |
 
 Handlers should express intent and domain work. A handler may call a Store
@@ -77,5 +77,40 @@ per public dispatch. The event carries a stable `dispatchId`, action name,
 terminal status, timing, and optional trace metadata from `DispatchOptions.trace`.
 Core does not create or mutate Store transactions. The React adapter can bind
 these events to explicit Store participants with `bindActionTransactions()`.
+These events are emitted for every public `dispatch` and `dispatchWithResult`.
 This keeps the dependency direction `core → trace contract ← store adapter` and
 prevents Core from importing React or Store classes.
+
+## 2-Tier dispatch execution and parity invariant
+
+`ActionRegister` maintains a per-action `CompiledActionPipeline` cache built lazily
+on first dispatch and invalidated whenever handlers are registered, replaced,
+removed, or cleared (`_performRegistrationSync`, `removeRegistration`,
+`clearAction`, `clearAll`).
+
+When an active `dispatch()` call has:
+- `dispatchTraceListeners.size === 0`
+- `options === undefined` (after merging contract `actions[key]` defaults)
+- queueing disabled for the action
+- no schema validation configured for the action
+- zero guards, zero observers, no timing guards (`debounce`/`throttle`), and no `once` handlers
+- `sequential` execution mode
+
+it executes directly via the zero-allocation sequential fast path
+(`dispatchFastSequential` / `continueFastSequentialAsync`), transitioning cleanly
+to asynchronous continuation only if a handler returns a promise-like value.
+
+Every fast-path optimization MUST remain observationally indistinguishable from
+the canonical `_dispatchWithResult()` orchestration path with respect to:
+- **Cooperative cancellation**: `state.aborted || lifecycleSignal.aborted` settles as
+  cancelled (resolving `dispatch()` cleanly without invoking `errorHandler`), even if a
+  cooperative handler throws or rejects (`AbortError`, etc.), while still draining any
+  started `start-and-continue` promises.
+- **Error normalization & original payload delivery**: thrown non-`Error` values from
+  `condition` or handlers are normalized into `Error` instances, and global `errorHandler`
+  receives the original dispatch `payload` rather than an intermediate mutated payload.
+- **Role-scoped controller surfaces**: `createRoleController()` constructs exact
+  own-property surfaces per role (`guard`, `command`, `result`, `legacy`) identically on
+  both paths.
+- **Thenable safety**: inspecting `.then` on a handler return value executes inside the
+  handler's `errorPolicy` boundary so throwing `.then` getters cannot escape synchronously.

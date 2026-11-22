@@ -305,6 +305,74 @@ A timeout is a caller boundary, not a rollback. A handler that ignores its
 signal can continue while the register drains it for lifecycle cleanup; do not
 retry a mutation after timeout unless its operation is idempotent.
 
+### Per-Action Policies, Proxy Dispatching & Dispatch Tracing
+
+Define queue and timeout defaults once in `ActionRegisterConfig.actions`, call
+actions ergonomically via cached `actions` / `actionsWithResult` proxies, and
+observe dispatch lifecycles with `subscribeDispatchTrace()`:
+
+<!-- @context-action-compile -->
+```typescript
+import {
+  ActionRegister,
+  isActionTimeoutError,
+  type ActionPayloadMap,
+  type ActionResultMap,
+} from '@context-action/core';
+
+interface ServiceActions extends ActionPayloadMap {
+  save: { id: string };
+  ping: void;
+}
+
+interface ServiceResults extends ActionResultMap<ServiceActions> {
+  save: { id: string };
+}
+
+const registry = new ActionRegister<ServiceActions, ServiceResults>({
+  name: 'ServiceActions',
+  actions: {
+    save: { queue: 'serial', timeout: 5000 },
+    ping: { queue: 'immediate' },
+  },
+  registry: {
+    errorHandler: (error, context) => {
+      console.error('Unhandled dispatch error:', error.message, context);
+    },
+  },
+});
+
+const unsubscribeTrace = registry.subscribeDispatchTrace(event => {
+  console.info(event.dispatchId, event.action, event.phase, event.status);
+});
+
+registry.registerCommand('ping', () => {
+  // Eligible for the fast sequential path when untraced and unqueued
+});
+
+registry.registerResult('save', async payload => {
+  await Promise.resolve();
+  return { id: payload.id };
+});
+
+async function runExample() {
+  try {
+    await registry.actions.ping();
+    const execution = await registry.actionsWithResult.save({ id: 'item-1' });
+    console.info(execution.outcome, execution.result);
+  } catch (error) {
+    if (isActionTimeoutError(error)) {
+      console.warn(`Timed out "${error.action}" after ${error.timeout}ms`);
+    }
+  } finally {
+    unsubscribeTrace();
+    await registry.destroyAsync();
+  }
+}
+
+void runExample;
+```
+
 ### Result Collection with Strategies
 
 ```typescript
@@ -372,11 +440,14 @@ const stats = ReactDevUtils.getStats(registry);
 - **Multiple execution modes** - sequential, parallel, race
 
 ### ⚡ Performance & Memory Optimizations
+- **Compiled Pipeline Cache** — Lazily compiles per-action `CompiledActionPipeline` snapshots (guards, non-guards, result handlers, observers, timing limits, `once` flags) and invalidates only on registration, replacement, removal, or clear mutations
+- **2-Tier Dispatch Engine** — Default sequential `dispatch()` calls without active trace listeners, per-call options, queues, schemas, guards, observers, timing guards, or `once` handlers run on a low-allocation fast sequential path with seamless sync-to-async continuation (`await-before-next` and `start-and-continue`) while maintaining semantic parity with `dispatchWithResult()` (cooperative abort/shutdown cancellation, normalized errors, original-payload `errorHandler` delivery, role controller surfaces, and safe `.then` getter handling)
+- **Single-Attempt & Timeout Scope Bypass** — Skips `AbortController` / `AbortSignal.any()` and timer/outcome wrapper allocations when `maxAttempts === 1` and neither `timeout` nor caller `signal` is specified
 - **Explicit debug mode** — logs are emitted only with `registry.debug: true`
 - **Optimized handler ID generation** without random numbers
-- **Smart array filtering** - only copies when needed
-- **Automatic memory cleanup** with idle handler cleanup
-- **Opt-in concurrency queue** for explicit ordering
+- **Lazy execution-mode allocations** — defers controller, error array, and non-blocking promise tracking allocations until needed
+- **Automatic memory cleanup** with idle guard state cleanup
+- **Opt-in concurrency queue** for explicit ordering (`useConcurrencyQueue` or per-action `actions[key].queue: 'serial'`)
 
 ### 🔧 Advanced Configuration
 
@@ -550,83 +621,133 @@ See [element transport and host lifecycle adapters](docs/element-interop.md) for
 
 ## API Reference
 
-### ActionRegister<T>
+### ActionRegister<T, TResultMap>
 
 #### Registration Methods
-- `registerGuard<K>(action, handler, config?)` - Register admission logic
-- `registerResult<K>(action, handler, config?)` - Register a typed result handler
-- `registerObserver<K>(action, handler, config?)` - Register a post-result observer
-- `register<K>(action, handler, config?)` - Compatibility registration API
-- `clearAction(action)` - Remove all handlers for action  
-- `clearAll()` - Remove all handlers
+- `registerGuard<K>(action, handler, config?)` - Register preflight admission/normalization guard (`await-before-next`, `errorPolicy: 'fatal'`)
+- `registerCommand<K>(action, handler, config?)` - Register Phase 2 void command handler (cannot publish results)
+- `registerResult<K>(action, handler, config?)` - Register a typed result handler participating in `TResultMap`
+- `registerObserver<K>(action, handler, config?)` - Register a terminal observer receiving immutable `ActionObserverEvent`
+- `registerEffect<K>(action, handler, config)` - Dynamic 1.x compatibility helper for `'guard' | 'observer'` effects
+- `register<K>(action, handler, config?)` - Legacy 1.x compatibility registration API
+- `clearAction(action)` - Remove all handlers and invalidate compiled cache for an action
+- `clearAll()` - Remove all handlers, guards, observers, and compiled caches
 
-#### Dispatch Methods
-- `dispatch<K>(action, payload?, options?)` - Dispatch action
-- `dispatchWithResult<K>(action, payload?, options?)` - Dispatch with detailed results
+#### Dispatch & Proxy Methods
+- `dispatch<K>(action, payload?, options?)` - Dispatch action (routes eligible default sequential pipelines through the fast path)
+- `dispatchWithResult<K>(action, payload?, options?)` - Dispatch with full orchestration, validation, retry telemetry, and `ExecutionResult<R>`
+- `actions` - Cached Proxy exposing each action key as a typed `dispatch()` function
+- `actionsWithResult` - Cached Proxy exposing each action key as a typed `dispatchWithResult()` function
+- `cancelPendingDispatches()` - Reject queued operations waiting in `OperationQueue` without unregistering handlers
 
-#### Information Methods
-- `getHandlerCount(action)` - Get handler count for action
-- `hasHandlers(action)` - Check if action has handlers
-- `getRegisteredActions()` - Get all registered action names
-- `getRegistryInfo()` - Get comprehensive registry information
-- `getActionStats(action)` - Get detailed action statistics
+#### Tracing, Inspection & Execution Mode Methods
+- `subscribeDispatchTrace(listener)` - Subscribe to `'started'` / `'settled'` `ActionDispatchTrace` lifecycle events
+- `getHandlerCount(action)` / `hasHandlers(action)` / `getRegisteredActions()` - Inspect registered actions and handler counts
+- `getRegistryInfo()` / `getActionStats(action)` / `getAllActionStats()` - Inspect registry configuration and priority groupings
+- `getUnregisterFunctionCount()` / `hasUnregisterFunction(handlerId)` - Track active unregister leases
+- `setExecutionMode(mode)` / `setActionExecutionMode(action, mode)` / `getActionExecutionMode(action)` / `removeActionExecutionMode(action)` - Configure global or per-action execution modes (`'sequential' | 'parallel' | 'race'`)
+- `getName()` / `getRegistryConfig()` / `isDebugEnabled()` - Inspect instance identity and configuration
+- `destroy()` / `destroyAsync({ deferCleanup? })` - Reject new work immediately and drain active dispatches/handlers before running cleanup
 
-#### Execution Mode Methods
-- `setActionExecutionMode(action, mode)` - Set execution mode for action
-- `getActionExecutionMode(action)` - Get execution mode for action
-- `removeActionExecutionMode(action)` - Reset to default execution mode
+#### Role-Scoped Controller Surfaces
 
-#### Utility Methods
-- `getName()` - Get registry name
-- `isDebugEnabled()` - Check if debug mode is enabled
-- `destroy()` - Begin terminal cleanup without waiting
-- `destroyAsync({ deferCleanup? })` - Resolve after started handlers settle and cleanup completes
+| Role | Controller Interface | Exposed Members |
+|---|---|---|
+| `guard` | `ActionGuardController<T>` | `signal`, `getPayload()`, `modifyPayload()`, `abort()` |
+| `command` | `ActionCommandController<T>` | `signal`, `getPayload()`, `abort()` |
+| `result` | `ActionResultController<T, R>` | `signal`, `getPayload()`, `abort()`, `return()`, `setResult()`, `getResults()`, `mergeResult()` |
+| `legacy` | `PipelineController<T, R>` | `signal`, `getPayload()`, `modifyPayload()`, `abort()`, `jumpToPriority()`, `return()`, `setResult()`, `getResults()`, `mergeResult()` |
+| `observer` | *(No controller)* | Receives frozen `ActionObserverEvent<T, R>` (`action`, `payload`, `outcome`, `result`, `errors`, `signal`) |
 
-### Configuration Interfaces
+### Configuration & Result Interfaces
 
 ```typescript
-interface HandlerConfig {
-  priority?: number;           // Handler priority (higher = first)
-  id?: string;                // Unique handler identifier
+interface ActionRegisterConfig<T extends ActionPayloadMap = ActionPayloadMap> {
+  name?: string;
+  actions?: Partial<Record<ActionNames<T>, {
+    queue?: 'serial' | 'immediate';
+    timeout?: number;
+  }>>;
+  registry?: {
+    debug?: boolean;
+    autoCleanup?: boolean;
+    defaultExecutionMode?: 'sequential' | 'parallel' | 'race';
+    useConcurrencyQueue?: boolean;
+    maxHandlersPerAction?: number;
+    maxJumps?: number;
+    errorHandler?: (error: Error, context: unknown) => void | Promise<void>;
+    schema?: Record<string, ActionSchemaLike>;
+    validateOnDispatch?: boolean;
+    validationMode?: 'strict' | 'warn' | 'silent';
+  };
+}
+
+interface HandlerConfig<T = unknown> {
+  priority?: number;           // Handler priority (higher = first). Default: 0
+  id?: string;                 // Unique handler identifier
   blocking?: boolean;          // Compatibility 1.x shorthand
   scheduling?: 'await-before-next' | 'start-and-continue';
   errorPolicy?: 'fatal' | 'collect';
-  once?: boolean;             // Remove after first execution  
-  debounce?: number;          // Debounce delay in ms
-  throttle?: number;          // Throttle delay in ms
-  replaceExisting?: boolean;   // Replace handler with same ID
+  once?: boolean;              // At most once per registration. Default: false
+  debounce?: number;           // Debounce delay in ms
+  throttle?: number;           // Throttle delay in ms
+  replaceExisting?: boolean;   // Replace handler with same ID. Default: true
+  cleanup?: () => void;        // Teardown callback on unregister / destroy
+  condition?: (payload: T) => boolean;
+  metadata?: Record<string, unknown>;
+  when?: 'success' | 'failure' | 'always'; // Used by registerObserver()
 }
 
 interface DispatchOptions {
+  trace?: {
+    transactionId?: string;
+    origin?: 'user' | 'system' | 'network' | 'undo' | 'redo' | 'reset';
+    label?: string;
+  };
   debounce?: number;
   throttle?: number;
   executionMode?: 'sequential' | 'parallel' | 'race';
   signal?: AbortSignal;
   immediate?: boolean;         // Bypass an enabled queue
   queuePriority?: number;      // Priority within an enabled queue
-  timeout?: number;           // Non-negative finite wall-clock timeout
-  
+  timeout?: number;            // Non-negative finite wall-clock timeout
   retryOnError?: {
     maxAttempts: number;
     delay: number;
+    attemptBarrier?: 'abort-and-drain' | 'abort-and-overlap';
   };
-  
+  autoAbort?: {
+    enabled: boolean;
+    onControllerCreated?: (controller: AbortController) => void;
+    allowHandlerAbort?: boolean;
+  };
   filter?: {
     handlerIds?: string[];
     excludeHandlerIds?: string[];
     priority?: { min?: number; max?: number };
-    custom?: (config: HandlerConfig) => boolean;
+    custom?: (config: Readonly<ResolvedHandlerConfig>) => boolean;
   };
-  
   result?: {
     strategy?: 'first' | 'last' | 'all' | 'merge' | 'custom';
-    merger?: <R>(results: R[]) => R;
+    merger?: <R>(results: Array<R | undefined>) => R;
     collect?: boolean;
     maxResults?: number;
-    includeErrors?: boolean;
   };
 }
 ```
+
+`ExecutionResult<R>` returned by `dispatchWithResult()` includes:
+- `outcome`: `'completed' | 'completed_with_errors' | 'failed' | 'cancelled' | 'debounced' | 'throttled'`
+- `success`, `aborted`, `abortReason`, `terminated`, `validation`
+- `result`, `successResults`, `results`, `failedResults`, `handlers`, `errors`, `raceDiagnostics`
+- `execution`: `{ duration, admissionDuration, queueWaitDuration, pipelineDuration, retryDelayDuration?, resultProcessingDuration?, attempts?, handlersExecuted, handlersSkipped, handlersFailed, startTime, endTime }`
+
+#### Errors & Type Guards
+- `ActionValidationError` / `isActionValidationError(err)`
+- `ActionTimeoutError` / `isActionTimeoutError(err)`
+- `ActionRegisterDestroyedError` / `isActionRegisterDestroyedError(err)`
+- `ActionResultProcessingError` / `isActionResultProcessingError(err)`
+- `ActionAttemptSupersededError`
 
 ## TypeScript Support
 

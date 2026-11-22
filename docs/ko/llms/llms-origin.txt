@@ -6874,11 +6874,129 @@ interface MyActions extends ActionPayloadMap {
 
 const actionRegister = new ActionRegister<MyActions>({
   name: 'MyAppActions',
+  actions: {
+    authenticate: { queue: 'serial', timeout: 5000 },
+  },
   registry: {
     debug: false,
-    defaultExecutionMode: 'sequential'
-  }
+    autoCleanup: true,
+    defaultExecutionMode: 'sequential',
+    maxJumps: 10,
+    errorHandler: (error, context) => {
+      console.error('처리되지 않은 액션 오류:', error.message, context);
+    },
+  },
 });
+```
+
+### 2단계 디스패치 엔진과 컴파일된 파이프라인 캐시
+
+`ActionRegister`는 첫 디스패치 시 액션별 `CompiledActionPipeline`(`guards`, `nonGuards`, `results`, `observers`, `hasOnce`, `debounceMs`/`throttleMs`)을 지연 컴파일해 캐싱하며, 핸들러 등록·교체·제거·초기화(`register*`, `unregister`, `clearAction`, `clearAll`) 시점에만 캐시를 무효화합니다.
+
+```text
+dispatch() / dispatchWithResult() / actions.* Proxy
+   │
+   ├─ 기본 순차 dispatch() Fast Path 진입 조건 충족 시:
+   │    trace 리스너 없음 · options 없음 · 큐 비활성 · 스키마 검증 없음 ·
+   │    guard/observer/debounce/throttle/once 없음 · mode='sequential'
+   │    └─► Fast Sequential Path (dispatchFastSequential → continueFastSequentialAsync)
+   │          • PipelineContext / outcome / AbortController 할당 생략
+   │          • 첫 Promise 반환 시 동기 루프 → 비동기 루프로 무중단 전이
+   │          • 중단/종료 시 취소 처리, condition Error 정규화,
+   │            원본 payload errorHandler 전달, .then getter 예외 방어 모두 Slow Path와 동일 보장
+   │
+   └─► Full Orchestration Path (_dispatchWithResult):
+        Admission (스키마 검증 + ActionGuard) ─► OperationQueue ─► Guard Preflight ─►
+        재시도 루프 (executeWithRetry) ─► 실행 모드 (sequential/parallel/race) ─►
+        결과 집계 (processResults) ─► Terminal Observers ─► Trace 정산
+```
+
+### 역할(Role) 기반 등록 API와 컨트롤러 표면
+
+프로덕션 파이프라인에서는 역할별 등록 메서드를 사용해 검증, 부수효과, 결과 생성, 후행 관찰을 명확히 분리하는 것을 권장합니다:
+
+| 역할(Role) | 등록 메서드 | 실행 단계 | 컨트롤러 노출 멤버 (`createRoleController`) | 결과 참여 |
+|---|---|---|---|---|
+| `guard` | `registerGuard` | Preflight (`sequential`, `fatal` 고정) | `signal`, `getPayload`, `modifyPayload`, `abort` | 불가 |
+| `command` | `registerCommand` | 본 파이프라인 (Phase 2 `void` 부수효과) | `signal`, `getPayload`, `abort` | 불가 |
+| `result` | `registerResult` | 본 파이프라인 (`TResultMap` 결과 반환) | `signal`, `getPayload`, `abort`, `return`, `setResult`, `getResults`, `mergeResult` | 참여 |
+| `legacy` | `register` | 본 파이프라인 (1.x 호환 범용) | 위 전부 + `modifyPayload`, `jumpToPriority` | 참여 |
+| `observer` | `registerObserver` | Settlement (최종 불변 스냅샷 수신) | 컨트롤러 없음 (`ActionObserverEvent` 전달) | 불가 |
+
+<!-- @context-action-compile -->
+```typescript
+import {
+  ActionRegister,
+  isActionTimeoutError,
+  type ActionPayloadMap,
+  type ActionResultMap,
+} from '@context-action/core';
+
+interface OrderActions extends ActionPayloadMap {
+  submitOrder: { orderId: string; valid: boolean };
+  audit: { orderId: string };
+}
+
+interface OrderResults extends ActionResultMap<OrderActions> {
+  submitOrder: { receiptId: string };
+}
+
+const register = new ActionRegister<OrderActions, OrderResults>({
+  name: 'OrderPipeline',
+  actions: {
+    submitOrder: { queue: 'serial', timeout: 5000 },
+    audit: { queue: 'immediate' },
+  },
+  registry: {
+    errorHandler: (error, context) => {
+      console.error('디스패치 오류:', error.message, context);
+    },
+  },
+});
+
+const stopTrace = register.subscribeDispatchTrace(event => {
+  console.info(event.dispatchId, event.phase, event.status);
+});
+
+// 1. 사전 검증 Guard (항상 순차/fatal)
+register.registerGuard('submitOrder', payload => {
+  if (!payload.valid) throw new Error('유효하지 않은 주문 페이로드');
+}, { id: 'guard-valid' });
+
+// 2. Phase 2 void Command (결과 경합에 참여하지 않는 부수효과)
+register.registerCommand('submitOrder', payload => {
+  console.info('감사 의도 기록:', payload.orderId);
+}, { id: 'command-audit', priority: 20 });
+
+// 3. 타입 지정 Result 핸들러
+register.registerResult('submitOrder', async payload => {
+  await Promise.resolve();
+  return { receiptId: `rcpt-${payload.orderId}` };
+}, { id: 'result-receipt', scheduling: 'await-before-next', errorPolicy: 'fatal' });
+
+// 4. 사후 Observer (불변 스냅샷 수신)
+register.registerObserver('submitOrder', event => {
+  console.info('정산 결과:', event.outcome, event.result);
+}, { when: 'always' });
+
+async function submit() {
+  try {
+    const execution = await register.dispatchWithResult('submitOrder', {
+      orderId: 'ORD-1',
+      valid: true,
+    });
+    console.info(execution.outcome, execution.result);
+  } catch (error) {
+    if (isActionTimeoutError(error)) {
+      console.warn('타임아웃(ms):', error.timeout);
+    }
+  } finally {
+    stopTrace();
+    await register.destroyAsync();
+  }
+}
+
+void submit;
 ```
 
 ### 핸들러 등록
@@ -6950,11 +7068,17 @@ await actionRegister.dispatch('processData', { data: 'test' });
 ```typescript
 actionRegister.register('uploadFile', handler, {
   id: 'file-processor',           // 고유 식별자
-  priority: 50,                   // 실행 우선순위
-  once: false,                    // 여러 번 실행
-  blocking: true,                 // 완료 대기
+  priority: 50,                   // 실행 우선순위 (높을수록 먼저)
+  once: false,                    // 등록당 최대 1회 실행
+  scheduling: 'await-before-next',// 'await-before-next' | 'start-and-continue'
+  errorPolicy: 'collect',         // 'collect' (기본값, 비차단 수집) | 'fatal' (즉시 중단)
+  blocking: true,                 // 1.x 호환 단축 옵션 (true -> await-before-next + fatal)
+  debounce: 300,                  // 디바운스 지연 (ms)
+  throttle: 1000,                 // 스로틀 간격 (ms)
+  replaceExisting: true,          // 동일 ID 핸들러 교체 (기본값: true)
+  cleanup: () => {},              // 등록 해제 또는 destroyAsync 완료 시 정리 콜백
   condition: (payload) => payload.filename.endsWith('.pdf'), // 조건부 실행
-  metadata: {                     // 사용자 정의 메타데이터
+  metadata: {                     // 실행 결과에 복사되는 진단 메타데이터
     description: 'PDF 파일 처리기',
     version: '1.0.0'
   }
@@ -7089,24 +7213,25 @@ console.log(result);
 
 ## 에러 처리
 
-개별 핸들러가 실패해도 파이프라인은 계속 실행됩니다:
+기본 정책(`errorPolicy: 'collect'`, 생략 시 기본값)에서는 개별 핸들러가 예외를 던져도 오류를 수집하고 후속 핸들러가 계속 실행됩니다(`outcome: 'completed_with_errors'`). 치명적 실패로 즉시 중단하려면 `errorPolicy: 'fatal'`(또는 호환 단축 옵션 `blocking: true`)을 지정하세요. 이 경우 `registry.errorHandler`가 **원본 디스패치 `payload`**와 함께 호출되며 `dispatch()`는 reject되고 `dispatchWithResult()`는 `outcome: 'failed'`를 반환합니다. (`registerGuard`는 항상 `fatal`로 동작합니다.)
 
 ```typescript
 actionRegister.register('processData', () => {
-  throw new Error('핸들러 1 실패');
-}, { priority: 100 });
+  throw new Error('핸들러 1 실패 (collect)');
+}, { priority: 100 }); // errorPolicy 기본값: 'collect'
 
 actionRegister.register('processData', () => {
   return { success: true, step: '복구' };
 }, { priority: 50 });
 
-const result = await actionRegister.dispatchWithResult('processData', 
+const result = await actionRegister.dispatchWithResult('processData',
   { data: 'test' },
   { result: { collect: true } }
 );
 
-// result.success: true (파이프라인 성공)
-// result.results: [{ success: true, step: '복구' }] (성공한 결과만)
+// result.success: true, result.outcome: 'completed_with_errors'
+// result.results: [{ success: true, step: '복구' }]
+// result.errors / result.failedResults에서 핸들러 1 오류 확인 가능
 ```
 
 ## 실제 예제: 인증 플로우
@@ -7181,13 +7306,19 @@ function AuthComponent() {
 }
 ```
 
+## 핵심 정책 · 추적 · 종료 API
+
+- **액션별 정책 (`ActionRegisterConfig.actions`)**: 액션별로 `queue?: 'serial' | 'immediate'`와 `timeout?: number` 기본값을 선언하고, 호출부 `DispatchOptions`로 덮어쓸 수 있습니다.
+- **디스패치 수명주기 추적 (`subscribeDispatchTrace`)**: 모든 공개 `dispatch` / `dispatchWithResult`의 `started`와 `settled`(`completed` | `completed_with_errors` | `failed` | `cancelled` | `debounced` | `throttled`) 이벤트를 구독해 트랜잭션 브리지와 연동합니다.
+- **우아한 종료 (`destroy` / `destroyAsync`)**: 호출 즉시 신규 등록과 디스패치를 `ActionRegisterDestroyedError`로 차단하고, 이미 시작된 디스패치와 핸들러가 모두 정산될 때까지 drain한 뒤 등록된 `cleanup` 콜백을 실행합니다(`destroyAsync({ deferCleanup: true })` 지원).
+
 ## 모범 사례
 
-1. **우선순위 설계**: 논리적 실행 순서에 따라 우선순위 할당
-2. **에러 처리**: 적절한 에러 처리와 복구 메커니즘 구현
-3. **결과 수집**: 복잡한 워크플로에 대해 결과 수집 사용
-4. **성능 최적화**: 적절한 실행 모드 선택
-5. **타입 안전성**: TypeScript와 함께 사용하여 타입 안전성 확보
+1. **역할 분리**: 검증은 `registerGuard`, 부수효과는 `registerCommand`, 타입 결과는 `registerResult`, 로깅·트랜잭션 정산은 `registerObserver`로 분리
+2. **우선순위 및 정책 설계**: 논리적 실행 순서에 따라 우선순위를 부여하고 `scheduling`과 `errorPolicy`를 명시
+3. **에러 및 타임아웃 처리**: 치명적 실패는 `errorPolicy: 'fatal'` + `registry.errorHandler`로, 타임아웃은 `isActionTimeoutError()`로 일관 처리
+4. **레지스터 인스턴스 재사용**: `CompiledActionPipeline` 캐시와 `actions` Proxy 캐시를 유지해 Fast Path 이점을 극대화
+5. **타입 안전성 및 종료 보장**: `ActionPayloadMap` / `ActionResultMap`을 정의하고 종료 시 `destroyAsync()`로 백그라운드 작업을 안전하게 drain
 
 ===================[ DOC: ko/concept/architecture-guide.md ]===================
 # Context-Action 아키텍처 및 핵심 철학
@@ -26670,22 +26801,31 @@ function AdvancedUserComponent() {
 
 ### 타임아웃 구성
 
-타임아웃으로 무한 대기를 방지합니다:
+타임아웃으로 무한 대기를 방지합니다. `timeout`을 초과하면 실행 신호가 abort되고 반환된 Promise는 `ActionTimeoutError`로 **reject**(`isActionTimeoutError(error)`로 판별)되며, 내부 핸들러 작업은 정산될 때까지 안전하게 drain됩니다:
 
 ```typescript
-// 타임아웃과 함께 디스패치
-const result = await actionRegister.dispatchWithResult('longOperation', 
-  { data: 'large-dataset' },
-  { 
-    result: { collect: true },
-    timeout: 10000  // 10초 타임아웃
-  }
-);
+import { isActionTimeoutError } from '@context-action/core';
 
-if (result.terminated) {
-  console.log('작업 시간 초과');
+try {
+  const result = await actionRegister.dispatchWithResult(
+    'longOperation',
+    { data: 'large-dataset' },
+    {
+      result: { collect: true },
+      timeout: 10000, // 10초 wall-clock 타임아웃 (큐 대기 및 재시도 지연 포함)
+    },
+  );
+  console.log('완료 상태:', result.outcome, '조기 종료 여부:', result.terminated);
+} catch (error) {
+  if (isActionTimeoutError(error)) {
+    console.log(`"${error.action}" 작업이 ${error.timeout}ms 후 시간 초과되었습니다`);
+  } else {
+    throw error;
+  }
 }
 ```
+
+> 참고: `result.terminated === true`는 타임아웃이 아니라 핸들러가 `controller.return(value)`로 파이프라인을 조기 종료했음을 의미합니다.
 
 ### 결과 수집 옵션
 
@@ -26788,6 +26928,8 @@ function BatchDispatcher() {
 ### 디스패치에서의 오류 처리
 
 ```typescript
+import { isActionTimeoutError, isActionValidationError } from '@context-action/core';
+
 function ErrorHandlingDispatcher() {
   const { dispatchWithResult } = useActionDispatchWithResult();
   
@@ -26801,23 +26943,31 @@ function ErrorHandlingDispatcher() {
         }
       );
       
-      if (result.aborted) {
-        console.log('작업이 중단되었습니다:', result.abortReason);
-        // 중단을 우아하게 처리
-      } else if (result.terminated) {
-        console.log('작업 시간 초과');
-        // 타임아웃 처리
-      } else if (result.success) {
-        console.log('작업 완료:', result.results);
-        // 성공 처리
-      } else {
-        console.log('작업이 오류와 함께 실패');
-        // 일반적인 실패 처리
+      switch (result.outcome) {
+        case 'cancelled':
+          console.log('작업이 중단되었습니다:', result.abortReason);
+          break;
+        case 'debounced':
+        case 'throttled':
+          console.log('타이밍 가드에 의해 건너뛰어짐:', result.outcome);
+          break;
+        case 'completed':
+        case 'completed_with_errors':
+          console.log('작업 완료:', result.result, result.successResults);
+          break;
+        case 'failed':
+          console.log('치명적 오류로 작업 실패:', result.errors);
+          break;
       }
       
     } catch (error) {
-      console.error('디스패치 실패:', error);
-      // 디스패치 수준 오류 처리
+      if (isActionTimeoutError(error)) {
+        console.error('작업 시간 초과:', error.timeout);
+      } else if (isActionValidationError(error)) {
+        console.error('페이로드 검증 실패:', error.issues);
+      } else {
+        console.error('디스패치 실패:', error);
+      }
     }
   };
   
@@ -26827,87 +26977,159 @@ function ErrorHandlingDispatcher() {
 
 ## 디스패치 결과 구조
 
-### 성공 결과
+`dispatchWithResult()`는 `packages/core/src/types.ts`의 `ExecutionResult<R>` 객체를 반환합니다. 반면 타임아웃(`ActionTimeoutError`), 엄격 스키마 검증 실패(`ActionValidationError`), 종료 이후 호출(`ActionRegisterDestroyedError`)은 Promise rejection으로 전달됩니다.
 
 ```typescript
-interface DispatchResult<T = any> {
-  success: true;
-  aborted: false;
-  terminated: false;
-  results: T[];           // 모든 핸들러 반환값
-  errors: never[];        // 성공한 작업에 대해서는 비어있음
+interface ExecutionResult<R = void> {
+  success: boolean;
+  aborted: boolean;
+  abortReason: string | undefined;
+  terminated: boolean; // controller.return()으로 조기 종료된 경우 true
+  outcome: 'completed' | 'completed_with_errors' | 'failed' | 'cancelled' | 'debounced' | 'throttled';
+  validation?: {
+    passed: boolean;
+    errors: string[];
+  };
+  result: R | R[] | undefined;   // 결과 전략에 따라 집계된 최종 결과
+  successResults: R[];           // undefined가 아닌 성공 결과 배열
+  results: Array<R | undefined>; // 수집된 원시 결과 배열
+  failedResults: Array<{
+    handlerId: string;
+    error: Error;
+    expectedType: string;
+  }>;
   execution: {
+    duration: number;
+    admissionDuration: number;
+    queueWaitDuration: number;
+    pipelineDuration: number;
+    retryDelayDuration?: number;
+    resultProcessingDuration?: number;
+    attempts?: Array<{
+      startTime: number;
+      endTime: number;
+      duration: number;
+      outcome: 'succeeded' | 'failed' | 'retried' | 'cancelled';
+    }>;
     handlersExecuted: number;
+    handlersSkipped: number;
+    handlersFailed: number;
     startTime: number;
     endTime: number;
-    duration: number;
-    mode: 'sequential' | 'parallel' | 'race';
   };
-  metadata?: {
-    handlerIds: string[];
-    priorities: number[];
-    payload: any;           // 최종 페이로드 상태
+  handlers: HandlerExecutionOutcome<R>[];
+  raceDiagnostics?: {
+    winnerId?: string;
+    winner?: HandlerExecutionOutcome<R>;
+    loserSnapshots: HandlerExecutionOutcome<R>[];
+    pendingLosersAtReturn: number;
+    observedLoserFailures: number;
   };
+  errors: HandlerError[];
 }
 ```
 
-### 중단된 결과
+### 검증된 디스패치 및 결과 분기 예제
 
+<!-- @context-action-compile -->
 ```typescript
-interface AbortedResult {
-  success: false;
-  aborted: true;
-  terminated: false;
-  abortReason: string;     // controller.abort()에 제공된 이유
-  abortedBy: string;       // 중단을 일으킨 핸들러 ID
-  results: any[];          // 중단 전에 실행된 핸들러의 결과
-  errors: Error[];
-  execution: {
-    handlersExecuted: number;
-    startTime: number;
-    endTime: number;
-    duration: number;
-  };
-}
-```
+import {
+  ActionRegister,
+  isActionTimeoutError,
+  type ActionPayloadMap,
+  type ActionResultMap,
+  type ExecutionResult,
+} from '@context-action/core';
 
-### 타임아웃 결과
-
-```typescript
-interface TimeoutResult {
-  success: false;
-  aborted: false;
-  terminated: true;
-  timeoutMs: number;       // 구성된 타임아웃 값
-  results: any[];          // 타임아웃 전의 부분 결과
-  errors: Error[];
-  execution: {
-    handlersExecuted: number;
-    startTime: number;
-    endTime: number;
-    duration: number;
-  };
+interface ApiActions extends ActionPayloadMap {
+  fetchUser: { userId: string };
+  notify: { message: string };
 }
+
+interface ApiResults extends ActionResultMap<ApiActions> {
+  fetchUser: { name: string };
+}
+
+const registry = new ActionRegister<ApiActions, ApiResults>({
+  name: 'DispatchGuide',
+  actions: {
+    fetchUser: { queue: 'serial', timeout: 5000 },
+    notify: { queue: 'immediate' },
+  },
+});
+
+registry.registerResult('fetchUser', async payload => {
+  await Promise.resolve();
+  return { name: `User-${payload.userId}` };
+});
+
+registry.registerCommand('notify', payload => {
+  console.info(payload.message);
+});
+
+async function runDispatchExamples() {
+  // Fast Path 대상 순차 디스패치
+  await registry.dispatch('notify', { message: 'hello' });
+  await registry.actions.notify({ message: 'via-proxy' });
+
+  // 상세 실행 결과 분기
+  try {
+    const execution: ExecutionResult<{ name: string }> =
+      await registry.dispatchWithResult(
+        'fetchUser',
+        { userId: '123' },
+        { result: { collect: true, strategy: 'first' } },
+      );
+
+    switch (execution.outcome) {
+      case 'completed':
+      case 'completed_with_errors':
+        console.info(execution.result, execution.terminated);
+        break;
+      case 'cancelled':
+        console.warn('중단 사유:', execution.abortReason);
+        break;
+      case 'debounced':
+      case 'throttled':
+        console.info('타이밍 가드로 건너뜀:', execution.outcome);
+        break;
+      case 'failed':
+        console.error('실패:', execution.errors);
+        break;
+    }
+  } catch (error) {
+    if (isActionTimeoutError(error)) {
+      console.error(`"${error.action}" 타임아웃(${error.timeout}ms)`);
+    }
+  } finally {
+    await registry.destroyAsync();
+  }
+}
+
+void runDispatchExamples;
 ```
 
 ## 성능 최적화
 
-### 효율적인 디스패치
+### 효율적인 디스패치와 2단계 Fast Path
+
+장기 수명의 `ActionRegister` 인스턴스를 재사용하면 액션별 `CompiledActionPipeline` 캐시(핸들러 정렬·역할 분리·타이밍 판별 재사용)와 캐시된 `actions` / `actionsWithResult` Proxy 디스패처가 그대로 유지됩니다.
+
+또한 트레이스 리스너, 호출 옵션, 큐, 스키마 검증, Guard, Observer, 타이밍 가드, `once` 핸들러가 없는 기본 순차 `dispatch()`는 `dispatchWithResult()`와 동일한 중단/오류 계약을 유지하면서 무할당 Fast Path로 자동 라우팅됩니다:
 
 ```typescript
-// ✅ 좋음 - 액션 레지스터 인스턴스 재사용
+// ✅ 좋음 - ActionRegister를 재사용해 CompiledActionPipeline & Proxy 캐시 활용
 const register = new ActionRegister<MyActions>();
 
 function OptimizedComponent() {
   const handleMultipleActions = async () => {
-    // 여러 디스패치에 동일한 레지스터 재사용
     await register.dispatch('action1', { data: 'a' });
-    await register.dispatch('action2', { data: 'b' });
+    await register.actions.action2({ data: 'b' });
     await register.dispatch('action3', { data: 'c' });
   };
 }
 
-// ❌ 피해야 할 것 - 반복적으로 새 레지스터 생성
+// ❌ 피해야 할 것 - 호출마다 새 레지스터를 생성하면 파이프라인 캐시가 무효화됨
 function InefficientComponent() {
   const handleAction = async () => {
     const newRegister = new ActionRegister<MyActions>(); // 비용이 많이 듦!

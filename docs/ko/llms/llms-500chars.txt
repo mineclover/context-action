@@ -206,7 +206,7 @@ Sections: 기준선 및 동결 원칙 | 필독 문서 지도 (저장소 경로) 
 # Context-Action 액션 파이프라인 시스템 가이드
 Sections: 개요 | 핵심 구성 요소 | 우선순위 기반 실행 | 파이프라인 제어 메서드 | 실행 모드 | 결과 수집 | 에러 처리 | 실제 예제: 인증 플로우
 
-Context-Action 프레임워크의 핵심인 액션 파이프라인 시스템에 대한 포괄적인 가이드입니다. 액션 파이프라인 시스템은 Context-Action의 ViewModel 레이어의 핵심으로, 우선순위 기반 핸들러 실행과 정교한 파이프라인 제어를 통한 중앙집중식 액션 처리를 제공합니다. ActionRegister 클래스는 액션 파이프라인 시스템의 핵심입니다: 우선순위 기반 실행으로 핸들러를 등록합니다: 각 핸들러는 고급 파이프라인 관리를 위한 PipelineController를 받습니다: 핸들러는 내림차순 우선순위 순서로 실행됩니다 (가장 높은 것부터): 선택적 이유와 함께 파이프라인 실행 중단: 후속 핸들러를 위한 페이로드 변환: 핸들러 간 중간 결과 관리: 핸들러가 차례대로 실행: 모든 핸들러가 동시에 실행: 첫 번째 완료 핸들러가 승리: 개별 핸들러가 실패해도 파이프라인은 계속 실행됩니다: 액션 파이프라인은 액션 컨텍스트 패턴을 통해 React와 원활하게 통합됩니다: 1....
+Context-Action 프레임워크의 핵심인 액션 파이프라인 시스템에 대한 포괄적인 가이드입니다. 액션 파이프라인 시스템은 Context-Action의 ViewModel 레이어의 핵심으로, 우선순위 기반 핸들러 실행과 정교한 파이프라인 제어를 통한 중앙집중식 액션 처리를 제공합니다. ActionRegister 클래스는 액션 파이프라인 시스템의 핵심입니다: ActionRegister는 첫 디스패치 시 액션별 CompiledActionPipeline(guards, nonGuards, results, observers, hasOnce, debounceMs/throttleMs)을 지연 컴파일해 캐싱하며, 핸들러 등록·교체·제거·초기화(register*, unregister, clearAction, clearAll) 시점에만 캐시를 무효화합니다. 프로덕션 파이프라인에서는 역할별 등록 메서드를 사용해 검증, 부수효과, 결과 생성, 후행 관찰을 명확히 분리하는 것을 권장합니다: | 역할(...
 
 ===================[ DOC: ko/concept/architecture-guide.md ]===================
 # Context-Action 아키텍처 및 핵심 철학
@@ -476,7 +476,7 @@ ActionRegister에서 디스패치별로 실행할 핸들러를 정밀하게 제�
 # 디스패치 메서드
 Sections: 핵심 디스패치 메서드 | React 통합 디스패치 | 디스패치 옵션 | 고급 디스패치 패턴 | 디스패치 결과 구조 | 성능 최적화 | 사용 사례별 디스패치 패턴 | 실제 예제: 디스패치를 사용한 결과 수집
 
-다양한 수준의 제어와 결과 수집으로 액션 파이프라인을 트리거하는 다양한 방법. 결과 수집 없이 간단한 액션 실행: 상세한 결과와 함께 포괄적인 실행: React 컴포넌트에서의 기본 디스패치: React 컴포넌트에서의 결과 수집: 타임아웃으로 무한 대기를 방지합니다: 어떤 결과를 수집할지 제어합니다: UseActionWithResult 데모에서 포괄적인 디스패치 패턴을 확인하세요: 이 예제는 포괄적인 오류 처리와 UI 통합을 가진 dispatchWithResult의 실제 사용을 보여줍니다. - 우선순위 시스템 - 우선순위로 실행 순서 제어 - 차단 작업 - 실행 플로우 제어 - 중단 메커니즘 - 필요시 파이프라인 실행 중지 - 결과 처리 - 디스패치 결과 처리와 사용
+다양한 수준의 제어와 결과 수집으로 액션 파이프라인을 트리거하는 다양한 방법. 결과 수집 없이 간단한 액션 실행: 상세한 결과와 함께 포괄적인 실행: React 컴포넌트에서의 기본 디스패치: React 컴포넌트에서의 결과 수집: 타임아웃으로 무한 대기를 방지합니다. timeout을 초과하면 실행 신호가 abort되고 반환된 Promise는 ActionTimeoutError로 reject(isActionTimeoutError(error)로 판별)되며, 내부 핸들러 작업은 정산될 때까지 안전하게 drain됩니다: > 참고: result.terminated === true는 타임아웃이 아니라 핸들러가 controller.return(value)로 파이프라인을 조기 종료했음을 의미합니다. 어떤 결과를 수집할지 제어합니다: dispatchWithResult()는 packages/core/src/types.ts의 ExecutionResult<R> 객체를 반환합니다. 반면 타임아웃(Acti...
 
 ===================[ DOC: ko/guide/pipeline/index.md ]===================
 # 파이프라인 시스템
