@@ -176,15 +176,18 @@ These hooks provide additional functionality, optimizations, and convenience fea
 
 ### 🎯 Action Utility Hooks
 
-#### `useActionDispatchWithResult()`
-**Utility hook** for actions that need to collect results.
-- **Purpose**: Dispatch actions and collect handler results
-- **Use Case**: When you need return values from handlers
+#### `useActionResultDispatch()` & `useActionScope()`
+**Utility hooks** for actions that need to collect results or manage Provider-scoped cancellation.
+- **Purpose**: Dispatch actions and collect handler results (`useActionResultDispatch()`), or access the full `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }` bundle (`useActionScope()`)
+- **Use Case**: When you need return values or cancellation scopes from handlers
 - **Advanced**: For complex workflows requiring handler responses
 
 ```tsx
-const { dispatchWithResult } = useActionDispatchWithResult();
+const dispatchWithResult = useActionResultDispatch();
 const result = await dispatchWithResult('login', credentials);
+
+// Or destructure scope helpers:
+const { dispatchWithResult: scopedDispatch, abortAll, resetAbortScope } = useActionScope();
 ```
 
 #### `useActionRegister()`
@@ -273,10 +276,10 @@ const safeUser = assertStoreValue(user, 'userStore'); // never undefined
 
 #### Action Handling
 - **Essential**: `useActionDispatch`, `useActionHandler`
-- **Utility**: `useActionDispatchWithResult`, `useActionRegister`
+- **Utility**: `useActionResultDispatch`, `useActionScope`, `useActionRegister`
 
 #### DOM Manipulation & Performance
-- **Essential**: `useRefHandler` (from RefContext)
+- **Essential**: `useRefHandler` (from `@context-action/react/refs`)
 - **Utility**: `useWaitForRefs`, `useGetAllRefs`
 
 #### Advanced/Meta
@@ -296,7 +299,8 @@ const safeUser = assertStoreValue(user, 'userStore'); // never undefined
 
 #### Low Frequency (<20% of components)
 - `useComputedStore`
-- `useActionDispatchWithResult`
+- `useActionResultDispatch`
+- `useActionScope`
 
 ---
 
@@ -359,7 +363,7 @@ function OptimizedUserProfile() {
   });
   
   // Utility: Result collection
-  const { dispatchWithResult } = useActionDispatchWithResult();
+  const dispatchWithResult = useActionResultDispatch();
   
   return <div>{displayName}</div>;
 }
@@ -617,7 +621,8 @@ These hooks are created by factory functions:
 - `useActionDispatch()` - Get dispatch function
 - `useActionHandler(action, handler, config?)` - Register handler
 - `useActionRegister()` - Get ActionRegister instance
-- `useActionDispatchWithResult()` - Dispatch with result collection
+- `useActionResultDispatch()` - Dispatch with result collection
+- `useActionScope()` - Access scoped `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }`
 
 ---
 
@@ -647,7 +652,8 @@ These hooks are created by factory functions:
 #### Action System
 - `useActionDispatch` - Dispatch actions
 - `useActionHandler` - Register handlers
-- `useActionDispatchWithResult` - Dispatch with results
+- `useActionResultDispatch` - Dispatch with results
+- `useActionScope` - Provider-scoped dispatch + cancellation bundle
 - `useActionRegister` - Access register
 - `useActionContext` - Access context
 
@@ -671,7 +677,7 @@ These hooks are created by factory functions:
 ### Utility Hooks (Learn As Needed)
 - **Performance**: `useStoreSelector`, `useComputedStore`
 - **Convenience**: `useLocalStore`
-- **Advanced**: `useActionDispatchWithResult`
+- **Advanced**: `useActionResultDispatch`, `useActionScope`
 
 ### Specialized Hooks (For Specific Cases)
 - **Multi-Store**: `useMultiStoreSelector`, `useMultiComputedStore`, `useStoreValues`

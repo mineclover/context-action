@@ -54,7 +54,7 @@ const {
   Provider: LikeActionProvider,
   useActionGuard: useLikeGuard,
   useActionResultHandler: useLikeResultHandler,
-  useActionDispatchWithResult: useLikeDispatchWithResult,
+  useActionResultDispatch: useLikeResultDispatch,
 } = createActionContext<LikeActions, LikeResultMap>('OptimisticLikeActions');
 
 const {
@@ -104,7 +104,7 @@ function LikeHandlers({ children }: { children: React.ReactNode }) {
 function LikeButtonPanel() {
   const articleStore = useLikeStore('article');
   const committed = useStoreValue(articleStore);
-  const { dispatchWithResult } = useLikeDispatchWithResult();
+  const dispatchWithResult = useLikeResultDispatch();
   const [isPending, startTransition] = useTransition();
 
   const [optimisticArticle, applyOptimisticLike] = useOptimistic<
@@ -197,7 +197,7 @@ const {
   Provider: ProfileActionProvider,
   useActionGuard: useProfileGuard,
   useActionResultHandler: useProfileResult,
-  useActionDispatchWithResult: useProfileDispatchWithResult,
+  useActionResultDispatch: useProfileResultDispatch,
 } = createActionContext<ProfileFormActions, ProfileFormResultMap>('ProfileFormActions');
 
 const {
@@ -236,7 +236,7 @@ function ProfileFormHandlers({ children }: { children: React.ReactNode }) {
 
 function ProfileNameForm() {
   const committedName = useStoreValue(useProfileStore('displayName'));
-  const { dispatchWithResult } = useProfileDispatchWithResult();
+  const dispatchWithResult = useProfileResultDispatch();
 
   const [submitState, formAction, isPending] = useActionState<
     FormSubmitState,

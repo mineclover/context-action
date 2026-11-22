@@ -2,19 +2,19 @@
 
 This guide prepares application teams, template starters, and external consumers for **Phase 2 (`v5` major breaking cleanup)** under [`CA-VNEXT-ARCHITECTURE-001`](./decisions/CA-VNEXT-ARCHITECTURE-001.md). Every preparation step in this document runs on top of the current `4.x` release line without breaking existing root imports or freezing active development.
 
-- **Status:** Active `4.x` preparation track (`packages/template-react` already compliant; `v5` breaking removals remain deferred pending release approval)
-- **Prerequisite Baseline:** [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (`M0–M4` Phase 1 complete on `stage`) · [vNext Architecture Handoff Guide](./vnext-architecture-handoff.md)
+- **Status:** **Phase 2 (`v5`) implemented on `stage`** (rollback checkpoint `checkpoint/pre-phase2-v4` @ `240b2b32`; `packages/template-react/src` and `example/src` compliant with `0` blocking findings; package versions remain frozen pending release approval). External `4.x -> v5` consumers can continue using `pnpm audit:v5-readiness` to migrate incrementally.
+- **Prerequisite Baseline:** [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (`M0–M4` & Phase 2 complete on `stage`) · [vNext Architecture Handoff Guide](./vnext-architecture-handoff.md)
 
 ## 1. Phase 1 (`4.x` Non-Breaking) vs. Phase 2 (`v5` Major) Boundary
 
-Phase 1 kept 100% compatibility for existing `4.x` consumers while delivering the target primitives needed to migrate incrementally:
+Phase 1 delivered the target primitives without breaking existing `4.x` callers, and Phase 2 finalized the `@context-action/react` root surface cleanup and default alignment on `stage` (while keeping `@context-action/core` `registerEffect` for `1.x` compatibility):
 
-| Area | Available Now in `4.x` (Opt-In / Non-Breaking) | Deferred to Phase 2 (`v5` Major) |
+| Area | Available in `4.x` (Additive / Non-Breaking) | Applied in Phase 2 (`v5` on `stage`) |
 | :--- | :--- | :--- |
-| React entrypoints | `@context-action/react/{refs,time-travel,transactions,backend}` subpaths live alongside root `.` re-exports | Remove heavy/specialized re-exports (`createRefContext`, `createTimeTravelStore*`, `StoreTransactionCoordinator`, `createBackendStore`, etc.) from root `@context-action/react` |
-| Dispatch hook symmetry | `useActionResultDispatch()` and `useActionScope()` promoted as primary hooks; `useActionDispatchWithResult()` marked `@deprecated` | Remove `useActionDispatchWithResult`, `useActionEffectHandler`, `registerEffect`, `StoreSchema` / `defineStoreSchema`, and `compareStrategy` |
-| Action queue policies | Contract-level `actions: { [name]: { queue, timeout } }` policies on `ActionRegister` / `createActionContext`, plus lazy `dispatchQueue` allocation for `{ immediate: false }` | Re-evaluate default `useConcurrencyQueue` (`true` vs `false`) once consumers declare re-entrant queues on action contracts instead of relying on call-site `{ immediate: true }` |
-| Store notifications | Explicit `notificationMode?: 'batched' \| 'immediate'` option on `Store`, `TimeTravelStore`, `createStoreContext`, and `createTimeTravelStoreContext` (defaults stay `'batched'`) | Harmonize default notification semantics only after consumer readiness audits clear across active projects |
+| React entrypoints | `@context-action/react/{refs,time-travel,transactions,backend}` subpaths live alongside root `.` re-exports | Specialized re-exports (`createRefContext`, `createTimeTravelStore*`, `StoreTransactionCoordinator`, `createBackendStore`, etc.) live solely on their subpaths |
+| Dispatch hook symmetry & deprecations | `useActionResultDispatch()` and `useActionScope()` promoted as primary hooks; `useActionDispatchWithResult()` marked `@deprecated` | Removed `useActionDispatchWithResult`, `useActionEffectHandler`, `compareStrategy`, `StoreSchema`, and legacy React `TransactionBackend` facade (`@context-action/core` retains `registerEffect` for `1.x`) |
+| Action queue policies | Contract-level `actions: { [name]: { queue, timeout } }` policies on `ActionRegister` / `createActionContext`, plus lazy `dispatchQueue` allocation for `{ immediate: false }` | Default `useConcurrencyQueue` in `createActionContext` aligned with Core (`false`); per-action serial queues opt in via `actions: { [name]: { queue: 'serial' } }` or `{ registry: { useConcurrencyQueue: true } }` |
+| Store notifications | Explicit `notificationMode?: 'batched' \| 'immediate'` option on `Store`, `TimeTravelStore`, `createStoreContext`, and `createTimeTravelStoreContext` | Default `Store` `notificationMode` aligned to `'immediate'` (matching `createStateStore()` and React 18/19 batching; `'batched'` remains opt-in for explicit RAF coalescing) |
 
 ## 2. Consumer Migration Recipes (Safe in `4.x`, Ready for `v5`)
 
@@ -193,10 +193,10 @@ pnpm test:v5-readiness                         # Run AST fixture & starter-compl
 | `packages/template-react/src` | 21 | **0** | `0 / 0 / 0` | 5 | Passes `--strict-template` and `--strict-all`; uses `@context-action/react/refs` and contract-level `actions` policies |
 | `example/src` | 540 | **0** | `0 / 0 / 0` | 213 | Passes `--strict-all` cleanly; all subpath imports, `useActionScope`, and contract action queue policies migrated |
 
-## 4. Phase 2 (`v5`) Admission Checklist
+## 4. Phase 2 (`v5`) Completion & Release Governance Checklist
 
-Before proposing any version bump or removing `4.x` compatibility aliases in a dedicated `v5` release branch:
+Phase 2 breaking removals and default harmonization are implemented on `stage` (with rollback checkpoint `checkpoint/pre-phase2-v4` preserved at `240b2b32`). Before tagging or bumping package versions in a dedicated `v5` release PR:
 
 1. `pnpm audit:v5-readiness -- --strict-template`, `pnpm audit:v5-readiness -- --strict-all`, and `pnpm test:v5-readiness` remain green (`0` blocking findings across both `packages/template-react/src` and `example/src`).
-2. External consumer apps resolve remaining `blockingTotal` items (`deprecatedApis`, `rootSubpathImports`, `manualImmediateDispatches`).
-3. Cross-project decision gates in [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (Section 6) and release governance checks in [Release Governance](../../../releases/RELEASE.md) are formally approved.
+2. External consumer apps upgrading from `4.x` resolve remaining `blockingTotal` items (`deprecatedApis`, `rootSubpathImports`, `manualImmediateDispatches`) reported by `pnpm audit:v5-readiness -- --root <app>`.
+3. Release governance checks (`pnpm release:check`, `pnpm verify && pnpm verify:receipt`) and [Release Governance](../../../releases/RELEASE.md) approvals complete cleanly.

@@ -191,7 +191,7 @@ High-performance direct DOM manipulation with zero React re-renders.
 ```tsx
 import type React from 'react';
 import { useCallback, useRef } from 'react';
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // 1. Define Ref Structure
 type MouseRefs = {

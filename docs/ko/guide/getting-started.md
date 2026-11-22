@@ -191,7 +191,7 @@ export function HeadlessCounterApp() {
 ```tsx
 import type React from 'react';
 import { useCallback, useRef } from 'react';
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // 1. Ref 구조 정의
 type MouseRefs = {

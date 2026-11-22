@@ -20,13 +20,13 @@ Context-Action separates **write ownership** (`StoreWriter` / Action Handlers) f
 | --- | --- | --- | --- | --- |
 | **`createStoreContext`** | `@context-action/react` | **Default choice.** Scope multiple domain stores cleanly to a React component subtree | No | Yes |
 | **`createStore` (`Store`)** | `@context-action/react` | Standalone module-level store, dependency-injected store, or unit tests | No | Yes (Mutative built in) |
-| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react` or `@context-action/react/time-travel` | Editors, form drafts, and canvas state needing undo/redo history navigation | **Yes (Mutative patches)** | Yes |
+| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react/time-travel` | Editors, form drafts, and canvas state needing undo/redo history navigation | **Yes (Mutative patches)** | Yes |
 | **`createStateStore`** | `@context-action/store-core` | Minimal framework-neutral reference store for Vanilla JS, Node, Preact, Lit, or XState | No | **No (0 deps)** |
 | **`createMutativeStateBackend` / `createMutativeTimelineBackend`** | `@context-action/mutative` | Framework-neutral Layer 1 Mutative draft/patch `StateStore` & `TimelineBackend` (`TransactionBackend`), usable standalone or injected natively into React/Lit/Preact | Optional (`TimelineBackend`) | **No** |
 | **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | Bridge any user-owned `StateBackend` into React subscription hooks (optional when using `createStoreContext().Provider stores={...}`) | Backend-dependent | Yes (wrapper only) |
-| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react` or `@context-action/react/transactions` | Group mutations across multiple stores into one atomic commit, rollback, and single undo step | **Yes (atomic multi-store)** | Yes |
+| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react/transactions` | Group mutations across multiple stores into one atomic commit, rollback, and single undo step | **Yes (atomic multi-store)** | Yes |
 | **`useLocalStore` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | Component-lifetime local store / memoized derived value / dynamic named store registry | No | Yes |
-| **`createRefContext`** | `@context-action/react` or `@context-action/react/refs` | **Non-reactive (Tier 3).** DOM elements, Canvas handles, and 120fps pointer coordinates with zero React re-renders | No | Yes |
+| **`createRefContext`** | `@context-action/react/refs` | **Non-reactive (Tier 3).** DOM elements, Canvas handles, and 120fps pointer coordinates with zero React re-renders | No | Yes |
 | **`createActorStateReader`** | `@context-action/xstate` | **Closed statechart read-only projection.** Blocks external `setValue()`; transitions go through actor events only | No | **No** |
 | **`createSourceContext` / `fromStateReader` / `StoreController`** | `@context-action/preact`, `@context-action/lit` | Read-only Signals (`fromStateReader` bridges `StateReader`/`StoreReader` snapshots) or `ReactiveController` projections for Preact/Lit hosts | No | **No** |
 | **`createDurableOperationStore`** | `@context-action/tool-durable-operations` | **Not UI state.** Lease/claim idempotency and recovery records for external HTTP, queue, or filesystem side effects | No | **No** |
@@ -105,7 +105,7 @@ export function UserNameLabel() {
 profileStore.dispose();
 ```
 
-### 2.3 `createTimeTravelStoreContext` & `createTimeTravelStore` (`@context-action/react`) — Undo / Redo
+### 2.3 `createTimeTravelStoreContext` & `createTimeTravelStore` (`@context-action/react/time-travel`) — Undo / Redo
 
 Use `TimeTravelStore` whenever users need undo, redo, or bounded history navigation.
 
@@ -115,7 +115,7 @@ Use `TimeTravelStore` whenever users need undo, redo, or bounded history navigat
 
 <!-- @context-action-compile -->
 ```tsx
-import { createTimeTravelStoreContext } from '@context-action/react';
+import { createTimeTravelStoreContext } from '@context-action/react/time-travel';
 
 const DocStores = createTimeTravelStoreContext('Doc', {
   content: { initialValue: { text: '' }, maxHistory: 50 },
@@ -217,7 +217,7 @@ export function SessionStep() {
 }
 ```
 
-### 2.6 `StoreTransactionCoordinator` & `bindActionTransactions` (`@context-action/react`) — Multi-Store Transactions
+### 2.6 `StoreTransactionCoordinator` & `bindActionTransactions` (`@context-action/react/transactions`) — Multi-Store Transactions
 
 Use `StoreTransactionCoordinator` when a single logical action must update multiple stores without exposing intermediate states and with atomic rollback + single-step undo.
 
@@ -227,7 +227,8 @@ Use `StoreTransactionCoordinator` when a single logical action must update multi
 
 <!-- @context-action-compile -->
 ```ts
-import { StoreTransactionCoordinator, createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
+import { StoreTransactionCoordinator } from '@context-action/react/transactions';
 
 const cart = createTimeTravelStore('cart', { items: [] as string[] });
 const totals = createTimeTravelStore('totals', { price: 0 });
@@ -331,7 +332,7 @@ export function HeadlessCartView() {
 
 Do not force every stateful need into a reactive React `Store`:
 
-1. **`createRefContext` (`@context-action/react`) — Non-Reactive Tier 3 State**: Keep DOM nodes, HTML5 Canvas handles, animation timers, and 120fps pointer coordinates in `createRefContext` so frequent updates never trigger React re-renders.
+1. **`createRefContext` (`@context-action/react/refs`) — Non-Reactive Tier 3 State**: Keep DOM nodes, HTML5 Canvas handles, animation timers, and 120fps pointer coordinates in `createRefContext` so frequent updates never trigger React re-renders.
 2. **`createActorStateReader` (`@context-action/xstate`) — Closed Statechart Projection**: Unlike open `StateStore` instances, an XState actor does not allow arbitrary external `setValue()` writes. Route intents through `ActionRegister` / `SyncActionPipeline` (`bindActorToActionRegister` / `bindActorToSyncPipeline`) and read monotonic versioned snapshots via `createActorStateReader(actor, { select, equals })`.
 3. **Preact & Lit Read-Only Adapters**:
    - **Preact** (`@context-action/preact`): wrap any `ReadableSource` with `connectSourceSignal(store)` — or adapt snapshot-envelope `StateReader`/`StoreReader` stores explicitly via `fromStateReader(store)` first — and pass it down via `createSourceContext`, projecting slices with `useProjection(signal, selector)`.

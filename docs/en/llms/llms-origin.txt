@@ -2425,7 +2425,7 @@ Bump catalog schema versions (`*.v2.json`) if package layers, stability tiers, o
 ===================[ DOC: en/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001.md ]===================
 # CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, State Unification, and React Surface Blueprint
 
-**Status:** accepted — Phase 1 (`M0–M4`, 4.x additive alignment) implemented on `stage`; Phase 2 (`v5` major breaking cleanup) deferred pending coordinated release window  
+**Status:** accepted — Phase 1 (`M0–M4`, 4.x additive alignment) & Phase 2 (`v5` React breaking cleanup & default harmonization) implemented on `stage` (package versions & npm publish remain frozen; rollback checkpoint `checkpoint/pre-phase2-v4` @ `240b2b32`)  
 **Owner:** Framework Core & React Runtime  
 **Related issue/spec:** `CA-VNEXT-ARCHITECTURE-001` (builds on [CA-SURFACE-CATALOG-001](./CA-SURFACE-CATALOG-001.md), [CA-ELEMENT-INTEROP-001](./CA-ELEMENT-INTEROP-001.md), [CA-STATECHART-EFFECT-001](./CA-STATECHART-EFFECT-001.md), [CA-SPEC-EVIDENCE-001](./CA-SPEC-EVIDENCE-001.md))  
 **Baseline:** `stage` (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`; package versions frozen during pre-release stage work)
@@ -2434,12 +2434,10 @@ Bump catalog schema versions (`*.v2.json`) if package layers, stability tiers, o
 
 ## 1. Context & Rollout Staging Note
 
-While sibling projects and external integrations rely on the currently published `@context-action/*` 4.x / 1.x / 0.x contracts, breaking root `.` removals, default notification/queue flips, or version bumps must wait for a coordinated release window.
+Because external/sibling integrations rely on predictable upgrade staging, this architecture evolution splits adoption cleanly into two phases:
 
-Therefore, this record splits adoption cleanly into two phases:
-
-1. **Phase 1 (`M0–M4` — 4.x Non-Breaking / Additive Alignment, Implemented on `stage`):** Delivers native `StateReader`/`StateBackend`/`TimelineBackend` interop in React hooks and Providers (`M1a`/`M1b`), Core contract-level `actions` queue/timeout policies (`M2`), Layer 1 `@context-action/mutative` `StateStore` and mutable `notificationMode` parity (`M3`), opt-in subpaths (`./refs`, `./time-travel`, `./transactions`), and symmetric dispatch hooks (`useActionResultDispatch()`, `useActionScope()`) (`M4`) while preserving 100% of root `.` exports and existing defaults.
-2. **Phase 2 (`v5` Major Breaking Cleanup, Deferred):** Stages removal of deprecated APIs (`useActionEffectHandler`, `compareStrategy`, `StoreSchema`), root barrel slimming, and default timing/queue harmonization once cross-project migration windows open.
+1. **Phase 1 (`M0–M4` — 4.x Non-Breaking / Additive Alignment, Implemented on `stage`):** Delivered native `StateReader`/`StateBackend`/`TimelineBackend` interop in React hooks and Providers (`M1a`/`M1b`), Core contract-level `actions` queue/timeout policies (`M2`), Layer 1 `@context-action/mutative` `StateStore` and mutable `notificationMode` parity (`M3`), opt-in subpaths (`./refs`, `./time-travel`, `./transactions`), and symmetric dispatch hooks (`useActionResultDispatch()`, `useActionScope()`) (`M4`) while preserving root `.` compatibility and prior defaults.
+2. **Phase 2 (`v5` React Breaking Cleanup & Default Harmonization, Implemented on `stage` after `checkpoint/pre-phase2-v4` @ `240b2b32`):** Slimmed `@context-action/react` root `.` to the essential daily surface (`createActionContext`, `createStoreContext`, `Store`, store hooks, `StoreErrorBoundary`) with `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, `./webmcp` as standalone subpaths; removed deprecated React compatibility APIs (`useActionDispatchWithResult`, `useActionEffectHandler`, `compareStrategy`, `StoreSchema`, legacy React `TransactionBackend` facade) while preserving `@context-action/core` `registerEffect` for `1.x` compatibility; and harmonized `Store` default `notificationMode` to `'immediate'` and `createActionContext` default `useConcurrencyQueue` to `false`. Package versions remain frozen on `stage` pending formal release governance.
 
 ---
 
@@ -2696,6 +2694,7 @@ All milestones below are strictly **4.x non-breaking (additive)** and preserve r
 | **M2 — P1: Contract-Level Action Queue Policy** | **Done** · Track B1 | `packages/core/src/types.ts`, `packages/core/src/index.ts`, `packages/core/src/ActionRegister.ts`, `ActionContext.types.ts`, `ActionContext.tsx`, `packages/core/docs/action-contracts.md` | Added generic `ActionRegisterConfig<T>.actions` (`ActionQueuePolicy`, `ActionPolicyConfig`: `{ queue?: 'serial' \| 'immediate'; timeout?: number }`) and `ActionContext` forwarding without altering 4.x defaults or explicit call-site overrides. | `packages/core/__tests__/unit/action-policy-config.test.ts`, full `@context-action/core` Jest + Vitest suites, `pnpm verify:core-artifact-parity` |
 | **M3 — P1: Layer 1 Mutative & Timeline Parity** | **Done** · Track A2 | `packages/mutative/src/backend.ts`, `packages/mutative/__tests__/backend-state-store-parity.test.ts`, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/context-layered/store-selection-and-usage-guide.md` | Aligned `@context-action/mutative` Layer 1 `MutativeStateBackend` and `MutativeTimelineBackend` (`StateStore`, `TransactionBackend`, `getValue()`, `isDisposed()`, dynamic `getNotificationMode()` / `setNotificationMode()`) cleanly without introducing a 19th package; wired native React hook & `createTimeTravelStoreContext` interop. | `backend-state-store-parity.test.ts`, full `@context-action/mutative` Vitest suite, `vnext-phase1-alignment.integration.test.tsx` |
 | **M4a & M4b — P2: Opt-In React Subpaths & Symmetric Dispatch** | **Done** · Track C1 & B2 | `packages/react/src/{refs,time-travel,transactions}.ts`, `package.json`, `tsdown.config.ts`, `jest.config.cjs`, `ActionContext.{types.ts,tsx}`, `catalog/repository-surface/api-surface.v1.json`, `scripts/verify-react-artifact-boundary.mjs`, `scripts/verify-doc-snippets.mjs` | Exposed opt-in `./refs` (Mutative-free), `./time-travel`, `./transactions` subpaths alongside unchanged root `.` exports, plus symmetric `useActionResultDispatch()` and `useActionScope()` (`ActionScopeReturn`); preserved `useActionDispatchWithResult()` until Phase 2 (v5). | `pnpm verify:surface-catalog`, `pnpm verify:package-exports`, `pnpm verify:react-artifact-boundary`, `pnpm --filter @context-action/react test`, `pnpm docs:check`, `pnpm verify:quick && pnpm verify:receipt` |
+| **Phase 2 (`v5`) — Major React Cleanup & Default Harmonization** | **Done on `stage`** (checkpoint `checkpoint/pre-phase2-v4` @ `240b2b32`) | `packages/react/src/{index.ts,actions/ActionContext*,stores/core/Store.ts,stores/core/contracts.ts,stores/core/StoreTransactionCoordinator.ts,stores/patterns/declarative-store-pattern-v2.tsx}`, `catalog/repository-surface/api-surface.v1.json`, `scripts/verify-react-{artifact-boundary,compatibility}.mjs` | Slimmed `@context-action/react` root `.` (moved `./refs`, `./time-travel`, `./transactions` solely to subpaths); removed `useActionEffectHandler`, `useActionDispatchWithResult`, `compareStrategy`, `StoreSchema`, and legacy React `TransactionBackend` facade (`@context-action/core` retains `registerEffect` for `1.x`); aligned `Store` default `notificationMode` to `'immediate'` and `createActionContext` default `useConcurrencyQueue` to `false`. | `pnpm --filter @context-action/react test`, `pnpm verify:react-artifact-boundary`, `pnpm verify:react-compatibility`, `pnpm verify:doc-snippets`, `pnpm docs:check`, `pnpm verify && pnpm verify:receipt` |
 
 ===================[ DOC: en/context-layered/decisions/index.md ]===================
 # Architecture Decision Records
@@ -5367,13 +5366,13 @@ Context-Action separates **write ownership** (`StoreWriter` / Action Handlers) f
 | --- | --- | --- | --- | --- |
 | **`createStoreContext`** | `@context-action/react` | **Default choice.** Scope multiple domain stores cleanly to a React component subtree | No | Yes |
 | **`createStore` (`Store`)** | `@context-action/react` | Standalone module-level store, dependency-injected store, or unit tests | No | Yes (Mutative built in) |
-| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react` or `@context-action/react/time-travel` | Editors, form drafts, and canvas state needing undo/redo history navigation | **Yes (Mutative patches)** | Yes |
+| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react/time-travel` | Editors, form drafts, and canvas state needing undo/redo history navigation | **Yes (Mutative patches)** | Yes |
 | **`createStateStore`** | `@context-action/store-core` | Minimal framework-neutral reference store for Vanilla JS, Node, Preact, Lit, or XState | No | **No (0 deps)** |
 | **`createMutativeStateBackend` / `createMutativeTimelineBackend`** | `@context-action/mutative` | Framework-neutral Layer 1 Mutative draft/patch `StateStore` & `TimelineBackend` (`TransactionBackend`), usable standalone or injected natively into React/Lit/Preact | Optional (`TimelineBackend`) | **No** |
 | **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | Bridge any user-owned `StateBackend` into React subscription hooks (optional when using `createStoreContext().Provider stores={...}`) | Backend-dependent | Yes (wrapper only) |
-| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react` or `@context-action/react/transactions` | Group mutations across multiple stores into one atomic commit, rollback, and single undo step | **Yes (atomic multi-store)** | Yes |
+| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react/transactions` | Group mutations across multiple stores into one atomic commit, rollback, and single undo step | **Yes (atomic multi-store)** | Yes |
 | **`useLocalStore` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | Component-lifetime local store / memoized derived value / dynamic named store registry | No | Yes |
-| **`createRefContext`** | `@context-action/react` or `@context-action/react/refs` | **Non-reactive (Tier 3).** DOM elements, Canvas handles, and 120fps pointer coordinates with zero React re-renders | No | Yes |
+| **`createRefContext`** | `@context-action/react/refs` | **Non-reactive (Tier 3).** DOM elements, Canvas handles, and 120fps pointer coordinates with zero React re-renders | No | Yes |
 | **`createActorStateReader`** | `@context-action/xstate` | **Closed statechart read-only projection.** Blocks external `setValue()`; transitions go through actor events only | No | **No** |
 | **`createSourceContext` / `fromStateReader` / `StoreController`** | `@context-action/preact`, `@context-action/lit` | Read-only Signals (`fromStateReader` bridges `StateReader`/`StoreReader` snapshots) or `ReactiveController` projections for Preact/Lit hosts | No | **No** |
 | **`createDurableOperationStore`** | `@context-action/tool-durable-operations` | **Not UI state.** Lease/claim idempotency and recovery records for external HTTP, queue, or filesystem side effects | No | **No** |
@@ -5452,7 +5451,7 @@ export function UserNameLabel() {
 profileStore.dispose();
 ```
 
-### 2.3 `createTimeTravelStoreContext` & `createTimeTravelStore` (`@context-action/react`) — Undo / Redo
+### 2.3 `createTimeTravelStoreContext` & `createTimeTravelStore` (`@context-action/react/time-travel`) — Undo / Redo
 
 Use `TimeTravelStore` whenever users need undo, redo, or bounded history navigation.
 
@@ -5462,7 +5461,7 @@ Use `TimeTravelStore` whenever users need undo, redo, or bounded history navigat
 
 <!-- @context-action-compile -->
 ```tsx
-import { createTimeTravelStoreContext } from '@context-action/react';
+import { createTimeTravelStoreContext } from '@context-action/react/time-travel';
 
 const DocStores = createTimeTravelStoreContext('Doc', {
   content: { initialValue: { text: '' }, maxHistory: 50 },
@@ -5564,7 +5563,7 @@ export function SessionStep() {
 }
 ```
 
-### 2.6 `StoreTransactionCoordinator` & `bindActionTransactions` (`@context-action/react`) — Multi-Store Transactions
+### 2.6 `StoreTransactionCoordinator` & `bindActionTransactions` (`@context-action/react/transactions`) — Multi-Store Transactions
 
 Use `StoreTransactionCoordinator` when a single logical action must update multiple stores without exposing intermediate states and with atomic rollback + single-step undo.
 
@@ -5574,7 +5573,8 @@ Use `StoreTransactionCoordinator` when a single logical action must update multi
 
 <!-- @context-action-compile -->
 ```ts
-import { StoreTransactionCoordinator, createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
+import { StoreTransactionCoordinator } from '@context-action/react/transactions';
 
 const cart = createTimeTravelStore('cart', { items: [] as string[] });
 const totals = createTimeTravelStore('totals', { price: 0 });
@@ -5678,7 +5678,7 @@ export function HeadlessCartView() {
 
 Do not force every stateful need into a reactive React `Store`:
 
-1. **`createRefContext` (`@context-action/react`) — Non-Reactive Tier 3 State**: Keep DOM nodes, HTML5 Canvas handles, animation timers, and 120fps pointer coordinates in `createRefContext` so frequent updates never trigger React re-renders.
+1. **`createRefContext` (`@context-action/react/refs`) — Non-Reactive Tier 3 State**: Keep DOM nodes, HTML5 Canvas handles, animation timers, and 120fps pointer coordinates in `createRefContext` so frequent updates never trigger React re-renders.
 2. **`createActorStateReader` (`@context-action/xstate`) — Closed Statechart Projection**: Unlike open `StateStore` instances, an XState actor does not allow arbitrary external `setValue()` writes. Route intents through `ActionRegister` / `SyncActionPipeline` (`bindActorToActionRegister` / `bindActorToSyncPipeline`) and read monotonic versioned snapshots via `createActorStateReader(actor, { select, equals })`.
 3. **Preact & Lit Read-Only Adapters**:
    - **Preact** (`@context-action/preact`): wrap any `ReadableSource` with `connectSourceSignal(store)` — or adapt snapshot-envelope `StateReader`/`StoreReader` stores explicitly via `fromStateReader(store)` first — and pass it down via `createSourceContext`, projecting slices with `useProjection(signal, selector)`.
@@ -7521,19 +7521,19 @@ next roadmap item is the smallest gate-clearing task, not a version bump.
 
 This guide prepares application teams, template starters, and external consumers for **Phase 2 (`v5` major breaking cleanup)** under [`CA-VNEXT-ARCHITECTURE-001`](./decisions/CA-VNEXT-ARCHITECTURE-001.md). Every preparation step in this document runs on top of the current `4.x` release line without breaking existing root imports or freezing active development.
 
-- **Status:** Active `4.x` preparation track (`packages/template-react` already compliant; `v5` breaking removals remain deferred pending release approval)
-- **Prerequisite Baseline:** [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (`M0–M4` Phase 1 complete on `stage`) · [vNext Architecture Handoff Guide](./vnext-architecture-handoff.md)
+- **Status:** **Phase 2 (`v5`) implemented on `stage`** (rollback checkpoint `checkpoint/pre-phase2-v4` @ `240b2b32`; `packages/template-react/src` and `example/src` compliant with `0` blocking findings; package versions remain frozen pending release approval). External `4.x -> v5` consumers can continue using `pnpm audit:v5-readiness` to migrate incrementally.
+- **Prerequisite Baseline:** [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (`M0–M4` & Phase 2 complete on `stage`) · [vNext Architecture Handoff Guide](./vnext-architecture-handoff.md)
 
 ## 1. Phase 1 (`4.x` Non-Breaking) vs. Phase 2 (`v5` Major) Boundary
 
-Phase 1 kept 100% compatibility for existing `4.x` consumers while delivering the target primitives needed to migrate incrementally:
+Phase 1 delivered the target primitives without breaking existing `4.x` callers, and Phase 2 finalized the `@context-action/react` root surface cleanup and default alignment on `stage` (while keeping `@context-action/core` `registerEffect` for `1.x` compatibility):
 
-| Area | Available Now in `4.x` (Opt-In / Non-Breaking) | Deferred to Phase 2 (`v5` Major) |
+| Area | Available in `4.x` (Additive / Non-Breaking) | Applied in Phase 2 (`v5` on `stage`) |
 | :--- | :--- | :--- |
-| React entrypoints | `@context-action/react/{refs,time-travel,transactions,backend}` subpaths live alongside root `.` re-exports | Remove heavy/specialized re-exports (`createRefContext`, `createTimeTravelStore*`, `StoreTransactionCoordinator`, `createBackendStore`, etc.) from root `@context-action/react` |
-| Dispatch hook symmetry | `useActionResultDispatch()` and `useActionScope()` promoted as primary hooks; `useActionDispatchWithResult()` marked `@deprecated` | Remove `useActionDispatchWithResult`, `useActionEffectHandler`, `registerEffect`, `StoreSchema` / `defineStoreSchema`, and `compareStrategy` |
-| Action queue policies | Contract-level `actions: { [name]: { queue, timeout } }` policies on `ActionRegister` / `createActionContext`, plus lazy `dispatchQueue` allocation for `{ immediate: false }` | Re-evaluate default `useConcurrencyQueue` (`true` vs `false`) once consumers declare re-entrant queues on action contracts instead of relying on call-site `{ immediate: true }` |
-| Store notifications | Explicit `notificationMode?: 'batched' \| 'immediate'` option on `Store`, `TimeTravelStore`, `createStoreContext`, and `createTimeTravelStoreContext` (defaults stay `'batched'`) | Harmonize default notification semantics only after consumer readiness audits clear across active projects |
+| React entrypoints | `@context-action/react/{refs,time-travel,transactions,backend}` subpaths live alongside root `.` re-exports | Specialized re-exports (`createRefContext`, `createTimeTravelStore*`, `StoreTransactionCoordinator`, `createBackendStore`, etc.) live solely on their subpaths |
+| Dispatch hook symmetry & deprecations | `useActionResultDispatch()` and `useActionScope()` promoted as primary hooks; `useActionDispatchWithResult()` marked `@deprecated` | Removed `useActionDispatchWithResult`, `useActionEffectHandler`, `compareStrategy`, `StoreSchema`, and legacy React `TransactionBackend` facade (`@context-action/core` retains `registerEffect` for `1.x`) |
+| Action queue policies | Contract-level `actions: { [name]: { queue, timeout } }` policies on `ActionRegister` / `createActionContext`, plus lazy `dispatchQueue` allocation for `{ immediate: false }` | Default `useConcurrencyQueue` in `createActionContext` aligned with Core (`false`); per-action serial queues opt in via `actions: { [name]: { queue: 'serial' } }` or `{ registry: { useConcurrencyQueue: true } }` |
+| Store notifications | Explicit `notificationMode?: 'batched' \| 'immediate'` option on `Store`, `TimeTravelStore`, `createStoreContext`, and `createTimeTravelStoreContext` | Default `Store` `notificationMode` aligned to `'immediate'` (matching `createStateStore()` and React 18/19 batching; `'batched'` remains opt-in for explicit RAF coalescing) |
 
 ## 2. Consumer Migration Recipes (Safe in `4.x`, Ready for `v5`)
 
@@ -7712,28 +7712,28 @@ pnpm test:v5-readiness                         # Run AST fixture & starter-compl
 | `packages/template-react/src` | 21 | **0** | `0 / 0 / 0` | 5 | Passes `--strict-template` and `--strict-all`; uses `@context-action/react/refs` and contract-level `actions` policies |
 | `example/src` | 540 | **0** | `0 / 0 / 0` | 213 | Passes `--strict-all` cleanly; all subpath imports, `useActionScope`, and contract action queue policies migrated |
 
-## 4. Phase 2 (`v5`) Admission Checklist
+## 4. Phase 2 (`v5`) Completion & Release Governance Checklist
 
-Before proposing any version bump or removing `4.x` compatibility aliases in a dedicated `v5` release branch:
+Phase 2 breaking removals and default harmonization are implemented on `stage` (with rollback checkpoint `checkpoint/pre-phase2-v4` preserved at `240b2b32`). Before tagging or bumping package versions in a dedicated `v5` release PR:
 
 1. `pnpm audit:v5-readiness -- --strict-template`, `pnpm audit:v5-readiness -- --strict-all`, and `pnpm test:v5-readiness` remain green (`0` blocking findings across both `packages/template-react/src` and `example/src`).
-2. External consumer apps resolve remaining `blockingTotal` items (`deprecatedApis`, `rootSubpathImports`, `manualImmediateDispatches`).
-3. Cross-project decision gates in [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (Section 6) and release governance checks in [Release Governance](../../../releases/RELEASE.md) are formally approved.
+2. External consumer apps upgrading from `4.x` resolve remaining `blockingTotal` items (`deprecatedApis`, `rootSubpathImports`, `manualImmediateDispatches`) reported by `pnpm audit:v5-readiness -- --root <app>`.
+3. Release governance checks (`pnpm release:check`, `pnpm verify && pnpm verify:receipt`) and [Release Governance](../../../releases/RELEASE.md) approvals complete cleanly.
 
 ===================[ DOC: en/context-layered/vnext-architecture-handoff.md ]===================
 # vNext Architecture & Cross-Project Handoff Guide
 
-**Status:** Phase 1 (`M0–M4` 4.x additive alignment) implemented on `stage`; Phase 2 (`v5` major) feedback & release window remain open  
+**Status:** Phase 1 (`M0–M4`) & Phase 2 (`v5` React breaking cleanup & default harmonization) implemented on `stage` (rollback checkpoint `checkpoint/pre-phase2-v4` @ `240b2b32`; package versions & npm publish remain frozen)  
 **Baseline:** `stage` branch (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`; package versions frozen on `stage`)
 
-This document equips a sibling consumer project or the next architecture review session with exact baseline rules, reading paths, Phase 1 implementation coverage, remaining Phase 2 (`v5`) decision gates, and ready-to-paste prompts so coordination can proceed safely without breaking existing 4.x consumers.
+This document equips a sibling consumer project or the next architecture review session with exact baseline rules, reading paths, Phase 1 & Phase 2 implementation coverage, open design boundaries, and ready-to-paste prompts.
 
 ---
 
 ## 1. Baseline & Freeze Rules
 
-- **Active branch:** `stage` (keep all pre-release design and stabilization work off `main` until an approved integration window).
-- **Published contract & version freeze:** Package versions and npm releases remain frozen while sibling/external projects transition; **all Phase 1 changes on `stage` (`M0–M4`) are strictly 4.x additive / non-breaking** with full root `.` export and default compatibility.
+- **Active branch:** `stage` (rollback checkpoint `checkpoint/pre-phase2-v4` preserved at `240b2b32`; keep all pre-release work off `main` until an approved integration window).
+- **Published contract & version freeze:** Package versions and npm releases remain frozen on `stage`. Note that **Phase 2 (`v5` React surface cleanup)** is now active on `stage` (`createActionContext` default `useConcurrencyQueue: false`, `Store` default `notificationMode: 'immediate'`, slimmed root `.` exports, removed deprecated React compatibility APIs, and `./refs`/`./time-travel`/`./transactions` standalone subpaths), while `@context-action/core` retains `registerEffect` for `1.x` compatibility.
 - **No thin React hook wrappers for already-composable patterns:** Context-Action intentionally treats the 5 OOP × React built-in hook archetypes (`useImperativeHandle`, `useLocalStore`/`useReducer`, `useDeferredValue`, React 19 `useOptimistic`/`useTransition`/`useActionState`, and isomorphic `useLayoutEffect`/`useEffect`) as documented usage patterns rather than adding thin wrapper APIs.
 
 ---
@@ -7778,11 +7778,11 @@ Sibling/consumer feedback should explicitly take a position on the 4 open decisi
 | **1. Default `Store` Notification Mode** | `packages/react/UNRELEASED.md:6-10` already adds non-breaking `notificationMode?: 'batched' | 'immediate'` opt-in on 4.x while keeping existing RAF timing intact for legacy callers (`iframe-demo`, `graph-hub`, `ae-editor`). | **Keep `'batched'` default in 4.x** with opt-in `'immediate'`; revisit flipping the default only in **v5**. |
 | **2. `defineRuntime` / `bindReactRuntime`** | `google-tools` (`runtime.ts:1-24`) and `browser-studio` (`shared.ts:86-90`) repeatedly hand-write `{ store, actions, dispose }` runtime facades, while `houdini-flow` and Level 3 apps rely on explicit separation. | Keep **independent primitives primary**; evaluate an optional Level 1↔2 bridge only after M1/M3 land. |
 | **3. `StateBackend` & TimeTravel Placement** | `macrostructure` (`interface-intent-runtime-react.ts:15-32`) mirrors stores via `useEffect` because React `useStoreValue` rejects `StateReader<T>`, `google-tools` contrasts Lit's native `StateStore` acceptance, and `browser-studio` + `ae-editor` `.mjs` tests prove non-React demand for `TimeTravelStore`. | **M1 (P0):** Native `StateReader<T>` / `StateBackend<T>` in React hooks & `createStoreContext`.<br>**M3 (P1):** Framework-neutral Timeline/TimeTravel engine with React `.` re-exports preserved. |
-| **4. Semver Horizon** | `ae-editor`, `iframe-demo`, `graph-hub`, and `macrostructure` all import directly from `@context-action/react` root `.` (`0.8.x`–`3.0.0`/`4.x`). | Commit **Phase 1 strictly to 4.x Non-Breaking (Additive)**; defer breaking cleanups to **v5 Major**. |
+| **4. Semver Horizon** | `ae-editor`, `iframe-demo`, `graph-hub`, and `macrostructure` previously imported from `@context-action/react` root `.` (`0.8.x`–`3.0.0`/`4.x`). | **Phase 1 completed 4.x Non-Breaking alignment**, and **Phase 2 (`v5`) root barrel slimming + default harmonization is now active on `stage`** (with rollback checkpoint `checkpoint/pre-phase2-v4` @ `240b2b32`). |
 
-### 3.2 Phase 1 (4.x Additive) Implementation Status (`M0–M4` on `stage`)
+### 3.2 Phase 1 (`M0–M4`) & Phase 2 (`v5`) Implementation Status on `stage`
 
-Full contract targets, file ownership, and acceptance commands live in Section 9 of [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md). All five Phase 1 milestones are implemented and verified on `stage` (with **Phase 2 / `v5` breaking cleanup deferred**):
+Full contract targets, file ownership, and acceptance commands live in Section 9 of [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md). All five Phase 1 milestones (`M0–M4`) and Phase 2 (`v5`) React breaking cleanup are implemented and verified on `stage`:
 
 - **M0 (`Done` · Baseline Sync):** Concurrent `packages/react` 4.x improvements (`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP docs) and baseline receipt (`e1bdf4a7`).
 - **M1a & M1b (`Done` · P0 · Track A1):** `useStoreValue`, `useStoreValues`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`, `useTimeTravelSelector`, `ExternalStoresMap` (`ExternalStoreInput`), and `ExternalTimeTravelStoresMap` (`ExternalTimeTravelStoreInput`) accept `StateReader<T>` / `StateBackend<T>` / `TimelineBackend<T>` natively without manual `BackendStore` wrapping.
@@ -13704,15 +13704,18 @@ These hooks provide additional functionality, optimizations, and convenience fea
 
 ### 🎯 Action Utility Hooks
 
-#### `useActionDispatchWithResult()`
-**Utility hook** for actions that need to collect results.
-- **Purpose**: Dispatch actions and collect handler results
-- **Use Case**: When you need return values from handlers
+#### `useActionResultDispatch()` & `useActionScope()`
+**Utility hooks** for actions that need to collect results or manage Provider-scoped cancellation.
+- **Purpose**: Dispatch actions and collect handler results (`useActionResultDispatch()`), or access the full `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }` bundle (`useActionScope()`)
+- **Use Case**: When you need return values or cancellation scopes from handlers
 - **Advanced**: For complex workflows requiring handler responses
 
 ```tsx
-const { dispatchWithResult } = useActionDispatchWithResult();
+const dispatchWithResult = useActionResultDispatch();
 const result = await dispatchWithResult('login', credentials);
+
+// Or destructure scope helpers:
+const { dispatchWithResult: scopedDispatch, abortAll, resetAbortScope } = useActionScope();
 ```
 
 #### `useActionRegister()`
@@ -13801,10 +13804,10 @@ const safeUser = assertStoreValue(user, 'userStore'); // never undefined
 
 #### Action Handling
 - **Essential**: `useActionDispatch`, `useActionHandler`
-- **Utility**: `useActionDispatchWithResult`, `useActionRegister`
+- **Utility**: `useActionResultDispatch`, `useActionScope`, `useActionRegister`
 
 #### DOM Manipulation & Performance
-- **Essential**: `useRefHandler` (from RefContext)
+- **Essential**: `useRefHandler` (from `@context-action/react/refs`)
 - **Utility**: `useWaitForRefs`, `useGetAllRefs`
 
 #### Advanced/Meta
@@ -13824,7 +13827,8 @@ const safeUser = assertStoreValue(user, 'userStore'); // never undefined
 
 #### Low Frequency (<20% of components)
 - `useComputedStore`
-- `useActionDispatchWithResult`
+- `useActionResultDispatch`
+- `useActionScope`
 
 ---
 
@@ -13887,7 +13891,7 @@ function OptimizedUserProfile() {
   });
   
   // Utility: Result collection
-  const { dispatchWithResult } = useActionDispatchWithResult();
+  const dispatchWithResult = useActionResultDispatch();
   
   return <div>{displayName}</div>;
 }
@@ -14145,7 +14149,8 @@ These hooks are created by factory functions:
 - `useActionDispatch()` - Get dispatch function
 - `useActionHandler(action, handler, config?)` - Register handler
 - `useActionRegister()` - Get ActionRegister instance
-- `useActionDispatchWithResult()` - Dispatch with result collection
+- `useActionResultDispatch()` - Dispatch with result collection
+- `useActionScope()` - Access scoped `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }`
 
 ---
 
@@ -14175,7 +14180,8 @@ These hooks are created by factory functions:
 #### Action System
 - `useActionDispatch` - Dispatch actions
 - `useActionHandler` - Register handlers
-- `useActionDispatchWithResult` - Dispatch with results
+- `useActionResultDispatch` - Dispatch with results
+- `useActionScope` - Provider-scoped dispatch + cancellation bundle
 - `useActionRegister` - Access register
 - `useActionContext` - Access context
 
@@ -14199,7 +14205,7 @@ These hooks are created by factory functions:
 ### Utility Hooks (Learn As Needed)
 - **Performance**: `useStoreSelector`, `useComputedStore`
 - **Convenience**: `useLocalStore`
-- **Advanced**: `useActionDispatchWithResult`
+- **Advanced**: `useActionResultDispatch`, `useActionScope`
 
 ### Specialized Hooks (For Specific Cases)
 - **Multi-Store**: `useMultiStoreSelector`, `useMultiComputedStore`, `useStoreValues`
@@ -19236,7 +19242,7 @@ High-performance direct DOM manipulation with zero React re-renders.
 ```tsx
 import type React from 'react';
 import { useCallback, useRef } from 'react';
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // 1. Define Ref Structure
 type MouseRefs = {
@@ -22555,7 +22561,7 @@ const {
   Provider: LikeActionProvider,
   useActionGuard: useLikeGuard,
   useActionResultHandler: useLikeResultHandler,
-  useActionDispatchWithResult: useLikeDispatchWithResult,
+  useActionResultDispatch: useLikeResultDispatch,
 } = createActionContext<LikeActions, LikeResultMap>('OptimisticLikeActions');
 
 const {
@@ -22605,7 +22611,7 @@ function LikeHandlers({ children }: { children: React.ReactNode }) {
 function LikeButtonPanel() {
   const articleStore = useLikeStore('article');
   const committed = useStoreValue(articleStore);
-  const { dispatchWithResult } = useLikeDispatchWithResult();
+  const dispatchWithResult = useLikeResultDispatch();
   const [isPending, startTransition] = useTransition();
 
   const [optimisticArticle, applyOptimisticLike] = useOptimistic<
@@ -22698,7 +22704,7 @@ const {
   Provider: ProfileActionProvider,
   useActionGuard: useProfileGuard,
   useActionResultHandler: useProfileResult,
-  useActionDispatchWithResult: useProfileDispatchWithResult,
+  useActionResultDispatch: useProfileResultDispatch,
 } = createActionContext<ProfileFormActions, ProfileFormResultMap>('ProfileFormActions');
 
 const {
@@ -22737,7 +22743,7 @@ function ProfileFormHandlers({ children }: { children: React.ReactNode }) {
 
 function ProfileNameForm() {
   const committedName = useStoreValue(useProfileStore('displayName'));
-  const { dispatchWithResult } = useProfileDispatchWithResult();
+  const dispatchWithResult = useProfileResultDispatch();
 
   const [submitState, formAction, isPending] = useActionState<
     FormSubmitState,
@@ -23585,7 +23591,8 @@ import React, {
   useRef,
 } from 'react';
 import type { ActionPayloadMap } from '@context-action/core';
-import { createActionContext, createRefContext } from '@context-action/react';
+import { createActionContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 const useIsomorphicLayoutEffect =
   typeof window === 'undefined' ? useEffect : useLayoutEffect;
@@ -23805,7 +23812,8 @@ import React, {
   useState,
 } from 'react';
 import type { ActionPayloadMap } from '@context-action/core';
-import { createActionContext, createRefContext } from '@context-action/react';
+import { createActionContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 const useIsomorphicLayoutEffect =
   typeof window === 'undefined' ? useEffect : useLayoutEffect;

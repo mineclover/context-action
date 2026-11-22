@@ -20,13 +20,13 @@ Context-Action은 **쓰기 경계(`StoreWriter` / Action Handler)** 와 **읽기
 | --- | --- | --- | --- | --- |
 | **`createStoreContext`** | `@context-action/react` | **기본 권장.** 도메인별 다중 스토어를 React 트리 스코프로 격리 | 없음 | 예 |
 | **`createStore` (`Store`)** | `@context-action/react` | Provider 밖의 단일 독립 스토어 (모듈 공유·DI·단위 테스트) | 없음 | 예 (Mutative 내장) |
-| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react` 또는 `@context-action/react/time-travel` | Undo/Redo·히스토리 탐색이 필요한 에디터, 폼 드래프트, 캔버스 상태 | **예 (Mutative 패치)** | 예 |
+| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react/time-travel` | Undo/Redo·히스토리 탐색이 필요한 에디터, 폼 드래프트, 캔버스 상태 | **예 (Mutative 패치)** | 예 |
 | **`createStateStore`** | `@context-action/store-core` | Vanilla JS, Node, Preact, Lit, XState 공용 Zero-dependency 최소 참조 스토어 | 없음 | **아니오 (0 deps)** |
 | **`createMutativeStateBackend` / `createMutativeTimelineBackend`** | `@context-action/mutative` | React/Lit/Preact·순수 Node 간 공유 가능한 프레임워크 중립 Layer 1 Mutative `StateStore` 및 `TimelineBackend`(`TransactionBackend`) 엔진 | 선택 (`TimelineBackend`) | **아니오** |
 | **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | 사용자 소유의 커스텀 `StateBackend`를 명시적으로 `IStore`로 브리지 (`createStoreContext().Provider stores={...}` 사용 시 생략 가능) | 백엔드 기능에 따름 | 예 (래퍼만) |
-| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react` 또는 `@context-action/react/transactions` | 여러 Store의 변경을 하나의 원자적 커밋·롤백·단일 Undo 단위로 묶을 때 | **예 (다중 스토어 원자 Undo)** | 예 |
+| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react/transactions` | 여러 Store의 변경을 하나의 원자적 커밋·롤백·단일 Undo 단위로 묶을 때 | **예 (다중 스토어 원자 Undo)** | 예 |
 | **`useLocalStore` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | 컴포넌트 수명 로컬 스토어 / 메모이즈된 파생 계산 / 동적 스토어 등록 | 없음 | 예 |
-| **`createRefContext`** | `@context-action/react` 또는 `@context-action/react/refs` | **비반응형 (Tier 3).** DOM, Canvas, 120fps 포인터 좌표 등 리렌더 0회 상태 | 없음 | 예 |
+| **`createRefContext`** | `@context-action/react/refs` | **비반응형 (Tier 3).** DOM, Canvas, 120fps 포인터 좌표 등 리렌더 0회 상태 | 없음 | 예 |
 | **`createActorStateReader`** | `@context-action/xstate` | **닫힌 상태 머신 읽기 전용 투영.** 외부 `setValue()` 차단, 전이는 이벤트로만 | 없음 | **아니오** |
 | **`createSourceContext` / `fromStateReader` / `StoreController`** | `@context-action/preact`, `@context-action/lit` | 외부 Store를 Preact Signals(`fromStateReader`로 `StateReader`/`StoreReader` 스냅샷 변환) 또는 Lit `ReactiveController`에 읽기 전용 투영 | 없음 | **아니오** |
 | **`createDurableOperationStore`** | `@context-action/tool-durable-operations` | **UI 상태 아님.** 외부 HTTP·큐·파일시스템 부작용의 멱등성·복구 레코드 저장소 | 없음 | **아니오** |
@@ -105,7 +105,7 @@ export function UserNameLabel() {
 profileStore.dispose();
 ```
 
-### 2.3 `createTimeTravelStoreContext` & `createTimeTravelStore` (`@context-action/react`) — Undo / Redo
+### 2.3 `createTimeTravelStoreContext` & `createTimeTravelStore` (`@context-action/react/time-travel`) — Undo / Redo
 
 사용자가 실행 취소(Undo), 다시 실행(Redo), 히스토리 위치 탐색을 해야 할 때 사용합니다.
 
@@ -115,7 +115,7 @@ profileStore.dispose();
 
 <!-- @context-action-compile -->
 ```tsx
-import { createTimeTravelStoreContext } from '@context-action/react';
+import { createTimeTravelStoreContext } from '@context-action/react/time-travel';
 
 const DocStores = createTimeTravelStoreContext('Doc', {
   content: { initialValue: { text: '' }, maxHistory: 50 },
@@ -217,7 +217,7 @@ export function SessionStep() {
 }
 ```
 
-### 2.6 `StoreTransactionCoordinator` & `bindActionTransactions` (`@context-action/react`) — 다중 Store 원자적 트랜잭션
+### 2.6 `StoreTransactionCoordinator` & `bindActionTransactions` (`@context-action/react/transactions`) — 다중 Store 원자적 트랜잭션
 
 하나의 논리 액션이 **2개 이상의 스토어를 함께 수정**하며 중간 상태 노출 방지, 예외 시 롤백, 단일 Undo가 필요할 때 사용합니다.
 
@@ -227,7 +227,8 @@ export function SessionStep() {
 
 <!-- @context-action-compile -->
 ```ts
-import { StoreTransactionCoordinator, createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
+import { StoreTransactionCoordinator } from '@context-action/react/transactions';
 
 const cart = createTimeTravelStore('cart', { items: [] as string[] });
 const totals = createTimeTravelStore('totals', { price: 0 });
@@ -331,7 +332,7 @@ export function HeadlessCartView() {
 
 모든 상태를 React 반응형 `Store`에 넣을 필요는 없습니다.
 
-1. **`createRefContext` (`@context-action/react`) — 비반응형 Tier 3 상태**: DOM 엘리먼트, HTML5 Canvas, 애니메이션 타이머, 120fps 마우스 좌표처럼 React 리렌더를 유발하면 안 되는 휘발성 상태는 `createRefContext`에 둡니다.
+1. **`createRefContext` (`@context-action/react/refs`) — 비반응형 Tier 3 상태**: DOM 엘리먼트, HTML5 Canvas, 애니메이션 타이머, 120fps 마우스 좌표처럼 React 리렌더를 유발하면 안 되는 휘발성 상태는 `createRefContext`에 둡니다.
 2. **`createActorStateReader` (`@context-action/xstate`) — 닫힌 상태 머신 읽기 전용 투영**: 열린 `StateStore`와 달리 XState 액터는 외부 `setValue()`가 차단됩니다. 의도는 `ActionRegister` / `SyncActionPipeline`(`bindActorToActionRegister` / `bindActorToSyncPipeline`)으로만 전달하고, UI는 `createActorStateReader(actor, { select, equals })`의 단조 증가 `version` 스냅샷만 구독합니다.
 3. **Preact & Lit 읽기 전용 어댑터**:
    - **Preact** (`@context-action/preact`): `connectSourceSignal(store)`로 외부 `ReadableSource`를 `ReadonlySignal`로 연결하거나(`StateReader`/`StoreReader` 기반 스토어는 `fromStateReader(store)`로 스냅샷 래퍼를 명시 변환 후 연결), `createSourceContext`로 전달해 `useProjection(signal, selector)`로 투영합니다.

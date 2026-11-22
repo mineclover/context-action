@@ -1,16 +1,16 @@
 # vNext Architecture & Cross-Project Handoff Guide
 
-**Status:** Phase 1 (`M0–M4` 4.x additive alignment) implemented on `stage`; Phase 2 (`v5` major) feedback & release window remain open  
+**Status:** Phase 1 (`M0–M4`) & Phase 2 (`v5` React breaking cleanup & default harmonization) implemented on `stage` (rollback checkpoint `checkpoint/pre-phase2-v4` @ `240b2b32`; package versions & npm publish remain frozen)  
 **Baseline:** `stage` branch (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`; package versions frozen on `stage`)
 
-This document equips a sibling consumer project or the next architecture review session with exact baseline rules, reading paths, Phase 1 implementation coverage, remaining Phase 2 (`v5`) decision gates, and ready-to-paste prompts so coordination can proceed safely without breaking existing 4.x consumers.
+This document equips a sibling consumer project or the next architecture review session with exact baseline rules, reading paths, Phase 1 & Phase 2 implementation coverage, open design boundaries, and ready-to-paste prompts.
 
 ---
 
 ## 1. Baseline & Freeze Rules
 
-- **Active branch:** `stage` (keep all pre-release design and stabilization work off `main` until an approved integration window).
-- **Published contract & version freeze:** Package versions and npm releases remain frozen while sibling/external projects transition; **all Phase 1 changes on `stage` (`M0–M4`) are strictly 4.x additive / non-breaking** with full root `.` export and default compatibility.
+- **Active branch:** `stage` (rollback checkpoint `checkpoint/pre-phase2-v4` preserved at `240b2b32`; keep all pre-release work off `main` until an approved integration window).
+- **Published contract & version freeze:** Package versions and npm releases remain frozen on `stage`. Note that **Phase 2 (`v5` React surface cleanup)** is now active on `stage` (`createActionContext` default `useConcurrencyQueue: false`, `Store` default `notificationMode: 'immediate'`, slimmed root `.` exports, removed deprecated React compatibility APIs, and `./refs`/`./time-travel`/`./transactions` standalone subpaths), while `@context-action/core` retains `registerEffect` for `1.x` compatibility.
 - **No thin React hook wrappers for already-composable patterns:** Context-Action intentionally treats the 5 OOP × React built-in hook archetypes (`useImperativeHandle`, `useLocalStore`/`useReducer`, `useDeferredValue`, React 19 `useOptimistic`/`useTransition`/`useActionState`, and isomorphic `useLayoutEffect`/`useEffect`) as documented usage patterns rather than adding thin wrapper APIs.
 
 ---
@@ -55,11 +55,11 @@ Sibling/consumer feedback should explicitly take a position on the 4 open decisi
 | **1. Default `Store` Notification Mode** | `packages/react/UNRELEASED.md:6-10` already adds non-breaking `notificationMode?: 'batched' | 'immediate'` opt-in on 4.x while keeping existing RAF timing intact for legacy callers (`iframe-demo`, `graph-hub`, `ae-editor`). | **Keep `'batched'` default in 4.x** with opt-in `'immediate'`; revisit flipping the default only in **v5**. |
 | **2. `defineRuntime` / `bindReactRuntime`** | `google-tools` (`runtime.ts:1-24`) and `browser-studio` (`shared.ts:86-90`) repeatedly hand-write `{ store, actions, dispose }` runtime facades, while `houdini-flow` and Level 3 apps rely on explicit separation. | Keep **independent primitives primary**; evaluate an optional Level 1↔2 bridge only after M1/M3 land. |
 | **3. `StateBackend` & TimeTravel Placement** | `macrostructure` (`interface-intent-runtime-react.ts:15-32`) mirrors stores via `useEffect` because React `useStoreValue` rejects `StateReader<T>`, `google-tools` contrasts Lit's native `StateStore` acceptance, and `browser-studio` + `ae-editor` `.mjs` tests prove non-React demand for `TimeTravelStore`. | **M1 (P0):** Native `StateReader<T>` / `StateBackend<T>` in React hooks & `createStoreContext`.<br>**M3 (P1):** Framework-neutral Timeline/TimeTravel engine with React `.` re-exports preserved. |
-| **4. Semver Horizon** | `ae-editor`, `iframe-demo`, `graph-hub`, and `macrostructure` all import directly from `@context-action/react` root `.` (`0.8.x`–`3.0.0`/`4.x`). | Commit **Phase 1 strictly to 4.x Non-Breaking (Additive)**; defer breaking cleanups to **v5 Major**. |
+| **4. Semver Horizon** | `ae-editor`, `iframe-demo`, `graph-hub`, and `macrostructure` previously imported from `@context-action/react` root `.` (`0.8.x`–`3.0.0`/`4.x`). | **Phase 1 completed 4.x Non-Breaking alignment**, and **Phase 2 (`v5`) root barrel slimming + default harmonization is now active on `stage`** (with rollback checkpoint `checkpoint/pre-phase2-v4` @ `240b2b32`). |
 
-### 3.2 Phase 1 (4.x Additive) Implementation Status (`M0–M4` on `stage`)
+### 3.2 Phase 1 (`M0–M4`) & Phase 2 (`v5`) Implementation Status on `stage`
 
-Full contract targets, file ownership, and acceptance commands live in Section 9 of [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md). All five Phase 1 milestones are implemented and verified on `stage` (with **Phase 2 / `v5` breaking cleanup deferred**):
+Full contract targets, file ownership, and acceptance commands live in Section 9 of [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md). All five Phase 1 milestones (`M0–M4`) and Phase 2 (`v5`) React breaking cleanup are implemented and verified on `stage`:
 
 - **M0 (`Done` · Baseline Sync):** Concurrent `packages/react` 4.x improvements (`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP docs) and baseline receipt (`e1bdf4a7`).
 - **M1a & M1b (`Done` · P0 · Track A1):** `useStoreValue`, `useStoreValues`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`, `useTimeTravelSelector`, `ExternalStoresMap` (`ExternalStoreInput`), and `ExternalTimeTravelStoresMap` (`ExternalTimeTravelStoreInput`) accept `StateReader<T>` / `StateBackend<T>` / `TimelineBackend<T>` natively without manual `BackendStore` wrapping.

@@ -63,7 +63,8 @@ import React, {
   useState,
 } from 'react';
 import type { ActionPayloadMap } from '@context-action/core';
-import { createActionContext, createRefContext } from '@context-action/react';
+import { createActionContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 const useIsomorphicLayoutEffect =
   typeof window === 'undefined' ? useEffect : useLayoutEffect;

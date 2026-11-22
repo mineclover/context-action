@@ -2,19 +2,19 @@
 
 이 문서는 [`CA-VNEXT-ARCHITECTURE-001`](./decisions/CA-VNEXT-ARCHITECTURE-001.md)의 **Phase 2 (`v5` 메이저 호환성 정리)** 를 대비해 애플리케이션 팀, 스타터 템플릿, 외부 소비자가 사전에 준비할 수 있는 절차를 정리합니다. 여기에 포함된 모든 준비 단계는 기존 루트 import나 `4.x` 호환성을 깨지 않고 현재 `4.x` 브랜치에서 점진적으로 적용할 수 있습니다.
 
-- **상태:** `4.x` 사전 준비 진행 중 (`packages/template-react` 준수 완료, `v5` breaking 제거는 릴리스 승인 전까지 유보)
-- **선행 기준선:** [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (`stage`에 `M0–M4` Phase 1 완료) · [vNext 아키텍처 핸드오프 가이드](./vnext-architecture-handoff.md)
+- **상태:** **`stage`에 Phase 2 (`v5`) 구현 완료** (롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32`; `packages/template-react/src` 및 `example/src` 차단 항목 `0`; 패키지 버전 범프는 릴리스 승인 시점까지 동결 유지). 외부 `4.x -> v5` 소비자는 계속 `pnpm audit:v5-readiness`로 점진적 전환을 점검할 수 있습니다.
+- **선행 기준선:** [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (`stage`에 `M0–M4` 및 Phase 2 완료) · [vNext 아키텍처 핸드오프 가이드](./vnext-architecture-handoff.md)
 
 ## 1. Phase 1 (`4.x` 무중단) vs. Phase 2 (`v5` 메이저) 경계
 
-Phase 1은 기존 `4.x` 소비자의 호환성을 100% 유지하면서 점진적 전환에 필요한 프리미티브를 먼저 제공했습니다:
+Phase 1은 기존 `4.x` 소비자를 깨뜨리지 않고 전환 프리미티브를 먼저 제공했고, Phase 2는 `stage`에서 `@context-action/react` 루트 표면 정리와 기본값 통일을 완료했습니다 (`@context-action/core`의 `registerEffect`는 `1.x` 호환을 위해 유지됨):
 
-| 영역 | 현재 `4.x`에서 사용 가능 (무중단 Opt-In) | Phase 2 (`v5` 메이저)로 이월된 정리 항목 |
+| 영역 | `4.x` 준비 단계 (무중단 Opt-In) | Phase 2 (`v5` `stage` 적용 완료) |
 | :--- | :--- | :--- |
-| React 진입점 | 루트 `.` re-export를 유지한 채 `@context-action/react/{refs,time-travel,transactions,backend}` 서브패스 제공 | 루트 `@context-action/react`에서 특화 API(`createRefContext`, `createTimeTravelStore*`, `StoreTransactionCoordinator`, `createBackendStore` 등) 제거 |
-| Dispatch 훅 대칭성 | `useActionResultDispatch()`와 `useActionScope()`를 주력 API로 승격, `useActionDispatchWithResult()`에 `@deprecated` 표기 | `useActionDispatchWithResult`, `useActionEffectHandler`, `registerEffect`, `StoreSchema` / `defineStoreSchema`, `compareStrategy` 제거 |
-| 액션 큐 정책 | `ActionRegister` / `createActionContext`의 계약 단위 `actions: { [name]: { queue, timeout } }` 정책 및 `{ immediate: false }` 지연 큐 할당 | 소비자가 호출부 `{ immediate: true }` 대신 계약 단위 큐 정책을 채택한 뒤 기본 `useConcurrencyQueue`(`true` vs `false`) 재평가 |
-| 스토어 알림 모드 | `Store`, `TimeTravelStore`, `createStoreContext`, `createTimeTravelStoreContext`에 명시적 `notificationMode?: 'batched' \| 'immediate'` 추가 (기본값 `'batched'` 유지) | 활성 소비자 감사 완료 후 기본 알림 모드 통일 여부 확정 |
+| React 진입점 | 루트 `.` re-export를 유지한 채 `@context-action/react/{refs,time-travel,transactions,backend}` 서브패스 제공 | 특화 API(`createRefContext`, `createTimeTravelStore*`, `StoreTransactionCoordinator`, `createBackendStore` 등)를 전용 서브패스로만 제공 |
+| Dispatch 훅 대칭성 및 deprecation 제거 | `useActionResultDispatch()`와 `useActionScope()`를 주력 API로 승격, `useActionDispatchWithResult()`에 `@deprecated` 표기 | React의 `useActionDispatchWithResult`, `useActionEffectHandler`, `StoreSchema`, `compareStrategy`, 레거시 `TransactionBackend` 파사드 제거 (`@context-action/core` `registerEffect`는 `1.x` 호환 유지) |
+| 액션 큐 정책 | `ActionRegister` / `createActionContext`의 계약 단위 `actions: { [name]: { queue, timeout } }` 정책 및 `{ immediate: false }` 지연 큐 할당 | `createActionContext` 기본 `useConcurrencyQueue`를 Core와 동일한 `false`로 통일 (직렬 큐가 필요하면 `actions: { [name]: { queue: 'serial' } }` 또는 `{ registry: { useConcurrencyQueue: true } }` opt-in) |
+| 스토어 알림 모드 | `Store`, `TimeTravelStore`, `createStoreContext`, `createTimeTravelStoreContext`에 명시적 `notificationMode?: 'batched' \| 'immediate'` 추가 | `Store` 기본 `notificationMode`를 `'immediate'`로 통일 (`createStateStore()`·React 18/19 자동 배칭과 정합, 명시적 RAF 코얼레싱이 필요할 때 `'batched'` opt-in) |
 
 ## 2. 소비자 마이그레이션 레시피 (`4.x` 호환 & `v5` 준비)
 
@@ -193,10 +193,10 @@ pnpm test:v5-readiness                         # AST 픽스처 및 스타터 템
 | `packages/template-react/src` | 21 | **0** | `0 / 0 / 0` | 5 | `--strict-template` · `--strict-all` 통과; `@context-action/react/refs` 및 계약 단위 `actions` 정책 적용 완료 |
 | `example/src` | 540 | **0** | `0 / 0 / 0` | 213 | `--strict-all` 통과 완료; 모든 서브패스 import · `useActionScope` · 계약 단위 액션 큐 정책 전환 완료 |
 
-## 4. Phase 2 (`v5`) 진입 승인 체크리스트
+## 4. Phase 2 (`v5`) 완료 현황 및 릴리스 체크리스트
 
-별도 `v5` 릴리스 브랜치에서 버전 범프나 `4.x` 호환성 별칭 제거를 제안하기 전 아래 조건을 충족해야 합니다:
+Phase 2의 React breaking 정리와 기본값 통일은 `stage`에 구현되었습니다 (롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32` 보존). 정식 `v5` 릴리스 PR에서 패키지 버전 범프나 태그를 진행하기 전 아래 항목을 확인합니다:
 
 1. `pnpm audit:v5-readiness -- --strict-template`, `pnpm audit:v5-readiness -- --strict-all` 및 `pnpm test:v5-readiness`가 지속 통과할 것 (`packages/template-react/src` 및 `example/src` 차단 항목 `0` 유지).
-2. 추적 중인 연계 외부 소비자 앱의 `blockingTotal`(`deprecatedApis`, `rootSubpathImports`, `manualImmediateDispatches`) 정리가 완료될 것.
-3. [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (섹션 6)의 의사결정 게이트 및 [릴리스 거버넌스](../../../releases/RELEASE.md) 승인이 완료될 것.
+2. `4.x`에서 업그레이드하는 외부 소비자 앱의 `pnpm audit:v5-readiness -- --root <app>` 차단 항목(`deprecatedApis`, `rootSubpathImports`, `manualImmediateDispatches`) 정리가 완료될 것.
+3. 전체 검증 게이트(`pnpm release:check`, `pnpm verify && pnpm verify:receipt`) 및 [릴리스 거버넌스](../../../releases/RELEASE.md) 승인이 완료될 것.

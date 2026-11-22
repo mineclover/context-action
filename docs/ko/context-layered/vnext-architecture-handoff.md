@@ -1,16 +1,16 @@
 # vNext 아키텍처 & 타 프로젝트 핸드오프 가이드
 
-**상태:** Phase 1 (`M0–M4` 4.x 무중단 정렬) `stage` 구현 완료 — Phase 2 (`v5` 메이저) 피드백·릴리스 윈도우 대기  
+**상태:** Phase 1 (`M0–M4`) 및 Phase 2 (`v5` React 호환성 정리 및 기본값 통일) `stage` 구현 완료 (롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32`, 패키지 버전 범프·npm 배포 동결 유지)  
 **기준선(Baseline):** `stage` 브랜치 (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`, 프리릴리스 기간 패키지 버전 동결)
 
-이 문서는 연계 프로젝트 또는 후속 세션이 기존 4.x 소비자를 깨뜨리지 않고 협업할 수 있도록 **기준선 규칙 · 필독 지도 · `stage`에 반영된 Phase 1 범위 · Phase 2(`v5`) 유보 결정 게이트 · 재사용 프롬프트 키트**를 정리한 레퍼런스입니다.
+이 문서는 연계 프로젝트 또는 후속 세션이 현재 `stage` 계약에 맞춰 협업·마이그레이션할 수 있도록 **기준선 규칙 · 필독 지도 · `stage`에 반영된 Phase 1/Phase 2 범위 · 설계 경계 · 재사용 프롬프트 키트**를 정리한 레퍼런스입니다.
 
 ---
 
 ## 1. 기준선 및 동결 원칙
 
-- **작업 브랜치:** `stage` (릴리스 승인 전까지 `main` 직접 병합·버전 범프·배포 금지).
-- **버전 동결 및 4.x 무중단 원칙:** 타 프로젝트·연계 워크스페이스가 현행 `@context-action/*` 4.x / 1.x / 0.x 계약을 사용 중이므로 패키지 버전 및 배포는 동결을 유지하며, **`stage`에 반영된 Phase 1(`M0–M4`) 변경은 전부 루트 `.` export와 기본값을 깨지 않는 Additive 확장**입니다.
+- **작업 브랜치:** `stage` (롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32` 보존; 정식 릴리스 승인 전까지 `main` 직접 병합·버전 범프·배포 금지).
+- **버전 동결 및 `stage` Phase 2 기준선:** 패키지 버전 및 npm 배포는 동결을 유지합니다. 현재 `stage`에는 **Phase 2 (`v5` React 표면 정리)** 가 반영되어 루트 `.` export 슬림화(`./refs`·`./time-travel`·`./transactions` 독립 서브패스), Deprecated React API 제거, `Store` 기본 `notificationMode: 'immediate'`, `createActionContext` 기본 `useConcurrencyQueue: false`가 적용되어 있으며, `@context-action/core`의 `registerEffect`는 `1.x` 호환을 위해 유지됩니다.
 - **불필요한 React 훅 래퍼 지양 원칙:** Context-Action은 5가지 OOP × React 기본 Hook 조합 패턴(`useImperativeHandle`, `useLocalStore`/`useReducer`, `useDeferredValue`, React 19 `useOptimistic`/`useTransition`/`useActionState`, isomorphic `useLayoutEffect`/`useEffect`)을 얇은 전용 래퍼 API로 추가하지 않고 **조합 사용 패턴 문서**로 관리합니다.
 
 ---
@@ -55,11 +55,11 @@
 | **1. 기본 `Store` 알림 모드** | `packages/react/UNRELEASED.md:6-10`에서 4.x 무중단 opt-in `notificationMode?: 'batched' | 'immediate'`가 이미 도입 중이며, 기존 소비자(`iframe-demo`, `graph-hub`, `ae-editor`)의 RAF 타이밍을 보존합니다. | **4.x에서는 `'batched'` 기본 유지** + opt-in `'immediate'` 제공, 기본값 전환은 **v5**에서만 검토 |
 | **2. `defineRuntime` / `bindReactRuntime`** | `google-tools`(`runtime.ts:1-24`)·`browser-studio`(`shared.ts:86-90`)는 `{ store, actions, dispose }` 런타임을 반복 래핑하나, `houdini-flow`와 Level 3 앱은 독립 분리를 유지합니다. | **독립 프리미티브 우선 유지** — M1/M3 완료 후 얇은 Level 1↔2 헬퍼 필요성 재평가 |
 | **3. `StateBackend` & TimeTravel 위치** | `macrostructure`(`interface-intent-runtime-react.ts:15-32`)는 React 미지원 탓에 `useRef`+`useEffect` 미러 Store를 쓰며, `google-tools`는 Lit만 `StateStore`를 직접 받는 비대칭을 보입니다. `browser-studio`·`ae-editor`(`.mjs`)는 비-React `TimeTravelStore` 수요를 증명합니다. | **M1 (P0):** React 훅·`createStoreContext`의 `StateReader<T>`/`StateBackend<T>` 네이티브 수용<br>**M3 (P1):** Layer 1 프레임워크 중립 타임라인 추출(React `.` re-export 유지) |
-| **4. Semver 우선순위** | `ae-editor`, `iframe-demo`, `graph-hub`, `macrostructure`가 모두 `@context-action/react` 루트(`.`)에 직접 의존합니다. | **Phase 1 = 4.x 무중단(Additive) 확정**, 루트 축소·breaking 정리는 **v5 Major**로 분리 |
+| **4. Semver 우선순위** | `ae-editor`, `iframe-demo`, `graph-hub`, `macrostructure`가 `@context-action/react` 루트(`.`)에 직접 의존했습니다. | **Phase 1 = 4.x 무중단(Additive) 완료** 후 체크포인트(`checkpoint/pre-phase2-v4` @ `240b2b32`)를 거쳐 **Phase 2 = `v5` 루트 슬림화·기본값 통일을 `stage`에 적용 완료**했습니다. |
 
-### 3.2 Phase 1 (4.x 무중단) `stage` 구현 완료 요약 (`M0–M4`)
+### 3.2 Phase 1 (`M0–M4`) & Phase 2 (`v5`) `stage` 구현 완료 요약
 
-세부 대상 파일, 계약 목표, 검증 명령은 [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) 섹션 9를 따르며, 아래 5개 Phase 1 마일스톤은 `stage`에 반영·검증이 완료되었습니다 (**Phase 2 / `v5` breaking 정리는 유보**):
+세부 대상 파일, 계약 목표, 검증 명령은 [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) 섹션 9를 따르며, 5개 Phase 1 마일스톤(`M0–M4`)과 Phase 2 (`v5` React 호환성 정리)가 모두 `stage`에 반영·검증되었습니다:
 
 - **M0 (`완료` · 기준선 동기화):** `packages/react` 4.x 개선(`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP 문서) 및 기준선 영수증(`e1bdf4a7`) 커밋.
 - **M1a & M1b (`완료` · P0 · 트랙 A1):** `useStoreValue`, `useStoreValues`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`, `useTimeTravelSelector`, `ExternalStoresMap`(`ExternalStoreInput`), `ExternalTimeTravelStoresMap`(`ExternalTimeTravelStoreInput`)가 `StateReader<T>`/`StateBackend<T>`/`TimelineBackend<T>`를 수동 `BackendStore` 래핑 없이 직접 수용.

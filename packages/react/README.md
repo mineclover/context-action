@@ -407,7 +407,9 @@ function OptimizedComponent() {
 - `useLocalStore(initialValue)` - Component-local store
 
 ### Advanced
-- `useActionDispatchWithResult()` - Collect handler results
+- `useActionResultDispatch()` - Dispatch and collect handler results (returns `dispatchWithResult`)
+- `useActionScope()` - Provider-scoped `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }`
+- `@context-action/react/refs` (`createRefContext`), `@context-action/react/time-travel` (`createTimeTravelStoreContext`), and `@context-action/react/transactions` (`StoreTransactionCoordinator`) - Standalone specialized subpaths (`Store` defaults to `'immediate'` notificationMode and `createActionContext` defaults `useConcurrencyQueue: false`)
 
 ## Helper Functions
 

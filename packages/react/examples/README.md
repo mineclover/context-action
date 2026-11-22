@@ -61,11 +61,11 @@ All example files import from the public entrypoints rather than internal `src/*
 import {
   createActionContext,
   createStoreContext,
-  createRefContext,
   useStoreValue,
   useStoreSelector,
   useStorePath,
 } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 import { useLocalStore, useComputedStore } from '@context-action/react/advanced';
 import { compareValues } from '@context-action/react/utils';
 ```
@@ -90,7 +90,7 @@ For larger applications:
 As needed:
 - `useComputedStore` (`@context-action/react/advanced`) - Derived state from stores
 - `useStorePath` (`@context-action/react`) - JSON-patch path subscriptions
-- `createRefContext` (`@context-action/react`) - Imperative DOM/Canvas/WebGL refs
+- `createRefContext` (`@context-action/react/refs`) - Imperative DOM/Canvas/WebGL refs
 
 ## 🔍 Example Features
 
