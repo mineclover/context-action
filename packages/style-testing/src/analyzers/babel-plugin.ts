@@ -3,14 +3,14 @@
  * Converts: <nav className="...">
  * To: <nav className="..." data-style-test="ComponentName:nav:123">
  */
-import type { PluginObj, PluginPass } from '@babel/core';
+import type { PluginObject, PluginPass } from '@babel/core';
 import type * as BabelTypes from '@babel/types';
 
 interface PluginState extends PluginPass {
   componentName?: string;
 }
 
-export default function styleTestPlugin({ types: t }: { types: typeof BabelTypes }): PluginObj<PluginState> {
+export default function styleTestPlugin({ types: t }: { types: typeof BabelTypes }): PluginObject<PluginState> {
   return {
     name: 'auto-inject-style-test-id',
 
