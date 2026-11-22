@@ -521,6 +521,7 @@
             "useStoreValue",
             "useStoreSelector",
             "useStorePath",
+            "PathValue",
             "useStoreSelectorWithPaths",
             "SubscribableStore",
             "StoreReader",
@@ -538,12 +539,17 @@
         },
         {
           "subpath": "./refs",
-          "purpose": "Standalone RefContext surface for Tier 3 imperative DOM and 60fps reference control without Store or Mutative dependencies.",
+          "purpose": "Standalone RefContext and dynamic RefCollection surface for Tier 3 imperative DOM and 60fps reference control without Store or Mutative dependencies.",
           "keySymbols": [
             "createRefContext",
+            "createRefCollectionContext",
+            "useRefCollection",
             "CreateRefContextOptions",
             "RefContextReturn",
             "RefController",
+            "RefCollection",
+            "RefCollectionContextReturn",
+            "RefCollectionItemHandle",
             "RefTarget",
             "RefOperation",
             "RefOperationOptions",
@@ -594,24 +600,32 @@
         },
         {
           "subpath": "./advanced",
-          "purpose": "StoreRegistry, dynamic/local/computed store hooks, error handlers, and React utilities.",
+          "purpose": "StoreRegistry, scoped/local/computed/controlled store hooks, React element pipeline hooks, error handlers, and React utilities.",
           "keySymbols": [
             "StoreRegistry",
             "useComputedStore",
             "useLocalStore",
+            "useStoreInstance",
+            "useControlledStoreSync",
+            "useSyncActionPipeline",
+            "useRovingFocus",
+            "usePointerGesture",
             "ContextActionError",
             "StoreErrorBoundary"
           ]
         },
         {
           "subpath": "./utils",
-          "purpose": "Deep clone, safe property access, Mutative helpers, and configurable equality comparison utilities.",
+          "purpose": "Deep clone, safe property access, Mutative helpers, prop/ref composition, and configurable equality comparison utilities.",
           "keySymbols": [
             "deepClone",
             "safeGet",
             "safeSet",
             "MutativeUtils",
-            "compareValues"
+            "compareValues",
+            "composeProviders",
+            "mergeProps",
+            "mergeRefs"
           ]
         },
         {

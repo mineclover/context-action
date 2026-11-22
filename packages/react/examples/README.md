@@ -99,7 +99,7 @@ As needed:
 - Dual-lane View + Transaction separation (`actions/view-fast-lane-example.tsx`): `lane: 'fast'` view actions paired with `useRefController` + `lane: 'orchestrated'` commits paired with scoped `bindActionTransactions` (`@context-action/react/transactions`)
 - Leaf-subscription pseudo-signal & `useEffect` isolation (`stores/patterns/leaf-subscription-signal-example.tsx`): Top-level `useActionDispatch()` shell + `store.update()` + Leaf `useStorePath()` preserving standard React `useEffect` lifecycles only in affected leafs
 - External system sync patterns (`stores/patterns/external-sync-patterns-example.tsx`): IndexedDB write-through rollback, bidirectional URL `popstate`/`pushState` sync, and realtime RAF-batched stream + sequence guard
-- React Aria-style headless UI hooks (`hooks/aria-headless-hooks-example.tsx`): `useAriaButton`, `createAriaTabs`, `createAriaSlider`, and `createAriaDialog` combining `@context-action/core/element` primitives with `Store` / `ActionContext` / `RefContext`
+- React Aria-style headless UI hooks (`hooks/aria-headless-hooks-example.tsx`): `useAriaButton`, `createAriaTabs`, `createAriaSlider`, `createAriaDialog`, `createAriaComboBox`, and `createAriaDataGrid` combining `@context-action/react`, `./refs` (`createRefCollectionContext`), `./utils` (`mergeProps`), and `./advanced` (`useStoreInstance`, `useControlledStoreSync`, `useRovingFocus`, `usePointerGesture`, `@context-action/core/element`)
 
 ## 🔍 Example Features
 

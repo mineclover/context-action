@@ -26,7 +26,7 @@ export { useStoreValue } from './stores/hooks/useStoreValue';
 export type { SubscribableStore } from './stores/utils/sync-external-store-utils';
 export { useStoreSelector } from './stores/hooks/useStoreSelector';
 export { useStorePath, useStoreSelectorWithPaths } from './stores/hooks/useStorePath';
-export type { PatchAwareStore, StorePathPatch, StorePath, UseStorePathOptions, UseStoreSelectorWithPathsOptions } from './stores/hooks/useStorePath';
+export type { PatchAwareStore, PathValue, StorePathPatch, StorePath, UseStorePathOptions, UseStoreSelectorWithPathsOptions } from './stores/hooks/useStorePath';
 export type { IStore, Snapshot } from './stores/core/types';
 export type { StoreReader, StoreWriter } from './stores/core/contracts';
 

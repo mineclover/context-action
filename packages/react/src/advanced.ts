@@ -13,6 +13,42 @@ export type {
 // Advanced Store Hooks
 export { useComputedStore } from './stores/hooks/useComputedStore';
 export { useLocalStore } from './stores/hooks/useLocalStore';
+export { useStoreInstance } from './stores/hooks/useStoreInstance';
+export { useControlledStoreSync } from './stores/hooks/useControlledStoreSync';
+
+// Synchronous Element UI Hooks & Core/Element Re-exports
+export {
+  useSyncActionPipeline,
+  useRovingFocus,
+  usePointerGesture,
+} from './element/element-hooks';
+export {
+  createPointerGestureSession,
+  createRovingFocusController,
+  createSyncActionPipeline,
+  toReactPartProps,
+} from '@context-action/core/element';
+export type {
+  PointerCaptureTargetLike,
+  PointerGestureEventLike,
+  PointerGestureKeyEventLike,
+  PointerGestureModifiers,
+  PointerGestureOptions,
+  PointerGestureSession,
+  PointerGestureSnapshot,
+  RovingFocusController,
+  RovingFocusItem,
+  RovingFocusKeyEventLike,
+  RovingFocusOptions,
+  RovingFocusOrientation,
+  SyncActionPipeline,
+  SyncDispatchOutcome,
+  SyncGuardController,
+  SyncHandlerConfig,
+  SyncObserverConfig,
+  SyncObserverMeta,
+  SyncResultController,
+} from '@context-action/core/element';
 
 
 

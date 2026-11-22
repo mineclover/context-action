@@ -37,6 +37,34 @@ export interface PatchAwareStore<T> {
 export type StorePath = (string | number)[];
 
 /**
+ * Recursively resolves the value type at a literal path tuple `P` within state `T`.
+ */
+export type PathValue<
+  T,
+  P extends readonly (string | number)[],
+> = P extends readonly []
+  ? T
+  : P extends readonly [infer Head, ...infer Tail extends readonly (string | number)[]]
+    ? T extends null | undefined
+      ? undefined
+      : T extends readonly (infer Elem)[]
+        ? Head extends number
+          ? PathValue<Elem | undefined, Tail>
+          : Head extends keyof T
+            ? PathValue<T[Head], Tail>
+            : unknown
+        : Head extends keyof NonNullable<T>
+          ? T extends NonNullable<T>
+            ? PathValue<NonNullable<T>[Head], Tail>
+            : PathValue<NonNullable<T>[Head], Tail> | undefined
+          : Head extends `${number}`
+            ? NonNullable<T> extends readonly (infer Elem)[]
+              ? PathValue<Elem | undefined, Tail>
+              : unknown
+            : unknown
+    : unknown;
+
+/**
  * Options for useStorePath
  */
 export interface UseStorePathOptions<R> {
@@ -125,6 +153,19 @@ function arePathListsEqual(
  * }
  * ```
  */
+export function useStorePath<
+  T,
+  const P extends readonly (string | number)[],
+>(
+  store: PatchAwareStore<T>,
+  path: number extends P['length'] ? never : P,
+  options?: UseStorePathOptions<PathValue<T, P>>,
+): PathValue<T, P>;
+export function useStorePath<T, R = unknown>(
+  store: PatchAwareStore<T>,
+  path: Readonly<StorePath>,
+  options?: UseStorePathOptions<R>,
+): R;
 export function useStorePath<T, R = unknown>(
   store: PatchAwareStore<T>,
   path: Readonly<StorePath>,

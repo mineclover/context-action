@@ -118,6 +118,7 @@
       "includes": [
         "packages/react/src/actions/ActionContext.tsx",
         "packages/react/src/refs/createRefContext.ts",
+        "packages/react/src/refs/createRefCollection.tsx",
         "packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx",
         "packages/react/src/stores/patterns/time-travel-store-pattern.tsx",
         "packages/react/src/tools/ToolContext.tsx",
