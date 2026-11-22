@@ -3,7 +3,14 @@
 These changes are not included in the published versions listed in [CHANGELOG.md](./CHANGELOG.md).
 They do not authorize a version change or publication.
 
-## vNext Phase 1 (4.x additive) Layer 0/1 interoperability & opt-in subpaths
+## vNext Phase 2 (v5 breaking cleanup & default harmonization)
+
+- Slim root `@context-action/react` `.` entry to essential daily React primitives (`createActionContext`, `createStoreContext`, `Store`/`createStore`, core store subscription hooks, `StoreErrorBoundary`, `ActionRegister`, and React helpers); keep `@context-action/react/refs`, `@context-action/react/time-travel`, `@context-action/react/transactions`, `@context-action/react/backend`, `@context-action/react/advanced`, `@context-action/react/utils`, and `@context-action/react/webmcp` as standalone subpaths.
+- Remove deprecated React v4 compatibility APIs (`useActionEffectHandler`, `useActionDispatchWithResult`, `compareStrategy`, `StoreSchema`, and the legacy React `TransactionBackend` convenience facade); simplify `StoreTransactionParticipant<T>` to extend `@context-action/store-core`'s `TransactionParticipant<T>` directly. (`@context-action/core` retains `registerEffect` for `1.x` compatibility.)
+- Harmonize `Store` default `notificationMode` to `'immediate'` (matching `createStateStore()` and React 18/19 batching; opt into `{ notificationMode: 'batched' }` when RAF coalescing is desired) and harmonize `createActionContext` default `useConcurrencyQueue` to `false` (matching `@context-action/core`; opt in per action via `actions: { [name]: { queue: 'serial' } }` or `{ registry: { useConcurrencyQueue: true } }`).
+- Upgrade workspace React development and verification targets to React `19.3.1` (`@types/react` / `@types/react-dom` `19.3.0`) while retaining verified React `18.3.1` and `19.2.0` compatibility gates.
+
+## vNext Phase 1 (4.x additive baseline) Layer 0/1 interoperability & subpaths
 
 - Widen React subscription and timeline hooks (`useStoreValue`, `useStoreValues`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`, `useTimeTravelSelector`) to accept framework-neutral `StateReader<T>` / `StateBackend<T>` / `TimelineBackend<T>` (`SubscribableStore`, `TimeTravelControlsStore`, `TimeTravelPathStore`) natively without manual `BackendStore` wrapping.
 - Widen `ExternalStoresMap<T>` (`ExternalStoreInput<T>`) and `ExternalTimeTravelStoresMap<T>` (`ExternalTimeTravelStoreInput<T>`) on `createStoreContext().Provider` / `createTimeTravelStoreContext().Provider` to accept `StateBackend` and `TimelineBackend` inputs directly (automatically adapting non-timeline `StateBackend` via `createBackendStore`, cleaning up wrapper subscriptions on `dispose()`, keeping `TimelineBackend` unwrapped, and respecting `ownership="shared" | "owned"`).

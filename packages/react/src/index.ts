@@ -76,4 +76,4 @@ export {
 } from './actions/react-helpers';
 
 // ToolContext remains a source-only development track and is intentionally not
-// re-exported by the public React 3 entry.
+// re-exported by the public @context-action/react entry.

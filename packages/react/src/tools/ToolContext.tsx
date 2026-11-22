@@ -1,7 +1,7 @@
 /**
  * @fileoverview Development-track createToolContext for unified tool management
  *
- * This module is repository source only: React 3 intentionally does not
+ * This module is repository source only: `@context-action/react` intentionally does not
  * publish `@context-action/react/tools`. It combines React provider lifecycle
  * with Tool Protocol schemas to create a registry that can:
  * - Define tools with Tool Protocol schemas backed by Zod
@@ -12,7 +12,7 @@
  *
  * @example
  * ```typescript
- * // Repository source-track sibling import; not an installed React 3 subpath.
+ * // Repository source-track sibling import; not an installed @context-action/react subpath.
  * import { createToolContext } from './ToolContext';
  * import { z } from 'zod';
  * import {
@@ -323,7 +323,7 @@ function observedToolOutputBytes(result: ToolCallResult): number {
  * - Keeps compatibility provider exporters separate from canonical discovery
  * - Separates result-producing handlers from legacy full-controller handlers
  *
- * React 3 does not publish this factory as an installed package subpath.
+ * `@context-action/react` does not publish this factory as an installed package subpath.
  *
  * @param contextName - Name identifier for this tool context
  * @param config - Configuration with required schema
