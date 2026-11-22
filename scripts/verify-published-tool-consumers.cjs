@@ -190,7 +190,7 @@ const consumerRuntimeDependencies = [
   { name: 'ai', spec: 'ai@7.0.34' },
   { name: '@types/node', spec: '@types/node@24.13.3' },
   { name: '@types/json-schema', spec: '@types/json-schema@7.0.15' },
-  { name: '@types/react', spec: '@types/react@19.2.17' },
+  { name: '@types/react', spec: '@types/react@19.3.0' },
   { name: 'typescript', spec: 'typescript@6.0.3' },
 ];
 
@@ -198,13 +198,13 @@ const preactRuntimeDependencies = [
   { name: '@preact/signals', spec: '@preact/signals@2.11.3' },
   { name: 'preact', spec: 'preact@10.27.3' },
   { name: 'preact-render-to-string', spec: 'preact-render-to-string@6.7.0' },
-  { name: 'react', spec: 'react@19.2.8' },
-  { name: 'react-dom', spec: 'react-dom@19.2.8' },
+  { name: 'react', spec: 'react@19.3.1' },
+  { name: 'react-dom', spec: 'react-dom@19.3.1' },
 ];
 
 const reactMatrix = [
   { version: '19.2.0', label: 'react-19-minimum' },
-  { version: '19.2.8', label: 'react-19' },
+  { version: '19.3.1', label: 'react-19' },
 ];
 
 const repositoryRoot = path.resolve(__dirname, '..');

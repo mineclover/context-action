@@ -104,7 +104,7 @@ The runnable reference has two complementary checks:
   exercises keyboard table selection, sorting, keyboard calendar selection,
   and the resulting domain-action audit entries.
 - `pnpm verify:react-aria-reference-hydration` bundles the reference and
-  hydrates it with React 19.2.0 and 19.2.8 while installing the current local
+  hydrates it with React 19.2.0 and 19.3.1 while installing the current local
   Core and React candidate artifacts. It fails on a hydration recovery error
   or a candidate-version mismatch.
 

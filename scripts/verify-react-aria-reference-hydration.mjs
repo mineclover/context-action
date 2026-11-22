@@ -78,7 +78,7 @@ try {
     mutative: createLocalPackageSpec('@context-action/mutative', mutativeDirectory, packDirectory),
     react: createLocalPackageSpec('@context-action/react', reactDirectory, packDirectory),
   };
-  for (const reactVersion of ['19.2.0', '19.2.8']) {
+  for (const reactVersion of ['19.2.0', '19.3.1']) {
     const consumerDirectory = path.join(temporaryDirectory, `react-${reactVersion}`);
     const npmConfigPath = path.join(consumerDirectory, '.npmrc');
     mkdirSync(consumerDirectory, { recursive: true });

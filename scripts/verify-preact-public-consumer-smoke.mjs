@@ -75,8 +75,8 @@ const PACKAGES = [
 ];
 
 const JSDOM_VERSION = 'jsdom@26.1.0';
-const REACT_VERSION = 'react@19.2.8';
-const REACT_DOM_VERSION = 'react-dom@19.2.8';
+const REACT_VERSION = 'react@19.3.1';
+const REACT_DOM_VERSION = 'react-dom@19.3.1';
 const SSR_VERSION = 'preact-render-to-string@6.7.0';
 
 let totalAssertions = 0;

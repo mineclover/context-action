@@ -425,7 +425,7 @@ test('release preflight runs the React 19.2 minimum and current compatibility ma
   );
   assert.match(
     compatibility,
-    /--react-version 19\.2\.8 --react-types 19\.2\.17 --react-dom-types 19\.2\.3/u,
+    /--react-version 19\.3\.1 --react-types 19\.3\.0 --react-dom-types 19\.3\.0/u,
   );
   assert.doesNotMatch(
     compatibility,

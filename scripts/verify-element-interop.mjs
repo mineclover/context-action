@@ -198,13 +198,13 @@ void methods;
     run(process.execPath, [join(root, 'node_modules/typescript/bin/tsc'), '-p', 'tsconfig.json'], neutral);
   }
 
-  for (const version of ['18.3.1', '19.2.8']) {
+  for (const version of ['18.3.1', '19.3.1']) {
     const consumer = join(sandbox, `react-${version}`); mkdirSync(consumer);
     writeFileSync(join(consumer, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
     run('npm', ['install', '--no-save', '--ignore-scripts',
       ...tarballs, `react@${version}`, `react-dom@${version}`, 'preact@10.27.3', '@preact/signals@2.11.3',
       'lit@3.3.3', '@lit/context@1.1.6', 'jsdom@26.1.0', 'typescript@6.0.3',
-      ...(version.startsWith('18.') ? ['@types/react@18.3.12', '@types/react-dom@18.3.1'] : ['@types/react@19.2.17', '@types/react-dom@19.2.3'])], consumer);
+      ...(version.startsWith('18.') ? ['@types/react@18.3.12', '@types/react-dom@18.3.1'] : ['@types/react@19.3.0', '@types/react-dom@19.3.0'])], consumer);
     writeFileSync(join(consumer, 'contract.mts'), typeContract);
     writeFileSync(join(consumer, 'contract.cts'), typeContract);
     // Lit's two declaration graphs augment HTMLElementTagNameMap with nominal

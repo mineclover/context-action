@@ -28241,7 +28241,7 @@ React Aria 날짜 객체 대신 직렬화 가능한 ISO 날짜를 store에 저�
   키보드 Table 선택, 정렬, 키보드 Calendar 선택, 그 결과의 도메인 action audit
   entry를 검증합니다.
 - `pnpm verify:react-aria-reference-hydration`은 레퍼런스를 번들하고 현재 로컬
-  Core·React 후보 artifact를 설치한 상태에서 React 19.2.0·19.2.8 hydration을
+  Core·React 후보 artifact를 설치한 상태에서 React 19.2.0·19.3.1 hydration을
   검증합니다. hydration recovery error나 후보 버전 불일치가 있으면 실패합니다.
 
 더 자세한 React Aria 상태 계약은 공식 React Aria 및 React Stately 문서를
