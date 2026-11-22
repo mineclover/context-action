@@ -77,9 +77,9 @@ async function main() {
   const register = new ActionRegister<CheckoutActions, CheckoutResults>({
     name: 'OrderCheckoutDemo',
     actions: {
-      checkoutOrder: { queue: 'serial', timeout: 2000 },
-      // queue:'immediate' without timeout keeps Fast Sequential Path eligible
-      trackMetric: { queue: 'immediate' },
+      checkoutOrder: { lane: 'orchestrated', queue: 'serial', timeout: 2000 },
+      // lane: 'fast' implies queue:'immediate' + trace:false + fail-closed invariants
+      trackMetric: { lane: 'fast' },
     },
     registry: {
       errorHandler: (error, context) => {
@@ -290,13 +290,14 @@ async function main() {
     }
   }
 
-  console.log('\n=== Scenario 4: Transient Error Retry + Dispatch Trace ===');
-  const traceLog: Array<{ phase: string; status?: string }> = [];
-  const unsubscribeTrace = register.subscribeDispatchTrace(event => {
-    if (event.action === 'checkoutOrder') {
-      traceLog.push({ phase: event.phase, status: event.status });
-    }
-  });
+  console.log('\n=== Scenario 4: Transient Error Retry + Action-Scoped Dispatch Trace ===');
+  const traceLog: Array<{ action: string; phase: string; status?: string }> = [];
+  const unsubscribeTrace = register.subscribeDispatchTrace(
+    event => {
+      traceLog.push({ action: event.action, phase: event.phase, status: event.status });
+    },
+    { actions: ['checkoutOrder'] },
+  );
 
   const retryResult = await register.dispatchWithResult(
     'checkoutOrder',
@@ -311,7 +312,6 @@ async function main() {
       retryOnError: { maxAttempts: 2, delay: 10 },
     },
   );
-  unsubscribeTrace();
 
   console.log('Retry result:', {
     outcome: retryResult.outcome,
@@ -322,7 +322,18 @@ async function main() {
     traces: traceLog,
   });
 
-  console.log('\n=== Scenario 5: Fast Path (dispatch + queue:immediate) vs Slow Path (dispatchWithResult) ===');
+  console.log(
+    '\n=== Scenario 5: Fast Lane (lane:"fast" while scoped trace stays active) vs Slow Path ===',
+  );
+  // Proves scoped trace fails closed when targeting a lane:'fast' action
+  let fastTraceRejected = false;
+  try {
+    register.subscribeDispatchTrace(() => undefined, { actions: ['trackMetric'] });
+  } catch (error) {
+    fastTraceRejected = error instanceof TypeError;
+  }
+
+  const traceCountBeforeMetrics = traceLog.length;
   const warmupCount = 500;
   for (let i = 0; i < warmupCount; i++) {
     await register.dispatch('trackMetric', { name: 'warmup', value: 1 });
@@ -341,13 +352,16 @@ async function main() {
     await register.dispatchWithResult('trackMetric', { name: 'slow_page_view', value: 1 });
   }
   const slowMs = performance.now() - tSlow0;
+  unsubscribeTrace();
 
-  console.log('Metric benchmark (10,000 dispatches each):', {
+  console.log('Metric benchmark (10,000 dispatches each, scoped checkout trace active):', {
     fastPathTotal: metricTotals.get('fast_page_view'),
     fastPathMs: Number(fastMs.toFixed(2)),
     slowPathTotal: metricTotals.get('slow_page_view'),
     slowPathMs: Number(slowMs.toFixed(2)),
     fastPathSpeedup: `${(slowMs / Math.max(fastMs, 0.01)).toFixed(1)}x`,
+    checkoutTraceLeakCount: traceLog.length - traceCountBeforeMetrics,
+    fastTraceSubscriptionRejected: fastTraceRejected,
   });
 
   await register.destroyAsync();

@@ -734,4 +734,55 @@ describe('ActionRegister dispatch optimization & compiled pipeline cache', () =>
 
     await reg.destroyAsync();
   });
+
+  it('keeps fast-lane and sibling actions untraced while a scoped trace listener watches another action', async () => {
+    interface LaneActions extends ActionPayloadMap {
+      compute: { value: number };
+      ping: void;
+      other: { count: number };
+      emptyOrchestrated: void;
+    }
+
+    const debugWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const reg = new ActionRegister<LaneActions>({
+        name: 'ScopedTraceFastIsolation',
+        registry: { debug: true },
+        actions: {
+          ping: { lane: 'fast' },
+          emptyOrchestrated: { lane: 'orchestrated' },
+        },
+      });
+
+      const ran: string[] = [];
+      reg.register('compute', payload => { ran.push(`compute:${payload.value}`); });
+      reg.registerCommand('ping', () => { ran.push('ping'); });
+      reg.registerCommand('other', payload => { ran.push(`other:${payload.count}`); });
+
+      const traced: ActionDispatchTrace[] = [];
+      const unsub = reg.subscribeDispatchTrace(event => traced.push(event), {
+        actions: ['compute'],
+      });
+
+      await reg.dispatch('compute', { value: 7 });
+      await reg.dispatch('ping');
+      await reg.dispatch('other', { count: 3 });
+
+      expect(ran).toEqual(['compute:7', 'ping', 'other:3']);
+      expect(traced.map(event => `${event.action}:${event.phase}:${event.status ?? ''}`)).toEqual([
+        'compute:started:',
+        'compute:settled:completed',
+      ]);
+
+      // lane: 'orchestrated' stays on full orchestration path (debug warning emitted even with no handlers)
+      debugWarn.mockClear();
+      await reg.dispatch('emptyOrchestrated');
+      expect(debugWarn).toHaveBeenCalled();
+
+      unsub();
+      await reg.destroyAsync();
+    } finally {
+      debugWarn.mockRestore();
+    }
+  });
 });

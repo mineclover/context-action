@@ -332,8 +332,8 @@ interface ServiceResults extends ActionResultMap<ServiceActions> {
 const registry = new ActionRegister<ServiceActions, ServiceResults>({
   name: 'ServiceActions',
   actions: {
-    save: { queue: 'serial', timeout: 5000 },
-    ping: { queue: 'immediate' },
+    save: { lane: 'orchestrated', queue: 'serial', timeout: 5000 },
+    ping: { lane: 'fast' },
   },
   registry: {
     errorHandler: (error, context) => {
@@ -342,12 +342,15 @@ const registry = new ActionRegister<ServiceActions, ServiceResults>({
   },
 });
 
-const unsubscribeTrace = registry.subscribeDispatchTrace(event => {
-  console.info(event.dispatchId, event.action, event.phase, event.status);
-});
+const unsubscribeTrace = registry.subscribeDispatchTrace(
+  event => {
+    console.info(event.dispatchId, event.action, event.phase, event.status);
+  },
+  { actions: ['save'] },
+);
 
 registry.registerCommand('ping', () => {
-  // Eligible for the fast sequential path when untraced and unqueued
+  // Stays on the fast sequential path even while 'save' is traced
 });
 
 registry.registerResult('save', async payload => {
@@ -641,7 +644,8 @@ See [element transport and host lifecycle adapters](docs/element-interop.md) for
 - `cancelPendingDispatches()` - Reject queued operations waiting in `OperationQueue` without unregistering handlers
 
 #### Tracing, Inspection & Execution Mode Methods
-- `subscribeDispatchTrace(listener)` - Subscribe to `'started'` / `'settled'` `ActionDispatchTrace` lifecycle events
+- `subscribeDispatchTrace(listener, options?)` - Subscribe to `'started'` / `'settled'` `ActionDispatchTrace` lifecycle events, optionally scoped via `{ actions: [...] }` so unrelated fast-lane actions keep bypassing trace hooks
+- `getActionPolicy(action)` - Inspect resolved contract-level `ActionPolicyConfig` (`lane`, `queue`, `timeout`, `trace`)
 - `getHandlerCount(action)` / `hasHandlers(action)` / `getRegisteredActions()` - Inspect registered actions and handler counts
 - `getRegistryInfo()` / `getActionStats(action)` / `getAllActionStats()` - Inspect registry configuration and priority groupings
 - `getUnregisterFunctionCount()` / `hasUnregisterFunction(handlerId)` - Track active unregister leases
@@ -665,8 +669,10 @@ See [element transport and host lifecycle adapters](docs/element-interop.md) for
 interface ActionRegisterConfig<T extends ActionPayloadMap = ActionPayloadMap> {
   name?: string;
   actions?: Partial<Record<ActionNames<T>, {
+    lane?: 'fast' | 'orchestrated';
     queue?: 'serial' | 'immediate';
     timeout?: number;
+    trace?: boolean;
   }>>;
   registry?: {
     debug?: boolean;

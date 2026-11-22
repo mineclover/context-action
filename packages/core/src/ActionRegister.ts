@@ -32,6 +32,7 @@ import {
   CommandConfig,
   DispatchArgs,
   DispatchOptions,
+  DispatchTraceSubscriptionOptions,
   EffectConfig,
   ExecutionMode,
   ExecutionResult,
@@ -482,6 +483,7 @@ export class ActionRegister<
   private dispatchConstructionDepth = 0;
   private dispatchTraceSequence = 0;
   private readonly dispatchTraceListeners = new Set<ActionDispatchTraceListener>();
+  private readonly scopedDispatchTraceListeners = new Map<string, Set<ActionDispatchTraceListener>>();
 
   // 🔧 Performance optimization: Cached Proxy instances for actions getters
   private _actionsProxy?: {
@@ -524,6 +526,15 @@ export class ActionRegister<
       >) {
         if (!policy) continue;
         if (
+          policy.lane !== undefined
+          && policy.lane !== 'fast'
+          && policy.lane !== 'orchestrated'
+        ) {
+          throw new TypeError(
+            `Action "${actionName}" lane policy must be "fast" or "orchestrated".`
+          );
+        }
+        if (
           policy.queue !== undefined
           && policy.queue !== 'serial'
           && policy.queue !== 'immediate'
@@ -532,19 +543,56 @@ export class ActionRegister<
             `Action "${actionName}" queue policy must be "serial" or "immediate".`
           );
         }
+        if (policy.trace !== undefined && typeof policy.trace !== 'boolean') {
+          throw new TypeError(
+            `Action "${actionName}" trace policy must be a boolean.`
+          );
+        }
         validateNonNegativeFiniteNumber(policy.timeout, `actions.${actionName}.timeout`);
-        validated[actionName as ActionNames<T>] = {
-          ...(policy.queue !== undefined && { queue: policy.queue }),
+
+        if (policy.lane === 'fast') {
+          if (policy.queue === 'serial') {
+            throw new TypeError(
+              `Action "${actionName}" with lane "fast" cannot use queue "serial".`
+            );
+          }
+          if (policy.timeout !== undefined) {
+            throw new TypeError(
+              `Action "${actionName}" with lane "fast" cannot configure a default timeout.`
+            );
+          }
+          if (policy.trace === true) {
+            throw new TypeError(
+              `Action "${actionName}" with lane "fast" cannot enable dispatch tracing.`
+            );
+          }
+          if (
+            config.registry?.schema
+            && config.registry.validateOnDispatch !== false
+            && config.registry.schema[actionName]
+          ) {
+            throw new TypeError(
+              `Action "${actionName}" with lane "fast" cannot configure dispatch schema validation.`
+            );
+          }
+        }
+
+        const effectiveQueue = policy.queue ?? (policy.lane === 'fast' ? 'immediate' : undefined);
+        const effectiveTrace = policy.trace ?? (policy.lane === 'fast' ? false : undefined);
+        validated[actionName as ActionNames<T>] = Object.freeze({
+          ...(policy.lane !== undefined && { lane: policy.lane }),
+          ...(effectiveQueue !== undefined && { queue: effectiveQueue }),
           ...(policy.timeout !== undefined && { timeout: policy.timeout }),
-        };
-        if (policy.queue === 'immediate' && policy.timeout === undefined) {
+          ...(effectiveTrace !== undefined && { trace: effectiveTrace }),
+        });
+        if (effectiveQueue === 'immediate' && policy.timeout === undefined) {
           defaultDispatchOptions[actionName as ActionNames<T>] = IMMEDIATE_ONLY_OPTIONS;
-        } else if (policy.queue !== undefined || policy.timeout !== undefined) {
+        } else if (effectiveQueue !== undefined || policy.timeout !== undefined) {
           // Pre-freeze default dispatch options so default dispatches allocate nothing per call.
           defaultDispatchOptions[actionName as ActionNames<T>] = Object.freeze({
-            ...(policy.queue === 'immediate'
+            ...(effectiveQueue === 'immediate'
               ? { immediate: true }
-              : policy.queue === 'serial'
+              : effectiveQueue === 'serial'
                 ? { immediate: false }
                 : {}),
             ...(policy.timeout !== undefined && { timeout: policy.timeout }),
@@ -791,6 +839,7 @@ export class ActionRegister<
   ): UnregisterFunction {
     this.assertStringActionKey(action);
     this.assertAcceptingWork();
+    this.assertFastLaneRegistration(action, 'observer', config as HandlerConfig<T[K]>);
     const handlerId = config.id || this.generateHandlerId(action);
     const existing = this.pipelines.get(action)?.find(item => item.id === handlerId);
     if (existing && (existing.role ?? 'legacy') !== 'observer') {
@@ -841,6 +890,23 @@ export class ActionRegister<
     );
   }
 
+  private assertFastLaneRegistration<K extends keyof T>(
+    action: K,
+    role: HandlerRole,
+    config: HandlerConfig<T[K]>,
+  ): void {
+    const policies = this.actionPolicies as Partial<Record<keyof T, ActionPolicyConfig>> | undefined;
+    if (policies?.[action]?.lane !== 'fast') return;
+    if (role === 'guard' || role === 'observer') {
+      throw new TypeError(`Action "${String(action)}" with lane "fast" does not allow ${role} handlers.`);
+    }
+    if (config.once === true || config.debounce !== undefined || config.throttle !== undefined) {
+      throw new TypeError(
+        `Action "${String(action)}" with lane "fast" does not allow once, debounce, or throttle handler options.`,
+      );
+    }
+  }
+
   private registerWithRole<K extends keyof T, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
@@ -849,6 +915,7 @@ export class ActionRegister<
   ): UnregisterFunction {
     this.assertStringActionKey(action);
     this.assertAcceptingWork();
+    this.assertFastLaneRegistration(action, role, config);
     const handlerId = config.id || this.generateHandlerId(action);
     return this._performRegistrationSync(action, handler, config, handlerId, role);
   }
@@ -863,8 +930,26 @@ export class ActionRegister<
     }
   }
 
+  private isActionTraceable(actionKey: string): boolean {
+    const policy = this.actionPolicies?.[actionKey as ActionNames<T>];
+    if (!policy) return true;
+    if (policy.trace !== undefined) return policy.trace;
+    return policy.lane !== 'fast';
+  }
+
+  private hasTraceListenersForAction(actionKey: string): boolean {
+    if (!this.isActionTraceable(actionKey)) return false;
+    if (this.dispatchTraceListeners.size > 0) return true;
+    const scoped = this.scopedDispatchTraceListeners.get(actionKey);
+    return scoped !== undefined && scoped.size > 0;
+  }
+
   private beginDispatchTrace(action: string, options?: DispatchOptions): DispatchTraceScope | undefined {
-    if (this.dispatchTraceListeners.size === 0) return undefined;
+    if (!this.isActionTraceable(action)) return undefined;
+    const initialScoped = this.scopedDispatchTraceListeners.get(action);
+    if (this.dispatchTraceListeners.size === 0 && (!initialScoped || initialScoped.size === 0)) {
+      return undefined;
+    }
     const dispatchId = `${this.name}:${++this.dispatchTraceSequence}`;
     const startedAt = Date.now();
     const metadata = options?.trace;
@@ -873,6 +958,15 @@ export class ActionRegister<
       for (const listener of this.dispatchTraceListeners) {
         try { listener(event); } catch (error) {
           this.log('Dispatch trace listener failed', error, 'warn');
+        }
+      }
+      const actionListeners = this.scopedDispatchTraceListeners.get(action);
+      if (actionListeners) {
+        for (const listener of actionListeners) {
+          if (this.dispatchTraceListeners.has(listener)) continue;
+          try { listener(event); } catch (error) {
+            this.log('Dispatch trace listener failed', error, 'warn');
+          }
         }
       }
     };
@@ -918,8 +1012,11 @@ export class ActionRegister<
     );
   }
 
-  /** Subscribe to start/settled dispatch lifecycle events. */
-  subscribeDispatchTrace(listener: ActionDispatchTraceListener): UnregisterFunction {
+  /** Subscribe to start/settled dispatch lifecycle events, optionally scoped to specific actions. */
+  subscribeDispatchTrace(
+    listener: ActionDispatchTraceListener,
+    options?: DispatchTraceSubscriptionOptions<T>,
+  ): UnregisterFunction {
     if (typeof listener !== 'function') {
       throw new TypeError('Dispatch trace listener must be a function.');
     }
@@ -927,8 +1024,52 @@ export class ActionRegister<
     // late subscription keeps callers from accidentally retaining a listener
     // that can never observe work and matches handler registration semantics.
     this.assertAcceptingWork();
-    this.dispatchTraceListeners.add(listener);
-    return () => this.dispatchTraceListeners.delete(listener);
+
+    if (options?.actions === undefined) {
+      this.dispatchTraceListeners.add(listener);
+      return () => {
+        this.dispatchTraceListeners.delete(listener);
+      };
+    }
+
+    if (!Array.isArray(options.actions) || options.actions.length === 0) {
+      throw new TypeError('Dispatch trace subscription "actions" filter must be a non-empty array.');
+    }
+
+    const actionKeys: string[] = [];
+    const seen = new Set<string>();
+    for (const action of options.actions) {
+      if (typeof action !== 'string' || action.length === 0) {
+        throw new TypeError('Dispatch trace subscription action keys must be non-empty strings.');
+      }
+      if (!this.isActionTraceable(action)) {
+        throw new TypeError(`Cannot subscribe dispatch trace to non-traceable action "${action}".`);
+      }
+      if (!seen.has(action)) {
+        seen.add(action);
+        actionKeys.push(action);
+      }
+    }
+
+    for (const actionKey of actionKeys) {
+      let scoped = this.scopedDispatchTraceListeners.get(actionKey);
+      if (!scoped) {
+        scoped = new Set();
+        this.scopedDispatchTraceListeners.set(actionKey, scoped);
+      }
+      scoped.add(listener);
+    }
+
+    return () => {
+      for (const actionKey of actionKeys) {
+        const scoped = this.scopedDispatchTraceListeners.get(actionKey);
+        if (!scoped) continue;
+        scoped.delete(listener);
+        if (scoped.size === 0) {
+          this.scopedDispatchTraceListeners.delete(actionKey);
+        }
+      }
+    };
   }
 
   private assertAcceptingWork(): void {
@@ -1161,14 +1302,17 @@ export class ActionRegister<
       return this.withDispatchTrace(this.rejectedLifecyclePromise<void>(), trace, () => 'failed');
     }
 
+    const actionKey = String(action);
+    const policy = this.actionPolicies?.[action];
     if (
-      this.dispatchTraceListeners.size === 0
+      policy?.lane !== 'orchestrated'
+      && !this.hasTraceListenersForAction(actionKey)
       && isFastPathOptions(options)
       && !this.shouldQueueDispatch(action, options)
       && (
         !this.registryConfig?.schema
         || this.registryConfig.validateOnDispatch === false
-        || !this.registryConfig.schema[String(action)]
+        || !this.registryConfig.schema[actionKey]
       )
     ) {
       const compiled = this.getCompiledPipeline(action);
@@ -1177,7 +1321,7 @@ export class ActionRegister<
         && compiled.observers.length === 0
         && !compiled.hasTimingGuard
         && !compiled.hasOnce
-        && (this.actionExecutionModes.get(action) ?? this.executionMode) === 'sequential'
+        && this.resolveEffectiveExecutionMode(action) === 'sequential'
       ) {
         if (compiled.results.length === 0) {
           if (!this.isDebugMode) {
@@ -1914,9 +2058,7 @@ export class ActionRegister<
     options?: DispatchOptions,
   ): DispatchPlan {
     const compiled = this.getCompiledPipeline(action);
-    const executionMode = options?.executionMode
-      ?? this.actionExecutionModes.get(action)
-      ?? this.executionMode;
+    const executionMode = options?.executionMode ?? this.resolveEffectiveExecutionMode(action);
 
     if (!options?.filter) {
       return {
@@ -3454,11 +3596,24 @@ export class ActionRegister<
    * @param mode Execution mode to set
    */
   setActionExecutionMode<K extends ActionNames<T>>(action: K, mode: ExecutionMode): void {
+    if (this.actionPolicies?.[action]?.lane === 'fast' && mode !== 'sequential') {
+      throw new TypeError(
+        `Action "${String(action)}" with lane "fast" requires "sequential" execution mode.`,
+      );
+    }
     this.actionExecutionModes.set(action, mode);
     
     if (this.isDebugMode) {
       console.log(`🎯 Execution mode set for action '${String(action)}': ${mode}`);
     }
+  }
+
+  private resolveEffectiveExecutionMode<K extends keyof T>(action: K): ExecutionMode {
+    const policies = this.actionPolicies as Partial<Record<keyof T, ActionPolicyConfig>> | undefined;
+    if (policies?.[action]?.lane === 'fast') {
+      return 'sequential';
+    }
+    return this.actionExecutionModes.get(action) ?? this.executionMode;
   }
 
   /**
@@ -3468,7 +3623,12 @@ export class ActionRegister<
    * @returns Execution mode for the action, or default if not set
    */
   getActionExecutionMode<K extends ActionNames<T>>(action: K): ExecutionMode {
-    return this.actionExecutionModes.get(action) || this.executionMode;
+    return this.resolveEffectiveExecutionMode(action);
+  }
+
+  /** Get resolved contract policy for an action, if declared at construction time. */
+  getActionPolicy<K extends ActionNames<T>>(action: K): Readonly<ActionPolicyConfig> | undefined {
+    return this.actionPolicies?.[action];
   }
 
   /**
@@ -3688,6 +3848,7 @@ export class ActionRegister<
 
     this.clearAll();
     this.dispatchTraceListeners.clear();
+    this.scopedDispatchTraceListeners.clear();
     this.actionExecutionModes.clear();
     this.lifecycleState = 'destroyed';
     this.log('ActionRegister destroyed');

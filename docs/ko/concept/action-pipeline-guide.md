@@ -24,7 +24,7 @@ interface MyActions extends ActionPayloadMap {
 const actionRegister = new ActionRegister<MyActions>({
   name: 'MyAppActions',
   actions: {
-    authenticate: { queue: 'serial', timeout: 5000 },
+    authenticate: { lane: 'orchestrated', queue: 'serial', timeout: 5000 },
   },
   registry: {
     debug: false,
@@ -45,8 +45,8 @@ const actionRegister = new ActionRegister<MyActions>({
 ```text
 dispatch() / dispatchWithResult() / actions.* Proxy
    │
-   ├─ 기본 순차 dispatch() Fast Path 진입 조건 충족 시:
-   │    trace 리스너 없음 · options 없음 또는 immediate 전용 (`timeout` 없는 `queue:'immediate'` 포함) ·
+   ├─ 기본 순차 dispatch() Fast Path 진입 조건 충족 시 (`lane: 'fast'` 포함):
+   │    lane !== 'orchestrated' · 해당 액션의 trace 리스너 없음 · options 없음 또는 immediate 전용 ·
    │    큐 미사용/우회 · 스키마 검증 없음 · guard/observer/debounce/throttle/once 없음 · mode='sequential'
    │    └─► Fast Sequential Path (dispatchFastSequential → continueFastSequentialAsync)
    │          • PipelineContext / outcome / AbortController 할당 생략
@@ -93,8 +93,8 @@ interface OrderResults extends ActionResultMap<OrderActions> {
 const register = new ActionRegister<OrderActions, OrderResults>({
   name: 'OrderPipeline',
   actions: {
-    submitOrder: { queue: 'serial', timeout: 5000 },
-    audit: { queue: 'immediate' },
+    submitOrder: { lane: 'orchestrated', queue: 'serial', timeout: 5000 },
+    audit: { lane: 'fast' },
   },
   registry: {
     errorHandler: (error, context) => {
@@ -103,9 +103,12 @@ const register = new ActionRegister<OrderActions, OrderResults>({
   },
 });
 
-const stopTrace = register.subscribeDispatchTrace(event => {
-  console.info(event.dispatchId, event.phase, event.status);
-});
+const stopTrace = register.subscribeDispatchTrace(
+  event => {
+    console.info(event.dispatchId, event.phase, event.status);
+  },
+  { actions: ['submitOrder'] },
+);
 
 // 1. 사전 검증 Guard (항상 순차/fatal)
 register.registerGuard('submitOrder', payload => {
@@ -457,8 +460,8 @@ function AuthComponent() {
 
 ## 핵심 정책 · 추적 · 종료 API
 
-- **액션별 정책 (`ActionRegisterConfig.actions`)**: 액션별로 `queue?: 'serial' | 'immediate'`와 `timeout?: number` 기본값을 선언하고, 호출부 `DispatchOptions`로 덮어쓸 수 있습니다.
-- **디스패치 수명주기 추적 (`subscribeDispatchTrace`)**: 모든 공개 `dispatch` / `dispatchWithResult`의 `started`와 `settled`(`completed` | `completed_with_errors` | `failed` | `cancelled` | `debounced` | `throttled`) 이벤트를 구독해 트랜잭션 브리지와 연동합니다.
+- **액션별 레인 & 정책 (`ActionRegisterConfig.actions`)**: `lane?: 'fast' | 'orchestrated'`, `queue?: 'serial' | 'immediate'`, `timeout?: number`, `trace?: boolean` 기본값을 선언하고 `getActionPolicy(action)`로 조회합니다. `lane: 'fast'`는 직렬 큐·타임아웃·트레이스·Guard/Observer·`once`/`debounce`/`throttle`·비순차 모드를 생성·등록 시점에 fail-closed 차단합니다.
+- **액션 스코프 디스패치 추적 (`subscribeDispatchTrace`)**: 전역 구독뿐 아니라 `{ actions: [...] }`로 특정 액션만 추적해 `bindActionTransactions`와 연동할 때도 비-트랜잭션 `fast` 레인 액션이 그대로 Fast Path를 유지합니다(`started` / `settled`: `'completed' | 'completed_with_errors' | 'failed' | 'cancelled' | 'debounced' | 'throttled'`).
 - **우아한 종료 (`destroy` / `destroyAsync`)**: 호출 즉시 신규 등록과 디스패치를 `ActionRegisterDestroyedError`로 차단하고, 이미 시작된 디스패치와 핸들러가 모두 정산될 때까지 drain한 뒤 등록된 `cleanup` 콜백을 실행합니다(`destroyAsync({ deferCleanup: true })` 지원).
 
 ## 모범 사례

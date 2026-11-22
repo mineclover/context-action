@@ -85,7 +85,9 @@
             "ActionTimeoutError",
             "ActionValidationError",
             "ActionQueuePolicy",
-            "ActionPolicyConfig"
+            "ActionPolicyConfig",
+            "ActionExecutionLane",
+            "DispatchTraceSubscriptionOptions"
           ]
         },
         {

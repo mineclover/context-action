@@ -246,4 +246,97 @@ describe('M2 · ActionRegister contract-level action queue & timeout policies', 
     expect(events).toEqual(['start:first', 'end:first', 'start:second', 'end:second']);
     register.destroy();
   });
+
+  it('enforces lane: "fast" invariants fail-closed across construction, registration, execution mode, and trace subscription', async () => {
+    const reg = new ActionRegister<TestActions>({
+      name: 'FastLanePolicy',
+      registry: { defaultExecutionMode: 'parallel' },
+      actions: {
+        preempt: { lane: 'fast' },
+        serialWork: { lane: 'orchestrated', queue: 'serial', trace: true },
+        concurrentPeer: { trace: false },
+      },
+    });
+
+    expect(reg.getActionPolicy('preempt')).toEqual({
+      lane: 'fast',
+      queue: 'immediate',
+      trace: false,
+    });
+    expect(reg.getActionPolicy('serialWork')).toEqual({
+      lane: 'orchestrated',
+      queue: 'serial',
+      trace: true,
+    });
+    expect(reg.getActionPolicy('concurrentPeer')).toEqual({
+      trace: false,
+    });
+    expect(reg.getActionExecutionMode('preempt')).toBe('sequential');
+    expect(reg.getActionExecutionMode('serialWork')).toBe('parallel');
+
+    // Global setExecutionMode('parallel') never overrides lane: 'fast'
+    reg.setExecutionMode('parallel');
+    expect(reg.getActionExecutionMode('preempt')).toBe('sequential');
+
+    // Handler roles & options incompatible with lane: 'fast' fail closed
+    expect(() => reg.registerGuard('preempt', () => undefined)).toThrow(TypeError);
+    expect(() => reg.registerObserver('preempt', () => undefined)).toThrow(TypeError);
+    expect(() => reg.register('preempt', () => undefined, { once: true })).toThrow(TypeError);
+    expect(() => reg.register('preempt', () => undefined, { debounce: 10 })).toThrow(TypeError);
+    expect(() => reg.register('preempt', () => undefined, { throttle: 10 })).toThrow(TypeError);
+    expect(() => reg.setActionExecutionMode('preempt', 'parallel')).toThrow(TypeError);
+    expect(() => reg.subscribeDispatchTrace(() => undefined, { actions: ['preempt'] })).toThrow(
+      TypeError,
+    );
+    expect(() =>
+      reg.subscribeDispatchTrace(() => undefined, { actions: ['concurrentPeer'] }),
+    ).toThrow(TypeError);
+
+    // Constructor rejections for contradictory lane: 'fast' / invalid lane / invalid trace
+    expect(
+      () =>
+        new ActionRegister<TestActions>({
+          actions: { preempt: { lane: 'fast', queue: 'serial' } },
+        }),
+    ).toThrow(TypeError);
+    expect(
+      () =>
+        new ActionRegister<TestActions>({
+          actions: { preempt: { lane: 'fast', timeout: 50 } },
+        }),
+    ).toThrow(TypeError);
+    expect(
+      () =>
+        new ActionRegister<TestActions>({
+          actions: { preempt: { lane: 'fast', trace: true } },
+        }),
+    ).toThrow(TypeError);
+    expect(
+      () =>
+        new ActionRegister<TestActions>({
+          actions: { preempt: { lane: 'fast' } },
+          registry: {
+            schema: {
+              preempt: {
+                safeParse: () => ({ success: true, data: undefined }),
+              },
+            },
+          },
+        }),
+    ).toThrow(TypeError);
+    expect(
+      () =>
+        new ActionRegister<TestActions>({
+          actions: { preempt: { lane: 'unknown' as 'fast' } },
+        }),
+    ).toThrow(TypeError);
+    expect(
+      () =>
+        new ActionRegister<TestActions>({
+          actions: { preempt: { trace: 'yes' as unknown as boolean } },
+        }),
+    ).toThrow(TypeError);
+
+    await reg.destroyAsync();
+  });
 });

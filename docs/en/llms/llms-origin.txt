@@ -7981,10 +7981,12 @@ interface ActionRegisterConfig<T extends ActionPayloadMap = ActionPayloadMap> {
   /** Name identifier for this ActionRegister instance */
   name?: string;
 
-  /** Contract-level per-action queue and timeout defaults */
+  /** Contract-level per-action lane, queue, timeout, and trace defaults */
   actions?: Partial<Record<ActionNames<T>, {
+    lane?: 'fast' | 'orchestrated';
     queue?: 'serial' | 'immediate';
     timeout?: number;
+    trace?: boolean;
   }>>;
 
   /** Registry-specific configuration options */
@@ -8042,8 +8044,8 @@ await actionRegister.dispatch('updateUser', payload);
 ```text
 dispatch() / dispatchWithResult() / actions.* Proxy
    │
-   ├─ Eligible default sequential dispatch():
-   │    no trace listeners · no options or immediate-only (`queue:'immediate'` without timeout) ·
+   ├─ Eligible default sequential dispatch() (and lane: 'fast'):
+   │    lane !== 'orchestrated' · no matching trace listener · no options or immediate-only ·
    │    queue off/bypassed · no schema · no guards · no observers · no debounce/throttle · no once · mode='sequential'
    │    └─► Fast Sequential Path (dispatchFastSequential → continueFastSequentialAsync)
    │          • Zero PipelineContext / outcome / AbortController allocations
@@ -8090,8 +8092,8 @@ interface OrderResults extends ActionResultMap<OrderActions> {
 const register = new ActionRegister<OrderActions, OrderResults>({
   name: 'OrderPipeline',
   actions: {
-    submitOrder: { queue: 'serial', timeout: 5000 },
-    audit: { queue: 'immediate' },
+    submitOrder: { lane: 'orchestrated', queue: 'serial', timeout: 5000 },
+    audit: { lane: 'fast' },
   },
   registry: {
     errorHandler: (error, context) => {
@@ -8100,9 +8102,12 @@ const register = new ActionRegister<OrderActions, OrderResults>({
   },
 });
 
-const stopTrace = register.subscribeDispatchTrace(event => {
-  console.info(event.dispatchId, event.phase, event.status);
-});
+const stopTrace = register.subscribeDispatchTrace(
+  event => {
+    console.info(event.dispatchId, event.phase, event.status);
+  },
+  { actions: ['submitOrder'] },
+);
 
 // 1. Preflight guard: sequential & fatal
 register.registerGuard('submitOrder', payload => {

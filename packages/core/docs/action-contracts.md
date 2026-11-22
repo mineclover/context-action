@@ -72,12 +72,14 @@ React store contracts and must not be hidden as ActionRegister refactors.
 
 ## Dispatch trace bridge
 
-`subscribeDispatchTrace()` emits exactly one `started` and one `settled` event
-per public dispatch. The event carries a stable `dispatchId`, action name,
-terminal status, timing, and optional trace metadata from `DispatchOptions.trace`.
-Core does not create or mutate Store transactions. The React adapter can bind
-these events to explicit Store participants with `bindActionTransactions()`.
-These events are emitted for every public `dispatch` and `dispatchWithResult`.
+`subscribeDispatchTrace(listener, options?)` emits `started` and `settled` events
+per traced dispatch (excluding `trace: false` / `lane: 'fast'` actions, or limited
+to `options.actions` when scoped). The event carries a stable `dispatchId`, action
+name, terminal status, timing, and optional trace metadata from `DispatchOptions.trace`.
+Core does not create or mutate Store transactions. Both React (`bindActionTransactions()`)
+and XState (`bindActionDispatchTransactions()`) can pass `actions: [...]` to bind
+transactions only to intended business actions without turning off the fast path for
+sibling fast-lane actions.
 This keeps the dependency direction `core → trace contract ← store adapter` and
 prevents Core from importing React or Store classes.
 
@@ -88,9 +90,16 @@ on first dispatch and invalidated whenever handlers are registered, replaced,
 removed, or cleared (`_performRegistrationSync`, `removeRegistration`,
 `clearAction`, `clearAll`).
 
+Actions may also declare an explicit contract lane via `ActionRegisterConfig.actions[key].lane`:
+- `lane: 'fast'` fails closed on construction/registration if combined with
+  `queue: 'serial'`, default `timeout`, `trace: true`, dispatch `schema`, `guard`/`observer`
+  handlers, `once`, `debounce`/`throttle`, or non-`'sequential'` execution mode.
+- `lane: 'orchestrated'` opts explicitly into the full orchestration path (`_dispatchWithResult()`).
+
 When an active `dispatch()` call has:
-- `dispatchTraceListeners.size === 0`
-- `options === undefined` or `immediate: true`-only options (including `actions[key].queue: 'immediate'` without a timeout)
+- `policy?.lane !== 'orchestrated'`
+- `!hasTraceListenersForAction(actionKey)` (no active global/matching scoped trace listener for a traceable action)
+- `options === undefined` or `immediate: true`-only options (including `actions[key].queue: 'immediate'` / `lane: 'fast'` without a timeout)
 - queueing disabled for the action (or bypassed via `immediate: true`)
 - no schema validation configured for the action
 - zero guards, zero observers, no timing guards (`debounce`/`throttle`), and no `once` handlers

@@ -941,3 +941,65 @@ test('runInTransactionScope rejects cleanly when rollback throws or signal abort
   );
   assert.equal(rollbackCalls, 1);
 });
+
+test('bindActionDispatchTransactions supports options.actions scoping and fails closed on lane: "fast"', async () => {
+  const register = new ActionRegister({
+    name: 'XStateScopedBridge',
+    actions: {
+      save: { lane: 'orchestrated' },
+      metric: { lane: 'fast' },
+    },
+  });
+  let metricTotal = 0;
+  register.register('save', () => 'saved');
+  register.registerCommand('metric', (payload) => {
+    metricTotal += payload.n;
+  });
+
+  const events = [];
+  const coordinator = {
+    begin(participants, opts) {
+      events.push(`begin:${participants.length}:${opts?.actionId ?? ''}`);
+      return {
+        meta: { id: 'tx_scoped' },
+        commit() {
+          events.push('commit');
+        },
+        rollback() {
+          events.push('rollback');
+        },
+      };
+    },
+  };
+
+  let participantCalls = 0;
+  const unbind = bindActionDispatchTransactions(register, coordinator, {
+    actions: ['save'],
+    getParticipants() {
+      participantCalls += 1;
+      return [{ name: 'store', store: {} }];
+    },
+  });
+
+  await register.dispatch('metric', { n: 3 });
+  assert.equal(metricTotal, 3);
+  assert.equal(participantCalls, 0);
+  assert.deepEqual(events, []);
+
+  await register.dispatch('save', { id: 'ok' }, { trace: { label: 'Save' } });
+  assert.equal(participantCalls, 1);
+  assert.equal(events.length, 2);
+  assert.equal(events[1], 'commit');
+
+  assert.throws(
+    () =>
+      bindActionDispatchTransactions(register, coordinator, {
+        actions: ['metric'],
+        getParticipants: () => [{ name: 'store', store: {} }],
+      }),
+    TypeError,
+  );
+
+  unbind();
+  await register.destroyAsync();
+});
