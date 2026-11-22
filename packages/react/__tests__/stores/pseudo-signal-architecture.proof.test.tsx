@@ -1,5 +1,5 @@
-import { act, render, waitFor } from '@testing-library/react';
-import React, { useCallback, useEffect, useLayoutEffect } from 'react';
+import { act, fireEvent, render, waitFor } from '@testing-library/react';
+import React, { useCallback, useDeferredValue, useEffect, useLayoutEffect, useState } from 'react';
 import { performance } from 'node:perf_hooks';
 import {
   createActionContext,
@@ -816,5 +816,462 @@ describe('Pseudo-signal architecture empirical proofs', () => {
     expect(priceLifecycle).toEqual(['price-cleanup:150']);
     expect(themeLifecycle).toEqual(['theme-cleanup:light']);
     store.dispose();
+  });
+});
+
+describe('View-level useState vs Leaf useStorePath parity & boundary differences', () => {
+  it('matches view-level useState lifecycle, event batching, no-op effect bailout, and sibling isolation step-for-step', async () => {
+    const stateEffects: string[] = [];
+    const storeEffects: string[] = [];
+    const stateRenders = { shell: 0, price: 0, sibling: 0 };
+    const storeRenders = { shell: 0, price: 0, sibling: 0 };
+
+    function StatePriceLeaf() {
+      const [price, setPrice] = useState(100);
+      stateRenders.price += 1;
+
+      useLayoutEffect(() => {
+        stateEffects.push(`layout:${price}`);
+      }, [price]);
+
+      useEffect(() => {
+        stateEffects.push(`effect:${price}`);
+        return () => {
+          stateEffects.push(`cleanup:${price}`);
+        };
+      }, [price]);
+
+      return (
+        <div>
+          <span data-testid="state-price">{price}</span>
+          <button type="button" data-testid="state-single" onClick={() => setPrice(120)}>
+            single
+          </button>
+          <button type="button" data-testid="state-noop" onClick={() => setPrice(120)}>
+            noop
+          </button>
+          <button
+            type="button"
+            data-testid="state-multi"
+            onClick={() => {
+              setPrice(121);
+              setPrice(122);
+              setPrice(125);
+            }}
+          >
+            multi
+          </button>
+          <button type="button" data-testid="state-final" onClick={() => setPrice(200)}>
+            final
+          </button>
+        </div>
+      );
+    }
+
+    function StateSiblingLeaf() {
+      stateRenders.sibling += 1;
+      return <span data-testid="state-sibling">static</span>;
+    }
+
+    function UseStateTree() {
+      stateRenders.shell += 1;
+      return (
+        <>
+          <StatePriceLeaf />
+          <StateSiblingLeaf />
+        </>
+      );
+    }
+
+    const store = createStore(
+      'parity-use-state-vs-leaf',
+      { price: 100, sibling: 'static' },
+      { notificationMode: 'immediate' },
+    );
+
+    function StorePriceLeaf() {
+      const price = useStorePath<{ price: number; sibling: string }, number>(store, ['price']);
+      storeRenders.price += 1;
+
+      useLayoutEffect(() => {
+        storeEffects.push(`layout:${price}`);
+      }, [price]);
+
+      useEffect(() => {
+        storeEffects.push(`effect:${price}`);
+        return () => {
+          storeEffects.push(`cleanup:${price}`);
+        };
+      }, [price]);
+
+      return (
+        <div>
+          <span data-testid="store-price">{price}</span>
+          <button
+            type="button"
+            data-testid="store-single"
+            onClick={() => store.update(draft => {
+              draft.price = 120;
+            })}
+          >
+            single
+          </button>
+          <button
+            type="button"
+            data-testid="store-noop"
+            onClick={() => store.update(draft => {
+              draft.price = 120;
+            })}
+          >
+            noop
+          </button>
+          <button
+            type="button"
+            data-testid="store-multi"
+            onClick={() => {
+              store.update(draft => {
+                draft.price = 121;
+              });
+              store.update(draft => {
+                draft.price = 122;
+              });
+              store.update(draft => {
+                draft.price = 125;
+              });
+            }}
+          >
+            multi
+          </button>
+          <button
+            type="button"
+            data-testid="store-final"
+            onClick={() => store.update(draft => {
+              draft.price = 200;
+            })}
+          >
+            final
+          </button>
+        </div>
+      );
+    }
+
+    function StoreSiblingLeaf() {
+      const sibling = useStorePath<{ price: number; sibling: string }, string>(store, ['sibling']);
+      storeRenders.sibling += 1;
+      return <span data-testid="store-sibling">{sibling}</span>;
+    }
+
+    function StorePathTree() {
+      storeRenders.shell += 1;
+      return (
+        <>
+          <StorePriceLeaf />
+          <StoreSiblingLeaf />
+        </>
+      );
+    }
+
+    const view = render(
+      <>
+        <UseStateTree />
+        <StorePathTree />
+      </>,
+    );
+
+    // 1. Initial mount
+    expect(view.getByTestId('state-price').textContent).toBe('100');
+    expect(view.getByTestId('store-price').textContent).toBe('100');
+    expect(storeEffects).toEqual(stateEffects);
+    expect(stateEffects).toEqual(['layout:100', 'effect:100']);
+    expect(storeRenders).toEqual({ shell: 1, price: 1, sibling: 1 });
+    expect(stateRenders).toEqual({ shell: 1, price: 1, sibling: 1 });
+
+    // 2. Single update: 100 -> 120
+    await act(async () => {
+      fireEvent.click(view.getByTestId('state-single'));
+      fireEvent.click(view.getByTestId('store-single'));
+    });
+    expect(view.getByTestId('state-price').textContent).toBe('120');
+    expect(view.getByTestId('store-price').textContent).toBe('120');
+    expect(storeEffects).toEqual(stateEffects);
+    expect(storeRenders).toEqual({ shell: 1, price: 2, sibling: 1 });
+    expect(stateRenders).toEqual({ shell: 1, price: 2, sibling: 1 });
+
+    // 3. Same-value no-op update: 120 -> 120
+    const stateEffectsBeforeNoop = stateEffects.length;
+    const storeEffectsBeforeNoop = storeEffects.length;
+    const statePriceRendersBeforeNoop = stateRenders.price;
+    const storePriceRendersBeforeNoop = storeRenders.price;
+
+    await act(async () => {
+      fireEvent.click(view.getByTestId('state-noop'));
+      fireEvent.click(view.getByTestId('store-noop'));
+    });
+
+    const stateNoopRenderDelta = stateRenders.price - statePriceRendersBeforeNoop;
+    const storeNoopRenderDelta = storeRenders.price - storePriceRendersBeforeNoop;
+
+    expect(stateEffects.length).toBe(stateEffectsBeforeNoop);
+    expect(storeEffects.length).toBe(storeEffectsBeforeNoop);
+    expect(storeNoopRenderDelta).toBe(0); // Store comparator bails out before React schedules a render
+    expect(stateNoopRenderDelta).toBeLessThanOrEqual(1); // React may check alternate-fiber bailout (0 or 1), 0 effects
+    expect(storeRenders.shell).toBe(1);
+    expect(storeRenders.sibling).toBe(1);
+    expect(stateRenders.shell).toBe(1);
+    expect(stateRenders.sibling).toBe(1);
+
+    // 4. Multi-update inside one onClick (120 -> 121 -> 122 -> 125) coalesces into 1 commit on both
+    const statePriceBeforeMulti = stateRenders.price;
+    const storePriceBeforeMulti = storeRenders.price;
+
+    await act(async () => {
+      fireEvent.click(view.getByTestId('state-multi'));
+      fireEvent.click(view.getByTestId('store-multi'));
+    });
+
+    expect(view.getByTestId('state-price').textContent).toBe('125');
+    expect(view.getByTestId('store-price').textContent).toBe('125');
+    expect(stateRenders.price - statePriceBeforeMulti).toBe(1);
+    expect(storeRenders.price - storePriceBeforeMulti).toBe(1);
+    expect(storeEffects).toEqual(stateEffects);
+
+    // 5. Follow-up update: 125 -> 200
+    await act(async () => {
+      fireEvent.click(view.getByTestId('state-final'));
+      fireEvent.click(view.getByTestId('store-final'));
+    });
+    expect(view.getByTestId('state-price').textContent).toBe('200');
+    expect(view.getByTestId('store-price').textContent).toBe('200');
+    expect(storeEffects).toEqual(stateEffects);
+
+    // 6. Unmount cleanups
+    await act(async () => {
+      view.unmount();
+    });
+    expect(storeEffects).toEqual(stateEffects);
+    expect(storeEffects).toEqual([
+      'layout:100',
+      'effect:100',
+      'layout:120',
+      'cleanup:100',
+      'effect:120',
+      'layout:125',
+      'cleanup:120',
+      'effect:125',
+      'layout:200',
+      'cleanup:125',
+      'effect:200',
+      'cleanup:200',
+    ]);
+    expect(storeRenders.shell).toBe(1);
+    expect(storeRenders.sibling).toBe(1);
+    expect(stateRenders.shell).toBe(1);
+    expect(stateRenders.sibling).toBe(1);
+
+    if (process.env.BENCH_LOG === '1') {
+      console.info('useState vs Leaf useStorePath Parity Summary:', {
+        identicalEffectTraceCount: storeEffects.length,
+        effectsIdentical: true,
+        stateRenders,
+        storeRenders,
+        sameValueNoopRenderDelta: { useState: stateNoopRenderDelta, storePath: storeNoopRenderDelta },
+      });
+    }
+
+    store.dispose();
+  });
+
+  it('proves intentional differences: cross-leaf sharing without lifting state, sync getValue(), batched mode, and useDeferredValue', async () => {
+    // A. Cross-Leaf Sharing without Lifting State Up
+    const liftedRenders = { parent: 0, writer: 0, neutral: 0, reader: 0 };
+
+    function LiftedWriter({ onIncrement }: { onIncrement: () => void }) {
+      liftedRenders.writer += 1;
+      return (
+        <button type="button" data-testid="lifted-inc" onClick={onIncrement}>
+          inc
+        </button>
+      );
+    }
+    function LiftedNeutral() {
+      liftedRenders.neutral += 1;
+      return <span>neutral</span>;
+    }
+    function LiftedReader({ price }: { price: number }) {
+      liftedRenders.reader += 1;
+      return <span data-testid="lifted-price">{price}</span>;
+    }
+    function LiftedUseStateParent() {
+      liftedRenders.parent += 1;
+      const [price, setPrice] = useState(0);
+      return (
+        <>
+          <LiftedWriter onIncrement={() => setPrice(p => p + 1)} />
+          <LiftedNeutral />
+          <LiftedReader price={price} />
+        </>
+      );
+    }
+
+    const sharedStore = createStore(
+      'shared-cross-leaf',
+      { price: 0, other: 'idle' },
+      { notificationMode: 'immediate' },
+    );
+    const sharedRenders = { parent: 0, writer: 0, neutral: 0, reader: 0 };
+
+    function SharedWriter() {
+      sharedRenders.writer += 1;
+      return (
+        <button
+          type="button"
+          data-testid="shared-inc"
+          onClick={() => sharedStore.update(draft => {
+            draft.price += 1;
+          })}
+        >
+          inc
+        </button>
+      );
+    }
+    function SharedNeutral() {
+      sharedRenders.neutral += 1;
+      return <span>neutral</span>;
+    }
+    function SharedReader() {
+      sharedRenders.reader += 1;
+      const price = useStorePath<{ price: number; other: string }, number>(sharedStore, ['price']);
+      return <span data-testid="shared-price">{price}</span>;
+    }
+    function SharedStoreParent() {
+      sharedRenders.parent += 1;
+      return (
+        <>
+          <SharedWriter />
+          <SharedNeutral />
+          <SharedReader />
+        </>
+      );
+    }
+
+    const shareView = render(
+      <>
+        <LiftedUseStateParent />
+        <SharedStoreParent />
+      </>,
+    );
+
+    for (let i = 0; i < 3; i += 1) {
+      await act(async () => {
+        fireEvent.click(shareView.getByTestId('lifted-inc'));
+        fireEvent.click(shareView.getByTestId('shared-inc'));
+      });
+    }
+
+    expect(shareView.getByTestId('lifted-price').textContent).toBe('3');
+    expect(shareView.getByTestId('shared-price').textContent).toBe('3');
+    expect(liftedRenders).toEqual({ parent: 4, writer: 4, neutral: 4, reader: 4 }); // 12 extra renders
+    expect(sharedRenders).toEqual({ parent: 1, writer: 1, neutral: 1, reader: 4 }); // 3 extra renders (75% less)
+
+    await act(async () => {
+      shareView.unmount();
+    });
+    sharedStore.dispose();
+
+    // B. Immediate Sync Read (`store.getValue()`) vs Closed-Over `useState` inside the same tick
+    const syncStore = createStore(
+      'sync-read-vs-closure',
+      { price: 100 },
+      { notificationMode: 'immediate' },
+    );
+    let closedOverStateRead = -1;
+    let immediateStoreRead = -1;
+    let renderedLeafDuringClick = '';
+
+    function SyncComparison() {
+      const [localPrice, setLocalPrice] = useState(100);
+      const storePrice = useStorePath<{ price: number }, number>(syncStore, ['price']);
+      return (
+        <div>
+          <span data-testid="rendered-store-leaf">{storePrice}</span>
+          <button
+            type="button"
+            data-testid="sync-trigger"
+            onClick={() => {
+              setLocalPrice(200);
+              closedOverStateRead = localPrice; // Closure still observes 100
+              syncStore.update(draft => {
+                draft.price = 200;
+              });
+              immediateStoreRead = syncStore.getValue().price; // Store observes 200 immediately
+              renderedLeafDuringClick = document.querySelector('[data-testid="rendered-store-leaf"]')?.textContent ?? '';
+            }}
+          >
+            trigger
+          </button>
+        </div>
+      );
+    }
+
+    const syncView = render(<SyncComparison />);
+    await act(async () => {
+      fireEvent.click(syncView.getByTestId('sync-trigger'));
+    });
+
+    expect(closedOverStateRead).toBe(100);
+    expect(immediateStoreRead).toBe(200);
+    expect(renderedLeafDuringClick).toBe('100'); // Rendered DOM commits only after React commit
+    expect(syncView.getByTestId('rendered-store-leaf').textContent).toBe('200');
+
+    await act(async () => {
+      syncView.unmount();
+    });
+    syncStore.dispose();
+
+    // C. notificationMode: 'batched' deferral + React useDeferredValue compatibility
+    const batchedStore = createStore(
+      'batched-and-deferred',
+      { price: 10 },
+      { notificationMode: 'batched' },
+    );
+    let batchedNotifiedSynchronously = false;
+    const unsubCheck = batchedStore.subscribeWithPatches(() => {
+      batchedNotifiedSynchronously = true;
+    });
+
+    function BatchedDeferredLeaf() {
+      const price = useStorePath<{ price: number }, number>(batchedStore, ['price']);
+      const deferred = useDeferredValue(price);
+      return (
+        <div>
+          <span data-testid="batched-live">{price}</span>
+          <span data-testid="batched-deferred">{deferred}</span>
+        </div>
+      );
+    }
+
+    const batchedView = render(<BatchedDeferredLeaf />);
+    expect(batchedView.getByTestId('batched-live').textContent).toBe('10');
+    expect(batchedView.getByTestId('batched-deferred').textContent).toBe('10');
+
+    await act(async () => {
+      batchedStore.update(draft => {
+        draft.price = 42;
+      });
+      // Immediately after batched update, listeners have NOT fired yet (intentionally deferred to next frame)
+      expect(batchedNotifiedSynchronously).toBe(false);
+    });
+
+    await waitFor(() => {
+      expect(batchedNotifiedSynchronously).toBe(true);
+      expect(batchedView.getByTestId('batched-live').textContent).toBe('42');
+      expect(batchedView.getByTestId('batched-deferred').textContent).toBe('42');
+    });
+
+    unsubCheck();
+    await act(async () => {
+      batchedView.unmount();
+    });
+    batchedStore.dispose();
   });
 });
