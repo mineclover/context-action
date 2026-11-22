@@ -9,6 +9,7 @@ examples/
 ├── actions/                  # Action pipeline & dual-lane view examples
 │   └── view-fast-lane-example.tsx
 ├── hooks/                    # Hook examples by category
+│   ├── aria-headless-hooks-example.tsx
 │   ├── essential/           # Must-learn hooks
 │   │   ├── useStoreValue-example.tsx
 │   │   └── useLocalStore-example.tsx
@@ -98,6 +99,7 @@ As needed:
 - Dual-lane View + Transaction separation (`actions/view-fast-lane-example.tsx`): `lane: 'fast'` view actions paired with `useRefController` + `lane: 'orchestrated'` commits paired with scoped `bindActionTransactions` (`@context-action/react/transactions`)
 - Leaf-subscription pseudo-signal & `useEffect` isolation (`stores/patterns/leaf-subscription-signal-example.tsx`): Top-level `useActionDispatch()` shell + `store.update()` + Leaf `useStorePath()` preserving standard React `useEffect` lifecycles only in affected leafs
 - External system sync patterns (`stores/patterns/external-sync-patterns-example.tsx`): IndexedDB write-through rollback, bidirectional URL `popstate`/`pushState` sync, and realtime RAF-batched stream + sequence guard
+- React Aria-style headless UI hooks (`hooks/aria-headless-hooks-example.tsx`): `useAriaButton`, `createAriaTabs`, `createAriaSlider`, and `createAriaDialog` combining `@context-action/core/element` primitives with `Store` / `ActionContext` / `RefContext`
 
 ## 🔍 Example Features
 
