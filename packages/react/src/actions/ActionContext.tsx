@@ -111,6 +111,20 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
     }
   }
 
+  runFast<R>(operation: () => Promise<R>): Promise<R> {
+    if (!this.accepting) {
+      const rejectedPromise = Promise.reject<R>(createProviderAbortError());
+      void rejectedPromise.catch(() => {});
+      return rejectedPromise;
+    }
+
+    try {
+      return operation();
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
   run<R>(
     externalSignals: Array<AbortSignal | undefined>,
     operation: (signal: AbortSignal) => Promise<R>
@@ -253,6 +267,19 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
     });
     return this.shutdownPromise;
   }
+}
+
+const hasOwnProp = Object.prototype.hasOwnProperty;
+
+function isFastReactDispatchOptions(options: DispatchOptions | undefined): boolean {
+  if (options === undefined) return true;
+  if (options.immediate !== true) return false;
+  for (const key in options) {
+    if (key !== 'immediate' && hasOwnProp.call(options, key)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export function withProviderDispatchSignal(
@@ -452,7 +479,17 @@ export function createActionContext<
       ...args: DispatchArgs<T[K]>
     ): Promise<void> => {
       const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
-      if (process.env.NODE_ENV === 'development') {
+      const register = actionRegisterRef.current;
+      if (!register) {
+        throw new Error(
+          'ActionRegister is not initialized. ' +
+          'Make sure the ActionContext Provider is properly set up.'
+        );
+      }
+
+      const isFastLane = register.getActionPolicy?.(action)?.lane === 'fast';
+
+      if (process.env.NODE_ENV === 'development' && !isFastLane) {
         console.log(`React dispatch called for '${String(action)}':`, {
           hasPayload: payload !== undefined,
           hasOptions: options !== undefined,
@@ -460,12 +497,12 @@ export function createActionContext<
         });
       }
 
-      const register = actionRegisterRef.current;
-      if (!register) {
-        throw new Error(
-          'ActionRegister is not initialized. ' +
-          'Make sure the ActionContext Provider is properly set up.'
-        );
+      if (
+        isFastLane
+        && isFastReactDispatchOptions(options)
+        && typeof dispatchLifecycle.runFast === 'function'
+      ) {
+        return dispatchLifecycle.runFast(() => register.dispatch(action, ...args));
       }
 
       return dispatchLifecycle.run(

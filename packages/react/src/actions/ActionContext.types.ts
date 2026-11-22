@@ -106,6 +106,7 @@ export interface ProviderDispatchLifecycle {
     externalSignals: Array<AbortSignal | undefined>,
     operation: (signal: AbortSignal) => Promise<R>
   ): Promise<R>;
+  runFast?<R>(operation: () => Promise<R>): Promise<R>;
   scheduleHandlerCleanup(cleanup: () => void): void;
   // biome-ignore lint/suspicious/noExplicitAny: cross-context lifecycle boundary.
   shutdown(register: ActionRegister<any, any>, options?: ProviderShutdownOptions): Promise<void>;

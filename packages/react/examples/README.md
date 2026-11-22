@@ -6,6 +6,8 @@ This directory contains comprehensive examples and demonstrations for the Contex
 
 ```
 examples/
+├── actions/                  # Action pipeline & dual-lane view examples
+│   └── view-fast-lane-example.tsx
 ├── hooks/                    # Hook examples by category
 │   ├── essential/           # Must-learn hooks
 │   │   ├── useStoreValue-example.tsx
@@ -90,7 +92,8 @@ For larger applications:
 As needed:
 - `useComputedStore` (`@context-action/react/advanced`) - Derived state from stores
 - `useStorePath` (`@context-action/react`) - JSON-patch path subscriptions
-- `createRefContext` (`@context-action/react/refs`) - Imperative DOM/Canvas/WebGL refs
+- `createRefContext` (`@context-action/react/refs`) - Imperative DOM/Canvas/WebGL refs (`useRefController` for zero mount re-renders)
+- Dual-lane View + Transaction separation (`actions/view-fast-lane-example.tsx`): `lane: 'fast'` view actions paired with `useRefController` + `lane: 'orchestrated'` commits paired with scoped `bindActionTransactions` (`@context-action/react/transactions`)
 
 ## 🔍 Example Features
 
