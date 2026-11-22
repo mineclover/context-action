@@ -107,7 +107,8 @@ try {
 
   // Check both declaration graphs against the same ownership/compatibility rules.
   const transactionTypeContracts = `
-import type { StoreReader, StoreWriter, StoreTransactionMeta, StoreTransactionOptions, StoreTransactionParticipant, ActionTransactionBridgeOptions } from '@context-action/react';
+import type { StoreReader, StoreWriter } from '@context-action/react';
+import type { StoreTransactionMeta, StoreTransactionOptions, StoreTransactionParticipant, ActionTransactionBridgeOptions } from '@context-action/react/transactions';
 import type { ReadonlyStateSnapshot, StateSnapshot, StateReader, StateBackend, TransactionParticipantBackend, TransactionCoordinatorPort, TransactionMeta, TransactionOptions } from '@context-action/react/backend';
 
 interface LegacyMetadata { readonly label?: string; readonly origin?: 'user' }
@@ -133,9 +134,8 @@ function checkTransactionContracts(
   const strictReader: StateReader<number> = legacyReader;
   // @ts-expect-error Participants need not own mutable state.
   const stateOwner: StateBackend<number> = minimal;
-  // @ts-expect-error The legacy convenience facade retains undo and redo.
-  const legacyParticipant: StoreTransactionParticipant<number> = { name: 'minimal', store: minimal };
-  void [observation, reactMeta, bridge, handle, strictSnapshot, strictReader, stateOwner, legacyParticipant];
+  const participantEntry: StoreTransactionParticipant<number> = { name: 'minimal', store: minimal };
+  void [observation, reactMeta, bridge, handle, strictSnapshot, strictReader, stateOwner, participantEntry];
 }
 void checkTransactionContracts;
 `;
@@ -144,8 +144,10 @@ void checkTransactionContracts;
   writeFileSync(join(consumer, 'consumer.tsx'), `
 import React from 'react';
 import type { ExecutionResult } from '@context-action/core';
-import { createActionContext, createStoreContext, createRefContext, useStoreValue, useStorePath, useStoreSelectorWithPaths, StoreTransactionCoordinator } from '@context-action/react';
+import { createActionContext, createStoreContext, useStoreValue, useStorePath, useStoreSelectorWithPaths } from '@context-action/react';
 import type { PatchAwareStore, StorePathPatch } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
+import { StoreTransactionCoordinator } from '@context-action/react/transactions';
 import { createBackendStore } from '@context-action/react/backend';
 import type { StateBackend, TransactionBackend, TransactionBatchControl } from '@context-action/react/backend';
 import { StoreRegistry } from '@context-action/react/advanced';
@@ -187,7 +189,7 @@ function Consumer() {
   void count;
   void input;
   Context.useActionHandler('save', async payload => ({ accepted: payload.id.length > 0 }));
-  const api = Context.useActionDispatchWithResult();
+  const api = Context.useActionScope();
   const result: Promise<ExecutionResult<Results['save']>> =
     api.dispatchWithResult('save', { id: 'compatibility' });
   void result;
@@ -199,8 +201,9 @@ void StoreRegistry;
 void cloned;
 `);
   writeFileSync(join(consumer, 'consumer.cts'), `
-import { createActionContext, createStore, createRefContext } from '@context-action/react';
+import { createActionContext, createStore } from '@context-action/react';
 import type { PatchAwareStore, StorePathPatch } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 import type { TransactionBatchControl } from '@context-action/react/backend';
 declare const scopedControl: TransactionBatchControl;
 type ScopedBegin = Parameters<typeof scopedControl.beginBatch>[0];
@@ -215,7 +218,7 @@ const store = createStore('CommonJSStore', 0);
 const refs = createRefContext<{ input: HTMLInputElement }>('CommonJSRefs');
 void Context; void store; void refs;
 void portablePatch;
-type PortableValue = ReturnType<typeof portableStore.getValue>;
+type PortableValue = ReturnType<NonNullable<typeof portableStore.getValue>>;
 const portableValue: PortableValue = { value: 1 };
 void portableValue;
 `);
@@ -244,15 +247,19 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { renderToString } from 'react-dom/server';
 import { ActionRegister } from '@context-action/core';
-import { createActionContext, createStore, createStoreContext, createRefContext, useStoreValue } from '@context-action/react';
+import { createActionContext, createStore, createStoreContext, useStoreValue } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 const require = createRequire(import.meta.url);
 for (const integration of ['tool-protocol', 'webmcp', 'ai-sdk', 'tool-durable-operations']) {
   assert.throws(() => require.resolve('@context-action/' + integration), { code: 'MODULE_NOT_FOUND' });
 }
 const cjs = require('@context-action/react');
+const cjsRefs = require('@context-action/react/refs');
 assert.equal(typeof cjs.createActionContext, 'function');
-assert.equal(typeof cjs.createRefContext, 'function');
+assert.equal(cjs.createRefContext, undefined);
+assert.equal(cjs.StoreTransactionCoordinator, undefined);
+assert.equal(typeof cjsRefs.createRefContext, 'function');
 const store = createStore('BasicStore', 0);
 const actions = new ActionRegister();
 const unregister = actions.register('add', value => store.setValue(store.getValue() + value));
@@ -268,7 +275,7 @@ const Context = createActionContext('CompatibilityRuntime');
 const Stores = createStoreContext('BasicStores', { count: 7 });
 const Refs = createRefContext('BasicRefs');
 function Consumer() {
-  Context.useActionEffectHandler('save', () => {});
+  Context.useActionObserver('save', () => {});
   const count = useStoreValue(Stores.useStore('count'));
   const ref = Refs.useRefHandler('input');
   assert.equal(ref.target, null);
@@ -304,7 +311,7 @@ module.exports = {
   moduleNameMapper: {
     ...ordinaryAliases,
     '^@context-action/react$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/react/dist/index.cjs'))},
-    '^@context-action/react/(advanced|utils|backend|webmcp)$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/react/dist/$1.cjs'))},
+    '^@context-action/react/(refs|time-travel|transactions|advanced|utils|backend|webmcp)$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/react/dist/$1.cjs'))},
     '^@context-action/core$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/core/dist/index.cjs'))},
     '^react$': ${JSON.stringify(join(consumer, 'node_modules/react'))},
     '^react/jsx-runtime$': ${JSON.stringify(join(consumer, 'node_modules/react/jsx-runtime.js'))},

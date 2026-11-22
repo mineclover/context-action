@@ -506,24 +506,24 @@
       "exports": [
         {
           "subpath": ".",
-          "purpose": "createActionContext, createStoreContext, createTimeTravelStoreContext, createRefContext, Store hooks, transactions, and ErrorBoundary.",
+          "purpose": "Essential daily React surface: createActionContext, createStoreContext, Store, store hooks, and StoreErrorBoundary.",
           "keySymbols": [
             "createActionContext",
             "createStoreContext",
-            "createTimeTravelStoreContext",
-            "createRefContext",
+            "StoreManager",
+            "asStoreValue",
             "createStore",
+            "Store",
             "StoreNotificationMode",
             "StoreOptions",
-            "RefController",
             "useStoreValue",
             "useStoreSelector",
             "useStorePath",
+            "useStoreSelectorWithPaths",
             "SubscribableStore",
-            "TimeTravelControlsStore",
-            "TimeTravelPathStore",
-            "StoreTransactionCoordinator",
-            "bindActionTransactions",
+            "StoreReader",
+            "StoreWriter",
+            "StoreErrorBoundary",
             "ActionProviderProps",
             "ActionScopeReturn",
             "ProviderShutdownOptions",
@@ -531,16 +531,12 @@
             "ExternalStoresMap",
             "StoreManagerOptions",
             "StoreProviderProps",
-            "StoreContextReturn",
-            "ExternalTimeTravelStoreInput",
-            "ExternalTimeTravelStoresMap",
-            "TimeTravelStoreManagerOptions",
-            "TimeTravelStoreProviderProps"
+            "StoreContextReturn"
           ]
         },
         {
           "subpath": "./refs",
-          "purpose": "Opt-in RefContext surface for Tier 3 imperative DOM and 60fps reference control without Store or Mutative dependencies.",
+          "purpose": "Standalone RefContext surface for Tier 3 imperative DOM and 60fps reference control without Store or Mutative dependencies.",
           "keySymbols": [
             "createRefContext",
             "CreateRefContextOptions",
@@ -554,7 +550,7 @@
         },
         {
           "subpath": "./time-travel",
-          "purpose": "Opt-in undo/redo timeline store, declarative time-travel context, and timeline path/control hooks.",
+          "purpose": "Standalone undo/redo timeline store, declarative time-travel context, and timeline path/control hooks.",
           "keySymbols": [
             "createTimeTravelStore",
             "createTimeTravelStoreContext",
@@ -565,12 +561,15 @@
             "useTimeTravelSelector",
             "TimeTravelControlsStore",
             "TimeTravelPathStore",
-            "ExternalTimeTravelStoreInput"
+            "ExternalTimeTravelStoreInput",
+            "ExternalTimeTravelStoresMap",
+            "TimeTravelStoreManagerOptions",
+            "TimeTravelStoreProviderProps"
           ]
         },
         {
           "subpath": "./transactions",
-          "purpose": "Opt-in multi-store atomic transaction coordinator, core dispatch bridge, and DevTools inspector hook.",
+          "purpose": "Standalone multi-store atomic transaction coordinator, core dispatch bridge, and DevTools inspector hook.",
           "keySymbols": [
             "StoreTransactionCoordinator",
             "bindActionTransactions",

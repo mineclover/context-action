@@ -217,6 +217,20 @@ async function main() {
     'the default entry must not expose ToolContext types',
   );
 
+  const removedRootExportsPattern = /\b(?:createRefContext|createTimeTravelStoreContext|createTimeTravelStore|StoreTransactionCoordinator|bindActionTransactions|useActionEffectHandler|useActionDispatchWithResult|StoreSchema)\b/;
+  for (const [relativePath, content] of [
+    ['index.js', rootEsm],
+    ['index.cjs', rootCjs],
+    ['index.d.ts', rootTypes],
+  ]) {
+    expectAbsent(
+      content,
+      relativePath,
+      removedRootExportsPattern,
+      'the slimmed v5 root entry must not expose moved subpath or removed deprecated symbols',
+    );
+  }
+
   await Promise.all([
     expectArtifactAbsent('tools/index.js', 'React must not ship the development ToolContext entry'),
     expectArtifactAbsent('tools/index.cjs', 'React must not ship the development ToolContext entry'),
