@@ -24,6 +24,7 @@ examples/
 └── stores/
     └── patterns/           # Store pattern examples
         ├── declarative-examples.tsx
+        ├── leaf-subscription-signal-example.tsx
         └── unified-pattern-example.tsx
 ```
 
@@ -94,6 +95,7 @@ As needed:
 - `useStorePath` (`@context-action/react`) - JSON-patch path subscriptions
 - `createRefContext` (`@context-action/react/refs`) - Imperative DOM/Canvas/WebGL refs (`useRefController` for zero mount re-renders)
 - Dual-lane View + Transaction separation (`actions/view-fast-lane-example.tsx`): `lane: 'fast'` view actions paired with `useRefController` + `lane: 'orchestrated'` commits paired with scoped `bindActionTransactions` (`@context-action/react/transactions`)
+- Leaf-subscription pseudo-signal & `useEffect` isolation (`stores/patterns/leaf-subscription-signal-example.tsx`): Top-level `useActionDispatch()` shell + `store.update()` + Leaf `useStorePath()` preserving standard React `useEffect` lifecycles only in affected leafs
 
 ## 🔍 Example Features
 
