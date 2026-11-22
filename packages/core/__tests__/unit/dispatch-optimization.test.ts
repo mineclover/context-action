@@ -667,4 +667,71 @@ describe('ActionRegister dispatch optimization & compiled pipeline cache', () =>
     expect(fastOutcome.caughtFatal).toBe('fatal-boom');
     expect(fastOutcome).toEqual(slowOutcome);
   });
+
+  it('keeps immediate-only fast-path parity for contract queue:"immediate" and call-site { immediate: true }', async () => {
+    interface ImmediateActions extends ActionPayloadMap {
+      ping: { seq: number };
+      timedPing: { seq: number };
+      boom: { id: string };
+    }
+
+    const immediateErrors: Array<{ action?: string; options?: unknown; message: string }> = [];
+    const reg = new ActionRegister<ImmediateActions>({
+      name: 'ImmediateFastPath',
+      actions: {
+        ping: { queue: 'immediate' },
+        timedPing: { queue: 'immediate', timeout: 25 },
+      },
+      registry: {
+        useConcurrencyQueue: true,
+        errorHandler: (error, context) => {
+          const ctx = context as { action?: string; options?: unknown } | undefined;
+          immediateErrors.push({
+            action: ctx?.action,
+            options: ctx?.options,
+            message: error.message,
+          });
+        },
+      },
+    });
+
+    const seen: number[] = [];
+    reg.registerCommand('ping', payload => {
+      seen.push(payload.seq);
+    });
+    reg.register('timedPing', async payload => {
+      await new Promise(resolve => setTimeout(resolve, 60));
+      seen.push(payload.seq);
+    });
+    reg.register(
+      'boom',
+      () => {
+        throw new Error('boom-immediate');
+      },
+      { blocking: true },
+    );
+
+    // Contract actions.ping: { queue: 'immediate' } -> bypasses global queue on fast path
+    await reg.dispatch('ping', { seq: 1 });
+    // Call-site { immediate: true } -> bypasses global queue on fast path and preserves options in errorHandler
+    await expect(reg.dispatch('boom', { id: 'x' }, { immediate: true })).rejects.toThrow(
+      'boom-immediate',
+    );
+    // Contract actions.timedPing: { queue: 'immediate', timeout: 25 } -> must stay on slow path and enforce timeout
+    await expect(reg.dispatch('timedPing', { seq: 2 })).rejects.toThrow(
+      'Action "timedPing" timed out after 25ms',
+    );
+
+    expect(seen).toEqual([1]);
+    expect(immediateErrors).toEqual([
+      { action: 'boom', options: { immediate: true }, message: 'boom-immediate' },
+      {
+        action: 'timedPing',
+        options: { immediate: true, timeout: 25 },
+        message: 'Action "timedPing" timed out after 25ms',
+      },
+    ]);
+
+    await reg.destroyAsync();
+  });
 });

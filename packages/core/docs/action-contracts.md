@@ -90,8 +90,8 @@ removed, or cleared (`_performRegistrationSync`, `removeRegistration`,
 
 When an active `dispatch()` call has:
 - `dispatchTraceListeners.size === 0`
-- `options === undefined` (after merging contract `actions[key]` defaults)
-- queueing disabled for the action
+- `options === undefined` or `immediate: true`-only options (including `actions[key].queue: 'immediate'` without a timeout)
+- queueing disabled for the action (or bypassed via `immediate: true`)
 - no schema validation configured for the action
 - zero guards, zero observers, no timing guards (`debounce`/`throttle`), and no `once` handlers
 - `sequential` execution mode

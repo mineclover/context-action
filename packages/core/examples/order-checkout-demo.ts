@@ -63,40 +63,54 @@ function waitWithSignal(ms: number, signal?: AbortSignal): Promise<boolean> {
 async function main() {
   const inventoryReservations = new Map<string, number>();
   const transientFailuresRemaining = new Set<string>(['net-glitch']);
-  const reportedErrors: Array<{ message: string; payload: unknown }> = [];
+  const phaseCounts = new Map<string, { guard: number; command: number; result: number }>();
+  const reportedErrors: Array<{ orderId?: string; phase: string; message: string }> = [];
   const abortedSignalsObserved: Array<{ orderId: string; aborted: boolean }> = [];
   const metricTotals = new Map<string, number>();
+
+  const bumpPhase = (orderId: string, phase: 'guard' | 'command' | 'result') => {
+    const entry = phaseCounts.get(orderId) ?? { guard: 0, command: 0, result: 0 };
+    entry[phase] += 1;
+    phaseCounts.set(orderId, entry);
+  };
 
   const register = new ActionRegister<CheckoutActions, CheckoutResults>({
     name: 'OrderCheckoutDemo',
     actions: {
       checkoutOrder: { queue: 'serial', timeout: 2000 },
+      // queue:'immediate' without timeout keeps Fast Sequential Path eligible
       trackMetric: { queue: 'immediate' },
     },
     registry: {
       errorHandler: (error, context) => {
+        const ctx = context as { payload?: { orderId?: string }; phase?: string } | undefined;
         reportedErrors.push({
+          orderId: ctx?.payload?.orderId,
+          phase: ctx?.phase ?? 'execution',
           message: error.message,
-          payload: (context as { payload?: unknown } | undefined)?.payload,
         });
       },
     },
   });
 
-  // 1. Guard Phase (Admission & Payload Normalization)
+  // 1. Guard Phase (Admission & Payload Normalization — runs once outside retry)
   register.registerGuard(
     'checkoutOrder',
     (payload, controller) => {
+      bumpPhase(payload.orderId, 'guard');
       if (payload.items.length === 0) {
+        console.log(`  [Guard:100] ${payload.orderId} -> abort("Cart cannot be empty")`);
         controller.abort('Cart cannot be empty');
         return;
       }
       for (const item of payload.items) {
         if (item.qty <= 0) {
+          console.log(`  [Guard:100] ${payload.orderId} -> abort(invalid qty)`);
           controller.abort(`Invalid quantity for SKU "${item.sku}"`);
           return;
         }
       }
+      console.log(`  [Guard:100] ${payload.orderId} validated (${payload.items.length} line item(s))`);
     },
     { id: 'guard-items', priority: 100 },
   );
@@ -106,6 +120,9 @@ async function main() {
     (payload, controller) => {
       if (typeof payload.couponCode === 'string') {
         const normalized = payload.couponCode.trim().toUpperCase();
+        console.log(
+          `  [Guard:90]  ${payload.orderId} modifyPayload coupon "${payload.couponCode}" -> "${normalized}"`,
+        );
         controller.modifyPayload(prev => ({
           ...prev,
           couponCode: normalized.length > 0 ? normalized : undefined,
@@ -119,8 +136,10 @@ async function main() {
   register.registerCommand(
     'checkoutOrder',
     payload => {
+      bumpPhase(payload.orderId, 'command');
       const totalUnits = payload.items.reduce((sum, item) => sum + item.qty, 0);
       inventoryReservations.set(payload.orderId, totalUnits);
+      console.log(`  [Command:50] ${payload.orderId} reserved ${totalUnits} unit(s) (idempotent)`);
     },
     { id: 'cmd-reserve-inventory', priority: 50 },
   );
@@ -129,19 +148,25 @@ async function main() {
   register.registerResult(
     'checkoutOrder',
     async (payload, controller) => {
+      bumpPhase(payload.orderId, 'result');
       if (payload.simulateDelayMs !== undefined) {
+        console.log(
+          `  [Result:40]  ${payload.orderId} waiting ${payload.simulateDelayMs}ms for gateway...`,
+        );
         const completed = await waitWithSignal(payload.simulateDelayMs, controller.signal);
         if (!completed) {
           abortedSignalsObserved.push({
             orderId: payload.orderId,
             aborted: controller.signal?.aborted === true,
           });
+          console.log(`  [Result:40]  ${payload.orderId} observed signal.aborted=true -> draining`);
           throw new Error('Payment gateway request aborted by signal');
         }
       }
 
       if (payload.failOnceKey && transientFailuresRemaining.has(payload.failOnceKey)) {
         transientFailuresRemaining.delete(payload.failOnceKey);
+        console.log(`  [Result:40]  ${payload.orderId} attempt failed transiently -> will retry`);
         throw new Error(`Transient network error for "${payload.failOnceKey}"`);
       }
 
@@ -151,6 +176,7 @@ async function main() {
       );
       const discounted = payload.couponCode === 'SAVE10';
       const chargedAmount = discounted ? Math.round(subtotal * 0.9) : subtotal;
+      console.log(`  [Result:40]  ${payload.orderId} charged ${chargedAmount} (discounted=${discounted})`);
 
       return {
         receiptId: `rcpt-${payload.orderId}`,
@@ -171,7 +197,7 @@ async function main() {
   register.registerObserver(
     'checkoutOrder',
     event => {
-      console.log('[Observer:success]', {
+      console.log('  [Observer:success (when:"success")]', {
         outcome: event.outcome,
         result: event.result,
       });
@@ -182,15 +208,16 @@ async function main() {
   register.registerObserver(
     'checkoutOrder',
     event => {
-      console.log('[Observer:failure]', {
+      console.log('  [Observer:non-success (when:"failure")]', {
         outcome: event.outcome,
         errorCount: event.errors.length,
+        note: 'when:"failure" fires for failed | cancelled | debounced | throttled',
       });
     },
     { id: 'obs-audit-failure', when: 'failure' },
   );
 
-  // 5. Fast-Path Eligible Metric Handler (no guard/observer/timing/once/queue/schema)
+  // 5. Fast-Path Eligible Metric Handler (immediate-only policy, no guard/observer/timing/once/schema)
   register.registerCommand(
     'trackMetric',
     payload => {
@@ -219,6 +246,7 @@ async function main() {
     outcome: normalResult.outcome,
     result: normalResult.result,
     reservedUnits: inventoryReservations.get('ORD-101'),
+    phaseCounts: phaseCounts.get('ORD-101'),
   });
 
   console.log('\n=== Scenario 2: Guard Cancellation (Empty Cart) ===');
@@ -232,6 +260,7 @@ async function main() {
     aborted: cancelledResult.aborted,
     abortReason: cancelledResult.abortReason,
     reservedUnits: inventoryReservations.get('ORD-102') ?? 0,
+    phaseCounts: phaseCounts.get('ORD-102'),
   });
 
   console.log('\n=== Scenario 3: Wall-Clock Timeout & Cooperative Signal ===');
@@ -248,13 +277,13 @@ async function main() {
     );
   } catch (error) {
     if (isActionTimeoutError(error)) {
-      // Allow the cooperatively aborted handler microtask to settle cleanly
       await Promise.resolve();
       console.log('Timeout caught:', {
         name: error.name,
         action: error.action,
         timeout: error.timeout,
         abortedSignalsObserved,
+        phaseCounts: phaseCounts.get('ORD-103'),
       });
     } else {
       throw error;
@@ -287,22 +316,38 @@ async function main() {
   console.log('Retry result:', {
     outcome: retryResult.outcome,
     result: retryResult.result,
+    phaseCounts: phaseCounts.get('ORD-104'), // guard=1 (preflight), command=2, result=2
     attemptCount: retryResult.execution.attempts?.length,
     attemptOutcomes: retryResult.execution.attempts?.map(attempt => attempt.outcome),
     traces: traceLog,
   });
 
-  console.log('\n=== Scenario 5: Fast Sequential Path (10,000 metrics) & Graceful Shutdown ===');
-  const metricCount = 10_000;
-  const t0 = performance.now();
-  for (let i = 0; i < metricCount; i++) {
-    await register.dispatch('trackMetric', { name: 'page_view', value: 1 });
+  console.log('\n=== Scenario 5: Fast Path (dispatch + queue:immediate) vs Slow Path (dispatchWithResult) ===');
+  const warmupCount = 500;
+  for (let i = 0; i < warmupCount; i++) {
+    await register.dispatch('trackMetric', { name: 'warmup', value: 1 });
+    await register.dispatchWithResult('trackMetric', { name: 'warmup', value: 1 });
   }
-  const elapsedMs = performance.now() - t0;
-  console.log('Fast path metrics:', {
-    dispatches: metricCount,
-    recordedTotal: metricTotals.get('page_view'),
-    elapsedMs: Number(elapsedMs.toFixed(2)),
+
+  const metricCount = 10_000;
+  const tFast0 = performance.now();
+  for (let i = 0; i < metricCount; i++) {
+    await register.dispatch('trackMetric', { name: 'fast_page_view', value: 1 });
+  }
+  const fastMs = performance.now() - tFast0;
+
+  const tSlow0 = performance.now();
+  for (let i = 0; i < metricCount; i++) {
+    await register.dispatchWithResult('trackMetric', { name: 'slow_page_view', value: 1 });
+  }
+  const slowMs = performance.now() - tSlow0;
+
+  console.log('Metric benchmark (10,000 dispatches each):', {
+    fastPathTotal: metricTotals.get('fast_page_view'),
+    fastPathMs: Number(fastMs.toFixed(2)),
+    slowPathTotal: metricTotals.get('slow_page_view'),
+    slowPathMs: Number(slowMs.toFixed(2)),
+    fastPathSpeedup: `${(slowMs / Math.max(fastMs, 0.01)).toFixed(1)}x`,
   });
 
   await register.destroyAsync();
@@ -315,7 +360,7 @@ async function main() {
     });
   }
 
-  console.log('\nReported terminal errors via registry.errorHandler:', reportedErrors.length);
+  console.log('\nTerminal errors reported to registry.errorHandler:', reportedErrors);
 }
 
 main().catch(error => {

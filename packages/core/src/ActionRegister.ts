@@ -132,6 +132,25 @@ const RESOLVED_VOID_PROMISE: Promise<void> = Promise.resolve();
 const FAST_STEP_OK = Object.freeze({});
 const FAST_STEP_SKIPPED = Object.freeze({ skipped: true as const });
 const FAST_STEP_ABORTED = Object.freeze({ aborted: true as const });
+const IMMEDIATE_ONLY_OPTIONS: Readonly<DispatchOptions> = Object.freeze({ immediate: true });
+
+function isFastPathOptions(options: DispatchOptions | undefined): boolean {
+  if (options === undefined || options === IMMEDIATE_ONLY_OPTIONS) return true;
+  return (
+    options.immediate === true
+    && options.debounce === undefined
+    && options.throttle === undefined
+    && options.executionMode === undefined
+    && options.signal === undefined
+    && options.queuePriority === undefined
+    && options.timeout === undefined
+    && options.retryOnError === undefined
+    && options.autoAbort === undefined
+    && options.filter === undefined
+    && options.result === undefined
+    && options.trace === undefined
+  );
+}
 const EMPTY_COMPILED_PIPELINE: CompiledActionPipeline = Object.freeze({
   snapshot: Object.freeze([]),
   guards: Object.freeze([]),
@@ -518,7 +537,9 @@ export class ActionRegister<
           ...(policy.queue !== undefined && { queue: policy.queue }),
           ...(policy.timeout !== undefined && { timeout: policy.timeout }),
         };
-        if (policy.queue !== undefined || policy.timeout !== undefined) {
+        if (policy.queue === 'immediate' && policy.timeout === undefined) {
+          defaultDispatchOptions[actionName as ActionNames<T>] = IMMEDIATE_ONLY_OPTIONS;
+        } else if (policy.queue !== undefined || policy.timeout !== undefined) {
           // Pre-freeze default dispatch options so default dispatches allocate nothing per call.
           defaultDispatchOptions[actionName as ActionNames<T>] = Object.freeze({
             ...(policy.queue === 'immediate'
@@ -1142,8 +1163,8 @@ export class ActionRegister<
 
     if (
       this.dispatchTraceListeners.size === 0
-      && options === undefined
-      && !this.shouldQueueDispatch(action, undefined)
+      && isFastPathOptions(options)
+      && !this.shouldQueueDispatch(action, options)
       && (
         !this.registryConfig?.schema
         || this.registryConfig.validateOnDispatch === false
@@ -1163,7 +1184,7 @@ export class ActionRegister<
             return RESOLVED_VOID_PROMISE;
           }
         } else {
-          return this.dispatchFastSequential(action, payload as T[K], compiled.results);
+          return this.dispatchFastSequential(action, payload as T[K], compiled.results, options);
         }
       }
     }
@@ -1181,6 +1202,7 @@ export class ActionRegister<
   private invokeFastSyncStep<K extends keyof T>(
     action: K,
     originalPayload: T[K],
+    options: DispatchOptions | undefined,
     registration: HandlerRegistration<any, any>,
     state: FastSequentialState<T[K]>,
     lifecycleSignal: AbortSignal,
@@ -1202,7 +1224,7 @@ export class ActionRegister<
         const normalized = conditionError instanceof Error
           ? conditionError
           : new Error(String(conditionError));
-        this.invokeErrorHandler(normalized, action, originalPayload, undefined, 1);
+        this.invokeErrorHandler(normalized, action, originalPayload, options, 1);
         return { failed: normalized };
       }
     }
@@ -1222,7 +1244,7 @@ export class ActionRegister<
       }
       const normalized = thrown instanceof Error ? thrown : new Error(String(thrown));
       if (registration.config.errorPolicy === 'fatal') {
-        this.invokeErrorHandler(normalized, action, originalPayload, undefined, 1);
+        this.invokeErrorHandler(normalized, action, originalPayload, options, 1);
         return { failed: normalized };
       }
       return FAST_STEP_SKIPPED;
@@ -1260,6 +1282,7 @@ export class ActionRegister<
     action: K,
     payload: T[K],
     handlers: readonly HandlerRegistration<any, any>[],
+    options: DispatchOptions | undefined,
   ): Promise<void> {
     const state: FastSequentialState<T[K]> = {
       payload,
@@ -1279,7 +1302,14 @@ export class ActionRegister<
           break;
         }
         const registration = handlers[i]!;
-        const step = this.invokeFastSyncStep(action, payload, registration, state, lifecycleSignal);
+        const step = this.invokeFastSyncStep(
+          action,
+          payload,
+          options,
+          registration,
+          state,
+          lifecycleSignal,
+        );
         if (step.aborted) {
           break;
         }
@@ -1290,6 +1320,7 @@ export class ActionRegister<
           const promise = this.continueFastSequentialAsync(
             action,
             payload,
+            options,
             handlers,
             i,
             registration,
@@ -1318,6 +1349,7 @@ export class ActionRegister<
   private async continueFastSequentialAsync<K extends keyof T>(
     action: K,
     originalPayload: T[K],
+    options: DispatchOptions | undefined,
     handlers: readonly HandlerRegistration<any, any>[],
     startIndex: number,
     firstRegistration: HandlerRegistration<any, any>,
@@ -1348,6 +1380,7 @@ export class ActionRegister<
         const step = this.invokeFastSyncStep(
           action,
           originalPayload,
+          options,
           registration,
           state,
           lifecycleSignal,
@@ -1382,7 +1415,7 @@ export class ActionRegister<
             }
             const normalized = thrown instanceof Error ? thrown : new Error(String(thrown));
             if (currentReg.config.errorPolicy === 'fatal') {
-              this.invokeErrorHandler(normalized, action, originalPayload, undefined, 1);
+              this.invokeErrorHandler(normalized, action, originalPayload, options, 1);
               throw normalized;
             }
           }
@@ -1414,7 +1447,7 @@ export class ActionRegister<
       await Promise.allSettled(nonBlockingPromises);
     }
     if (fatalError && !state.aborted && !lifecycleSignal.aborted) {
-      this.invokeErrorHandler(fatalError, action, originalPayload, undefined, 1);
+      this.invokeErrorHandler(fatalError, action, originalPayload, options, 1);
       throw fatalError;
     }
   }

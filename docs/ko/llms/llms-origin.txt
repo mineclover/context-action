@@ -6897,8 +6897,8 @@ const actionRegister = new ActionRegister<MyActions>({
 dispatch() / dispatchWithResult() / actions.* Proxy
    │
    ├─ 기본 순차 dispatch() Fast Path 진입 조건 충족 시:
-   │    trace 리스너 없음 · options 없음 · 큐 비활성 · 스키마 검증 없음 ·
-   │    guard/observer/debounce/throttle/once 없음 · mode='sequential'
+   │    trace 리스너 없음 · options 없음 또는 immediate 전용 (`timeout` 없는 `queue:'immediate'` 포함) ·
+   │    큐 미사용/우회 · 스키마 검증 없음 · guard/observer/debounce/throttle/once 없음 · mode='sequential'
    │    └─► Fast Sequential Path (dispatchFastSequential → continueFastSequentialAsync)
    │          • PipelineContext / outcome / AbortController 할당 생략
    │          • 첫 Promise 반환 시 동기 루프 → 비동기 루프로 무중단 전이

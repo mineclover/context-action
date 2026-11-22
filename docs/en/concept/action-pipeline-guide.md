@@ -206,8 +206,8 @@ await actionRegister.dispatch('updateUser', payload);
 dispatch() / dispatchWithResult() / actions.* Proxy
    │
    ├─ Eligible default sequential dispatch():
-   │    no trace listeners · no options · queue off · no schema ·
-   │    no guards · no observers · no debounce/throttle · no once · mode='sequential'
+   │    no trace listeners · no options or immediate-only (`queue:'immediate'` without timeout) ·
+   │    queue off/bypassed · no schema · no guards · no observers · no debounce/throttle · no once · mode='sequential'
    │    └─► Fast Sequential Path (dispatchFastSequential → continueFastSequentialAsync)
    │          • Zero PipelineContext / outcome / AbortController allocations
    │          • Seamless sync-to-async transition on the first Promise return
