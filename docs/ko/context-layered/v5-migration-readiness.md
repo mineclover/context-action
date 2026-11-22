@@ -171,6 +171,7 @@ export async function dispatchSeriallyWithoutGlobalQueue() {
 ```bash
 pnpm audit:v5-readiness                       # template-react 및 example 요약 리포트 출력
 pnpm audit:v5-readiness -- --strict-template   # packages/template-react/src 내 blocking 항목 시 실패
+pnpm audit:v5-readiness -- --strict-all        # 전체 스캔 스코프 내 blocking 항목 시 실패
 pnpm audit:v5-readiness -- --json              # 파일/라인/컬럼 단위 JSON 리포트 출력
 pnpm audit:v5-readiness -- --root ../my-app    # 외부 소비자 앱 경로 스캔
 pnpm test:v5-readiness                         # AST 픽스처 및 스타터 템플릿 준수 테스트 실행
@@ -180,22 +181,22 @@ pnpm test:v5-readiness                         # AST 픽스처 및 스타터 템
 
 | 분류 (`category`) | 게이트 역할 | 탐지 대상 |
 | :--- | :--- | :--- |
-| `deprecatedApis` | 차단 (`--strict-template`) | `useActionDispatchWithResult`, `useActionEffectHandler`, `registerEffect`, `StoreSchema`, `defineStoreSchema`, `compareStrategy` |
-| `rootSubpathImports` | 차단 (`--strict-template`) | `./refs`, `./time-travel`, `./transactions`, `./backend` 서브패스 소속인데 루트 `@context-action/react`에서 가져온 심볼 |
-| `manualImmediateDispatches` | 차단 (`--strict-template`) | 계약 단위 `actions: { <action>: { queue: 'immediate' } }` 대신 호출부에서 넘긴 `{ immediate: true }` |
-| `implicitStoreNotificationMode` | 참고용 인벤토리 | 명시적 `notificationMode` 없이 기본값(`'batched'`)에 의존하는 `createStore*` / `createTimeTravelStore*` 선언 |
+| `deprecatedApis` | 차단 (`--strict-template`, `--strict-all`) | `useActionDispatchWithResult`, `useActionEffectHandler`, `registerEffect`, `StoreSchema`, `defineStoreSchema`, `compareStrategy` |
+| `rootSubpathImports` | 차단 (`--strict-template`, `--strict-all`) | `./refs`, `./time-travel`, `./transactions`, `./backend` 서브패스 소속인데 루트 `@context-action/react`에서 가져온 심볼 |
+| `manualImmediateDispatches` | 차단 (`--strict-template`, `--strict-all`) | 계약 단위 `actions: { <action>: { queue: 'immediate' } }` 대신 호출부에서 넘긴 `{ immediate: true }` |
+| `implicitStoreNotificationMode` | 참고용 인벤토리 | 명시적 `notificationMode` 없이 기본값에 의존하는 `createStore*` / `createTimeTravelStore*` 선언 |
 
-### `stage` 기준선 실측 결과
+### `stage` 기준선 실측 결과 (Phase 2 직전 체크포인트)
 
 | 스코프 | 스캔 파일 수 | 차단 합계 (`blockingTotal`) | 세부 내역 (`deprecatedApis` / `rootSubpathImports` / `manualImmediateDispatches`) | 참고 (`implicitStoreNotificationMode`) | 비고 |
 | :--- | :---: | :---: | :---: | :---: | :--- |
-| `packages/template-react/src` | 21 | **0** | `0 / 0 / 0` | 5 | `--strict-template` 통과; `@context-action/react/refs` 및 계약 단위 `actions` 정책 적용 완료 |
-| `example/src` | 540 | **47** | `11 / 25 / 11` | 213 | findings 69개 파일에 분포; Phase 2 마이그레이션 전까지 `4.x` 호환성 검증 커버리지로 의도적 유지 |
+| `packages/template-react/src` | 21 | **0** | `0 / 0 / 0` | 5 | `--strict-template` · `--strict-all` 통과; `@context-action/react/refs` 및 계약 단위 `actions` 정책 적용 완료 |
+| `example/src` | 540 | **0** | `0 / 0 / 0` | 213 | `--strict-all` 통과 완료; 모든 서브패스 import · `useActionScope` · 계약 단위 액션 큐 정책 전환 완료 |
 
 ## 4. Phase 2 (`v5`) 진입 승인 체크리스트
 
 별도 `v5` 릴리스 브랜치에서 버전 범프나 `4.x` 호환성 별칭 제거를 제안하기 전 아래 조건을 충족해야 합니다:
 
-1. `pnpm audit:v5-readiness -- --strict-template` 및 `pnpm test:v5-readiness`가 지속 통과할 것 (`packages/template-react/src` 차단 항목 `0` 유지).
-2. `example/src` 및 추적 중인 연계 소비자 앱의 `blockingTotal`(`deprecatedApis`, `rootSubpathImports`, `manualImmediateDispatches`) 정리가 완료될 것.
+1. `pnpm audit:v5-readiness -- --strict-template`, `pnpm audit:v5-readiness -- --strict-all` 및 `pnpm test:v5-readiness`가 지속 통과할 것 (`packages/template-react/src` 및 `example/src` 차단 항목 `0` 유지).
+2. 추적 중인 연계 외부 소비자 앱의 `blockingTotal`(`deprecatedApis`, `rootSubpathImports`, `manualImmediateDispatches`) 정리가 완료될 것.
 3. [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (섹션 6)의 의사결정 게이트 및 [릴리스 거버넌스](../../../releases/RELEASE.md) 승인이 완료될 것.

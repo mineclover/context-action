@@ -171,6 +171,7 @@ The repository ships a TypeScript AST auditor (`scripts/audit-v5-readiness.mjs`)
 ```bash
 pnpm audit:v5-readiness                       # Human-readable summary across template-react and example
 pnpm audit:v5-readiness -- --strict-template   # Fail if packages/template-react/src has blocking items
+pnpm audit:v5-readiness -- --strict-all        # Fail if any scanned scope has blocking items
 pnpm audit:v5-readiness -- --json              # Machine-readable report with file/line/column details
 pnpm audit:v5-readiness -- --root ../my-app    # Scan an external consumer repository
 pnpm test:v5-readiness                         # Run AST fixture & starter-compliance tests
@@ -180,22 +181,22 @@ pnpm test:v5-readiness                         # Run AST fixture & starter-compl
 
 | Category | Gate Role | What It Detects |
 | :--- | :--- | :--- |
-| `deprecatedApis` | Blocking (`--strict-template`) | `useActionDispatchWithResult`, `useActionEffectHandler`, `registerEffect`, `StoreSchema`, `defineStoreSchema`, `compareStrategy` |
-| `rootSubpathImports` | Blocking (`--strict-template`) | Symbols imported from root `@context-action/react` that belong to `./refs`, `./time-travel`, `./transactions`, or `./backend` |
-| `manualImmediateDispatches` | Blocking (`--strict-template`) | Call-site `{ immediate: true }` dispatch options instead of contract-level `actions: { <action>: { queue: 'immediate' } }` |
-| `implicitStoreNotificationMode` | Advisory inventory | `createStore*` / `createTimeTravelStore*` definitions relying on default `'batched'` `notificationMode` without an explicit setting |
+| `deprecatedApis` | Blocking (`--strict-template`, `--strict-all`) | `useActionDispatchWithResult`, `useActionEffectHandler`, `registerEffect`, `StoreSchema`, `defineStoreSchema`, `compareStrategy` |
+| `rootSubpathImports` | Blocking (`--strict-template`, `--strict-all`) | Symbols imported from root `@context-action/react` that belong to `./refs`, `./time-travel`, `./transactions`, or `./backend` |
+| `manualImmediateDispatches` | Blocking (`--strict-template`, `--strict-all`) | Call-site `{ immediate: true }` dispatch options instead of contract-level `actions: { <action>: { queue: 'immediate' } }` |
+| `implicitStoreNotificationMode` | Advisory inventory | `createStore*` / `createTimeTravelStore*` definitions relying on default `notificationMode` without an explicit setting |
 
-### Baseline Snapshot on `stage`
+### Baseline Snapshot on `stage` (Pre-Phase-2 Checkpoint)
 
 | Scope | Scanned Files | Blocking Total | Breakdown (`deprecatedApis` / `rootSubpathImports` / `manualImmediateDispatches`) | Advisory (`implicitStoreNotificationMode`) | Notes |
 | :--- | :---: | :---: | :---: | :---: | :--- |
-| `packages/template-react/src` | 21 | **0** | `0 / 0 / 0` | 5 | Passes `--strict-template` cleanly; uses `@context-action/react/refs` and contract-level `actions` policies |
-| `example/src` | 540 | **47** | `11 / 25 / 11` | 213 | Intentionally preserves `4.x` compatibility coverage across 69 files with findings until the Phase 2 migration window opens |
+| `packages/template-react/src` | 21 | **0** | `0 / 0 / 0` | 5 | Passes `--strict-template` and `--strict-all`; uses `@context-action/react/refs` and contract-level `actions` policies |
+| `example/src` | 540 | **0** | `0 / 0 / 0` | 213 | Passes `--strict-all` cleanly; all subpath imports, `useActionScope`, and contract action queue policies migrated |
 
 ## 4. Phase 2 (`v5`) Admission Checklist
 
 Before proposing any version bump or removing `4.x` compatibility aliases in a dedicated `v5` release branch:
 
-1. `pnpm audit:v5-readiness -- --strict-template` and `pnpm test:v5-readiness` remain green (`0` blocking findings in `packages/template-react/src`).
-2. Tracked internal showcases (`example/src`) and external consumer apps resolve remaining `blockingTotal` items (`deprecatedApis`, `rootSubpathImports`, `manualImmediateDispatches`).
+1. `pnpm audit:v5-readiness -- --strict-template`, `pnpm audit:v5-readiness -- --strict-all`, and `pnpm test:v5-readiness` remain green (`0` blocking findings across both `packages/template-react/src` and `example/src`).
+2. External consumer apps resolve remaining `blockingTotal` items (`deprecatedApis`, `rootSubpathImports`, `manualImmediateDispatches`).
 3. Cross-project decision gates in [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (Section 6) and release governance checks in [Release Governance](../../../releases/RELEASE.md) are formally approved.
