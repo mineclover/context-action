@@ -5,11 +5,8 @@
  * The old `context/MouseEventsModel.tsx` path remains a compatibility export.
  */
 
-import {
-  createActionContext,
-  createRefContext,
-  createStoreContext,
-} from '@context-action/react';
+import { createActionContext, createStoreContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 export interface MousePosition {
   x: number;

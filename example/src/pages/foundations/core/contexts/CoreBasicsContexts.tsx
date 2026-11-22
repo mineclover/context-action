@@ -23,7 +23,7 @@ export interface CoreBasicsStores {
 export const {
   Provider: CoreActionProvider,
   useActionDispatch: useCoreAction,
-  useActionDispatchWithResult: useCoreActionWithResult,
+  useActionScope: useCoreActionWithResult,
   useActionHandler: useCoreActionHandler,
   useActionGuard: useCoreActionGuard,
   useActionCommandHandler: useCoreActionCommandHandler,

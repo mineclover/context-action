@@ -1,8 +1,5 @@
-import {
-  createActionContext,
-  createStoreContext,
-  createTimeTravelStoreContext,
-} from '@context-action/react';
+import { createActionContext, createStoreContext } from '@context-action/react';
+import { createTimeTravelStoreContext } from '@context-action/react/time-travel';
 import {
   createInitialDocumentState,
   createInitialSessionState,

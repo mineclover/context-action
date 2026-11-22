@@ -45,6 +45,22 @@ export default defineConfig({
         __dirname,
         '../../packages/react/src/tools/index.ts'
       ),
+      '@context-action/react/refs': path.resolve(
+        __dirname,
+        '../../packages/react/src/refs.ts'
+      ),
+      '@context-action/react/time-travel': path.resolve(
+        __dirname,
+        '../../packages/react/src/time-travel.ts'
+      ),
+      '@context-action/react/transactions': path.resolve(
+        __dirname,
+        '../../packages/react/src/transactions.ts'
+      ),
+      '@context-action/react/backend': path.resolve(
+        __dirname,
+        '../../packages/react/src/backend.ts'
+      ),
       '@context-action/core': path.resolve(
         __dirname,
         '../../packages/core/src/index.ts'

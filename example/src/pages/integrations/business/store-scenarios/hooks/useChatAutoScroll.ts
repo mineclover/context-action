@@ -1,4 +1,4 @@
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 import { useEffect, useRef } from 'react';
 
 // Chat ref context 정의

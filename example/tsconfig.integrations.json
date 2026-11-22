@@ -11,6 +11,17 @@
       "@/types/*": ["./src/types/*"],
       "@context-action/core": ["../packages/core/src/index.ts"],
       "@context-action/react": ["../packages/react/src/index.ts"],
+      "@context-action/react/refs": ["../packages/react/src/refs.ts"],
+      "@context-action/react/time-travel": [
+        "../packages/react/src/time-travel.ts"
+      ],
+      "@context-action/react/transactions": [
+        "../packages/react/src/transactions.ts"
+      ],
+      "@context-action/react/backend": ["../packages/react/src/backend.ts"],
+      "@context-action/react/advanced": ["../packages/react/src/advanced.ts"],
+      "@context-action/react/utils": ["../packages/react/src/utils.ts"],
+      "@context-action/react/webmcp": ["../packages/react/src/webmcp.ts"],
       "@context-action/react/tools": [
         "../packages/react/src/tools/index.ts"
       ]

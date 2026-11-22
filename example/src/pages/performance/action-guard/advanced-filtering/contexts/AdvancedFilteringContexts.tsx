@@ -26,7 +26,7 @@ export interface AdvancedFilteringStores {
 export const {
   Provider: AdvancedFilteringActionProvider,
   useActionDispatch: useAdvancedFilteringDispatch,
-  useActionDispatchWithResult: useAdvancedFilteringDispatchWithResult,
+  useActionScope: useAdvancedFilteringDispatchWithResult,
   useActionHandler: useAdvancedFilteringActionHandler,
 } = createActionContext<AdvancedFilteringActions>('AdvancedFilteringActions', {
   // runDemo orchestrates a filtered processData dispatch in the same page

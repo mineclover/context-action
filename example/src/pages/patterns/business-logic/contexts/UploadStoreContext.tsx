@@ -5,7 +5,7 @@
  * Demonstrates direct mutation with selective notifyPath notifications.
  */
 
-import { createTimeTravelStoreContext } from '@context-action/react';
+import { createTimeTravelStoreContext } from '@context-action/react/time-travel';
 import type {
   FileUploadResult,
   ProcessState,

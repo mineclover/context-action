@@ -26,7 +26,7 @@ function ActionLifecycleWorkbenchContent() {
   const [trace, setTrace] = useState<TraceEntry[]>([]);
   const [summary, setSummary] = useState<string>('아직 실행하지 않았습니다.');
   const [isRunning, setIsRunning] = useState(false);
-  const { dispatchWithResult } = LifecycleContext.useActionDispatchWithResult();
+  const { dispatchWithResult } = LifecycleContext.useActionScope();
 
   const record = useCallback((entry: Omit<TraceEntry, 'elapsedMs'>) => {
     setTrace((current) => [

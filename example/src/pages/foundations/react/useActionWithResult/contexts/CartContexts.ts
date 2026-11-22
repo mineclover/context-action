@@ -73,7 +73,7 @@ export const {
   useActionGuard: useCartActionGuard,
   useActionResultHandler: useCartResultHandler,
   useActionObserver: useCartActionObserver,
-  useActionDispatchWithResult: useCartActionWithResult,
+  useActionScope: useCartActionWithResult,
 } = createActionContext<CartActions, CartActionResults>('Cart');
 
 export const { Provider: CartStoreProvider, useStore: useCartStore } =

@@ -39,7 +39,7 @@ interface _FlowControlStores {
 export const {
   Provider: SecurityActionProvider,
   useActionDispatch: useSecurityAction,
-  useActionDispatchWithResult: useSecurityActionWithResult,
+  useActionScope: useSecurityActionWithResult,
   useActionHandler: useSecurityActionHandler,
 } = createActionContext<SecurityActions>('SecurityActions');
 
@@ -47,7 +47,7 @@ export const {
 export const {
   Provider: CacheActionProvider,
   useActionDispatch: useCacheAction,
-  useActionDispatchWithResult: useCacheActionWithResult,
+  useActionScope: useCacheActionWithResult,
   useActionHandler: useCacheActionHandler,
 } = createActionContext<CacheActions>('CacheActions');
 
@@ -55,7 +55,7 @@ export const {
 export const {
   Provider: OrderActionProvider,
   useActionDispatch: useOrderAction,
-  useActionDispatchWithResult: useOrderActionWithResult,
+  useActionScope: useOrderActionWithResult,
   useActionHandler: useOrderActionHandler,
 } = createActionContext<OrderActions>('OrderActions');
 
@@ -63,7 +63,7 @@ export const {
 export const {
   Provider: ApiActionProvider,
   useActionDispatch: useApiAction,
-  useActionDispatchWithResult: useApiActionWithResult,
+  useActionScope: useApiActionWithResult,
   useActionHandler: useApiActionHandler,
 } = createActionContext<ApiActions>('ApiActions');
 
@@ -81,7 +81,12 @@ export const {
   Provider: FlowControlDemoActionProvider,
   useActionDispatch: useFlowControlDemoAction,
   useActionCommandHandler: useFlowControlDemoActionCommandHandler,
-} = createActionContext<FlowControlDemoActions>('FlowControlDemoActions');
+} = createActionContext<FlowControlDemoActions>('FlowControlDemoActions', {
+  actions: {
+    recordExecutionStep: { queue: 'immediate' },
+    recordHandlerExecution: { queue: 'immediate' },
+  },
+});
 
 // Store context for demo state management
 export const {
