@@ -68,6 +68,7 @@ const require = createRequire(import.meta.url);
 const cjsCore = require('@context-action/core/element');
 for (const mode of [core, cjsCore]) {
   for (const symbol of [
+    'createDismissLayer',
     'createElementFacade',
     'createElementBinding',
     'toReactPartProps',

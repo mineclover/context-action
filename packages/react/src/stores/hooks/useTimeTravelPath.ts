@@ -8,6 +8,7 @@
 import type { StateSnapshot } from '@context-action/store-core';
 import {
   type PatchAwareStore,
+  type PathValue,
   useStorePath,
   useStoreSelectorWithPaths,
   type StorePath,
@@ -54,6 +55,19 @@ export interface UseTimeTravelPathOptions<R> {
  * }
  * ```
  */
+export function useTimeTravelPath<
+  T,
+  const P extends readonly (string | number)[],
+>(
+  store: TimeTravelPathStore<T>,
+  path: number extends P['length'] ? never : P,
+  options?: UseTimeTravelPathOptions<PathValue<T, P>>,
+): PathValue<T, P>;
+export function useTimeTravelPath<T, R = unknown>(
+  store: TimeTravelPathStore<T>,
+  path: Readonly<StorePath>,
+  options?: UseTimeTravelPathOptions<R>,
+): R;
 export function useTimeTravelPath<T, R = unknown>(
   store: TimeTravelPathStore<T>,
   path: Readonly<StorePath>,

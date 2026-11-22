@@ -29,6 +29,7 @@ export interface PatchAwareStore<T> {
   getSnapshot?: () => StateSnapshot<T>;
   subscribe(listener: () => void): Unsubscribe;
   subscribeWithPatches?(listener: (patches: readonly StorePathPatch[] | null) => void): Unsubscribe;
+  subscribePaths?(paths: readonly Readonly<StorePath>[], listener: () => void): Unsubscribe;
 }
 
 /**
@@ -198,9 +199,12 @@ export function useStorePath<T, R = unknown>(
     cacheRef.current = { value: undefined as R, initialized: false, pathSignature, store };
   }
 
-  // Subscribe with patch awareness when supported, falling back to regular subscribe
+  // Prefer prefix-trie indexed subscription when available; fall back to patch scanning
   const subscribe = useCallback(
     (callback: () => void) => {
+      if (typeof store.subscribePaths === 'function') {
+        return store.subscribePaths([stablePath], callback);
+      }
       if (typeof store.subscribeWithPatches === 'function') {
         return store.subscribeWithPatches((patches) => {
           // Check if patches affect our path
@@ -306,11 +310,16 @@ export function useStoreSelectorWithPaths<T, R>(
     cacheRef.current = undefined;
   }
 
-  // Subscribe with patch awareness when supported
+  // Prefer prefix-trie indexed subscription when path hints & index are available
   const subscribe = useCallback(
     (callback: () => void) => {
-      if (!stablePaths || typeof store.subscribeWithPatches !== 'function') {
-        // No path hints or patchless store - subscribe to all changes
+      if (!stablePaths) {
+        return store.subscribe(callback);
+      }
+      if (typeof store.subscribePaths === 'function') {
+        return store.subscribePaths(stablePaths, callback);
+      }
+      if (typeof store.subscribeWithPatches !== 'function') {
         return store.subscribe(callback);
       }
 

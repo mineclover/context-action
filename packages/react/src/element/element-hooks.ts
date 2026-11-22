@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
+  createDismissLayer,
   createPointerGestureSession,
   createRovingFocusController,
   createSyncActionPipeline,
+  type DismissLayerOptions,
   type PointerGestureOptions,
   type PointerGestureSession,
   type RovingFocusController,
@@ -109,17 +111,21 @@ export function useRovingFocus(
 
   const orientation = options.orientation ?? 'horizontal';
   const loop = options.loop ?? true;
+  const typeahead = options.typeahead ?? false;
+  const typeaheadTimeoutMs = options.typeaheadTimeoutMs;
 
   return useMemo(
     () =>
       createRovingFocusController({
         orientation,
         loop,
+        typeahead,
+        typeaheadTimeoutMs,
         getItems: () => optionsRef.current.getItems(),
         getActiveId: () => optionsRef.current.getActiveId(),
         onFocusChange: nextId => optionsRef.current.onFocusChange?.(nextId),
       }),
-    [orientation, loop],
+    [orientation, loop, typeahead, typeaheadTimeoutMs],
   );
 }
 
@@ -192,4 +198,41 @@ export function usePointerGesture(
     }),
     [],
   );
+}
+
+export type UseDismissLayerOptions = Omit<DismissLayerOptions, 'enabled'> & {
+  readonly isOpen: boolean;
+};
+
+/**
+ * Registers a LIFO document-level dismiss layer while `isOpen` is true, supporting
+ * nested overlays (Escape + multi-container outside pointerdown) with automatic
+ * StrictMode-safe cleanup on close or unmount.
+ */
+export function useDismissLayer(options: UseDismissLayerOptions): void {
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+
+  useEffect(() => {
+    if (!options.isOpen) return undefined;
+
+    const layer = createDismissLayer({
+      enabled: true,
+      ownerDocument: options.ownerDocument,
+      get dismissOnEscape() {
+        return optionsRef.current.dismissOnEscape;
+      },
+      get dismissOnOutsidePointer() {
+        return optionsRef.current.dismissOnOutsidePointer;
+      },
+      getContainers: () => optionsRef.current.getContainers(),
+      isInside: (target, event) =>
+        optionsRef.current.isInside?.(target, event) ?? false,
+      onDismiss: (reason, event) => optionsRef.current.onDismiss(reason, event),
+    });
+
+    return () => {
+      layer.dispose();
+    };
+  }, [options.isOpen, options.ownerDocument]);
 }

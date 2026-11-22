@@ -1,5 +1,7 @@
 import type { StateBackend, StateMutationMeta, StatePatch } from '@context-action/store-core';
 import { ErrorHandlers } from '../utils/error-handling';
+import type { StorePathPatch, StorePathSegment } from '../utils/patch-affects-path';
+import { PathSubscriptionIndex } from '../utils/path-subscription-index';
 import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } from './types';
 
 const BACKEND_STORE_BRAND = Symbol.for('context-action.react.backend-store');
@@ -37,6 +39,7 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
   private readonly ownership: 'shared' | 'owned';
   private readonly listeners = new Set<Listener>();
   private readonly patchListeners = new Set<BackendPatchListener<Patch>>();
+  private readonly pathIndex = new PathSubscriptionIndex();
   private readonly unsubscribeBackend: Unsubscribe;
   private readonly unsubscribeBackendPatches: Unsubscribe;
   private backendSnapshot: ReturnType<StateBackend<T>['getSnapshot']>;
@@ -190,6 +193,17 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
     return () => this.patchListeners.delete(listener);
   };
 
+  subscribePaths = (
+    paths: readonly (readonly StorePathSegment[])[],
+    listener: Listener,
+  ): Unsubscribe => {
+    if (typeof listener !== 'function') {
+      throw new TypeError('Path subscriber must be a function.');
+    }
+    if (this.disposed) return () => {};
+    return this.pathIndex.subscribe(paths, listener);
+  };
+
   getSnapshot = (): Snapshot<T> => this.snapshot;
 
   getValue = (): T => this.backendSnapshot.value;
@@ -215,7 +229,8 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
     this.backend.update(updater, meta);
   };
 
-  getListenerCount = (): number => this.listeners.size + this.patchListeners.size;
+  getListenerCount = (): number =>
+    this.listeners.size + this.patchListeners.size + this.pathIndex.size;
 
   isStoreDisposed = (): boolean => this.disposed;
 
@@ -236,6 +251,7 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
     }
     this.listeners.clear();
     this.patchListeners.clear();
+    this.pathIndex.clear();
     if (this.ownership === 'owned') {
       try {
         this.backend.dispose?.();
@@ -356,6 +372,21 @@ export class BackendStore<T = unknown, Patch = StatePatch> implements IStore<T> 
         listener(patches);
       } catch (error) {
         this.reportListenerError('Backend store patch listener error', error);
+      }
+    }
+
+    if (!this.disposed && this.pathIndex.size > 0) {
+      const affected = this.pathIndex.collectAffected(
+        patches as readonly StorePathPatch[] | null,
+      );
+      for (const entry of affected) {
+        if (this.disposed) return;
+        if (!entry.active) continue;
+        try {
+          entry.listener();
+        } catch (error) {
+          this.reportListenerError('Backend store path-indexed listener error', error);
+        }
       }
     }
   }

@@ -4,11 +4,13 @@ import {
   createAriaComboBox,
   createAriaDataGrid,
   createAriaDialog,
+  createAriaMenu,
   createAriaSlider,
   createAriaTabs,
   useAriaButton,
   type AriaComboBoxItem,
   type AriaGridRowData,
+  type AriaMenuItem,
   type AriaSortDescriptor,
   type AriaTabItem,
 } from '../../examples/hooks/aria-headless-hooks-example';
@@ -1004,6 +1006,286 @@ describe('React Aria-style headless hooks built on Context-Action (Interface Rev
       });
       await waitFor(() => {
         expect(onSelectionChange).toHaveBeenLastCalledWith([]);
+      });
+
+      await act(async () => {
+        view.unmount();
+      });
+    });
+  });
+
+  describe('7. createAriaMenu (typeahead + roving focus + dismiss layer + trigger focus restoration)', () => {
+    const Menu = createAriaMenu('ReviewMenu');
+    const menuItems: AriaMenuItem[] = [
+      { id: 'new', label: 'New File' },
+      { id: 'save', label: 'Save' },
+      { id: 'share', label: 'Share' },
+      { id: 'locked', label: 'Settings', disabled: true },
+      { id: 'del', label: 'Delete' },
+    ];
+
+    function MenuItemButton({ item }: { item: AriaMenuItem }) {
+      const { menuItemProps } = Menu.useMenuItem(item.id);
+      return (
+        <button {...menuItemProps} data-testid={`menu-item-${item.id}`}>
+          {item.label}
+        </button>
+      );
+    }
+
+    function MenuView() {
+      const { triggerProps } = Menu.useMenuTrigger();
+      const { menuProps } = Menu.useMenu();
+      const { isOpen, activeItemId } = Menu.useMenuState();
+      return (
+        <div>
+          <button type="button" data-testid="menu-outside">
+            Outside
+          </button>
+          <button {...triggerProps} data-testid="menu-trigger">
+            Actions
+          </button>
+          <div {...menuProps} data-testid="menu-list">
+            {menuItems.map(item => (
+              <MenuItemButton key={item.id} item={item} />
+            ))}
+          </div>
+          <div data-testid="menu-state">{`${isOpen ? 'open' : 'closed'}:${activeItemId ?? 'none'}`}</div>
+        </div>
+      );
+    }
+
+    it('supports Arrow/typeahead cycling & multi-char search, guarded disabled activation, Enter activation with trigger focus restore, and Escape/outside dismissal', async () => {
+      const onAction = jest.fn();
+      const view = render(
+        <Menu.Provider items={menuItems} onAction={onAction}>
+          <MenuView />
+        </Menu.Provider>,
+      );
+
+      const trigger = view.getByTestId('menu-trigger') as HTMLButtonElement;
+      const menuEl = view.getByTestId('menu-list') as HTMLDivElement;
+      const outside = view.getByTestId('menu-outside') as HTMLButtonElement;
+
+      expect(trigger.getAttribute('aria-haspopup')).toBe('menu');
+      expect(trigger.getAttribute('aria-expanded')).toBe('false');
+      expect(menuEl.hidden).toBe(true);
+
+      // ArrowDown on trigger opens menu and focuses first enabled item ('new')
+      await act(async () => {
+        fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+      });
+      await waitFor(() => {
+        expect(menuEl.hidden).toBe(false);
+        expect(trigger.getAttribute('aria-expanded')).toBe('true');
+        expect(document.activeElement).toBe(view.getByTestId('menu-item-new'));
+      });
+
+      // Disabled item ('locked') rejects click via guard without firing onAction
+      await act(async () => {
+        fireEvent.click(view.getByTestId('menu-item-locked'));
+      });
+      expect(onAction).not.toHaveBeenCalled();
+      expect(menuEl.hidden).toBe(false);
+
+      // Typeahead: 's' jumps to 'save', repeated 's' cycles to 'share' (skips disabled 'Settings')
+      await act(async () => {
+        fireEvent.keyDown(menuEl, { key: 's' });
+      });
+      await waitFor(() => {
+        expect(document.activeElement).toBe(view.getByTestId('menu-item-save'));
+      });
+
+      await act(async () => {
+        fireEvent.keyDown(menuEl, { key: 's' });
+      });
+      await waitFor(() => {
+        expect(document.activeElement).toBe(view.getByTestId('menu-item-share'));
+      });
+
+      // Multi-char typeahead: 'de' jumps to 'Delete', Enter activates & restores trigger focus
+      await act(async () => {
+        fireEvent.keyDown(menuEl, { key: 'd' });
+        fireEvent.keyDown(menuEl, { key: 'e' });
+      });
+      await waitFor(() => {
+        expect(document.activeElement).toBe(view.getByTestId('menu-item-del'));
+      });
+
+      await act(async () => {
+        fireEvent.keyDown(view.getByTestId('menu-item-del'), { key: 'Enter' });
+      });
+      await waitFor(() => {
+        expect(menuEl.hidden).toBe(true);
+        expect(document.activeElement).toBe(trigger);
+      });
+      expect(onAction).toHaveBeenCalledTimes(1);
+      expect(onAction).toHaveBeenCalledWith('del');
+
+      // Re-open with ArrowUp (focuses last enabled item 'del'), then dismiss via Escape
+      await act(async () => {
+        fireEvent.keyDown(trigger, { key: 'ArrowUp' });
+      });
+      await waitFor(() => {
+        expect(menuEl.hidden).toBe(false);
+        expect(document.activeElement).toBe(view.getByTestId('menu-item-del'));
+      });
+
+      await act(async () => {
+        document.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+        );
+      });
+      await waitFor(() => {
+        expect(menuEl.hidden).toBe(true);
+        expect(document.activeElement).toBe(trigger);
+      });
+
+      // Re-open with click, then outside pointerdown dismisses menu
+      await act(async () => {
+        fireEvent.click(trigger);
+      });
+      await waitFor(() => {
+        expect(menuEl.hidden).toBe(false);
+      });
+      await act(async () => {
+        dispatchPointerEvent(outside, 'pointerdown');
+      });
+      await waitFor(() => {
+        expect(menuEl.hidden).toBe(true);
+      });
+
+      await act(async () => {
+        view.unmount();
+      });
+    });
+  });
+
+  describe('8. Nested Overlay Dismiss Stack (ComboBox inside Dialog — LIFO Escape & outside-pointer)', () => {
+    const OuterDialog = createAriaDialog('NestedOuterDialog');
+    const InnerCombo = createAriaComboBox('NestedInnerCombo');
+    const comboItems: AriaComboBoxItem[] = [
+      { id: 'alpha', label: 'Alpha' },
+      { id: 'beta', label: 'Beta' },
+    ];
+
+    function NestedComboOption({ item }: { item: AriaComboBoxItem }) {
+      const { optionProps } = InnerCombo.useComboBoxOption(item.id);
+      return (
+        <li {...optionProps} data-testid={`nested-combo-opt-${item.id}`}>
+          {item.label}
+        </li>
+      );
+    }
+
+    function NestedComboView() {
+      const { inputProps } = InnerCombo.useComboBoxInput();
+      const { triggerProps } = InnerCombo.useComboBoxTrigger();
+      const { filteredItems, listBoxProps } = InnerCombo.useComboBoxListBox();
+
+      return (
+        <div>
+          <input {...inputProps} data-testid="nested-combo-input" />
+          <button {...triggerProps} data-testid="nested-combo-trigger">
+            Pick
+          </button>
+          <ul {...listBoxProps} data-testid="nested-combo-listbox">
+            {filteredItems.map(item => (
+              <NestedComboOption key={item.id} item={item} />
+            ))}
+          </ul>
+        </div>
+      );
+    }
+
+    function NestedOverlayView() {
+      const { triggerProps } = OuterDialog.useDialogTrigger();
+      const { dialogProps, titleProps } = OuterDialog.useDialog();
+
+      return (
+        <div>
+          <button {...triggerProps} data-testid="nested-dlg-trigger">
+            Open Modal
+          </button>
+          <div {...dialogProps} data-testid="nested-dlg-panel">
+            <h4 {...titleProps} data-testid="nested-dlg-header">
+              Modal Header
+            </h4>
+            <InnerCombo.Provider items={comboItems}>
+              <NestedComboView />
+            </InnerCombo.Provider>
+          </div>
+        </div>
+      );
+    }
+
+    it('dismisses only the top-most inner ComboBox on Escape and Dialog-body pointerdown, then dismisses Dialog on next Escape', async () => {
+      const view = render(
+        <OuterDialog.Provider dismissOnOutsideClick>
+          <NestedOverlayView />
+        </OuterDialog.Provider>,
+      );
+
+      const dlgTrigger = view.getByTestId('nested-dlg-trigger') as HTMLButtonElement;
+      const dlgPanel = view.getByTestId('nested-dlg-panel') as HTMLDivElement;
+      const dlgHeader = view.getByTestId('nested-dlg-header') as HTMLHeadingElement;
+      const comboTrigger = view.getByTestId('nested-combo-trigger') as HTMLButtonElement;
+      const comboInput = view.getByTestId('nested-combo-input') as HTMLInputElement;
+      const comboListbox = view.getByTestId('nested-combo-listbox') as HTMLUListElement;
+
+      // 1. Open Dialog -> Dialog is open, ComboBox is closed
+      await act(async () => {
+        fireEvent.click(dlgTrigger);
+      });
+      await waitFor(() => {
+        expect(dlgPanel.hidden).toBe(false);
+        expect(comboListbox.hidden).toBe(true);
+      });
+
+      // 2. Open nested ComboBox inside Dialog -> Stack = [Dialog, ComboBox]
+      await act(async () => {
+        fireEvent.click(comboTrigger);
+      });
+      await waitFor(() => {
+        expect(comboListbox.hidden).toBe(false);
+        expect(dlgPanel.hidden).toBe(false);
+      });
+
+      // 3. First Escape -> ONLY inner ComboBox closes; outer Dialog MUST stay open
+      await act(async () => {
+        comboInput.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+        );
+      });
+      await waitFor(() => {
+        expect(comboListbox.hidden).toBe(true);
+        expect(dlgPanel.hidden).toBe(false);
+      });
+
+      // 4. Re-open ComboBox, then click Dialog header (outside ComboBox, inside Dialog) -> ONLY ComboBox closes
+      await act(async () => {
+        fireEvent.click(comboTrigger);
+      });
+      await waitFor(() => {
+        expect(comboListbox.hidden).toBe(false);
+      });
+      await act(async () => {
+        dispatchPointerEvent(dlgHeader, 'pointerdown');
+      });
+      await waitFor(() => {
+        expect(comboListbox.hidden).toBe(true);
+        expect(dlgPanel.hidden).toBe(false);
+      });
+
+      // 5. Next Escape (now Dialog is top-most) -> Dialog closes & restores focus to trigger
+      await act(async () => {
+        dlgPanel.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+        );
+      });
+      await waitFor(() => {
+        expect(dlgPanel.hidden).toBe(true);
+        expect(document.activeElement).toBe(dlgTrigger);
       });
 
       await act(async () => {

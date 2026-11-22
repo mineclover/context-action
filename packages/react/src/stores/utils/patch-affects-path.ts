@@ -9,12 +9,23 @@ export interface StorePathPatch {
   readonly value?: unknown;
 }
 
-function isPrefix(prefix: readonly string[], value: readonly string[]): boolean {
-  return prefix.length <= value.length && prefix.every((segment, index) => segment === value[index]);
+const ARRAY_INDEX_SEGMENT_RE = /^(?:0|[1-9]\d*)$/;
+
+/**
+ * Returns true when a normalized path segment can address an array element
+ * whose insertion/removal shifts sibling numeric indices (`0`, `1`, ..., or `'-'`).
+ * Non-numeric object keys (for example `'row-1'`) do not shift sibling keys.
+ */
+export function isArrayIndexSegment(segment: string): boolean {
+  return segment === '-' || ARRAY_INDEX_SEGMENT_RE.test(segment);
 }
 
-/** Unknown paths must invalidate conservatively, never silently skip an update. */
-function normalizePatchPath(path: unknown): readonly string[] | null {
+/**
+ * Normalizes array path segments or an RFC 6901 JSON Pointer into string segments.
+ * Returns `null` when a path is malformed or contains opaque non-string/number keys so
+ * callers fall back conservatively to full invalidation.
+ */
+export function normalizePatchPath(path: unknown): readonly string[] | null {
   if (typeof path === 'string') {
     if (path === '') return [];
     if (!path.startsWith('/') || /~(?:[^01]|$)/.test(path)) return null;
@@ -31,18 +42,35 @@ function normalizePatchPath(path: unknown): readonly string[] | null {
   return segments;
 }
 
+/**
+ * Returns true when modifying `path` can shift or truncate sibling indices under its
+ * parent container (structural numeric array element edits or `'length'` truncation).
+ */
+export function mayShiftSiblingIndexes(
+  path: readonly string[],
+  structural: boolean,
+): boolean {
+  if (path.length === 0) return false;
+  const last = path[path.length - 1];
+  if (last === 'length') return true;
+  return structural && last !== undefined && isArrayIndexSegment(last);
+}
+
+function isPrefix(prefix: readonly string[], value: readonly string[]): boolean {
+  return prefix.length <= value.length && prefix.every((segment, index) => segment === value[index]);
+}
+
 function affectsTarget(path: readonly string[], target: readonly string[], structural: boolean): boolean {
   if (isPrefix(path, target) || isPrefix(target, path)) return true;
-  // Insertion/removal can shift every later array index. Mutative also signals
-  // splice/truncation through a replacement of the collection's length property.
-  return (structural || path[path.length - 1] === 'length') && isPrefix(path.slice(0, -1), target);
+  return mayShiftSiblingIndexes(path, structural) && isPrefix(path.slice(0, -1), target);
 }
 
 /**
  * Determines whether a patch can change the value observed at a path.
- * Both readonly segment arrays and JSON Pointers are supported. Collection
- * add/remove/copy/move operations invalidate descendants because indexes shift;
- * move also invalidates its source. This does not apply or validate a patch.
+ * Both readonly segment arrays and JSON Pointers are supported. Array index
+ * add/remove/copy/move and `'length'` truncation invalidate siblings because
+ * indices shift; non-numeric object property edits only invalidate ancestors
+ * and descendants of the mutated key.
  */
 export function patchesAffectPath(
   patches: readonly StorePathPatch[] | null,

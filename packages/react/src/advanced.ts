@@ -15,20 +15,27 @@ export { useComputedStore } from './stores/hooks/useComputedStore';
 export { useLocalStore } from './stores/hooks/useLocalStore';
 export { useStoreInstance } from './stores/hooks/useStoreInstance';
 export { useControlledStoreSync } from './stores/hooks/useControlledStoreSync';
+export type { UseControlledStoreSyncOptions } from './stores/hooks/useControlledStoreSync';
 
 // Synchronous Element UI Hooks & Core/Element Re-exports
 export {
+  useDismissLayer,
   useSyncActionPipeline,
   useRovingFocus,
   usePointerGesture,
 } from './element/element-hooks';
+export type { UseDismissLayerOptions } from './element/element-hooks';
 export {
+  createDismissLayer,
   createPointerGestureSession,
   createRovingFocusController,
   createSyncActionPipeline,
   toReactPartProps,
 } from '@context-action/core/element';
 export type {
+  DismissLayerHandle,
+  DismissLayerOptions,
+  DismissReason,
   PointerCaptureTargetLike,
   PointerGestureEventLike,
   PointerGestureKeyEventLike,
@@ -37,6 +44,7 @@ export type {
   PointerGestureSession,
   PointerGestureSnapshot,
   RovingFocusController,
+  RovingFocusDirection,
   RovingFocusItem,
   RovingFocusKeyEventLike,
   RovingFocusOptions,

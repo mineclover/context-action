@@ -1,14 +1,15 @@
 /**
  * @fileoverview React Aria-Style Headless Hook Primitives Built on Ergonomic Context-Action APIs
  *
- * Implements 6 React Aria-style headless UI primitives using strictly public
+ * Implements 7 React Aria-style headless UI primitives using strictly public
  * `@context-action/react` entrypoints:
  * 1. `useAriaButton` - StrictMode-safe `useSyncActionPipeline` + `mergeProps`
  * 2. `createAriaTabs` - `useStoreInstance` + `useControlledStoreSync` + `useRovingFocus` + `useRefCollection`
  * 3. `createAriaSlider` - `usePointerGesture` + `lane: 'fast'` `useRefController` 0-render drag + `useControlledStoreSync` + inferred `useStorePath`
- * 4. `createAriaDialog` - `useStoreInstance` + `useControlledStoreSync` + guarded dismissal + focus restoration
- * 5. `createAriaComboBox` - Virtual `aria-activedescendant` navigation + fast-lane filtering + `useRefCollection` + Escape/outside dismiss
- * 6. `createAriaDataGrid` - Multi-select (`selectedById` O(1) `useStorePath` per row), `Shift+Click` range, column sort, vertical `useRovingFocus`, and `lane: 'fast'` hover ref
+ * 4. `createAriaDialog` - `useStoreInstance` + `useControlledStoreSync` + LIFO `useDismissLayer` + guarded dismissal + focus restoration
+ * 5. `createAriaComboBox` - Virtual `useRovingFocus` (`getActiveDescendant`) + LIFO `useDismissLayer` + atomic `useControlledStoreSync` (`onSync`)
+ * 6. `createAriaDataGrid` - Multi-select (`selectedById` `O(depth)` Path-Trie `useStorePath` per row), `Shift+Click` range, column sort, vertical `useRovingFocus`, and `lane: 'fast'` hover ref
+ * 7. `createAriaMenu` - Vertical `useRovingFocus` with multi-char/cyclic `typeahead`, `useRefCollection`, LIFO `useDismissLayer`, guarded `activateItem`, and trigger focus restoration
  */
 
 import React, {
@@ -34,6 +35,7 @@ import {
 } from '@context-action/react/refs';
 import {
   useControlledStoreSync,
+  useDismissLayer,
   usePointerGesture,
   useRovingFocus,
   useStoreInstance,
@@ -750,6 +752,7 @@ interface AriaDialogRuntime {
 export interface AriaDialogProviderProps {
   defaultOpen?: boolean;
   isOpen?: boolean;
+  dismissOnOutsideClick?: boolean;
   canDismiss?: () => boolean;
   onOpenChange?: (isOpen: boolean) => void;
   children: React.ReactNode;
@@ -789,15 +792,29 @@ export function createAriaDialog(name: string) {
   }
 
   function DialogBridge({
+    dismissOnOutsideClick = false,
     canDismiss,
     onOpenChange,
     children,
   }: Omit<AriaDialogProviderProps, 'defaultOpen' | 'isOpen'>) {
     const runtime = useDialogRuntime();
+    const dispatch = Actions.useActionDispatch();
+    const trigger = Refs.useRefController('trigger');
+    const dialog = Refs.useRefController('dialog');
     const canDismissRef = useRef(canDismiss);
     const onOpenChangeRef = useRef(onOpenChange);
     canDismissRef.current = canDismiss;
     onOpenChangeRef.current = onOpenChange;
+
+    const isOpen = useStorePath(runtime.store, ['isOpen']);
+
+    useDismissLayer({
+      isOpen,
+      dismissOnEscape: true,
+      dismissOnOutsidePointer: dismissOnOutsideClick,
+      getContainers: () => [dialog.target, trigger.target],
+      onDismiss: () => void dispatch('close'),
+    });
 
     Actions.useActionCommandHandler(
       'open',
@@ -848,6 +865,7 @@ export function createAriaDialog(name: string) {
   function Provider({
     defaultOpen = false,
     isOpen,
+    dismissOnOutsideClick = false,
     canDismiss,
     onOpenChange,
     children,
@@ -873,7 +891,11 @@ export function createAriaDialog(name: string) {
       <Actions.Provider>
         <Refs.Provider>
           <DialogRuntimeContext.Provider value={runtime}>
-            <DialogBridge canDismiss={canDismiss} onOpenChange={onOpenChange}>
+            <DialogBridge
+              dismissOnOutsideClick={dismissOnOutsideClick}
+              canDismiss={canDismiss}
+              onOpenChange={onOpenChange}
+            >
               {children}
             </DialogBridge>
           </DialogRuntimeContext.Provider>
@@ -935,13 +957,6 @@ export function createAriaDialog(name: string) {
         'aria-labelledby': runtime.titleId,
         tabIndex: -1 as const,
         hidden: !isOpen,
-        onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-          if (event.key === 'Escape') {
-            event.preventDefault();
-            event.stopPropagation();
-            void dispatch('close');
-          }
-        },
       },
     };
   }
@@ -982,6 +997,7 @@ interface AriaComboBoxRuntime {
   store: Store<AriaComboBoxState>;
   itemsRef: React.RefObject<readonly AriaComboBoxItem[]>;
   optionRefs: RefCollection<HTMLLIElement>;
+  rovingFocus: RovingFocusController;
 }
 
 export interface AriaComboBoxProviderProps {
@@ -1159,26 +1175,14 @@ export function createAriaComboBox(name: string) {
       { when: 'success' },
     );
 
-    // Outside pointerdown dismiss layer while listbox is open
-    useEffect(() => {
-      if (!isOpen) return undefined;
-      const onPointerDown = (event: PointerEvent) => {
-        const targetNode = event.target as Node | null;
-        if (!targetNode) return;
-        if (
-          input.target?.contains(targetNode)
-          || trigger.target?.contains(targetNode)
-          || listbox.target?.contains(targetNode)
-        ) {
-          return;
-        }
-        void dispatch('setOpen', { isOpen: false });
-      };
-      document.addEventListener('pointerdown', onPointerDown, true);
-      return () => {
-        document.removeEventListener('pointerdown', onPointerDown, true);
-      };
-    }, [dispatch, input, isOpen, listbox, trigger]);
+    // Coordinated LIFO Escape + outside-pointer dismiss layer while listbox is open
+    useDismissLayer({
+      isOpen,
+      dismissOnEscape: true,
+      dismissOnOutsidePointer: true,
+      getContainers: () => [input.target, trigger.target, listbox.target],
+      onDismiss: () => void dispatch('setOpen', { isOpen: false }),
+    });
 
     return <>{children}</>;
   }
@@ -1208,21 +1212,37 @@ export function createAriaComboBox(name: string) {
       `${name}:${baseId}:Store`,
       { notificationMode: 'immediate' },
     );
-    useControlledStoreSync(store, ['selectedKey'], selectedKey);
-
-    // Sync query display text when controlled `selectedKey` updates externally
-    useEffect(() => {
-      if (selectedKey === undefined) return;
-      const targetLabel =
-        (selectedKey ? itemsRef.current.find(i => i.id === selectedKey)?.label : '') ?? '';
-      if (store.getValue().query !== targetLabel) {
-        store.update(draft => {
-          draft.query = targetLabel;
-        });
-      }
-    }, [selectedKey, store]);
+    useControlledStoreSync(store, ['selectedKey'], selectedKey, {
+      onSync(draft, nextKey) {
+        draft.query =
+          (nextKey ? itemsRef.current.find(i => i.id === nextKey)?.label : '') ?? '';
+      },
+    });
 
     const optionRefs = useRefCollection<HTMLLIElement>();
+    const rovingFocus = useRovingFocus({
+      orientation: 'vertical',
+      loop: true,
+      getItems: () =>
+        getFilteredComboBoxItems(
+          itemsRef.current,
+          store.getValue().query,
+          store.getValue().selectedKey,
+        ).map(item => ({
+          id: item.id,
+          label: item.label,
+          disabled: item.disabled,
+        })),
+      getActiveId: () => store.getValue().highlightedKey,
+      onFocusChange(nextKey) {
+        store.update(draft => {
+          draft.highlightedKey = nextKey;
+        });
+        optionRefs.executeIfMounted(nextKey, el => {
+          el.scrollIntoView?.({ block: 'nearest' });
+        });
+      },
+    });
 
     const runtime = useMemo<AriaComboBoxRuntime>(
       () => ({
@@ -1230,8 +1250,9 @@ export function createAriaComboBox(name: string) {
         store,
         itemsRef,
         optionRefs,
+        rovingFocus,
       }),
-      [baseId, store, optionRefs],
+      [baseId, store, optionRefs, rovingFocus],
     );
 
     return (
@@ -1271,50 +1292,27 @@ export function createAriaComboBox(name: string) {
         'aria-controls': `${runtime.baseId}-listbox`,
         'aria-activedescendant':
           isOpen && highlightedKey
-            ? `${runtime.baseId}-option-${highlightedKey}`
+            ? runtime.rovingFocus.getActiveDescendant(`${runtime.baseId}-option-`)
             : undefined,
         onChange(event: React.ChangeEvent<HTMLInputElement>) {
           void dispatch('setQuery', { query: event.target.value });
         },
         onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
           const cur = runtime.store.getValue();
-          const filtered = getFilteredComboBoxItems(
-            runtime.itemsRef.current,
-            cur.query,
-            cur.selectedKey,
-          ).filter(item => !item.disabled);
 
           if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-            event.preventDefault();
             if (!cur.isOpen) {
+              event.preventDefault();
               void dispatch('setOpen', { isOpen: true });
               return;
             }
-            if (filtered.length === 0) return;
-            const currentIndex = filtered.findIndex(item => item.id === cur.highlightedKey);
-            const delta = event.key === 'ArrowDown' ? 1 : -1;
-            const nextIndex =
-              currentIndex < 0
-                ? delta > 0
-                  ? 0
-                  : filtered.length - 1
-                : (currentIndex + delta + filtered.length) % filtered.length;
-            const nextKey = filtered[nextIndex]?.id ?? null;
-            void dispatch('highlightOption', { key: nextKey });
-            if (nextKey) {
-              runtime.optionRefs.executeIfMounted(nextKey, el => {
-                el.scrollIntoView?.({ block: 'nearest' });
-              });
-            }
+            runtime.rovingFocus.handleKeyDown(cur.highlightedKey, event);
             return;
           }
 
           if (event.key === 'Home' || event.key === 'End') {
-            if (!cur.isOpen || filtered.length === 0) return;
-            event.preventDefault();
-            const target =
-              event.key === 'Home' ? filtered[0]?.id : filtered[filtered.length - 1]?.id;
-            void dispatch('highlightOption', { key: target ?? null });
+            if (!cur.isOpen) return;
+            runtime.rovingFocus.handleKeyDown(cur.highlightedKey, event);
             return;
           }
 
@@ -1326,12 +1324,6 @@ export function createAriaComboBox(name: string) {
               event.preventDefault();
               void dispatch('setOpen', { isOpen: true });
             }
-            return;
-          }
-
-          if (event.key === 'Escape' && cur.isOpen) {
-            event.preventDefault();
-            void dispatch('setOpen', { isOpen: false });
           }
         },
       },
@@ -1854,8 +1846,355 @@ export function createAriaDataGrid(name: string) {
 }
 
 // =============================================================================
-// 7. Combined Showcase Component
+// 7. createAriaMenu (Typeahead Roving Focus + Dismiss Layer + Trigger Restore)
 // =============================================================================
+
+export interface AriaMenuItem {
+  readonly id: string;
+  readonly label: string;
+  readonly disabled?: boolean;
+}
+
+interface AriaMenuState {
+  isOpen: boolean;
+  activeItemId: string | null;
+}
+
+interface AriaMenuActionMap {
+  open: { focusTarget?: 'first' | 'last' } | void;
+  close: void;
+  focusItem: { id: string };
+  activateItem: { id: string };
+}
+
+interface AriaMenuRuntime {
+  baseId: string;
+  store: Store<AriaMenuState>;
+  itemsRef: React.RefObject<readonly AriaMenuItem[]>;
+  itemRefs: RefCollection<HTMLButtonElement>;
+  rovingFocus: RovingFocusController;
+}
+
+export interface AriaMenuProviderProps {
+  items: readonly AriaMenuItem[];
+  onAction?: (id: string) => void;
+  children: React.ReactNode;
+}
+
+export function createAriaMenu(name: string) {
+  const Actions = createActionContext<AriaMenuActionMap>(`${name}:Actions`, {
+    actions: {
+      open: { lane: 'orchestrated', queue: 'serial' },
+      close: { lane: 'orchestrated', queue: 'serial' },
+      focusItem: { lane: 'fast' },
+      activateItem: { lane: 'orchestrated', queue: 'serial' },
+    },
+  });
+
+  const Refs = createRefContext(`${name}:Refs`, {
+    trigger: {
+      name: 'trigger',
+      autoCleanup: true,
+      validator: (target: unknown): target is HTMLButtonElement =>
+        target instanceof HTMLButtonElement,
+    },
+    menu: {
+      name: 'menu',
+      autoCleanup: true,
+      validator: (target: unknown): target is HTMLDivElement =>
+        target instanceof HTMLDivElement,
+    },
+  });
+
+  const MenuRuntimeContext = createContext<AriaMenuRuntime | null>(null);
+
+  function useMenuRuntime(): AriaMenuRuntime {
+    const ctx = useContext(MenuRuntimeContext);
+    if (!ctx) {
+      throw new Error(`useMenuRuntime(${name}) must be used within ${name}.Provider`);
+    }
+    return ctx;
+  }
+
+  function MenuBridge({
+    items,
+    onAction,
+    children,
+  }: AriaMenuProviderProps) {
+    const runtime = useMenuRuntime();
+    const dispatch = Actions.useActionDispatch();
+    const trigger = Refs.useRefController('trigger');
+    const menu = Refs.useRefController('menu');
+    const onActionRef = useRef(onAction);
+    onActionRef.current = onAction;
+    runtime.itemsRef.current = items;
+
+    const isOpen = useStorePath(runtime.store, ['isOpen']);
+    const prevOpenRef = useRef(isOpen);
+
+    useDismissLayer({
+      isOpen,
+      dismissOnEscape: true,
+      dismissOnOutsidePointer: true,
+      getContainers: () => [trigger.target, menu.target],
+      onDismiss: () => void dispatch('close'),
+    });
+
+    useEffect(() => {
+      const wasOpen = prevOpenRef.current;
+      prevOpenRef.current = isOpen;
+
+      if (!wasOpen && isOpen) {
+        const activeId = runtime.store.getValue().activeItemId;
+        if (activeId) {
+          runtime.itemRefs.executeIfMounted(activeId, el => el.focus());
+        }
+      } else if (wasOpen && !isOpen) {
+        runtime.rovingFocus.resetTypeahead();
+        trigger.target?.focus();
+      }
+    }, [isOpen, runtime, trigger]);
+
+    Actions.useActionCommandHandler(
+      'open',
+      useCallback(
+        payload => {
+          const enabled = runtime.itemsRef.current.filter(item => !item.disabled);
+          const target =
+            payload && payload.focusTarget === 'last'
+              ? enabled[enabled.length - 1]?.id ?? null
+              : enabled[0]?.id ?? null;
+          runtime.store.update(draft => {
+            draft.isOpen = true;
+            draft.activeItemId = target;
+          });
+        },
+        [runtime],
+      ),
+    );
+
+    Actions.useActionCommandHandler(
+      'close',
+      useCallback(() => {
+        runtime.store.update(draft => {
+          draft.isOpen = false;
+          draft.activeItemId = null;
+        });
+      }, [runtime]),
+    );
+
+    Actions.useActionCommandHandler(
+      'focusItem',
+      useCallback(
+        payload => {
+          runtime.store.update(draft => {
+            draft.activeItemId = payload.id;
+          });
+        },
+        [runtime],
+      ),
+    );
+
+    Actions.useActionGuard(
+      'activateItem',
+      useCallback(
+        (payload, controller) => {
+          const candidate = runtime.itemsRef.current.find(item => item.id === payload.id);
+          if (!candidate || candidate.disabled) {
+            controller.abort(`menu item "${payload.id}" is disabled or missing`);
+          }
+        },
+        [runtime],
+      ),
+    );
+
+    Actions.useActionCommandHandler(
+      'activateItem',
+      useCallback(() => {
+        runtime.store.update(draft => {
+          draft.isOpen = false;
+          draft.activeItemId = null;
+        });
+      }, [runtime]),
+    );
+
+    Actions.useActionObserver(
+      'activateItem',
+      useCallback(event => {
+        onActionRef.current?.(event.payload.id);
+      }, []),
+      { when: 'success' },
+    );
+
+    return <>{children}</>;
+  }
+
+  function Provider({ items, onAction, children }: AriaMenuProviderProps) {
+    const baseId = useId();
+    const itemsRef = useRef<readonly AriaMenuItem[]>(items);
+    itemsRef.current = items;
+
+    const store = useStoreInstance<AriaMenuState>(
+      () => ({
+        isOpen: false,
+        activeItemId: null,
+      }),
+      `${name}:${baseId}:Store`,
+      { notificationMode: 'immediate' },
+    );
+
+    const itemRefs = useRefCollection<HTMLButtonElement>();
+
+    const rovingFocus = useRovingFocus({
+      orientation: 'vertical',
+      loop: true,
+      typeahead: true,
+      getItems: () => itemsRef.current,
+      getActiveId: () => store.getValue().activeItemId,
+      onFocusChange(nextId) {
+        store.update(draft => {
+          draft.activeItemId = nextId;
+        });
+        itemRefs.executeIfMounted(nextId, el => el.focus());
+      },
+    });
+
+    const runtime = useMemo<AriaMenuRuntime>(
+      () => ({
+        baseId,
+        store,
+        itemsRef,
+        itemRefs,
+        rovingFocus,
+      }),
+      [baseId, store, itemRefs, rovingFocus],
+    );
+
+    return (
+      <Actions.Provider>
+        <Refs.Provider>
+          <MenuRuntimeContext.Provider value={runtime}>
+            <MenuBridge items={items} onAction={onAction}>
+              {children}
+            </MenuBridge>
+          </MenuRuntimeContext.Provider>
+        </Refs.Provider>
+      </Actions.Provider>
+    );
+  }
+
+  function useMenuTrigger() {
+    const runtime = useMenuRuntime();
+    const trigger = Refs.useRefController('trigger');
+    const dispatch = Actions.useActionDispatch();
+    const isOpen = useStorePath(runtime.store, ['isOpen']);
+
+    return {
+      isOpen,
+      triggerProps: {
+        id: `${runtime.baseId}-trigger`,
+        ref: trigger.setRef,
+        type: 'button' as const,
+        'aria-haspopup': 'menu' as const,
+        'aria-expanded': isOpen,
+        'aria-controls': `${runtime.baseId}-menu`,
+        onClick() {
+          void dispatch(isOpen ? 'close' : 'open');
+        },
+        onKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
+          if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            void dispatch('open', {
+              focusTarget: event.key === 'ArrowUp' ? 'last' : 'first',
+            });
+          }
+        },
+      },
+    };
+  }
+
+  function useMenu() {
+    const runtime = useMenuRuntime();
+    const menu = Refs.useRefController('menu');
+    const isOpen = useStorePath(runtime.store, ['isOpen']);
+
+    return {
+      isOpen,
+      menuProps: {
+        id: `${runtime.baseId}-menu`,
+        ref: menu.setRef,
+        role: 'menu' as const,
+        'aria-orientation': 'vertical' as const,
+        'aria-labelledby': `${runtime.baseId}-trigger`,
+        hidden: !isOpen,
+        onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+          const curId = runtime.store.getValue().activeItemId;
+          runtime.rovingFocus.handleKeyDown(curId, event);
+        },
+      },
+    };
+  }
+
+  function useMenuItem(id: string) {
+    const runtime = useMenuRuntime();
+    const dispatch = Actions.useActionDispatch();
+    const isFocused = useStoreSelectorWithPaths<AriaMenuState, boolean>(
+      runtime.store,
+      s => s.activeItemId === id,
+      { dependsOn: [['activeItemId']] },
+    );
+
+    const item = runtime.itemsRef.current.find(candidate => candidate.id === id);
+    const isDisabled = Boolean(item?.disabled);
+
+    return {
+      isFocused,
+      isDisabled,
+      menuItemProps: {
+        id: `${runtime.baseId}-menuitem-${id}`,
+        ref: runtime.itemRefs.setRef(id),
+        role: 'menuitem' as const,
+        type: 'button' as const,
+        tabIndex: isFocused ? 0 : -1,
+        'aria-disabled': isDisabled ? true : undefined,
+        onFocus() {
+          if (!isDisabled) void dispatch('focusItem', { id });
+        },
+        onKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!isDisabled) void dispatch('activateItem', { id });
+          }
+        },
+        onClick() {
+          if (!isDisabled) void dispatch('activateItem', { id });
+        },
+      },
+    };
+  }
+
+  function useMenuState() {
+    const runtime = useMenuRuntime();
+    const isOpen = useStorePath(runtime.store, ['isOpen']);
+    const activeItemId = useStorePath(runtime.store, ['activeItemId']);
+    return { isOpen, activeItemId };
+  }
+
+  return {
+    Provider,
+    useMenuTrigger,
+    useMenu,
+    useMenuItem,
+    useMenuState,
+  };
+}
+
+// =============================================================================
+// 8. Combined Showcase Component
+// =============================================================================
+
+const DemoMenu = createAriaMenu('ShowcaseAriaMenu');
 
 const DemoTabs = createAriaTabs('ShowcaseAriaTabs');
 const DemoSlider = createAriaSlider('ShowcaseAriaSlider');
@@ -2009,6 +2348,27 @@ function ShowcaseDataGridContent() {
   );
 }
 
+function ShowcaseMenuItem({ item }: { item: AriaMenuItem }) {
+  const { menuItemProps } = DemoMenu.useMenuItem(item.id);
+  return <button {...menuItemProps}>{item.label}</button>;
+}
+
+function ShowcaseMenuContent({ items }: { items: readonly AriaMenuItem[] }) {
+  const { triggerProps } = DemoMenu.useMenuTrigger();
+  const { menuProps } = DemoMenu.useMenu();
+
+  return (
+    <div>
+      <button {...triggerProps}>Actions Menu</button>
+      <div {...menuProps}>
+        {items.map(item => (
+          <ShowcaseMenuItem key={item.id} item={item} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function AriaHeadlessShowcase() {
   const tabItems: readonly AriaTabItem[] = [
     { id: 'overview', label: 'Overview' },
@@ -2022,6 +2382,11 @@ export function AriaHeadlessShowcase() {
   const gridRows: readonly AriaGridRowData[] = [
     { id: 'r1', name: 'Alpha', score: 95 },
     { id: 'r2', name: 'Beta', score: 82 },
+  ];
+  const menuItems: readonly AriaMenuItem[] = [
+    { id: 'save', label: 'Save' },
+    { id: 'share', label: 'Share' },
+    { id: 'delete', label: 'Delete', disabled: true },
   ];
 
   return (
@@ -2043,6 +2408,9 @@ export function AriaHeadlessShowcase() {
       <DemoGrid.Provider rows={gridRows}>
         <ShowcaseDataGridContent />
       </DemoGrid.Provider>
+      <DemoMenu.Provider items={menuItems}>
+        <ShowcaseMenuContent items={menuItems} />
+      </DemoMenu.Provider>
     </div>
   );
 }

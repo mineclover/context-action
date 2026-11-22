@@ -4,6 +4,8 @@ import {
   compareValues
 } from '../utils/comparison';
 import { ErrorHandlers } from '../utils/error-handling';
+import type { StorePathSegment } from '../utils/patch-affects-path';
+import { PathSubscriptionIndex } from '../utils/path-subscription-index';
 import { TypeGuards } from '../utils/type-guards';
 import { type FrameHandle, scheduleFrame } from './frame-scheduler';
 import type { IStore, Listener, Snapshot, StoreSetValueOptions, Unsubscribe } from './types';
@@ -104,6 +106,8 @@ export class Store<T = unknown> implements IStore<T> {
   private listeners = new Set<Listener>();
   // Patch-aware subscribers for path-based optimization
   private patchAwareListeners = new Set<PatchAwareListener>();
+  // Trie-indexed path subscribers for O(patches * depth) lookup
+  private pathIndex = new PathSubscriptionIndex();
   // Last patches from the most recent update
   private _lastPatches: Patches | null = null;
   // Actual state value - Single Source of Truth
@@ -251,6 +255,21 @@ export class Store<T = unknown> implements IStore<T> {
 
     this.patchAwareListeners.add(listener);
     return () => this.patchAwareListeners.delete(listener);
+  };
+
+  /**
+   * Subscribes to one or more concrete store paths using the internal prefix-trie index.
+   */
+  subscribePaths = (
+    paths: readonly (readonly StorePathSegment[])[],
+    listener: Listener,
+  ): Unsubscribe => {
+    if (this.isDisposed) {
+      console.warn(`Cannot subscribe to disposed store "${this.name}"`);
+      return () => {};
+    }
+
+    return this.pathIndex.subscribe(paths, listener);
   };
 
   /**
@@ -403,8 +422,8 @@ export class Store<T = unknown> implements IStore<T> {
     }
 
     if (hasChanged && !this.isDisposed) {
-      // Generate patches if we have patch-aware listeners and values are objects
-      if (this.patchAwareListeners.size > 0 &&
+      // Generate patches if we have patch-aware or path-indexed listeners and values are objects
+      if ((this.patchAwareListeners.size > 0 || this.pathIndex.size > 0) &&
           TypeGuards.isObject(this._value) &&
           TypeGuards.isObject(safeValue)) {
         try {
@@ -583,18 +602,19 @@ export class Store<T = unknown> implements IStore<T> {
   }
 
   /**
-   * Get number of active listeners (includes patch-aware listeners)
+   * Get number of active listeners (includes patch-aware and path-indexed listeners)
    */
   getListenerCount(): number {
-    return this.listeners.size + this.patchAwareListeners.size;
+    return this.listeners.size + this.patchAwareListeners.size + this.pathIndex.size;
   }
 
   /**
-   * Clear all listeners (includes patch-aware listeners)
+   * Clear all listeners (includes patch-aware and path-indexed listeners)
    */
   clearListeners(): void {
     this.listeners.clear();
     this.patchAwareListeners.clear();
+    this.pathIndex.clear();
   }
 
   /**
@@ -1066,6 +1086,28 @@ export class Store<T = unknown> implements IStore<T> {
           );
         } catch {
           // Listener reporting must not abort remaining patch-aware listeners.
+        }
+      }
+    }
+
+    // Notify only path-indexed subscribers whose trie branch matches the transition patches
+    if (!this.isDisposed && this.pathIndex.size > 0) {
+      const affected = this.pathIndex.collectAffected(notifiedPatches);
+      for (const entry of affected) {
+        if (this.isDisposed) return;
+        if (!entry.active) continue;
+        try {
+          entry.listener();
+        } catch (error) {
+          try {
+            ErrorHandlers.store(
+              'Error in path-indexed listener execution',
+              { storeName: this.name },
+              error instanceof Error ? error : undefined
+            );
+          } catch {
+            // Listener reporting must not abort remaining path-indexed listeners.
+          }
         }
       }
     }

@@ -1,3 +1,4 @@
+export { createDismissLayer } from './element/dismiss-layer.js';
 export { createElementFacade } from './element/create-element-facade.js';
 export { createElementBinding } from './element/create-element-binding.js';
 export { createPointerGestureSession } from './element/pointer-gesture-session.js';
@@ -5,6 +6,11 @@ export { createRovingFocusController } from './element/roving-focus.js';
 export { createSyncActionPipeline } from './element/sync-action-pipeline.js';
 export { toReactPartProps } from './element/to-react-part-props.js';
 export type { PublicActionMethods } from './contracts/public-action-methods.js';
+export type {
+  DismissLayerHandle,
+  DismissLayerOptions,
+  DismissReason,
+} from './element/dismiss-layer.js';
 export type {
   ImperativeHandleFactory, ElementBinding, ElementBindingConfig, ElementBindingOptions,
   ElementBridgeConfig, ElementBridgeContract,
@@ -20,6 +26,7 @@ export type {
 } from './element/pointer-gesture-session.js';
 export type {
   RovingFocusController,
+  RovingFocusDirection,
   RovingFocusItem,
   RovingFocusKeyEventLike,
   RovingFocusOptions,

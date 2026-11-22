@@ -26,6 +26,8 @@ function validateHistoryPosition(value: number): void {
 }
 
 import { ErrorHandlers } from '../utils/error-handling';
+import type { StorePathSegment } from '../utils/patch-affects-path';
+import { PathSubscriptionIndex } from '../utils/path-subscription-index';
 import { TypeGuards } from '../utils/type-guards';
 import { type FrameHandle, scheduleFrame } from './frame-scheduler';
 import type { StoreNotificationMode } from './Store';
@@ -78,6 +80,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   private timeTravel: TimeTravel<T, false, true>;
   private listeners = new Set<Listener>();
   private patchAwareListeners = new Set<PatchAwareListener>();
+  private pathIndex = new PathSubscriptionIndex();
   private _snapshot: Snapshot<T>;
   private _lastPatches: Patches | null = null;
   private _lastTransitionMeta: TimeTravelTransitionMeta | undefined;
@@ -170,6 +173,21 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
 
     this.patchAwareListeners.add(listener);
     return () => this.patchAwareListeners.delete(listener);
+  };
+
+  /**
+   * Subscribes to one or more concrete store paths using the internal prefix-trie index.
+   */
+  subscribePaths = (
+    paths: readonly (readonly StorePathSegment[])[],
+    listener: Listener,
+  ): Unsubscribe => {
+    if (this.isDisposed) {
+      console.warn(`Cannot subscribe to disposed store "${this.name}"`);
+      return () => {};
+    }
+
+    return this.pathIndex.subscribe(paths, listener);
   };
 
   /**
@@ -296,12 +314,13 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   }
 
   getListenerCount(): number {
-    return this.listeners.size + this.patchAwareListeners.size;
+    return this.listeners.size + this.patchAwareListeners.size + this.pathIndex.size;
   }
 
   clearListeners(): void {
     this.listeners.clear();
     this.patchAwareListeners.clear();
+    this.pathIndex.clear();
   }
 
   dispose(): void {
@@ -331,6 +350,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.cleanupTasks.clear();
     this.listeners.clear();
     this.patchAwareListeners.clear();
+    this.pathIndex.clear();
   }
 
   registerCleanup(task: () => void): () => void {
@@ -659,6 +679,24 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
           ErrorHandlers.store('Patch-aware listener error', { storeName: this.name });
         } catch {
           // Listener failure reporting must not abort remaining subscribers.
+        }
+      }
+    }
+
+    // Notify only path-indexed subscribers matching the transition patches
+    if (!this.isDisposed && this.pathIndex.size > 0) {
+      const affected = this.pathIndex.collectAffected(notifiedPatches);
+      for (const entry of affected) {
+        if (this.isDisposed) return;
+        if (!entry.active) continue;
+        try {
+          entry.listener();
+        } catch {
+          try {
+            ErrorHandlers.store('Path-indexed listener error', { storeName: this.name });
+          } catch {
+            // Listener failure reporting must not abort remaining subscribers.
+          }
         }
       }
     }

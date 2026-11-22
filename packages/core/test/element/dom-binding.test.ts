@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  createDismissLayer,
   createElementBinding,
   createPointerGestureSession,
   createRovingFocusController,
   createSyncActionPipeline,
   toReactPartProps,
+  type DismissReason,
 } from '../../src/element.js';
 import { createPublicFacade } from '../../src/facade/create-public-facade.js';
 
@@ -441,6 +443,113 @@ describe('framework-neutral element binding', () => {
     expect(session.isActive()).toBe(false);
     expect(target.releasePointerCapture).toHaveBeenCalledWith(3);
     expect(events).toEqual(['start:0,0', 'cancel:escape']);
+  });
+
+  it('supports virtual aria-activedescendant, null-start navigation, and label typeahead in createRovingFocusController', () => {
+    let activeId: string | null = null;
+    const roving = createRovingFocusController({
+      orientation: 'vertical',
+      loop: true,
+      typeahead: true,
+      typeaheadTimeoutMs: 500,
+      getItems: () => [
+        { id: 'new', label: 'New File' },
+        { id: 'save', label: 'Save' },
+        { id: 'share', label: 'Share' },
+        { id: 'locked', label: 'Secret', disabled: true },
+        { id: 'del', label: 'Delete' },
+      ],
+      getActiveId: () => activeId,
+      onFocusChange: nextId => {
+        activeId = nextId;
+      },
+    });
+
+    expect(roving.getActiveDescendant('opt-')).toBeUndefined();
+    expect(roving.handleKeyDown(null, { key: 'ArrowDown' })).toBe('new');
+    expect(roving.getActiveDescendant('opt-')).toBe('opt-new');
+
+    activeId = null;
+    expect(roving.handleKeyDown(null, { key: 'ArrowUp' })).toBe('del');
+    expect(roving.getActiveDescendant('opt-')).toBe('opt-del');
+
+    // Fresh 's' jumps to 'save', repeated 's' cycles to 'share' (skipping disabled 'Secret')
+    expect(roving.handleKeyDown(activeId, { key: 's' })).toBe('save');
+    expect(roving.handleKeyDown(activeId, { key: 's' })).toBe('share');
+
+    // Reset typeahead, then type multi-character prefix 'de' -> 'del'
+    roving.resetTypeahead();
+    expect(roving.handleKeyDown(activeId, { key: 'd' })).toBe('del');
+    expect(roving.handleKeyDown(activeId, { key: 'e' })).toBe('del');
+
+    // Control key combos and unmatched chars do not hijack navigation
+    expect(roving.handleKeyDown(activeId, { key: 's', ctrlKey: true })).toBeNull();
+    expect(roving.handleKeyDown(activeId, { key: 'z' })).toBeNull();
+    expect(roving.move('first')).toBe('new');
+  });
+
+  it('coordinates LIFO escape and outside-pointer dismissal across stacked createDismissLayer instances', () => {
+    const outerEl = document.createElement('div');
+    const innerInput = document.createElement('input');
+    const innerPopup = document.createElement('ul');
+    const outsideEl = document.createElement('button');
+    outerEl.append(innerInput, innerPopup);
+    document.body.append(outerEl, outsideEl);
+
+    const outerDismiss = vi.fn<(reason: DismissReason) => void>();
+    const innerDismiss = vi.fn<(reason: DismissReason) => void>();
+
+    const outer = createDismissLayer({
+      enabled: true,
+      getContainers: () => [outerEl],
+      onDismiss: reason => outerDismiss(reason),
+    });
+    const inner = createDismissLayer({
+      enabled: true,
+      getContainers: () => [innerInput, innerPopup],
+      onDismiss: reason => innerDismiss(reason),
+    });
+
+    expect(outer.active).toBe(true);
+    expect(outer.isTopMost).toBe(false);
+    expect(inner.active).toBe(true);
+    expect(inner.isTopMost).toBe(true);
+
+    // Click inside inner input -> neither layer dismisses
+    innerInput.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true }));
+    expect(innerDismiss).not.toHaveBeenCalled();
+    expect(outerDismiss).not.toHaveBeenCalled();
+
+    // Click inside outer container (outside inner) -> only top-most inner dismisses
+    outerEl.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true }));
+    expect(innerDismiss).toHaveBeenCalledTimes(1);
+    expect(innerDismiss).toHaveBeenLastCalledWith('outside-pointer');
+    expect(outerDismiss).not.toHaveBeenCalled();
+
+    // Escape while both active -> only top-most inner dismisses
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(innerDismiss).toHaveBeenCalledTimes(2);
+    expect(innerDismiss).toHaveBeenLastCalledWith('escape');
+    expect(outerDismiss).not.toHaveBeenCalled();
+
+    // Deactivate inner -> outer becomes top-most and receives next outside click + Escape
+    inner.deactivate();
+    expect(outer.isTopMost).toBe(true);
+
+    outsideEl.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true }));
+    expect(outerDismiss).toHaveBeenCalledTimes(1);
+    expect(outerDismiss).toHaveBeenLastCalledWith('outside-pointer');
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    expect(outerDismiss).toHaveBeenCalledTimes(2);
+    expect(outerDismiss).toHaveBeenLastCalledWith('escape');
+
+    inner.dispose();
+    outer.dispose();
+    outerEl.remove();
+    outsideEl.remove();
+    expect(outer.active).toBe(false);
+    expect(outer.isTopMost).toBe(false);
   });
 });
 

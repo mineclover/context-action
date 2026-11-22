@@ -94,6 +94,7 @@
           "subpath": "./element",
           "purpose": "Framework-neutral DOM binding, attribute/style reconciliation, imperative facades, SyncActionPipeline, roving focus, and pointer gesture primitives.",
           "keySymbols": [
+            "createDismissLayer",
             "createElementFacade",
             "createElementBinding",
             "createSyncActionPipeline",
@@ -607,9 +608,11 @@
             "useLocalStore",
             "useStoreInstance",
             "useControlledStoreSync",
+            "useDismissLayer",
             "useSyncActionPipeline",
             "useRovingFocus",
             "usePointerGesture",
+            "createDismissLayer",
             "ContextActionError",
             "StoreErrorBoundary"
           ]
