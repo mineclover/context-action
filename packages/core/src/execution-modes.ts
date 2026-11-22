@@ -59,6 +59,18 @@ function createSkippedOutcome<T, R>(
   };
 }
 
+function createIsolatedControllerState<T, R>(payload: T): PipelineControllerState<T, R> {
+  return {
+    payload,
+    aborted: false,
+    abortReason: undefined,
+    jumpToPriority: undefined,
+    terminated: false,
+    terminationResult: undefined,
+    results: [],
+  };
+}
+
 /** Concurrent-mode conditions are preconditions for the entire attempt.
  * Do not consume once registrations until every condition has been evaluated
  * without throwing. A false condition skips only its own registration. */
@@ -157,8 +169,8 @@ export async function executeSequential<T, R = void>(
 ): Promise<void> {
 
   let i = 0;
-  const nonBlockingPromises: Array<Promise<unknown>> = [];
-  const errors: HandlerError[] = [];
+  let nonBlockingPromises: Array<Promise<unknown>> | undefined;
+  let errors: HandlerError[] | undefined;
   
   while (i < context.handlers.length) {
     // Check for abort or termination
@@ -172,7 +184,6 @@ export async function executeSequential<T, R = void>(
       continue; // Skip if handler not found
     }
     context.currentIndex = i;
-    const controller = createController(registration, i);
 
     // A condition is part of the dispatch contract, not a best-effort handler.
     // Evaluate it outside the non-blocking handler error path so a broken
@@ -205,6 +216,7 @@ export async function executeSequential<T, R = void>(
         break;
       }
 
+      const controller = createController(registration, i);
       (context.executedHandlers ??= []).push(registration);
       const result = registration.handler(context.payload, controller);
       const asyncResult = isPromiseLike(result) ? Promise.resolve(result) : undefined;
@@ -255,7 +267,7 @@ export async function executeSequential<T, R = void>(
             .catch(error => {
               // 🆕 Non-blocking async handler error collection
               const handlerError = handleExecutionError(error, registration);
-              errors.push(handlerError);
+              (errors ??= []).push(handlerError);
               (context.collectedErrors ??= []).push(handlerError);
               finishOutcome(
                 outcome,
@@ -267,7 +279,7 @@ export async function executeSequential<T, R = void>(
               return undefined; // Return undefined for failed non-blocking handlers
             });
           
-          nonBlockingPromises.push(promiseWithErrorHandling);
+          (nonBlockingPromises ??= []).push(promiseWithErrorHandling);
         } else if (
           publishesResults(registration.role) &&
           result !== undefined &&
@@ -328,7 +340,7 @@ export async function executeSequential<T, R = void>(
       // 🔧 Fix: Handle errors gracefully and continue pipeline execution
       const handlerError = handleExecutionError(error, registration);
       finishOutcome(outcome, startedAt, 'failed', undefined, handlerError.error);
-      errors.push(handlerError);
+      (errors ??= []).push(handlerError);
       (context.collectedErrors ??= []).push(handlerError);
 
       // Fatal errors terminate the pipeline; collected errors let it continue.
@@ -342,18 +354,17 @@ export async function executeSequential<T, R = void>(
   }
   
   // 🆕 Wait for all non-blocking promises with error collection
-  if (nonBlockingPromises.length > 0) {
+  if (nonBlockingPromises && nonBlockingPromises.length > 0) {
     await Promise.allSettled(nonBlockingPromises);
   }
 
-  if (errors.length > 0) {
+  if (errors && errors.length > 0) {
     context.collectedErrors = errors;
+    // A fatal handler may already have allowed lower-priority work to start,
+    // but it must still reject the final dispatch once that work has settled.
+    const fatalError = errors.find(error => error.severity === 'blocking');
+    if (fatalError) throw fatalError.error;
   }
-
-  // A fatal handler may already have allowed lower-priority work to start,
-  // but it must still reject the final dispatch once that work has settled.
-  const fatalError = errors.find(error => error.severity === 'blocking');
-  if (fatalError) throw fatalError.error;
 }
 
 /**
@@ -399,15 +410,7 @@ export async function executeParallel<T, R = void>(
 
   /** Create promises for all handlers */
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
-    const state: PipelineControllerState<T, R> = {
-      payload: context.payload,
-      aborted: false,
-      abortReason: undefined,
-      jumpToPriority: undefined,
-      terminated: false,
-      terminationResult: undefined,
-      results: [],
-    };
+    const state = createIsolatedControllerState<T, R>(context.payload);
     const controller = createController(registration, _index, state);
     const outcome = beginOutcome(registration);
     const startedAt = Date.now();
@@ -476,7 +479,9 @@ export async function executeParallel<T, R = void>(
   // Completion timing is intentionally concurrent, but collected result
   // order follows the priority-sorted handler order. This makes first/last/
   // all strategies deterministic across runs.
-  context.results.push(...resultSlots.flat());
+  for (const slot of resultSlots) {
+    if (slot.length > 0) context.results.push(...slot);
+  }
   
   /** Check for any rejected blocking handlers */
   const failures = results.filter((result, index) => {
@@ -540,15 +545,7 @@ export async function executeRace<T, R = void>(
 
   /** Create promises for all handlers */
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
-    const state: PipelineControllerState<T, R> = {
-      payload: context.payload,
-      aborted: false,
-      abortReason: undefined,
-      jumpToPriority: undefined,
-      terminated: false,
-      terminationResult: undefined,
-      results: [],
-    };
+    const state = createIsolatedControllerState<T, R>(context.payload);
     const controller = createController(registration, _index, state);
     const outcome = beginOutcome(registration);
     const startedAt = Date.now();
