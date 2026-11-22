@@ -260,4 +260,411 @@ describe('ActionRegister dispatch optimization & compiled pipeline cache', () =>
     expect(completedAsync).toBe(true);
     expect(unmountedRan).toBe(true);
   });
+
+  it('resolves cooperative AbortError on mid-dispatch destroyAsync() without invoking errorHandler', async () => {
+    const errorHandler = jest.fn();
+    const cleanup = jest.fn();
+    const register = new ActionRegister<OptActions>({
+      name: 'FastDestroyAbortError',
+      registry: { errorHandler },
+    });
+
+    let startedResolve!: () => void;
+    const started = new Promise<void>(resolve => {
+      startedResolve = resolve;
+    });
+
+    register.register(
+      'ping',
+      (_payload, controller) =>
+        new Promise<void>((_resolve, reject) => {
+          const onAbort = () => {
+            const abortError = Object.assign(new Error('Aborted'), { name: 'AbortError' });
+            reject(abortError);
+          };
+          if (controller.signal?.aborted) {
+            onAbort();
+            return;
+          }
+          controller.signal?.addEventListener('abort', onAbort, { once: true });
+          startedResolve();
+        }),
+      { blocking: true, scheduling: 'await-before-next', cleanup },
+    );
+
+    const inflight = register.dispatch('ping');
+    await started;
+    const shutdown = register.destroyAsync();
+
+    await expect(inflight).resolves.toBeUndefined();
+    await shutdown;
+    expect(errorHandler).not.toHaveBeenCalled();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it('matches slow-path cancellation when controller.abort() is followed by throw or rejection', async () => {
+    const createRegister = (mode: 'sync' | 'await' | 'bg', errorHandler: jest.Mock) => {
+      const register = new ActionRegister<OptActions>({
+        name: `FastAbortParity-${mode}`,
+        registry: { errorHandler },
+      });
+
+      if (mode === 'sync') {
+        register.register(
+          'ping',
+          (_payload, controller) => {
+            controller.abort('stop-sync');
+            throw new Error('after-abort-sync');
+          },
+          { blocking: true },
+        );
+      } else if (mode === 'await') {
+        register.register(
+          'ping',
+          async (_payload, controller) => {
+            controller.abort('stop-await');
+            await Promise.resolve();
+            throw new Error('after-abort-await');
+          },
+          { blocking: true, scheduling: 'await-before-next' },
+        );
+      } else {
+        register.register(
+          'ping',
+          async (_payload, controller) => {
+            controller.abort('stop-bg');
+            await Promise.resolve();
+            throw new Error('after-abort-bg');
+          },
+          { blocking: true, scheduling: 'start-and-continue' },
+        );
+      }
+
+      return register;
+    };
+
+    for (const mode of ['sync', 'await', 'bg'] as const) {
+      const fastErrors = jest.fn();
+      const slowErrors = jest.fn();
+      const fastReg = createRegister(mode, fastErrors);
+      const slowReg = createRegister(mode, slowErrors);
+
+      await expect(fastReg.dispatch('ping')).resolves.toBeUndefined();
+      const slowResult = await slowReg.dispatchWithResult('ping', undefined, {});
+      expect(slowResult.aborted).toBe(true);
+      expect(slowResult.outcome).toBe('cancelled');
+      await expect(slowReg.dispatch('ping', undefined, {})).resolves.toBeUndefined();
+
+      expect(fastErrors).not.toHaveBeenCalled();
+      expect(slowErrors).not.toHaveBeenCalled();
+      await Promise.all([fastReg.destroyAsync(), slowReg.destroyAsync()]);
+    }
+  });
+
+  it('normalizes non-Error condition throws and passes original dispatch payload to errorHandler', async () => {
+    const fastErrors: Array<{ isError: boolean; message: string; payload: unknown }> = [];
+    const slowErrors: Array<{ isError: boolean; message: string; payload: unknown }> = [];
+
+    const setupNonErrorCondition = (
+      targetErrors: Array<{ isError: boolean; message: string; payload: unknown }>,
+    ) => {
+      const reg = new ActionRegister<OptActions>({
+        name: 'NonErrorCondition',
+        registry: {
+          errorHandler: (error, context) => {
+            targetErrors.push({
+              isError: error instanceof Error,
+              message: error.message,
+              payload: (context as { payload?: unknown } | undefined)?.payload,
+            });
+          },
+        },
+      });
+      reg.register('compute', () => undefined, {
+        condition: () => {
+          throw 'bad-condition';
+        },
+      });
+      return reg;
+    };
+
+    const fastCondReg = setupNonErrorCondition(fastErrors);
+    const slowCondReg = setupNonErrorCondition(slowErrors);
+
+    await expect(fastCondReg.dispatch('compute', { value: 42 })).rejects.toThrow('bad-condition');
+    await expect(slowCondReg.dispatch('compute', { value: 42 }, {})).rejects.toThrow('bad-condition');
+    expect(fastErrors).toEqual([{ isError: true, message: 'bad-condition', payload: { value: 42 } }]);
+    expect(fastErrors).toEqual(slowErrors);
+
+    const fastMutationErrors: Array<{ message: string; payload: unknown }> = [];
+    const slowMutationErrors: Array<{ message: string; payload: unknown }> = [];
+
+    const setupModifiedPayloadError = (
+      targetErrors: Array<{ message: string; payload: unknown }>,
+    ) => {
+      const reg = new ActionRegister<OptActions>({
+        name: 'OriginalPayloadError',
+        registry: {
+          errorHandler: (error, context) => {
+            targetErrors.push({
+              message: error.message,
+              payload: (context as { payload?: unknown } | undefined)?.payload,
+            });
+          },
+        },
+      });
+      reg.register(
+        'compute',
+        (_payload, controller) => {
+          controller.modifyPayload(prev => ({ ...prev, value: prev.value + 100 }));
+        },
+        { priority: 20 },
+      );
+      reg.register(
+        'compute',
+        () => {
+          throw new Error('fatal-after-modify');
+        },
+        { priority: 10, blocking: true },
+      );
+      return reg;
+    };
+
+    const fastMutReg = setupModifiedPayloadError(fastMutationErrors);
+    const slowMutReg = setupModifiedPayloadError(slowMutationErrors);
+
+    await expect(fastMutReg.dispatch('compute', { value: 7 })).rejects.toThrow('fatal-after-modify');
+    await expect(slowMutReg.dispatch('compute', { value: 7 }, {})).rejects.toThrow('fatal-after-modify');
+
+    expect(fastMutationErrors).toEqual([
+      { message: 'fatal-after-modify', payload: { value: 7 } },
+    ]);
+    expect(fastMutationErrors).toEqual(slowMutationErrors);
+
+    await Promise.all([
+      fastCondReg.destroyAsync(),
+      slowCondReg.destroyAsync(),
+      fastMutReg.destroyAsync(),
+      slowMutReg.destroyAsync(),
+    ]);
+  });
+
+  it('catches handlers returning objects with throwing .then getters according to errorPolicy', async () => {
+    const errorHandler = jest.fn();
+    const regNonFatal = new ActionRegister<OptActions>({
+      name: 'ThrowingThenableNonFatal',
+      registry: { errorHandler },
+    });
+    const ran: string[] = [];
+    const throwingThenable = Object.defineProperty({}, 'then', {
+      get() {
+        throw new Error('broken-thenable');
+      },
+    });
+
+    regNonFatal.register('ping', () => throwingThenable as Promise<void>, {
+      priority: 20,
+      blocking: false,
+    });
+    regNonFatal.register(
+      'ping',
+      () => {
+        ran.push('continued');
+      },
+      { priority: 10 },
+    );
+
+    const nonFatalPromise = regNonFatal.dispatch('ping');
+    await expect(nonFatalPromise).resolves.toBeUndefined();
+    expect(ran).toEqual(['continued']);
+    expect(errorHandler).not.toHaveBeenCalled();
+
+    const regFatal = new ActionRegister<OptActions>({
+      name: 'ThrowingThenableFatal',
+      registry: { errorHandler },
+    });
+    regFatal.register('ping', () => throwingThenable as Promise<void>, { blocking: true });
+
+    let fatalPromise!: Promise<void>;
+    expect(() => {
+      fatalPromise = regFatal.dispatch('ping');
+    }).not.toThrow();
+    await expect(fatalPromise).rejects.toThrow('broken-thenable');
+    expect(errorHandler).toHaveBeenCalledTimes(1);
+    expect(errorHandler.mock.calls[0]?.[0]).toMatchObject({ message: 'broken-thenable' });
+
+    await Promise.all([regNonFatal.destroyAsync(), regFatal.destroyAsync()]);
+  });
+
+  it('maintains full differential parity between default fast path and explicit slow path across complex pipelines', async () => {
+    interface ParityActions extends ActionPayloadMap {
+      pipeline: { value: number };
+      control: { step: number };
+      aborted: void;
+      fatal: { tag: string };
+    }
+
+    type ErrorRecord = { message: string; payload: unknown; phase: string };
+
+    const runSuite = async (useSlowPath: boolean) => {
+      const log: string[] = [];
+      const errors: ErrorRecord[] = [];
+      const register = new ActionRegister<ParityActions>({
+        name: useSlowPath ? 'SlowParity' : 'FastParity',
+        registry: {
+          maxJumps: 1,
+          errorHandler: (error, context) => {
+            errors.push({
+              message: error.message,
+              payload: (context as { payload?: unknown } | undefined)?.payload,
+              phase: String((context as { phase?: string } | undefined)?.phase ?? ''),
+            });
+          },
+        },
+      });
+
+      const send = <K extends keyof ParityActions>(
+        action: K,
+        ...payloadArg: ParityActions[K] extends void ? [] : [ParityActions[K]]
+      ) => {
+        if (payloadArg.length === 0) {
+          return useSlowPath
+            ? (register.dispatch as (a: K, p?: undefined, o?: Record<string, never>) => Promise<void>)(action, undefined, {})
+            : (register.dispatch as (a: K) => Promise<void>)(action);
+        }
+        return useSlowPath
+          ? register.dispatch(action, payloadArg[0] as never, {})
+          : register.dispatch(action, payloadArg[0] as never);
+      };
+
+      // 1. Mixed pipeline: command + modifyPayload + condition false + start-and-continue + await-before-next + soft fail
+      register.registerCommand(
+        'pipeline',
+        (payload, controller) => {
+          log.push(`cmd:${payload.value}:${'setResult' in controller}`);
+        },
+        { priority: 50 },
+      );
+      register.register(
+        'pipeline',
+        (payload, controller) => {
+          log.push(`mod:${payload.value}`);
+          controller.modifyPayload(prev => ({ value: prev.value + 10 }));
+        },
+        { priority: 40 },
+      );
+      register.register(
+        'pipeline',
+        () => {
+          log.push('skipped-cond');
+        },
+        { priority: 35, condition: () => false },
+      );
+      register.register(
+        'pipeline',
+        async payload => {
+          await new Promise(resolve => setTimeout(resolve, 12));
+          log.push(`bg:${payload.value}`);
+        },
+        { priority: 30, scheduling: 'start-and-continue', blocking: false },
+      );
+      register.register(
+        'pipeline',
+        () => {
+          log.push('soft-throw');
+          throw new Error('soft');
+        },
+        { priority: 25, blocking: false },
+      );
+      register.register(
+        'pipeline',
+        async payload => {
+          await new Promise(resolve => setTimeout(resolve, 5));
+          log.push(`await:${payload.value}`);
+        },
+        { priority: 20, scheduling: 'await-before-next' },
+      );
+
+      // 2. Return & jumpToPriority bounds
+      let jumpCounter = 0;
+      register.register(
+        'control',
+        (payload, controller) => {
+          log.push(`ctrl-top:${payload.step}`);
+          if (payload.step < 0) controller.return(undefined);
+        },
+        { priority: 30 },
+      );
+      register.register(
+        'control',
+        () => {
+          jumpCounter += 1;
+          log.push(`ctrl-jump:${jumpCounter}`);
+        },
+        { priority: 20 },
+      );
+      register.register(
+        'control',
+        (_payload, controller) => {
+          log.push('ctrl-requester');
+          controller.jumpToPriority(20);
+        },
+        { priority: 10 },
+      );
+      register.register(
+        'control',
+        () => {
+          log.push('ctrl-tail-never');
+        },
+        { priority: 5 },
+      );
+
+      // 3. Aborted fatal throw
+      register.register(
+        'aborted',
+        (_payload, controller) => {
+          log.push('abort-call');
+          controller.abort('done');
+          throw new Error('post-abort');
+        },
+        { blocking: true },
+      );
+
+      // 4. Modified payload + fatal error
+      register.register(
+        'fatal',
+        (_payload, controller) => {
+          controller.modifyPayload(prev => ({ tag: `${prev.tag}-mutated` }));
+        },
+        { priority: 20 },
+      );
+      register.register(
+        'fatal',
+        payload => {
+          log.push(`fatal:${payload.tag}`);
+          throw new Error('fatal-boom');
+        },
+        { priority: 10, blocking: true },
+      );
+
+      await send('pipeline', { value: 5 });
+      await send('control', { step: 1 });
+      await send('control', { step: -1 });
+      await send('aborted');
+
+      let caughtFatal = '';
+      try {
+        await send('fatal', { tag: 'orig' });
+      } catch (err) {
+        caughtFatal = err instanceof Error ? err.message : String(err);
+      }
+
+      await register.destroyAsync();
+      return { log, errors, caughtFatal };
+    };
+
+    const [fastOutcome, slowOutcome] = await Promise.all([runSuite(false), runSuite(true)]);
+    expect(fastOutcome.caughtFatal).toBe('fatal-boom');
+    expect(fastOutcome).toEqual(slowOutcome);
+  });
 });

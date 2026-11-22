@@ -129,6 +129,9 @@ type MutableControllerState<TPayload> = {
 
 const NOOP = () => {};
 const RESOLVED_VOID_PROMISE: Promise<void> = Promise.resolve();
+const FAST_STEP_OK = Object.freeze({});
+const FAST_STEP_SKIPPED = Object.freeze({ skipped: true as const });
+const FAST_STEP_ABORTED = Object.freeze({ aborted: true as const });
 const EMPTY_COMPILED_PIPELINE: CompiledActionPipeline = Object.freeze({
   snapshot: Object.freeze([]),
   guards: Object.freeze([]),
@@ -1177,39 +1180,53 @@ export class ActionRegister<
 
   private invokeFastSyncStep<K extends keyof T>(
     action: K,
+    originalPayload: T[K],
     registration: HandlerRegistration<any, any>,
     state: FastSequentialState<T[K]>,
     lifecycleSignal: AbortSignal,
-  ): { skipped?: true; failed?: Error; pending?: Promise<unknown> } {
+  ): {
+    readonly aborted?: true;
+    readonly skipped?: true;
+    readonly failed?: Error;
+    readonly pending?: Promise<unknown>;
+  } {
     if (registration.config.condition) {
       try {
         if (!registration.config.condition(state.payload)) {
-          return { skipped: true };
+          return FAST_STEP_SKIPPED;
         }
       } catch (conditionError) {
-        this.invokeErrorHandler(conditionError, action, state.payload, undefined, 1);
-        throw conditionError;
+        if (state.aborted || lifecycleSignal.aborted) {
+          return FAST_STEP_ABORTED;
+        }
+        const normalized = conditionError instanceof Error
+          ? conditionError
+          : new Error(String(conditionError));
+        this.invokeErrorHandler(normalized, action, originalPayload, undefined, 1);
+        return { failed: normalized };
       }
     }
     const controller = this.createRoleController(registration.role, state, lifecycleSignal);
-    let rawResult: unknown;
     try {
-      rawResult = registration.handler(state.payload, controller);
+      const rawResult = registration.handler(state.payload, controller);
+      if (isPromiseLike(rawResult)) {
+        return { pending: Promise.resolve(rawResult) };
+      }
+      if (publishesRoleResults(registration.role) && rawResult !== undefined && !state.terminated) {
+        (state.results ??= []).push(rawResult);
+      }
+      return FAST_STEP_OK;
     } catch (thrown) {
+      if (state.aborted || lifecycleSignal.aborted) {
+        return FAST_STEP_ABORTED;
+      }
       const normalized = thrown instanceof Error ? thrown : new Error(String(thrown));
       if (registration.config.errorPolicy === 'fatal') {
-        this.invokeErrorHandler(normalized, action, state.payload, undefined, 1);
+        this.invokeErrorHandler(normalized, action, originalPayload, undefined, 1);
         return { failed: normalized };
       }
-      return { skipped: true };
+      return FAST_STEP_SKIPPED;
     }
-    if (isPromiseLike(rawResult)) {
-      return { pending: Promise.resolve(rawResult) };
-    }
-    if (publishesRoleResults(registration.role) && rawResult !== undefined && !state.terminated) {
-      (state.results ??= []).push(rawResult);
-    }
-    return {};
   }
 
   private advanceFastSequentialIndex(
@@ -1262,11 +1279,9 @@ export class ActionRegister<
           break;
         }
         const registration = handlers[i]!;
-        let step: { skipped?: true; failed?: Error; pending?: Promise<unknown> };
-        try {
-          step = this.invokeFastSyncStep(action, registration, state, lifecycleSignal);
-        } catch (conditionError) {
-          return this.createObservedRejection(conditionError);
+        const step = this.invokeFastSyncStep(action, payload, registration, state, lifecycleSignal);
+        if (step.aborted) {
+          break;
         }
         if (step.failed) {
           return this.createObservedRejection(step.failed);
@@ -1274,6 +1289,7 @@ export class ActionRegister<
         if (step.pending) {
           const promise = this.continueFastSequentialAsync(
             action,
+            payload,
             handlers,
             i,
             registration,
@@ -1301,6 +1317,7 @@ export class ActionRegister<
 
   private async continueFastSequentialAsync<K extends keyof T>(
     action: K,
+    originalPayload: T[K],
     handlers: readonly HandlerRegistration<any, any>[],
     startIndex: number,
     firstRegistration: HandlerRegistration<any, any>,
@@ -1328,7 +1345,16 @@ export class ActionRegister<
           break;
         }
         registration = handlers[i]!;
-        const step = this.invokeFastSyncStep(action, registration, state, lifecycleSignal);
+        const step = this.invokeFastSyncStep(
+          action,
+          originalPayload,
+          registration,
+          state,
+          lifecycleSignal,
+        );
+        if (step.aborted) {
+          break;
+        }
         if (step.failed) throw step.failed;
         if (step.skipped) {
           i++;
@@ -1351,9 +1377,12 @@ export class ActionRegister<
               (state.results ??= []).push(resolved);
             }
           } catch (thrown) {
+            if (state.aborted || lifecycleSignal.aborted) {
+              break;
+            }
             const normalized = thrown instanceof Error ? thrown : new Error(String(thrown));
             if (currentReg.config.errorPolicy === 'fatal') {
-              this.invokeErrorHandler(normalized, action, state.payload, undefined, 1);
+              this.invokeErrorHandler(normalized, action, originalPayload, undefined, 1);
               throw normalized;
             }
           }
@@ -1384,8 +1413,8 @@ export class ActionRegister<
     if (nonBlockingPromises && nonBlockingPromises.length > 0) {
       await Promise.allSettled(nonBlockingPromises);
     }
-    if (fatalError) {
-      this.invokeErrorHandler(fatalError, action, state.payload, undefined, 1);
+    if (fatalError && !state.aborted && !lifecycleSignal.aborted) {
+      this.invokeErrorHandler(fatalError, action, originalPayload, undefined, 1);
       throw fatalError;
     }
   }
