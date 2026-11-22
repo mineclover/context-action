@@ -124,6 +124,9 @@ const packages = [
     directory: 'packages/react',
     imports: [
       { specifier: '@context-action/react', exports: ['createActionContext'] },
+      { specifier: '@context-action/react/refs', exports: ['createRefContext'] },
+      { specifier: '@context-action/react/time-travel', exports: ['createTimeTravelStore', 'createTimeTravelStoreContext'] },
+      { specifier: '@context-action/react/transactions', exports: ['StoreTransactionCoordinator', 'bindActionTransactions'] },
       { specifier: '@context-action/react/backend', exports: ['createBackendStore'] },
       { specifier: '@context-action/react/advanced', exports: ['StoreRegistry'] },
       { specifier: '@context-action/react/utils', exports: ['deepClone'] },
@@ -461,16 +464,25 @@ type _CheckActor = ActorRefLike<{ type: 'PING' }>;
   if (names.has('@context-action/react')) {
     statements.push(`
 import { createActionContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
+import { StoreTransactionCoordinator } from '@context-action/react/transactions';
 import { createBackendStore, type BackendStoreOptions } from '@context-action/react/backend';
 import type { StateBackend as ReactStateBackend } from '@context-action/store-core';
 import { StoreRegistry } from '@context-action/react/advanced';
 import { deepClone } from '@context-action/react/utils';
 import { useWebMCPToolScope } from '@context-action/react/webmcp';
 const actions = createActionContext('consumer-check');
+const refs = createRefContext('consumer-refs');
+const timeline = createTimeTravelStore('consumer-timeline', { count: 0 });
+const coordinator = new StoreTransactionCoordinator();
 const reactBackend = {} as ReactStateBackend<number>;
 const backendStore = createBackendStore('consumer-check', reactBackend);
 const backendOptions = {} as BackendStoreOptions;
 void actions;
+void refs;
+void timeline;
+void coordinator;
 void backendStore;
 void backendOptions;
 void StoreRegistry;
