@@ -338,15 +338,15 @@ describe('createStoreContext usage examples', () => {
       } = createStoreContext('Config', {
         theme: {
           initialValue: { mode: 'light', accent: 'blue' },
-          compareStrategy: 'deep'
+          strategy: 'deep'
         },
         user: {
           initialValue: { id: 1, name: 'Test User' },
-          compareStrategy: 'reference'
+          strategy: 'reference'
         },
         cache: {
           initialValue: new Map(),
-          compareStrategy: 'reference'
+          strategy: 'reference'
         }
       });
 

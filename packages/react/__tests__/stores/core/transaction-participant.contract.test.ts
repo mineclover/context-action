@@ -1,6 +1,11 @@
 import { ActionRegister } from '@context-action/core';
-import { bindActionTransactions, createTimeTravelStore, StoreTransactionCoordinator } from '@context-action/react';
-import type { StoreReader, StoreTransactionParticipant, StoreWriter } from '@context-action/react';
+import type { StoreReader, StoreWriter } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
+import {
+  bindActionTransactions,
+  StoreTransactionCoordinator,
+  type StoreTransactionParticipant,
+} from '@context-action/react/transactions';
 import type {
   StateBackend,
   ReadonlyStateSnapshot,
@@ -99,8 +104,7 @@ function compatibilityTypes(
   const strictReader: StateReader<number> = legacy;
   // @ts-expect-error Read-only participants are not state-owning backends.
   const owner: StateBackend<number> = participant;
-  // @ts-expect-error Legacy convenience participant still includes undo/redo.
-  const legacyParticipant: StoreTransactionParticipant<number> = { name: 'minimal', store: participant };
-  void [optionalVersion, strictSnapshot, strictReader, owner, legacyParticipant];
+  const participantEntry: StoreTransactionParticipant<number> = { name: 'minimal', store: participant };
+  void [optionalVersion, strictSnapshot, strictReader, owner, participantEntry];
 }
 void compatibilityTypes;

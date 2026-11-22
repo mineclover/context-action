@@ -26,8 +26,8 @@ export type StoreNotificationMode = 'batched' | 'immediate';
 export interface StoreOptions {
   /**
    * Listener notification scheduling mode.
-   * - `'batched'` (default): coalesces rapid updates into the next animation frame.
-   * - `'immediate'`: notifies subscribers synchronously on each change.
+   * - `'immediate'` (default): notifies subscribers synchronously on each change.
+   * - `'batched'`: coalesces rapid updates into the next animation frame.
    */
   notificationMode?: StoreNotificationMode;
 }
@@ -121,7 +121,7 @@ export class Store<T = unknown> implements IStore<T> {
   private updateQueue: Array<() => void> = [];
   
   // Notification mode settings
-  private notificationMode: StoreNotificationMode = 'batched';
+  private notificationMode: StoreNotificationMode = 'immediate';
   private pendingNotification = false;
   
   // 🚀 requestAnimationFrame 기반 알림 시스템
@@ -157,7 +157,7 @@ export class Store<T = unknown> implements IStore<T> {
   constructor(name: string, initialValue: T, options?: StoreOptions) {
     Object.defineProperty(this, STORE_BRAND, { value: true });
     this.name = name;
-    this.notificationMode = options?.notificationMode ?? 'batched';
+    this.notificationMode = options?.notificationMode ?? 'immediate';
     // Own the initial value just like values passed through setValue. Keeping
     // the caller's object here would let external mutation diverge from the
     // immutable snapshot created below without a store notification.

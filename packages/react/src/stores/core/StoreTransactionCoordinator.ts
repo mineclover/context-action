@@ -7,7 +7,7 @@ import type {
   TransactionParticipant,
   TransactionParticipantBackend,
 } from '@context-action/store-core';
-import type { HistoryEntryId, StateMutationMeta, TransactionBackend } from './contracts';
+import type { HistoryEntryId, StateMutationMeta } from './contracts';
 type TimeTravelTransitionMeta = StateMutationMeta;
 
 const activeTransactionStores = new WeakSet<TransactionParticipantBackend>();
@@ -15,10 +15,7 @@ const activeTransactionStores = new WeakSet<TransactionParticipantBackend>();
 export interface StoreTransactionMeta extends TransactionMeta {}
 export type StoreTransactionOptions = TransactionOptions;
 
-export interface StoreTransactionParticipant<T = unknown> extends TransactionParticipant<T> {
-  /** Retain the legacy convenience surface for existing React callers. */
-  readonly store: TransactionBackend<T>;
-}
+export interface StoreTransactionParticipant<T = unknown> extends TransactionParticipant<T> {}
 
 export interface StoreTransactionRecord {
   readonly meta: StoreTransactionMeta;

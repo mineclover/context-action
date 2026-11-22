@@ -38,10 +38,16 @@ describe('Main index.ts exports', () => {
     });
   });
 
-  describe('Ref System exports', () => {
-    it('should export createRefContext', () => {
-      expect(mainExports.createRefContext).toBeDefined();
-      expect(typeof mainExports.createRefContext).toBe('function');
+  describe('Phase 2 (v5) subpath separation', () => {
+    it('keeps specialized refs, time-travel, and transaction exports off root index', () => {
+      const exports = mainExports as Record<string, unknown>;
+
+      expect(exports.createRefContext).toBeUndefined();
+      expect(exports.createTimeTravelStore).toBeUndefined();
+      expect(exports.createTimeTravelStoreContext).toBeUndefined();
+      expect(exports.TimeTravelStore).toBeUndefined();
+      expect(exports.StoreTransactionCoordinator).toBeUndefined();
+      expect(exports.bindActionTransactions).toBeUndefined();
     });
   });
 
@@ -80,7 +86,6 @@ describe('Main index.ts exports', () => {
         'StoreErrorBoundary',
         'createStoreContext',
         'StoreManager',
-        'createRefContext',
         'ActionRegister'
       ];
 

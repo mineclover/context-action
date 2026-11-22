@@ -18,7 +18,7 @@ describe('ActionContext - Extended Coverage', () => {
   describe('dispatchWithResult', () => {
     it('should dispatch action and return result', async () => {
       const TestComponent = () => {
-        const { dispatchWithResult } = TestActionContext.useActionDispatchWithResult();
+        const { dispatchWithResult } = TestActionContext.useActionScope();
         const [result, setResult] = React.useState<any>(null);
 
         React.useEffect(() => {
@@ -51,7 +51,7 @@ describe('ActionContext - Extended Coverage', () => {
       const abortController = new AbortController();
 
       const { result } = renderHook(
-        () => TestActionContext.useActionDispatchWithResult(),
+        () => TestActionContext.useActionScope(),
         {
           wrapper: ({ children }) => (
             <TestActionContext.Provider>{children}</TestActionContext.Provider>
@@ -77,7 +77,7 @@ describe('ActionContext - Extended Coverage', () => {
 
     it('should handle void actions with dispatchWithResult', async () => {
       const { result } = renderHook(
-        () => TestActionContext.useActionDispatchWithResult(),
+        () => TestActionContext.useActionScope(),
         {
           wrapper: ({ children }) => (
             <TestActionContext.Provider>{children}</TestActionContext.Provider>
@@ -94,7 +94,7 @@ describe('ActionContext - Extended Coverage', () => {
 
       const TestComponent = () => {
         // This will throw when used without provider
-        const hook = UnprovidedContext.useActionDispatchWithResult();
+        const hook = UnprovidedContext.useActionScope();
         return <div>Should not render</div>;
       };
 

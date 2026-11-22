@@ -7,33 +7,25 @@ import {
   createMutativeTimelineBackend,
 } from '@context-action/mutative';
 import {
-  bindActionTransactions,
   createActionContext,
-  createRefContext,
   createStoreContext,
-  createTimeTravelStore,
-  createTimeTravelStoreContext,
-  StoreTransactionCoordinator,
   useStorePath,
   useStoreSelector,
-  useStoreTransactionInspector,
   useStoreValue,
+} from '@context-action/react';
+import * as rootReactExports from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
+import {
+  createTimeTravelStore,
+  createTimeTravelStoreContext,
   useTimeTravelControls,
   useTimeTravelPath,
   useTimeTravelSelector,
-} from '@context-action/react';
-import { createRefContext as createRefContextSubpath } from '@context-action/react/refs';
-import {
-  createTimeTravelStore as createTimeTravelStoreSubpath,
-  createTimeTravelStoreContext as createTimeTravelStoreContextSubpath,
-  useTimeTravelControls as useTimeTravelControlsSubpath,
-  useTimeTravelPath as useTimeTravelPathSubpath,
-  useTimeTravelSelector as useTimeTravelSelectorSubpath,
 } from '@context-action/react/time-travel';
 import {
-  bindActionTransactions as bindActionTransactionsSubpath,
-  StoreTransactionCoordinator as StoreTransactionCoordinatorSubpath,
-  useStoreTransactionInspector as useStoreTransactionInspectorSubpath,
+  bindActionTransactions,
+  StoreTransactionCoordinator,
+  useStoreTransactionInspector,
 } from '@context-action/react/transactions';
 
 describe('CA-VNEXT-ARCHITECTURE-001 Phase 1 Alignment', () => {
@@ -425,17 +417,28 @@ describe('CA-VNEXT-ARCHITECTURE-001 Phase 1 Alignment', () => {
     });
   });
 
-  describe('M4a: Opt-in subpath runtime identity parity', () => {
-    it('exports identical runtime symbols on ./refs, ./time-travel, and ./transactions', () => {
-      expect(createRefContextSubpath).toBe(createRefContext);
-      expect(createTimeTravelStoreSubpath).toBe(createTimeTravelStore);
-      expect(createTimeTravelStoreContextSubpath).toBe(createTimeTravelStoreContext);
-      expect(useTimeTravelControlsSubpath).toBe(useTimeTravelControls);
-      expect(useTimeTravelPathSubpath).toBe(useTimeTravelPath);
-      expect(useTimeTravelSelectorSubpath).toBe(useTimeTravelSelector);
-      expect(StoreTransactionCoordinatorSubpath).toBe(StoreTransactionCoordinator);
-      expect(bindActionTransactionsSubpath).toBe(bindActionTransactions);
-      expect(useStoreTransactionInspectorSubpath).toBe(useStoreTransactionInspector);
+  describe('Phase 2 (v5): Subpath entrypoint isolation', () => {
+    it('exports dedicated helpers on ./refs, ./time-travel, and ./transactions while removing them from root', () => {
+      const root = rootReactExports as Record<string, unknown>;
+      expect(typeof createRefContext).toBe('function');
+      expect(typeof createTimeTravelStore).toBe('function');
+      expect(typeof createTimeTravelStoreContext).toBe('function');
+      expect(typeof useTimeTravelControls).toBe('function');
+      expect(typeof useTimeTravelPath).toBe('function');
+      expect(typeof useTimeTravelSelector).toBe('function');
+      expect(typeof StoreTransactionCoordinator).toBe('function');
+      expect(typeof bindActionTransactions).toBe('function');
+      expect(typeof useStoreTransactionInspector).toBe('function');
+
+      expect(root.createRefContext).toBeUndefined();
+      expect(root.createTimeTravelStore).toBeUndefined();
+      expect(root.createTimeTravelStoreContext).toBeUndefined();
+      expect(root.useTimeTravelControls).toBeUndefined();
+      expect(root.useTimeTravelPath).toBeUndefined();
+      expect(root.useTimeTravelSelector).toBeUndefined();
+      expect(root.StoreTransactionCoordinator).toBeUndefined();
+      expect(root.bindActionTransactions).toBeUndefined();
+      expect(root.useStoreTransactionInspector).toBeUndefined();
     });
   });
 });

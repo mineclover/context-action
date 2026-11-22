@@ -9,12 +9,14 @@ import {
   useStoreSelector,
   useStoreSelectorWithPaths,
   useStoreValue,
+  type StorePathPatch,
+} from '@context-action/react';
+import {
   useTimeTravelControls,
   useTimeTravelPath,
   useTimeTravelSelector,
-} from '@context-action/react';
+} from '@context-action/react/time-travel';
 import { useStoreValues } from '../../../src/stores/hooks/useStoreValue';
-import type { StorePathPatch } from '@context-action/react';
 
 function createMinimalReader<T>(name: string, initialValue: T) {
   let version = 0;

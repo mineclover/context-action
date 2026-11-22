@@ -37,7 +37,7 @@ describe('createActionContext', () => {
 
   it('propagates action result maps through React hooks', () => {
     const MappedContext = createActionContext<UserActions, UserActionResults>('MappedActions');
-    const resultApi = MappedContext.useActionDispatchWithResult;
+    const resultApi = MappedContext.useActionScope;
 
     function ResultTypeComponent() {
       MappedContext.useActionHandler('login', async payload => ({
@@ -56,36 +56,36 @@ describe('createActionContext', () => {
     expect(ResultTypeComponent).toBeDefined();
   });
 
-  it('supports effect-only React handlers for mapped result actions', () => {
-    const MappedContext = createActionContext<UserActions, UserActionResults>('MappedEffects');
+  it('supports observer-only React handlers for mapped result actions', () => {
+    const MappedContext = createActionContext<UserActions, UserActionResults>('MappedObservers');
 
-    function EffectComponent() {
-      MappedContext.useActionEffectHandler('login', payload => {
-        expect(payload.username).toBe('user');
-      }, { effectKind: 'observer' });
+    function ObserverComponent() {
+      MappedContext.useActionObserver('login', event => {
+        expect(event.payload.username).toBe('user');
+      });
       MappedContext.useActionResultHandler('login', payload => ({
         sessionId: payload.username,
       }));
       return null;
     }
 
-    expect(EffectComponent).toBeDefined();
+    expect(ObserverComponent).toBeDefined();
   });
 
-  it('does not collect values returned by React effect handlers', async () => {
-    const MappedContext = createActionContext<UserActions, UserActionResults>('MappedEffectRuntime');
+  it('does not collect values returned by React observer handlers', async () => {
+    const MappedContext = createActionContext<UserActions, UserActionResults>('MappedObserverRuntime');
     const Wrapper = ({ children }: { children: React.ReactNode }) => (
       <MappedContext.Provider>{children}</MappedContext.Provider>
     );
 
     const { result } = renderHook(() => {
-      MappedContext.useActionEffectHandler('login', () => {
+      MappedContext.useActionObserver('login', () => {
         void 'audit-only';
-      }, { effectKind: 'observer' });
+      });
       MappedContext.useActionResultHandler('login', payload => ({
         sessionId: payload.username,
       }));
-      return MappedContext.useActionDispatchWithResult();
+      return MappedContext.useActionScope();
     }, { wrapper: Wrapper });
 
     await waitFor(() => {
@@ -300,7 +300,9 @@ describe('createActionContext', () => {
   });
 
   it('should reject active and queued dispatches before provider cleanup', async () => {
-    const QueuedActions = createActionContext<{ run: { id: number } }>('QueuedActions');
+    const QueuedActions = createActionContext<{ run: { id: number } }>('QueuedActions', {
+      registry: { useConcurrencyQueue: true },
+    });
     const events: string[] = [];
     const handlerCleanup = jest.fn();
     let releaseFirst!: () => void;
@@ -430,7 +432,7 @@ describe('createActionContext', () => {
     >('MetadataActions');
 
     function TestComponent() {
-      const { dispatchWithResult } = TestActions.useActionDispatchWithResult();
+      const { dispatchWithResult } = TestActions.useActionScope();
       TestActions.useActionHandler('work', () => 'completed', {
         metadata: { source: 'react-handler' },
       });

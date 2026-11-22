@@ -10,13 +10,15 @@ import {
 } from '@context-action/core';
 import {
   createActionContext,
+  useStoreValue,
+} from '@context-action/react';
+import {
   createTimeTravelStore,
   createTimeTravelStoreContext,
   isTimeTravelStore,
   TimeTravelStoreManager,
-  useStoreValue,
   type TimeTravelStore,
-} from '@context-action/react';
+} from '@context-action/react/time-travel';
 
 interface DocumentContent {
   title: string;

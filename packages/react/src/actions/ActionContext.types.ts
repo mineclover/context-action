@@ -10,7 +10,6 @@ import {
   ActionNames,
   ActionRegister,
   ActionRegisterConfig,
-  ActionEffectHandler,
   ActionGuardHandler,
   ActionObserverHandler,
   CommandConfig,
@@ -20,7 +19,6 @@ import {
   ActionResultMap,
   ActionPayloadMap,
   HandlerConfig,
-  EffectConfig,
   GuardConfig,
   PipelineController,
 } from '@context-action/core';
@@ -114,8 +112,8 @@ export interface ProviderDispatchLifecycle {
 }
 
 /**
- * Return value of `useActionScope()` (and `useActionDispatchWithResult()`), providing
- * component-scoped dispatch helpers together with manual/unmount abort controls.
+ * Return value of `useActionScope()`, providing component-scoped dispatch helpers
+ * together with manual/unmount abort controls.
  */
 export interface ActionScopeReturn<
   T extends ActionPayloadMap,
@@ -149,22 +147,6 @@ export interface ActionContextReturn<
       : ActionContextHandler<T[K], R>,
     config?: HandlerConfig<T[K]>
   ) => void;
-  /**
-   * @deprecated Prefer `useActionGuard()` (for `effectKind: 'guard'`) or
-   * `useActionObserver()` (for `effectKind: 'observer'`).
-   */
-  useActionEffectHandler: {
-    <K extends ActionNames<T>>(
-      action: K,
-      handler: ActionGuardHandler<T[K]>,
-      config: EffectConfig<T[K]> & { effectKind: 'guard' },
-    ): void;
-    <K extends ActionNames<T>>(
-      action: K,
-      handler: ActionEffectHandler<T[K]>,
-      config: EffectConfig<T[K]> & { effectKind: 'observer' },
-    ): void;
-  };
   /** Canonical admission role hook: validate payloads/permissions and abort invalid flows via `controller.abort()`. */
   useActionGuard: <K extends ActionNames<T>>(
     action: K,
@@ -200,11 +182,5 @@ export interface ActionContextReturn<
    * `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }`.
    */
   useActionScope: () => ActionScopeReturn<T, TResultMap>;
-  /**
-   * @deprecated Prefer `useActionResultDispatch()` for Provider-scoped result
-   * dispatches or `useActionScope()` for component-scoped abort lifecycles.
-   * Scheduled for removal in Phase 2 (v5).
-   */
-  useActionDispatchWithResult: () => ActionScopeReturn<T, TResultMap>;
   context: React.Context<ActionContextType<T, TResultMap> | null>;
 }

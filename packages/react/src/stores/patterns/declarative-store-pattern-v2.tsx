@@ -28,7 +28,6 @@ import {
 const STORE_CONFIG_KEYS = new Set<PropertyKey>([
   'initialValue',
   'strategy',
-  'compareStrategy',
   'description',
   'debug',
   'tags',
@@ -52,8 +51,6 @@ const STORE_CONFIG_KEYS = new Set<PropertyKey>([
 export interface StoreConfig<T = any> {
   initialValue: T;
   strategy?: 'reference' | 'shallow' | 'deep';
-  /** @deprecated Use strategy instead. */
-  compareStrategy?: 'reference' | 'shallow' | 'deep';
   description?: string;
   debug?: boolean;
   tags?: string[];
@@ -127,16 +124,6 @@ export type InferStoreTypes<T extends StoreDefinitions> = {
               ? InferStoreDefinitionValue<T[K]>  // Plain objects
               : InferStoreDefinitionValue<T[K]>;  // Primitives and other types
 };
-
-/**
- * @deprecated Use InitialStores instead for better type inference
- * 
- * Legacy type alias for backward compatibility. New code should use
- * InitialStores<T> which provides better type inference and cleaner API.
- * 
- * @public
- */
-export type StoreSchema<T extends Record<string, any>> = InitialStores<T>;
 
 /**
  * Supported external store or framework-neutral backend input accepted by
@@ -309,7 +296,7 @@ export class StoreManager<T extends Record<string, any>> extends BaseStoreManage
       // Config object with extended options
       const config = storeConfig as StoreConfig<T[K]>;
       initialValue = config.initialValue;
-      strategy = config.strategy ?? config.compareStrategy ?? 'reference';
+      strategy = config.strategy ?? 'reference';
       description = config.description;
       debug = config.debug || false;
       tags = config.tags ? ['declarative', ...config.tags] : ['declarative', strategy];

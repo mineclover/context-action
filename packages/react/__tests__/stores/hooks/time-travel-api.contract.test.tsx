@@ -5,7 +5,7 @@ import {
   useTimeTravelControls,
   useTimeTravelPath,
   useTimeTravelSelector,
-} from '@context-action/react';
+} from '@context-action/react/time-travel';
 
 type State = { value: number | undefined; other: number };
 type Equality = (previous: number | undefined, next: number | undefined) => boolean;

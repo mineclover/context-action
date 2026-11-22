@@ -1,5 +1,6 @@
 // ==============================================
-// MAIN INDEX - Essential APIs Only
+// MAIN INDEX - Essential React Surface (v5)
+// Specialized subpaths live at /refs, /time-travel, /transactions, /backend, /advanced, /utils, /webmcp
 // ==============================================
 
 // Action System (Core functionality)
@@ -21,28 +22,13 @@ export {
   type StoreNotificationMode,
   type StoreOptions,
 } from './stores/core/Store';
-export {
-  createTimeTravelStore,
-  TimeTravelStore,
-  isTimeTravelStore
-} from './stores/core/TimeTravelStore';
-export type { TimeTravelStoreOptions } from './stores/core/TimeTravelStore';
 export { useStoreValue } from './stores/hooks/useStoreValue';
 export type { SubscribableStore } from './stores/utils/sync-external-store-utils';
 export { useStoreSelector } from './stores/hooks/useStoreSelector';
 export { useStorePath, useStoreSelectorWithPaths } from './stores/hooks/useStorePath';
 export type { PatchAwareStore, StorePathPatch, StorePath, UseStorePathOptions, UseStoreSelectorWithPathsOptions } from './stores/hooks/useStorePath';
-export { useTimeTravelControls } from './stores/hooks/useTimeTravelControls';
-export { useStoreTransactionInspector } from './stores/hooks/useStoreTransactionInspector';
-export type { TimeTravelControlsState, TimeTravelControlsStore } from './stores/hooks/useTimeTravelControls';
-export { useTimeTravelPath, useTimeTravelSelector } from './stores/hooks/useTimeTravelPath';
-export type { TimeTravelPathStore, UseTimeTravelPathOptions, UseTimeTravelSelectorOptions } from './stores/hooks/useTimeTravelPath';
 export type { IStore, Snapshot } from './stores/core/types';
-export type { StoreReader, StoreWriter, TimelineReader, TimelineWriter } from './stores/core/contracts';
-export { StoreTransactionCoordinator } from './stores/core/StoreTransactionCoordinator';
-export type { StoreTransactionEvent, StoreTransactionEventPhase, StoreTransactionHandle, StoreTransactionInspectorSink, StoreTransactionInspectorSnapshot, StoreTransactionListener, StoreTransactionMeta, StoreTransactionOptions, StoreTransactionParticipant, StoreTransactionRecord } from './stores/core/StoreTransactionCoordinator';
-export { bindActionTransactions } from './stores/core/ActionTransactionBridge';
-export type { ActionTransactionBridgeOptions, DispatchTraceSource } from './stores/core/ActionTransactionBridge';
+export type { StoreReader, StoreWriter } from './stores/core/contracts';
 
 // Re-export Patches type from mutative for subscribeWithPatches users
 export type { Patches, TravelPatches } from '@context-action/mutative';
@@ -64,25 +50,6 @@ export type {
   StoreProviderProps,
   StoreContextReturn,
 } from './stores/patterns/declarative-store-pattern-v2';
-
-// Time Travel Store Pattern (Store Context with undo/redo)
-export { createTimeTravelStoreContext, TimeTravelStoreManager } from './stores/patterns/time-travel-store-pattern';
-export type {
-  TimeTravelStoreConfig,
-  TimeTravelInitialStores,
-  // Context-level controls alias kept distinct from hook-level `TimeTravelControlsState` (`useTimeTravelControls`).
-  TimeTravelControlsState as TimeTravelContextControlsState,
-  InferTimeTravelStoreTypes,
-  ExternalTimeTravelStoreInput,
-  ExternalTimeTravelStoresMap,
-  TimeTravelStoreManagerOptions,
-  TimeTravelStoreProviderProps,
-} from './stores/patterns/time-travel-store-pattern';
-
-// Ref System (Core functionality)
-export { createRefContext } from './refs/createRefContext';
-export type { RefContextReturn, CreateRefContextOptions, RefController } from './refs/createRefContext';
-export type { RefTarget, RefOperationOptions, RefOperationResult } from './refs/types';
 
 // Core types from @context-action/core
 export type {

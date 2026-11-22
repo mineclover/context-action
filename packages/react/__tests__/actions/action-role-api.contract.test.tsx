@@ -30,7 +30,7 @@ describe('Public Action role hooks', () => {
         });
         return {
           dispatch: Actions.useActionDispatch(),
-          results: Actions.useActionDispatchWithResult(),
+          results: Actions.useActionScope(),
           register: Actions.useActionRegister()!,
         };
       }, { wrapper });
@@ -75,7 +75,7 @@ describe('Public Action role hooks', () => {
         }
         return 'fresh';
       });
-      return Actions.useActionDispatchWithResult();
+      return Actions.useActionScope();
     }, { wrapper });
     try {
       const execution = result.current.dispatchWithResult('hold', { wait: true });
@@ -115,7 +115,7 @@ describe('Public Action role hooks', () => {
       });
       return {
         dispatch: Actions.useActionDispatch(),
-        results: Actions.useActionDispatchWithResult(),
+        results: Actions.useActionScope(),
       };
     }, { wrapper });
 

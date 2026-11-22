@@ -1,6 +1,5 @@
 import {
   ActionCommandHandler,
-  ActionEffectHandler,
   ActionGuardHandler,
   ActionHandler,
   ActionNames,
@@ -14,7 +13,6 @@ import {
   CommandConfig,
   DispatchArgs,
   DispatchOptions,
-  EffectConfig,
   ExecutionResult,
   GuardConfig,
   HandlerConfig,
@@ -344,10 +342,9 @@ export function createActionContext<
     ...config,
     registry: {
       ...config?.registry,
-      // A Provider owns handler teardown and exposes a serialized lifecycle to
-      // its descendants. Keep that higher-level guarantee explicit instead of
-      // relying on the lightweight core default.
-      useConcurrencyQueue: config?.registry?.useConcurrencyQueue ?? true,
+      // Phase 2 (v5): harmonize with @context-action/core default (false) so
+      // non-conflicting dispatches stay immediate unless opted into serial queues.
+      useConcurrencyQueue: config?.registry?.useConcurrencyQueue ?? false,
     },
     // The positional name is canonical; a legacy config.name must not
     // silently change the identity advertised by the factory call.
@@ -487,8 +484,8 @@ export function createActionContext<
     handler: K extends keyof TResultMap
       ? ActionResultHandler<T[K], ActionResult<TResultMap, K>>
       : ActionHandler<T[K], R>,
-    config?: HandlerConfig<T[K]> | EffectConfig<T[K]>,
-    registrationRole: 'legacy' | 'effect' | 'guard' | 'command' | 'observer' | 'result' = 'legacy',
+    config?: HandlerConfig<T[K]>,
+    registrationRole: 'legacy' | 'guard' | 'command' | 'observer' | 'result' = 'legacy',
   ): void => {
     const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
     const actionId = useId();
@@ -524,7 +521,6 @@ export function createActionContext<
     const condition = config?.condition;
     const metadata = config?.metadata;
     const when = config?.when;
-    const effectKind = config && 'effectKind' in config ? config.effectKind : undefined;
     const replaceExisting = config?.replaceExisting ?? true;
     const deferredCleanup = useMemo(
       () => cleanup === undefined
@@ -546,10 +542,9 @@ export function createActionContext<
       ...(condition !== undefined && { condition }),
       ...(metadata !== undefined && { metadata }),
       ...(when !== undefined && { when }),
-      ...(effectKind !== undefined && { effectKind }),
       ...(debounce !== undefined && { debounce }),
       ...(throttle !== undefined && { throttle })
-    }), [priority, id, blocking, scheduling, errorPolicy, once, replaceExisting, deferredCleanup, condition, metadata, when, effectKind, debounce, throttle]);
+    }), [priority, id, blocking, scheduling, errorPolicy, once, replaceExisting, deferredCleanup, condition, metadata, when, debounce, throttle]);
 
     // A handler is part of the logical Provider lifetime. Keeping registration
     // in an insertion effect means Activity may disconnect UI effects without
@@ -588,17 +583,15 @@ export function createActionContext<
           console.log(`Registering handler for '${String(action)}'`);
         }
 
-        const registerMethod = registrationRole === 'effect'
-          ? register.registerEffect
-          : registrationRole === 'guard'
-            ? register.registerGuard
-            : registrationRole === 'command'
-              ? register.registerCommand
-              : registrationRole === 'observer'
-                ? register.registerObserver
-                : registrationRole === 'result'
-                  ? register.registerResult
-                  : register.register;
+        const registerMethod = registrationRole === 'guard'
+          ? register.registerGuard
+          : registrationRole === 'command'
+            ? register.registerCommand
+            : registrationRole === 'observer'
+              ? register.registerObserver
+              : registrationRole === 'result'
+                ? register.registerResult
+                : register.register;
         const registerHandler = registerMethod.bind(register) as unknown as (
           action: K,
           handler: ActionHandler<T[K], R>,
@@ -652,14 +645,6 @@ export function createActionContext<
   const useFactoryActionRegister = (): ActionRegister<T, TResultMap> | null => {
     const context = useFactoryActionContext();
     return context.actionRegisterRef.current;
-  };
-
-  const useActionEffectHandler = <K extends ActionNames<T>>(
-    action: K,
-    handler: ActionEffectHandler<T[K]> | ActionGuardHandler<T[K]>,
-    config: EffectConfig<T[K]>,
-  ): void => {
-    useActionHandler(action, handler as never, config, 'effect');
   };
 
   const useActionResultHandler = <K extends ActionNames<T> & keyof TResultMap>(
@@ -731,7 +716,7 @@ export function createActionContext<
   /**
    * Hook for component-scoped dispatch with result collection and abort control.
    */
-  const useFactoryActionDispatchWithResult = (): ActionScopeReturn<T, TResultMap> => {
+  const useFactoryActionScope = (): ActionScopeReturn<T, TResultMap> => {
     const context = useFactoryActionContext();
     const activeControllersRef = useRef<Set<AbortController>>(new Set());
 
@@ -830,15 +815,13 @@ export function createActionContext<
     useActionContext: useFactoryActionContext,
     useActionDispatch: useAction,
     useActionHandler,
-    useActionEffectHandler,
     useActionGuard,
     useActionCommandHandler,
     useActionObserver,
     useActionResultHandler,
     useActionRegister: useFactoryActionRegister,
     useActionResultDispatch: useFactoryActionResultDispatch,
-    useActionScope: useFactoryActionDispatchWithResult,
-    useActionDispatchWithResult: useFactoryActionDispatchWithResult,
+    useActionScope: useFactoryActionScope,
     context: FactoryActionContext,
   } satisfies ActionContextReturn<T, TResultMap>;
 }

@@ -196,7 +196,7 @@ function TestComponent() {
   
   // Action context usage
   const dispatch = NewActionContextAPI.useActionDispatch();
-  const { dispatchWithResult } = NewActionContextAPI.useActionDispatchWithResult();
+  const { dispatchWithResult } = NewActionContextAPI.useActionScope();
   
   // Register action handler
   NewActionContextAPI.useActionHandler('updateProfile', async (payload: { id: string; name: string }) => {

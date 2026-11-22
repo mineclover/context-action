@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 describe('Ref Provider instance isolation', () => {
   it('keeps the callback ref stable when its reactive mount state changes', () => {

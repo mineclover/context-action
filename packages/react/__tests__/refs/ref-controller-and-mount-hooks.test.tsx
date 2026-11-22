@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 interface WidgetHandle {
   focus(): void;

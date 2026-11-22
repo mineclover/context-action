@@ -119,12 +119,14 @@ describe('store definition discrimination', () => {
       });
     });
 
-    it('continues to recognize the legacy compareStrategy alias as configuration', () => {
-      const manager = new StoreManager<{ count: number }>('legacy-strategy', {
-        count: { initialValue: 1, compareStrategy: 'deep' },
-      });
+    it('treats objects containing removed compareStrategy alias as direct domain values without InitialStores promotion', () => {
+      const domainObjectWithCompareStrategy = { initialValue: 1, compareStrategy: 'deep' };
+      const manager = new StoreManager<{ item: typeof domainObjectWithCompareStrategy }>(
+        'removed-compare-strategy',
+        { item: domainObjectWithCompareStrategy }
+      );
 
-      expect(manager.getStore('count').getValue()).toBe(1);
+      expect(manager.getStore('item').getValue()).toEqual(domainObjectWithCompareStrategy);
     });
   });
 

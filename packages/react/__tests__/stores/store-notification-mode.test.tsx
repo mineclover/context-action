@@ -3,11 +3,13 @@ import { act, cleanup, render, renderHook } from '@testing-library/react';
 import {
   createStore,
   createStoreContext,
+  StoreManager,
+} from '@context-action/react';
+import {
   createTimeTravelStore,
   createTimeTravelStoreContext,
-  StoreManager,
   TimeTravelStoreManager,
-} from '@context-action/react';
+} from '@context-action/react/time-travel';
 import { useLocalStore } from '@context-action/react/advanced';
 
 describe('Store notificationMode, useStoreInfo/useStoreClear stability, and useLocalStore', () => {
@@ -18,10 +20,18 @@ describe('Store notificationMode, useStoreInfo/useStoreClear stability, and useL
   });
 
   describe('Store notificationMode', () => {
-    it('defaults to batched mode and coalesces rapid updates until the next frame', () => {
+    it('defaults to immediate mode and coalesces rapid updates when opted into batched mode', () => {
       jest.useFakeTimers();
 
-      const store = createStore('batched-default', { count: 0, label: 'init' });
+      const defaultStore = createStore('immediate-default', { count: 0, label: 'init' });
+      expect(defaultStore.getNotificationMode()).toBe('immediate');
+      defaultStore.dispose();
+
+      const store = createStore(
+        'batched-opt-in',
+        { count: 0, label: 'init' },
+        { notificationMode: 'batched' }
+      );
       expect(store.getNotificationMode()).toBe('batched');
 
       let regularCalls = 0;
@@ -90,7 +100,11 @@ describe('Store notificationMode, useStoreInfo/useStoreClear stability, and useL
     it('flushes a pending batched frame once when switching to immediate mode and avoids double-firing', () => {
       jest.useFakeTimers();
 
-      const store = createStore('switch-mode', { a: 0, b: 'start' });
+      const store = createStore(
+        'switch-mode',
+        { a: 0, b: 'start' },
+        { notificationMode: 'batched' }
+      );
       let regularCalls = 0;
       const observedPatches: Array<Array<(string | number)[]>> = [];
 
@@ -188,11 +202,11 @@ describe('Store notificationMode, useStoreInfo/useStoreClear stability, and useL
       } as const;
 
       const Ctx = createStoreContext('ConfiguredStores', {
-        fastCounter: {
+        fastCounter: { count: 0 },
+        batchedCounter: {
           initialValue: { count: 0 },
-          notificationMode: 'immediate' as const,
+          notificationMode: 'batched' as const,
         },
-        batchedCounter: { count: 0 },
         domainWithInitialValueField: domainValue,
       });
 
@@ -201,11 +215,11 @@ describe('Store notificationMode, useStoreInfo/useStoreClear stability, and useL
         batchedCounter: { count: number };
         domainWithInitialValueField: typeof domainValue;
       }>('ConfiguredStores', {
-        fastCounter: {
+        fastCounter: { count: 0 },
+        batchedCounter: {
           initialValue: { count: 0 },
-          notificationMode: 'immediate',
+          notificationMode: 'batched',
         },
-        batchedCounter: { count: 0 },
         domainWithInitialValueField: domainValue,
       });
 

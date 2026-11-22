@@ -20,7 +20,7 @@ function createFixture() {
     store: ReturnType<typeof Stores.useStore<'count'>>;
     manager: ReturnType<typeof Stores.useStoreManager>;
     register: NonNullable<ReturnType<typeof Actions.useActionRegister>>;
-    dispatch: ReturnType<typeof Actions.useActionDispatchWithResult>;
+    dispatch: ReturnType<typeof Actions.useActionScope>;
     clear: ReturnType<typeof Stores.useStoreClear>;
   };
   const instances = new Map<string, Resources>();
@@ -48,7 +48,7 @@ function createFixture() {
       store: Stores.useStore('count'),
       manager: Stores.useStoreManager(),
       register: Actions.useActionRegister()!,
-      dispatch: Actions.useActionDispatchWithResult(),
+      dispatch: Actions.useActionScope(),
       clear: Stores.useStoreClear(),
     });
     return null;

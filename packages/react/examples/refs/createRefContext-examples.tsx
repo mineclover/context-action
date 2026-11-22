@@ -8,7 +8,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // Three.js 목 타입들 (실제로는 three 패키지의 타입을 사용)
 interface ThreeObject {

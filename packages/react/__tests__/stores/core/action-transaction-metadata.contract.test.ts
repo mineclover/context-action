@@ -1,10 +1,10 @@
 import { ActionRegister } from '@context-action/core';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 import {
   bindActionTransactions,
-  createTimeTravelStore,
   StoreTransactionCoordinator,
   type StoreTransactionMeta,
-} from '@context-action/react';
+} from '@context-action/react/transactions';
 
 describe('public action transaction metadata for durable backends', () => {
   it.each([false, true])('omits absent optional fields and preserves explicit trace metadata: %s', async withTrace => {

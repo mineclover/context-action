@@ -6,7 +6,6 @@ import type {
   StateSnapshot,
   StateTransition as BackendStateTransition,
   TimelineBackend,
-  TransactionParticipantBackend,
 } from '@context-action/store-core';
 
 // Compatibility facade: React's legacy metadata has no catch-all index
@@ -22,20 +21,6 @@ export interface StoreWriter<T> {
 }
 export interface TimelineReader<T> extends StoreReader<T>, Pick<TimelineBackend<T>, 'canUndo' | 'canRedo' | 'getPosition' | 'getHistoryLength'> {}
 export type HistoryEntryId = CoreHistoryEntryId;
-
-/**
- * @deprecated Legacy React participant facade. Prefer `TransactionParticipantBackend`
- * from `@context-action/store-core` or `@context-action/react/backend` for new
- * coordination integrations; `@context-action/store-core`'s `TransactionBackend`
- * is a full state-owning timeline.
- */
-export interface TransactionBackend<T = unknown> extends TransactionParticipantBackend<T> {
-  // Keep legacy metadata arguments and convenience undo/redo methods intact.
-  beginBatch(meta?: StateMutationMeta, options?: { deferNotification?: boolean }): void;
-  undo(steps?: number, meta?: StateMutationMeta): void;
-  redo(steps?: number, meta?: StateMutationMeta): void;
-  goToHistoryEntry(entryId: HistoryEntryId, meta?: StateMutationMeta): void;
-}
 export interface StateTransition<T> extends Omit<BackendStateTransition<T>, 'meta'> {
   readonly meta: StateMutationMeta;
 }

@@ -19,12 +19,12 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createRefContext,
   createStore,
   createStoreContext,
   useStorePath,
   useStoreValue,
 } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 import { useLocalStore } from '@context-action/react/advanced';
 
 const useIsomorphicLayoutEffect =
@@ -786,7 +786,10 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
   });
 
   describe('Archetype 4 · Committed Store + Async Action Optimistic & Form Overlay (React 19)', () => {
-    it('shows optimistic state during async dispatchWithResult and commits or rolls back automatically on abort', async () => {
+    const itWithUseOptimistic = typeof useOptimistic === 'function' ? it : it.skip;
+    const itWithUseActionState = typeof useActionState === 'function' ? it : it.skip;
+
+    itWithUseOptimistic('shows optimistic state during async dispatchWithResult and commits or rolls back automatically on abort', async () => {
       interface ArticleState {
         readonly liked: boolean;
         readonly count: number;
@@ -848,7 +851,7 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       function LikePanel() {
         const articleStore = LikeStoresCtx.useStore('article');
         const committed = useStoreValue(articleStore);
-        const { dispatchWithResult } = LikeActionsCtx.useActionDispatchWithResult();
+        const { dispatchWithResult } = LikeActionsCtx.useActionScope();
         const [isPending, startTransition] = useTransition();
 
         const [optimistic, applyOptimistic] = useOptimistic<ArticleState, boolean>(
@@ -972,7 +975,7 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       expect(observedCounts).toEqual([10, 11, 10, 11]);
     });
 
-    it('achieves zero-flicker useOptimistic + startTransition without waitForNextFrame when Store uses notificationMode: immediate', async () => {
+    itWithUseOptimistic('achieves zero-flicker useOptimistic + startTransition without waitForNextFrame when Store uses notificationMode: immediate', async () => {
       interface ArticleState {
         readonly liked: boolean;
         readonly count: number;
@@ -1032,7 +1035,7 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       function LikePanel() {
         const articleStore = LikeStoresCtx.useStore('article');
         const committed = useStoreValue(articleStore);
-        const { dispatchWithResult } = LikeActionsCtx.useActionDispatchWithResult();
+        const { dispatchWithResult } = LikeActionsCtx.useActionScope();
         const [isPending, startTransition] = useTransition();
 
         const [optimistic, applyOptimistic] = useOptimistic<ArticleState, boolean>(
@@ -1139,7 +1142,7 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
       expect(observedCounts).toEqual([10, 11, 10, 11]);
     });
 
-    it('connects React 19 useActionState form actions to useActionGuard and dispatchWithResult', async () => {
+    itWithUseActionState('connects React 19 useActionState form actions to useActionGuard and dispatchWithResult', async () => {
       interface ProfileFormActions extends ActionPayloadMap {
         saveDisplayName: { displayName: string };
       }
@@ -1190,7 +1193,7 @@ describe('OOP × React Built-in Hook Usage Patterns', () => {
 
       function ProfileForm() {
         const committedName = useStoreValue(ProfileStores.useStore('displayName'));
-        const { dispatchWithResult } = ProfileActions.useActionDispatchWithResult();
+        const { dispatchWithResult } = ProfileActions.useActionScope();
 
         const [submitState, formAction, isPending] = useActionState<
           FormSubmitState,
