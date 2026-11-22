@@ -24,6 +24,7 @@ examples/
 └── stores/
     └── patterns/           # Store pattern examples
         ├── declarative-examples.tsx
+        ├── external-sync-patterns-example.tsx
         ├── leaf-subscription-signal-example.tsx
         └── unified-pattern-example.tsx
 ```
@@ -96,6 +97,7 @@ As needed:
 - `createRefContext` (`@context-action/react/refs`) - Imperative DOM/Canvas/WebGL refs (`useRefController` for zero mount re-renders)
 - Dual-lane View + Transaction separation (`actions/view-fast-lane-example.tsx`): `lane: 'fast'` view actions paired with `useRefController` + `lane: 'orchestrated'` commits paired with scoped `bindActionTransactions` (`@context-action/react/transactions`)
 - Leaf-subscription pseudo-signal & `useEffect` isolation (`stores/patterns/leaf-subscription-signal-example.tsx`): Top-level `useActionDispatch()` shell + `store.update()` + Leaf `useStorePath()` preserving standard React `useEffect` lifecycles only in affected leafs
+- External system sync patterns (`stores/patterns/external-sync-patterns-example.tsx`): IndexedDB write-through rollback, bidirectional URL `popstate`/`pushState` sync, and realtime RAF-batched stream + sequence guard
 
 ## 🔍 Example Features
 
