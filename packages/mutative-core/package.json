@@ -64,7 +64,7 @@
     "node": ">=14.0"
   },
   "devDependencies": {
-    "@types/node": "24.19.2",
+    "@types/node": "26.6.6",
     "rimraf": "^6.1.4",
     "tsdown": "0.23.7",
     "typescript": "6.0.3",

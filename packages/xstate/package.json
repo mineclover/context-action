@@ -69,7 +69,7 @@
     "@context-action/store-core": "^0.1.4"
   },
   "devDependencies": {
-    "@types/node": "24.19.2",
+    "@types/node": "26.6.6",
     "rimraf": "^6.1.4",
     "tsdown": "0.23.7",
     "tslib": "^2.9.1",
