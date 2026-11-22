@@ -14,12 +14,16 @@ import path from 'node:path';
 const repositoryRoot = path.resolve(import.meta.dirname, '..');
 const pagePath = path.join(repositoryRoot, 'example/src/pages/integrations/react-aria/ReactAriaReferencePage.tsx');
 const coreDirectory = path.join(repositoryRoot, 'packages/core');
+const interactionsDirectory = path.join(repositoryRoot, 'packages/interactions');
 const mutativeCoreDirectory = path.join(repositoryRoot, 'packages/mutative-core');
 const reactDirectory = path.join(repositoryRoot, 'packages/react');
 const mutativeDirectory = path.join(repositoryRoot, 'packages/mutative');
 const storeCoreDirectory = path.join(repositoryRoot, 'packages/store-core');
 const coreManifest = JSON.parse(
   readFileSync(path.join(coreDirectory, 'package.json'), 'utf8')
+);
+const interactionsManifest = JSON.parse(
+  readFileSync(path.join(interactionsDirectory, 'package.json'), 'utf8')
 );
 const reactManifest = JSON.parse(
   readFileSync(path.join(reactDirectory, 'package.json'), 'utf8')
@@ -73,6 +77,7 @@ try {
   mkdirSync(packDirectory, { recursive: true });
   const candidatePackages = {
     core: createLocalPackageSpec('@context-action/core', coreDirectory, packDirectory),
+    interactions: createLocalPackageSpec('@context-action/interactions', interactionsDirectory, packDirectory),
     storeCore: createLocalPackageSpec('@context-action/store-core', storeCoreDirectory, packDirectory),
     mutativeCore: createLocalPackageSpec('@context-action/mutative-core', mutativeCoreDirectory, packDirectory),
     mutative: createLocalPackageSpec('@context-action/mutative', mutativeDirectory, packDirectory),
@@ -100,6 +105,7 @@ try {
         'react-aria-components': '1.20.0',
         '@internationalized/date': '3.12.3',
         '@context-action/core': candidatePackages.core,
+        '@context-action/interactions': candidatePackages.interactions,
         '@context-action/store-core': candidatePackages.storeCore,
         '@context-action/mutative-core': candidatePackages.mutativeCore,
         '@context-action/mutative': candidatePackages.mutative,
@@ -125,10 +131,14 @@ try {
         'utf8'
       ));
       const core = installedManifest('@context-action/core');
+      const interactions = installedManifest('@context-action/interactions');
       const contextActionReact = installedManifest('@context-action/react');
       const storeCore = installedManifest('@context-action/store-core');
       if (core.version !== ${JSON.stringify(coreManifest.version)}) {
         throw new Error('React Aria reference did not install the current Core candidate.');
+      }
+      if (interactions.version !== ${JSON.stringify(interactionsManifest.version)}) {
+        throw new Error('React Aria reference did not install the current Interactions candidate.');
       }
       if (contextActionReact.version !== ${JSON.stringify(reactManifest.version)}) {
         throw new Error('React Aria reference did not install the current React candidate.');

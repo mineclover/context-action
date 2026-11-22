@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
+  createSyncActionPipeline,
+  type SyncActionPipeline,
+} from '@context-action/core/element';
+import {
   createDismissLayer,
   createPointerGestureSession,
   createRovingFocusController,
-  createSyncActionPipeline,
   type DismissLayerOptions,
   type PointerGestureOptions,
   type PointerGestureSession,
   type RovingFocusController,
   type RovingFocusOptions,
-  type SyncActionPipeline,
-} from '@context-action/core/element';
+} from '@context-action/interactions';
 
 interface PipelineHolder<TActions extends Record<string, unknown>> {
   name: string;

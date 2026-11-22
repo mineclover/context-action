@@ -11,6 +11,7 @@ const docsRoot = join(repositoryRoot, 'docs');
 const snippetPathMappings = {
   '@context-action/core': [join(repositoryRoot, 'packages', 'core', 'dist', 'index.d.ts')],
   '@context-action/core/element': [join(repositoryRoot, 'packages', 'core', 'dist', 'element.d.ts')],
+  '@context-action/interactions': [join(repositoryRoot, 'packages', 'interactions', 'dist', 'index.d.ts')],
   '@context-action/store-core': [join(repositoryRoot, 'packages', 'store-core', 'dist', 'index.d.ts')],
   '@context-action/mutative': [join(repositoryRoot, 'packages', 'mutative', 'dist', 'index.d.ts')],
   '@context-action/react': [join(repositoryRoot, 'packages', 'react', 'dist', 'index.d.ts')],
@@ -114,6 +115,7 @@ const snippets = [];
 const markdownFiles = [
   ...await collectMarkdownFiles(docsRoot),
   join(repositoryRoot, 'packages', 'core', 'README.md'),
+  join(repositoryRoot, 'packages', 'interactions', 'README.md'),
   join(repositoryRoot, 'packages', 'store-core', 'README.md'),
   join(repositoryRoot, 'packages', 'react', 'README.md'),
 ];

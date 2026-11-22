@@ -92,14 +92,11 @@
         },
         {
           "subpath": "./element",
-          "purpose": "Framework-neutral DOM binding, attribute/style reconciliation, imperative facades, SyncActionPipeline, roving focus, and pointer gesture primitives.",
+          "purpose": "Framework-neutral DOM binding, attribute/style reconciliation, imperative facades, SyncActionPipeline, and React prop projection.",
           "keySymbols": [
-            "createDismissLayer",
             "createElementFacade",
             "createElementBinding",
             "createSyncActionPipeline",
-            "createRovingFocusController",
-            "createPointerGestureSession",
             "toReactPartProps"
           ]
         },
@@ -122,6 +119,43 @@
         "docs/en/context-layered/decisions/CA-ELEMENT-INTEROP-001.md"
       ],
       "verificationGate": "pnpm --filter @context-action/core test && pnpm verify:element-unit && pnpm verify:element-interop"
+    },
+    {
+      "id": "api-interactions",
+      "packageName": "@context-action/interactions",
+      "directory": "packages/interactions",
+      "layer": "foundation",
+      "visibility": "public",
+      "stability": "public-preview",
+      "summary": {
+        "en": "Zero-dependency framework-neutral headless UI and ARIA interaction primitives (roving focus + typeahead, pointer gesture sessions, LIFO document dismiss layers).",
+        "ko": "Zero-dependency 프레임워크 중립 헤드리스 UI 및 ARIA 인터랙션 프리미티브(roving focus + typeahead, pointer gesture 세션, LIFO document dismiss layer)입니다."
+      },
+      "nonGoals": [
+        "ActionRegister orchestration or Store reactivity ownership",
+        "React hooks or framework-specific component adapters"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Composite roving focus/typeahead controller, pointer gesture session manager, and LIFO dismiss layer stack.",
+          "keySymbols": [
+            "createRovingFocusController",
+            "createPointerGestureSession",
+            "createDismissLayer",
+            "RovingFocusController",
+            "PointerGestureSession",
+            "DismissLayerHandle"
+          ]
+        }
+      ],
+      "workspaceDependencies": [],
+      "workspacePeerDependencies": [],
+      "readme": "packages/interactions/README.md",
+      "authoritativeDocs": [
+        "packages/interactions/README.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/interactions test && pnpm package-boundary:check"
     },
     {
       "id": "api-lit",
@@ -642,6 +676,7 @@
       ],
       "workspaceDependencies": [
         "@context-action/core",
+        "@context-action/interactions",
         "@context-action/mutative",
         "@context-action/store-core"
       ],

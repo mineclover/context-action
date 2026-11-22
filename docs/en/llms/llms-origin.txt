@@ -4648,8 +4648,8 @@ The transition function is pure, so it is easy to test and compose alongside pur
 
 This specification defines the principles, schema standards, and complete inventory for three repository surfaces:
 
-1. **Full Repository API Architecture**: all 18 workspace packages (`packages/*`), their public `exports`, workspace dependencies, and stability tiers.
-2. **What Examples Explain**: all 77 canonical routes across 13 semantic groups in `example/`, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), 5 package-local example suites, and 9 narrative example walkthroughs.
+1. **Full Repository API Architecture**: all 19 workspace packages (`packages/*`), their public `exports`, workspace dependencies, and stability tiers.
+2. **What Examples Explain**: all 77 canonical routes across 13 semantic groups in `example/`, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), 6 package-local example suites, and 9 narrative example walkthroughs.
 3. **Managed Documentation Architecture**: all 9 root markdown documents, 12 managed documentation areas with explicit authority and EN/KO pairing policies, and derived LLMS bundle artifacts.
 
 It complements [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention), [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention), [Documentation and Development Management](/en/concept/documentation-development-conventions), and ADR [CA-SURFACE-CATALOG-001](/en/context-layered/decisions/CA-SURFACE-CATALOG-001).
@@ -4672,7 +4672,7 @@ It complements [Package Boundary and Codebase Management](/en/context-layered/pa
 
 | Layer | Role | Stability Tiers Used |
 | --- | --- | --- |
-| `foundation` | Zero/minimal-dependency core contracts & engines (`core`, `store-core`, `mutative-core`, `tool-protocol`, `tool-durable-operations`) | `stable`, `public-preview` |
+| `foundation` | Zero/minimal-dependency core contracts & engines (`core`, `interactions`, `store-core`, `mutative-core`, `tool-protocol`, `tool-durable-operations`) | `stable`, `public-preview` |
 | `framework-adapter` | Framework-specific bindings (`react`, `mutative`, `lit`, `preact`) | `stable`, `public-preview` |
 | `ui-runtime` | Owned DOM roots, Web Components, FACE, SSR/hydration (`lit-ui`, `preact-ui`) | `public-preview` |
 | `integration-adapter` | External protocol & runtime bridges (`ai-sdk`, `webmcp`, `xstate`) | `public-preview` |
@@ -4707,18 +4707,19 @@ It complements [Package Boundary and Codebase Management](/en/context-layered/pa
 
 ---
 
-## 3. Surface 1: Full Repository API Architecture (18 Packages)
+## 3. Surface 1: Full Repository API Architecture (19 Packages)
 
-All 18 workspace packages declared under `packages/*/package.json` (excluding untracked local build residue without `package.json`):
+All 19 workspace packages declared under `packages/*/package.json` (excluding untracked local build residue without `package.json`):
 
 | Package | Layer | Visibility / Stability | Public `exports` | Workspace Deps (+Peers) | Authoritative Reference |
 | --- | --- | --- | --- | --- | --- |
 | `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | none | `packages/core/README.md`, `action-contracts.md`, `element-interop.md` |
+| `@context-action/interactions` (`0.1.0`) | `foundation` | `public` / `public-preview` | `.` | none | `packages/interactions/README.md` |
 | `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | none | `packages/store-core/README.md`, `store-selection-and-usage-guide.md` |
 | `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | none | `packages/mutative-core/README.md`, `mutative-core-history.md` |
 | `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | none | `packages/tool-protocol/README.md`, `tool-calling-editor-architecture.md` |
 | `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | none | `packages/tool-durable-operations/README.md`, `durable-operation-operations.md` |
-| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peers: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
+| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `interactions`, `mutative`, `store-core` (+peers: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
 | `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | `packages/mutative/README.md`, `time-travel-specialization.md` |
 | `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/lit/README.md`, `01-controller-scope.md` |
 | `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/preact/README.md`, `spec-to-code-authoring-guide.md` |
@@ -4737,7 +4738,7 @@ All 18 workspace packages declared under `packages/*/package.json` (excluding un
 
 ### 3.1 Package Roles by Layer
 
-- **Foundation (`5`)**: `core` (action pipeline & optional `./element` DOM/host transport), `store-core` (framework-neutral state/timeline/transaction protocols + `createStateStore`), `mutative-core` (`mutative@2.0.2`-compatible immutable draft/patch engine), `tool-protocol` (Zod/JSON Schema tools, MCP/provider adapters, approval queues, idempotency, observability), `tool-durable-operations` (lease/claim side-effect recovery & IndexedDB/Redis/PostgreSQL reference backends).
+- **Foundation (`6`)**: `core` (action pipeline, 0ms `createSyncActionPipeline`, & optional `./element` DOM/host transport), `interactions` (zero-dependency headless ARIA roving focus/typeahead, pointer gestures, & LIFO dismiss layers), `store-core` (framework-neutral state/timeline/transaction protocols + `createStateStore`), `mutative-core` (`mutative@2.0.2`-compatible immutable draft/patch engine), `tool-protocol` (Zod/JSON Schema tools, MCP/provider adapters, approval queues, idempotency, observability), `tool-durable-operations` (lease/claim side-effect recovery & IndexedDB/Redis/PostgreSQL reference backends).
 - **Framework Adapters (`4`)**: `react` (React 18/19 Action/Store/TimeTravel/Ref contexts, hooks, transactions, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./webmcp`), `mutative` (`TimeTravel` + `MutativeStateBackend`/`MutativeTimelineBackend`), `lit` (`StoreController`, `ActionController`, `ControllerScope`), `preact` (`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`).
 - **UI Runtimes (`2`)**: `lit-ui` (Lit Web Components, W3C Context Protocol, FACE, `./react-bridge`, `./ssr`, `./hydrate`), `preact-ui` (owned Preact DOM roots, `mountPreact`/`hydratePreact`, `createDisposalScope`, `./react-bridge`, `./ssr`).
 - **Integration Adapters (`3`)**: `xstate` (XState v5/v6 actor bridges in `.` and Effect v4 / `@xstate/effect` / Standard Schema v1 / transaction scopes in `./effect`), `ai-sdk` (AI SDK v7 turn-scoped `ToolSet` bridge), `webmcp` (allowlisted `document.modelContext` browser adapter).
@@ -4770,13 +4771,14 @@ For deciding which state/store API to use across these packages, see the [Store 
 | `ex-app-integrations` | `/integrations/action-lifecycle`, `react-aria-reference`, `preact-web-components`, `lit-web-components`, `xstate-statechart`, `webmcp-scope`, `ai-sdk-tools`, `business/chat`, `advanced/form-builder`, `advanced/concurrent-actions` (**10**) | Action Lifecycle Workbench, React Aria layered hydration, Preact/Lit Web Component React bridges, XState/Effect, WebMCP, AI SDK v7 tool scope, chat, dynamic form builder, concurrency isolation | `ActionRegister`, `@context-action/core/element`, `preact-ui/react-bridge`, `lit-ui/react-bridge`, `@context-action/xstate`, `@context-action/webmcp`, `@context-action/ai-sdk` | `pnpm verify:react-aria-reference-hydration && pnpm verify:element-interop && pnpm --filter example test` |
 | `ex-app-utilities` | `/utilities/dev-tools/{logger,toast-config,warning-demo,store-scenarios}`, `source-directory`, `testing/enhanced-search` (**6**) | LogMonitor tracing, toast policies, warning diagnostics, store comparison benchmarks, source directory, abortable search test harness | `ActionRegister`, `createStoreContext`, `createActionContext` | `pnpm --filter example check && pnpm --filter example build` |
 
-### 4.2 Standalone Demos (2) & Package-Local Examples (5)
+### 4.2 Standalone Demos (2) & Package-Local Examples (6)
 
 | Surface | Path | Status | What It Explains | Verification Gate |
 | --- | --- | --- | --- | --- |
 | Standalone Demo | `demos/bolt-style-editor` | `verified` | Tool-Calling Web Studio (`tool-protocol`, `tool-durable-operations`, `live-code-editor`, IndexedDB, approval queue, bounded trace, iframe preview) | `pnpm web-coding:verify` |
 | Standalone Demo | `examples/vanilla-js` | `reference` | Framework-free HTML/JS counter and XSS-safe todo apps using `@context-action/core` + `@context-action/store-core` | `pnpm build:core && pnpm --filter @context-action/store-core build` |
 | Package Examples | `packages/core/examples` | `verified` | Core `ActionRegister` demos + copyable Vue/Svelte/Angular `element-hosts` over `./element` | `pnpm verify:element-hosts && pnpm verify:element-interop` |
+| Package Examples | `packages/interactions/examples` | `verified` | Canvas whiteboard pointer gestures & command toolbar roving focus demos combining `@context-action/interactions` with `ActionRegister` | `pnpm --filter @context-action/interactions test` |
 | Package Examples | `packages/lit-ui/examples` | `verified` | DSD SSR hydration harness + ElementInternals FACE exception diagnostic playground | `pnpm --filter @context-action/lit-ui test:browser` |
 | Package Examples | `packages/preact-ui/examples` | `verified` | Projected Order 6-layer workspace, Layer Panel contract reuse, modular Signals Web Components, SSR | `pnpm --filter @context-action/preact-ui test:browser` |
 | Package Examples | `packages/react/examples` | `verified` | Package-level hooks, RefContext (`GameUI`/`SimpleForm`), declarative/unified Store patterns | `pnpm --filter @context-action/react exec tsc --noEmit -p tsconfig.examples.json && pnpm --filter @context-action/react test` |

@@ -6,6 +6,7 @@ packages:
   - packages/tool-durable-operations
   - packages/react
   - packages/store-core
+  - packages/interactions
   - packages/preact
   - packages/preact-ui
   - packages/lit

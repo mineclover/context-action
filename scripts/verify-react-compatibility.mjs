@@ -51,6 +51,7 @@ try {
     '@context-action/mutative-core',
     '@context-action/mutative',
     '@context-action/core',
+    '@context-action/interactions',
     '@context-action/store-core',
     '@context-action/tool-protocol',
     '@context-action/tool-durable-operations',
@@ -62,6 +63,7 @@ try {
 
   const candidatePackages = [
     'core',
+    'interactions',
     'store-core',
     'mutative-core',
     'mutative',
@@ -102,7 +104,7 @@ try {
     );
   }
   // First prove that an ordinary install does not need any tool integration.
-  installCandidates(['core', 'store-core', 'mutative-core', 'mutative', 'react']);
+  installCandidates(['core', 'interactions', 'store-core', 'mutative-core', 'mutative', 'react']);
   ensureWorkspaceRuntimeArtifacts();
 
   // Check both declaration graphs against the same ownership/compatibility rules.
@@ -313,6 +315,8 @@ module.exports = {
     '^@context-action/react$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/react/dist/index.cjs'))},
     '^@context-action/react/(refs|time-travel|transactions|advanced|utils|backend|webmcp)$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/react/dist/$1.cjs'))},
     '^@context-action/core$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/core/dist/index.cjs'))},
+    '^@context-action/core/element$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/core/dist/element.cjs'))},
+    '^@context-action/interactions$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/interactions/dist/index.cjs'))},
     '^react$': ${JSON.stringify(join(consumer, 'node_modules/react'))},
     '^react/jsx-runtime$': ${JSON.stringify(join(consumer, 'node_modules/react/jsx-runtime.js'))},
     '^react/jsx-dev-runtime$': ${JSON.stringify(join(consumer, 'node_modules/react/jsx-dev-runtime.js'))},

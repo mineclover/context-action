@@ -6,8 +6,8 @@ Canonical workspace operating guide for AI coding agents working in the **Contex
 
 Context-Action is a TypeScript monorepo separating application logic into framework-neutral **Action Pipelines** and reactive **Stores**, organized around the **Context-Layered Architecture** (`contexts / business / handlers / actions / hooks / views`, plus an optional pure-TS `runtime/` directory for headless domain orchestration outside React).
 
-- **18 Workspace Packages Across 6 Layers** ([Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md), `catalog/repository-surface/api-surface.v1.json`, `CA-SURFACE-CATALOG-001`):
-  - **Foundation (`5`)**: `@context-action/core`, `@context-action/store-core`, `@context-action/mutative-core`, `@context-action/tool-protocol`, `@context-action/tool-durable-operations`
+- **19 Workspace Packages Across 6 Layers** ([Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md), `catalog/repository-surface/api-surface.v1.json`, `CA-SURFACE-CATALOG-001`):
+  - **Foundation (`6`)**: `@context-action/core`, `@context-action/interactions`, `@context-action/store-core`, `@context-action/mutative-core`, `@context-action/tool-protocol`, `@context-action/tool-durable-operations`
   - **Framework Adapters (`4`)**: `@context-action/react`, `@context-action/mutative`, `@context-action/lit`, `@context-action/preact`
   - **UI Runtimes (`2`)**: `@context-action/lit-ui`, `@context-action/preact-ui`
   - **Integration Adapters (`3`)**: `@context-action/xstate`, `@context-action/ai-sdk`, `@context-action/webmcp`
@@ -15,7 +15,7 @@ Context-Action is a TypeScript monorepo separating application logic into framew
   - **Private Host Support (`3`)**: `@context-action/live-code-editor`, `@context-action/openrouter-browser-storage`, `@context-action/template-react`
 - **Canonical Authoritative Guides**:
   - [Convention Index](docs/en/context-layered/convention-index.md) — Central entry point for architecture conventions and ADRs
-  - [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) — Complete 18-package, 77-route, and document inventory
+  - [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) — Complete 19-package, 77-route, and document inventory
   - [Package Boundary Convention](docs/en/context-layered/package-boundary-convention.md) — Cross-package import, export, and ownership rules
   - [Store Selection and Usage Guide](docs/en/context-layered/store-selection-and-usage-guide.md) — State/store primitive selection across packages
   - [Spec-to-Code Authoring Guide](docs/en/context-layered/spec-to-code-authoring-guide.md) — Contract-first authoring workflow across layers

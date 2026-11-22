@@ -88,7 +88,7 @@ export async function collectReachableArtifacts(directory, entries) {
 export async function verifyBasicArtifactGraph(directory, entries) {
   const { specifiersByFile, errors } = await collectReachableArtifacts(directory, entries);
   const allowedPackages = new Set([
-    '@context-action/core', '@context-action/store-core', '@context-action/mutative',
+    '@context-action/core', '@context-action/interactions', '@context-action/store-core', '@context-action/mutative',
   ]);
   for (const [relativePath, specifiers] of specifiersByFile.entries()) {
     for (const specifier of specifiers) {
@@ -156,6 +156,7 @@ async function main() {
 
   const toolPublicApiPattern = /\b(?:createToolContext|ToolContextConfig|ToolRegistry)\b/;
   const mutativeRuntimePattern = /@context-action\/mutative(?:["'/]|$)|(?:require|from)\(['"](?:@context-action\/)?mutative(?:["'])/;
+  const interactionsRuntimePattern = /@context-action\/interactions(?:["'/]|$)|(?:require|from)\(['"]@context-action\/interactions['"]\)/;
   const compilerRuntimePattern = /(?:react\/compiler-runtime|react-compiler-runtime)/;
 
   failures.push(...await verifyBasicArtifactGraph(reactDistDirectory, [
@@ -167,6 +168,20 @@ async function main() {
     'advanced.js', 'advanced.cjs', 'advanced.d.ts', 'advanced.d.cts',
     'utils.js', 'utils.cjs', 'utils.d.ts', 'utils.d.cts',
   ]));
+
+  failures.push(...await verifyReachableGraphAbsent(
+    reactDistDirectory,
+    [
+      'index.js', 'index.cjs', 'index.d.ts', 'index.d.cts',
+      'refs.js', 'refs.cjs', 'refs.d.ts', 'refs.d.cts',
+      'time-travel.js', 'time-travel.cjs', 'time-travel.d.ts', 'time-travel.d.cts',
+      'transactions.js', 'transactions.cjs', 'transactions.d.ts', 'transactions.d.cts',
+      'backend.js', 'backend.cjs', 'backend.d.ts', 'backend.d.cts',
+      'utils.js', 'utils.cjs', 'utils.d.ts', 'utils.d.cts',
+    ],
+    interactionsRuntimePattern,
+    'only the ./advanced entry may reach @context-action/interactions',
+  ));
 
   failures.push(...await verifyReachableGraphAbsent(
     reactDistDirectory,

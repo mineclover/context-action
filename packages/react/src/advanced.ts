@@ -26,12 +26,23 @@ export {
 } from './element/element-hooks';
 export type { UseDismissLayerOptions } from './element/element-hooks';
 export {
-  createDismissLayer,
-  createPointerGestureSession,
-  createRovingFocusController,
   createSyncActionPipeline,
   toReactPartProps,
 } from '@context-action/core/element';
+export type {
+  SyncActionPipeline,
+  SyncDispatchOutcome,
+  SyncGuardController,
+  SyncHandlerConfig,
+  SyncObserverConfig,
+  SyncObserverMeta,
+  SyncResultController,
+} from '@context-action/core/element';
+export {
+  createDismissLayer,
+  createPointerGestureSession,
+  createRovingFocusController,
+} from '@context-action/interactions';
 export type {
   DismissLayerHandle,
   DismissLayerOptions,
@@ -49,14 +60,7 @@ export type {
   RovingFocusKeyEventLike,
   RovingFocusOptions,
   RovingFocusOrientation,
-  SyncActionPipeline,
-  SyncDispatchOutcome,
-  SyncGuardController,
-  SyncHandlerConfig,
-  SyncObserverConfig,
-  SyncObserverMeta,
-  SyncResultController,
-} from '@context-action/core/element';
+} from '@context-action/interactions';
 
 
 

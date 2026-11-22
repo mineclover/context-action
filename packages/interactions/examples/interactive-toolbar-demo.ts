@@ -2,14 +2,14 @@
  * Interactive Command Palette / Toolbar Dual-Lane Example.
  *
  * Combines:
- * - @context-action/core/element (`createRovingFocusController`) for synchronous
+ * - @context-action/interactions (`createRovingFocusController`) for synchronous
  *   roving tabindex keyboard navigation (ArrowRight, ArrowLeft, Home, End) skipping disabled items.
  * - @context-action/core (`ActionRegister`) separating high-frequency view interactions
  *   (`focusItem` & `previewFilter` on `lane: 'fast'`) from guarded, audited command execution
  *   (`executeCommand` on `lane: 'orchestrated'` with scoped dispatch trace).
  *
  * Run directly with Node 24+:
- *   node packages/core/examples/interactive-toolbar-demo.ts
+ *   node packages/interactions/examples/interactive-toolbar-demo.ts
  */
 
 import assert from 'node:assert/strict';
@@ -22,7 +22,7 @@ import {
 import {
   createRovingFocusController,
   type RovingFocusItem,
-} from '@context-action/core/element';
+} from '@context-action/interactions';
 
 interface PaletteCommand extends RovingFocusItem {
   readonly label: string;

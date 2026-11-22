@@ -68,13 +68,10 @@ const require = createRequire(import.meta.url);
 const cjsCore = require('@context-action/core/element');
 for (const mode of [core, cjsCore]) {
   for (const symbol of [
-    'createDismissLayer',
     'createElementFacade',
     'createElementBinding',
     'toReactPartProps',
     'createSyncActionPipeline',
-    'createRovingFocusController',
-    'createPointerGestureSession',
   ]) {
     assert.equal(typeof mode[symbol], 'function');
   }
@@ -152,8 +149,6 @@ import {
   createElementBinding,
   toReactPartProps,
   createSyncActionPipeline,
-  createRovingFocusController,
-  createPointerGestureSession,
 } from '@context-action/core/element';
 const require = createRequire(import.meta.url);
 const manifest = JSON.parse(readFileSync(join(dirname(require.resolve('@context-action/core')), '../package.json')));
@@ -166,8 +161,6 @@ for (const fn of [
   createElementBinding,
   toReactPartProps,
   createSyncActionPipeline,
-  createRovingFocusController,
-  createPointerGestureSession,
 ]) {
   assert.equal(typeof fn, 'function');
 }
@@ -178,8 +171,6 @@ for (const symbol of [
   'createElementBinding',
   'toReactPartProps',
   'createSyncActionPipeline',
-  'createRovingFocusController',
-  'createPointerGestureSession',
 ]) {
   assert.equal(typeof cjsElement[symbol], 'function');
 }

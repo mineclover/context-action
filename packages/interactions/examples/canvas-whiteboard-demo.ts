@@ -2,15 +2,16 @@
  * Interactive Whiteboard / Vector Canvas Dual-Lane Example.
  *
  * Combines:
- * - @context-action/core/element (`createPointerGestureSession`, `createSyncActionPipeline`)
- *   for synchronous pointer capture, Shift grid-snap, Escape cancel, and hit-testing.
+ * - @context-action/interactions (`createPointerGestureSession`) +
+ *   @context-action/core/element (`createSyncActionPipeline`) for synchronous
+ *   pointer capture, Shift grid-snap, Escape cancel, and hit-testing.
  * - @context-action/core (`ActionRegister`) with:
  *   - `previewPoint` / `panViewport` on `lane: 'fast'` (zero trace / lock overhead)
  *   - `commitStroke` / `clearBoard` on `lane: 'orchestrated'` with scoped dispatch trace
  *     and transactional snapshot rollback on abort/failure.
  *
  * Run directly with Node 24+:
- *   node packages/core/examples/canvas-whiteboard-demo.ts
+ *   node packages/interactions/examples/canvas-whiteboard-demo.ts
  */
 
 import assert from 'node:assert/strict';
@@ -21,10 +22,8 @@ import {
   type ActionPayloadMap,
   type ActionResultMap,
 } from '@context-action/core';
-import {
-  createPointerGestureSession,
-  createSyncActionPipeline,
-} from '@context-action/core/element';
+import { createSyncActionPipeline } from '@context-action/core/element';
+import { createPointerGestureSession } from '@context-action/interactions';
 
 interface Point2D {
   x: number;

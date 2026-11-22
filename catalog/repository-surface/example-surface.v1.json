@@ -888,6 +888,22 @@
       "verificationGate": "pnpm verify:element-hosts && pnpm verify:element-interop"
     },
     {
+      "id": "ex-pkg-interactions",
+      "packageName": "@context-action/interactions",
+      "path": "packages/interactions/examples",
+      "status": "verified",
+      "explains": {
+        "en": "Framework-neutral interactive canvas whiteboard (pointer gestures) and command palette/toolbar (roving focus) demos pairing @context-action/interactions with ActionRegister.",
+        "ko": "@context-action/interactions와 ActionRegister를 결합한 캔버스 화이트보드(포인터 제스처) 및 커맨드 팔레트·툴바(roving focus) 데모입니다."
+      },
+      "primaryApis": [
+        "createPointerGestureSession",
+        "createRovingFocusController",
+        "createDismissLayer"
+      ],
+      "verificationGate": "pnpm --filter @context-action/interactions test"
+    },
+    {
       "id": "ex-pkg-lit-ui",
       "packageName": "@context-action/lit-ui",
       "path": "packages/lit-ui/examples",

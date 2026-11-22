@@ -4,6 +4,7 @@
     "includes": [
       "packages/core/src/**/*.ts",
       "packages/core/examples/element-hosts/**/*.ts",
+      "packages/interactions/src/**/*.ts",
       "packages/store-core/src/**/*.ts",
       "packages/tool-protocol/src/**/*.ts",
       "packages/webmcp/src/**/*.ts",

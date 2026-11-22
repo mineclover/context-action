@@ -138,9 +138,9 @@ An explicit state machine is a pattern that fixes an async workflow as state + e
 
 ===================[ DOC: en/context-layered/repository-surface-catalog.md ]===================
 # Repository Surface Catalog (API, Examples, and Managed Documents)
-Sections: Five Organizing Principles | Base Specification | Surface 1: Full Repository API Architecture (18 Packages) | Surface 2: What Examples Explain | Surface 3: Managed Documentation Architecture | Verification Commands
+Sections: Five Organizing Principles | Base Specification | Surface 1: Full Repository API Architecture (19 Packages) | Surface 2: What Examples Explain | Surface 3: Managed Documentation Architecture | Verification Commands
 
-Status: Active Spec / Decision ID: CA-SURFACE-CATALOG-001 Owner: Framework Architecture & Documentation Governance Canonical JSON Catalogs: - catalog/repository-surface/api-surface.v1.json - catalog/repository-surface/example-surface.v1.json - catalog/repository-surface/document-surface.v1.json This specification defines the principles, schema standards, and complete inventory for three repository surfaces: 1. Full Repository API Architecture: all 18 workspace packages (packages/), their publ...
+Status: Active Spec / Decision ID: CA-SURFACE-CATALOG-001 Owner: Framework Architecture & Documentation Governance Canonical JSON Catalogs: - catalog/repository-surface/api-surface.v1.json - catalog/repository-surface/example-surface.v1.json - catalog/repository-surface/document-surface.v1.json This specification defines the principles, schema standards, and complete inventory for three repository surfaces: 1. Full Repository API Architecture: all 19 workspace packages (packages/), their publ...
 
 ===================[ DOC: en/context-layered/spec-to-code-authoring-guide.md ]===================
 # Spec-to-Code Authoring Guide
