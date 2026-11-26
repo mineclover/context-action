@@ -111,8 +111,8 @@ function App() {
 
 | 단계 | 적합한 상황 | 핵심 API |
 | --- | --- | --- |
-| **Level 1 · Lite** | 단일 컴포넌트/기능 상태와 타입 안전한 커맨드 | `createStoreContext`, `createActionContext` (또는 `createStateStore` + `ActionRegister`) |
-| **Level 2 · Standard** | 헤드리스 오케스트레이션, 역할 기반 검증·실행, 고빈도 DOM 제어 | `<ActionProvider register={...}>`, `<StoreProvider stores={...} \| manager={...}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `createRefContext` |
+| **Level 1 · Lite** | 단일 컴포넌트/기능 상태와 타입 안전한 커맨드 | `createStoreContext`, `createActionContext`, `createScopedContext` (또는 `createStateStore` + `ActionRegister`) |
+| **Level 2 · Standard** | 헤드리스 오케스트레이션, 역할 기반 검증·실행, 고빈도 DOM 제어 | `<ActionProvider register={...}>`, `<StoreProvider stores={...} \| manager={...}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `useRefRegistry`, `createRefContext` |
 | **Level 3 · Enterprise** | 다중 팀 도메인, 다중 스토어 원자 Undo/Redo, AI/MCP 도구, 마이크로 프론트엔드 | 6계층 Context-Layered, `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, `@context-action/lit-ui` / `preact-ui` |
 
 ---
@@ -708,12 +708,13 @@ interface UserActions extends ActionPayloadMap {
 
 ## 📦 패키지
 
-모노레포는 **6개 레이어에 걸친 20개 워크스페이스 패키지**(공개 16개, 내부 워크스페이스 도구 4개)로 구성됩니다. 전체 패키지 목록, export subpath, 검증 게이트는 [저장소 표면 카탈로그](./docs/ko/context-layered/repository-surface-catalog.md) 및 [`api-surface.v1.json`](./catalog/repository-surface/api-surface.v1.json)을 참고하세요.
+모노레포는 **6개 레이어에 걸친 19개 워크스페이스 패키지**(공개 15개, 내부 워크스페이스 도구 4개)로 구성됩니다. 전체 패키지 목록, export subpath, 검증 게이트는 [저장소 표면 카탈로그](./docs/ko/context-layered/repository-surface-catalog.md) 및 [`api-surface.v1.json`](./catalog/repository-surface/api-surface.v1.json)을 참고하세요.
 
 - **[@context-action/core](./packages/core)** — 무의존성 프레임워크 중립 액션 파이프라인 (`ActionRegister`, 가드, 우선순위, 취소, `./element` 호스트 바인딩)
+- **[@context-action/interactions](./packages/interactions)** — 무의존성 헤드리스 UI 인터랙션 프리미티브 (`createDismissLayer`, `createRovingFocusController`, `createPointerGestureSession`)
 - **[@context-action/store-core](./packages/store-core)** — 프레임워크 중립 `StateBackend`, `TimelineBackend`, `TransactionBackend` 및 `createStateStore` 계약
 - **[@context-action/mutative-core](./packages/mutative-core)** & **[@context-action/mutative](./packages/mutative)** — Upstream 호환 불변 엔진(`mutative@2.0.2` 계보)과 `StateBackend` / 타임트래블 어댑터
-- **[@context-action/react](./packages/react)** — React 18/19 MVVM Context 바인딩 (`createActionContext`, `createStoreContext`, `createTimeTravelStoreContext`, `createRefContext`, `./backend`, `./advanced`, `./utils`, `./webmcp`)
+- **[@context-action/react](./packages/react)** — React 18/19 MVVM Context 바인딩 (`createActionContext`, `createScopedContext`, `createStoreContext`, `useStorePath`, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, `./webmcp`)
 - **[@context-action/xstate](./packages/xstate)** — XState v5/v6(`.`) 및 Effect(`./effect`) 선택형 어댑터
 - **[@context-action/lit](./packages/lit)** & **[@context-action/lit-ui](./packages/lit-ui)** — Lit ReactiveController, W3C `@lit/context`, FACE 컨트롤, SSR/하이드레이션, React 브리지
 - **[@context-action/preact](./packages/preact)** & **[@context-action/preact-ui](./packages/preact-ui)** — Preact Context + Signals 어댑터, mount/hydrate 루트, 커스텀 엘리먼트 브리지, React 브리지

@@ -5,7 +5,8 @@ while it is not visible. It preserves component, DOM, Store, and Action
 Provider state across a hide/reveal cycle without keeping that UI's effects and
 external subscriptions active.
 
-`@context-action/react` 4.0.7 requires React 19.2 or later. Activity is imported
+`@context-action/react` 5.0.0 supports React 18.3.1 and React 19.2+, and React's
+`<Activity>` component requires React 19.2 or later. Activity is imported
 from React; Context-Action does not wrap or re-export it.
 
 ```tsx

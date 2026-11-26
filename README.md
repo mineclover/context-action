@@ -109,8 +109,8 @@ Adopt only the boundaries your feature needs today:
 
 | Level | When to Use | Core Primitives |
 | --- | --- | --- |
-| **Level 1 · Lite** | Single component/feature state or typed commands | `createStoreContext`, `createActionContext` (or `createStateStore` + `ActionRegister`) |
-| **Level 2 · Standard** | Headless orchestration, role-based validation, high-frequency DOM | `<ActionProvider register={...}>`, `<StoreProvider stores={...} \| manager={...}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `createRefContext` |
+| **Level 1 · Lite** | Single component/feature state or typed commands | `createStoreContext`, `createActionContext`, `createScopedContext` (or `createStateStore` + `ActionRegister`) |
+| **Level 2 · Standard** | Headless orchestration, role-based validation, high-frequency DOM | `<ActionProvider register={...}>`, `<StoreProvider stores={...} \| manager={...}>`, `useActionGuard` / `useActionCommandHandler` / `useActionResultHandler` / `useActionObserver`, `useStorePath`, `useRefRegistry`, `createRefContext` |
 | **Level 3 · Enterprise** | Multi-team domains, atomic undo/redo, AI/MCP tools, micro-frontends | 6-Layer Context-Layered Architecture, `StoreTransactionCoordinator`, `@context-action/tool-protocol`, `@context-action/xstate`, `@context-action/lit-ui` / `preact-ui` |
 
 ---
@@ -749,17 +749,18 @@ Context-Action Framework organizes application state, logic, and views around ex
 
 ## 📦 Packages
 
-The monorepo contains **20 workspace packages across 6 layers** (16 publishable, 4 internal workspace tools). See the [Repository Surface Catalog](./docs/en/context-layered/repository-surface-catalog.md) and [`api-surface.v1.json`](./catalog/repository-surface/api-surface.v1.json) for the complete inventory, exports, and verification gates.
+The monorepo contains **19 workspace packages across 6 layers** (15 publishable, 4 internal workspace tools). See the [Repository Surface Catalog](./docs/en/context-layered/repository-surface-catalog.md) and [`api-surface.v1.json`](./catalog/repository-surface/api-surface.v1.json) for the complete inventory, exports, and verification gates.
 
 ### Core State, Pipeline & Immutability
 
 - **[@context-action/core](./packages/core)** — Zero-dependency framework-agnostic action pipeline (`ActionRegister`, guards, priority, cancellation, `./element` host bindings).
+- **[@context-action/interactions](./packages/interactions)** — Zero-dependency headless UI interaction primitives (`createDismissLayer`, `createRovingFocusController`, `createPointerGestureSession`).
 - **[@context-action/store-core](./packages/store-core)** — Framework-neutral `StateBackend`, `TimelineBackend`, `TransactionBackend`, and lightweight `createStateStore` contracts.
 - **[@context-action/mutative-core](./packages/mutative-core)** & **[@context-action/mutative](./packages/mutative)** — Upstream-compatible immutable engine (`mutative@2.0.2` lineage) and Context-Action `StateBackend` / time-travel adapter.
 
 ### Framework Adapters & UI Bridges
 
-- **[@context-action/react](./packages/react)** — React 18/19 MVVM Context bindings (`createActionContext`, `createStoreContext`, `createTimeTravelStoreContext`, `createRefContext`, `./backend`, `./advanced`, `./utils`, `./webmcp`).
+- **[@context-action/react](./packages/react)** — React 18/19 MVVM Context bindings (`createActionContext`, `createScopedContext`, `createStoreContext`, `useStorePath`, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, `./webmcp`).
 - **[@context-action/xstate](./packages/xstate)** — Optional XState v5/v6 (`.`) and Effect (`./effect`) adapters bridging actors/state machines with Action & Store ports.
 - **[@context-action/lit](./packages/lit)** & **[@context-action/lit-ui](./packages/lit-ui)** — Lit ReactiveControllers, W3C `@lit/context`, FACE controls, SSR/hydration, and React bridge.
 - **[@context-action/preact](./packages/preact)** & **[@context-action/preact-ui](./packages/preact-ui)** — Preact Context + Signals adapters, mount/hydrate roots, custom element bridge, and React bridge.

@@ -1,6 +1,6 @@
 # Gemini-AI Agent Project Context
 
-Entry context for Gemini agents working in `context-action`. See **[AGENTS.md](./AGENTS.md)** as the single source of truth for workspace commands, 20-package boundaries, build order, and protected release rules.
+Entry context for Gemini agents working in `context-action`. See **[AGENTS.md](./AGENTS.md)** as the single source of truth for workspace commands, 19-package boundaries, build order, and protected release rules.
 
 ## Contract-First Development & Documentation Workflow
 

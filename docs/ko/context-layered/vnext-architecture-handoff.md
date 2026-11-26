@@ -1,16 +1,16 @@
 # vNext 아키텍처 & 타 프로젝트 핸드오프 가이드
 
-**상태:** Phase 1 (`M0–M4`) 및 Phase 2 (`v5` React 호환성 정리 및 기본값 통일) `stage` 구현 완료 (롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32`, 패키지 버전 범프·npm 배포 동결 유지)  
-**기준선(Baseline):** `stage` 브랜치 (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`, 프리릴리스 기간 패키지 버전 동결)
+**상태:** Phase 1 (`M0–M4`) 및 Phase 2 (`v5` React 호환성 정리, DX 개선 및 `@context-action/interactions` 분리) **`main` / npm `latest` 정식 배포 완료 (2026-11-26)** (Phase 2 직전 `4.x` 롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32`)  
+**기준선(Baseline):** `main` / `stage` 동기화 완료 (`@context-action/core@2.0.0`, `@context-action/interactions@0.1.0`, `@context-action/store-core@0.1.5`, `@context-action/xstate@0.1.1`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@5.0.0`, `@context-action/lit@0.1.5`, `@context-action/lit-ui@0.1.5`, `@context-action/preact@0.1.4`, `@context-action/preact-ui@0.2.2`)
 
-이 문서는 연계 프로젝트 또는 후속 세션이 현재 `stage` 계약에 맞춰 협업·마이그레이션할 수 있도록 **기준선 규칙 · 필독 지도 · `stage`에 반영된 Phase 1/Phase 2 범위 · 설계 경계 · 재사용 프롬프트 키트**를 정리한 레퍼런스입니다.
+이 문서는 연계 프로젝트 또는 후속 세션이 현재 배포된 계약에 맞춰 협업·마이그레이션할 수 있도록 **기준선 규칙 · 필독 지도 · Phase 1/Phase 2 구현 범위 · 설계 경계 · 재사용 프롬프트 키트**를 정리한 레퍼런스입니다.
 
 ---
 
-## 1. 기준선 및 동결 원칙
+## 1. 기준선 및 아키텍처 원칙
 
-- **작업 브랜치:** `stage` (롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32` 보존; 정식 릴리스 승인 전까지 `main` 직접 병합·버전 범프·배포 금지).
-- **버전 동결 및 `stage` Phase 2 기준선:** 패키지 버전 및 npm 배포는 동결을 유지합니다. 현재 `stage`에는 **Phase 2 (`v5` React 표면 정리)** 가 반영되어 루트 `.` export 슬림화(`./refs`·`./time-travel`·`./transactions` 독립 서브패스), Deprecated React API 제거, `Store` 기본 `notificationMode: 'immediate'`, `createActionContext` 기본 `useConcurrencyQueue: false`가 적용되어 있으며, `@context-action/core`의 `registerEffect`는 `1.x` 호환을 위해 유지됩니다.
+- **정식 배포 완료 (`main` / `stage` 동기화):** 2026-11 메이저 코호트(`@context-action/core@2.0.0`, `@context-action/interactions@0.1.0`, `@context-action/react@5.0.0` 및 Core v2 호환 `store-core@0.1.5`, `xstate@0.1.1`, `lit@0.1.5`/`lit-ui@0.1.5`, `preact@0.1.4`/`preact-ui@0.2.2`)가 npm `latest`에 게시되었습니다 (롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32` 보존).
+- **활성 `v5` 계약 기준:** npm `latest`에는 **Phase 2 (`v5` React 표면 정리 + `interactions` 분리)** 가 반영되어 루트 `.` export 슬림화(`./refs`·`./time-travel`·`./transactions` 독립 서브패스), Deprecated React API 제거, `Store` 기본 `notificationMode: 'immediate'`, `createActionContext` 기본 `useConcurrencyQueue: false`, `createScopedContext`, `useRefRegistry`, `useStorePath` 및 `@context-action/interactions`가 적용되어 있으며, `@context-action/core`의 `registerEffect`는 `1.x` 호환을 위해 유지됩니다.
 - **불필요한 React 훅 래퍼 지양 원칙:** Context-Action은 5가지 OOP × React 기본 Hook 조합 패턴(`useImperativeHandle`, `useLocalStore`/`useReducer`, `useDeferredValue`, React 19 `useOptimistic`/`useTransition`/`useActionState`, isomorphic `useLayoutEffect`/`useEffect`)을 얇은 전용 래퍼 API로 추가하지 않고 **조합 사용 패턴 문서**로 관리합니다.
 
 ---

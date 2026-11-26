@@ -87,11 +87,12 @@ pnpm --filter @context-action/lit-ui test:browser # Chromium DSD hydration contr
 
 ## Status
 
-Public package, version `0.1.3`, published to npm on 2026-10-23.
+Public package, version `0.1.5`, published to npm on 2026-11-26 (`@context-action/core@^1.3.0 || ^2.0.0`, `@context-action/lit@^0.1.5`).
 
 - https://www.npmjs.com/package/@context-action/lit-ui
-- `latest` / `next`: `0.1.3`
-- [`LIT_PUBLIC_0.1.3.md`](../../releases/LIT_PUBLIC_0.1.3.md) — renderBefore stabilization release record
+- `latest` / `next`: `0.1.5`
+- [`lit-public-2026-11-core-v2.json`](../../releases/lit-public-2026-11-core-v2.json) — Core v2 compatibility & `0.1.5` release record
+- [`LIT_PUBLIC_0.1.3.md`](../../releases/LIT_PUBLIC_0.1.3.md) — historical renderBefore stabilization release record
 
 Requires Node.js `>=24.11.0`.
 

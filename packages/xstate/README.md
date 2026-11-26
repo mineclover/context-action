@@ -3,10 +3,10 @@
 Optional XState v5/v6 and Effect v4 / `@xstate/effect` adapters for `@context-action/core` and `@context-action/store-core`.
 
 ```text
-Package ID and stability: @context-action/xstate (0.1.0, public candidate / experimental)
+Package ID and stability: @context-action/xstate (0.1.1, public-preview)
 Primary responsibility: Adapt XState v5/v6 statecharts and Effect v4 / @xstate/effect runtimes to Context-Action pipelines, StateReader projections, and TransactionCoordinatorPort boundaries without polluting zero-dependency core packages
 Public entry points and exports: "." (@context-action/xstate) and "./effect" (@context-action/xstate/effect)
-Runtime dependencies: @context-action/core (^1.3.0), @context-action/store-core (^0.1.3)
+Runtime dependencies: @context-action/core (^1.3.1 || ^2.0.0), @context-action/store-core (^0.1.4)
 Peer/optional dependencies: None forced (structural ports interoperate with xstate v5/v6, effect v3/v4, @xstate/effect, zod without conflicting peer diamond locks)
 Owned source directories: packages/xstate/src, packages/xstate/test, packages/xstate/docs
 Test and verification commands: pnpm --dir packages/xstate test && pnpm --dir packages/xstate type-check && pnpm --dir packages/xstate lint

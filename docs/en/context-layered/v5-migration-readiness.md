@@ -2,17 +2,18 @@
 
 This guide prepares application teams, template starters, and external consumers for **Phase 2 (`v5` major breaking cleanup)** under [`CA-VNEXT-ARCHITECTURE-001`](./decisions/CA-VNEXT-ARCHITECTURE-001.md). Every preparation step in this document runs on top of the current `4.x` release line without breaking existing root imports or freezing active development.
 
-- **Status:** **Phase 2 (`v5`) implemented on `stage`** (rollback checkpoint `checkpoint/pre-phase2-v4` @ `240b2b32`; `packages/template-react/src` and `example/src` compliant with `0` blocking findings; package versions remain frozen pending release approval). External `4.x -> v5` consumers can continue using `pnpm audit:v5-readiness` to migrate incrementally.
-- **Prerequisite Baseline:** [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (`M0–M4` & Phase 2 complete on `stage`) · [vNext Architecture Handoff Guide](./vnext-architecture-handoff.md)
+- **Status:** **Published on npm `latest` (2026-11-26)** (`@context-action/core@2.0.0`, `@context-action/interactions@0.1.0`, `@context-action/store-core@0.1.5`, `@context-action/xstate@0.1.1`, `@context-action/react@5.0.0`, plus Core v2 compatible `@context-action/lit@0.1.5`, `@context-action/lit-ui@0.1.5`, `@context-action/preact@0.1.4`, and `@context-action/preact-ui@0.2.2`; pre-Phase-2 `4.x` rollback tag retained at `checkpoint/pre-phase2-v4` @ `240b2b32`). External `4.x -> 5.0` upgraders can continue using `pnpm audit:v5-readiness` to migrate incrementally.
+- **Prerequisite Baseline:** [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (`M0–M4` & Phase 2 complete on `main` / npm `latest`) · [vNext Architecture Handoff Guide](./vnext-architecture-handoff.md)
 
 ## 1. Phase 1 (`4.x` Non-Breaking) vs. Phase 2 (`v5` Major) Boundary
 
-Phase 1 delivered the target primitives without breaking existing `4.x` callers, and Phase 2 finalized the `@context-action/react` root surface cleanup and default alignment on `stage` (while keeping `@context-action/core` `registerEffect` for `1.x` compatibility):
+Phase 1 delivered the target primitives without breaking existing `4.x` callers, and Phase 2 shipped in `@context-action/core@2.0.0` + `@context-action/react@5.0.0` (while keeping `@context-action/core` `registerEffect` for `1.x` compatibility):
 
-| Area | Available in `4.x` (Additive / Non-Breaking) | Applied in Phase 2 (`v5` on `stage`) |
+| Area | Available in `4.x` (Additive / Non-Breaking) | Shipped in `core@2.0.0` / `react@5.0.0` |
 | :--- | :--- | :--- |
 | React entrypoints | `@context-action/react/{refs,time-travel,transactions,backend}` subpaths live alongside root `.` re-exports | Specialized re-exports (`createRefContext`, `createTimeTravelStore*`, `StoreTransactionCoordinator`, `createBackendStore`, etc.) live solely on their subpaths |
 | Dispatch hook symmetry & deprecations | `useActionResultDispatch()` and `useActionScope()` promoted as primary hooks; `useActionDispatchWithResult()` marked `@deprecated` | Removed `useActionDispatchWithResult`, `useActionEffectHandler`, `compareStrategy`, `StoreSchema`, and legacy React `TransactionBackend` facade (`@context-action/core` retains `registerEffect` for `1.x`) |
+| Headless UI interactions | `createPointerGestureSession` and `createRovingFocusController` initially resided inside `@context-action/core/element` | Extracted `createPointerGestureSession`, `createRovingFocusController`, and `createDismissLayer` into standalone zero-dependency `@context-action/interactions@0.1.0` (with React hooks exposed from `@context-action/react/advanced`) |
 | Action queue policies | Contract-level `actions: { [name]: { queue, timeout } }` policies on `ActionRegister` / `createActionContext`, plus lazy `dispatchQueue` allocation for `{ immediate: false }` | Default `useConcurrencyQueue` in `createActionContext` aligned with Core (`false`); per-action serial queues opt in via `actions: { [name]: { queue: 'serial' } }` or `{ registry: { useConcurrencyQueue: true } }` |
 | Store notifications | Explicit `notificationMode?: 'batched' \| 'immediate'` option on `Store`, `TimeTravelStore`, `createStoreContext`, and `createTimeTravelStoreContext` | Default `Store` `notificationMode` aligned to `'immediate'` (matching `createStateStore()` and React 18/19 batching; `'batched'` remains opt-in for explicit RAF coalescing) |
 
