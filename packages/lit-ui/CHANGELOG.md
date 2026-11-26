@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.1.5] (2026-11-26)
+
+Core 2.0 compatibility cohort. Widens `@context-action/core` to
+`^1.3.0 || ^2.0.0` and advances `@context-action/lit` to `^0.1.5`.
+
 ## [0.1.4] (2026-10-29)
 
 Core 1.3.0 element interop cohort candidate. Lit-only root imports remain

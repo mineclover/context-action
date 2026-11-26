@@ -9,13 +9,13 @@ const packageDefinitions = [
   {
     name: '@context-action/preact',
     directory: 'packages/preact',
-    expectedVersion: '0.1.3',
+    expectedVersion: '0.1.4',
     dependency: '@context-action/core',
   },
   {
     name: '@context-action/preact-ui',
     directory: 'packages/preact-ui',
-    expectedVersion: '0.2.1',
+    expectedVersion: '0.2.2',
     dependency: '@context-action/preact',
   },
 ];
@@ -30,7 +30,7 @@ if (rootIndex !== -1 && (!args[rootIndex + 1] || args[rootIndex + 1].startsWith(
 const repositoryRoot = rootIndex === -1
   ? defaultRepositoryRoot
   : path.resolve(args[rootIndex + 1] ?? '');
-const planPath = path.join(repositoryRoot, 'releases', 'preact-public-2026-10-patch-1.json');
+const planPath = path.join(repositoryRoot, 'releases', 'preact-public-2026-11-core-v2.json');
 const unknownArguments = args.filter((argument, index) => argument !== '--require-current-source'
   && argument !== '--root'
   && index !== rootIndex + 1);
@@ -108,8 +108,10 @@ async function validatePlan(errors) {
     === JSON.stringify(['./element', './element/react']),
   'public Preact release plan must pin both Core element exports');
   expect(errors, prerequisite?.candidateDependencies?.['@context-action/preact-ui']?.['@context-action/core']
-    === `^${ELEMENT_INTEROP_MIN_CORE}`,
-  `public Preact release plan Preact UI candidate must depend on @context-action/core@^${ELEMENT_INTEROP_MIN_CORE}`);
+    === '^1.3.0 || ^2.0.0'
+    || prerequisite?.candidateDependencies?.['@context-action/preact-ui']?.['@context-action/core']
+      === `^${ELEMENT_INTEROP_MIN_CORE}`,
+  `public Preact release plan Preact UI candidate must depend on @context-action/core@^${ELEMENT_INTEROP_MIN_CORE} or ^1.3.0 || ^2.0.0`);
   return plan;
 }
 
@@ -165,9 +167,10 @@ async function main() {
   if (preact && core) {
     expect(
       errors,
-      preact.dependencies?.['@context-action/core'] === `^${core.version}`
+      preact.dependencies?.['@context-action/core'] === '^1.3.0 || ^2.0.0'
+        || preact.dependencies?.['@context-action/core'] === `^${core.version}`
         || preact.dependencies?.['@context-action/core'] === `^${ELEMENT_INTEROP_MIN_CORE}`,
-      `@context-action/preact must depend on @context-action/core@^${ELEMENT_INTEROP_MIN_CORE}`,
+      `@context-action/preact must depend on @context-action/core@^${ELEMENT_INTEROP_MIN_CORE} or ^1.3.0 || ^2.0.0`,
     );
   }
   if (preactUi) {
@@ -224,7 +227,7 @@ async function main() {
 
   console.log(JSON.stringify({
     status: 'ok',
-    release: plan?.release ?? 'preact-public-2026-10-patch-1',
+    release: plan?.release ?? 'preact-public-2026-11-core-v2',
     packages: Object.fromEntries(packageDefinitions.map(definition => [definition.name, definition.expectedVersion])),
     currentSource: requireCurrentSource ? 'required' : 'not-required',
   }));

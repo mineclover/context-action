@@ -2,6 +2,17 @@
 
 Pending changes that are not part of a published version are recorded in the repository's [UNRELEASED.md](https://github.com/mineclover/context-action/blob/main/packages/core/UNRELEASED.md).
 
+## [2.0.0] (2026-11-26)
+
+### Breaking Changes
+
+- Extracted `createPointerGestureSession`, `createRovingFocusController`, and their companion TypeScript interfaces from `@context-action/core/element` into the dedicated zero-dependency Foundation package `@context-action/interactions`. Update imports from `@context-action/core/element` to `@context-action/interactions`.
+
+### Packaging
+
+- Declared `"sideEffects": false` in `package.json` for optimal consumer tree-shaking.
+- Enabled JSDoc comment preservation in published `.d.ts` / `.d.cts` declarations (`removeComments: false`).
+
 ## [1.3.1] (2026-11-19)
 
 ### Element host interop & pipeline refinements

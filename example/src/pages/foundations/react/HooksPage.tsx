@@ -641,10 +641,7 @@ function SelectorClicksSubscriber() {
 
 function PathNameSubscriber() {
   const subscriptionStore = HooksStores.useStore('subscription');
-  const userName = useStorePath<SubscriptionState, string>(subscriptionStore, [
-    'user',
-    'name',
-  ]);
+  const userName = useStorePath(subscriptionStore, ['user', 'name']);
   const [history, setHistory] = useState({ count: 0, userName });
 
   useEffect(() => {
@@ -661,6 +658,38 @@ function PathNameSubscriber() {
       </div>
       <div className="mt-1 text-xs text-emerald-700">
         User: {history.userName}
+      </div>
+    </div>
+  );
+}
+
+function DerivedPathSelectSubscriber() {
+  const subscriptionStore = HooksStores.useStore('subscription');
+  const isAlice = useStorePath(subscriptionStore, ['user', 'name'], {
+    select: (name) => name === 'Alice',
+  });
+  const [history, setHistory] = useState({ count: 0, isAlice });
+
+  useEffect(() => {
+    setHistory((prev) => ({ count: prev.count + 1, isAlice }));
+  }, [isAlice]);
+
+  return (
+    <div className="rounded-lg border border-violet-200 bg-violet-50 p-4">
+      <div className="text-xs font-semibold uppercase tracking-wide text-violet-700">
+        useStorePath(..., &#123; select &#125;)
+      </div>
+      <div
+        data-testid="derived-path-updates"
+        className="mt-2 text-lg font-bold text-violet-900"
+      >
+        Updates: {history.count}
+      </div>
+      <div
+        data-testid="derived-path-value"
+        className="mt-1 text-xs text-violet-700"
+      >
+        isAlice: {String(history.isAlice)}
       </div>
     </div>
   );
@@ -740,10 +769,11 @@ function SubscriptionComparisonDemo() {
         </button>
       </div>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-3">
+      <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <FullValueSubscriber />
         <SelectorClicksSubscriber />
         <PathNameSubscriber />
+        <DerivedPathSelectSubscriber />
       </div>
     </div>
   );
@@ -863,43 +893,36 @@ function ReactHooksPage() {
               React Hooks Optimization Patterns
             </h3>
             <CodeBlock size="md">
-              {`// 1. React 컴파일러가 자동으로 무거운 계산 최적화
-const expensiveValue = heavyComputation(data); // 자동으로 메모이제이션됨
+              {`// 1. Inferred Path Subscription + Derived select (StorePathOf<T> compile-time checked)
+const userName = useStorePath(store, ['user', 'name']);
+const isAlice = useStorePath(store, ['user', 'name'], {
+  select: (name) => name === 'Alice',
+});
 
-// 2. React 컴파일러가 자동으로 핸들러 최적화
+// 2. React Compiler & latest-ref stabilized handlers (no manual useCallback or propRef needed)
 const optimizedHandler = (payload) => {
   dispatch('action', payload);
-}, [dispatch]); // dispatch가 변경될 때만 함수 재생성
+};
 
-// 3. 조건부 핸들러 등록
-useEffect(() => {
-  if (!enabled) return; // 조건이 맞지 않으면 등록하지 않음
-  
-  const unsubscribe = register('action', handler);
-  return unsubscribe;
-}, [register, enabled]); // enabled 상태에 따라 등록/해제
+// 3. Single-Provider Scoped Context & RefRegistry
+const Scope = createScopedContext('Widget', Actions, ({ minLength }) => {
+  const store = useStoreInstance(() => ({ text: '' }));
+  const refs = useRefRegistry<{ input: HTMLInputElement }>();
+
+  Actions.useActionGuard('submit', (payload, controller) => {
+    if (payload.text.length < minLength) controller.abort('Too short');
+  });
+
+  return { store, refs };
+});
 
 // 4. 동적 핸들러 관리
 useEffect(() => {
-  const unsubscribers = [];
-  
-  activeHandlers.forEach(type => {
-    const unsubscribe = register(type, handlers[type]);
-    unsubscribers.push(unsubscribe);
-  });
-  
-  return () => unsubscribers.forEach(fn => fn());
-}, [activeHandlers]); // 활성 핸들러 목록 변경 시에만 재등록
-
-// 5. 메모리 정리
-useEffect(() => {
-  const cleanup = setInterval(() => {
-    // 주기적 정리 로직
-    cleanupOldData();
-  }, 5000);
-  
-  return () => clearInterval(cleanup);
-}, []);`}
+  const unsubscribers = activeHandlers.map((type) =>
+    register(type, handlers[type])
+  );
+  return () => unsubscribers.forEach((fn) => fn());
+}, [register, activeHandlers, handlers]);`}
             </CodeBlock>
           </div>
         </HooksStores.Provider>

@@ -27,11 +27,12 @@ The current stable release is the state-management surface:
 
 | Package | Version | Why it matters |
 | --- | --- | --- |
-| `@context-action/core` | `1.3.1` | Stable action lifecycle, dispatch trace, and observer semantics. |
-| `@context-action/store-core` | `0.1.4` | Framework-neutral state, patch, and timeline backend contracts. |
+| `@context-action/core` | `2.0.0` | Stable action lifecycle, dispatch trace, and observer semantics. |
+| `@context-action/interactions` | `0.1.0` | Framework-neutral roving focus, pointer gesture, and LIFO dismiss layers. |
+| `@context-action/store-core` | `0.1.5` | Framework-neutral state, patch, and timeline backend contracts. |
 | `@context-action/mutative-core` | `0.8.14` | Upstream `mutative@2.0.2` compatibility baseline and maintained fork fixes. |
 | `@context-action/mutative` | `0.8.15` | Defensive collection snapshots, immutable update, and timeline batches. |
-| `@context-action/react` | `4.0.7` | React lifecycle, backend notification, declaration, and SSR contract. |
+| `@context-action/react` | `5.0.0` | React lifecycle, backend notification, declaration, and SSR contract. |
 
 The upstream baseline and scoped package versions are independent contracts.
 `mutative@2.0.2` identifies the acquired source baseline; it is not a runtime
@@ -56,7 +57,7 @@ take over a responsibility from the next row.
 | Concern | Owner | Function | Explicitly not responsible for |
 | --- | --- | --- | --- |
 | Action execution | `@context-action/core` | Registers handlers, orders execution, exposes cancellation, timeout, results, and observer lifecycle. | React rendering, state persistence, tool schemas, provider calls, authorization. |
-| React state and composition | `@context-action/react` 4.0 | Creates Store/Action contexts, connects subscriptions to React, and preserves the verified React 18/19 and SSR lifecycle contract. | Database-backed work, cross-process recovery, provider/tool runtime. |
+| React state and composition | `@context-action/react` 5.0 | Creates Store/Action contexts, connects subscriptions to React, and preserves the verified React 18/19 and SSR lifecycle contract. | Database-backed work, cross-process recovery, provider/tool runtime. |
 | Application domain | Your application | Defines state shape, business rules, authorization, API clients, and the meaning of success or failure. | Delegating business policy to a generic store or action registry. |
 | Tool protocol — development track | `@context-action/tool-protocol` | Defines provider-neutral tool schemas, serialization, approval, and observable protocol metadata. | React state lifecycle or durable persistence. |
 | Durable mutation recovery — development track | `@context-action/tool-durable-operations` | Coordinates a logical external mutation using records, leases, full fences, and an explicit `unknown` state. | Exactly-once guarantees from an external provider, application authorization, or domain reconciliation policy. |
@@ -75,7 +76,7 @@ An in-memory promise or idempotency map cannot safely coordinate a mutation acro
 
 That problem has a different operational boundary from client state management: it requires a real persistence service, a provider/domain status lookup, and a defined reconciliation policy. Keeping it in development prevents a database and provider-recovery contract from becoming an accidental requirement for the core state-management release.
 
-The source retains `@context-action/react/tools` for development, but the React 4 artifact intentionally omits that subpath while Durable 0.2 is withheld. The ordinary React root entry is independent of this development track.
+The source retains `@context-action/react/tools` for development, but the React 5 artifact intentionally omits that subpath while Durable 0.2 is withheld. The ordinary React root entry is independent of this development track.
 
 ## Durable operations: operational boundary
 
@@ -95,7 +96,7 @@ See the [durable operations runbook](/en/context-layered/architecture/durable-op
 
 ## Production rollout checklist
 
-- Pin and test Core `1.3.1`, Store Core `0.1.4`, Mutative Core `0.8.14`, scoped adapter `0.8.15`, and React `4.0.7` together.
+- Pin and test Core `2.0.0`, Interactions `0.1.0`, Store Core `0.1.5`, Mutative Core `0.8.14`, scoped adapter `0.8.15`, and React `5.0.0` together.
 - Run `pnpm release:check` from the exact candidate commit.
 - Use the packed-consumer and React compatibility checks as release gates, not only workspace tests.
 - Roll out this cohort behind normal application canary and rollback controls.

@@ -10,18 +10,20 @@ const packageDefinitions = [
   {
     name: '@context-action/lit',
     directory: 'packages/lit',
-    expectedVersion: '0.1.4',
+    expectedVersion: '0.1.5',
     dependencies: {
-      '@context-action/core': (coreVersion) => `^${coreVersion}`,
+      '@context-action/core': (coreVersion) =>
+        (String(coreVersion).startsWith('2.') ? '^1.3.0 || ^2.0.0' : `^${coreVersion}`),
     },
   },
   {
     name: '@context-action/lit-ui',
     directory: 'packages/lit-ui',
-    expectedVersion: '0.1.4',
+    expectedVersion: '0.1.5',
     dependencies: {
-      '@context-action/core': (coreVersion) => `^${coreVersion}`,
-      '@context-action/lit': () => '^0.1.4',
+      '@context-action/core': (coreVersion) =>
+        (String(coreVersion).startsWith('2.') ? '^1.3.0 || ^2.0.0' : `^${coreVersion}`),
+      '@context-action/lit': () => '^0.1.5',
     },
   },
 ];
@@ -36,7 +38,7 @@ if (rootIndex !== -1 && (!args[rootIndex + 1] || args[rootIndex + 1].startsWith(
 const repositoryRoot = rootIndex === -1
   ? defaultRepositoryRoot
   : path.resolve(args[rootIndex + 1] ?? '');
-const planPath = path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-4.json');
+const planPath = path.join(repositoryRoot, 'releases', 'lit-public-2026-11-core-v2.json');
 const unknownArguments = args.filter((argument, index) => argument !== '--require-current-source'
   && argument !== '--root'
   && index !== rootIndex + 1);
@@ -120,8 +122,10 @@ async function validatePlan(errors) {
     === JSON.stringify(['./element', './element/react']),
   'public Lit release plan must pin both Core element exports');
   expect(errors, prerequisite?.candidateDependencies?.['@context-action/lit-ui']?.['@context-action/core']
-    === `^${ELEMENT_INTEROP_MIN_CORE}`,
-  `public Lit release plan Lit UI candidate must depend on @context-action/core@^${ELEMENT_INTEROP_MIN_CORE}`);
+    === '^1.3.0 || ^2.0.0'
+    || prerequisite?.candidateDependencies?.['@context-action/lit-ui']?.['@context-action/core']
+      === `^${ELEMENT_INTEROP_MIN_CORE}`,
+  `public Lit release plan Lit UI candidate must depend on @context-action/core@^${ELEMENT_INTEROP_MIN_CORE} or ^1.3.0 || ^2.0.0`);
 
   const candidateCommits = plan.candidateCommits ?? {};
   for (const [name, value] of Object.entries(candidateCommits)) {
@@ -273,7 +277,7 @@ async function main() {
 
   console.log(JSON.stringify({
     status: 'ok',
-    release: plan?.release ?? 'lit-public-2026-10-patch-4',
+    release: plan?.release ?? 'lit-public-2026-11-core-v2',
     packages: Object.fromEntries(packageDefinitions.map(definition => [definition.name, definition.expectedVersion])),
     currentSource: requireCurrentSource ? 'required' : 'not-required',
   }));

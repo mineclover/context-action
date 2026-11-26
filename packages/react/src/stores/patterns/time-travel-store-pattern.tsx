@@ -490,7 +490,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
     path: Readonly<StorePath>
   ): R {
     const store = useStore(storeName);
-    return useStorePathHook<T[K], R>(store, path);
+    return useStorePathHook(store, path as (string | number)[]) as R;
   }
 
   /**
@@ -510,7 +510,7 @@ export function createTimeTravelStoreContext<T extends Record<string, any>>(
     options: { dependsOn?: readonly Readonly<StorePath>[]; equalityFn?: (a: R, b: R) => boolean } = {}
   ): R {
     const store = useStore(storeName);
-    return useStoreSelectorWithPaths<T[K], R>(store, selector, {
+    return useStoreSelectorWithPaths(store, selector, {
       dependsOn: options.dependsOn,
       // Preserve TimeTravelStoreContext.useStoreSelector's 4.x Object.is default.
       equalityFn: options.equalityFn ?? Object.is,

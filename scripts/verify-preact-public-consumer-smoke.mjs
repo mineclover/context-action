@@ -54,7 +54,7 @@ const optionValue = (name) => {
 // `--cohort` pins both to the approved release plan; `--version` remains a shared
 // shorthand; per-package flags override either.
 const cohortPlan = args.includes('--cohort')
-  ? JSON.parse(readFileSync(path.join(__dirname, '..', 'releases', 'preact-public-2026-10-patch-1.json'), 'utf8'))
+  ? JSON.parse(readFileSync(path.join(__dirname, '..', 'releases', 'preact-public-2026-11-core-v2.json'), 'utf8'))
   : null;
 const SHARED_VERSION = optionValue('--version');
 const TARGET_VERSIONS = {

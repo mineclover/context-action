@@ -16,6 +16,7 @@ export {
 export type {
   TimeTravelPathStore,
   UseTimeTravelPathOptions,
+  UseTimeTravelPathSelectOptions,
   UseTimeTravelSelectorOptions,
 } from './stores/hooks/useTimeTravelPath';
 export {

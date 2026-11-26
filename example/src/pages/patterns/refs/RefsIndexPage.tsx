@@ -3,9 +3,87 @@
  * Context-Action 프레임워크의 ref 관리 시스템 종합 가이드
  */
 
+import { useRefRegistry } from '@context-action/react/refs';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { CodeBlock } from '@/components/ui';
+
+function RefRegistryQuickDemo() {
+  const refs = useRefRegistry<{
+    input: HTMLInputElement;
+    box: HTMLDivElement;
+  }>();
+  const [highlighted, setHighlighted] = useState(false);
+
+  const handleFocusInput = () => {
+    refs.executeIfMounted('input', (el) => {
+      el.focus();
+    });
+  };
+
+  const handleToggleBox = () => {
+    const next = !highlighted;
+    setHighlighted(next);
+    refs.executeIfMounted('box', (el) => {
+      el.dataset.highlighted = String(next);
+      el.style.borderColor = next ? '#4f46e5' : '#cbd5e1';
+      el.style.backgroundColor = next ? '#eef2ff' : '#f8fafc';
+    });
+  };
+
+  return (
+    <div className="mb-6 rounded-lg border border-indigo-200 bg-white p-5">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="text-base font-semibold text-gray-900">
+            Interactive Quick Demo: useRefRegistry (No Provider / Validator
+            Boilerplate)
+          </h3>
+          <p className="text-xs text-gray-600">
+            Manage component-local DOM targets imperatively with zero React
+            re-renders when refs mount or unmount.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleFocusInput}
+            className="rounded bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
+          >
+            Focus Input
+          </button>
+          <button
+            type="button"
+            onClick={handleToggleBox}
+            className="rounded border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-800 hover:bg-indigo-100"
+          >
+            Toggle Highlight
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <input
+          ref={refs.setRef('input')}
+          type="text"
+          defaultValue="Component-local ref target"
+          aria-label="RefRegistry demo input"
+          className="rounded border border-gray-300 px-3 py-2 text-sm"
+        />
+        <div
+          ref={refs.setRef('box')}
+          data-testid="ref-registry-box"
+          data-highlighted={String(highlighted)}
+          className="rounded border px-3 py-2 text-sm text-gray-700 transition-colors"
+          style={{ borderColor: '#cbd5e1', backgroundColor: '#f8fafc' }}
+        >
+          Imperative box state: {highlighted ? 'Highlighted' : 'Idle'}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function RefsIndexPage() {
   return (
@@ -91,40 +169,35 @@ export function RefsIndexPage() {
           {/* Quick Start */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-4">🔥 빠른 시작</h2>
+            <RefRegistryQuickDemo />
             <div className="bg-gray-50 p-6 rounded-lg border">
               <div className="grid lg:grid-cols-2 gap-6">
                 <div>
                   <h3 className="font-semibold text-lg mb-3 text-gray-800">
-                    Method 1: 간단한 타입 사용
+                    Method 1: 컴포넌트 로컬 useRefRegistry (권장 · 최소
+                    보일러플레이트)
                   </h3>
                   <CodeBlock size="sm" className="text-green-400">
-                    {`import { createRefContext } from '@context-action/react';
+                    {`import { useRefRegistry } from '@context-action/react/refs';
 
-// 간단한 타입 정의
-const { Provider, useRefContext } = createRefContext<{
-  canvas: HTMLCanvasElement;
-  button: HTMLButtonElement;
-}>('MyRefs');
+function CanvasWidget() {
+  const refs = useRefRegistry<{
+    canvas: HTMLCanvasElement;
+    input: HTMLInputElement;
+  }>();
 
-function App() {
   return (
-    <Provider>
-      <CanvasComponent />
-    </Provider>
-  );
-}
-
-function CanvasComponent() {
-  const { getRef, setRef } = useRefContext();
-  
-  return (
-    <canvas 
-      ref={(el) => setRef('canvas', el)}
-      onClick={() => {
-        const canvas = getRef('canvas');
-        // canvas 사용
-      }}
-    />
+    <>
+      <input ref={refs.setRef('input')} />
+      <canvas
+        ref={refs.setRef('canvas')}
+        onClick={() => {
+          refs.executeIfMounted('input', (el) => el.focus());
+          const canvas = refs.get('canvas');
+          // canvas 사용 (리렌더 0회)
+        }}
+      />
+    </>
   );
 }`}
                   </CodeBlock>
@@ -132,36 +205,35 @@ function CanvasComponent() {
 
                 <div>
                   <h3 className="font-semibold text-lg mb-3 text-gray-800">
-                    Method 2: 선언적 정의
+                    Method 2: 컨텍스트 공유 createRefContext
+                    (@context-action/react/refs)
                   </h3>
                   <CodeBlock size="sm" className="text-green-400">
-                    {`import { createRefContext } from '@context-action/react';
+                    {`import { createRefContext } from '@context-action/react/refs';
 
-// 선언적 정의 (고급 기능)
-const refDefinitions = {
-  canvas: {
-    cleanup: (el) => {
-      const ctx = el.getContext('2d');
-      ctx?.clearRect(0, 0, el.width, el.height);
-    }
-  },
-  button: {
-    initializer: (el) => {
-      el.setAttribute('data-initialized', 'true');
-    }
-  }
-};
+const GameRefs = createRefContext<{
+  canvas: HTMLCanvasElement;
+  button: HTMLButtonElement;
+}>('GameRefs');
 
-const { Provider, useRefContext } = createRefContext(
-  'AdvancedRefs', 
-  refDefinitions
-);
-
-function Component() {
-  const { refs, setRef } = useRefContext();
-  
+function App() {
   return (
-    <canvas ref={(el) => setRef('canvas', el)} />
+    <GameRefs.Provider>
+      <CanvasView />
+    </GameRefs.Provider>
+  );
+}
+
+function CanvasView() {
+  const canvas = GameRefs.useRefController('canvas');
+
+  return (
+    <canvas
+      ref={canvas.setRef}
+      onClick={() => {
+        canvas.executeIfMounted((el) => el.focus());
+      }}
+    />
   );
 }`}
                   </CodeBlock>

@@ -1,11 +1,22 @@
 import { useEffect, useRef } from 'react';
 import type { Store } from '../core/Store';
-import type { PathValue, StorePath } from './useStorePath';
+import type { PathValue, StorePath, StorePathOf } from './useStorePath';
 
+/**
+ * Options for synchronizing an external controlled React prop into a `Store<T>` path.
+ */
 export interface UseControlledStoreSyncOptions<T, R> {
+  /** Custom equality comparator to skip redundant commits (defaults to `Object.is`). */
   isEqual?: (a: R, b: R) => boolean;
+  /** Atomic side-hook invoked inside the same `store.update()` commit when syncing a change. */
   onSync?: (draft: T, nextValue: R) => void;
 }
+
+type LiteralStorePath<P extends readonly (string | number)[]> =
+  number extends P['length'] ? never : P;
+
+type DynamicStorePath<P extends readonly (string | number)[]> =
+  number extends P['length'] ? P : never;
 
 function readValueAtPath(root: unknown, path: Readonly<StorePath>): unknown {
   let cursor = root;
@@ -38,20 +49,26 @@ function writeValueAtPath(
  * uncontrolled and ignores the prop. Optional `onSync` derives dependent draft
  * fields atomically inside the same `store.update()` commit.
  */
+/** Synchronize a controlled prop into a compile-time validated literal store path. */
 export function useControlledStoreSync<
   T,
-  const P extends readonly (string | number)[],
+  const P extends StorePathOf<T>,
 >(
   store: Store<T>,
-  path: number extends P['length'] ? never : P,
+  path: LiteralStorePath<P>,
   controlledValue: PathValue<T, P> | undefined,
   isEqualOrOptions?:
     | ((a: PathValue<T, P>, b: PathValue<T, P>) => boolean)
     | UseControlledStoreSyncOptions<T, PathValue<T, P>>,
 ): void;
-export function useControlledStoreSync<T, R = unknown>(
+/** Synchronize a controlled prop into a dynamic runtime store path array. */
+export function useControlledStoreSync<
+  T,
+  R = unknown,
+  const P extends readonly (string | number)[] = StorePath,
+>(
   store: Store<T>,
-  path: Readonly<StorePath>,
+  path: DynamicStorePath<P>,
   controlledValue: R | undefined,
   isEqualOrOptions?:
     | ((a: R, b: R) => boolean)

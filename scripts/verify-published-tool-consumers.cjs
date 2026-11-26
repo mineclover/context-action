@@ -51,6 +51,18 @@ const packages = [
     imports: [{ specifier: '@context-action/core', exports: ['ActionRegister'] }],
   },
   {
+    name: '@context-action/interactions',
+    directory: 'packages/interactions',
+    imports: [{
+      specifier: '@context-action/interactions',
+      exports: [
+        'createDismissLayer',
+        'createPointerGestureSession',
+        'createRovingFocusController',
+      ],
+    }],
+  },
+  {
     name: '@context-action/store-core',
     directory: 'packages/store-core',
     imports: [{ specifier: '@context-action/store-core', exports: ['createStateStore'] }],
@@ -123,12 +135,38 @@ const packages = [
     name: '@context-action/react',
     directory: 'packages/react',
     imports: [
-      { specifier: '@context-action/react', exports: ['createActionContext'] },
-      { specifier: '@context-action/react/refs', exports: ['createRefContext'] },
+      {
+        specifier: '@context-action/react',
+        exports: [
+          'createActionContext',
+          'createScopedContext',
+          'useStorePath',
+          'useStoreSelectorWithPaths',
+        ],
+      },
+      {
+        specifier: '@context-action/react/refs',
+        exports: [
+          'createRefContext',
+          'createRefCollectionContext',
+          'useRefCollection',
+          'useRefRegistry',
+        ],
+      },
       { specifier: '@context-action/react/time-travel', exports: ['createTimeTravelStore', 'createTimeTravelStoreContext'] },
       { specifier: '@context-action/react/transactions', exports: ['StoreTransactionCoordinator', 'bindActionTransactions'] },
       { specifier: '@context-action/react/backend', exports: ['createBackendStore'] },
-      { specifier: '@context-action/react/advanced', exports: ['StoreRegistry'] },
+      {
+        specifier: '@context-action/react/advanced',
+        exports: [
+          'StoreRegistry',
+          'useStoreInstance',
+          'useControlledStoreSync',
+          'useDismissLayer',
+          'useRovingFocus',
+          'usePointerGesture',
+        ],
+      },
       { specifier: '@context-action/react/utils', exports: ['deepClone'] },
       { specifier: '@context-action/react/webmcp', exports: ['useWebMCPToolScope'] },
     ],
@@ -415,6 +453,21 @@ const shutdown: Promise<void> = register.destroyAsync({ deferCleanup: true });
 void shutdown;
 `);
   }
+  if (names.has('@context-action/interactions')) {
+    statements.push(`
+import {
+  createDismissLayer,
+  createPointerGestureSession,
+  createRovingFocusController,
+} from '@context-action/interactions';
+const dismissLayer = createDismissLayer({ getContainers: () => [], onDismiss: () => {} });
+const gestureSession = createPointerGestureSession();
+const rovingController = createRovingFocusController({ getItems: () => [], getActiveId: () => null });
+void dismissLayer;
+void gestureSession;
+void rovingController;
+`);
+  }
   if (names.has('@context-action/store-core')) {
     statements.push(`
 import type { StateBackend, TimelineBackend, TransactionBackend } from '@context-action/store-core';
@@ -463,23 +516,70 @@ type _CheckActor = ActorRefLike<{ type: 'PING' }>;
   }
   if (names.has('@context-action/react')) {
     statements.push(`
-import { createActionContext } from '@context-action/react';
-import { createRefContext } from '@context-action/react/refs';
+import {
+  createActionContext,
+  createScopedContext,
+  createStore,
+  useStorePath,
+  useStoreSelectorWithPaths,
+  type ScopedContextReturn,
+} from '@context-action/react';
+import {
+  createRefCollectionContext,
+  createRefContext,
+  useRefCollection,
+  useRefRegistry,
+} from '@context-action/react/refs';
 import { createTimeTravelStore } from '@context-action/react/time-travel';
 import { StoreTransactionCoordinator } from '@context-action/react/transactions';
 import { createBackendStore, type BackendStoreOptions } from '@context-action/react/backend';
 import type { StateBackend as ReactStateBackend } from '@context-action/store-core';
-import { StoreRegistry } from '@context-action/react/advanced';
+import {
+  StoreRegistry,
+  useControlledStoreSync,
+  useStoreInstance,
+} from '@context-action/react/advanced';
 import { deepClone } from '@context-action/react/utils';
 import { useWebMCPToolScope } from '@context-action/react/webmcp';
-const actions = createActionContext('consumer-check');
+const actions = createActionContext<{ save: string }>('consumer-check');
+const scoped = createScopedContext(
+  'consumer-scoped',
+  actions,
+  ({ label }: { label: string }) => {
+    void label;
+    const localStore = useStoreInstance({ nested: { count: 0 } }, 'consumer-scoped-store');
+    const localRefs = useRefRegistry<{ input: HTMLInputElement }>();
+    return { ready: true, localStore, localRefs };
+  },
+);
+const typedScoped: ScopedContextReturn<
+  { save: string },
+  { label: string },
+  ReturnType<typeof scoped.useScope>
+> = scoped;
+const directStore = createStore('consumer-direct', { nested: { count: 0 } });
+function ConsumerPathProbe({ value }: { value?: number }) {
+  const count = useStorePath(directStore, ['nested', 'count']);
+  const isPositive = useStorePath(directStore, ['nested', 'count'], { select: n => n > 0 });
+  const combined = useStoreSelectorWithPaths(directStore, s => s.nested.count, {
+    dependsOn: [['nested', 'count']],
+  });
+  const dynCollection = useRefCollection<HTMLButtonElement>();
+  useControlledStoreSync(directStore, ['nested', 'count'], value);
+  void dynCollection;
+  return count + (isPositive ? combined : 0);
+}
+const itemRefContext = createRefCollectionContext<HTMLButtonElement>('consumer-collection');
 const refs = createRefContext('consumer-refs');
 const timeline = createTimeTravelStore('consumer-timeline', { count: 0 });
 const coordinator = new StoreTransactionCoordinator();
 const reactBackend = {} as ReactStateBackend<number>;
 const backendStore = createBackendStore('consumer-check', reactBackend);
 const backendOptions = {} as BackendStoreOptions;
-void actions;
+void scoped;
+void typedScoped;
+void ConsumerPathProbe;
+void itemRefContext;
 void refs;
 void timeline;
 void coordinator;
@@ -790,7 +890,8 @@ function main() {
   const requestedSet = requestedPackages ? new Set(requestedPackages) : null;
   const selectedPackages = requestedSet
     ? packages.filter(({ name }) => requestedSet.has(name)
-      || (name === '@context-action/store-core' && requestedSet.has('@context-action/react')))
+      || ((name === '@context-action/store-core' || name === '@context-action/interactions')
+        && requestedSet.has('@context-action/react')))
     : packages;
   if (selectedPackages.length === 0 || (requestedPackages && packages.some(({ name }) => requestedSet.has(name) && !selectedPackages.some(packageDefinition => packageDefinition.name === name)))) {
     throw new Error('Requested published consumer packages must be known package names');

@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const planPath = path.join(repositoryRoot, 'releases', 'core-public-2026-10-patch-1.json');
+const planPath = path.join(repositoryRoot, 'releases', 'core-public-2026-11-major-1.json');
 
 function option(name, { required = false } = {}) {
   const index = process.argv.indexOf(name);
@@ -26,7 +26,7 @@ if (!/^[a-f0-9]{40}$/u.test(releaseCommit)) throw new Error('--commit must be a 
 const plan = JSON.parse(await readFile(planPath, 'utf8'));
 const packages = Object.entries(plan.packages ?? {});
 if (JSON.stringify(packages.map(([name]) => name))
-  !== JSON.stringify(['@context-action/core', '@context-action/store-core', '@context-action/xstate'])) {
+  !== JSON.stringify(['@context-action/core', '@context-action/interactions', '@context-action/store-core', '@context-action/xstate', '@context-action/react'])) {
   throw new Error('Core promotion plan must contain the exact dependency order');
 }
 

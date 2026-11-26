@@ -89,3 +89,9 @@ export type {
 // Note: For better tree shaking, import specific items from their respective modules
 export { createActionContext } from './actions/ActionContext';
 export type { ActionContextConfig, ActionContextReturn } from './actions/ActionContext.types';
+export { createScopedContext } from './actions/createScopedContext';
+export type { ScopedContextReturn, ScopedProviderProps } from './actions/createScopedContext';
+export { useRefRegistry } from './refs/useRefRegistry';
+export type { RefRegistry, UseRefRegistryOptions } from './refs/useRefRegistry';
+export { useRefCollection } from './refs/createRefCollection';
+export type { RefCollection } from './refs/createRefCollection';

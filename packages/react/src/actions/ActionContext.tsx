@@ -554,16 +554,41 @@ export function createActionContext<
     const once = config?.once ?? false;
     const debounce = config?.debounce;
     const throttle = config?.throttle;
-    const cleanup = config?.cleanup;
-    const condition = config?.condition;
+    const rawCleanup = config?.cleanup;
+    const hasCleanup = rawCleanup !== undefined;
+    const latestCleanupBox = useMemo(
+      () => (hasCleanup ? { current: undefined as (() => void) | undefined } : null),
+      [hasCleanup]
+    );
+    useInsertionCommitEffect(() => {
+      if (latestCleanupBox && rawCleanup !== undefined) {
+        latestCleanupBox.current = rawCleanup;
+      }
+    }, [latestCleanupBox, rawCleanup]);
+
+    const rawCondition = config?.condition;
+    const hasCondition = rawCondition !== undefined;
+    const conditionRef = useRef(rawCondition);
+    useInsertionCommitEffect(() => {
+      conditionRef.current = rawCondition;
+    }, [rawCondition]);
+    const stableCondition = useMemo(
+      () => hasCondition
+        ? ((payload: T[K]) => Boolean(conditionRef.current?.(payload)))
+        : undefined,
+      [hasCondition]
+    );
+
     const metadata = config?.metadata;
     const when = config?.when;
     const replaceExisting = config?.replaceExisting ?? true;
     const deferredCleanup = useMemo(
-      () => cleanup === undefined
+      () => latestCleanupBox === null
         ? undefined
-        : () => dispatchLifecycle.scheduleHandlerCleanup(cleanup),
-      [cleanup, dispatchLifecycle]
+        : () => dispatchLifecycle.scheduleHandlerCleanup(() => {
+            latestCleanupBox.current?.();
+          }),
+      [latestCleanupBox, dispatchLifecycle]
     );
     
     // Memoize config to prevent unnecessary re-registrations
@@ -576,12 +601,12 @@ export function createActionContext<
       once,
       replaceExisting,
       ...(deferredCleanup !== undefined && { cleanup: deferredCleanup }),
-      ...(condition !== undefined && { condition }),
+      ...(stableCondition !== undefined && { condition: stableCondition }),
       ...(metadata !== undefined && { metadata }),
       ...(when !== undefined && { when }),
       ...(debounce !== undefined && { debounce }),
       ...(throttle !== undefined && { throttle })
-    }), [priority, id, blocking, scheduling, errorPolicy, once, replaceExisting, deferredCleanup, condition, metadata, when, debounce, throttle]);
+    }), [priority, id, blocking, scheduling, errorPolicy, once, replaceExisting, deferredCleanup, stableCondition, metadata, when, debounce, throttle]);
 
     // A handler is part of the logical Provider lifetime. Keeping registration
     // in an insertion effect means Activity may disconnect UI effects without

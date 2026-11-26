@@ -8,35 +8,54 @@ import React, {
 } from 'react';
 import type { RefTarget } from './types';
 
-/** Imperative dynamically-keyed reference collection causing zero React re-renders. */
+/**
+ * Imperative dynamically-keyed reference collection causing zero React re-renders.
+ * Unlike `useRefRegistry<TRefs>()` (fixed compile-time named keys), `RefCollection`
+ * manages dynamic runtime string keys such as menu items, tabs, or table rows.
+ */
 export interface RefCollection<TTarget extends RefTarget = HTMLElement> {
+  /** Return a referentially stable callback ref setter for dynamic `key`. */
   setRef(key: string): (node: TTarget | null) => void;
+  /** Synchronously read the mounted element at `key`, or `null` if absent. */
   get(key: string): TTarget | null;
+  /** Return `true` when `key` currently maps to a mounted element. */
   has(key: string): boolean;
+  /** List all currently mounted keys. */
   keys(): string[];
+  /** Number of currently mounted keys in the collection. */
   size(): number;
+  /** Synchronously run `operation` when `key` is mounted; returns `null` otherwise. */
   executeIfMounted<R>(key: string, operation: (target: TTarget) => R): R | null;
+  /** Clear all tracked nodes and cached setters. */
   clear(): void;
 }
 
 /** Per-key ref binding handle returned by `useItemRef(key)`. */
 export interface RefCollectionItemHandle<TTarget extends RefTarget = HTMLElement> {
+  /** Cached callback ref ready to pass directly as `<Item ref={itemRef.ref} />`. */
   readonly ref: (node: TTarget | null) => void;
+  /** Synchronously read this item's mounted target or `null`. */
   get(): TTarget | null;
+  /** Synchronously run `operation` when this item is mounted; returns `null` otherwise. */
   executeIfMounted<R>(operation: (target: TTarget) => R): R | null;
 }
 
 /** Scoped collection context created by `createRefCollectionContext()`. */
 export interface RefCollectionContextReturn<TTarget extends RefTarget = HTMLElement> {
+  /** Explicit non-empty context name passed to `createRefCollectionContext()`. */
   readonly contextName: string;
+  /** Provider scoping one isolated `RefCollection` per subtree. */
   Provider: React.FC<{ children: ReactNode }>;
+  /** Access the underlying collection imperatively from list/container coordinators. */
   useRefCollection: () => RefCollection<TTarget>;
+  /** Bind and inspect a single item key from a child component with zero re-renders. */
   useItemRef: (key: string) => RefCollectionItemHandle<TTarget>;
 }
 
 /**
- * Creates a component-local keyed ref collection whose ref setters stay referentially
- * stable per key and never trigger React re-renders on mount or unmount.
+ * Creates a component-local dynamically keyed ref collection whose ref setters stay
+ * referentially stable per key and never trigger React re-renders on mount or unmount.
+ * Use `useRefRegistry<TRefs>()` instead when your ref names are known statically.
  */
 export function useRefCollection<
   TTarget extends RefTarget = HTMLElement,

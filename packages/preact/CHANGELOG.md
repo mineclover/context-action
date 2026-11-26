@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.1.4] (2026-11-26)
+
+Core 2.0 compatibility cohort. Widens the `@context-action/core` dependency
+range to `^1.3.0 || ^2.0.0` alongside `@context-action/preact-ui@0.2.2`.
+
 ## [0.1.3] (2026-10-29)
 
 Core 1.3.0 element interop cohort candidate. The package now resolves its Core

@@ -223,6 +223,16 @@ Core 후보 워크플로는 npm trusted publisher가 이 저장소와 아직 결
 `publish_auth=token`을 기본값으로 사용합니다. `publish_auth=oidc`는 npm trusted
 publisher 설정과 transparency-log 검증을 먼저 완료한 뒤에만 선택합니다.
 
+## 4-8. Core 2.0.0 / Interactions 0.1.0 / Store Core 0.1.5 / XState 0.1.1 / React 5.0.0 + Lit/Preact Core 2.0 호환 코호트
+
+- [`core-public-2026-11-major-1.json`](core-public-2026-11-major-1.json):
+  - 게시 순서: `@context-action/core@2.0.0` → `@context-action/interactions@0.1.0` → `@context-action/store-core@0.1.5` → `@context-action/xstate@0.1.1` → `@context-action/react@5.0.0`
+  - 신규 패키지 `@context-action/interactions@0.1.0`의 최초 npm 게시를 포함하므로 `publish-core-public-candidate.yml` 실행 시 `publish_auth=token`을 사용한 뒤 `promote-core-public.yml`(`PROMOTE_CORE_PUBLIC`)으로 `latest` 승격을 진행합니다.
+- [`lit-public-2026-11-core-v2.json`](lit-public-2026-11-core-v2.json):
+  - `@context-action/lit@0.1.5` → `@context-action/lit-ui@0.1.5` (`@context-action/core` 범위 `^1.3.0 || ^2.0.0`). Core 2.0.0이 `latest`에 게시된 뒤 `publish-lit-public-candidate.yml` → `promote-lit-public.yml`로 게시합니다.
+- [`preact-public-2026-11-core-v2.json`](preact-public-2026-11-core-v2.json):
+  - `@context-action/preact@0.1.4` → `@context-action/preact-ui@0.2.2` (`@context-action/core` 범위 `^1.3.0 || ^2.0.0`). Core 2.0.0이 `latest`에 게시된 뒤 `publish-preact-public-candidate.yml` → `promote-preact-public.yml`로 게시합니다.
+
 ## 5. 실패와 재개
 
 - 게시 전 실패: 원인을 수정하고 같은 immutable commit 기준으로 처음부터

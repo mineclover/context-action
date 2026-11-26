@@ -8,7 +8,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { createRefContext } from '@context-action/react/refs';
+import { createRefContext, useRefRegistry } from '@context-action/react/refs';
 
 // Three.js 목 타입들 (실제로는 three 패키지의 타입을 사용)
 interface ThreeObject {
@@ -492,16 +492,79 @@ export function FormManagementExample() {
 }
 
 /**
- * 전체 예제 컴포넌트
+ * 방법 0: 컴포넌트 로컬 useRefRegistry 예제 (최소 보일러플레이트)
+ * Provider / validator 정의 없이 로컬 DOM refs를 제네릭 한 줄로 관리합니다.
  */
-export function RefContextExamples() {
-  const [activeExample, setActiveExample] = useState<'simple' | 'declarative' | 'form'>('simple');
+export function RefRegistryExample() {
+  const refs = useRefRegistry<{
+    canvas: HTMLCanvasElement;
+    input: HTMLInputElement;
+    status: HTMLSpanElement;
+  }>();
+
+  const paintAndFocus = async () => {
+    const ready = await refs.waitForRefs('canvas', 'input', 'status');
+    const ctx = ready.canvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = '#e0e7ff';
+      ctx.fillRect(0, 0, ready.canvas.width, ready.canvas.height);
+    }
+    ready.status.textContent = `Focused "${ready.input.value || 'empty'}"`;
+    ready.input.focus();
+  };
 
   return (
     <div style={{ padding: '20px' }}>
-      <h1>createRefContext Examples</h1>
-      
+      <h2>useRefRegistry Component-Local Example</h2>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
+        <input
+          ref={refs.setRef('input')}
+          type="text"
+          defaultValue="Typed local ref"
+          style={{ padding: '6px' }}
+        />
+        <button type="button" onClick={() => void paintAndFocus()}>
+          Paint Canvas &amp; Focus
+        </button>
+        <span ref={refs.setRef('status')}>Idle</span>
+      </div>
+      <canvas
+        ref={refs.setRef('canvas')}
+        width={320}
+        height={120}
+        style={{ border: '1px solid #cbd5e1', display: 'block' }}
+      />
+    </div>
+  );
+}
+
+/**
+ * 전체 예제 컴포넌트
+ */
+export function RefContextExamples() {
+  const [activeExample, setActiveExample] = useState<
+    'registry' | 'simple' | 'declarative' | 'form'
+  >('registry');
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Ref Management Examples (useRefRegistry &amp; createRefContext)</h1>
+
       <div style={{ marginBottom: '20px' }}>
+        <button
+          onClick={() => setActiveExample('registry')}
+          style={{
+            margin: '5px',
+            padding: '10px 15px',
+            backgroundColor: activeExample === 'registry' ? '#007bff' : '#f8f9fa',
+            color: activeExample === 'registry' ? 'white' : 'black',
+            border: '1px solid #dee2e6',
+            borderRadius: '4px',
+          }}
+        >
+          Component-Local (useRefRegistry)
+        </button>
+
         <button 
           onClick={() => setActiveExample('simple')}
           style={{ 
@@ -546,6 +609,7 @@ export function RefContextExamples() {
       </div>
 
       <div style={{ border: '1px solid #dee2e6', borderRadius: '8px', padding: '20px' }}>
+        {activeExample === 'registry' && <RefRegistryExample />}
         {activeExample === 'simple' && <SimpleRefExample />}
         {activeExample === 'declarative' && <DeclarativeRefExample />}
         {activeExample === 'form' && <FormManagementExample />}

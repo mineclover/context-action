@@ -38,10 +38,12 @@ examples/
 
 ### Utility & Path Hooks
 - **`useStoreSelector`** (`@context-action/react`): Performance optimization through selective subscriptions
-- **`useStorePath`** (`@context-action/react`): Patch-aware subscription for nested object paths
+- **`useStorePath`** (`@context-action/react`): Typed `StorePathOf<T>` path subscriptions with derived `{ select }` option
+- **`useRefRegistry`** (`@context-action/react/refs` & `./advanced`): Zero-rerender component-local typed ref registry
 - **`compareValues`** (`@context-action/react/utils`): Shallow and deep value comparison helpers
 
 ### Pattern Factories (`@context-action/react`)
+- **`createScopedContext`**: Single flat `Provider` uniting `ActionContext`, runtime setup, and shallow-stabilized `useScope()`
 - **`createStoreContext`**: Type-safe store pattern factory
 - **`createActionContext`**: Action context factory for business logic
 - **`createRefContext`**: Type-safe DOM and imperative object reference factory
@@ -65,12 +67,13 @@ All example files import from the public entrypoints rather than internal `src/*
 ```tsx
 import {
   createActionContext,
+  createScopedContext,
   createStoreContext,
   useStoreValue,
   useStoreSelector,
   useStorePath,
 } from '@context-action/react';
-import { createRefContext } from '@context-action/react/refs';
+import { createRefContext, useRefRegistry } from '@context-action/react/refs';
 import { useLocalStore, useComputedStore } from '@context-action/react/advanced';
 import { compareValues } from '@context-action/react/utils';
 ```
@@ -99,7 +102,7 @@ As needed:
 - Dual-lane View + Transaction separation (`actions/view-fast-lane-example.tsx`): `lane: 'fast'` view actions paired with `useRefController` + `lane: 'orchestrated'` commits paired with scoped `bindActionTransactions` (`@context-action/react/transactions`)
 - Leaf-subscription pseudo-signal & `useEffect` isolation (`stores/patterns/leaf-subscription-signal-example.tsx`): Top-level `useActionDispatch()` shell + `store.update()` + Leaf `useStorePath()` preserving standard React `useEffect` lifecycles only in affected leafs
 - External system sync patterns (`stores/patterns/external-sync-patterns-example.tsx`): IndexedDB write-through rollback, bidirectional URL `popstate`/`pushState` sync, and realtime RAF-batched stream + sequence guard
-- React Aria-style headless UI hooks (`hooks/aria-headless-hooks-example.tsx`): `useAriaButton`, `createAriaTabs`, `createAriaSlider`, `createAriaDialog`, `createAriaComboBox`, `createAriaDataGrid`, and `createAriaMenu` combining Path-Trie `useStorePath`, `./refs` (`createRefCollectionContext`), `./utils` (`mergeProps`), and `./advanced` (`useStoreInstance`, `useControlledStoreSync` + `onSync`, `useDismissLayer`, `useRovingFocus` + typeahead/`getActiveDescendant`, `usePointerGesture`, backed by `@context-action/interactions` and `@context-action/core/element`)
+- React Aria-style headless UI hooks (`hooks/aria-headless-hooks-example.tsx`): `useAriaButton`, `createAriaTabs`, `createAriaSlider`, `createAriaDialog`, `createAriaComboBox`, `createAriaDataGrid`, and `createAriaMenu` combining `createScopedContext`, Path-Trie `useStorePath` (`{ select }`), `useRefRegistry`, `useRefCollection`, `mergeProps`, and `./advanced` (`useStoreInstance`, `useControlledStoreSync` + `onSync`, `useDismissLayer`, `useRovingFocus` + typeahead/`getActiveDescendant`, `usePointerGesture`, backed by `@context-action/interactions` and `@context-action/core/element`)
 
 ## 🔍 Example Features
 

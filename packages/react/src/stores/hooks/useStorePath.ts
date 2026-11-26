@@ -38,6 +38,62 @@ export interface PatchAwareStore<T> {
 export type StorePath = (string | number)[];
 
 /**
+ * Store path utility helpers and bounded-depth typed path inference.
+ */
+type IsAny<T> = 0 extends 1 & T ? true : false;
+
+type PrimitiveOrBuiltin =
+  | string
+  | number
+  | boolean
+  | bigint
+  | symbol
+  | null
+  | undefined
+  | Date
+  | RegExp
+  | Error
+  | Map<unknown, unknown>
+  | Set<unknown>
+  | WeakMap<object, unknown>
+  | WeakSet<object>
+  | Promise<unknown>
+  | ((...args: never[]) => unknown);
+
+type PathDepth = [never, 0, 1, 2, 3, 4, 5];
+
+type StorePathSegments<T, D extends number = 5> = [D] extends [never]
+  ? readonly []
+  : IsAny<T> extends true
+    ? readonly (string | number)[]
+    : unknown extends T
+      ? readonly (string | number)[]
+      : T extends null | undefined
+        ? readonly []
+        : T extends PrimitiveOrBuiltin
+          ? readonly []
+          : T extends readonly (infer Elem)[]
+            ? readonly []
+              | readonly [number]
+              | readonly [number, ...StorePathSegments<Elem, PathDepth[D]>]
+              | readonly [`${number}`]
+              | readonly [`${number}`, ...StorePathSegments<Elem, PathDepth[D]>]
+            : T extends object
+              ? readonly []
+                | {
+                    [K in keyof T & (string | number)]:
+                      | readonly [K]
+                      | readonly [K, ...StorePathSegments<T[K], PathDepth[D]>];
+                  }[keyof T & (string | number)]
+              : readonly [];
+
+/**
+ * Valid path tuples within state `T` (bounded to depth 5 for fast type-checking).
+ * Branches that reach `any` or `unknown` permit arbitrary `(string | number)` segments.
+ */
+export type StorePathOf<T> = StorePathSegments<T, 5>;
+
+/**
  * Recursively resolves the value type at a literal path tuple `P` within state `T`.
  */
 export type PathValue<
@@ -70,6 +126,16 @@ export type PathValue<
  */
 export interface UseStorePathOptions<R> {
   /** Custom equality function for the selected value */
+  equalityFn?: (a: R, b: R) => boolean;
+}
+
+/**
+ * Options for useStorePath with derived selection from the subscribed path value
+ */
+export interface UseStorePathSelectOptions<V, R> {
+  /** Derive a value from the subscribed path value */
+  select: (value: V) => R;
+  /** Custom equality function for the derived value */
   equalityFn?: (a: R, b: R) => boolean;
 }
 
@@ -128,11 +194,22 @@ function arePathListsEqual(
   return true;
 }
 
+type LiteralStorePath<P extends readonly (string | number)[]> =
+  number extends P['length'] ? never : P;
+
+type DynamicStorePath<P extends readonly (string | number)[]> =
+  number extends P['length'] ? P : never;
+
+type ExplicitReturnStorePath<R> = [R] extends [never] ? never : Readonly<StorePath>;
+
+type DynamicPathList<D extends readonly Readonly<StorePath>[]> =
+  number extends D[number]['length'] ? unknown : never;
+
 /**
- * Hook for subscribing to a specific path in Store
+ * Subscribe to a single nested path inside a `PatchAwareStore` using JSON patches.
  *
- * Only triggers re-renders when the value at the specified path changes,
- * determined by analyzing JSON patches from state updates.
+ * Re-renders only when the subscribed path (or an ancestor containing it) is modified
+ * and the resulting value changes. For multi-path combinations, prefer `useStoreSelectorWithPaths`.
  *
  * @example
  * ```tsx
@@ -142,37 +219,66 @@ function arePathListsEqual(
  * });
  *
  * function UserName() {
- *   // Only re-renders when user.name changes
+ *   // 1. Inferred path value (only re-renders when user.name changes)
  *   const name = useStorePath(store, ['user', 'name']);
- *   return <span>{name}</span>;
- * }
- *
- * function Theme() {
- *   // Only re-renders when settings.theme changes
- *   const theme = useStorePath(store, ['settings', 'theme']);
- *   return <span>{theme}</span>;
+ *   // 2. Single-path derived boolean (only re-renders when `name === 'John'` flips)
+ *   const isJohn = useStorePath(store, ['user', 'name'], {
+ *     select: (n) => n === 'John',
+ *   });
+ *   return <span>{name} ({isJohn ? 'active' : 'other'})</span>;
  * }
  * ```
  */
+/** Subscribe to a literal store path and derive a sliced value with `{ select }`. */
+export function useStorePath<
+  T,
+  const P extends StorePathOf<T>,
+  R,
+>(
+  store: PatchAwareStore<T>,
+  path: LiteralStorePath<P>,
+  options: UseStorePathSelectOptions<PathValue<T, P>, R>,
+): R;
+/** Subscribe to a literal store path and infer the value type at `P`. */
+export function useStorePath<
+  T,
+  const P extends StorePathOf<T>,
+>(
+  store: PatchAwareStore<T>,
+  path: LiteralStorePath<P>,
+  options?: UseStorePathOptions<PathValue<T, P>>,
+): PathValue<T, P>;
+/** Subscribe with explicit `<T, R>` type arguments (legacy escape hatch). */
+export function useStorePath<T, R = never>(
+  store: PatchAwareStore<T>,
+  path: ExplicitReturnStorePath<R>,
+  options?: UseStorePathOptions<R>,
+): R;
+/** Subscribe to a dynamic runtime path array and derive a value with `{ select }`. */
+export function useStorePath<
+  T,
+  const P extends readonly (string | number)[],
+  R,
+>(
+  store: PatchAwareStore<T>,
+  path: DynamicStorePath<P>,
+  options: UseStorePathSelectOptions<unknown, R>,
+): R;
+/** Subscribe to a dynamic runtime path array (returns `unknown`). */
 export function useStorePath<
   T,
   const P extends readonly (string | number)[],
 >(
   store: PatchAwareStore<T>,
-  path: number extends P['length'] ? never : P,
-  options?: UseStorePathOptions<PathValue<T, P>>,
-): PathValue<T, P>;
+  path: DynamicStorePath<P>,
+  options?: UseStorePathOptions<unknown>,
+): unknown;
 export function useStorePath<T, R = unknown>(
   store: PatchAwareStore<T>,
   path: Readonly<StorePath>,
-  options?: UseStorePathOptions<R>,
-): R;
-export function useStorePath<T, R = unknown>(
-  store: PatchAwareStore<T>,
-  path: Readonly<StorePath>,
-  options: UseStorePathOptions<R> = {}
+  options: UseStorePathOptions<R> & { select?: (value: unknown) => R } = {}
 ): R {
-  const { equalityFn } = options;
+  const { equalityFn, select } = options;
 
   const stablePathRef = useRef<{ signature: string; path: StorePath } | null>(null);
 
@@ -221,7 +327,8 @@ export function useStorePath<T, R = unknown>(
   // Get snapshot of value at path
   const getSnapshot = useCallback((): R => {
     const storeValue = readStoreValue(store);
-    const currentValue = getValueAtPath<T, R>(storeValue, stablePath);
+    const rawValue = getValueAtPath<T, unknown>(storeValue, stablePath);
+    const currentValue = (select ? select(rawValue) : rawValue) as R;
 
     // First access - initialize cache
     if (!cacheRef.current.initialized) {
@@ -245,12 +352,13 @@ export function useStorePath<T, R = unknown>(
 
     cacheRef.current.value = currentValue;
     return currentValue;
-  }, [store, stablePath, pathSignature, equalityFn]);
+  }, [store, stablePath, pathSignature, select, equalityFn]);
 
   // Server snapshot
   const getServerSnapshot = useCallback((): R => {
-    return getValueAtPath<T, R>(readStoreValue(store), stablePath);
-  }, [store, stablePath]);
+    const rawValue = getValueAtPath<T, unknown>(readStoreValue(store), stablePath);
+    return (select ? select(rawValue) : rawValue) as R;
+  }, [store, stablePath, select]);
 
   const selectedValue = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   useDebugValue([pathSignature, selectedValue] as const, formatStorePathDebugValue);
@@ -258,28 +366,51 @@ export function useStorePath<T, R = unknown>(
 }
 
 /**
- * Hook for subscribing to multiple paths with a selector
+ * Hook for subscribing to multiple store paths with a selector.
+ * For single-path derived values, prefer `useStorePath(store, path, { select })`.
  *
  * @example
  * ```tsx
- * const fullName = useStoreSelector(
+ * const fullName = useStoreSelectorWithPaths(
  *   store,
  *   (state) => `${state.user.firstName} ${state.user.lastName}`,
  *   { dependsOn: [['user', 'firstName'], ['user', 'lastName']] }
  * );
  * ```
  */
-export interface UseStoreSelectorWithPathsOptions<R> {
-  /** Paths that the selector depends on */
-  dependsOn?: readonly Readonly<StorePath>[];
-  /** Custom equality function */
+export interface UseStoreSelectorWithPathsOptions<R, T = unknown> {
+  /** Compile-time validated paths that the selector depends on */
+  dependsOn?: readonly StorePathOf<T>[];
+  /** Custom equality function for the derived result */
   equalityFn?: (a: R, b: R) => boolean;
 }
 
+/** Subscribe to a selector guarded by compile-time validated `dependsOn` paths. */
 export function useStoreSelectorWithPaths<T, R>(
   store: PatchAwareStore<T>,
   selector: (value: T) => R,
-  options: UseStoreSelectorWithPathsOptions<R> = {}
+  options?: UseStoreSelectorWithPathsOptions<R, T>,
+): R;
+/** Subscribe to a selector with dynamically constructed `dependsOn` runtime paths. */
+export function useStoreSelectorWithPaths<
+  T,
+  R,
+  const D extends readonly Readonly<StorePath>[],
+>(
+  store: PatchAwareStore<T>,
+  selector: (value: T) => R,
+  options: {
+    dependsOn?: D;
+    equalityFn?: (a: R, b: R) => boolean;
+  } & DynamicPathList<D>,
+): R;
+export function useStoreSelectorWithPaths<T, R>(
+  store: PatchAwareStore<T>,
+  selector: (value: T) => R,
+  options: {
+    dependsOn?: readonly Readonly<StorePath>[];
+    equalityFn?: (a: R, b: R) => boolean;
+  } = {}
 ): R {
   const { dependsOn, equalityFn = defaultEqualityFn } = options;
 

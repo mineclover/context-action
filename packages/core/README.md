@@ -57,7 +57,7 @@ await actions.dispatch('increment');
 await actions.dispatch('setCount', 42);
 ```
 
-For production pipelines, prefer the explicit role-based contract ([`#v13-pipeline-contract`](#v13-pipeline-contract)): `registerGuard`, `registerCommand`, `registerResult`, and `registerObserver`.
+For production pipelines, prefer the explicit role-based contract ([`#v20-pipeline-contract`](#v20-pipeline-contract)): `registerGuard`, `registerCommand`, `registerResult`, and `registerObserver`.
 
 ## Tool protocol boundary
 
@@ -167,7 +167,7 @@ const actions = new ActionRegister<MyActions>({
 // should be treated as a programming error.
 ```
 
-## v1.3 Pipeline Contract
+## v2.0 Pipeline Contract
 
 ### Phase-specific registration
 

@@ -7,6 +7,7 @@
 import React, { useState } from 'react';
 
 // Import all hook examples
+import AriaHeadlessShowcase from './aria-headless-hooks-example';
 import UseStoreValueExamples from './essential/useStoreValue-example';
 import UseLocalStoreExamples from './essential/useLocalStore-example';
 import UseStoreSelectorExamples from './utility/useStoreSelector-example';
@@ -46,16 +47,23 @@ const hookCategories = {
       },
       {
         name: 'useStorePath',
-        description: 'Patch-aware subscription for nested object paths',
+        description: 'Typed StorePathOf<T> subscription with derived { select } option',
         component: UseStoreSelectorExamples,
         frequency: 'Medium (20-80%)',
         complexity: 'Intermediate'
       },
       {
+        name: 'useRefRegistry',
+        description: 'Zero-rerender typed component-local ref registry (@context-action/react/refs)',
+        component: () => <div>See refs/createRefContext-examples.tsx (RefRegistryExample)</div>,
+        frequency: 'Medium (20-80%)',
+        complexity: 'Simple'
+      },
+      {
         name: 'useComputedStore',
         description: 'Derived store computation exported from @context-action/react/advanced',
         component: () => <div>See @context-action/react/advanced (useComputedStore)</div>,
-        frequency: 'Low (&lt;20%)',
+        frequency: 'Low (<20%)',
         complexity: 'Intermediate'
       }
     ]
@@ -65,17 +73,24 @@ const hookCategories = {
     description: 'Factory functions that create multiple hooks',
     hooks: [
       {
+        name: 'createScopedContext',
+        description: 'Single flat Provider uniting actions, setup runtime, and shallow-stabilized useScope()',
+        component: AriaHeadlessShowcase,
+        frequency: 'High (>80%)',
+        complexity: 'Simple'
+      },
+      {
         name: 'createStoreContext',
         description: 'Type-safe store pattern factory',
         component: () => <div>See stores/patterns/declarative-examples.tsx</div>,
-        frequency: 'High (&gt;80%)',
+        frequency: 'High (>80%)',
         complexity: 'Simple'
       },
       {
         name: 'createActionContext',
         description: 'Action context factory for business logic',
         component: () => <div>See docs/en/context-layered/context-layered-guide.md</div>,
-        frequency: 'High (&gt;80%)',
+        frequency: 'High (>80%)',
         complexity: 'Intermediate'
       }
     ]

@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.2.2] (2026-11-26)
+
+Core 2.0 compatibility cohort. Widens `@context-action/core` to
+`^1.3.0 || ^2.0.0` and advances `@context-action/preact` to `^0.1.4`.
+
 ## [0.2.1] (2026-10-29)
 
 Core 1.3.0 element interop cohort candidate. The adapter now uses Core

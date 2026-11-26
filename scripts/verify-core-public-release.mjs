@@ -6,12 +6,14 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const requireCurrentSource = process.argv.slice(2).filter(value => value !== '--').includes('--require-current-source');
-const plan = JSON.parse(await readFile(path.join(root, 'releases/core-public-2026-10-patch-1.json'), 'utf8'));
+const plan = JSON.parse(await readFile(path.join(root, 'releases/core-public-2026-11-major-1.json'), 'utf8'));
 
 const cohort = [
-  { name: '@context-action/core', directory: 'packages/core', expectedVersion: '1.3.1' },
-  { name: '@context-action/store-core', directory: 'packages/store-core', expectedVersion: '0.1.4' },
-  { name: '@context-action/xstate', directory: 'packages/xstate', expectedVersion: '0.1.0' },
+  { name: '@context-action/core', directory: 'packages/core', expectedVersion: '2.0.0' },
+  { name: '@context-action/interactions', directory: 'packages/interactions', expectedVersion: '0.1.0' },
+  { name: '@context-action/store-core', directory: 'packages/store-core', expectedVersion: '0.1.5' },
+  { name: '@context-action/xstate', directory: 'packages/xstate', expectedVersion: '0.1.1' },
+  { name: '@context-action/react', directory: 'packages/react', expectedVersion: '5.0.0' },
 ];
 
 const errors = [];
@@ -25,7 +27,7 @@ expect(plan.promotionConfirmation === 'PROMOTE_CORE_PUBLIC', 'Core public releas
 expect(plan.provenanceBinding === 'workflow-release-commit', 'Core public release plan must bind workflow release_commit');
 expect(
   JSON.stringify(plan.publicationOrder) === JSON.stringify(cohort.map(item => item.name)),
-  'Core publication order must list core, store-core, and xstate in dependency order',
+  'Core publication order must list core, interactions, store-core, xstate, and react in dependency order',
 );
 
 for (const entry of cohort) {
@@ -42,6 +44,13 @@ for (const entry of cohort) {
     : (plan.requiredExports?.[entry.name] ?? []);
   for (const exportName of requiredExports) {
     expect(Object.hasOwn(manifest.exports ?? {}, exportName), `${entry.name} is missing required export ${exportName}`);
+  }
+  const dependencyFloors = plan.dependencyFloors?.[entry.name] ?? {};
+  for (const [dependencyName, expectedRange] of Object.entries(dependencyFloors)) {
+    expect(
+      manifest.dependencies?.[dependencyName] === expectedRange,
+      `${entry.name} dependency floor must be ${dependencyName}@${expectedRange}`,
+    );
   }
   const releaseDate = plan.changelogDates?.[entry.name];
   expect(changelog.includes(`## [${entry.expectedVersion}] (${releaseDate})`), `${entry.name} CHANGELOG must contain the dated ${entry.expectedVersion} entry`);

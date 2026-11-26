@@ -3,6 +3,14 @@ import { createStore, Store, type StoreOptions } from '../core/Store';
 import type { Snapshot } from '../core/types';
 import { useStoreValue } from './useStoreValue';
 
+/**
+ * Creates a component-lifetime `Store<T>` and **subscribes the calling component**
+ * to its updates, returning `{ value, name, lastUpdate, store }` (disposed on unmount).
+ *
+ * Unlike `useStoreInstance()`, every store update re-renders the owning component.
+ * Use `useStoreInstance()` when passing a store into `createScopedContext()` or child
+ * components that subscribe selectively via `useStorePath()` / `useStoreValue()`.
+ */
 export function useLocalStore<T>(
   initialValue: T,
   name?: string,

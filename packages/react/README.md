@@ -167,7 +167,7 @@ user-owned backend: it only wraps the `@context-action/store-core` contract and
 does not execute Mutative code. A backend that does not provide patches or
 timeline capabilities should leave those capabilities disabled.
 
-`@context-action/react` 4.0 is the React state-management integration:
+`@context-action/react` 5.0 is the React state-management integration:
 
 - **Owns:** Store and Action context factories, React provider/hook lifecycle,
   selective store subscriptions, React Compiler optimization, and the verified
@@ -286,7 +286,7 @@ for composition examples, effect cleanup rules, pre-rendering, and SSR limits.
 
 The repository retains ToolContext and Durable Operations source while their
 protocol, persistence, and recovery contract is developed. They are **not** an
-installable `@context-action/react/tools` API in the React 4 artifact and are
+installable `@context-action/react/tools` API in the React 5 artifact and are
 not needed for ordinary Store/Action applications. See the
 [production-readiness guide](../../docs/en/guide/production-readiness.md) for
 the ownership matrix and the separate development-track material.
@@ -369,15 +369,15 @@ function OptimizedComponent() {
     user => user.nickname || user.name || 'Anonymous'
   );
   
-  // Component-local store
-  const { value: localCount, setValue } = useLocalStore(0);
+  // Component-local store (subscribes this component)
+  const { value: localCount, store: localCountStore } = useLocalStore(0);
   
   return (
     <div>
       <p>Name: {userName}</p>
       <p>Display: {displayName}</p>
       <p>Local: {localCount}</p>
-      <button onClick={() => setValue(prev => prev + 1)}>
+      <button onClick={() => localCountStore.setValue(prev => prev + 1)}>
         Increment Local
       </button>
     </div>
@@ -385,11 +385,21 @@ function OptimizedComponent() {
 }
 ```
 
+## API Selection Matrix (When to Use What)
+
+| Decision Area | Option A | Option B / C | Rule of Thumb |
+| --- | --- | --- | --- |
+| **Context Composition** | `createActionContext` + `createStoreContext` | `createScopedContext(name, actions, useSetup)` | Multi-store app/domain boundaries -> separated providers. Self-contained widgets/features pairing actions + local stores/refs -> `createScopedContext`. |
+| **Component-Local Stores** | `useLocalStore(initial)` (`./advanced`) | `useStoreInstance(initial)` + `useControlledStoreSync` (`./advanced`) | Owning component subscribes itself -> `useLocalStore`. Provider/Shell owns store with 0 re-renders while leaf views subscribe -> `useStoreInstance`. |
+| **Imperative Refs** (`@context-action/react/refs`) | `useRefRegistry<TRefs>()` | `useRefCollection<T>()` / `createRefCollectionContext` / `createRefContext<TRefs>()` | Fixed keys, local -> `useRefRegistry`. Dynamic string keys (lists/tabs) -> `useRefCollection`. Fixed keys shared across distant descendants -> `createRefContext`. |
+| **Store Subscriptions** | `useStoreValue(store)` / `useStoreSelector(store, fn)` | `useStorePath(store, path, { select })` / `useStoreSelectorWithPaths(store, fn, { dependsOn })` | Single nested path or single-path derived slice -> `useStorePath`. Multiple paths combined -> `useStoreSelectorWithPaths`. |
+
 ## Essential Hooks (Must Learn)
 
 ### Factory Functions
 - `createActionContext<T>(contextName, config?)` - Creates a named, type-safe action system
 - `createStoreContext(contextName, initialStores)` - Creates named, type-safe store management
+- `createScopedContext(name, actions, useSetup)` - Unites `actions.Provider`, runtime setup (`useStoreInstance` / `useRefRegistry`), and shallow-stabilized `useScope()` into one flat `Provider` without artificial Bridge components
 
 ### Core Hooks
 - `useStoreValue(store)` - Subscribe to store changes
@@ -399,17 +409,23 @@ function OptimizedComponent() {
 
 ## Utility Hooks (Learn As Needed)
 
-### Performance
+### Performance & Ergonomics
 - `useStoreSelector(store, selector)` - Selective subscriptions
-- `useComputedStore(store, compute)` - Derived state
+- `useStorePath(store, path, { select?, equalityFn? })` - Compile-time path validation (`StorePathOf<T>`) with derived single-path `select`
+- `useStoreSelectorWithPaths(store, selector, { dependsOn, equalityFn })` - Multi-path derived selector with compile-time validated `dependsOn`
+- `useRefRegistry<TRefs>()` (`@context-action/react/refs` & `./advanced`) - Zero-rerender typed component-local ref registry (`setRef`, `get`, `has`, `executeIfMounted`, `controller`, `waitForRefs`) without `validator` boilerplate
+- `useRefCollection<T>()` & `createRefCollectionContext(name)` (`@context-action/react/refs`) - Dynamically string-keyed ref collections for menus, tabs, and lists
+- `useComputedStore(store, compute)` (`@context-action/react/advanced`) - Derived state
 
-### Convenience
-- `useLocalStore(initialValue)` - Component-local store
+### Convenience & Local Lifecycle (`@context-action/react/advanced`)
+- `useLocalStore(initialValue)` - Component-local store that subscribes the calling component (`{ value, name, lastUpdate, store }`)
+- `useStoreInstance(initialValue)` - Component/scope-owned `Store<T>` with zero re-renders in the owning component (pair with `useStorePath` in leaves)
+- `useControlledStoreSync(store, path, controlledValue, options?)` - Loop-free sync from optional React props into a `Store` path
 
 ### Advanced
 - `useActionResultDispatch()` - Dispatch and collect handler results (returns `dispatchWithResult`)
-- `useActionScope()` - Provider-scoped `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }`
-- `@context-action/react/refs` (`createRefContext`), `@context-action/react/time-travel` (`createTimeTravelStoreContext`), and `@context-action/react/transactions` (`StoreTransactionCoordinator`) - Standalone specialized subpaths (`Store` defaults to `'immediate'` notificationMode and `createActionContext` defaults `useConcurrencyQueue: false`)
+- `useActionScope()` - Provider-scoped `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }` (distinct from `ScopedContext.useScope()`)
+- `@context-action/react/refs` (`createRefContext`, `createRefCollectionContext`, `useRefRegistry`, `useRefCollection`), `@context-action/react/time-travel` (`createTimeTravelStoreContext`), and `@context-action/react/transactions` (`StoreTransactionCoordinator`) - Standalone specialized subpaths (`Store` defaults to `'immediate'` notificationMode and `createActionContext` defaults `useConcurrencyQueue: false`)
 
 ## Helper Functions
 
@@ -514,7 +530,7 @@ const UserComponent = UserStores.withProvider(() => {
 - **Use factory functions** - Type-safe and organized
 - **Prefer Declarative Store Pattern** - Excellent type inference
 - **Use HOC pattern** - Automatic provider management
-- **Register handlers early** - Use `useActionHandler` with `useCallback`
+- **Register handlers cleanly** - `useActionHandler` and the 4 role hooks (`useActionGuard`, `useActionCommandHandler`, `useActionObserver`, `useActionResultHandler`) automatically track latest-ref closures for handlers, `config.condition`, and `config.cleanup` (no manual `useCallback` or prop-ref mirroring needed to prevent re-registration churn)
 - **Keep components simple** - Business logic in action handlers
 
 ### ❌ Don't
