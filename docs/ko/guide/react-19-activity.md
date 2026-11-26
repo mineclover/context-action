@@ -4,7 +4,8 @@
 컴포넌트입니다. hide/reveal 사이에 컴포넌트·DOM·Store·Action Provider 상태는
 보존하지만, 해당 UI의 effect와 외부 구독을 계속 활성화하지는 않습니다.
 
-`@context-action/react` 4.0.7은 React 19.2 이상을 요구합니다. Activity는 React에서
+`@context-action/react` 5.0.0은 React 18.3.1과 React 19.2 이상을 지원하며, React의
+`<Activity>` 컴포넌트는 React 19.2 이상을 요구합니다. Activity는 React에서
 import하며 Context-Action은 이를 감싸거나 다시 export하지 않습니다.
 
 ```tsx
