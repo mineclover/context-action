@@ -168,7 +168,11 @@ const packages = [
         ],
       },
       { specifier: '@context-action/react/utils', exports: ['deepClone'] },
-      { specifier: '@context-action/react/webmcp', exports: ['useWebMCPToolScope'] },
+      {
+        specifier: '@context-action/react/webmcp',
+        exports: ['useWebMCPToolScope'],
+        requiresPackages: ['@context-action/webmcp'],
+      },
     ],
   },
   {
@@ -369,17 +373,27 @@ function createLocalPackageSpecs(consumerRoot, packageDefinitions) {
   });
 }
 
+function activePackageImports(selectedPackages, packageDefinition) {
+  const selectedNames = new Set(selectedPackages.map(({ name }) => name));
+  return packageDefinition.imports.filter(({ requiresPackages }) =>
+    !requiresPackages || requiresPackages.every(name => selectedNames.has(name)),
+  );
+}
+
 function runConsumerSmoke(consumerRoot, selectedPackages) {
   const cjsPackages = selectedPackages.filter(({ supportsCjs }) => supportsCjs !== false);
-  const moduleNames = cjsPackages.flatMap(({ imports }) => imports.map(({ specifier }) => specifier));
+  const resolvedImports = cjsPackages.flatMap(packageDefinition =>
+    activePackageImports(selectedPackages, packageDefinition),
+  );
+  const moduleNames = resolvedImports.map(({ specifier }) => specifier);
   const expectedExports = Object.fromEntries(
-    cjsPackages.flatMap(({ imports }) => imports.map(({ specifier, exports, exportKinds }) => [
+    resolvedImports.map(({ specifier, exports, exportKinds }) => [
       specifier,
       Object.fromEntries(exports.map(exportName => [
         exportName,
         exportKinds?.[exportName] ?? 'function',
       ])),
-    ])),
+    ]),
   );
   if (moduleNames.length === 0) return;
   const source = `
@@ -405,13 +419,15 @@ console.log('published tool package consumer imports passed: ' + ${JSON.stringif
 
 function runConsumerEsmSmoke(consumerRoot, selectedPackages) {
   const expectedExports = Object.fromEntries(
-    selectedPackages.flatMap(({ imports }) => imports.map(({ specifier, exports, exportKinds }) => [
-      specifier,
-      Object.fromEntries(exports.map(exportName => [
-        exportName,
-        exportKinds?.[exportName] ?? 'function',
-      ])),
-    ])),
+    selectedPackages
+      .flatMap(packageDefinition => activePackageImports(selectedPackages, packageDefinition))
+      .map(({ specifier, exports, exportKinds }) => [
+        specifier,
+        Object.fromEntries(exports.map(exportName => [
+          exportName,
+          exportKinds?.[exportName] ?? 'function',
+        ])),
+      ]),
   );
   const source = `
 const expected = ${JSON.stringify(expectedExports)};
@@ -540,8 +556,7 @@ import {
   useStoreInstance,
 } from '@context-action/react/advanced';
 import { deepClone } from '@context-action/react/utils';
-import { useWebMCPToolScope } from '@context-action/react/webmcp';
-const actions = createActionContext<{ save: string }>('consumer-check');
+${names.has('@context-action/webmcp') ? "import { useWebMCPToolScope } from '@context-action/react/webmcp';\n" : ''}const actions = createActionContext<{ save: string }>('consumer-check');
 const scoped = createScopedContext(
   'consumer-scoped',
   actions,
@@ -587,8 +602,7 @@ void backendStore;
 void backendOptions;
 void StoreRegistry;
 void deepClone;
-void useWebMCPToolScope;
-`);
+${names.has('@context-action/webmcp') ? 'void useWebMCPToolScope;\n' : ''}`);
   }
   if (names.has('@context-action/preact')) {
     statements.push(`
