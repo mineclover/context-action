@@ -75,21 +75,21 @@
 
 | 패키지 | 계층 | 공개성 / 안정성 | 공개 `exports` | 워크스페이스 의존성 (+Peer) | 권위 참조 문서 |
 | --- | --- | --- | --- | --- | --- |
-| `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | 없음 | `packages/core/README.md`, `action-contracts.md`, `element-interop.md` |
+| `@context-action/core` (`2.0.0`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | 없음 | `packages/core/README.md`, `action-contracts.md`, `element-interop.md` |
 | `@context-action/interactions` (`0.1.0`) | `foundation` | `public` / `public-preview` | `.` | 없음 | `packages/interactions/README.md` |
-| `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/store-core/README.md`, `store-selection-and-usage-guide.md` |
+| `@context-action/store-core` (`0.1.5`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/store-core/README.md`, `store-selection-and-usage-guide.md` |
 | `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/mutative-core/README.md`, `mutative-core-history.md` |
 | `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/tool-protocol/README.md`, `tool-calling-editor-architecture.md` |
 | `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | 없음 | `packages/tool-durable-operations/README.md`, `durable-operation-operations.md` |
-| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `interactions`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
+| `@context-action/react` (`5.0.0`) | `framework-adapter` | `public` / `stable` | `.`, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `interactions`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
 | `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | `packages/mutative/README.md`, `time-travel-specialization.md` |
-| `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/lit/README.md`, `01-controller-scope.md` |
-| `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/preact/README.md`, `spec-to-code-authoring-guide.md` |
-| `@context-action/lit-ui` (`0.1.4`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr`, `./hydrate` | `core`, `lit` | `packages/lit-ui/README.md`, `packages/lit-ui/docs/*.md` |
-| `@context-action/preact-ui` (`0.2.1`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | `packages/preact-ui/README.md`, `packages/preact-ui/docs/*.md` |
+| `@context-action/lit` (`0.1.5`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/lit/README.md`, `01-controller-scope.md` |
+| `@context-action/preact` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/preact/README.md`, `spec-to-code-authoring-guide.md` |
+| `@context-action/lit-ui` (`0.1.5`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr`, `./hydrate` | `core`, `lit` | `packages/lit-ui/README.md`, `packages/lit-ui/docs/*.md` |
+| `@context-action/preact-ui` (`0.2.2`) | `ui-runtime` | `public` / `public-preview` | `.`, `./react-bridge`, `./ssr` | `core`, `preact` | `packages/preact-ui/README.md`, `packages/preact-ui/docs/*.md` |
 | `@context-action/ai-sdk` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.` | `tool-protocol` | `packages/ai-sdk/README.md`, `usecase-tool-calling-web-studio.md` |
 | `@context-action/webmcp` (`0.1.2`) | `integration-adapter` | `public` / `public-preview` | `.`, `./profiles/chrome-legacy` | `tool-protocol` | `packages/webmcp/README.md`, `docs/ko/guide/webmcp.md` |
-| `@context-action/xstate` (`0.1.0`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | `packages/xstate/README.md`, `xstate-effect-integration.md` |
+| `@context-action/xstate` (`0.1.1`) | `integration-adapter` | `public` / `public-preview` | `.`, `./effect` | `core`, `store-core` | `packages/xstate/README.md`, `xstate-effect-integration.md` |
 | `@context-action/style-testing` (`0.1.0`) | `tooling` | `private` / `private` | `.`, `./babel-plugin` | 없음 | `packages/style-testing/README.md` |
 | `@context-action/live-code-editor` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | 없음 | `packages/live-code-editor/README.md` |
 | `@context-action/openrouter-browser-storage` (`0.0.0`) | `private-host-support` | `private` / `private` | `.` | 없음 | `packages/openrouter-browser-storage/README.md` |

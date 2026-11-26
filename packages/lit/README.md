@@ -56,9 +56,9 @@ runtime copy.
 
 ## Status
 
-Public package, version `0.1.3`, published to npm on 2026-10-23.
+Public package, version `0.1.5`, published to npm on 2026-11-26 (`@context-action/core@^1.3.0 || ^2.0.0`).
 
 - https://www.npmjs.com/package/@context-action/lit
-- `latest` / `next`: `0.1.3`
+- `latest` / `next`: `0.1.5`
 
 Requires Node.js `>=24.11.0`.

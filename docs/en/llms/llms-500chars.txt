@@ -194,13 +194,13 @@ status: completed canonical: false translationOf: docs/ko/context-layered/v1-rel
 # Phase 2 (v5) Migration & Readiness Guide
 Sections: Phase 1 (4.x Non-Breaking) vs. Phase 2 (v5 Major) Boundary | Consumer Migration Recipes (Safe in 4.x, Ready for v5) | Automated Readiness Auditor (pnpm audit:v5-readiness) | Phase 2 (v5) Completion & Release Governance Checklist
 
-This guide prepares application teams, template starters, and external consumers for Phase 2 (v5 major breaking cleanup) under CA-VNEXT-ARCHITECTURE-001. Every preparation step in this document runs on top of the current 4.x release line without breaking existing root imports or freezing active development. - Status: Phase 2 (v5) implemented on stage (rollback checkpoint checkpoint/pre-phase2-v4 @ 240b2b32; packages/template-react/src and example/src compliant with 0 blocking findings; packag...
+This guide prepares application teams, template starters, and external consumers for Phase 2 (v5 major breaking cleanup) under CA-VNEXT-ARCHITECTURE-001. Every preparation step in this document runs on top of the current 4.x release line without breaking existing root imports or freezing active development. - Status: Published on npm latest (2026-11-26) (@context-action/core@2.0.0, @context-action/interactions@0.1.0, @context-action/store-core@0.1.5, @context-action/xstate@0.1.1, @context-act...
 
 ===================[ DOC: en/context-layered/vnext-architecture-handoff.md ]===================
 # vNext Architecture & Cross-Project Handoff Guide
-Sections: Baseline & Freeze Rules | Required Reading Map | Open Feedback Decision Gates (Resolve Before Implementation) | Copy-Pasteable Instruction / Prompt Kit
+Sections: Baseline & Architecture Rules | Required Reading Map | Open Feedback Decision Gates (Resolve Before Implementation) | Copy-Pasteable Instruction / Prompt Kit
 
-Status: Phase 1 (M0–M4) & Phase 2 (v5 React breaking cleanup & default harmonization) implemented on stage (rollback checkpoint checkpoint/pre-phase2-v4 @ 240b2b32; package versions & npm publish remain frozen) Baseline: stage branch (@context-action/core@1.3.1, @context-action/store-core@0.1.4, @context-action/mutative-core@0.8.14, @context-action/mutative@0.8.15, @context-action/react@4.0.7, @context-action/lit@0.1.4, @context-action/preact@0.1.3; package versions frozen on stage) This docu...
+Status: Phase 1 (M0–M4) & Phase 2 (v5 React breaking cleanup, DX ergonomics, & @context-action/interactions extraction) published on main / npm latest (2026-11-26) (pre-Phase-2 4.x rollback checkpoint checkpoint/pre-phase2-v4 preserved at 240b2b32) Baseline: main / stage synced (@context-action/core@2.0.0, @context-action/interactions@0.1.0, @context-action/store-core@0.1.5, @context-action/xstate@0.1.1, @context-action/mutative-core@0.8.14, @context-action/mutative@0.8.15, @context-action/re...
 
 ===================[ DOC: en/concept/action-pipeline-guide.md ]===================
 # Action Pipeline Guide: ActionPayloadMap & ActionRegister
@@ -500,7 +500,7 @@ Context-Action is suitable for production React application state when its packa
 # React 19.2 Activity
 Sections: Use it for resumable UI | Provider and withProvider() placement | What changes while hidden | Pre-rendering and SSR | Test the lifecycle
 
-<Activity> is a React 19.2 component for keeping a part of the UI mounted while it is not visible. It preserves component, DOM, Store, and Action Provider state across a hide/reveal cycle without keeping that UI's effects and external subscriptions active. @context-action/react 4.0.7 requires React 19.2 or later. Activity is imported from React; Context-Action does not wrap or re-export it. Activity is a good fit when a user is likely to return soon and losing local state would be disruptive:...
+<Activity> is a React 19.2 component for keeping a part of the UI mounted while it is not visible. It preserves component, DOM, Store, and Action Provider state across a hide/reveal cycle without keeping that UI's effects and external subscriptions active. @context-action/react 5.0.0 supports React 18.3.1 and React 19.2+, and React's <Activity> component requires React 19.2 or later. Activity is imported from React; Context-Action does not wrap or re-export it. Activity is a good fit when a u...
 
 ===================[ DOC: en/guide/react-aria-integration.md ]===================
 # React Aria Integration Boundary

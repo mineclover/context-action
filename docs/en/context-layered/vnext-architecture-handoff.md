@@ -1,16 +1,16 @@
 # vNext Architecture & Cross-Project Handoff Guide
 
-**Status:** Phase 1 (`M0–M4`) & Phase 2 (`v5` React breaking cleanup & default harmonization) implemented on `stage` (rollback checkpoint `checkpoint/pre-phase2-v4` @ `240b2b32`; package versions & npm publish remain frozen)  
-**Baseline:** `stage` branch (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`; package versions frozen on `stage`)
+**Status:** Phase 1 (`M0–M4`) & Phase 2 (`v5` React breaking cleanup, DX ergonomics, & `@context-action/interactions` extraction) **published on `main` / npm `latest` (2026-11-26)** (pre-Phase-2 `4.x` rollback checkpoint `checkpoint/pre-phase2-v4` preserved at `240b2b32`)  
+**Baseline:** `main` / `stage` synced (`@context-action/core@2.0.0`, `@context-action/interactions@0.1.0`, `@context-action/store-core@0.1.5`, `@context-action/xstate@0.1.1`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@5.0.0`, `@context-action/lit@0.1.5`, `@context-action/lit-ui@0.1.5`, `@context-action/preact@0.1.4`, `@context-action/preact-ui@0.2.2`)
 
 This document equips a sibling consumer project or the next architecture review session with exact baseline rules, reading paths, Phase 1 & Phase 2 implementation coverage, open design boundaries, and ready-to-paste prompts.
 
 ---
 
-## 1. Baseline & Freeze Rules
+## 1. Baseline & Architecture Rules
 
-- **Active branch:** `stage` (rollback checkpoint `checkpoint/pre-phase2-v4` preserved at `240b2b32`; keep all pre-release work off `main` until an approved integration window).
-- **Published contract & version freeze:** Package versions and npm releases remain frozen on `stage`. Note that **Phase 2 (`v5` React surface cleanup)** is now active on `stage` (`createActionContext` default `useConcurrencyQueue: false`, `Store` default `notificationMode: 'immediate'`, slimmed root `.` exports, removed deprecated React compatibility APIs, and `./refs`/`./time-travel`/`./transactions` standalone subpaths), while `@context-action/core` retains `registerEffect` for `1.x` compatibility.
+- **Published `main` / synced `stage`:** The 2026-11 major cohort (`@context-action/core@2.0.0`, `@context-action/interactions@0.1.0`, `@context-action/react@5.0.0`, plus Core v2 compatible `store-core@0.1.5`, `xstate@0.1.1`, `lit@0.1.5`/`lit-ui@0.1.5`, `preact@0.1.4`/`preact-ui@0.2.2`) is live on npm `latest` (rollback checkpoint `checkpoint/pre-phase2-v4` preserved at `240b2b32`).
+- **Active `v5` contract:** **Phase 2 (`v5` React surface cleanup + `interactions` extraction)** is active on `latest` (`createActionContext` default `useConcurrencyQueue: false`, `Store` default `notificationMode: 'immediate'`, slimmed root `.` exports, removed deprecated React compatibility APIs, `./refs`/`./time-travel`/`./transactions` standalone subpaths, `createScopedContext`, `useRefRegistry`, `useStorePath`, and `@context-action/interactions`), while `@context-action/core` retains `registerEffect` for `1.x` compatibility.
 - **No thin React hook wrappers for already-composable patterns:** Context-Action intentionally treats the 5 OOP × React built-in hook archetypes (`useImperativeHandle`, `useLocalStore`/`useReducer`, `useDeferredValue`, React 19 `useOptimistic`/`useTransition`/`useActionState`, and isomorphic `useLayoutEffect`/`useEffect`) as documented usage patterns rather than adding thin wrapper APIs.
 
 ---
