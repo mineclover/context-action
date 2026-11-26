@@ -28,7 +28,7 @@ npm install @context-action/react @context-action/core @context-action/tool-prot
 
 Import `defineAction`, `createActionSchema`, `listAllTools`, and protocol types
 from `@context-action/tool-protocol`. The repository retains
-`packages/react/src/tools` as a development track, but React 4 intentionally
+`packages/react/src/tools` as a development track, while `@context-action/react` v5 intentionally
 does not export `@context-action/react/tools`; do not import it from an
 installed package until a separate ToolContext release is approved.
 `@context-action/react` remains the default action/store entry, while

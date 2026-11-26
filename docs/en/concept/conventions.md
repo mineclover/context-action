@@ -2,14 +2,14 @@
 
 This document defines coding conventions and best practices when using the Context-Action framework with its core patterns: Actions and Stores, plus advanced patterns like RefContext.
 
-> Start with the **Current React 4.0.7 summary** below for a new feature. The
+> Start with the **Current React 5 summary** below for a new feature. The
 > detailed sections that follow are reference material; use the
 > [Context-Layered convention index](/en/context-layered/convention-index) when
 > a feature needs the repository's six-layer implementation profile.
 
-## Current React 4.0.7 summary
+## Current React 5 summary
 
-`@context-action/react` supports React 18.3.1 and React 19.2+. React 19.2-only
+`@context-action/react@5.0.0` (paired with `@context-action/core@2.0.0`) supports React 18.3.1 and React 19.2+. React 19.2-only
 features such as `<Activity>` are documented separately. The default design is a
 context-layered flow, not a component that mixes rendering, domain rules, and
 external effects:
@@ -55,12 +55,14 @@ external effects:
    reviewed lock and `pnpm verify:mutative-upstream`.
 
 For a complete feature, test its Store/Action contract, its visible UI, and any
-Activity hide/reveal or SSR boundary it owns. Run `pnpm convention:check` for
+Activity hide/reveal or SSR boundary it owns following the
+[Testing Convention & Scenarios](/en/context-layered/testing-convention)
+(`T1`–`T4` & `S1`–`S6`). Run `pnpm convention:check` for
 repository structure and `pnpm docs:check` after documentation changes.
 
 ## 📋 Table of Contents
 
-1. [Current React 4.0.7 Summary](#current-react-407-summary)
+1. [Current React 5 Summary](#current-react-5-summary)
 2. [Legacy MVVM Migration Conventions](#legacy-mvvm-migration-conventions)
 3. [Naming Conventions](#naming-conventions)
 4. [File Structure](#file-structure)

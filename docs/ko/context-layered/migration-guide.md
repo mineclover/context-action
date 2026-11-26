@@ -48,7 +48,7 @@ npm install @context-action/react @context-action/core @context-action/tool-prot
 
 `defineAction`, `createActionSchema`, `listAllTools`와 protocol type은
 `@context-action/tool-protocol`에서 import합니다. 저장소에는 개발 트랙으로
-`packages/react/src/tools`가 남아 있지만 React 4는
+`packages/react/src/tools`가 남아 있지만 `@context-action/react` v5는
 `@context-action/react/tools`를 의도적으로 export하지 않습니다. 별도 ToolContext
 릴리스가 승인되기 전에는 설치된 패키지에서 이 경로를 import하지 마십시오.
 `@context-action/react`는 기본 action/store entry를, `@context-action/core`는 action

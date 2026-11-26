@@ -3,9 +3,9 @@
 Durable idempotency and external side-effect adapters for Context-Action tool
 mutations.
 
-> **Development track:** Durable 0.2 is being stabilized separately from the
-> Core 1.2.6 / React 4.0.7 state-management release. Its persistence, provider
-> recovery, and migration contract is not published as part of that cohort.
+> **Development track:** Durable 0.2 is stabilized alongside `@context-action/core@2.0.0` /
+> `@context-action/react@5.0.0`. The source-only `@context-action/react/tools` ToolContext track
+> remains unpublished until its release contract is approved separately.
 
 This package starts after a canonical tool call has been validated. It owns
 the mutation boundary: durable operation records, lease-aware claims,
