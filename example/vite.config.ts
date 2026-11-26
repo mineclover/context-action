@@ -29,6 +29,7 @@ export default defineConfig({
     // 워크스페이스 패키지들은 사전 번들링에서 제외
     exclude: [
       '@context-action/core',
+      '@context-action/interactions',
       '@context-action/react',
       '@context-action/react/refs',
       '@context-action/react/time-travel',
