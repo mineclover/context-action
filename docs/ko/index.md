@@ -6,37 +6,40 @@ titleTemplate: 타입 안전한 액션 파이프라인 관리 시스템
 hero:
   name: Context Action
   text: 타입 안전한 액션 파이프라인 관리 시스템
-  tagline: React 18/19, W3C Web Components(Lit & Preact), 엔터프라이즈 디자인 시스템을 아우르는 차세대 상태 관리 프레임워크
+  tagline: 프레임워크 중립 액션·인터랙션 파이프라인(@context-action/core v2), React 18/19 MVVM 바인딩(@context-action/react v5), W3C 웹 컴포넌트(Lit & Preact)를 아우르는 상태 관리 프레임워크
   image:
     src: /logo.svg
     alt: Context Action
   actions:
     - theme: brand
-      text: 표준 컨벤션 보기
-      link: /ko/context-layered/implementation-convention
+      text: 개발 컨벤션 인덱스
+      link: /ko/context-layered/convention-index
+    - theme: alt
+      text: 시작하기
+      link: /ko/guide/getting-started
     - theme: alt
       text: 시나리오 라이브러리
       link: /ko/examples/implementation-playbook-scenarios
 
 features:
   - icon: 📐
-    title: 표준 아키텍처 컨벤션
-    details: Action, Store, View 3계층 분리와 Context-Layered 패턴을 고정하는 공식 표준
+    title: Context-Layered 아키텍처
+    details: contexts / business / handlers / actions / hooks / views 6계층 분리와 Action·Store·Ref 경계를 고정하는 공식 표준
+  - icon: 🎯
+    title: 헤드리스 액션 & 인터랙션 파이프라인
+    details: 무의존성 @context-action/core v2 및 @context-action/interactions 기반 우선순위 파이프라인, 가드, Dismiss Layer, Roving Focus, Pointer Gesture
+  - icon: ⚡
+    title: 고성능 반응형 스토어
+    details: 핸들러 지연 평가(getValue), Selective Projection, Equality Guard, StoreTransactionCoordinator 원자적 배치 지원
   - icon: 🧩
     title: W3C 웹 컴포넌트 (Lit & Preact)
-    details: Zero VDOM 초경량 Lit과 미세 반응형 Preact Signals 기반의 독립 캡슐화 컴포넌트
+    details: Zero VDOM Lit ReactiveController와 Preact Signals 어댑터, FACE 폼 표준, React 18/19 호스트 브리지 제공
   - icon: 🎨
-    title: 엔터프라이즈 디자인 시스템
-    details: Shadow DOM CSS 토큰 주입, ::part() 훅, React Aria 완벽 호환
-  - icon: ⚡
-    title: 120fps 고성능 상태 관리
-    details: Selective Projection과 Equality Guard로 불필요한 리렌더링 0 보장
-  - icon: 📝
-    title: 폼 표준 (FACE)
-    details: ElementInternals 기반의 네이티브 form/FormData 완벽 통합 및 폼 리셋 라이프사이클
-  - icon: 🛡️
-    title: 엄격한 인터페이스 계약
-    details: Property/Attribute 엄격 분리, typed CustomEvent, React 18/19 상호운용 브리지
+    title: 엔터프라이즈 디자인 시스템 & 폼 표준
+    details: Shadow DOM CSS 토큰 주입, ::part() 훅, React Aria 호환, ElementInternals 기반 네이티브 form/FormData 통합
+  - icon: 🧪
+    title: 표준 테스트 컨벤션 & 시나리오
+    details: T1–T4 테스트 계층과 S1–S6 핵심 시나리오 계약(CA-TESTING-CONVENTION-001)으로 패키지·예제 전 계층 검증
 ---
 
 ## 🏛️ Context-Action 4대 핵심 개발 표준
@@ -67,7 +70,7 @@ Context-Action 프레임워크는 마이크로 프론트엔드와 엔터프라�
 
 * **SSOT (Single Source of Truth)**: 도메인 데이터를 컴포넌트 내부에 중복/복제하여 저장하지 않습니다.
 * **Selective Projection**: 스토어 전체가 아닌 컴포넌트에 필요한 최소 슬라이스만 `selector` 함수로 추출합니다.
-* **Equality Guard**: 프로젝션 결과가 이전과 같을 경우 `equalityFn`(기본값 `Object.is`)으로 비교하여 렌더링 요청을 억제함으로써 120fps 고주파 이벤트에서도 렌더 비용을 0으로 유지합니다.
+* **Equality Guard**: 프로젝션 결과가 이전과 같을 경우 `equalityFn`(기본값 `Object.is`)으로 비교하여 렌더링 요청을 억제함으로써 고주파 이벤트에서도 불필요한 렌더 비용을 최소화합니다.
 * **Coalesced Pending**: `ActionController`를 통해 액션 로딩 상태(`isPending`)를 추적하되, 리렌더링은 0 ↔ >0 전환 시점에만 병합 실행합니다.
 
 ---
@@ -126,11 +129,13 @@ Lit과 Preact 두 가지 런타임의 특성에 맞춘 최적의 구현 컨벤�
 
 ## 🧭 추천 학습 경로 및 실전 데모
 
-1. [Implementation Convention](/ko/context-layered/implementation-convention)
-2. [Canonical Order Form](/ko/examples/canonical-order-form)
-3. [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
+1. [개발 컨벤션 인덱스](/ko/context-layered/convention-index) — 아키텍처 컨벤션, ADR, 검증 게이트 중앙 인덱스
+2. [Implementation Convention](/ko/context-layered/implementation-convention) — 6계층 폴더 구조, 상태 전이, 문서 연동 표준
+3. [테스트 컨벤션 및 시나리오 표준](/ko/context-layered/testing-convention) — `T1`–`T4` 테스트 계층 및 `S1`–`S6` 시나리오 표준 (`CA-TESTING-CONVENTION-001`)
+4. [Canonical Order Form](/ko/examples/canonical-order-form) & [Playbook 시나리오 라이브러리](/ko/examples/implementation-playbook-scenarios)
 
 ### 🎮 인터랙티브 라이브 쇼케이스
+- [Headless Interactions 쇼케이스 (React / Lit / Preact)](https://mineclover.github.io/context-action/example/integrations/headless-interactions)
 - [Lit Web Components & React 19 쇼케이스](https://mineclover.github.io/context-action/example/integrations/lit-web-components)
 - [Preact Web Components & Signals 쇼케이스](https://mineclover.github.io/context-action/example/integrations/preact-web-components)
 - [Canonical Order](https://mineclover.github.io/context-action/example/patterns/implementation-playbook)
@@ -138,6 +143,8 @@ Lit과 Preact 두 가지 런타임의 특성에 맞춘 최적의 구현 컨벤�
 - [Incident Escalation](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/incident-escalation)
 - [Renewal Risk Review](https://mineclover.github.io/context-action/example/patterns/implementation-playbook/renewal-risk-review)
 - [Standalone Web Coding Studio](https://mineclover.github.io/context-action/web-coding/)
+
+저장소 로컬 Playbook 스킬 경로: `skills/context-action-implementation-playbook/SKILL.md`
 
 <style>
 .VPFeature .icon {

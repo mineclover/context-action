@@ -4,13 +4,13 @@
 
 > 빠른 팀 규칙 요약이 먼저 필요하면 [모범 사례](../guide/best-practices.md#-빠른-팀-요약)를 먼저 읽고, 이 문서는 세부 규칙을 확인할 때 참조하세요.
 
-> 새 기능을 만들 때는 먼저 아래 **React 4.0.7 현재 요약**을 따르세요. 이후의 긴
+> 새 기능을 만들 때는 먼저 아래 **React 5 현재 요약**을 따르세요. 이후의 긴
 > 섹션은 상세 참고 자료이며, 저장소의 6계층 구현 프로필이 필요하면
 > [개발 컨벤션 인덱스](/ko/context-layered/convention-index)를 사용합니다.
 
-## React 4.0.7 현재 요약
+## React 5 현재 요약
 
-`@context-action/react`는 React 18.3.1과 React 19.2+를 지원합니다. `<Activity>` 같은
+`@context-action/react@5.0.0` (`@context-action/core@2.0.0` 기반)는 React 18.3.1과 React 19.2+를 지원합니다. `<Activity>` 같은
 React 19.2 전용 기능은 별도 문서에서 다룹니다. 기본 설계는 렌더링,
 도메인 규칙, 외부 effect를 한 컴포넌트에 섞지 않는 Context-Layered 흐름입니다.
 
@@ -55,13 +55,14 @@ React 19.2 전용 기능은 별도 문서에서 다룹니다. 기본 설계는 �
    `pnpm verify:mutative-upstream`으로만
    수행합니다.
 
-기능 하나를 완성할 때는 Store/Action 계약, 보이는 UI, 소유한 Activity hide/reveal
-또는 SSR 경계를 함께 테스트하세요. 저장소 구조는 `pnpm convention:check`, 문서
-변경 뒤에는 `pnpm docs:check`로 확인합니다.
+기능 하나를 완성할 때는
+[테스트 컨벤션 및 시나리오 표준](/ko/context-layered/testing-convention) (`T1`–`T4` 및 `S1`–`S6`)에 따라
+Store/Action 계약, 보이는 UI, 소유한 Activity hide/reveal 또는 SSR 경계를 함께 테스트하세요.
+저장소 구조는 `pnpm convention:check`, 문서 변경 뒤에는 `pnpm docs:check`로 확인합니다.
 
 ## 📋 목차
 
-1. [React 4.0.7 현재 요약](#react-407-현재-요약)
+1. [React 5 현재 요약](#react-5-현재-요약)
 2. [네이밍 컨벤션](#네이밍-컨벤션)
 3. [파일 구조](#파일-구조)
 4. [패턴 사용법](#패턴-사용법)

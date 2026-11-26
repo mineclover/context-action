@@ -2,7 +2,7 @@
 # Durable Operation 운영 Runbook
 Sections: 경계와 사전 조건 | 배포 검증 | PostgreSQL 배포 검증 | 필수 runtime 설정 | Observability retention과 redaction | Recovery 절차 | Provider adapter 도입 admission checklist | 모니터링과 rollback
 
-개발 트랙 상태: 이 runbook은 진행 중인 Durable 0.2 작업을 설명합니다. > Core 1.2.6 / React 4.0.7 상태 관리 릴리즈의 선행 조건이 아니며, 해당 React artifact는 > 의도적으로 @context-action/react/tools를 출하하지 않습니다. 이 문서는 Tool-calling editor architecture guide의 의미론적 계약을 실제 Redis·PostgreSQL 배포 검증과 @context-action/react/tools recovery 경계에 적용하기 위한 운영 문서다. 위 guide가 semantic SSOT다. 이 페이지에는 배포·장애·resolver 운영 절차만 두며, package README가 durable state machine을 다시 복사하지 않고 이 문서로 연결하도록 한다. - @context-action/tool-durable-operations가 durable-operation 상태 머신...
+개발 트랙 상태: 이 runbook은 Durable 0.2 어댑터 운영 절차를 설명합니다. > @context-action/core@2.0.0 / @context-action/react@5.0.0 패키지에서는 > 의도적으로 @context-action/react/tools를 출하하지 않습니다. 이 문서는 Tool-calling editor architecture guide의 의미론적 계약을 실제 Redis·PostgreSQL 배포 검증과 @context-action/react/tools recovery 경계에 적용하기 위한 운영 문서다. 위 guide가 semantic SSOT다. 이 페이지에는 배포·장애·resolver 운영 절차만 두며, package README가 durable state machine을 다시 복사하지 않고 이 문서로 연결하도록 한다. - @context-action/tool-durable-operations가 durable-operation 상태 머신과...
 
 ===================[ DOC: ko/context-layered/architecture/folder-structure.md ]===================
 # Context-Layered 폴더 구조
@@ -228,9 +228,9 @@ Sections: 비즈니스 로직 분리
 
 ===================[ DOC: ko/concept/conventions.md ]===================
 # Context-Action Framework Conventions
-Sections: React 4.0.7 현재 요약 | 📋 목차 | 네이밍 컨벤션 | 파일 구조 | 패턴 사용법 | 타입 정의 | 코드 스타일 | Import와 모듈 패턴
+Sections: React 5 현재 요약 | 📋 목차 | 네이밍 컨벤션 | 파일 구조 | 패턴 사용법 | 타입 정의 | 코드 스타일 | Import와 모듈 패턴
 
-이 문서는 Context-Action 프레임워크의 핵심 패턴(Actions, Stores)과 고급 패턴(RefContext 등)을 사용할 때 따라야 할 코딩 컨벤션과 베스트 프랙티스를 정의합니다. > 빠른 팀 규칙 요약이 먼저 필요하면 모범 사례를 먼저 읽고, 이 문서는 세부 규칙을 확인할 때 참조하세요. > 새 기능을 만들 때는 먼저 아래 React 4.0.7 현재 요약을 따르세요. 이후의 긴 > 섹션은 상세 참고 자료이며, 저장소의 6계층 구현 프로필이 필요하면 > 개발 컨벤션 인덱스를 사용합니다. @context-action/react는 React 18.3.1과 React 19.2+를 지원합니다. <Activity> 같은 React 19.2 전용 기능은 별도 문서에서 다룹니다. 기본 설계는 렌더링, 도메인 규칙, 외부 effect를 한 컴포넌트에 섞지 않는 Context-Layered 흐름입니다. | 관심사 | 둘 위치 | 규칙 | | --- | --- | --- | |...
+이 문서는 Context-Action 프레임워크의 핵심 패턴(Actions, Stores)과 고급 패턴(RefContext 등)을 사용할 때 따라야 할 코딩 컨벤션과 베스트 프랙티스를 정의합니다. > 빠른 팀 규칙 요약이 먼저 필요하면 모범 사례를 먼저 읽고, 이 문서는 세부 규칙을 확인할 때 참조하세요. > 새 기능을 만들 때는 먼저 아래 React 5 현재 요약을 따르세요. 이후의 긴 > 섹션은 상세 참고 자료이며, 저장소의 6계층 구현 프로필이 필요하면 > 개발 컨벤션 인덱스를 사용합니다. @context-action/react@5.0.0 (@context-action/core@2.0.0 기반)는 React 18.3.1과 React 19.2+를 지원합니다. <Activity> 같은 React 19.2 전용 기능은 별도 문서에서 다룹니다. 기본 설계는 렌더링, 도메인 규칙, 외부 effect를 한 컴포넌트에 섞지 않는 Context-Layered 흐름입니다. | 관심사 |...
 
 ===================[ DOC: ko/concept/documentation-development-conventions.md ]===================
 # 문서 및 개발 관리 컨벤션
@@ -272,7 +272,7 @@ Context-Action 프레임워크의 Store, TimeTravelStore, MutableStore 패턴에
 # Tool Calling Editor 아키텍처
 Sections: 실행 경계 | 실시간 웹 코딩 showcase | 표준 계약 | iframe 규칙 | 패키지·레포지토리 분리 계획 | 현재 showcase editor 도구 | Standalone Web Studio workspace catalog | Code workspace 경계
 
-개발 트랙 상태: ToolContext와 Durable Operations는 > @context-action/core@1.2.6 / @context-action/react@4.0.7 상태 관리 > 릴리즈에 포함되지 않습니다. 이 protocol·persistence·provider recovery 표면이 > 별도 릴리즈 결정을 받을 때까지 React 4 패키지는 > @context-action/react/tools를 의도적으로 제외합니다. 브라우저 기반 실시간 editor는 iframe이 도구 실행기를 소유하지 않고, 부모 문서가 표준 Tool Registry·정책·호출 추적을 소유하는 구조로 구성한다. 이 데모에서 재사용할 Context-Action 규칙과 use-case recipe는 Tool Calling Web Studio 컨벤션에서 확인할 수 있다. ToolCallResult.content는 text와 JSON content block을 모두 허용한다. structur...
+개발 트랙 상태: source-track ToolContext와 @context-action/react/tools는 > 이 protocol·persistence·provider recovery 표면이 별도 릴리즈 결정을 받을 때까지 > @context-action/core@2.0.0 / @context-action/react@5.0.0 패키지 export에서 > 의도적으로 제외됩니다. 브라우저 기반 실시간 editor는 iframe이 도구 실행기를 소유하지 않고, 부모 문서가 표준 Tool Registry·정책·호출 추적을 소유하는 구조로 구성한다. 이 데모에서 재사용할 Context-Action 규칙과 use-case recipe는 Tool Calling Web Studio 컨벤션에서 확인할 수 있다. ToolCallResult.content는 text와 JSON content block을 모두 허용한다. structuredContent가 있으면 provider가 이를 사용할...
 
 ===================[ DOC: ko/guide/actions-based-dispatching.md ]===================
 # Actions 기반 디스패칭
@@ -655,4 +655,4 @@ Sections: 개요 | 일반적인 스토어 문제 | 고급 패턴 | 디버깅 도
 # index
 Sections: 🏛️ Context-Action 4대 핵심 개발 표준 | 🧭 추천 학습 경로 및 실전 데모
 
-Context-Action 프레임워크는 마이크로 프론트엔드와 엔터프라이즈 환경에서 자율성을 보장하면서도 일관된 품질을 유지하기 위해 4대 핵심 개발 표준(상태 관리, 인터페이스, 디자인 시스템, 웹 컴포넌트 컨벤션)을 규정합니다. 도메인 상태의 단일 진실 원천(SSOT)을 유지하고 불필요한 리렌더링을 원천 차단하기 위해 상태 3계층 모델(3-Tier State Hierarchy)과 선택적 프로젝션(Selective Projection)을 적용합니다. SSOT (Single Source of Truth): 도메인 데이터를 컴포넌트 내부에 중복/복제하여 저장하지 않습니다. Selective Projection: 스토어 전체가 아닌 컴포넌트에 필요한 최소 슬라이스만 selector 함수로 추출합니다. Equality Guard: 프로젝션 결과가 이전과 같을 경우 equalityFn(기본값 Object.is)으로 비교하여 렌더링 요청을 억제함으로써 120fps 고주파 이벤트에서도 렌더...
+Context-Action 프레임워크는 마이크로 프론트엔드와 엔터프라이즈 환경에서 자율성을 보장하면서도 일관된 품질을 유지하기 위해 4대 핵심 개발 표준(상태 관리, 인터페이스, 디자인 시스템, 웹 컴포넌트 컨벤션)을 규정합니다. 도메인 상태의 단일 진실 원천(SSOT)을 유지하고 불필요한 리렌더링을 원천 차단하기 위해 상태 3계층 모델(3-Tier State Hierarchy)과 선택적 프로젝션(Selective Projection)을 적용합니다. SSOT (Single Source of Truth): 도메인 데이터를 컴포넌트 내부에 중복/복제하여 저장하지 않습니다. Selective Projection: 스토어 전체가 아닌 컴포넌트에 필요한 최소 슬라이스만 selector 함수로 추출합니다. Equality Guard: 프로젝션 결과가 이전과 같을 경우 equalityFn(기본값 Object.is)으로 비교하여 렌더링 요청을 억제함으로써 고주파 이벤트에서도 불필요한 렌더 비...

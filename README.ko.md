@@ -696,6 +696,7 @@ interface UserActions extends ActionPayloadMap {
 - **[🧭 개발 컨벤션 인덱스](https://mineclover.github.io/context-action/ko/context-layered/convention-index)** - 작업별 표준·게이트 중심 인덱스
 - **[📦 저장소 표면 카탈로그](https://mineclover.github.io/context-action/ko/context-layered/repository-surface-catalog)** - 워크스페이스 패키지·정식 예제 라우트·관리 문서 전체 목록 (`CA-SURFACE-CATALOG-001`)
 - **[🏪 Store별 선택 기준 및 사용법 가이드](https://mineclover.github.io/context-action/ko/context-layered/store-selection-and-usage-guide)** - 패키지 전반 Store 선택 매트릭스
+- **[🧪 테스트 컨벤션 및 시나리오 표준](./docs/ko/context-layered/testing-convention.md)** - 표준 `T1`–`T4` 테스트 계층 및 `S1`–`S6` 시나리오 (`CA-TESTING-CONVENTION-001`)
 - **[📋 핵심 철학 및 아키텍처](https://mineclover.github.io/context-action/ko/concept/architecture-guide)** - 5가지 핵심 원칙, Headless-First DI, MVVM 분리
 - **[⚡ 모범 사례](https://mineclover.github.io/context-action/ko/guide/best-practices)** - 프로덕션 패턴
 - **[📜 문서 및 개발 관리 컨벤션](https://mineclover.github.io/context-action/ko/concept/documentation-development-conventions)** - 문서 작성 기준 및 검증 게이트

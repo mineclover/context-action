@@ -1,9 +1,8 @@
 # Element transport and host lifecycle adapters
 
-Local candidate, not yet published. `@context-action/core@1.2.6` in the registry
-does not contain these proposed entries. Core/UI publication needs an approved
-cohort and a minimum Core version containing the exports. Workspace ranges are
-local wiring, not an approved release dependency floor.
+Published since `@context-action/core@1.3.1` and included in `@context-action/core@2.0.0`
+(see Decision Record [`CA-ELEMENT-INTEROP-001`](../../../docs/en/context-layered/decisions/CA-ELEMENT-INTEROP-001.md)).
+Keep declared package/peer floors aligned with the target release cohort rather than local workspace ranges.
 
 ## Entries and ownership
 

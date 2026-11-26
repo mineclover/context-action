@@ -738,6 +738,7 @@ Context-Action Framework organizes application state, logic, and views around ex
 - **[📚 Official Documentation](https://mineclover.github.io/context-action/)** - Complete guide & API portal
 - **[🚀 Getting Started Guide](https://mineclover.github.io/context-action/en/guide/getting-started)** - 5-minute setup
 - **[📋 Core Philosophy & Architecture](https://mineclover.github.io/context-action/en/concept/architecture-guide)** - 5 Core Principles, Headless-First DI, and MVVM separation
+- **[🧪 Testing Convention & Scenarios](./docs/en/context-layered/testing-convention.md)** - Standardized `T1`–`T4` test tiers and `S1`–`S6` scenarios (`CA-TESTING-CONVENTION-001`)
 - **[⚡ Best Practices](https://mineclover.github.io/context-action/en/guide/best-practices)** - Production patterns
 - **[📜 Documentation & Change Management Conventions](https://mineclover.github.io/context-action/en/concept/documentation-development-conventions)** - Authoritative doc workflow & gates
 
