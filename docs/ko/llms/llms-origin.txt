@@ -3741,7 +3741,7 @@ stateDiagram-v2
 이 문서는 저장소 내 세 가지 핵심 표면의 **원칙**, **기본 규격(스키마·분류·검증 규칙)**, 그리고 **전체 목록**을 정의합니다.
 
 1. **API 전체 구성**: 19개 워크스페이스 패키지(`packages/*`), 공개 `exports` 서브패스, 워크스페이스 의존성, 안정성 등급
-2. **예제가 설명하는 것**: `example/` 앱 내 13개 의미 그룹(77개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 6개 패키지 로컬 `examples/`, 9개 내러티브 예제 문서
+2. **예제가 설명하는 것**: `example/` 앱 내 13개 의미 그룹(78개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 6개 패키지 로컬 `examples/`, 9개 내러티브 예제 문서
 3. **관리되는 문서 구조**: 9개 루트 마크다운 문서, 12개 관리 문서 영역(권한 등급·한영 쌍 정책·추적 중인 번역 공백), 파생 LLMS 번들 산출물
 
 관련 기준 문서는 [패키지 경계 및 코드베이스 관리 컨벤션](/ko/context-layered/package-boundary-convention), [스펙·이슈·문서 관리 컨벤션](/ko/context-layered/change-management-convention), [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions), ADR [CA-SURFACE-CATALOG-001](/ko/context-layered/decisions/CA-SURFACE-CATALOG-001)입니다.
@@ -3843,9 +3843,9 @@ stateDiagram-v2
 
 ## 4. 표면 2: 예제가 설명하는 것
 
-### 4.1 `example/` React 앱 (13개 의미 그룹 · 77개 정식 라우트)
+### 4.1 `example/` React 앱 (13개 의미 그룹 · 78개 정식 라우트)
 
-`example/src/App.tsx`는 총 **77개 정식 `<Route>`**(엔트리 모듈과 1:1 매핑, 레거시 별칭 0개)를 선언하며, `scripts/example-route-impact.mjs`가 이를 13개 의미 그룹으로 인덱싱·관리합니다:
+`example/src/App.tsx`는 총 **78개 정식 `<Route>`**(엔트리 모듈과 1:1 매핑, 레거시 별칭 0개)를 선언하며, `scripts/example-route-impact.mjs`가 이를 13개 의미 그룹으로 인덱싱·관리합니다:
 
 | 그룹 ID | 포함 라우트 (개수) | 설명하는 핵심 주제 | 주요 API | 검증 게이트 |
 | --- | --- | --- | --- | --- |
@@ -3860,7 +3860,7 @@ stateDiagram-v2
 | `ex-app-patterns-conditional` | `/patterns/conditional`, `permissions`, `form-validation`, `workflow-steps`, `feature-toggle` (**5**) | 조건부 파이프라인 가드: RBAC 권한, 다단계 폼 검증, 순차 워크플로 단계, 피처 토글 | `useActionHandler`, `PipelineController`, `ActionGuard` | `pnpm --filter example verify:conditional` |
 | `ex-app-patterns-architecture` | `/patterns/business-logic`, `layered-architecture`, `/patterns/implementation-playbook` + `scenarios`, `access-request`, `incident-escalation`, `renewal-risk-review` (**7**) | 순수 비즈니스 함수 분리, 6계층 Context-Layered 구조, Unified Triad (`BusinessActionIntent` vs `LayoutActionIntent`) 정렬, Canonical Order Form 및 Implementation Playbook 도메인 워크플로 | `createActionContext`, `createStoreContext`, `useActionHandler`, `useStoreValue`, `useActionGuard`, `useActionCommandHandler`, `useActionObserver` | `pnpm convention:check && pnpm --filter example verify:usecase` |
 | `ex-app-patterns-pipeline-refs` | `/patterns/pipeline/flow-control`, `/patterns/refs`, `waitforrefs-performance`, `use-ref-mount-state-test`, `canvas` (**5**) | 동적 `PipelineController`(`abort`/`skip`/`jumpToPriority`/`modifyPayload`)와 `waitForRefs`/`useRefMountState` DOM/Canvas 제어 | `PipelineController`, `createRefContext`, `waitForRefs`, `useRefMountState` | `pnpm --filter example build` |
-| `ex-app-integrations` | `/integrations/action-lifecycle`, `react-aria-reference`, `preact-web-components`, `lit-web-components`, `xstate-statechart`, `webmcp-scope`, `ai-sdk-tools`, `business/chat`, `advanced/form-builder`, `advanced/concurrent-actions` (**10**) | Action Lifecycle Workbench, React Aria 계층형 하이드레이션, Preact/Lit 웹 컴포넌트 브리지, XState/Effect, WebMCP, AI SDK v7 도구 스코프, 실시간 채팅, 동적 폼 빌더, 동시성 격리 | `ActionRegister`, `@context-action/core/element`, `preact-ui/react-bridge`, `lit-ui/react-bridge`, `@context-action/xstate`, `@context-action/webmcp`, `@context-action/ai-sdk` | `pnpm verify:react-aria-reference-hydration && pnpm verify:element-interop && pnpm --filter example test` |
+| `ex-app-integrations` | `/integrations/action-lifecycle`, `react-aria-reference`, `headless-interactions`, `preact-web-components`, `lit-web-components`, `xstate-statechart`, `webmcp-scope`, `ai-sdk-tools`, `business/chat`, `advanced/form-builder`, `advanced/concurrent-actions` (**11**) | Action Lifecycle Workbench, React Aria 계층형 하이드레이션, v5 헤드리스 인터랙션(`useRovingFocus`/`useDismissLayer`/`usePointerGesture`), Preact/Lit 웹 컴포넌트 브리지, XState/Effect, WebMCP, AI SDK v7 도구 스코프, 실시간 채팅, 동적 폼 빌더, 동시성 격리 | `ActionRegister`, `@context-action/core/element`, `@context-action/interactions`, `@context-action/react/advanced`, `preact-ui/react-bridge`, `lit-ui/react-bridge`, `@context-action/xstate`, `@context-action/webmcp`, `@context-action/ai-sdk` | `pnpm verify:react-aria-reference-hydration && pnpm verify:element-interop && pnpm --filter example test` |
 | `ex-app-utilities` | `/utilities/dev-tools/{logger,toast-config,warning-demo,store-scenarios}`, `source-directory`, `testing/enhanced-search` (**6**) | LogMonitor 트레이싱, 토스트 설정, 경고 진단, 스토어 비교 벤치마크, 소스 링크 디렉터리, 취소형 검색 테스트 하네스 | `ActionRegister`, `createStoreContext`, `createActionContext` | `pnpm --filter example check && pnpm --filter example build` |
 
 ### 4.2 독립 데모 (2종) 및 패키지 로컬 예제 (6종)
@@ -3868,7 +3868,7 @@ stateDiagram-v2
 | 구분 | 경로 | 상태 | 설명하는 내용 | 검증 게이트 |
 | --- | --- | --- | --- | --- |
 | 독립 데모 | `demos/bolt-style-editor` | `verified` | Tool-Calling Web Studio (`tool-protocol`, `tool-durable-operations`, `live-code-editor`, IndexedDB, 승인 큐, 제한된 트레이스, iframe 미리보기) | `pnpm web-coding:verify` |
-| 독립 데모 | `examples/vanilla-js` | `reference` | React나 번들러 없이 `@context-action/core` + `@context-action/store-core`를 사용하는 순수 HTML/JS 카운터·XSS-safe Todo 예제 | `pnpm build:core && pnpm --filter @context-action/store-core build` |
+| 독립 데모 | `examples/vanilla-js` | `reference` | React나 번들러 없이 `@context-action/core` + `@context-action/store-core` + `@context-action/interactions`를 사용하는 순수 HTML/JS 카운터·XSS-safe Todo·인터랙티브 툴바 예제 | `pnpm build:core && pnpm --filter @context-action/store-core build && pnpm --filter @context-action/interactions build` |
 | 패키지 예제 | `packages/core/examples` | `verified` | 코어 `ActionRegister` 데모 및 `./element` 기반 Vue·Svelte·Angular 호스트 복사형 예제 | `pnpm verify:element-hosts && pnpm verify:element-interop` |
 | 패키지 예제 | `packages/interactions/examples` | `verified` | `@context-action/interactions`와 `ActionRegister`를 결합한 캔버스 화이트보드(포인터 제스처) 및 커맨드 툴바(roving focus) 데모 | `pnpm --filter @context-action/interactions test` |
 | 패키지 예제 | `packages/lit-ui/examples` | `verified` | DSD SSR 하이드레이션 검증 하네스 및 ElementInternals FACE 예외 진단 플레이그라운드 | `pnpm --filter @context-action/lit-ui test:browser` |

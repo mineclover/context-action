@@ -45,7 +45,7 @@ function HomePage() {
                   File-by-file reading order
                 </span>
                 <span className="rounded-full border border-slate-200 bg-white px-3 py-1">
-                  Verified by Jest
+                  Verified by Vitest
                 </span>
               </div>
             </div>
@@ -65,6 +65,83 @@ function HomePage() {
               >
                 Read example guide ↗
               </a>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card
+        variant="elevated"
+        className="mb-8 border border-indigo-200 bg-gradient-to-r from-indigo-50 via-slate-50 to-violet-50"
+      >
+        <CardContent>
+          <div className="flex flex-col gap-4">
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-indigo-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-indigo-800">
+              React v5.0 · Core v2.0 · Interactions v0.1
+            </div>
+            <h2 className="text-2xl font-semibold text-slate-900">
+              What&apos;s New in v5 / v2 Highlights
+            </h2>
+            <p className="text-sm leading-relaxed text-slate-700">
+              Modular v5 subpath exports (<code>@context-action/react</code>,{' '}
+              <code>/refs</code>, <code>/time-travel</code>,{' '}
+              <code>/transactions</code>, <code>/backend</code>,{' '}
+              <code>/advanced</code>) pair with immediate store notifications (
+              <code>notificationMode: &apos;immediate&apos;</code>) and opt-in
+              action concurrency queues (<code>useConcurrencyQueue: false</code>
+              ).
+            </p>
+            <div className="grid gap-3 md:grid-cols-2">
+              <Link
+                to="/integrations/headless-interactions"
+                className="rounded-lg border border-indigo-200 bg-white p-4 transition hover:border-indigo-400 hover:shadow-sm"
+              >
+                <div className="font-semibold text-indigo-900">
+                  🎛️ Headless Interactions Showcase →
+                </div>
+                <p className="mt-1 text-xs text-slate-600">
+                  <code>useRovingFocus</code>, <code>useDismissLayer</code>,{' '}
+                  <code>usePointerGesture</code>,{' '}
+                  <code>useControlledStoreSync</code> &amp; Dual-Lane
+                  (fast/orchestrated)
+                </p>
+              </Link>
+              <Link
+                to="/foundations/react/provider"
+                className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-400 hover:shadow-sm"
+              >
+                <div className="font-semibold text-slate-900">
+                  🧩 createScopedContext + useRefRegistry →
+                </div>
+                <p className="mt-1 text-xs text-slate-600">
+                  Flat single-Provider ergonomics, latest-ref inline guards, and
+                  zero-re-render local ref registries
+                </p>
+              </Link>
+              <Link
+                to="/foundations/react/hooks"
+                className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-400 hover:shadow-sm"
+              >
+                <div className="font-semibold text-slate-900">
+                  🎯 useStorePath(..., &#123; select &#125;) →
+                </div>
+                <p className="mt-1 text-xs text-slate-600">
+                  Path-Trie JSON patch subscriptions with derived equality
+                  selectors
+                </p>
+              </Link>
+              <Link
+                to="/foundations/store/backend-transactions"
+                className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-400 hover:shadow-sm"
+              >
+                <div className="font-semibold text-slate-900">
+                  🏦 /backend + /transactions →
+                </div>
+                <p className="mt-1 text-xs text-slate-600">
+                  Framework-neutral <code>createBackendStore</code> and atomic{' '}
+                  <code>StoreTransactionCoordinator</code>
+                </p>
+              </Link>
             </div>
           </div>
         </CardContent>

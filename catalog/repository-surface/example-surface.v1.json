@@ -6,8 +6,8 @@
       "id": "ex-app-hub",
       "category": "hub-and-catalog",
       "summary": {
-        "en": "Entry pages, category catalogs, and conceptual overviews indexing the 77 canonical routes inside example/.",
-        "ko": "example/ 내부 77개 정식 라우트를 안내하는 진입 페이지, 카테고리 카탈로그 및 개념 개요 화면입니다."
+        "en": "Entry pages, category catalogs, and conceptual overviews indexing the 78 canonical routes inside example/.",
+        "ko": "example/ 내부 78개 정식 라우트를 안내하는 진입 페이지, 카테고리 카탈로그 및 개념 개요 화면입니다."
       },
       "primaryApis": [
         "createActionContext",
@@ -682,12 +682,14 @@
       "id": "ex-app-integrations",
       "category": "integrations",
       "summary": {
-        "en": "Cross-framework and real-world integrations: ActionLifecycle traces, React Aria, Preact/Lit Web Components, chat, and concurrent workflows.",
-        "ko": "프레임워크 간 연동 및 실전 통합 사례: ActionLifecycle 추적, React Aria, Preact/Lit 웹 컴포넌트, 채팅, 동시성 워크플로입니다."
+        "en": "Cross-framework and real-world integrations: ActionLifecycle traces, React Aria, v5 headless interactions, Preact/Lit Web Components, chat, and concurrent workflows.",
+        "ko": "프레임워크 간 연동 및 실전 통합 사례: ActionLifecycle 추적, React Aria, v5 헤드리스 인터랙션, Preact/Lit 웹 컴포넌트, 채팅, 동시성 워크플로입니다."
       },
       "primaryApis": [
         "ActionRegister",
         "@context-action/core/element",
+        "@context-action/interactions",
+        "@context-action/react/advanced",
         "@context-action/preact-ui/react-bridge",
         "@context-action/lit-ui/react-bridge",
         "@context-action/xstate",
@@ -715,6 +717,13 @@
           "explains": {
             "en": "Layered React Aria integration separating accessible UI primitives from Context-Action handlers and hydration.",
             "ko": "접근성 UI 프리미티브와 Context-Action 핸들러·하이드레이션 계층을 분리한 React Aria 기준 통합 예제입니다."
+          }
+        },
+        {
+          "path": "/integrations/headless-interactions",
+          "explains": {
+            "en": "React v5 headless UI primitives (useRovingFocus, useDismissLayer, usePointerGesture, useRefCollection, useControlledStoreSync, createScopedContext) with Dual-Lane execution.",
+            "ko": "React v5 헤드리스 UI 프리미티브(useRovingFocus, useDismissLayer, usePointerGesture, useRefCollection, useControlledStoreSync, createScopedContext)와 Dual-Lane 실행을 시연하는 통합 데모입니다."
           }
         },
         {
@@ -860,14 +869,16 @@
       "path": "examples/vanilla-js",
       "status": "reference",
       "explains": {
-        "en": "Framework-free HTML/JavaScript counter and XSS-safe DOM todo examples combining @context-action/core ActionRegister with @context-action/store-core createStateStore without React or a bundler.",
-        "ko": "React나 번들러 없이 @context-action/core의 ActionRegister와 @context-action/store-core의 createStateStore를 결합한 순수 HTML/JavaScript 카운터 및 XSS-safe Todo 예제입니다."
+        "en": "Framework-free HTML/JavaScript counter, XSS-safe DOM todo, and headless interactive toolbar/dismiss examples combining @context-action/core ActionRegister, @context-action/store-core createStateStore, and @context-action/interactions without React or a bundler.",
+        "ko": "React나 번들러 없이 @context-action/core의 ActionRegister, @context-action/store-core의 createStateStore, @context-action/interactions를 결합한 순수 HTML/JavaScript 카운터, XSS-safe Todo, 인터랙티브 툴바 예제입니다."
       },
       "primaryApis": [
         "ActionRegister",
-        "createStateStore"
+        "createStateStore",
+        "createRovingFocusController",
+        "createDismissLayer"
       ],
-      "verificationGate": "pnpm build:core && pnpm --filter @context-action/store-core build"
+      "verificationGate": "pnpm build:core && pnpm --filter @context-action/store-core build && pnpm --filter @context-action/interactions build"
     }
   ],
   "packageExamples": [

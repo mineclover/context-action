@@ -257,6 +257,12 @@ const ActionLifecycleWorkbenchPage = lazy(
 const ReactAriaReferencePage = lazy(
   () => import('./pages/integrations/react-aria/ReactAriaReferencePage')
 );
+const HeadlessInteractionsPage = lazy(
+  () =>
+    import(
+      './pages/integrations/headless-interactions/HeadlessInteractionsPage'
+    )
+);
 const PreactWebComponentsPage = lazy(
   () =>
     import('./pages/integrations/preact-web-components/PreactWebComponentsPage')
@@ -647,6 +653,10 @@ function AppContent() {
             <Route
               path="/integrations/react-aria-reference"
               element={<ReactAriaReferencePage />}
+            />
+            <Route
+              path="/integrations/headless-interactions"
+              element={<HeadlessInteractionsPage />}
             />
             <Route
               path="/integrations/preact-web-components"
