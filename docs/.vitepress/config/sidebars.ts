@@ -271,7 +271,8 @@ const CONTEXT_LAYERED_ITEMS = {
     { text: 'Migration Guide', link: '/en/context-layered/migration-guide' },
     { text: 'Implementation Convention', link: '/en/context-layered/implementation-convention' },
     { text: 'Explicit State Machine', link: '/en/context-layered/patterns/explicit-state-machine' },
-    { text: 'Stability Test Cycle', link: '/en/context-layered/stability-test-cycle' }
+    { text: 'Stability Test Cycle', link: '/en/context-layered/stability-test-cycle' },
+    { text: 'Testing Convention & Scenarios', link: '/en/context-layered/testing-convention' }
   ],
   ko: [
     { text: '개요', link: '/ko/context-layered/context-layered-guide' },
@@ -301,7 +302,8 @@ const CONTEXT_LAYERED_ITEMS = {
     { text: '마이그레이션 가이드', link: '/ko/context-layered/migration-guide' },
     { text: '표준 컨벤션', link: '/ko/context-layered/implementation-convention' },
     { text: '명시적 상태 머신', link: '/ko/context-layered/patterns/explicit-state-machine' },
-    { text: '안정성 테스트 사이클', link: '/ko/context-layered/stability-test-cycle' }
+    { text: '안정성 테스트 사이클', link: '/ko/context-layered/stability-test-cycle' },
+    { text: '테스트 컨벤션 및 시나리오 표준', link: '/ko/context-layered/testing-convention' }
   ]
 }
 

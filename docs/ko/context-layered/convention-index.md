@@ -41,6 +41,7 @@ Context-Action은 **핵심 3축**을 중심으로 도메인 크기에 맞게 **3
 | UX 동작, 암묵적 합의, 설계 접근성 트레이드오프 | [상호작용 의도 계약(IIC) 컨벤션](/ko/context-layered/interaction-intent-contract) | 의도·발견 가능성·화면 기술 후속 증거 |
 | `ttsc-ex` · `oa-sdk` 계약 잠금, 인텐트 분리, 레이아웃 위계 동기화 | [통합 트라이어드 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide) | `pnpm docs:management && pnpm llms:check && pnpm convention:check` |
 | canonical example/usecase | [Implementation Convention](/ko/context-layered/implementation-convention) | `pnpm convention:check`와 example check |
+| 표준 테스트 계층(`T1`–`T4`) 및 시나리오(`S1`–`S6`) | [테스트 컨벤션 및 시나리오 표준](/ko/context-layered/testing-convention) | `pnpm convention:check`와 경계별 테스트 스위트 |
 
 PR 전 로컬 우선 검증 및 영수증 발급([Local-First Verification Policy](../../LOCAL_FIRST_VERIFICATION_POLICY.md))에는 `pnpm verify:quick`(빠른 스모크) 또는 `pnpm verify`(전체 17단계 로컬 검증)를 실행하고 `pnpm verify:receipt`로 무결성을 확인합니다. 릴리스 후보 사전 점검에는 `pnpm verify:all`을 사용하며, 이는 집중 증거를 대체하지 않고 저장소 게이트를 조합합니다.
 
@@ -124,6 +125,8 @@ PR 전 로컬 우선 검증 및 영수증 발급([Local-First Verification Polic
   - 단일 로컬 검증 엔트리(`pnpm verify`, `pnpm verify:quick`)와 RFC 8785 서명 영수증 규칙(`pnpm verify:receipt`)
 - [안정성 테스트 사이클](/ko/context-layered/stability-test-cycle)
   - 설계 계약, 구현 패턴, 시나리오, 스트레스 테스트를 어떻게 나누는지
+- [테스트 컨벤션 및 시나리오 표준](/ko/context-layered/testing-convention)
+  - `T1`–`T4` 테스트 계층, `S1`–`S6` 표준 시나리오 및 `CA-TESTING-CONVENTION-001` 실행 증명 매트릭스
 - [다음 작업과 문서 소유권](/ko/context-layered/next-work)
   - 후속 작업과 기준 문서를 한 곳에서 관리하는 backlog
 
