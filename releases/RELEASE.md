@@ -227,11 +227,13 @@ publisher 설정과 transparency-log 검증을 먼저 완료한 뒤에만 선택
 
 - [`core-public-2026-11-major-1.json`](core-public-2026-11-major-1.json):
   - 게시 순서: `@context-action/core@2.0.0` → `@context-action/interactions@0.1.0` → `@context-action/store-core@0.1.5` → `@context-action/xstate@0.1.1` → `@context-action/react@5.0.0`
-  - 신규 패키지 `@context-action/interactions@0.1.0`의 최초 npm 게시를 포함하므로 `publish-core-public-candidate.yml` 실행 시 `publish_auth=token`을 사용한 뒤 `promote-core-public.yml`(`PROMOTE_CORE_PUBLIC`)으로 `latest` 승격을 진행합니다.
+  - release commit `3e1d06805f9cca84a90338cea6d52730c879552f` 기준으로 candidate run [`45730266243`](https://github.com/mineclover/context-action/actions/runs/45730266243)(`publish_auth=token`)과 promotion run [`45737097341`](https://github.com/mineclover/context-action/actions/runs/45737097341)(`PROMOTE_CORE_PUBLIC`)을 통과해 2026-11-26 `latest`로 승격되었습니다.
 - [`lit-public-2026-11-core-v2.json`](lit-public-2026-11-core-v2.json):
-  - `@context-action/lit@0.1.5` → `@context-action/lit-ui@0.1.5` (`@context-action/core` 범위 `^1.3.0 || ^2.0.0`). Core 2.0.0이 `latest`에 게시된 뒤 `publish-lit-public-candidate.yml` → `promote-lit-public.yml`로 게시합니다.
+  - `@context-action/lit@0.1.5` → `@context-action/lit-ui@0.1.5` (`@context-action/core` 범위 `^1.3.0 || ^2.0.0`).
+  - release commit `00c09b691c96a9fd949963b66985445a0ac14b20` 기준으로 candidate run [`45739973783`](https://github.com/mineclover/context-action/actions/runs/45739973783)과 promotion run [`45768070487`](https://github.com/mineclover/context-action/actions/runs/45768070487)(`PROMOTE_LIT_PUBLIC`)을 통과해 2026-11-26 `latest`로 승격되었습니다.
 - [`preact-public-2026-11-core-v2.json`](preact-public-2026-11-core-v2.json):
-  - `@context-action/preact@0.1.4` → `@context-action/preact-ui@0.2.2` (`@context-action/core` 범위 `^1.3.0 || ^2.0.0`). Core 2.0.0이 `latest`에 게시된 뒤 `publish-preact-public-candidate.yml` → `promote-preact-public.yml`로 게시합니다.
+  - `@context-action/preact@0.1.4` → `@context-action/preact-ui@0.2.2` (`@context-action/core` 범위 `^1.3.0 || ^2.0.0`).
+  - release commit `00c09b691c96a9fd949963b66985445a0ac14b20` 기준으로 candidate run [`45739978177`](https://github.com/mineclover/context-action/actions/runs/45739978177)과 promotion run [`45768075641`](https://github.com/mineclover/context-action/actions/runs/45768075641)(`PROMOTE_PREACT_PUBLIC`)을 통과해 2026-11-26 `latest`로 승격되었습니다.
 
 ## 5. 실패와 재개
 

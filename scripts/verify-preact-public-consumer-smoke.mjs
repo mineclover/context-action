@@ -7,7 +7,7 @@
  * (`@context-action/preact` + `@context-action/preact-ui`).
  *
  * Version selection (packages may carry different cohort versions):
- *   --cohort                     pin both to releases/preact-public-2026-10-patch-1.json
+ *   --cohort                     pin both to releases/preact-public-2026-11-core-v2.json
  *   --version <v>                shared version for both packages
  *   --preact-version <v>         override @context-action/preact
  *   --preact-ui-version <v>      override @context-action/preact-ui
@@ -77,7 +77,7 @@ const PACKAGES = [
 const JSDOM_VERSION = 'jsdom@26.1.0';
 const REACT_VERSION = 'react@19.3.1';
 const REACT_DOM_VERSION = 'react-dom@19.3.1';
-const SSR_VERSION = 'preact-render-to-string@6.7.0';
+const SSR_VERSION = 'preact-render-to-string@6.8.3';
 
 let totalAssertions = 0;
 
@@ -218,9 +218,13 @@ async function main() {
       'process.stdout.write(require("node:fs").readFileSync("node_modules/@context-action/preact-ui/package.json", "utf8"))',
     ], { cwd: sandbox }));
     const coreDependencyFloor = preactUiManifest.dependencies?.['@context-action/core'];
+    const expectedCoreDependencyFloor =
+      cohortPlan?.dependencies?.['@context-action/preact-ui']?.['@context-action/core'] ?? '^1.3.0 || ^2.0.0';
     if (coreDependencyFloor !== undefined) {
-      if (coreDependencyFloor !== '^1.3.0') {
-        throw new Error(`Preact UI element candidate must depend on @context-action/core@^1.3.0, got ${coreDependencyFloor}`);
+      if (coreDependencyFloor !== expectedCoreDependencyFloor) {
+        throw new Error(
+          `Preact UI element candidate must depend on @context-action/core@${expectedCoreDependencyFloor}, got ${coreDependencyFloor}`,
+        );
       }
       const coreEntryCheck = `
         const assert = require('node:assert/strict');
