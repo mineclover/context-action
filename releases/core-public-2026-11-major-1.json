@@ -68,5 +68,17 @@
       "@context-action/store-core": "^0.1.4"
     }
   },
-  "releaseCommit": "pending-pr-merge"
+  "releaseCommit": "3e1d06805f9cca84a90338cea6d52730c879552f",
+  "publication": {
+    "status": "published",
+    "publishedAt": "2026-11-26",
+    "next": "2.0.0 / 0.1.0 / 0.1.5 / 0.1.1 / 5.0.0",
+    "latest": "2.0.0 / 0.1.0 / 0.1.5 / 0.1.1 / 5.0.0",
+    "candidateRun": "45730266243",
+    "candidateRunUrl": "https://github.com/mineclover/context-action/actions/runs/45730266243",
+    "candidateVerification": "Core 2.0.0, Interactions 0.1.0, Store Core 0.1.5, XState 0.1.1, and React 5.0.0 next publication, SLSA provenance, packed consumer closure, and registry evidence verified.",
+    "promotionRun": "45737097341",
+    "promotionRunUrl": "https://github.com/mineclover/context-action/actions/runs/45737097341",
+    "promotionEvidence": "Core 2.0.0, Interactions 0.1.0, Store Core 0.1.5, XState 0.1.1, and React 5.0.0 latest promotion passed provenance, published consumer matrix, rollback-safe tag mutation, and registry evidence gates."
+  }
 }
