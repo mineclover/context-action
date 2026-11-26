@@ -99,10 +99,11 @@ export function BillingFeature(): React.JSX.Element {
 ### 아키텍처 구현 레이어
 
 - **도메인 엔진 (헤드리스)**: `ActionRegister` (`@context-action/core`) + `Store` / `StoreManager` / `createStateStore` (`@context-action/store-core`)
-- **Action Context (ViewModel DI 경계)**: `createActionContext` (내부 생성 또는 외부 `ActionRegister` 주입)
-- **선언적 Store Context (Model DI 경계)**: `createStoreContext` (내부 생성 또는 외부 `StoreManager` / `stores` 맵 주입)
-- **RefContext (제로 리렌더 성능 레이어)**: `createRefContext` (DOM·Canvas·Three.js 직접 참조)
-- **선택적 구독**: `useStoreValue`, `useStoreSelector`, `useStorePath`, `useStoreSelectorWithPaths`
+- **헤드리스 인터랙션 레이어 (Zero-Dep)**: `createDismissLayer`, `createRovingFocusController`, `createPointerGestureSession` (`@context-action/interactions`)
+- **Action & 스코프 컨텍스트 (ViewModel DI 경계)**: `createActionContext` (내부 생성 또는 외부 `ActionRegister` 주입), 위젯·피처 단위의 평탄한 통합 스코프가 필요할 때는 `createScopedContext` 사용 (완전한 6계층 도메인 경계에는 분리된 Provider 유지)
+- **선언적 Store & 트랜잭션 컨텍스트 (Model DI 경계)**: `createStoreContext`, `createTimeTravelStoreContext` (`@context-action/react/time-travel`), `StoreTransactionCoordinator` (`@context-action/react/transactions`)
+- **Ref 레이어 (제로 리렌더 성능 레이어)**: `useRefRegistry`, `useRefCollection`, `createRefContext` (`@context-action/react/refs` — DOM·Canvas·Three.js 직접 참조)
+- **선택적 구독**: `useStoreValue`, `useStoreSelector`, `useStorePath` (`{ select }` 지원), `useStoreSelectorWithPaths`
 - **프레젠테이션 (View 레이어)**: 의도를 디스패치하고 구독 상태를 그리는 순수 React/Lit/Preact 컴포넌트
 
 ### 컨텍스트 분리 전략

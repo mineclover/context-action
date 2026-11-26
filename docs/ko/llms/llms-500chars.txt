@@ -236,7 +236,7 @@ Sections: 문서 소유권 | 편집 전 원본 선택 | 변경 분류 | 필수 �
 # Context-Action React 훅 참조
 Sections: 📋 목차 | 필수 훅 | 유틸리티 훅 | 훅 분류 | 사용 가이드라인 | 추가 훅 및 유틸리티 | 전체 훅 분류 | 요약
 
-이 문서는 Context-Action 프레임워크에서 사용 가능한 모든 React 훅을 필수 훅 (핵심 기능)과 유틸리티 훅 (편의 및 최적화)으로 분류합니다. 1. 필수 훅 2. 유틸리티 훅 3. 훅 분류 4. 사용 가이드라인 이 훅들은 Context-Action 프레임워크를 사용하는 데 필수적입니다. 대부분의 애플리케이션에서 이러한 훅이 필요합니다. 고성능 DOM 조작을 위한 모든 ref 관련 훅을 생성하는 팩토리 함수. - 목적: 제로 React 리렌더링으로 타입 안전한 직접 DOM 조작 시스템 생성 - 반환: { Provider, useRefHandler, useWaitForRefs, useGetAllRefs } - 필수 용도: 성능 중요 UI, 애니메이션, 실시간 상호작용 타입 안전한 직접 DOM 조작이 가능한 ref 핸들러에 액세스하는 주요 훅. - 목적: 타입 안전성을 갖춘 특정 DOM 요소의 ref 핸들러 가져오기 - 필수 용도: React 리렌더링 없는 직접 DO...
+이 문서는 Context-Action 프레임워크에서 사용 가능한 모든 React 훅을 필수 훅 (핵심 기능)과 유틸리티 훅 (편의 및 최적화)으로 분류합니다. 1. 필수 훅 2. 유틸리티 훅 3. 훅 분류 4. 사용 가이드라인 이 훅들은 Context-Action 프레임워크를 사용하는 데 필수적입니다. 대부분의 애플리케이션에서 이러한 훅이 필요합니다. 모든 Ref 프리미티브는 @context-action/react/refs 서브패스에서 제공합니다: - useRefRegistry<TRefs>(): 고정된 컴파일 타임 키를 컴포넌트·스코프 내부에서 리렌더 없이 관리 (Provider 불필요). - useRefCollection<TTarget>() / createRefCollectionContext<TTarget>(): 메뉴·리스트 등 동적 문자열 키 목록을 리렌더 없이 관리. - createRefContext<T>(): React Context 서브트리 전체에서 공유하는 { Pro...
 
 ===================[ DOC: ko/concept/notifyPath-performance-proof.md ]===================
 # notifyPath/notifyPaths 성능 증명
@@ -504,7 +504,7 @@ Sections: 다시 돌아올 UI에 사용하기 | Provider와 withProvider() 배�
 
 ===================[ DOC: ko/guide/react-aria-integration.md ]===================
 # React Aria 통합 경계
-Sections: 공식 컴포넌트 레퍼런스 | 소유 모델 | Table 경계 | Calendar 경계 | 검증 체크리스트
+Sections: 공식 컴포넌트 레퍼런스 | 소유 모델 | Table 경계 | Calendar 경계 | 검증 체크리스트 | React Aria vs. @context-action/interactions
 
 Context-Action은 React Aria와 도메인 경계에서 통합합니다. React Stately가 제공하는 컴포넌트 내부 상호작용 상태를 대체하지 않습니다. 실행 가능한 레퍼런스는 예제 앱의 /integrations/react-aria-reference에 있습니다. react-aria-components의 다중 선택·정렬 Table 및 Calendar를 사용하고, 이 컴포넌트들이 내보내는 제품 도메인 결정을 Context-Action action과 store로 관리합니다. 이 레퍼런스는 ARIA 동작을 직접 재구현하지 않고 컴포넌트 계약을 따릅니다. - React Aria Table은 방향 키 이동, selectedKeys 기반 controlled selection, sortDescriptor·onSortChange 기반 controlled sorting을 정의합니다. - React Aria Calendar은 날짜 grid, 키보드 이동, calendar-aware 날짜...
 

@@ -1987,7 +1987,7 @@ userStore.update(draft => { draft.name = 'Jane'; });
 Store with built-in undo/redo functionality and history management.
 
 ```typescript
-import { createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 
 const editorStore = createTimeTravelStore('editor',
   { content: '', cursor: 0 },
@@ -2049,7 +2049,7 @@ const cursor = useStorePath(store, ['cursor']);
 #### Basic Usage - TimeTravelStore Mutable Mode
 
 ```typescript
-import { createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 
 const appStore = createTimeTravelStore('app', {
   user: { name: 'John', settings: { theme: 'dark' } },
@@ -2072,7 +2072,8 @@ appStore.update(draft => { draft.user.name = 'Jane'; });
 **Revolutionary Feature**: Control React re-renders WITHOUT changing store values through manual path notifications.
 
 ```typescript
-import { createStore, createTimeTravelStore } from '@context-action/react';
+import { createStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 
 const dashboardStore = createTimeTravelStore('dashboard', {
   user: { name: 'John', status: 'idle' },

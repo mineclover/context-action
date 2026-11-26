@@ -20,7 +20,7 @@ RefContext는 React 상태 업데이트를 거치지 않고 DOM 요소에 직접
 ### 간단한 RefContext 생성
 
 ```tsx
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // 1. Ref 타입 정의
 type MouseRefs = {
@@ -74,7 +74,7 @@ function MouseTracker() {
 
 ```tsx
 import React, { useCallback, useRef } from 'react';
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // 타입 정의
 type MouseRefs = {

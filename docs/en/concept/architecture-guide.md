@@ -99,10 +99,11 @@ export function BillingFeature(): React.JSX.Element {
 ### Architecture Implementation Layers
 
 - **Domain Engine (Headless)**: `ActionRegister` (`@context-action/core`) + `Store` / `StoreManager` / `createStateStore` (`@context-action/store-core`)
-- **Action Context (ViewModel DI Boundary)**: `createActionContext` (wraps or injects `ActionRegister`)
-- **Declarative Store Context (Model DI Boundary)**: `createStoreContext` (wraps or injects `StoreManager` / `stores`)
-- **RefContext (Zero Re-render Performance Layer)**: `createRefContext` (direct DOM/Canvas/Three.js references)
-- **Selective Subscription**: `useStoreValue`, `useStoreSelector`, `useStorePath`, `useStoreSelectorWithPaths`
+- **Headless Interaction Layer (Zero-Dep)**: `createDismissLayer`, `createRovingFocusController`, `createPointerGestureSession` (`@context-action/interactions`)
+- **Action & Scoped Context (ViewModel DI Boundary)**: `createActionContext` (wraps or injects `ActionRegister`), plus `createScopedContext` for self-contained widget/feature scopes (keep separate domain Providers for full 6-layer boundaries)
+- **Declarative Store & Transaction Context (Model DI Boundary)**: `createStoreContext`, `createTimeTravelStoreContext` (`@context-action/react/time-travel`), `StoreTransactionCoordinator` (`@context-action/react/transactions`)
+- **Ref Layer (Zero Re-render Performance Layer)**: `useRefRegistry`, `useRefCollection`, `createRefContext` (`@context-action/react/refs`) for direct DOM/Canvas/Three.js references
+- **Selective Subscription**: `useStoreValue`, `useStoreSelector`, `useStorePath` (with `{ select }`), `useStoreSelectorWithPaths`
 - **Presentation (View Layer)**: Pure React/Lit/Preact components forwarding intents and rendering subscribed state
 
 ### Context Separation Strategy
