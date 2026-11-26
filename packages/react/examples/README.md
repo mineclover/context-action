@@ -1,6 +1,6 @@
 # Context-Action React Examples
 
-This directory contains comprehensive examples and demonstrations for the Context-Action React package.
+This directory contains comprehensive examples and demonstrations for `@context-action/react@5.0.0` (paired with `@context-action/core@2.0.0`, where stores default to `notificationMode: 'immediate'` and registries default to `useConcurrencyQueue: false`).
 
 ## 📁 Directory Structure
 
@@ -42,11 +42,11 @@ examples/
 - **`useRefRegistry`** (`@context-action/react/refs` & `./advanced`): Zero-rerender component-local typed ref registry
 - **`compareValues`** (`@context-action/react/utils`): Shallow and deep value comparison helpers
 
-### Pattern Factories (`@context-action/react`)
+### Pattern Factories (`@context-action/react` & `@context-action/react/refs`)
 - **`createScopedContext`**: Single flat `Provider` uniting `ActionContext`, runtime setup, and shallow-stabilized `useScope()`
 - **`createStoreContext`**: Type-safe store pattern factory
 - **`createActionContext`**: Action context factory for business logic
-- **`createRefContext`**: Type-safe DOM and imperative object reference factory
+- **`createRefContext`** (`@context-action/react/refs`): Type-safe DOM and imperative object reference factory
 
 ## 🚀 Getting Started
 

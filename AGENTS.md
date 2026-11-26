@@ -15,7 +15,7 @@ Context-Action is a TypeScript monorepo separating application logic into framew
   - **Private Host Support (`3`)**: `@context-action/live-code-editor`, `@context-action/openrouter-browser-storage`, `@context-action/template-react`
 - **Canonical Authoritative Guides**:
   - [Convention Index](docs/en/context-layered/convention-index.md) — Central entry point for architecture conventions and ADRs
-  - [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) — Complete 19-package, 77-route, and document inventory
+  - [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) — Complete 19-package, 78-route, and document inventory
   - [Package Boundary Convention](docs/en/context-layered/package-boundary-convention.md) — Cross-package import, export, and ownership rules
   - [Store Selection and Usage Guide](docs/en/context-layered/store-selection-and-usage-guide.md) — State/store primitive selection across packages
   - [Spec-to-Code Authoring Guide](docs/en/context-layered/spec-to-code-authoring-guide.md) — Contract-first authoring workflow across layers
@@ -97,5 +97,5 @@ pnpm example:build:fast        # Fast build without tsc
 - [`catalog/repository-surface/`](catalog/repository-surface/) — Machine-verifiable API, Example, and Document surface catalogs (`CA-SURFACE-CATALOG-001`)
 - [`skills/context-action-implementation-playbook/SKILL.md`](skills/context-action-implementation-playbook/SKILL.md) — Scenario & 6-layer Context-Layered authoring skill
 - [`docs/`](docs/) — VitePress documentation source & generated `docs/{en,ko}/llms/llms-*.txt` bundles
-- [`example/src/`](example/src/) — 77-route showcase application
+- [`example/src/`](example/src/) — 78-route showcase application
 - [`scripts/`](scripts/) — Verification, boundary, catalog, supply-chain, and LLMS bundle tooling

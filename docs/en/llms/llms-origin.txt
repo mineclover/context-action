@@ -4649,7 +4649,7 @@ The transition function is pure, so it is easy to test and compose alongside pur
 This specification defines the principles, schema standards, and complete inventory for three repository surfaces:
 
 1. **Full Repository API Architecture**: all 19 workspace packages (`packages/*`), their public `exports`, workspace dependencies, and stability tiers.
-2. **What Examples Explain**: all 77 canonical routes across 13 semantic groups in `example/`, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), 6 package-local example suites, and 9 narrative example walkthroughs.
+2. **What Examples Explain**: all 78 canonical routes across 13 semantic groups in `example/`, standalone demos (`demos/bolt-style-editor`, `examples/vanilla-js`), 6 package-local example suites, and 9 narrative example walkthroughs.
 3. **Managed Documentation Architecture**: all 9 root markdown documents, 12 managed documentation areas with explicit authority and EN/KO pairing policies, and derived LLMS bundle artifacts.
 
 It complements [Package Boundary and Codebase Management](/en/context-layered/package-boundary-convention), [Specification, Issue, and Documentation Management](/en/context-layered/change-management-convention), [Documentation and Development Management](/en/concept/documentation-development-conventions), and ADR [CA-SURFACE-CATALOG-001](/en/context-layered/decisions/CA-SURFACE-CATALOG-001).
@@ -4751,9 +4751,9 @@ For deciding which state/store API to use across these packages, see the [Store 
 
 ## 4. Surface 2: What Examples Explain
 
-### 4.1 `example/` React App (77 Canonical Routes in 13 Semantic Groups)
+### 4.1 `example/` React App (78 Canonical Routes in 13 Semantic Groups)
 
-`example/src/App.tsx` defines **77 canonical `<Route>` entries** (1:1 with entry modules; 0 legacy aliases) indexed by `scripts/example-route-impact.mjs`:
+`example/src/App.tsx` defines **78 canonical `<Route>` entries** (1:1 with entry modules; 0 legacy aliases) indexed by `scripts/example-route-impact.mjs`:
 
 | Group ID | Routes (Count) | What It Explains | Primary APIs | Gate |
 | --- | --- | --- | --- | --- |
@@ -4768,7 +4768,7 @@ For deciding which state/store API to use across these packages, see the [Store 
 | `ex-app-patterns-conditional` | `/patterns/conditional`, `permissions`, `form-validation`, `workflow-steps`, `feature-toggle` (**5**) | Conditional pipeline gating: RBAC permissions, multi-stage validation, sequential workflow steps, feature flags | `useActionHandler`, `PipelineController`, `ActionGuard` | `pnpm --filter example verify:conditional` |
 | `ex-app-patterns-architecture` | `/patterns/business-logic`, `layered-architecture`, `/patterns/implementation-playbook` + `scenarios`, `access-request`, `incident-escalation`, `renewal-risk-review` (**7**) | Pure business-logic extraction, 6-layer Context-Layered structure, Unified Triad (`BusinessActionIntent` vs `LayoutActionIntent`) alignment, Canonical Order Form, and Implementation Playbook workflows | `createActionContext`, `createStoreContext`, `useActionHandler`, `useStoreValue`, `useActionGuard`, `useActionCommandHandler`, `useActionObserver` | `pnpm convention:check && pnpm --filter example verify:usecase` |
 | `ex-app-patterns-pipeline-refs` | `/patterns/pipeline/flow-control`, `/patterns/refs`, `waitforrefs-performance`, `use-ref-mount-state-test`, `canvas` (**5**) | Dynamic `PipelineController` (`abort`/`skip`/`jumpToPriority`/`modifyPayload`) and `waitForRefs`/`useRefMountState` DOM/Canvas lifecycle | `PipelineController`, `createRefContext`, `waitForRefs`, `useRefMountState` | `pnpm --filter example build` |
-| `ex-app-integrations` | `/integrations/action-lifecycle`, `react-aria-reference`, `preact-web-components`, `lit-web-components`, `xstate-statechart`, `webmcp-scope`, `ai-sdk-tools`, `business/chat`, `advanced/form-builder`, `advanced/concurrent-actions` (**10**) | Action Lifecycle Workbench, React Aria layered hydration, Preact/Lit Web Component React bridges, XState/Effect, WebMCP, AI SDK v7 tool scope, chat, dynamic form builder, concurrency isolation | `ActionRegister`, `@context-action/core/element`, `preact-ui/react-bridge`, `lit-ui/react-bridge`, `@context-action/xstate`, `@context-action/webmcp`, `@context-action/ai-sdk` | `pnpm verify:react-aria-reference-hydration && pnpm verify:element-interop && pnpm --filter example test` |
+| `ex-app-integrations` | `/integrations/action-lifecycle`, `react-aria-reference`, `headless-interactions`, `preact-web-components`, `lit-web-components`, `xstate-statechart`, `webmcp-scope`, `ai-sdk-tools`, `business/chat`, `advanced/form-builder`, `advanced/concurrent-actions` (**11**) | Action Lifecycle Workbench, React Aria layered hydration, v5 headless interactions (`useRovingFocus`/`useDismissLayer`/`usePointerGesture`), Preact/Lit Web Component React bridges, XState/Effect, WebMCP, AI SDK v7 tool scope, chat, dynamic form builder, concurrency isolation | `ActionRegister`, `@context-action/core/element`, `@context-action/interactions`, `@context-action/react/advanced`, `preact-ui/react-bridge`, `lit-ui/react-bridge`, `@context-action/xstate`, `@context-action/webmcp`, `@context-action/ai-sdk` | `pnpm verify:react-aria-reference-hydration && pnpm verify:element-interop && pnpm --filter example test` |
 | `ex-app-utilities` | `/utilities/dev-tools/{logger,toast-config,warning-demo,store-scenarios}`, `source-directory`, `testing/enhanced-search` (**6**) | LogMonitor tracing, toast policies, warning diagnostics, store comparison benchmarks, source directory, abortable search test harness | `ActionRegister`, `createStoreContext`, `createActionContext` | `pnpm --filter example check && pnpm --filter example build` |
 
 ### 4.2 Standalone Demos (2) & Package-Local Examples (6)
@@ -4776,7 +4776,7 @@ For deciding which state/store API to use across these packages, see the [Store 
 | Surface | Path | Status | What It Explains | Verification Gate |
 | --- | --- | --- | --- | --- |
 | Standalone Demo | `demos/bolt-style-editor` | `verified` | Tool-Calling Web Studio (`tool-protocol`, `tool-durable-operations`, `live-code-editor`, IndexedDB, approval queue, bounded trace, iframe preview) | `pnpm web-coding:verify` |
-| Standalone Demo | `examples/vanilla-js` | `reference` | Framework-free HTML/JS counter and XSS-safe todo apps using `@context-action/core` + `@context-action/store-core` | `pnpm build:core && pnpm --filter @context-action/store-core build` |
+| Standalone Demo | `examples/vanilla-js` | `reference` | Framework-free HTML/JS counter, XSS-safe todo, and interactive toolbar/dismiss examples using `@context-action/core` + `@context-action/store-core` + `@context-action/interactions` | `pnpm build:core && pnpm --filter @context-action/store-core build && pnpm --filter @context-action/interactions build` |
 | Package Examples | `packages/core/examples` | `verified` | Core `ActionRegister` demos + copyable Vue/Svelte/Angular `element-hosts` over `./element` | `pnpm verify:element-hosts && pnpm verify:element-interop` |
 | Package Examples | `packages/interactions/examples` | `verified` | Canvas whiteboard pointer gestures & command toolbar roving focus demos combining `@context-action/interactions` with `ActionRegister` | `pnpm --filter @context-action/interactions test` |
 | Package Examples | `packages/lit-ui/examples` | `verified` | DSD SSR hydration harness + ElementInternals FACE exception diagnostic playground | `pnpm --filter @context-action/lit-ui test:browser` |

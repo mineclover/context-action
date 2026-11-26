@@ -1,8 +1,8 @@
 # @context-action/template-react
 
-Standard Context-Action React Starter Template with Astryx Design System Theme Contract and State Tiering Governance.
+Standard Context-Action React (`@context-action/react@5.0.0` + `@context-action/core@2.0.0`) Starter Template with Astryx Design System Theme Contract and State Tiering Governance.
 
-Context-Action의 핵심 3축(`Action Pipeline`, `Reactive Store`, `Imperative Ref`), 6-Layer Context-Layered 아키텍처, `BusinessActionIntent` / `LayoutActionIntent` 분리, 4-Role 핸들러 훅(`useActionGuard`, `useActionCommandHandler`, `useActionObserver`), 그리고 Astryx 디자인 시스템 + TypeSpec Evidence 거버넌스를 함께 보여주는 표준 시작 템플릿입니다.
+Context-Action의 핵심 3축(`Action Pipeline`, `Reactive Store`, `Imperative Ref` via `@context-action/react` + `@context-action/react/refs`), 6-Layer Context-Layered 아키텍처, `BusinessActionIntent` / `LayoutActionIntent` 분리, 4-Role 핸들러 훅(`useActionGuard`, `useActionCommandHandler`, `useActionObserver`), 그리고 Astryx 디자인 시스템 + TypeSpec Evidence 거버넌스를 함께 보여주는 표준 시작 템플릿입니다.
 
 ---
 
@@ -54,6 +54,9 @@ src/
 ```bash
 # Context-Layered 정적 규칙 및 경계 검사 (저장소 루트에서 실행)
 pnpm convention:check
+
+# template-react 통합 테스트 (저장소 루트에서 실행)
+pnpm --filter @context-action/react test -- template-react
 
 # 타입 검증
 pnpm --filter @context-action/template-react type-check

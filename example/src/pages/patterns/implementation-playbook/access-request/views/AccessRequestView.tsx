@@ -448,7 +448,7 @@ export function AccessRequestView() {
                   from domain stores)
                 </div>
                 <div>
-                  <strong>v1 Role Hooks</strong>: <code>useActionGuard</code>{' '}
+                  <strong>4-Role Hooks</strong>: <code>useActionGuard</code>{' '}
                   (busy guard), <code>useActionCommandHandler</code>,{' '}
                   <code>useActionObserver</code>
                 </div>

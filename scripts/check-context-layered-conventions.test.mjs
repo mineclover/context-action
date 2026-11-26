@@ -97,7 +97,7 @@ test('real repository passes convention check across example/src and template-re
     'example/src',
     'packages/template-react/src',
   ]);
-  assert.equal(result.layeredRoots.length, 35);
+  assert.equal(result.layeredRoots.length, 36);
   assert.equal(
     result.astRuleViolations['no-deprecated-effect-handler'].length,
     0
