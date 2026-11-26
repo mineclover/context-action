@@ -136,7 +136,7 @@ function UserComponent() {
 히스토리 관리를 통한 내장 undo/redo 기능을 가진 Store입니다.
 
 ```typescript
-import { createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 
 const editorStore = createTimeTravelStore('editor',
   { content: '', cursor: 0 },
@@ -177,7 +177,8 @@ undo/redo 또는 명시적 transaction으로 commit한 변경은 `useStoreValue(
 참조를 새로 만들지 않으므로 path 또는 selector 구독이 필요합니다.
 
 ```typescript
-import { useStorePath, useTimeTravelControls } from '@context-action/react';
+import { useStorePath } from '@context-action/react';
+import { useTimeTravelControls } from '@context-action/react/time-travel';
 
 function Editor() {
   const editorStore = useEditorStore('document');
@@ -262,7 +263,7 @@ serializable metadata와 position만 있으며 Store 객체를 노출하지 않�
 이 패턴은 히스토리 추적의 오버헤드 없이 **structural sharing**과 **고성능**을 제공하며, 여전히 기술적 기능은 유지합니다.
 
 ```typescript
-import { createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 
 // MutableStore 패턴: undo/redo를 사용하지 않는 TimeTravelStore
 const dashboardStore = createTimeTravelStore('dashboard', {

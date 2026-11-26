@@ -4,7 +4,7 @@ Fundamental RefContext pattern with type-safe ref management and zero re-renders
 
 ## Import
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 ```
 
 ## Features
@@ -30,7 +30,7 @@ This document demonstrates usage patterns using standardized setup patterns:
 ### Basic Setup
 
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // Using the UIRefs pattern from setup guide
 const {
@@ -67,7 +67,7 @@ function MyComponent() {
 
 ```tsx
 // 1. Import UIRefs from setup guide
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // UIRefs from setup specification
 interface UIRefs {

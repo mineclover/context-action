@@ -4,7 +4,7 @@ Shared RefContext setup patterns for direct DOM manipulation and singleton objec
 
 ## Import
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 ```
 
 ## Overview

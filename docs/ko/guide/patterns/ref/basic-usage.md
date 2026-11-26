@@ -4,7 +4,7 @@
 
 ## 가져오기
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 ```
 
 ## 기능
@@ -30,7 +30,7 @@ import { createRefContext } from '@context-action/react';
 ### 기본 설정
 
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // 설정 가이드의 UIRefs 패턴 사용
 const {
@@ -67,7 +67,7 @@ function MyComponent() {
 
 ```tsx
 // 1. 설정 가이드에서 UIRefs 가져오기
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // 설정 사양의 UIRefs
 interface UIRefs {

@@ -25,13 +25,25 @@ These hooks are fundamental to using the Context-Action framework. Most applicat
 
 ### 🔧 RefContext Hooks (Performance)
 
+All Ref primitives live under `@context-action/react/refs`:
+
+- `useRefRegistry<TRefs>()`: component/scope-local registry for fixed compile-time keys (zero re-renders, no Provider required).
+- `useRefCollection<TTarget>()` / `createRefCollectionContext<TTarget>()`: dynamic string-keyed collections such as menus or rows (zero re-renders).
+- `createRefContext<T>()`: shared Context subtree refs with `{ Provider, useRefHandler, useWaitForRefs, useGetAllRefs }`.
+
 #### `createRefContext<T>()`
-**Factory function** that creates all ref-related hooks for high-performance DOM manipulation.
+**Factory function** exported from `@context-action/react/refs` that creates all ref-related hooks for high-performance DOM manipulation.
 - **Purpose**: Creates type-safe direct DOM manipulation system with zero React re-renders
 - **Returns**: `{ Provider, useRefHandler, useWaitForRefs, useGetAllRefs }`
 - **Essential for**: Performance-critical UI, animations, real-time interactions
 
 ```tsx
+import {
+  createRefContext,
+  useRefRegistry,
+  useRefCollection,
+} from '@context-action/react/refs';
+
 const {
   Provider: MouseRefsProvider,
   useRefHandler: useMouseRef
@@ -87,16 +99,21 @@ function ComplexComponent() {
 #### `createActionContext<T>()`
 **Factory function** that creates all action-related hooks for a specific action context.
 - **Purpose**: Creates type-safe action dispatch and handler system
-- **Returns**: `{ Provider, useActionDispatch, useActionHandler, useActionRegister }`
+- **Returns**: `{ Provider, useActionDispatch, useActionResultDispatch, useActionScope, useActionHandler, useActionGuard, useActionCommandHandler, useActionResultHandler, useActionObserver, useActionRegister, useActionContextInfo }`
 - **Essential for**: Any action-based logic
 
 ```tsx
 const { 
   Provider: UserActionProvider,
   useActionDispatch: useUserAction,
-  useActionHandler: useUserActionHandler
+  useActionCommandHandler: useUserCommandHandler
 } = createActionContext<UserActions>('UserActions');
 ```
+
+#### `createScopedContext()` & `@context-action/react/advanced`
+**Flat widget/feature helper** pairing an `ActionContextReturn` with a `useSetup` hook under one `Provider` without a nested bridge component.
+- **Returns**: `{ ...actionContext, Provider, useScope, contextName, scopeContext }` (`useScope()` reads the shallow-stabilized setup object returned by `useSetup`).
+- **Scope-local store, sync & interaction primitives (`@context-action/react/advanced`)**: pair with `useStoreInstance`, `useControlledStoreSync`, `useDismissLayer`, `useRovingFocus`, and `usePointerGesture` (backed by `@context-action/interactions`) inside `useSetup`.
 
 #### `useActionDispatch()`
 **Primary hook** for dispatching actions to handlers.

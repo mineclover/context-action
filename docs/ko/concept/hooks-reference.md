@@ -17,13 +17,25 @@
 
 ### 🔧 RefContext 훅 (성능)
 
+모든 Ref 프리미티브는 `@context-action/react/refs` 서브패스에서 제공합니다:
+
+- `useRefRegistry<TRefs>()`: 고정된 컴파일 타임 키를 컴포넌트·스코프 내부에서 리렌더 없이 관리 (Provider 불필요).
+- `useRefCollection<TTarget>()` / `createRefCollectionContext<TTarget>()`: 메뉴·리스트 등 동적 문자열 키 목록을 리렌더 없이 관리.
+- `createRefContext<T>()`: React Context 서브트리 전체에서 공유하는 `{ Provider, useRefHandler, useWaitForRefs, useGetAllRefs }` 팩토리.
+
 #### `createRefContext<T>()`
-고성능 DOM 조작을 위한 모든 ref 관련 훅을 생성하는 **팩토리 함수**.
+`@context-action/react/refs`에서 제공하는 **팩토리 함수**로, 고성능 DOM 조작을 위한 ref 관련 훅 세트를 생성합니다.
 - **목적**: 제로 React 리렌더링으로 타입 안전한 직접 DOM 조작 시스템 생성
 - **반환**: `{ Provider, useRefHandler, useWaitForRefs, useGetAllRefs }`
 - **필수 용도**: 성능 중요 UI, 애니메이션, 실시간 상호작용
 
 ```tsx
+import {
+  createRefContext,
+  useRefRegistry,
+  useRefCollection,
+} from '@context-action/react/refs';
+
 const {
   Provider: MouseRefsProvider,
   useRefHandler: useMouseRef
@@ -79,16 +91,21 @@ function ComplexComponent() {
 #### `createActionContext<T>()`
 특정 액션 컨텍스트를 위한 모든 액션 관련 훅을 생성하는 **팩토리 함수**.
 - **목적**: 타입 안전한 액션 디스패치 및 핸들러 시스템 생성
-- **반환**: `{ Provider, useActionDispatch, useActionHandler, useActionRegister }`
+- **반환**: `{ Provider, useActionDispatch, useActionResultDispatch, useActionScope, useActionHandler, useActionGuard, useActionCommandHandler, useActionResultHandler, useActionObserver, useActionRegister, useActionContextInfo }`
 - **필수 용도**: 모든 액션 기반 로직
 
 ```tsx
 const { 
   Provider: UserActionProvider,
   useActionDispatch: useUserAction,
-  useActionHandler: useUserActionHandler
+  useActionCommandHandler: useUserCommandHandler
 } = createActionContext<UserActions>('UserActions');
 ```
+
+#### `createScopedContext()` & `@context-action/react/advanced`
+`ActionContextReturn`과 `useSetup` 훅을 중첩 Bridge 컴포넌트 없이 하나의 평탄한 `Provider`로 결합하는 **위젯/피처 스코프 팩토리**입니다.
+- **반환**: `{ ...actionContext, Provider, useScope, contextName, scopeContext }` (`useScope()`는 `useSetup`이 반환한 얕은 비교 안정화 객체를 조회)
+- **스코프 로컬 스토어·동기화·인터랙션 훅 (`@context-action/react/advanced`)**: `useStoreInstance`, `useControlledStoreSync`, `useDismissLayer`, `useRovingFocus`, `usePointerGesture` (`@context-action/interactions` 기반)를 `useSetup` 내부에서 조합해 사용합니다.
 
 #### `useActionDispatch()`
 핸들러로 액션을 디스패치하는 **주요 훅**.
