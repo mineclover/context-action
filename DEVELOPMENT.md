@@ -5,19 +5,19 @@ Comprehensive development setup and workflow guide for the Context-Action framew
 ## 🏗️ Project Architecture
 
 ### Monorepo Structure
-See [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) (`catalog/repository-surface/api-surface.v1.json`) and [Store Selection and Usage Guide](docs/en/context-layered/store-selection-and-usage-guide.md) for the complete 18-package inventory and Store selection matrix.
+See [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) (`catalog/repository-surface/api-surface.v1.json`) and [Store Selection and Usage Guide](docs/en/context-layered/store-selection-and-usage-guide.md) for the complete 19-package inventory and Store selection matrix.
 
 ```
 context-action/
 ├── catalog/                           # Integration profiles & repository-surface catalogs (CA-SURFACE-CATALOG-001)
-├── packages/                          # 18 workspace packages across 6 layers
-│   ├── core/, store-core/, mutative-core/, tool-protocol/, tool-durable-operations/
+├── packages/                          # 19 workspace packages across 6 layers
+│   ├── core/, interactions/, store-core/, mutative-core/, tool-protocol/, tool-durable-operations/
 │   ├── react/, mutative/, lit/, preact/
 │   ├── lit-ui/, preact-ui/
 │   ├── xstate/, ai-sdk/, webmcp/
 │   ├── style-testing/
 │   └── live-code-editor/, openrouter-browser-storage/, template-react/
-├── example/                           # Comprehensive example app (77 canonical routes)
+├── example/                           # Comprehensive example app (78 canonical routes)
 ├── demos/                             # Standalone demos (e.g., bolt-style-editor)
 ├── skills/                            # Context-Action Implementation Playbook skills
 ├── releases/                          # Protected release guide and cohort manifests

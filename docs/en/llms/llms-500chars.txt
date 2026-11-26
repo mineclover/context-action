@@ -2,7 +2,7 @@
 # Durable Operation Operations Runbook
 Sections: Boundary and prerequisites | Deployment verification | PostgreSQL deployment verification | Required runtime settings | Observability retention and redaction | Recovery procedure | Provider adapter admission checklist | Monitoring and rollback
 
-Development-track status: This runbook describes the Durable 0.2 work in > progress. It is not a prerequisite for the Core 1.2.6 / React 4.0.7 > state-management release, and @context-action/react/tools is intentionally > not shipped from that React artifact. This runbook is the operational companion to the semantic contract in the Tool-calling editor architecture guide. It covers deployment verification for the Redis and PostgreSQL reference backends and the recovery boundary exposed by @con...
+Development-track status: This runbook describes the Durable 0.2 adapter > operations surface. @context-action/react/tools remains an unpublished > source-track subpath outside @context-action/core@2.0.0 / @context-action/react@5.0.0. This runbook is the operational companion to the semantic contract in the Tool-calling editor architecture guide. It covers deployment verification for the Redis and PostgreSQL reference backends and the recovery boundary exposed by @context-action/react/tools....
 
 ===================[ DOC: en/context-layered/architecture/folder-structure.md ]===================
 # Context-Layered Architecture - Folder Structure Guide
@@ -228,9 +228,9 @@ This guide demonstrates patterns for separating business logic from UI component
 
 ===================[ DOC: en/concept/conventions.md ]===================
 # Context-Action Framework Conventions
-Sections: Current React 4.0.7 summary | 📋 Table of Contents | Legacy MVVM Migration Conventions | Action Handler Registration Conventions | Naming Conventions | File Structure | Pattern Usage | Type Definitions
+Sections: Current React 5 summary | 📋 Table of Contents | Legacy MVVM Migration Conventions | Action Handler Registration Conventions | Naming Conventions | File Structure | Pattern Usage | Type Definitions
 
-This document defines coding conventions and best practices when using the Context-Action framework with its core patterns: Actions and Stores, plus advanced patterns like RefContext. > Start with the Current React 4.0.7 summary below for a new feature. The > detailed sections that follow are reference material; use the > Context-Layered convention index when > a feature needs the repository's six-layer implementation profile. @context-action/react supports React 18.3.1 and React 19.2+. React...
+This document defines coding conventions and best practices when using the Context-Action framework with its core patterns: Actions and Stores, plus advanced patterns like RefContext. > Start with the Current React 5 summary below for a new feature. The > detailed sections that follow are reference material; use the > Context-Layered convention index when > a feature needs the repository's six-layer implementation profile. @context-action/react@5.0.0 (paired with @context-action/core@2.0.0) s...
 
 ===================[ DOC: en/concept/documentation-development-conventions.md ]===================
 # Documentation and Development Management Conventions
@@ -272,7 +272,7 @@ Complete conventions for Store, TimeTravelStore, and MutableStore patterns in th
 # Tool Calling Editor Architecture
 Sections: Execution boundary | Realtime web-coding showcase | Standard contract | iframe rules | Package and repository boundary plan | Current showcase editor tools | Standalone Web Studio workspace catalog | Code workspace boundary
 
-Development-track status: ToolContext and Durable Operations are not part > of the @context-action/core@1.2.6 / @context-action/react@4.0.7 > state-management release. The React 4 package intentionally omits > @context-action/react/tools while this protocol, persistence, and provider > recovery surface receives a separate release decision. A browser-based live editor keeps the canonical Tool Registry, policy, and call trace in the parent document. The iframe is a preview and document bridge,...
+Development-track status: Source-track ToolContext and @context-action/react/tools > are intentionally omitted from the @context-action/core@2.0.0 / > @context-action/react@5.0.0 package exports while this protocol, persistence, > and provider recovery surface receives a separate release decision. A browser-based live editor keeps the canonical Tool Registry, policy, and call trace in the parent document. The iframe is a preview and document bridge, not the tool runtime. For the reusable Cont...
 
 ===================[ DOC: en/guide/actions-based-dispatching.md ]===================
 # Actions-based Dispatching
@@ -648,6 +648,6 @@ Store management problems and solutions in the Context-Action framework. Issue: 
 
 ===================[ DOC: en/index.md ]===================
 # index
-Sections: Recommended First Path
+Sections: 🏛️ Context-Action 4 Core Development Standards | 🧭 Recommended First Path
 
-Read Implementation Convention 2. Open Canonical Order Form 3. Browse Playbook Scenario Library 4. Try the live demos: - Canonical Order - Access Request - Incident Escalation - Renewal Risk Review Repo-local skill path: skills/context-action-implementation-playbook/SKILL.md <style> .VPFeature .icon { font-size: 2rem; margin-bottom: 1rem; } .VPFeatures .VPFeature { transition: transform 0.2s, box-shadow 0.2s; } .VPFeatures .VPFeature:hover { transform: translateY(-2px); box-shadow: 0 8px 16px...
+Context-Action defines 4 Core Development Standards—State Management, Interface Design, Design System Integration, and Web Component Conventions—alongside a six-layer React architecture and standardized testing contract: 1. 📊 3-Tier State Hierarchy & Selective Projection - Tier 1 (Local UI Transient State): @state() in Lit / local signals or component state - Tier 2 (Controlled Value & FACE): @property() + ElementInternals.setFormValue() - Tier 3 (Domain Business State SSOT): @context-action...

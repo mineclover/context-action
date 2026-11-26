@@ -2,7 +2,7 @@
 
 Entry guidance for Claude Code working in the `context-action` monorepo.
 
-**[AGENTS.md](./AGENTS.md) is the single source of truth** for repository architecture, 20-package boundaries, workspace build order, verification gates, documentation pipeline rules, and release governance.
+**[AGENTS.md](./AGENTS.md) is the single source of truth** for repository architecture, 19-package boundaries, workspace build order, verification gates, documentation pipeline rules, and release governance.
 
 ## Essential Quick Commands
 
@@ -31,6 +31,7 @@ pnpm verify:receipt
 ## Canonical Entry Points
 
 - [AGENTS.md](./AGENTS.md) — Full workspace instructions & implementation guardrails
-- [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) — 20 packages, 77 routes, and managed documentation areas
+- [Repository Surface Catalog](docs/en/context-layered/repository-surface-catalog.md) — 19 packages, 78 routes, and managed documentation areas
 - [Spec-to-Code Authoring Guide](docs/en/context-layered/spec-to-code-authoring-guide.md) — 6-layer Context-Layered authoring workflow (`contexts / business / handlers / actions / hooks / views` + optional pure-TS `runtime/`)
+- [Testing Convention & Scenarios](docs/en/context-layered/testing-convention.md) — Standardized `T1`–`T4` test tiers, `S1`–`S6` scenarios, and hygiene gate (`CA-TESTING-CONVENTION-001`)
 - [Documentation Conventions](docs/en/concept/documentation-development-conventions.md) — Paired EN/KO docs & LLMS bundle verification rules

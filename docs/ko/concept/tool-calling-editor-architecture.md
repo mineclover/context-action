@@ -1,10 +1,9 @@
 # Tool Calling Editor 아키텍처
 
-> **개발 트랙 상태:** ToolContext와 Durable Operations는
-> `@context-action/core@1.2.6` / `@context-action/react@4.0.7` 상태 관리
-> 릴리즈에 포함되지 않습니다. 이 protocol·persistence·provider recovery 표면이
-> 별도 릴리즈 결정을 받을 때까지 React 4 패키지는
-> `@context-action/react/tools`를 의도적으로 제외합니다.
+> **개발 트랙 상태:** source-track `ToolContext`와 `@context-action/react/tools`는
+> 이 protocol·persistence·provider recovery 표면이 별도 릴리즈 결정을 받을 때까지
+> `@context-action/core@2.0.0` / `@context-action/react@5.0.0` 패키지 export에서
+> 의도적으로 제외됩니다.
 
 브라우저 기반 실시간 editor는 iframe이 도구 실행기를 소유하지 않고, 부모 문서가 표준 Tool Registry·정책·호출 추적을 소유하는 구조로 구성한다.
 

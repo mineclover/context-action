@@ -1,10 +1,9 @@
 # Tool Calling Editor Architecture
 
-> **Development-track status:** ToolContext and Durable Operations are not part
-> of the `@context-action/core@1.2.6` / `@context-action/react@4.0.7`
-> state-management release. The React 4 package intentionally omits
-> `@context-action/react/tools` while this protocol, persistence, and provider
-> recovery surface receives a separate release decision.
+> **Development-track status:** Source-track `ToolContext` and `@context-action/react/tools`
+> are intentionally omitted from the `@context-action/core@2.0.0` /
+> `@context-action/react@5.0.0` package exports while this protocol, persistence,
+> and provider recovery surface receives a separate release decision.
 
 A browser-based live editor keeps the canonical Tool Registry, policy, and call trace in the parent document. The iframe is a preview and document bridge, not the tool runtime.
 

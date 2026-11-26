@@ -1,9 +1,8 @@
 # Durable Operation Operations Runbook
 
-> **Development-track status:** This runbook describes the Durable 0.2 work in
-> progress. It is not a prerequisite for the Core 1.2.6 / React 4.0.7
-> state-management release, and `@context-action/react/tools` is intentionally
-> not shipped from that React artifact.
+> **Development-track status:** This runbook describes the Durable 0.2 adapter
+> operations surface. `@context-action/react/tools` remains an unpublished
+> source-track subpath outside `@context-action/core@2.0.0` / `@context-action/react@5.0.0`.
 
 This runbook is the operational companion to the semantic contract in the
 [Tool-calling editor architecture guide](../../concept/tool-calling-editor-architecture.md).

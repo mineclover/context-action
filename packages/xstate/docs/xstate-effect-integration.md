@@ -1,6 +1,6 @@
 # Role-Allocated Architecture: `@context-action/xstate` & `@context-action/xstate/effect`
 
-**Decision Record:** [`CA-STATECHART-EFFECT-001`](../../docs/en/context-layered/decisions/CA-STATECHART-EFFECT-001.md) (KO: [한국어 결정 기록](../../docs/ko/context-layered/decisions/CA-STATECHART-EFFECT-001.md))
+**Decision Record:** [`CA-STATECHART-EFFECT-001`](../../../docs/en/context-layered/decisions/CA-STATECHART-EFFECT-001.md) (KO: [한국어 결정 기록](../../../docs/ko/context-layered/decisions/CA-STATECHART-EFFECT-001.md))
 
 This specification defines the role-allocated abstraction separating core zero-dependency contracts (`@context-action/core`, `@context-action/store-core`) from optional XState v5 / v6 and Effect v4 / `@xstate/effect` adapters inside `@context-action/xstate` (`.` and `./effect`).
 
