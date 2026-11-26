@@ -1,10 +1,13 @@
 import type { ActionObserverEvent } from '@context-action/core';
 import { type ReactNode, useCallback, useEffect, useMemo } from 'react';
+import type { HeadlessViewActions } from '../business/headlessWorkspaceRules';
 import {
   HeadlessDocumentStoreProvider,
   HeadlessSessionStoreProvider,
+  HeadlessViewActionProvider,
   HeadlessWorkspaceActionProvider,
   useHeadlessSessionStore,
+  useHeadlessViewActionCommandHandler,
   useHeadlessWorkspaceObserver,
 } from '../contexts/HeadlessDiContexts';
 import type { HeadlessWorkspaceRuntime } from '../runtime/createHeadlessWorkspace';
@@ -38,6 +41,24 @@ function HeadlessDiHandlerRegistry({
     id: 'react-view-telemetry-observer',
     priority: 1,
   });
+
+  const handleSetViewFilterTag = useCallback(
+    ({ filterTag }: HeadlessViewActions['setViewFilterTag']) => {
+      viewLocalStore.update((draft) => {
+        draft.filterTag = filterTag;
+        return undefined;
+      });
+    },
+    [viewLocalStore]
+  );
+
+  useHeadlessViewActionCommandHandler(
+    'setViewFilterTag',
+    handleSetViewFilterTag,
+    {
+      id: 'react-view-filter-tag-command',
+    }
+  );
 
   useEffect(() => {
     runtime.notifyTopologyChange();
@@ -80,19 +101,21 @@ export function HeadlessDiProviders({
       register={runtime.register}
       ownership="shared"
     >
-      <HeadlessSessionStoreProvider
-        stores={externalSessionStores}
-        ownership="shared"
-      >
-        <HeadlessDocumentStoreProvider
-          manager={runtime.documentManager}
+      <HeadlessViewActionProvider>
+        <HeadlessSessionStoreProvider
+          stores={externalSessionStores}
           ownership="shared"
         >
-          <HeadlessDiHandlerRegistry runtime={runtime}>
-            {children}
-          </HeadlessDiHandlerRegistry>
-        </HeadlessDocumentStoreProvider>
-      </HeadlessSessionStoreProvider>
+          <HeadlessDocumentStoreProvider
+            manager={runtime.documentManager}
+            ownership="shared"
+          >
+            <HeadlessDiHandlerRegistry runtime={runtime}>
+              {children}
+            </HeadlessDiHandlerRegistry>
+          </HeadlessDocumentStoreProvider>
+        </HeadlessSessionStoreProvider>
+      </HeadlessViewActionProvider>
     </HeadlessWorkspaceActionProvider>
   );
 }

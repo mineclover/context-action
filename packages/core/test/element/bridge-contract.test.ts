@@ -4,7 +4,6 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createElementFacade,
-  createSyncActionPipeline,
   type ElementBridgeContract,
   type PublicActionMethods,
 } from '../../src/element.js';

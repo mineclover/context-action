@@ -1,20 +1,27 @@
 /**
  * @fileoverview Path-based Time Travel Subscription Hook
  *
- * Optimized hook that only triggers re-renders when specific paths change.
- * Uses JSON patches from TimeTravelStore to determine if subscribed paths are affected.
+ * Thin specialization delegating to the canonical patch-aware subscription hooks
+ * (`useStorePath` and `useStoreSelectorWithPaths`).
  */
 
-import { useCallback, useRef, useSyncExternalStore } from 'react';
-import { TimeTravelStore } from '../core/TimeTravelStore';
-import { patchesAffectPath } from '../utils/patch-affects-path';
-import { createPathSignature, createPathsSignature } from '../utils/path-signature';
-import { defaultEqualityFn } from './useStoreSelector';
+import type { StateSnapshot } from '@context-action/store-core';
+import {
+  type PatchAwareStore,
+  type PathValue,
+  type StorePath,
+  type StorePathOf,
+  type UseStorePathSelectOptions,
+  useStorePath,
+  useStoreSelectorWithPaths,
+} from './useStorePath';
 
-/**
- * Path type for store subscription
- */
-export type StorePath = (string | number)[];
+/** Structural external store contract accepted by `useTimeTravelPath` and `useTimeTravelSelector`. */
+export type TimeTravelPathStore<T> = PatchAwareStore<T> & {
+  getSnapshot(): StateSnapshot<T>;
+};
+
+export type { StorePath };
 
 /**
  * Options for useTimeTravelPath
@@ -25,33 +32,27 @@ export interface UseTimeTravelPathOptions<R> {
 }
 
 /**
- * Check if patches affect the target path
- * A patch affects a path if:
- * 1. The patch path is a prefix of target path (parent changed)
- * 2. The target path is a prefix of patch path (descendant changed)
- * 3. The paths are equal
+ * Options for useTimeTravelPath with derived selection
  */
-/**
- * Get value at a specific path
- */
-function getValueAtPath<T, R>(obj: T, path: StorePath): R {
-  let current: unknown = obj;
+export type UseTimeTravelPathSelectOptions<V, R> = UseStorePathSelectOptions<V, R>;
 
-  for (const key of path) {
-    if (current === null || current === undefined) {
-      return undefined as R;
-    }
-    current = (current as Record<string | number, unknown>)[key];
-  }
+type LiteralStorePath<P extends readonly (string | number)[]> =
+  number extends P['length'] ? never : P;
 
-  return current as R;
-}
+type DynamicStorePath<P extends readonly (string | number)[]> =
+  number extends P['length'] ? P : never;
+
+type ExplicitReturnStorePath<R> = [R] extends [never] ? never : Readonly<StorePath>;
+
+type DynamicPathList<D extends readonly Readonly<StorePath>[]> =
+  number extends D[number]['length'] ? unknown : never;
 
 /**
- * Hook for subscribing to a specific path in TimeTravelStore
+ * Subscribe to a single nested path in a `TimeTravelStore` or `TimelineBackend`.
  *
- * Only triggers re-renders when the value at the specified path changes,
- * determined by analyzing JSON patches from state updates.
+ * Re-renders only when the subscribed path (or an ancestor containing it) is affected
+ * by patches—including undo/redo transitions. For multi-path combinations, prefer
+ * `useTimeTravelSelector`.
  *
  * @example
  * ```tsx
@@ -61,101 +62,83 @@ function getValueAtPath<T, R>(obj: T, path: StorePath): R {
  * });
  *
  * function UserName() {
- *   // Only re-renders when user.name changes
  *   const name = useTimeTravelPath(store, ['user', 'name']);
- *   return <span>{name}</span>;
- * }
- *
- * function Theme() {
- *   // Only re-renders when settings.theme changes
- *   const theme = useTimeTravelPath(store, ['settings', 'theme']);
- *   return <span>{theme}</span>;
+ *   const isJohn = useTimeTravelPath(store, ['user', 'name'], {
+ *     select: (n) => n === 'John',
+ *   });
+ *   return <span>{name} ({isJohn ? 'active' : 'other'})</span>;
  * }
  * ```
  */
+/** Subscribe to a literal timeline store path and derive a value with `{ select }`. */
+export function useTimeTravelPath<
+  T,
+  const P extends StorePathOf<T>,
+  R,
+>(
+  store: TimeTravelPathStore<T>,
+  path: LiteralStorePath<P>,
+  options: UseTimeTravelPathSelectOptions<PathValue<T, P>, R>,
+): R;
+/** Subscribe to a literal timeline store path and infer the value type at `P`. */
+export function useTimeTravelPath<
+  T,
+  const P extends StorePathOf<T>,
+>(
+  store: TimeTravelPathStore<T>,
+  path: LiteralStorePath<P>,
+  options?: UseTimeTravelPathOptions<PathValue<T, P>>,
+): PathValue<T, P>;
+/** Subscribe with explicit `<T, R>` type arguments (legacy escape hatch). */
+export function useTimeTravelPath<T, R = never>(
+  store: TimeTravelPathStore<T>,
+  path: ExplicitReturnStorePath<R>,
+  options?: UseTimeTravelPathOptions<R>,
+): R;
+/** Subscribe to a dynamic runtime path array on a timeline store with `{ select }`. */
+export function useTimeTravelPath<
+  T,
+  const P extends readonly (string | number)[],
+  R,
+>(
+  store: TimeTravelPathStore<T>,
+  path: DynamicStorePath<P>,
+  options: UseTimeTravelPathSelectOptions<unknown, R>,
+): R;
+/** Subscribe to a dynamic runtime path array on a timeline store (returns `unknown`). */
+export function useTimeTravelPath<
+  T,
+  const P extends readonly (string | number)[],
+>(
+  store: TimeTravelPathStore<T>,
+  path: DynamicStorePath<P>,
+  options?: UseTimeTravelPathOptions<unknown>,
+): unknown;
 export function useTimeTravelPath<T, R = unknown>(
-  store: TimeTravelStore<T>,
-  path: StorePath,
-  options: UseTimeTravelPathOptions<R> = {}
+  store: TimeTravelPathStore<T>,
+  path: Readonly<StorePath>,
+  options: UseTimeTravelPathOptions<R> & { select?: (value: unknown) => R } = {}
 ): R {
-  const { equalityFn } = options;
-
-  const pathSignature = createPathSignature(path);
-  const stablePathRef = useRef<{ signature: string; path: StorePath }>({
-    signature: pathSignature,
-    path: [...path],
-  });
-
-  if (stablePathRef.current.signature !== pathSignature) {
-    stablePathRef.current = { signature: pathSignature, path: [...path] };
-  }
-
-  const stablePath = stablePathRef.current.path;
-
-  // Cache for value comparison
-  const cacheRef = useRef<{ value: R; initialized: boolean; pathSignature: string; store: TimeTravelStore<T> }>({
-    value: undefined as R,
-    initialized: false,
-    pathSignature,
-    store,
-  });
-
-  if (cacheRef.current.pathSignature !== pathSignature || cacheRef.current.store !== store) {
-    cacheRef.current = { value: undefined as R, initialized: false, pathSignature, store };
-  }
-
-  // Subscribe with patch awareness
-  const subscribe = useCallback(
-    (callback: () => void) => {
-      return store.subscribeWithPatches((patches) => {
-        // Check if patches affect our path
-        if (patchesAffectPath(patches, stablePath)) {
-          callback();
-        }
-      });
-    },
-    [store, stablePath]
-  );
-
-  // Get snapshot of value at path
-  const getSnapshot = useCallback((): R => {
-    const storeValue = store.getSnapshot().value;
-    const currentValue = getValueAtPath<T, R>(storeValue, stablePath);
-
-    // First access - initialize cache
-    if (!cacheRef.current.initialized) {
-      cacheRef.current = { value: currentValue, initialized: true, pathSignature, store };
-      return currentValue;
-    }
-
-    // Compare with cached value
-    const prevValue = cacheRef.current.value;
-
-    if (equalityFn) {
-      if (equalityFn(prevValue, currentValue)) {
-        return prevValue;
-      }
-    } else {
-      // Default: reference equality for objects, value equality for primitives
-      if (Object.is(prevValue, currentValue)) {
-        return prevValue;
-      }
-    }
-
-    cacheRef.current.value = currentValue;
-    return currentValue;
-  }, [store, stablePath, pathSignature, equalityFn]);
-
-  // Server snapshot
-  const getServerSnapshot = useCallback((): R => {
-    return getValueAtPath<T, R>(store.getSnapshot().value, stablePath);
-  }, [store, stablePath]);
-
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  return (useStorePath as unknown as (
+    s: TimeTravelPathStore<T>,
+    p: Readonly<StorePath>,
+    o: UseTimeTravelPathOptions<R> & { select?: (value: unknown) => R }
+  ) => R)(store, path, options);
 }
 
 /**
- * Hook for subscribing to multiple paths with a selector
+ * Options for `useTimeTravelSelector`.
+ */
+export interface UseTimeTravelSelectorOptions<R, T = unknown> {
+  /** Compile-time validated paths that the selector depends on */
+  dependsOn?: readonly StorePathOf<T>[];
+  /** Custom equality function for the derived result */
+  equalityFn?: (a: R, b: R) => boolean;
+}
+
+/**
+ * Hook for subscribing to multiple timeline paths with a selector.
+ * For single-path derived values, prefer `useTimeTravelPath(store, path, { select })`.
  *
  * @example
  * ```tsx
@@ -166,77 +149,36 @@ export function useTimeTravelPath<T, R = unknown>(
  * );
  * ```
  */
-export interface UseTimeTravelSelectorOptions<R> {
-  /** Paths that the selector depends on */
-  dependsOn?: StorePath[];
-  /** Custom equality function */
-  equalityFn?: (a: R, b: R) => boolean;
-}
-
+/** Subscribe to a timeline selector guarded by compile-time validated `dependsOn` paths. */
 export function useTimeTravelSelector<T, R>(
-  store: TimeTravelStore<T>,
+  store: TimeTravelPathStore<T>,
   selector: (value: T) => R,
-  options: UseTimeTravelSelectorOptions<R> = {}
+  options?: UseTimeTravelSelectorOptions<R, T>,
+): R;
+/** Subscribe to a timeline selector with dynamically constructed `dependsOn` runtime paths. */
+export function useTimeTravelSelector<
+  T,
+  R,
+  const D extends readonly Readonly<StorePath>[],
+>(
+  store: TimeTravelPathStore<T>,
+  selector: (value: T) => R,
+  options: {
+    dependsOn?: D;
+    equalityFn?: (a: R, b: R) => boolean;
+  } & DynamicPathList<D>,
+): R;
+export function useTimeTravelSelector<T, R>(
+  store: TimeTravelPathStore<T>,
+  selector: (value: T) => R,
+  options: {
+    dependsOn?: readonly Readonly<StorePath>[];
+    equalityFn?: (a: R, b: R) => boolean;
+  } = {}
 ): R {
-  const { dependsOn, equalityFn = defaultEqualityFn } = options;
-
-  // Cache for value comparison
-  const cacheRef = useRef<{ store: TimeTravelStore<T>; value: R } | undefined>(undefined);
-
-  const depsKey = createPathsSignature(dependsOn);
-  const stablePathsRef = useRef<{
-    signature: string | null;
-    paths: StorePath[] | undefined;
-  }>({
-    signature: depsKey,
-    paths: dependsOn?.map((path) => [...path]),
-  });
-
-  if (stablePathsRef.current.signature !== depsKey) {
-    stablePathsRef.current = {
-      signature: depsKey,
-      paths: dependsOn?.map((path) => [...path]),
-    };
-  }
-
-  const stablePaths = stablePathsRef.current.paths;
-
-  // Subscribe with patch awareness
-  const subscribe = useCallback(
-    (callback: () => void) => {
-      if (!stablePaths) {
-        // No path hints - subscribe to all changes
-        return store.subscribe(callback);
-      }
-
-      return store.subscribeWithPatches((patches) => {
-        // Check if any dependent path is affected
-        const affected = stablePaths.some(path => patchesAffectPath(patches, path));
-        if (affected) {
-          callback();
-        }
-      });
-    },
-    [store, stablePaths]
-  );
-
-  // Get snapshot using selector
-  const getSnapshot = useCallback((): R => {
-    const storeValue = store.getSnapshot().value;
-    const currentValue = selector(storeValue);
-
-    // Compare with cached value
-    if (cacheRef.current?.store === store) {
-      const prevValue = cacheRef.current.value;
-
-      if (equalityFn(prevValue, currentValue)) {
-        return prevValue;
-      }
-    }
-
-    cacheRef.current = { store, value: currentValue };
-    return currentValue;
-  }, [store, selector, equalityFn]);
-
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  return (useStoreSelectorWithPaths as unknown as (
+    s: TimeTravelPathStore<T>,
+    sel: (value: T) => R,
+    o: { dependsOn?: readonly Readonly<StorePath>[]; equalityFn?: (a: R, b: R) => boolean }
+  ) => R)(store, selector, options);
 }

@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { ActionRegister } from '@context-action/core';
-import { bindActionTransactions, StoreTransactionCoordinator, useStorePath, useStoreValue } from '@context-action/react';
+import { useStorePath, useStoreValue } from '@context-action/react';
+import { bindActionTransactions, StoreTransactionCoordinator } from '@context-action/react/transactions';
 import { createBackendStore } from '@context-action/react/backend';
 import { createTravelsV3JournalBackend } from '../../../../mutative/examples/travels-v3/journal-backend';
 import { runIsolatedJournalTransaction } from '../../../../mutative/examples/travels-v3/isolated-transactions';

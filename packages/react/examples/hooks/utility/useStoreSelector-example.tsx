@@ -353,25 +353,35 @@ function MultiStoreSelector() {
   );
 }
 
-// Example 5: Path-based subscriptions with useStorePath
-type AppState = ReturnType<typeof appStore.getValue>;
-
+// Example 5: Path-based subscriptions with inferred StorePathOf<T> & derived select
 function PathSelector() {
-  const userName = useStorePath<AppState, string>(appStore, ['user', 'profile', 'name']);
-  const emailNotifications = useStorePath<AppState, boolean>(appStore, ['user', 'profile', 'preferences', 'notifications', 'email']);
-  const sidebarWidth = useStorePath<AppState, number>(appStore, ['ui', 'sidebar', 'width']);
-  const nonExistentPath = useStorePath<AppState, string | undefined>(appStore, ['user', 'nonexistent', 'path']);
-  
+  const userName = useStorePath(appStore, ['user', 'profile', 'name']);
+  const emailNotifications = useStorePath(appStore, [
+    'user',
+    'profile',
+    'preferences',
+    'notifications',
+    'email',
+  ]);
+  const sidebarWidth = useStorePath(appStore, ['ui', 'sidebar', 'width']);
+  const isWideSidebar = useStorePath(appStore, ['ui', 'sidebar', 'width'], {
+    select: (width) => width >= 300,
+  });
+  const isDarkTheme = useStorePath(appStore, ['ui', 'theme'], {
+    select: (theme) => theme === 'dark',
+  });
+
   return (
     <div className="example-section">
-      <h3>Path-Based Selector</h3>
+      <h3>Path-Based Selector (Inferred StorePathOf &amp; Derived select)</h3>
       <div>
         <h4>Path Selections <RenderCounter label="Paths" /></h4>
         <ul>
           <li>User Name (user.profile.name): {userName}</li>
           <li>Email Notifications (user.profile.preferences.notifications.email): {emailNotifications ? 'On' : 'Off'}</li>
           <li>Sidebar Width (ui.sidebar.width): {sidebarWidth}px</li>
-          <li>Non-existent Path: {nonExistentPath ?? 'undefined'}</li>
+          <li>Derived Wide Sidebar (&gt;= 300px): {isWideSidebar ? 'Wide' : 'Compact'}</li>
+          <li>Derived Dark Theme: {isDarkTheme ? 'Dark' : 'Light'}</li>
         </ul>
         
         <div>

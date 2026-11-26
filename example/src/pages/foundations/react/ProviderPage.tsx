@@ -1,4 +1,8 @@
-import { createStoreContext, useStoreValue } from '@context-action/react';
+import {
+  createStoreContext,
+  useStorePath,
+  useStoreValue,
+} from '@context-action/react';
 import type React from 'react';
 import { Activity, useCallback, useState } from 'react';
 import {
@@ -10,7 +14,10 @@ import {
   ProviderActionContext,
   ProviderStoreContext,
 } from './contexts/ProviderContexts';
-import { ProviderRuntime } from './handlers/ProviderHandlerRegistry';
+import {
+  ProviderRuntime,
+  ScopedNoteContext,
+} from './handlers/ProviderHandlerRegistry';
 
 const ActivityDemoStores = createStoreContext('ActivityProviderDemo', {
   sharedDraft: '',
@@ -77,6 +84,144 @@ function ActivityProviderDemo() {
             <ActivityDraftPanel />
           </ActivityDemoStores.Provider>
         </Activity>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ScopedNoteWidgetInner({ initialNote }: { initialNote: string }) {
+  const { store, refs } = ScopedNoteContext.useScope();
+  const dispatch = ScopedNoteContext.useActionDispatch();
+
+  const note = useStorePath(store, ['note']);
+  const savedCount = useStorePath(store, ['savedCount']);
+  const hasSaved = useStorePath(store, ['savedCount'], {
+    select: (count) => count > 0,
+  });
+  const blockedReason = useStorePath(store, ['lastBlockedReason']);
+
+  const handleSave = (event: React.FormEvent) => {
+    event.preventDefault();
+    const raw = refs.get('input')?.value ?? '';
+    void dispatch('saveNote', { text: raw });
+  };
+
+  return (
+    <div className="space-y-4 rounded border border-emerald-200 bg-emerald-50/70 p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge
+          variant="outline"
+          data-testid="scoped-note-value"
+          className="bg-white text-emerald-900"
+        >
+          Saved Note: {note}
+        </Badge>
+        <Badge
+          variant="outline"
+          data-testid="scoped-note-count"
+          className="bg-white text-emerald-800"
+        >
+          Saves: {savedCount}
+        </Badge>
+        <Badge
+          variant="outline"
+          data-testid="scoped-has-saved"
+          className="bg-white text-slate-700"
+        >
+          Status: {hasSaved ? 'Saved' : 'Draft'}
+        </Badge>
+      </div>
+
+      {blockedReason ? (
+        <div
+          data-testid="scoped-blocked-reason"
+          className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+        >
+          {blockedReason}
+        </div>
+      ) : null}
+
+      <form onSubmit={handleSave} className="flex flex-wrap gap-2">
+        <input
+          ref={refs.setRef('input')}
+          type="text"
+          defaultValue={initialNote}
+          aria-label="Scoped note input"
+          className="min-w-[220px] flex-1 rounded border border-emerald-300 bg-white px-3 py-2 text-sm"
+        />
+        <Button type="submit" size="sm" variant="primary">
+          Save Note
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={() => void dispatch('resetNote')}
+        >
+          Reset &amp; Focus
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={() => refs.executeIfMounted('input', (el) => el.focus())}
+        >
+          Focus Input
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+function ScopedContextDemo() {
+  const [minLength, setMinLength] = useState<number>(3);
+  const [lastSavedLog, setLastSavedLog] = useState<string>('none');
+  const initialNote = 'Context-Action';
+
+  return (
+    <Card className="mt-6">
+      <CardContent className="p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              🧩 Single-Provider Scoped Context (createScopedContext +
+              useRefRegistry)
+            </h3>
+            <p className="text-sm text-gray-600">
+              No artificial Bridge component: inline guards/observers track the
+              latest <code>minLength</code> prop automatically while{' '}
+              <code>useRefRegistry</code> manages focus with zero re-renders.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {[3, 6, 10].map((len) => (
+              <Button
+                key={len}
+                type="button"
+                size="sm"
+                variant={minLength === len ? 'primary' : 'secondary'}
+                onClick={() => setMinLength(len)}
+              >
+                minLength: {len}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        <ScopedNoteContext.Provider
+          initialNote={initialNote}
+          minLength={minLength}
+          onSaved={(savedText) => setLastSavedLog(savedText)}
+        >
+          <ScopedNoteWidgetInner initialNote={initialNote} />
+        </ScopedNoteContext.Provider>
+
+        <div
+          data-testid="scoped-last-callback"
+          className="mt-3 text-xs text-gray-600"
+        >
+          Last onSaved callback: {lastSavedLog}
+        </div>
       </CardContent>
     </Card>
   );
@@ -544,69 +689,51 @@ function ReactProviderPage() {
 
         <ActivityProviderDemo />
 
+        <ScopedContextDemo />
+
         {/* 코드 예제 */}
         <Card className="mt-6">
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              💻 Separated Provider Pattern Code
+              💻 Separated Provider vs Single Scoped Provider
             </h3>
             <CodeBlock size="sm">
-              {`// 1. Create Separated Patterns
-const ProviderActions = createActionContext<ProviderActions>(
-  'ReactProviderDemo-actions'
+              {`// A. Ergonomic Single-Provider Scoped Context (recommended for widgets/compound features)
+const ScopedNoteContext = createScopedContext(
+  'ScopedNoteWidget',
+  ScopedNoteActions,
+  ({ initialNote, minLength, onSaved }) => {
+    const store = useStoreInstance(() => ({ note: initialNote, savedCount: 0 }));
+    const refs = useRefRegistry<{ input: HTMLInputElement }>();
+
+    // Inline closures keep latest props without manual useCallback or propRef mirrors
+    ScopedNoteActions.useActionGuard('saveNote', ({ text }, controller) => {
+      if (text.trim().length < minLength) {
+        controller.abort(\`Minimum \${minLength} characters\`);
+      }
+    });
+
+    ScopedNoteActions.useActionCommandHandler('saveNote', ({ text }) => {
+      store.update((draft) => {
+        draft.note = text.trim();
+        draft.savedCount += 1;
+      });
+    });
+
+    ScopedNoteActions.useActionObserver('saveNote', (event) => {
+      onSaved?.(event.payload.text.trim());
+    }, { when: 'success' });
+
+    return { store, refs };
+  }
 );
+
+// B. Separated Layered Providers (Context-Layered multi-module apps)
+const ProviderActions = createActionContext<ProviderActions>('ReactProviderDemo-actions');
 const ProviderStores = createStoreContext('ReactProviderDemo-stores', {
-  'counter': { initialValue: 0 },
-  'message': { initialValue: 'Hello from Provider!' }
-});
-
-// 2. Register handlers in a dedicated Handler Registry
-function ProviderHandlerRegistry({ children }) {
-  const counterStore = ProviderStores.useStore('counter');
-  ProviderActions.useActionHandler('updateCounter', ({ value }) => {
-    counterStore.setValue(value);
-  });
-  return children;
-}
-
-// 3. Nested Provider Wrapping
-function App() {
-  return (
-    <ProviderActions.Provider>
-      <ProviderStores.Provider registryId="react-provider-demo">
-        <ProviderHandlerRegistry>
-          <MyApp />
-        </ProviderHandlerRegistry>
-      </ProviderStores.Provider>
-    </ProviderActions.Provider>
-  );
-}
-
-// 4. Separated Store & Action Usage
-function MyComponent() {
-  // Store management
-  const counterStore = ProviderStores.useStore('counter');
-  const count = useStoreValue(counterStore); // Type-safe!
-  
-  // Action dispatching
-  const dispatch = ProviderActions.useActionDispatch();
-  
-  // Logger integration
-  const { logAction } = useActionLoggerWithToast();
-  
-  const handleIncrement = () => {
-    const newValue = count + 1;
-    dispatch('updateCounter', { value: newValue });
-    logAction('updateCounter', { value: newValue }, { toast: true });
-  };
-  
-  return (
-    <div>
-      <div>Count: {count}</div>
-      <button onClick={handleIncrement}>Increment</button>
-    </div>
-  );
-}`}
+  counter: { initialValue: 0 },
+  message: { initialValue: 'Hello from Provider!' },
+});`}
             </CodeBlock>
           </CardContent>
         </Card>

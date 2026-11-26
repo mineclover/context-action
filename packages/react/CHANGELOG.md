@@ -2,6 +2,23 @@
 
 Pending changes that are not part of a published version are recorded in the repository's [UNRELEASED.md](https://github.com/mineclover/context-action/blob/main/packages/react/UNRELEASED.md).
 
+## [5.0.0] (2026-11-26)
+
+### Breaking Changes
+
+- Slimmed root `@context-action/react` entry to essential daily React primitives (`createActionContext`, `createScopedContext`, `createStoreContext`, `Store`/`createStore`, core store subscription hooks, `StoreErrorBoundary`, `ActionRegister`, and React helpers). Import Ref, TimeTravel, and Transaction APIs from `@context-action/react/refs`, `@context-action/react/time-travel`, and `@context-action/react/transactions`.
+- Removed deprecated v4 compatibility APIs (`useActionEffectHandler`, `useActionDispatchWithResult`, `compareStrategy`, `StoreSchema`, and the legacy React `TransactionBackend` facade).
+- Harmonized `Store` default `notificationMode` to `'immediate'` and `createActionContext` default `useConcurrencyQueue` to `false`.
+- Advanced dependency floors to `@context-action/core@^2.0.0`, `@context-action/interactions@^0.1.0`, and `@context-action/store-core@^0.1.5`.
+
+### Features & DX Ergonomics
+
+- Added `createScopedContext()` returning a single flat `Provider` uniting `actions.Provider` with shallow-stabilized runtime setup (`useScope()`).
+- Added component-local typed ref registry `useRefRegistry<TRefs>()` and dynamically keyed `useRefCollection` / `createRefCollectionContext` on `@context-action/react/refs`.
+- Added `useStoreInstance` and `useControlledStoreSync` on `@context-action/react/advanced`, plus Path-Trie `subscribePaths` indexing across `Store` / `TimeTravelStore` / `BackendStore`.
+- Upgraded `useStorePath` / `useTimeTravelPath` / `useStoreSelectorWithPaths` / `useTimeTravelSelector` with `StorePathOf<T>` / `PathValue<T, P>` inference and single-path derived `{ select }` isolation, plus latest-ref stabilization for `config.condition` and `config.cleanup`.
+- Exposed headless UI hooks (`useDismissLayer`, `useRovingFocus`, `usePointerGesture`, `useSyncActionPipeline`) backed by `@context-action/interactions` and preserved JSDoc comments in published `.d.ts` / `.d.cts` declarations (`removeComments: false`).
+
 ## [4.0.7] (2026-10-02)
 
 ### Backend lifecycle reliability

@@ -47,7 +47,7 @@ function optionValue(name) {
 }
 
 const cohortPlan = args.includes('--cohort')
-  ? JSON.parse(readFileSync(path.join(repositoryRoot, 'releases', 'lit-public-2026-10-patch-4.json'), 'utf8'))
+  ? JSON.parse(readFileSync(path.join(repositoryRoot, 'releases', 'lit-public-2026-11-core-v2.json'), 'utf8'))
   : null;
 const sharedVersion = optionValue('--version');
 const targetVersions = {
@@ -69,8 +69,8 @@ const DEPENDENCIES = [
   '@lit-labs/ssr-client@1.1.8',
   'react@19.3.1',
   'react-dom@19.3.1',
-  '@types/react@19.2.17',
-  '@types/react-dom@19.2.3',
+  '@types/react@19.3.0',
+  '@types/react-dom@19.3.0',
   'typescript@6.0.3',
 ];
 

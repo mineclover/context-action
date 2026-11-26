@@ -10,14 +10,45 @@ const repositoryRoot = path.resolve(scriptDirectory, '..');
 const reactDistDirectory = path.join(repositoryRoot, 'packages/react/dist');
 const failures = [];
 
+function collectModuleSpecifiers(filePath, content) {
+  const source = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true);
+  const specifiers = new Set();
+
+  function collect(node) {
+    if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node))
+      && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
+      specifiers.add(node.moduleSpecifier.text);
+    } else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)
+      && ts.isStringLiteral(node.argument.literal)) {
+      specifiers.add(node.argument.literal.text);
+    } else if (ts.isImportEqualsDeclaration(node)
+      && ts.isExternalModuleReference(node.moduleReference)
+      && node.moduleReference.expression && ts.isStringLiteral(node.moduleReference.expression)) {
+      specifiers.add(node.moduleReference.expression.text);
+    } else if (ts.isCallExpression(node)
+      && (node.expression.kind === ts.SyntaxKind.ImportKeyword
+        || (ts.isIdentifier(node.expression) && node.expression.text === 'require'))
+      && node.arguments[0] && ts.isStringLiteral(node.arguments[0])) {
+      specifiers.add(node.arguments[0].text);
+    }
+    ts.forEachChild(node, collect);
+  }
+
+  collect(source);
+  for (const reference of [...source.referencedFiles, ...source.typeReferenceDirectives]) {
+    specifiers.add(reference.fileName);
+  }
+  return specifiers;
+}
+
 // Follow runtime and declaration graphs separately: a declaration import of
 // ./chunk.js resolves to ./chunk.d.ts, never to the runtime implementation.
-export async function verifyBasicArtifactGraph(directory, entries) {
+export async function collectReachableArtifacts(directory, entries) {
   const errors = [];
+  const files = new Map();
+  const specifiersByFile = new Map();
   const visited = new Set();
-  const allowedPackages = new Set([
-    '@context-action/core', '@context-action/store-core', '@context-action/mutative',
-  ]);
+
   async function visit(relativePath) {
     if (visited.has(relativePath)) return;
     visited.add(relativePath);
@@ -33,36 +64,12 @@ export async function verifyBasicArtifactGraph(directory, entries) {
       errors.push(`${relativePath}: missing reachable artifact: ${error.message}`);
       return;
     }
-    const source = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true);
-    const specifiers = new Set();
-    function collect(node) {
-      if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node))
-        && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
-        specifiers.add(node.moduleSpecifier.text);
-      } else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)
-        && ts.isStringLiteral(node.argument.literal)) {
-        specifiers.add(node.argument.literal.text);
-      } else if (ts.isImportEqualsDeclaration(node)
-        && ts.isExternalModuleReference(node.moduleReference)
-        && node.moduleReference.expression && ts.isStringLiteral(node.moduleReference.expression)) {
-        specifiers.add(node.moduleReference.expression.text);
-      } else if (ts.isCallExpression(node)
-        && (node.expression.kind === ts.SyntaxKind.ImportKeyword
-          || (ts.isIdentifier(node.expression) && node.expression.text === 'require'))
-        && node.arguments[0] && ts.isStringLiteral(node.arguments[0])) {
-        specifiers.add(node.arguments[0].text);
-      }
-      ts.forEachChild(node, collect);
-    }
-    collect(source);
-    for (const reference of [...source.referencedFiles, ...source.typeReferenceDirectives]) {
-      specifiers.add(reference.fileName);
-    }
+
+    files.set(relativePath, content);
+    const specifiers = collectModuleSpecifiers(filePath, content);
+    specifiersByFile.set(relativePath, specifiers);
+
     for (const specifier of specifiers) {
-      if (specifier.startsWith('@context-action/')
-        && !allowedPackages.has(specifier.split('/').slice(0, 2).join('/'))) {
-        errors.push(`${relativePath}: basic entry reaches integration dependency ${specifier}`);
-      }
       if (!specifier.startsWith('.')) continue;
       let target = path.normalize(path.join(path.dirname(relativePath), specifier));
       if (/\.d\.(?:ts|cts|mts)$/.test(relativePath)) {
@@ -73,7 +80,44 @@ export async function verifyBasicArtifactGraph(directory, entries) {
       await visit(target);
     }
   }
+
   for (const entry of entries) await visit(entry);
+  return { files, specifiersByFile, errors };
+}
+
+export async function verifyBasicArtifactGraph(directory, entries) {
+  const { specifiersByFile, errors } = await collectReachableArtifacts(directory, entries);
+  const allowedPackages = new Set([
+    '@context-action/core', '@context-action/interactions', '@context-action/store-core', '@context-action/mutative',
+  ]);
+  for (const [relativePath, specifiers] of specifiersByFile.entries()) {
+    for (const specifier of specifiers) {
+      if (specifier.startsWith('@context-action/')
+        && !allowedPackages.has(specifier.split('/').slice(0, 2).join('/'))) {
+        errors.push(`${relativePath}: basic entry reaches integration dependency ${specifier}`);
+      }
+    }
+  }
+  return errors;
+}
+
+export async function verifyReachableGraphAbsent(directory, entries, pattern, description) {
+  const { files, errors } = await collectReachableArtifacts(directory, entries);
+  for (const [relativePath, content] of files.entries()) {
+    if (pattern.test(content)) {
+      errors.push(`${relativePath}: ${description}`);
+    }
+  }
+  return errors;
+}
+
+export async function verifyReachableGraphContains(directory, entries, pattern, description) {
+  const { files, errors } = await collectReachableArtifacts(directory, entries);
+  if (errors.length > 0) return errors;
+  const matched = [...files.values()].some((content) => pattern.test(content));
+  if (!matched) {
+    errors.push(`${entries.join(', ')}: ${description}`);
+  }
   return errors;
 }
 
@@ -92,12 +136,6 @@ function expectAbsent(content, relativePath, pattern, description) {
   }
 }
 
-function expectPresent(content, relativePath, pattern, description) {
-  if (!pattern.test(content)) {
-    failures.push(`${relativePath}: ${description}`);
-  }
-}
-
 async function expectArtifactAbsent(relativePath, description) {
   try {
     await stat(path.join(reactDistDirectory, relativePath));
@@ -110,26 +148,70 @@ async function expectArtifactAbsent(relativePath, description) {
 }
 
 async function main() {
-  const [rootEsm, rootCjs, rootTypes, backendEsm, backendCjs, backendTypes, compiledStoreChunkEsm, compiledStoreChunkCjs] = await Promise.all([
+  const [rootEsm, rootCjs, rootTypes] = await Promise.all([
     readArtifact('index.js'),
     readArtifact('index.cjs'),
     readArtifact('index.d.ts'),
-    readArtifact('backend.js'),
-    readArtifact('backend.cjs'),
-    readArtifact('backend.d.ts'),
-    readArtifact('chunks/StoreRegistry.js'),
-    readArtifact('chunks/StoreRegistry.cjs'),
   ]);
+
+  const toolPublicApiPattern = /\b(?:createToolContext|ToolContextConfig|ToolRegistry)\b/;
+  const mutativeRuntimePattern = /@context-action\/mutative(?:["'/]|$)|(?:require|from)\(['"](?:@context-action\/)?mutative(?:["'])/;
+  const interactionsRuntimePattern = /@context-action\/interactions(?:["'/]|$)|(?:require|from)\(['"]@context-action\/interactions['"]\)/;
+  const compilerRuntimePattern = /(?:react\/compiler-runtime|react-compiler-runtime)/;
 
   failures.push(...await verifyBasicArtifactGraph(reactDistDirectory, [
     'index.js', 'index.cjs', 'index.d.ts', 'index.d.cts',
+    'refs.js', 'refs.cjs', 'refs.d.ts', 'refs.d.cts',
+    'time-travel.js', 'time-travel.cjs', 'time-travel.d.ts', 'time-travel.d.cts',
+    'transactions.js', 'transactions.cjs', 'transactions.d.ts', 'transactions.d.cts',
     'backend.js', 'backend.cjs', 'backend.d.ts', 'backend.d.cts',
     'advanced.js', 'advanced.cjs', 'advanced.d.ts', 'advanced.d.cts',
     'utils.js', 'utils.cjs', 'utils.d.ts', 'utils.d.cts',
   ]));
 
-  const toolPublicApiPattern = /\b(?:createToolContext|ToolContextConfig|ToolRegistry)\b/;
-  const mutativeRuntimePattern = /@context-action\/mutative(?:["'/]|$)|(?:require|from)\(['"](?:@context-action\/)?mutative(?:["'])/;
+  failures.push(...await verifyReachableGraphAbsent(
+    reactDistDirectory,
+    [
+      'index.js', 'index.cjs', 'index.d.ts', 'index.d.cts',
+      'refs.js', 'refs.cjs', 'refs.d.ts', 'refs.d.cts',
+      'time-travel.js', 'time-travel.cjs', 'time-travel.d.ts', 'time-travel.d.cts',
+      'transactions.js', 'transactions.cjs', 'transactions.d.ts', 'transactions.d.cts',
+      'backend.js', 'backend.cjs', 'backend.d.ts', 'backend.d.cts',
+      'utils.js', 'utils.cjs', 'utils.d.ts', 'utils.d.cts',
+    ],
+    interactionsRuntimePattern,
+    'only the ./advanced entry may reach @context-action/interactions',
+  ));
+
+  failures.push(...await verifyReachableGraphAbsent(
+    reactDistDirectory,
+    ['backend.js', 'backend.cjs', 'backend.d.ts', 'backend.d.cts'],
+    mutativeRuntimePattern,
+    'the user-owned backend entry must remain independent of the Mutative runtime',
+  ));
+
+  failures.push(...await verifyReachableGraphAbsent(
+    reactDistDirectory,
+    ['refs.js', 'refs.cjs', 'refs.d.ts', 'refs.d.cts'],
+    mutativeRuntimePattern,
+    'the refs entry must remain independent of the Mutative runtime',
+  ));
+
+  failures.push(...await verifyReachableGraphAbsent(
+    reactDistDirectory,
+    ['transactions.js', 'transactions.cjs', 'transactions.d.ts', 'transactions.d.cts'],
+    mutativeRuntimePattern,
+    'the transactions entry must remain independent of the Mutative runtime',
+  ));
+
+  for (const entry of ['index.js', 'index.cjs']) {
+    failures.push(...await verifyReachableGraphContains(
+      reactDistDirectory,
+      [entry],
+      compilerRuntimePattern,
+      'the compiler-annotated store hooks must retain a compatible compiler runtime import',
+    ));
+  }
 
   for (const [relativePath, content] of [
     ['index.js', rootEsm],
@@ -150,28 +232,17 @@ async function main() {
     'the default entry must not expose ToolContext types',
   );
 
+  const removedRootExportsPattern = /\b(?:createRefContext|createTimeTravelStoreContext|createTimeTravelStore|StoreTransactionCoordinator|bindActionTransactions|useActionEffectHandler|useActionDispatchWithResult|StoreSchema)\b/;
   for (const [relativePath, content] of [
-    ['backend.js', backendEsm],
-    ['backend.cjs', backendCjs],
-    ['backend.d.ts', backendTypes],
+    ['index.js', rootEsm],
+    ['index.cjs', rootCjs],
+    ['index.d.ts', rootTypes],
   ]) {
     expectAbsent(
       content,
       relativePath,
-      mutativeRuntimePattern,
-      'the user-owned backend entry must remain independent of the Mutative runtime',
-    );
-  }
-
-  for (const [relativePath, content] of [
-    ['chunks/StoreRegistry.js', compiledStoreChunkEsm],
-    ['chunks/StoreRegistry.cjs', compiledStoreChunkCjs],
-  ]) {
-    expectPresent(
-      content,
-      relativePath,
-      /(?:react\/compiler-runtime|react-compiler-runtime)/,
-      'the compiler-annotated store hooks must retain a compatible compiler runtime import',
+      removedRootExportsPattern,
+      'the slimmed v5 root entry must not expose moved subpath or removed deprecated symbols',
     );
   }
 
@@ -186,7 +257,7 @@ async function main() {
     failures.forEach((failure) => console.error(`  ✗ ${failure}`));
     process.exitCode = 1;
   } else {
-    console.log('Verified React artifact boundaries: basic runtime/declaration graphs are integration-free; the backend entry is Mutative-free.');
+    console.log('Verified React artifact boundaries: basic runtime/declaration graphs are integration-free; backend, refs, and transactions graphs are Mutative-free.');
   }
 }
 

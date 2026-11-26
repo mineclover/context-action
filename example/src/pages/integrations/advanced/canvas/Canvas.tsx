@@ -1,4 +1,4 @@
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCanvas } from './CanvasContext';
 import { useCanvasDrawing } from './useCanvasDrawing';

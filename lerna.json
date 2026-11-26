@@ -14,6 +14,7 @@
     "packages/tool-durable-operations",
     "packages/react",
     "packages/store-core",
+    "packages/interactions",
     "packages/xstate",
     "packages/mutative-core",
     "packages/mutative"

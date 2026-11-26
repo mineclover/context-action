@@ -126,7 +126,11 @@ describe('Store selection and notification contracts', () => {
   it.each(['known-then-unknown', 'unknown-then-known'] as const)(
     'preserves full path invalidation in a %s notification batch', order => {
       type NullableState = { a: number; b: number } | null;
-      const store = createStore<NullableState>('mixed-patch-batch', { a: 0, b: 0 });
+      const store = createStore<NullableState>(
+        'mixed-patch-batch',
+        { a: 0, b: 0 },
+        { notificationMode: 'batched' },
+      );
       const listener = jest.fn();
       const patches = jest.fn();
       store.subscribe(listener);
@@ -176,7 +180,11 @@ describe('Store selection and notification contracts', () => {
 
   it('delivers reentrant full invalidation in the next frame, not the current patch batch', () => {
     type NullableState = { a: number; b: number } | null;
-    const store = createStore<NullableState>('reentrant-full-invalidation', { a: 0, b: 0 });
+    const store = createStore<NullableState>(
+      'reentrant-full-invalidation',
+      { a: 0, b: 0 },
+      { notificationMode: 'batched' },
+    );
     let notifications = 0;
     store.subscribe(() => {
       notifications += 1;

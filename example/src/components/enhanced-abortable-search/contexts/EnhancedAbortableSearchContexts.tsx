@@ -22,7 +22,7 @@ export interface EnhancedAbortableSearchStores {
 export const {
   Provider: EnhancedAbortableSearchActionProvider,
   useActionDispatch: useEnhancedAbortableSearchAction,
-  useActionDispatchWithResult: useEnhancedAbortableSearchActionWithResult,
+  useActionScope: useEnhancedAbortableSearchActionWithResult,
   useActionHandler: useEnhancedAbortableSearchActionHandler,
 } = createActionContext<EnhancedAbortableSearchActions>(
   'EnhancedAbortableSearch-actions'

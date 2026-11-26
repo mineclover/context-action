@@ -1,8 +1,14 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useDebugValue, useSyncExternalStore } from 'react';
 import type {
   StoreTransactionCoordinator,
   StoreTransactionInspectorSnapshot,
 } from '../core/StoreTransactionCoordinator';
+
+function formatTransactionInspectorDebugValue(
+  snapshot: StoreTransactionInspectorSnapshot,
+): string {
+  return `v${snapshot.version} ${snapshot.position}/${snapshot.historyLength} (undo=${snapshot.canUndo}, redo=${snapshot.canRedo})`;
+}
 
 /** React subscription boundary for DevTools/audit transaction metadata. */
 export function useStoreTransactionInspector(
@@ -16,5 +22,7 @@ export function useStoreTransactionInspector(
     () => coordinator.getInspectorSnapshot(),
     [coordinator],
   );
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  useDebugValue(snapshot, formatTransactionInspectorDebugValue);
+  return snapshot;
 }

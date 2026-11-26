@@ -246,10 +246,34 @@ export const preactSession = connectSourceSignal(fromStateReader(sharedSessionSt
 
 ---
 
-## 6. 대표 라이브 예제 및 PR 전 검증 체크리스트
+## 6. 점진적 도입, 결함 예방 효과 및 부채 거버넌스
 
-저장소 내 다음 라이브 경로에서 각 아키텍처 패턴의 실제 구현을 확인할 수 있습니다:
+단순 위젯에 과도한 보일러플레이트를 강제하지 않으면서도, 워크플로가 커질 때 핵심 불변식을 자동으로 보장하도록 설계되어 있습니다.
 
+### 6.1 3단계 점진적 도입 기준
+
+| 도입 단계 | 최소 폴더 구성 | 핵심 프리미티브 | 다음 단계로 승격할 시점 |
+| --- | --- | --- | --- |
+| **Level 1 · Lite** | `contexts/`, `handlers/`, `views/` | `createActionContext` + `createStoreContext` + `useActionHandler` | 검증 규칙·비동기 전이를 React 바깥에서 단독 단위 테스트하고 싶을 때 |
+| **Level 2 · Headless-First Symmetric DI** | `business/`, 순수 TS `runtime/` 추가 | `ActionRegister` + `createStateStore`/`createStore` + `ownership="shared"` Provider | 여러 뷰·호스트(`React`, `Preact`, `Lit`, Worker)가 동일 엔진을 공유할 때 |
+| **Level 3 · Full 6-Layer** | `contexts / business / runtime(선택) / handlers / actions / hooks / views` | 분리된 `Business` vs. `Layout` ActionContext, `RefContext`, 4-역할 훅, 명시적 FSM/이벤트 | 장기 계약, IIC 추적성, TypeSpec Evidence 거버넌스를 적용할 때 (`packages/template-react` 스타터 기준) |
+
+### 6.2 각 코드 패턴이 유도하는 품질·의도 보장 효과
+
+- **핸들러 지연 읽기(`no-store-subscription-in-handlers`) + `useCallback`**: stale closure 오동작, 핸들러 불필요 재등록(churn), 순환 리렌더를 원천 차단합니다.
+- **`actions/`의 순수 `dispatch` 위임(`no-store-access-in-actions`)**: UI 계층이 Guard/Observer 파이프라인을 우회해 `store.setValue()`를 직접 호출하지 못하도록 커밋 권한을 `handlers/`로 단일화합니다.
+- **`BusinessActionIntent` vs. `LayoutActionIntent` 분리**: 패널 열기·포커스 이동 같은 UI 제어가 비즈니스 감사 로그·Undo 히스토리·원격 동기화에 섞이는 현상을 막습니다.
+- **`business/` 도메인 코드·이벤트 → `hooks/` 문구 번역**: UI 문구 수정이나 다국어화가 비즈니스 로직 테스트와 분석 이벤트를 깨뜨리지 않도록 격리합니다.
+- **Fail-Closed 부채 장부(`layered-surface-classification.json` & `rule-exceptions.json`)**: 불가피한 예외는 비어 있지 않은 사유(`reason`)와 함께 명시적으로 등록하며, 해결 후에도 방치되면(stale) 즉시 게이트를 실패시켜 기술 부채가 조용히 누적되는 것을 막습니다.
+
+---
+
+## 7. 대표 라이브 예제 및 PR 전 검증 체크리스트
+
+저장소 내 다음 스타터 템플릿과 라이브 경로에서 각 아키텍처 패턴의 실제 구현을 확인할 수 있습니다:
+
+- **표준 React 스타터 템플릿 (`OrderWorkspace`, 6-Layer + Core 3축 + 4-Role 파이프라인):**
+  - `@context-action/template-react` (`packages/template-react/src/features/order-workspace/`)
 - **Enterprise 6-Layer Playbook (React HandlerRegistry + 순수 business + 명시적 FSM + IIC):**
   - `/patterns/implementation-playbook` (`example/src/pages/patterns/implementation-playbook/`)
   - `/patterns/implementation-playbook/access-request`
@@ -260,10 +284,11 @@ export const preactSession = connectSourceSignal(fromStateReader(sharedSessionSt
 - **도구 호출형 AI 워크스페이스 (`tool-protocol` + `ai-sdk` + `webmcp` + `tool-durable-operations`):**
   - 독립 데모 `/web-coding/` (`demos/bolt-style-editor/`)
 
-PR을 올리기 전에는 루트에서 다음 게이트들을 실행해 스펙·문서·코드 경계가 모두 맞물리는지 확인하세요:
+PR을 올리기 전(또는 `--root`로 외부 소비자 앱을 점검할 때) 루트에서 다음 게이트들을 실행해 스펙·문서·코드 경계가 모두 맞물리는지 확인하세요:
 
 ```bash
 pnpm convention:check
+node scripts/check-context-layered-conventions.mjs --root packages/template-react/src
 pnpm package-boundary:check
 pnpm verify:surface-catalog
 pnpm verify:doc-snippets

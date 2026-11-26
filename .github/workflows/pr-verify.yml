@@ -81,10 +81,12 @@ jobs:
       - name: Build core and react for smoke checks
         run: >-
           pnpm build:core &&
-          pnpm build:react &&
-          pnpm build:tool-protocol &&
+          pnpm --filter @context-action/interactions build &&
+          pnpm --filter @context-action/store-core build &&
           pnpm build:mutative-core &&
           pnpm build:mutative &&
+          pnpm build:react &&
+          pnpm build:tool-protocol &&
           pnpm build:live-code-editor
 
       - name: Audit local verification receipt (Fail-Closed Gate)

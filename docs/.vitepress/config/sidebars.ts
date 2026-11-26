@@ -65,6 +65,7 @@ const GUIDE_STRUCTURE = {
             { text: 'Store Configuration', link: '/en/guide/patterns/store/store-configuration' },
             { text: 'useStoreValue Patterns', link: '/en/guide/patterns/store/useStoreValue-patterns' },
             { text: 'Path-Based Subscription', link: '/en/guide/patterns/store/path-based-subscription' },
+            { text: 'Deferred View Subscription', link: '/en/guide/patterns/store/deferred-view-subscription' },
             { text: 'useStoreManager API', link: '/en/guide/patterns/store/useStoreManager-api' }
           ]
         },
@@ -72,7 +73,10 @@ const GUIDE_STRUCTURE = {
           text: '🔧 Ref Patterns',
           collapsed: true,
           items: [
-            { text: 'Basic Usage', link: '/en/guide/patterns/ref/basic-usage' }
+            { text: 'Basic Usage', link: '/en/guide/patterns/ref/basic-usage' },
+            { text: 'Imperative Handle Facade', link: '/en/guide/patterns/ref/imperative-handle-facade' },
+            { text: 'Local State Imperative Handle', link: '/en/guide/patterns/ref/local-state-imperative-handle' },
+            { text: 'External OOP Lifecycle', link: '/en/guide/patterns/ref/external-oop-lifecycle' }
           ]
         },
         {
@@ -81,7 +85,8 @@ const GUIDE_STRUCTURE = {
           items: [
             { text: 'Overview', link: '/en/guide/patterns/async/' },
             { text: 'Real-time State Access', link: '/en/guide/patterns/async/real-time-state-access' },
-            { text: 'Wait-Then-Execute', link: '/en/guide/patterns/async/wait-then-execute' }
+            { text: 'Wait-Then-Execute', link: '/en/guide/patterns/async/wait-then-execute' },
+            { text: 'Optimistic & Transition UI (React 19)', link: '/en/guide/patterns/async/optimistic-and-transition-ui' }
           ]
         },
         {
@@ -156,6 +161,7 @@ const GUIDE_STRUCTURE = {
             { text: '스토어 설정', link: '/ko/guide/patterns/store/store-configuration' },
             { text: 'useStoreValue 패턴', link: '/ko/guide/patterns/store/useStoreValue-patterns' },
             { text: '경로 기반 구독', link: '/ko/guide/patterns/store/path-based-subscription' },
+            { text: '지연 뷰 구독 (useDeferredValue)', link: '/ko/guide/patterns/store/deferred-view-subscription' },
             { text: 'useStoreManager API', link: '/ko/guide/patterns/store/useStoreManager-api' }
           ]
         },
@@ -163,7 +169,10 @@ const GUIDE_STRUCTURE = {
           text: '🔧 Ref 패턴',
           collapsed: true,
           items: [
-            { text: '기본 사용법', link: '/ko/guide/patterns/ref/basic-usage' }
+            { text: '기본 사용법', link: '/ko/guide/patterns/ref/basic-usage' },
+            { text: 'Imperative Handle Facade', link: '/ko/guide/patterns/ref/imperative-handle-facade' },
+            { text: '로컬 상태 캡슐화 핸들', link: '/ko/guide/patterns/ref/local-state-imperative-handle' },
+            { text: '외부 OOP 라이프사이클 브릿지', link: '/ko/guide/patterns/ref/external-oop-lifecycle' }
           ]
         },
         {
@@ -172,7 +181,8 @@ const GUIDE_STRUCTURE = {
           items: [
             { text: '개요', link: '/ko/guide/patterns/async/' },
             { text: '실시간 상태 접근', link: '/ko/guide/patterns/async/real-time-state-access' },
-            { text: '대기 후 실행', link: '/ko/guide/patterns/async/wait-then-execute' }
+            { text: '대기 후 실행', link: '/ko/guide/patterns/async/wait-then-execute' },
+            { text: '낙관적 UI & 전환 (React 19)', link: '/ko/guide/patterns/async/optimistic-and-transition-ui' }
           ]
         },
         {

@@ -60,3 +60,7 @@ persistence·privacy 동작, 임시 compatibility 예외가 바뀌면 기록을 
 - [CA-SPEC-EVIDENCE-001: TypeSpec Evidence 결합 및 프론트엔드 상태 계층화(State Tiering) 거버넌스](./CA-SPEC-EVIDENCE-001.md)
 - [CA-SURFACE-CATALOG-001: 저장소 API·예제·문서 표면 카탈로그 거버넌스](./CA-SURFACE-CATALOG-001.md)
 - [PostgreSQL Durable Operation Adapter](../architecture/postgres-durable-operation-adapter.md)
+
+## 제안 / 초안 청사진
+
+- [CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, 상태 계층 통합 및 React 표면 슬림화 청사진 (제안 초안)](./CA-VNEXT-ARCHITECTURE-001.md)

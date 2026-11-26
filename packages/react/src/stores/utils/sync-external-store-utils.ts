@@ -6,8 +6,11 @@
  */
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import type { IStore, Snapshot } from '../core/types';
+import type { StateReader, StateSnapshot } from '@context-action/store-core';
 import { deepEquals, referenceEquals, shallowEquals } from './comparison';
+
+/** Structural external store contract accepted by React subscription hooks. */
+export type SubscribableStore<T = unknown> = StateReader<T, StateSnapshot<T>>;
 
 /**
  * 향상된 구독 옵션
@@ -30,8 +33,8 @@ export interface EnhancedSubscriptionOptions {
 }
 
 interface SelectedServerSnapshotCache<T, R> {
-  store: IStore<T>;
-  sourceSnapshot: Snapshot<T>;
+  store: SubscribableStore<T>;
+  sourceSnapshot: StateSnapshot<T>;
   selector: ((value: T) => R) | undefined;
   equalityFn: ((a: R, b: R) => boolean) | undefined;
   value: R | T;
@@ -42,7 +45,7 @@ interface SelectedServerSnapshotCache<T, R> {
  * useSyncExternalStore를 기반으로 한 안전한 구독
  */
 export function useSafeStoreSubscription<T, R = T>(
-  store: IStore<T> | undefined | null,
+  store: SubscribableStore<T> | undefined | null,
   selector?: (value: T) => R,
   options: EnhancedSubscriptionOptions & {
     equalityFn?: (a: R, b: R) => boolean;
@@ -71,7 +74,7 @@ export function useSafeStoreSubscription<T, R = T>(
 
   // Cached snapshots keep external-store reads referentially stable.
   const cachedSnapshotRef = useRef<{
-    store: IStore<T> | undefined | null;
+    store: SubscribableStore<T> | undefined | null;
     value: R | T | undefined;
   } | undefined>(undefined);
   const stableGetSnapshot = useCallback((): R | T | undefined => {
@@ -141,28 +144,32 @@ export function useSafeStoreSubscription<T, R = T>(
     getServerSnapshot
   );
 
-  // getServerSnapshot is only used while rendering/hydrating. Once the client
-  // commit completes, release its store/snapshot/value graph; otherwise the
-  // hydration cache can pin an obsolete full snapshot (or a replaced store)
-  // for the remaining component lifetime. Clearing after every client commit
-  // also prevents a later store/selector/equality render from retaining the
-  // previous cache keys or selected value.
+  // getServerSnapshot is only used while rendering/hydrating. Release its cached
+  // graph once the client commits or when store/selector/equality changes,
+  // avoiding unnecessary per-render effect scheduling on subsequent updates.
   useEffect(() => {
-    serverSnapshotCacheRef.current = undefined;
-  });
+    if (serverSnapshotCacheRef.current !== undefined) {
+      serverSnapshotCacheRef.current = undefined;
+    }
+  }, [store, selector, equalityFn]);
 
+  const hasDeferredVisibility = Boolean(
+    condition || (debounce ?? 0) > 0 || (throttle ?? 0) > 0
+  );
+  const trackedValue = hasDeferredVisibility ? currentValue : undefined;
   const [visibleValue, setVisibleValue] = useState(currentValue);
   const lastVisibleAtRef = useRef(0);
 
   useEffect(() => {
+    if (!hasDeferredVisibility) return;
+    const nextValue = trackedValue as R | T | undefined;
     const delay = Math.max(debounce ?? 0, throttle ?? 0);
-    if (!condition && delay <= 0) return;
 
     if (condition && !condition()) return;
 
     if (delay <= 0) {
       lastVisibleAtRef.current = Date.now();
-      setVisibleValue(currentValue);
+      setVisibleValue(nextValue);
       return;
     }
 
@@ -172,16 +179,16 @@ export function useSafeStoreSubscription<T, R = T>(
       : debounce ?? 0;
     const timer = setTimeout(() => {
       lastVisibleAtRef.current = Date.now();
-      setVisibleValue(currentValue);
+      setVisibleValue(nextValue);
       if (debug && name) {
         console.debug(`[${name}] Delayed store value committed after ${wait}ms`);
       }
     }, Math.max(0, wait));
 
     return () => clearTimeout(timer);
-  }, [condition, currentValue, debounce, debug, name, throttle]);
+  }, [hasDeferredVisibility, condition, trackedValue, debounce, debug, name, throttle]);
 
-  return debounce || throttle || condition ? visibleValue : currentValue;
+  return hasDeferredVisibility ? visibleValue : currentValue;
 }
 
 /**

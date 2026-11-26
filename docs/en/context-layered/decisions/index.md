@@ -64,3 +64,7 @@ anchors, and a link to the package or guide whose contract it changes.
 - [CA-SPEC-EVIDENCE-001: TypeSpec Evidence Integration and Frontend State Tiering Governance](./CA-SPEC-EVIDENCE-001.md)
 - [CA-SURFACE-CATALOG-001: Repository API, Example, and Document Surface Catalog Governance](./CA-SURFACE-CATALOG-001.md)
 - [PostgreSQL Durable Operation Adapter](../architecture/postgres-durable-operation-adapter.md)
+
+## Proposed / Draft Blueprints
+
+- [CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, State Unification, and React Surface Blueprint (Proposed Draft)](./CA-VNEXT-ARCHITECTURE-001.md)

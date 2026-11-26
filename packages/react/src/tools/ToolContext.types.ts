@@ -1,7 +1,7 @@
 /**
  * @fileoverview Development-track ToolContext type definitions
  *
- * Repository source only: React 3 intentionally does not publish this as an
+ * Repository source only: `@context-action/react` intentionally does not publish this as an
  * installed subpath. The registry combines React lifecycle with Tool Protocol
  * schemas and canonical tool-call contracts.
  */

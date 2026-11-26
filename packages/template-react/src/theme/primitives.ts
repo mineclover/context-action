@@ -34,7 +34,7 @@ export interface PrimitiveTokens {
   };
 }
 
-export const brandPrimitives: PrimitiveTokens = {
+export const brandPrimitives = {
   color: {
     brand: {
       50: '#eef2ff',
@@ -93,4 +93,4 @@ export const brandPrimitives: PrimitiveTokens = {
     medium: '250ms cubic-bezier(0.4, 0, 0.2, 1)',
     slow: '350ms cubic-bezier(0.4, 0, 0.2, 1)',
   },
-};
+} satisfies PrimitiveTokens;

@@ -3,10 +3,7 @@
 import { useStoreValue } from '@context-action/react';
 import { LogMonitor, LogMonitorProvider } from '@/components/LogMonitor';
 import { Container, Grid } from '@/components/ui';
-import {
-  FlowControlActions,
-  useFlowControlActions,
-} from './actions/FlowControlActions';
+import { useFlowControlActions } from './actions/FlowControlActions';
 import {
   ExecutionMetrics,
   ExecutionPath,
@@ -23,16 +20,15 @@ import {
 import {
   ApiHandlers,
   CacheHandlers,
+  FlowControlDemoHandlerRegistry,
   OrderHandlers,
   SecurityHandlers,
 } from './handlers';
 // Import existing components (reusable)
 import { scenarios } from './scenarios';
 
-// Handler registration and integration component
+// Handler registration and integration component (zero store subscription -> no pipeline churn re-renders)
 function FlowControlHandlers() {
-  const demoStateStore = useFlowControlStore('demoState');
-  const demoState = useStoreValue(demoStateStore);
   const { onExecutionStep, onHandlerExecution } = useFlowControlActions();
 
   return (
@@ -40,7 +36,6 @@ function FlowControlHandlers() {
       <SecurityHandlers
         onExecutionStep={onExecutionStep}
         onHandlerExecution={onHandlerExecution}
-        isBusinessHours={demoState.isBusinessHours}
       />
       <CacheHandlers
         onExecutionStep={onExecutionStep}
@@ -49,7 +44,6 @@ function FlowControlHandlers() {
       <OrderHandlers
         onExecutionStep={onExecutionStep}
         onHandlerExecution={onHandlerExecution}
-        isBusinessHours={demoState.isBusinessHours}
       />
       <ApiHandlers
         onExecutionStep={onExecutionStep}
@@ -168,10 +162,9 @@ export function FlowControlPlaygroundPageV2() {
       initialConfig={{ enableToast: true, maxLogs: 100 }}
     >
       <FlowControlProvider>
-        <FlowControlActions>
-          <FlowControlHandlers />
-          <FlowControlUI />
-        </FlowControlActions>
+        <FlowControlDemoHandlerRegistry />
+        <FlowControlHandlers />
+        <FlowControlUI />
       </FlowControlProvider>
     </LogMonitorProvider>
   );

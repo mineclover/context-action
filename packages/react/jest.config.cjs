@@ -4,8 +4,10 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@context-action/react$': '<rootDir>/src/index',
-    '^@context-action/react/(advanced|utils|backend|webmcp)$': '<rootDir>/src/$1',
+    '^@context-action/react/(refs|time-travel|transactions|advanced|utils|backend|webmcp)$': '<rootDir>/src/$1',
+    '^@context-action/core/element$': '<rootDir>/../core/src/element',
     '^@context-action/core$': '<rootDir>/../core/src/index',
+    '^@context-action/interactions$': '<rootDir>/../interactions/src/index',
     '^@context-action/tool-protocol$': '<rootDir>/../tool-protocol/src/index',
     '^@context-action/webmcp$': '<rootDir>/../webmcp/src/index',
     '^@context-action/tool-durable-operations$': '<rootDir>/../tool-durable-operations/src/index',

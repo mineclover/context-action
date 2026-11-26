@@ -1,6 +1,5 @@
 import {
   ActionCommandHandler,
-  ActionEffectHandler,
   ActionGuardHandler,
   ActionHandler,
   ActionNames,
@@ -14,7 +13,6 @@ import {
   CommandConfig,
   DispatchArgs,
   DispatchOptions,
-  EffectConfig,
   ExecutionResult,
   GuardConfig,
   HandlerConfig,
@@ -24,6 +22,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useDebugValue,
   useId,
   useInsertionEffect,
   useMemo,
@@ -34,11 +33,21 @@ import type {
   ActionContextReturn,
   ActionContextType,
   ActionProviderProps,
+  ActionScopeReturn,
   ProviderDispatchLifecycle,
   ProviderShutdownOptions,
 } from './ActionContext.types';
 
 const useInsertionCommitEffect = useInsertionEffect;
+
+function formatActionHandlerDebugValue([ctxName, action, role, priority]: readonly [
+  string,
+  string,
+  string,
+  number,
+]): string {
+  return `${ctxName}.${action} [${role}, p=${priority}]`;
+}
 
 function createProviderAbortError(): Error {
   const error = new Error('Action provider unmounted');
@@ -99,6 +108,20 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
       // Handler cleanup is user code. Observe failures without allowing one
       // registration to block the remaining cleanup or lifecycle finalization.
       console.error('[ContextAction] Action handler cleanup failed.', error);
+    }
+  }
+
+  runFast<R>(operation: () => Promise<R>): Promise<R> {
+    if (!this.accepting) {
+      const rejectedPromise = Promise.reject<R>(createProviderAbortError());
+      void rejectedPromise.catch(() => {});
+      return rejectedPromise;
+    }
+
+    try {
+      return operation();
+    } catch (error) {
+      return Promise.reject(error);
     }
   }
 
@@ -246,6 +269,19 @@ export class ProviderDispatchLifecycleImpl implements ProviderDispatchLifecycle 
   }
 }
 
+const hasOwnProp = Object.prototype.hasOwnProperty;
+
+function isFastReactDispatchOptions(options: DispatchOptions | undefined): boolean {
+  if (options === undefined) return true;
+  if (options.immediate !== true) return false;
+  for (const key in options) {
+    if (key !== 'immediate' && hasOwnProp.call(options, key)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function withProviderDispatchSignal(
   options: DispatchOptions | undefined,
   signal: AbortSignal
@@ -257,6 +293,31 @@ export function withProviderDispatchSignal(
       ? { autoAbort: { enabled: true, allowHandlerAbort: true } }
       : {}),
   };
+}
+
+function dispatchRegisterWithResult<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T>,
+  K extends ActionNames<T>,
+  R,
+>(
+  register: ActionRegister<T, TResultMap>,
+  action: K,
+  payload: T[K] | undefined,
+  options: DispatchOptions | undefined,
+  signal: AbortSignal,
+): Promise<ExecutionResult<R>> {
+  const dispatchResult = register.dispatchWithResult as unknown as (
+    this: ActionRegister<T, TResultMap>,
+    action: K,
+    ...dispatchArgs: DispatchArgs<T[K]>
+  ) => Promise<ExecutionResult<R>>;
+
+  return dispatchResult.call(
+    register,
+    action,
+    ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>),
+  );
 }
 
 /**
@@ -287,7 +348,7 @@ export function createActionContext<
   TResultMap extends ActionResultMap<T> = {},
 >(
   contextName: string,
-  config?: ActionContextConfig
+  config?: ActionContextConfig<T>
 ): ActionContextReturn<T, TResultMap>;
 
 // Implementation
@@ -296,7 +357,7 @@ export function createActionContext<
   TResultMap extends ActionResultMap<T> = {},
 >(
   contextName: string,
-  config?: ActionContextConfig
+  config?: ActionContextConfig<T>
 ): ActionContextReturn<T, TResultMap> {
   if (typeof contextName !== 'string' || contextName.trim().length === 0) {
     throw new TypeError(
@@ -304,14 +365,13 @@ export function createActionContext<
     );
   }
 
-  let effectiveConfig: ActionContextConfig & Pick<ActionRegisterConfig, 'name'> = {
+  let effectiveConfig: ActionContextConfig<T> & Pick<ActionRegisterConfig<T>, 'name'> = {
     ...config,
     registry: {
       ...config?.registry,
-      // A Provider owns handler teardown and exposes a serialized lifecycle to
-      // its descendants. Keep that higher-level guarantee explicit instead of
-      // relying on the lightweight core default.
-      useConcurrencyQueue: config?.registry?.useConcurrencyQueue ?? true,
+      // Phase 2 (v5): harmonize with @context-action/core default (false) so
+      // non-conflicting dispatches stay immediate unless opted into serial queues.
+      useConcurrencyQueue: config?.registry?.useConcurrencyQueue ?? false,
     },
     // The positional name is canonical; a legacy config.name must not
     // silently change the identity advertised by the factory call.
@@ -419,7 +479,17 @@ export function createActionContext<
       ...args: DispatchArgs<T[K]>
     ): Promise<void> => {
       const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
-      if (process.env.NODE_ENV === 'development') {
+      const register = actionRegisterRef.current;
+      if (!register) {
+        throw new Error(
+          'ActionRegister is not initialized. ' +
+          'Make sure the ActionContext Provider is properly set up.'
+        );
+      }
+
+      const isFastLane = register.getActionPolicy?.(action)?.lane === 'fast';
+
+      if (process.env.NODE_ENV === 'development' && !isFastLane) {
         console.log(`React dispatch called for '${String(action)}':`, {
           hasPayload: payload !== undefined,
           hasOptions: options !== undefined,
@@ -427,12 +497,12 @@ export function createActionContext<
         });
       }
 
-      const register = actionRegisterRef.current;
-      if (!register) {
-        throw new Error(
-          'ActionRegister is not initialized. ' +
-          'Make sure the ActionContext Provider is properly set up.'
-        );
+      if (
+        isFastLane
+        && isFastReactDispatchOptions(options)
+        && typeof dispatchLifecycle.runFast === 'function'
+      ) {
+        return dispatchLifecycle.runFast(() => register.dispatch(action, ...args));
       }
 
       return dispatchLifecycle.run(
@@ -451,8 +521,8 @@ export function createActionContext<
     handler: K extends keyof TResultMap
       ? ActionResultHandler<T[K], ActionResult<TResultMap, K>>
       : ActionHandler<T[K], R>,
-    config?: HandlerConfig<T[K]> | EffectConfig<T[K]>,
-    registrationRole: 'legacy' | 'effect' | 'guard' | 'command' | 'observer' | 'result' = 'legacy',
+    config?: HandlerConfig<T[K]>,
+    registrationRole: 'legacy' | 'guard' | 'command' | 'observer' | 'result' = 'legacy',
   ): void => {
     const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
     const actionId = useId();
@@ -473,6 +543,10 @@ export function createActionContext<
     
     // Extract config properties to stable variables
     const priority = config?.priority ?? 0;
+    useDebugValue(
+      [contextName, String(action), registrationRole, priority] as const,
+      formatActionHandlerDebugValue
+    );
     const id = config?.id || `react_${String(action)}_${actionId}`;
     const blocking = config?.blocking;
     const scheduling = config?.scheduling;
@@ -480,17 +554,41 @@ export function createActionContext<
     const once = config?.once ?? false;
     const debounce = config?.debounce;
     const throttle = config?.throttle;
-    const cleanup = config?.cleanup;
-    const condition = config?.condition;
+    const rawCleanup = config?.cleanup;
+    const hasCleanup = rawCleanup !== undefined;
+    const latestCleanupBox = useMemo(
+      () => (hasCleanup ? { current: undefined as (() => void) | undefined } : null),
+      [hasCleanup]
+    );
+    useInsertionCommitEffect(() => {
+      if (latestCleanupBox && rawCleanup !== undefined) {
+        latestCleanupBox.current = rawCleanup;
+      }
+    }, [latestCleanupBox, rawCleanup]);
+
+    const rawCondition = config?.condition;
+    const hasCondition = rawCondition !== undefined;
+    const conditionRef = useRef(rawCondition);
+    useInsertionCommitEffect(() => {
+      conditionRef.current = rawCondition;
+    }, [rawCondition]);
+    const stableCondition = useMemo(
+      () => hasCondition
+        ? ((payload: T[K]) => Boolean(conditionRef.current?.(payload)))
+        : undefined,
+      [hasCondition]
+    );
+
     const metadata = config?.metadata;
     const when = config?.when;
-    const effectKind = config && 'effectKind' in config ? config.effectKind : undefined;
     const replaceExisting = config?.replaceExisting ?? true;
     const deferredCleanup = useMemo(
-      () => cleanup === undefined
+      () => latestCleanupBox === null
         ? undefined
-        : () => dispatchLifecycle.scheduleHandlerCleanup(cleanup),
-      [cleanup, dispatchLifecycle]
+        : () => dispatchLifecycle.scheduleHandlerCleanup(() => {
+            latestCleanupBox.current?.();
+          }),
+      [latestCleanupBox, dispatchLifecycle]
     );
     
     // Memoize config to prevent unnecessary re-registrations
@@ -503,13 +601,12 @@ export function createActionContext<
       once,
       replaceExisting,
       ...(deferredCleanup !== undefined && { cleanup: deferredCleanup }),
-      ...(condition !== undefined && { condition }),
+      ...(stableCondition !== undefined && { condition: stableCondition }),
       ...(metadata !== undefined && { metadata }),
       ...(when !== undefined && { when }),
-      ...(effectKind !== undefined && { effectKind }),
       ...(debounce !== undefined && { debounce }),
       ...(throttle !== undefined && { throttle })
-    }), [priority, id, blocking, scheduling, errorPolicy, once, replaceExisting, deferredCleanup, condition, metadata, when, effectKind, debounce, throttle]);
+    }), [priority, id, blocking, scheduling, errorPolicy, once, replaceExisting, deferredCleanup, stableCondition, metadata, when, debounce, throttle]);
 
     // A handler is part of the logical Provider lifetime. Keeping registration
     // in an insertion effect means Activity may disconnect UI effects without
@@ -548,17 +645,15 @@ export function createActionContext<
           console.log(`Registering handler for '${String(action)}'`);
         }
 
-        const registerMethod = registrationRole === 'effect'
-          ? register.registerEffect
-          : registrationRole === 'guard'
-            ? register.registerGuard
-            : registrationRole === 'command'
-              ? register.registerCommand
-              : registrationRole === 'observer'
-                ? register.registerObserver
-                : registrationRole === 'result'
-                  ? register.registerResult
-                  : register.register;
+        const registerMethod = registrationRole === 'guard'
+          ? register.registerGuard
+          : registrationRole === 'command'
+            ? register.registerCommand
+            : registrationRole === 'observer'
+              ? register.registerObserver
+              : registrationRole === 'result'
+                ? register.registerResult
+                : register.register;
         const registerHandler = registerMethod.bind(register) as unknown as (
           action: K,
           handler: ActionHandler<T[K], R>,
@@ -614,14 +709,6 @@ export function createActionContext<
     return context.actionRegisterRef.current;
   };
 
-  const useActionEffectHandler = <K extends ActionNames<T>>(
-    action: K,
-    handler: ActionEffectHandler<T[K]> | ActionGuardHandler<T[K]>,
-    config: EffectConfig<T[K]>,
-  ): void => {
-    useActionHandler(action, handler as never, config, 'effect');
-  };
-
   const useActionResultHandler = <K extends ActionNames<T> & keyof TResultMap>(
     action: K,
     handler: ActionResultHandler<T[K], ActionResult<TResultMap, K>>,
@@ -654,30 +741,53 @@ export function createActionContext<
     useActionHandler(action, handler as never, config, 'observer');
   };
 
-  // Hook to get the dispatchWithResult function with full type safety
   /**
-   * Hook that provides access to the dispatchWithResult function
-   * 
-   * This hook returns a function that dispatches actions and returns detailed
-   * execution results including collected handler results, execution metadata,
-   * and error information.
-   * 
-   * @returns dispatchWithResult function with full type safety
-   * 
+   * Symmetric function-returning dispatchWithResult hook (Provider-scoped).
+   *
    * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-with-result
    */
+  const useFactoryActionResultDispatch = (): ActionRegister<T, TResultMap>['dispatchWithResult'] => {
+    const { actionRegisterRef, dispatchLifecycle } = useFactoryActionContext();
 
-  // Hook for enhanced dispatch with abort control
-  const useFactoryActionDispatchWithResult = () => {
+    return useCallback(<K extends ActionNames<T>, R = void>(
+      action: K,
+      ...args: DispatchArgs<T[K]>
+    ): Promise<ExecutionResult<R>> => {
+      const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
+      const register = actionRegisterRef.current;
+      if (!register) {
+        throw new Error(
+          'ActionRegister is not initialized. ' +
+          'Make sure the ActionContext Provider is properly set up.'
+        );
+      }
+
+      return dispatchLifecycle.run(
+        [options?.signal],
+        signal => dispatchRegisterWithResult<T, TResultMap, K, R>(
+          register,
+          action,
+          payload,
+          options,
+          signal,
+        )
+      );
+    }, [actionRegisterRef, dispatchLifecycle]) as ActionRegister<T, TResultMap>['dispatchWithResult'];
+  };
+
+  /**
+   * Hook for component-scoped dispatch with result collection and abort control.
+   */
+  const useFactoryActionScope = (): ActionScopeReturn<T, TResultMap> => {
     const context = useFactoryActionContext();
     const activeControllersRef = useRef<Set<AbortController>>(new Set());
 
     // Create wrapped dispatch using core's autoAbort
     const dispatch = useCallback(<K extends ActionNames<T>>(
       action: K,
-      payload?: T[K],
-      options?: DispatchOptions
+      ...args: DispatchArgs<T[K]>
     ): Promise<void> => {
+      const [payload, options] = args as [T[K] | undefined, DispatchOptions | undefined];
       const register = context.actionRegisterRef.current;
       if (!register) {
         throw new Error('ActionRegister not initialized');
@@ -713,19 +823,14 @@ export function createActionContext<
       const scopeController = new AbortController();
       activeControllersRef.current.add(scopeController);
 
-      const dispatchResult = register.dispatchWithResult.bind(register) as unknown as <
-        ActionKey extends ActionNames<T>,
-        Result = void,
-      >(
-        action: ActionKey,
-        ...dispatchArgs: DispatchArgs<T[ActionKey]>
-      ) => Promise<ExecutionResult<Result>>;
-
       const trackedPromise = context.dispatchLifecycle.run(
         [options?.signal, scopeController.signal],
-        signal => dispatchResult<K, R>(
+        signal => dispatchRegisterWithResult<T, TResultMap, K, R>(
+          register,
           action,
-          ...([payload, withProviderDispatchSignal(options, signal)] as DispatchArgs<T[K]>)
+          payload,
+          options,
+          signal,
         )
       ).finally(() => {
         activeControllersRef.current.delete(scopeController);
@@ -761,7 +866,7 @@ export function createActionContext<
     
     return {
       dispatch,
-      dispatchWithResult,
+      dispatchWithResult: dispatchWithResult as ActionRegister<T, TResultMap>['dispatchWithResult'],
       abortAll,
       resetAbortScope,
     };
@@ -772,13 +877,13 @@ export function createActionContext<
     useActionContext: useFactoryActionContext,
     useActionDispatch: useAction,
     useActionHandler,
-    useActionEffectHandler,
     useActionGuard,
     useActionCommandHandler,
     useActionObserver,
     useActionResultHandler,
     useActionRegister: useFactoryActionRegister,
-    useActionDispatchWithResult: useFactoryActionDispatchWithResult,
+    useActionResultDispatch: useFactoryActionResultDispatch,
+    useActionScope: useFactoryActionScope,
     context: FactoryActionContext,
   } satisfies ActionContextReturn<T, TResultMap>;
 }

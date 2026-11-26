@@ -10,7 +10,6 @@ import {
   ActionNames,
   ActionRegister,
   ActionRegisterConfig,
-  ActionEffectHandler,
   ActionGuardHandler,
   ActionObserverHandler,
   CommandConfig,
@@ -20,7 +19,6 @@ import {
   ActionResultMap,
   ActionPayloadMap,
   HandlerConfig,
-  EffectConfig,
   GuardConfig,
   PipelineController,
 } from '@context-action/core';
@@ -52,13 +50,15 @@ export type ActionContextHandler<T, R = void> = (
  * });
  * ```
  */
-export interface ActionContextConfig extends Omit<ActionRegisterConfig, 'name'> {
+export interface ActionContextConfig<
+  T extends ActionPayloadMap = ActionPayloadMap,
+> extends Omit<ActionRegisterConfig<T>, 'name'> {
   /**
    * Action schema map for runtime payload validation
    * Uses the core validator contract; no tool protocol or schema library is required.
    * Shorthand for config.registry.schema
    */
-  schema?: NonNullable<ActionRegisterConfig['registry']>['schema'];
+  schema?: NonNullable<ActionRegisterConfig<T>['registry']>['schema'];
 }
 
 /**
@@ -106,9 +106,24 @@ export interface ProviderDispatchLifecycle {
     externalSignals: Array<AbortSignal | undefined>,
     operation: (signal: AbortSignal) => Promise<R>
   ): Promise<R>;
+  runFast?<R>(operation: () => Promise<R>): Promise<R>;
   scheduleHandlerCleanup(cleanup: () => void): void;
   // biome-ignore lint/suspicious/noExplicitAny: cross-context lifecycle boundary.
   shutdown(register: ActionRegister<any, any>, options?: ProviderShutdownOptions): Promise<void>;
+}
+
+/**
+ * Return value of `useActionScope()`, providing component-scoped dispatch helpers
+ * together with manual/unmount abort controls.
+ */
+export interface ActionScopeReturn<
+  T extends ActionPayloadMap,
+  TResultMap extends ActionResultMap<T> = {},
+> {
+  dispatch: ActionRegister<T, TResultMap>['dispatch'];
+  dispatchWithResult: ActionRegister<T, TResultMap>['dispatchWithResult'];
+  abortAll: () => void;
+  resetAbortScope: () => void;
 }
 
 /**
@@ -133,22 +148,6 @@ export interface ActionContextReturn<
       : ActionContextHandler<T[K], R>,
     config?: HandlerConfig<T[K]>
   ) => void;
-  /**
-   * @deprecated Prefer `useActionGuard()` (for `effectKind: 'guard'`) or
-   * `useActionObserver()` (for `effectKind: 'observer'`).
-   */
-  useActionEffectHandler: {
-    <K extends ActionNames<T>>(
-      action: K,
-      handler: ActionGuardHandler<T[K]>,
-      config: EffectConfig<T[K]> & { effectKind: 'guard' },
-    ): void;
-    <K extends ActionNames<T>>(
-      action: K,
-      handler: ActionEffectHandler<T[K]>,
-      config: EffectConfig<T[K]> & { effectKind: 'observer' },
-    ): void;
-  };
   /** Canonical admission role hook: validate payloads/permissions and abort invalid flows via `controller.abort()`. */
   useActionGuard: <K extends ActionNames<T>>(
     action: K,
@@ -174,11 +173,15 @@ export interface ActionContextReturn<
     config?: HandlerConfig<T[K]>
   ) => void;
   useActionRegister: () => ActionRegister<T, TResultMap> | null;
-  useActionDispatchWithResult: () => {
-    dispatch: ActionRegister<T, TResultMap>['dispatch'];
-    dispatchWithResult: ActionRegister<T, TResultMap>['dispatchWithResult'];
-    abortAll: () => void;
-    resetAbortScope: () => void;
-  };
+  /**
+   * Symmetric function-returning counterpart to `useActionDispatch()` for actions
+   * that produce typed results via `useActionResultHandler()`.
+   */
+  useActionResultDispatch: () => ActionRegister<T, TResultMap>['dispatchWithResult'];
+  /**
+   * Component-scoped dispatch and abort lifecycle hook returning
+   * `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }`.
+   */
+  useActionScope: () => ActionScopeReturn<T, TResultMap>;
   context: React.Context<ActionContextType<T, TResultMap> | null>;
 }

@@ -1,4 +1,8 @@
-import { createActionContext, createStoreContext } from '@context-action/react';
+import {
+  type ActionPayloadMap,
+  createActionContext,
+  createStoreContext,
+} from '@context-action/react';
 import React from 'react';
 import type {
   ApiActions,
@@ -35,6 +39,7 @@ interface _FlowControlStores {
 export const {
   Provider: SecurityActionProvider,
   useActionDispatch: useSecurityAction,
+  useActionScope: useSecurityActionWithResult,
   useActionHandler: useSecurityActionHandler,
 } = createActionContext<SecurityActions>('SecurityActions');
 
@@ -42,6 +47,7 @@ export const {
 export const {
   Provider: CacheActionProvider,
   useActionDispatch: useCacheAction,
+  useActionScope: useCacheActionWithResult,
   useActionHandler: useCacheActionHandler,
 } = createActionContext<CacheActions>('CacheActions');
 
@@ -49,6 +55,7 @@ export const {
 export const {
   Provider: OrderActionProvider,
   useActionDispatch: useOrderAction,
+  useActionScope: useOrderActionWithResult,
   useActionHandler: useOrderActionHandler,
 } = createActionContext<OrderActions>('OrderActions');
 
@@ -56,8 +63,30 @@ export const {
 export const {
   Provider: ApiActionProvider,
   useActionDispatch: useApiAction,
+  useActionScope: useApiActionWithResult,
   useActionHandler: useApiActionHandler,
 } = createActionContext<ApiActions>('ApiActions');
+
+export interface FlowControlDemoActions extends ActionPayloadMap {
+  clearCache: void;
+  toggleBusinessHours: void;
+  adjustSystemLoad: { load: number };
+  setSelectedScenario: { scenario: ScenarioKey };
+  recordExecutionStep: { step: string };
+  recordHandlerExecution: void;
+  executeScenario: { scenario: ScenarioKey; payload: any };
+}
+
+export const {
+  Provider: FlowControlDemoActionProvider,
+  useActionDispatch: useFlowControlDemoAction,
+  useActionCommandHandler: useFlowControlDemoActionCommandHandler,
+} = createActionContext<FlowControlDemoActions>('FlowControlDemoActions', {
+  actions: {
+    recordExecutionStep: { queue: 'immediate' },
+    recordHandlerExecution: { queue: 'immediate' },
+  },
+});
 
 // Store context for demo state management
 export const {
@@ -92,7 +121,9 @@ export function FlowControlProvider({
       <CacheActionProvider>
         <OrderActionProvider>
           <ApiActionProvider>
-            <FlowControlStoreProvider>{children}</FlowControlStoreProvider>
+            <FlowControlDemoActionProvider>
+              <FlowControlStoreProvider>{children}</FlowControlStoreProvider>
+            </FlowControlDemoActionProvider>
           </ApiActionProvider>
         </OrderActionProvider>
       </CacheActionProvider>

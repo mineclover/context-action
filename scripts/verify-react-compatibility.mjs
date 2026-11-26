@@ -51,6 +51,7 @@ try {
     '@context-action/mutative-core',
     '@context-action/mutative',
     '@context-action/core',
+    '@context-action/interactions',
     '@context-action/store-core',
     '@context-action/tool-protocol',
     '@context-action/tool-durable-operations',
@@ -62,6 +63,7 @@ try {
 
   const candidatePackages = [
     'core',
+    'interactions',
     'store-core',
     'mutative-core',
     'mutative',
@@ -102,12 +104,13 @@ try {
     );
   }
   // First prove that an ordinary install does not need any tool integration.
-  installCandidates(['core', 'store-core', 'mutative-core', 'mutative', 'react']);
+  installCandidates(['core', 'interactions', 'store-core', 'mutative-core', 'mutative', 'react']);
   ensureWorkspaceRuntimeArtifacts();
 
   // Check both declaration graphs against the same ownership/compatibility rules.
   const transactionTypeContracts = `
-import type { StoreReader, StoreWriter, StoreTransactionMeta, StoreTransactionOptions, StoreTransactionParticipant, ActionTransactionBridgeOptions } from '@context-action/react';
+import type { StoreReader, StoreWriter } from '@context-action/react';
+import type { StoreTransactionMeta, StoreTransactionOptions, StoreTransactionParticipant, ActionTransactionBridgeOptions } from '@context-action/react/transactions';
 import type { ReadonlyStateSnapshot, StateSnapshot, StateReader, StateBackend, TransactionParticipantBackend, TransactionCoordinatorPort, TransactionMeta, TransactionOptions } from '@context-action/react/backend';
 
 interface LegacyMetadata { readonly label?: string; readonly origin?: 'user' }
@@ -133,9 +136,8 @@ function checkTransactionContracts(
   const strictReader: StateReader<number> = legacyReader;
   // @ts-expect-error Participants need not own mutable state.
   const stateOwner: StateBackend<number> = minimal;
-  // @ts-expect-error The legacy convenience facade retains undo and redo.
-  const legacyParticipant: StoreTransactionParticipant<number> = { name: 'minimal', store: minimal };
-  void [observation, reactMeta, bridge, handle, strictSnapshot, strictReader, stateOwner, legacyParticipant];
+  const participantEntry: StoreTransactionParticipant<number> = { name: 'minimal', store: minimal };
+  void [observation, reactMeta, bridge, handle, strictSnapshot, strictReader, stateOwner, participantEntry];
 }
 void checkTransactionContracts;
 `;
@@ -144,12 +146,39 @@ void checkTransactionContracts;
   writeFileSync(join(consumer, 'consumer.tsx'), `
 import React from 'react';
 import type { ExecutionResult } from '@context-action/core';
-import { createActionContext, createStoreContext, createRefContext, useStoreValue, useStorePath, useStoreSelectorWithPaths, StoreTransactionCoordinator } from '@context-action/react';
+import {
+  createActionContext,
+  createScopedContext,
+  createStore,
+  createStoreContext,
+  useStoreValue,
+  useStorePath,
+  useStoreSelectorWithPaths,
+} from '@context-action/react';
 import type { PatchAwareStore, StorePathPatch } from '@context-action/react';
+import {
+  createRefCollectionContext,
+  createRefContext,
+  useRefCollection,
+  useRefRegistry,
+} from '@context-action/react/refs';
+import { StoreTransactionCoordinator } from '@context-action/react/transactions';
 import { createBackendStore } from '@context-action/react/backend';
 import type { StateBackend, TransactionBackend, TransactionBatchControl } from '@context-action/react/backend';
-import { StoreRegistry } from '@context-action/react/advanced';
+import {
+  StoreRegistry,
+  useControlledStoreSync,
+  useDismissLayer,
+  usePointerGesture,
+  useRovingFocus,
+  useStoreInstance,
+} from '@context-action/react/advanced';
 import { deepClone } from '@context-action/react/utils';
+import {
+  createDismissLayer,
+  createPointerGestureSession,
+  createRovingFocusController,
+} from '@context-action/interactions';
 
 interface Actions { save: { id: string }; reset: void }
 interface Results { save: { accepted: boolean } }
@@ -187,21 +216,60 @@ function Consumer() {
   void count;
   void input;
   Context.useActionHandler('save', async payload => ({ accepted: payload.id.length > 0 }));
-  const api = Context.useActionDispatchWithResult();
+  const api = Context.useActionScope();
   const result: Promise<ExecutionResult<Results['save']>> =
     api.dispatchWithResult('save', { id: 'compatibility' });
   void result;
   return React.createElement('div');
 }
 
+const directCountStore = createStore('compat-direct', { count: 1 });
+const ScopedCompat = createScopedContext(
+  'ScopedCompat',
+  Context,
+  ({ initialCount }: { initialCount: number }) => {
+    const localStore = useStoreInstance({ value: initialCount }, 'scoped-compat-store');
+    const refs = useRefRegistry<{ input: HTMLInputElement }>();
+    const items = useRefCollection<HTMLButtonElement>();
+    useControlledStoreSync(localStore, ['value'], initialCount);
+    return { localStore, refs, items };
+  },
+);
+const CollectionCompat = createRefCollectionContext<HTMLButtonElement>('CompatCollection');
+function ErgonomicsConsumer() {
+  const { localStore, refs } = ScopedCompat.useScope();
+  const value: number = useStorePath(localStore, ['value']);
+  const isPositive: boolean = useStorePath(directCountStore, ['count'], { select: v => v > 0 });
+  const roving = useRovingFocus({ getItems: () => [], getActiveId: () => null });
+  const gesture = usePointerGesture();
+  useDismissLayer({ isOpen: false, getContainers: () => [], onDismiss: () => {} });
+  void roving;
+  void gesture;
+  void CollectionCompat;
+  return React.createElement('input', {
+    ref: refs.setRef('input'),
+    defaultValue: String(value),
+    'data-pos': String(isPositive),
+  });
+}
+const dismissCompat = createDismissLayer({ getContainers: () => [], onDismiss: () => {} });
+const rovingCompat = createRovingFocusController({ getItems: () => [], getActiveId: () => null });
+const gestureCompat = createPointerGestureSession();
+void ErgonomicsConsumer;
+void dismissCompat;
+void rovingCompat;
+void gestureCompat;
+
 void Consumer;
 void StoreRegistry;
 void cloned;
 `);
   writeFileSync(join(consumer, 'consumer.cts'), `
-import { createActionContext, createStore, createRefContext } from '@context-action/react';
+import { createActionContext, createScopedContext, createStore } from '@context-action/react';
 import type { PatchAwareStore, StorePathPatch } from '@context-action/react';
+import { createRefContext, useRefRegistry } from '@context-action/react/refs';
 import type { TransactionBatchControl } from '@context-action/react/backend';
+import { createDismissLayer } from '@context-action/interactions';
 declare const scopedControl: TransactionBatchControl;
 type ScopedBegin = Parameters<typeof scopedControl.beginBatch>[0];
 const scopedMeta: ScopedBegin = { label: 'CJS scope' };
@@ -211,11 +279,16 @@ declare const portableStore: PatchAwareStore<{ value: number }>;
 const Context = createActionContext<{ save: string }>('CommonJS', {
   schema: { save: { safeParse(value) { return { success: true, data: value }; } } },
 });
+const ScopedCjs = createScopedContext('CommonJSScoped', Context, () => {
+  const refs = useRefRegistry<{ btn: HTMLButtonElement }>();
+  return { refs };
+});
+const dismissCjs = createDismissLayer({ getContainers: () => [], onDismiss: () => {} });
 const store = createStore('CommonJSStore', 0);
 const refs = createRefContext<{ input: HTMLInputElement }>('CommonJSRefs');
-void Context; void store; void refs;
+void Context; void ScopedCjs; void dismissCjs; void store; void refs;
 void portablePatch;
-type PortableValue = ReturnType<typeof portableStore.getValue>;
+type PortableValue = ReturnType<NonNullable<typeof portableStore.getValue>>;
 const portableValue: PortableValue = { value: 1 };
 void portableValue;
 `);
@@ -244,15 +317,25 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { renderToString } from 'react-dom/server';
 import { ActionRegister } from '@context-action/core';
-import { createActionContext, createStore, createStoreContext, createRefContext, useStoreValue } from '@context-action/react';
+import { createActionContext, createScopedContext, createStore, createStoreContext, useStorePath, useStoreValue } from '@context-action/react';
+import { createRefContext, useRefRegistry } from '@context-action/react/refs';
+import { useStoreInstance } from '@context-action/react/advanced';
 
 const require = createRequire(import.meta.url);
 for (const integration of ['tool-protocol', 'webmcp', 'ai-sdk', 'tool-durable-operations']) {
   assert.throws(() => require.resolve('@context-action/' + integration), { code: 'MODULE_NOT_FOUND' });
 }
 const cjs = require('@context-action/react');
+const cjsRefs = require('@context-action/react/refs');
+const cjsInteractions = require('@context-action/interactions');
 assert.equal(typeof cjs.createActionContext, 'function');
-assert.equal(typeof cjs.createRefContext, 'function');
+assert.equal(typeof cjs.createScopedContext, 'function');
+assert.equal(cjs.createRefContext, undefined);
+assert.equal(cjs.StoreTransactionCoordinator, undefined);
+assert.equal(typeof cjsRefs.createRefContext, 'function');
+assert.equal(typeof cjsRefs.useRefRegistry, 'function');
+assert.equal(typeof cjsRefs.useRefCollection, 'function');
+assert.equal(typeof cjsInteractions.createDismissLayer, 'function');
 const store = createStore('BasicStore', 0);
 const actions = new ActionRegister();
 const unregister = actions.register('add', value => store.setValue(store.getValue() + value));
@@ -268,19 +351,36 @@ const Context = createActionContext('CompatibilityRuntime');
 const Stores = createStoreContext('BasicStores', { count: 7 });
 const Refs = createRefContext('BasicRefs');
 function Consumer() {
-  Context.useActionEffectHandler('save', () => {});
+  Context.useActionObserver('save', () => {});
   const count = useStoreValue(Stores.useStore('count'));
   const ref = Refs.useRefHandler('input');
   assert.equal(ref.target, null);
   return React.createElement('div', { 'data-context-action': 'ready' }, String(count));
 }
 
+const ScopedRuntime = createScopedContext(
+  'CompatScopedRuntime',
+  Context,
+  ({ start }) => {
+    const scopedStore = useStoreInstance({ value: start }, 'compat-scoped-store');
+    const refs = useRefRegistry();
+    return { scopedStore, refs };
+  },
+);
+function ScopedSsrProbe() {
+  const { scopedStore, refs } = ScopedRuntime.useScope();
+  const isFive = useStorePath(scopedStore, ['value'], { select: value => value === 5 });
+  return React.createElement('div', { ref: refs.setRef('box'), 'data-scoped-five': String(isFive) }, String(isFive));
+}
+
 const html = renderToString(
   React.createElement(Context.Provider, null,
     React.createElement(Stores.Provider, null,
-      React.createElement(Refs.Provider, null, React.createElement(Consumer)))),
+      React.createElement(Refs.Provider, null,
+        React.createElement(Consumer),
+        React.createElement(ScopedRuntime.Provider, { start: 5 }, React.createElement(ScopedSsrProbe))))),
 );
-if (!html.includes('data-context-action="ready">7</div>')) {
+if (!html.includes('data-context-action="ready">7</div>') || !html.includes('data-scoped-five="true">true</div>')) {
   throw new Error('React runtime compatibility render did not produce the expected output.');
 }
 `);
@@ -304,8 +404,10 @@ module.exports = {
   moduleNameMapper: {
     ...ordinaryAliases,
     '^@context-action/react$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/react/dist/index.cjs'))},
-    '^@context-action/react/(advanced|utils|backend|webmcp)$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/react/dist/$1.cjs'))},
+    '^@context-action/react/(refs|time-travel|transactions|advanced|utils|backend|webmcp)$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/react/dist/$1.cjs'))},
     '^@context-action/core$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/core/dist/index.cjs'))},
+    '^@context-action/core/element$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/core/dist/element.cjs'))},
+    '^@context-action/interactions$': ${JSON.stringify(join(consumer, 'node_modules/@context-action/interactions/dist/index.cjs'))},
     '^react$': ${JSON.stringify(join(consumer, 'node_modules/react'))},
     '^react/jsx-runtime$': ${JSON.stringify(join(consumer, 'node_modules/react/jsx-runtime.js'))},
     '^react/jsx-dev-runtime$': ${JSON.stringify(join(consumer, 'node_modules/react/jsx-dev-runtime.js'))},
@@ -320,6 +422,7 @@ module.exports = {
   const packedContractTests = [
     '__tests__/actions/structural-schema.test.tsx',
     '__tests__/actions/action-role-api.contract.test.tsx',
+    '__tests__/patterns/dx-ergonomics.contract.test.tsx',
     '__tests__/provider-isolation.contract.test.tsx',
     '__tests__/public-subpaths.contract.test.tsx',
     '__tests__/stores/hooks/store-subscription.contract.test.tsx',

@@ -7,6 +7,7 @@ import type {
   ActionRegister,
   ActionResultMap,
   ActionSchemaLike,
+  DispatchTraceSubscriptionOptions,
   PipelineController,
   UnregisterFunction,
 } from '@context-action/core';
@@ -129,11 +130,19 @@ export type BoundEffectActorHandle<
     dispose(): Promise<void>;
   };
 
-export interface DispatchTraceSource {
-  subscribeDispatchTrace(listener: ActionDispatchTraceListener): () => void;
+export interface DispatchTraceSource<
+  TActions extends ActionPayloadMap = ActionPayloadMap,
+> {
+  subscribeDispatchTrace(
+    listener: ActionDispatchTraceListener,
+    options?: DispatchTraceSubscriptionOptions<TActions>,
+  ): () => void;
 }
 
-export interface ActionTransactionBridgeOptions {
+export interface ActionTransactionBridgeOptions<
+  TActions extends ActionPayloadMap = ActionPayloadMap,
+> {
+  actions?: readonly ActionNames<TActions>[];
   getParticipants(event: ActionDispatchTrace): readonly TransactionParticipant[];
 }
 
@@ -538,13 +547,15 @@ export function bindEffectActorToActionRegister<
  * connects `ActionRegister.subscribeDispatchTrace` directly to a
  * `@context-action/store-core` `TransactionCoordinatorPort`.
  */
-export function bindActionDispatchTransactions(
-  source: DispatchTraceSource,
+export function bindActionDispatchTransactions<
+  TActions extends ActionPayloadMap = ActionPayloadMap,
+>(
+  source: DispatchTraceSource<TActions>,
   coordinator: TransactionCoordinatorPort,
-  options: ActionTransactionBridgeOptions,
+  options: ActionTransactionBridgeOptions<TActions>,
 ): () => void {
   const pending = new Map<string, TransactionHandle>();
-  const unsubscribe = source.subscribeDispatchTrace((event) => {
+  const onTrace: ActionDispatchTraceListener = (event) => {
     if (event.phase === 'started') {
       const participants = options.getParticipants(event);
       if (participants.length === 0) return;
@@ -566,7 +577,11 @@ export function bindActionDispatchTransactions(
     } else {
       handle.rollback();
     }
-  });
+  };
+
+  const unsubscribe = options.actions !== undefined
+    ? source.subscribeDispatchTrace(onTrace, { actions: options.actions })
+    : source.subscribeDispatchTrace(onTrace);
 
   return () => {
     unsubscribe();

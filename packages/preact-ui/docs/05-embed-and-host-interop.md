@@ -129,7 +129,8 @@ React 호스트가 `@context-action/react`를 사용하는 경우, `createRefCon
 
 ```tsx
 import React, { useCallback } from 'react';
-import { createActionContext, createRefContext } from '@context-action/react';
+import { createActionContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 import { ReactOrderWorkspace, type OrderWorkspaceHandle } from './order-bridge.js';
 
 interface HostCheckoutActions {

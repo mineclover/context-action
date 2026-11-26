@@ -11,11 +11,12 @@
  * making it the recommended approach for state management in the Context-Action framework.
  */
 
-import React, { createContext, ReactNode, useContext, useInsertionEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import type { StateBackend } from '@context-action/store-core';
+import React, { createContext, ReactNode, useCallback, useContext, useInsertionEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { StoreErrorBoundary } from '../components/StoreErrorBoundary';
-import type { Store } from '../core/Store';
-import { createStore } from '../core/Store';
-import { StoreRegistry } from '../core/StoreRegistry';
+import { BackendStore, createBackendStore, isBackendStoreInstance } from '../core/BackendStore';
+import { createStore, isStoreInstance, Store, type StoreNotificationMode } from '../core/Store';
+import { BaseStoreManager, useManagedStoreProvider } from './base-store-manager';
 import type { ComparisonOptions } from '../utils/comparison';
 import {
   areExternalStoresEqual,
@@ -27,12 +28,12 @@ import {
 const STORE_CONFIG_KEYS = new Set<PropertyKey>([
   'initialValue',
   'strategy',
-  'compareStrategy',
   'description',
   'debug',
   'tags',
   'version',
   'comparisonOptions',
+  'notificationMode',
 ]);
 
 /**
@@ -50,13 +51,12 @@ const STORE_CONFIG_KEYS = new Set<PropertyKey>([
 export interface StoreConfig<T = any> {
   initialValue: T;
   strategy?: 'reference' | 'shallow' | 'deep';
-  /** @deprecated Use strategy instead. */
-  compareStrategy?: 'reference' | 'shallow' | 'deep';
   description?: string;
   debug?: boolean;
   tags?: string[];
   version?: string;
   comparisonOptions?: Partial<ComparisonOptions<T>>;
+  notificationMode?: StoreNotificationMode;
 }
 
 /**
@@ -126,24 +126,30 @@ export type InferStoreTypes<T extends StoreDefinitions> = {
 };
 
 /**
- * @deprecated Use InitialStores instead for better type inference
- * 
- * Legacy type alias for backward compatibility. New code should use
- * InitialStores<T> which provides better type inference and cleaner API.
- * 
+ * Supported external store or framework-neutral backend input accepted by
+ * `ExternalStoresMap<T>` in `createStoreContext().Provider`.
+ *
+ * Raw `StateBackend` instances (such as `createStateStore()` or
+ * `createMutativeStateBackend()`) are automatically wrapped in a `BackendStore`
+ * adapter inside `StoreManager` while respecting `ownership`.
+ *
  * @public
  */
-export type StoreSchema<T extends Record<string, any>> = InitialStores<T>;
+export type ExternalStoreInput<T> =
+  | Store<T>
+  | BackendStore<T, any>
+  | StateBackend<T, any>;
 
 /**
- * Map of externally created Store instances injected into createStoreContext().Provider.
+ * Map of externally created Store or StateBackend instances injected into
+ * createStoreContext().Provider.
  * Partial injection lets callers pre-wire headless domain stores while allowing
  * non-injected keys in `initialStores` to still be lazily instantiated by the manager.
  *
  * @public
  */
 export type ExternalStoresMap<T extends Record<string, any>> = {
-  [K in keyof T]?: Store<T[K]>;
+  [K in keyof T]?: ExternalStoreInput<T[K]>;
 };
 
 /**
@@ -201,42 +207,51 @@ export interface StoreProviderProps<T extends Record<string, any> = Record<strin
  * 
  * @public
  */
-export class StoreManager<T extends Record<string, any>> {
-  public readonly registry: StoreRegistry;
-  public readonly initialStores: InitialStores<T>;
-  public readonly stores = new Map<keyof T, Store<any>>();
-  private readonly externalStoreKeys = new Set<keyof T>();
-  private readonly externalOwnership: 'shared' | 'owned';
-  private lifecycle: 'active' | 'disposed' = 'active';
-  private version = 0;
-  private infoVersion = 0;
-  private readonly listeners = new Set<() => void>();
-  private readonly infoListeners = new Set<() => void>();
-  private infoNotificationScheduled = false;
-
+export class StoreManager<T extends Record<string, any>> extends BaseStoreManager<
+  T,
+  InitialStores<T>,
+  Store<any>
+> {
   constructor(
-    public readonly name: string,
+    name: string,
     initialStores: InitialStores<T>,
     options?: StoreManagerOptions<T>
   ) {
-    this.registry = new StoreRegistry(name);
-    this.initialStores = initialStores;
-    this.externalOwnership = options?.externalOwnership ?? 'shared';
+    super(
+      name,
+      initialStores,
+      options?.externalOwnership ?? 'shared',
+      'StoreManager'
+    );
 
-    if (options?.externalStores) {
-      for (const [rawKey, externalStore] of Object.entries(options.externalStores)) {
-        if (!externalStore) continue;
-        const key = rawKey as keyof T;
-        this.externalStoreKeys.add(key);
-        this.stores.set(key, externalStore);
-        this.registry.register(String(key), externalStore, {
-          name: String(key),
-        });
+    this.registerExternalStores(
+      options?.externalStores as Partial<Record<keyof T, unknown>> | undefined,
+      (key, externalStore, externalOwnership) => {
+        if (isStoreInstance(externalStore)) {
+          return {
+            store: externalStore,
+            adapted: false,
+          };
+        }
+        if (isBackendStoreInstance(externalStore)) {
+          return {
+            store: externalStore as unknown as Store<any>,
+            adapted: false,
+          };
+        }
+        // Wrap raw StateBackend instances so StoreManager keeps full snapshot,
+        // patch, and ownership cleanup semantics without caller boilerplate.
+        const adapted = createBackendStore(
+          String(key),
+          externalStore as StateBackend<any, any>,
+          { ownership: externalOwnership }
+        );
+        return {
+          store: adapted as unknown as Store<any>,
+          adapted: true,
+        };
       }
-      if (this.externalStoreKeys.size > 0) {
-        this.infoVersion += 1;
-      }
-    }
+    );
   }
 
   /**
@@ -253,9 +268,7 @@ export class StoreManager<T extends Record<string, any>> {
    * @internal
    */
   getStore<K extends keyof T>(storeName: K): Store<T[K]> {
-    if (this.lifecycle === 'disposed') {
-      throw new Error(`StoreManager "${this.name}" is disposed`);
-    }
+    this.assertActive();
 
     // Return existing store if available
     const existing = this.stores.get(storeName);
@@ -274,6 +287,7 @@ export class StoreManager<T extends Record<string, any>> {
     let tags: string[] = ['declarative'];
     let version: string | undefined;
     let comparisonOptions: StoreConfig<T[K]>['comparisonOptions'];
+    let notificationMode: StoreNotificationMode | undefined;
 
     if (isExplicitStoreValue(storeConfig)) {
       initialValue = storeConfig.value as T[K];
@@ -282,12 +296,13 @@ export class StoreManager<T extends Record<string, any>> {
       // Config object with extended options
       const config = storeConfig as StoreConfig<T[K]>;
       initialValue = config.initialValue;
-      strategy = config.strategy ?? config.compareStrategy ?? 'reference';
+      strategy = config.strategy ?? 'reference';
       description = config.description;
       debug = config.debug || false;
       tags = config.tags ? ['declarative', ...config.tags] : ['declarative', strategy];
       version = config.version;
       comparisonOptions = config.comparisonOptions;
+      notificationMode = config.notificationMode;
     } else {
       // Direct value
       initialValue = storeConfig as T[K];
@@ -295,7 +310,11 @@ export class StoreManager<T extends Record<string, any>> {
     }
 
     // Create store
-    const store = createStore(String(storeName), initialValue);
+    const store = createStore(
+      String(storeName),
+      initialValue,
+      notificationMode !== undefined ? { notificationMode } : undefined
+    );
     
     // Set comparison strategy with extended options
     const finalComparisonOptions = {
@@ -313,9 +332,6 @@ export class StoreManager<T extends Record<string, any>> {
       ...(version !== undefined && { version })
     };
     
-    this.registry.register(String(storeName), store, metadata);
-
-    // Debug logging if enabled
     if (debug && process.env.NODE_ENV === 'development') {
       console.log(`🏪 Store context store created: ${String(storeName)}`, {
         strategy,
@@ -327,101 +343,7 @@ export class StoreManager<T extends Record<string, any>> {
       });
     }
 
-    // Cache the store
-    this.stores.set(storeName, store);
-    this.infoVersion += 1;
-    this.scheduleInfoNotification();
-
-    return store;
-  }
-
-  /**
-   * Clear manager-owned stores while keeping shared external stores alive
-   */
-  clear(): void {
-    if (this.lifecycle === 'disposed') {
-      throw new Error(`StoreManager "${this.name}" is disposed`);
-    }
-
-    const keysToDispose: Array<keyof T> = [];
-    this.stores.forEach((_store, key) => {
-      const isSharedExternal =
-        this.externalOwnership === 'shared' && this.externalStoreKeys.has(key);
-      if (!isSharedExternal) {
-        keysToDispose.push(key);
-      }
-    });
-
-    for (const key of keysToDispose) {
-      const store = this.stores.get(key);
-      store?.dispose();
-      this.registry.unregister(String(key));
-      this.stores.delete(key);
-    }
-
-    this.version += 1;
-    this.infoVersion += 1;
-    this.listeners.forEach(listener => listener());
-    this.scheduleInfoNotification();
-  }
-
-  /** Dispose manager-owned stores and registry resources; preserve shared external stores. */
-  dispose(): void {
-    if (this.lifecycle === 'disposed') return;
-    this.lifecycle = 'disposed';
-    this.stores.forEach((store, key) => {
-      if (this.externalOwnership === 'owned' || !this.externalStoreKeys.has(key)) {
-        store.dispose();
-      }
-    });
-    this.stores.clear();
-    this.listeners.clear();
-    this.infoListeners.clear();
-    this.registry.dispose();
-  }
-
-  subscribe(listener: () => void): () => void {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  }
-
-  getVersion(): number {
-    return this.version;
-  }
-
-  subscribeInfo(listener: () => void): () => void {
-    this.infoListeners.add(listener);
-    return () => this.infoListeners.delete(listener);
-  }
-
-  getInfoVersion(): number {
-    return this.infoVersion;
-  }
-
-  /**
-   * Store creation can happen during render through useStore(). Defer the
-   * metadata notification so one component never synchronously updates a
-   * sibling that is still rendering.
-   */
-  private scheduleInfoNotification(): void {
-    if (this.infoNotificationScheduled) return;
-    this.infoNotificationScheduled = true;
-    queueMicrotask(() => {
-      this.infoNotificationScheduled = false;
-      if (this.lifecycle === 'disposed') return;
-      this.infoListeners.forEach(listener => listener());
-    });
-  }
-
-  /**
-   * Get registry info
-   */
-  getInfo() {
-    return {
-      name: this.name,
-      storeCount: this.stores.size,
-      availableStores: Object.keys(this.initialStores)
-    };
+    return this.registerCreatedStore(storeName, store, metadata);
   }
 }
 
@@ -513,83 +435,25 @@ function createStoreContextImpl<T extends Record<string, any>>(
     stores: externalStores,
     ownership,
   }: StoreProviderProps<T>) {
-    const effectiveRegistryId = registryId || contextName;
-    const ownedManagerRef = useRef<StoreManager<T> | null>(null);
-    const ownedStoresEntryRef = useRef<{
-      stores: ExternalStoresMap<T>;
-      registryId: string;
-      ownership: 'shared' | 'owned';
-      manager: StoreManager<T>;
-    } | null>(null);
-
-    let activeManager: StoreManager<T>;
-    if (externalManager) {
-      activeManager = externalManager;
-    } else if (externalStores) {
-      const resolvedExternalOwnership: 'shared' | 'owned' = ownership ?? 'shared';
-      const currentEntry = ownedStoresEntryRef.current;
-      if (
-        !currentEntry ||
-        currentEntry.registryId !== effectiveRegistryId ||
-        currentEntry.ownership !== resolvedExternalOwnership ||
-        !areExternalStoresEqual(currentEntry.stores, externalStores)
-      ) {
-        ownedStoresEntryRef.current = {
-          stores: externalStores,
-          registryId: effectiveRegistryId,
-          ownership: resolvedExternalOwnership,
-          manager: new StoreManager(effectiveRegistryId, initialStores, {
-            externalStores,
-            externalOwnership: resolvedExternalOwnership,
-          }),
-        };
-      }
-      activeManager = ownedStoresEntryRef.current!.manager;
-    } else {
-      if (!ownedManagerRef.current) {
-        ownedManagerRef.current = new StoreManager(effectiveRegistryId, initialStores);
-      }
-      activeManager = ownedManagerRef.current;
-    }
-
-    // Track current disposal policy in an insertion effect so swapping from
-    // a shared external manager to an owned one disposes the outgoing manager
-    // under its own policy before the new effect commits.
-    const shouldDisposeManager = externalManager ? ownership === 'owned' : true;
-    const disposeOnUnmountRef = useRef(shouldDisposeManager);
-    useInsertionEffect(() => {
-      disposeOnUnmountRef.current = shouldDisposeManager;
-    }, [shouldDisposeManager]);
-
-    const activeManagerRef = useRef<StoreManager<T> | null>(activeManager);
-    activeManagerRef.current = activeManager;
-
-    // Activity disconnects passive/layout effects while retaining the component tree.
-    // Keep store ownership in an insertion effect so a hidden boundary retains
-    // its manager and reconnects to the same state when revealed.
-    useInsertionEffect(() => {
-      return () => {
-        const shouldDispose = disposeOnUnmountRef.current;
-        if (shouldDispose) {
-          activeManager.dispose();
-        }
-        if (ownedManagerRef.current === activeManager && shouldDispose) {
-          ownedManagerRef.current = null;
-        }
-        if (ownedStoresEntryRef.current?.manager === activeManager) {
-          ownedStoresEntryRef.current = null;
-        }
-        if (activeManagerRef.current === activeManager && shouldDispose) {
-          activeManagerRef.current = null;
-        }
-      };
-    }, [activeManager]);
-
-    // biome-ignore lint/correctness/useExhaustiveDependencies: Recreate context value when activeManager swaps so consumers re-read from the new manager.
-    const contextValue = useMemo(
-      () => ({ managerRef: activeManagerRef }),
-      [activeManager]
-    );
+    const contextValue = useManagedStoreProvider<StoreManager<T>, ExternalStoresMap<T>>({
+      registryId,
+      contextName,
+      externalManager,
+      externalStores,
+      ownership,
+      areExternalStoresEqual,
+      createOwnedManager: (effectiveRegistryId) =>
+        new StoreManager(effectiveRegistryId, initialStores),
+      createExternalStoresManager: (
+        effectiveRegistryId,
+        stores,
+        resolvedOwnership
+      ) =>
+        new StoreManager(effectiveRegistryId, initialStores, {
+          externalStores: stores,
+          externalOwnership: resolvedOwnership,
+        }),
+    });
 
     return (
       <StoreContext.Provider value={contextValue}>
@@ -641,17 +505,21 @@ function createStoreContextImpl<T extends Record<string, any>>(
    */
   function useStoreInfo() {
     const manager = useStoreManager();
-    useSyncExternalStore(
-      listener => manager.subscribeInfo(listener),
-      () => manager.getInfoVersion(),
-      () => manager.getInfoVersion(),
+    const subscribeInfo = useMemo(
+      () => (listener: () => void) => manager.subscribeInfo(listener),
+      [manager]
     );
+    const getInfoVersion = useMemo(
+      () => () => manager.getInfoVersion(),
+      [manager]
+    );
+    useSyncExternalStore(subscribeInfo, getInfoVersion, getInfoVersion);
     return manager.getInfo();
   }
 
   function useStoreClear() {
     const manager = useStoreManager();
-    return () => manager.clear();
+    return useCallback(() => manager.clear(), [manager]);
   }
 
 

@@ -10,7 +10,7 @@ export function ResultsDisplay({ executionResults }: ResultsDisplayProps) {
     <Card>
       <h2 className="text-xl font-semibold mb-4">📄 Results</h2>
       {executionResults.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-3" data-testid="results-display">
           {executionResults.map((result, index) => (
             <CodeBlock key={index} size="xs">
               {JSON.stringify(result, null, 2)}

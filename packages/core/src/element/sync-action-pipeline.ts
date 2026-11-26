@@ -76,6 +76,8 @@ interface InternalEntry {
   readonly handler: (...args: any[]) => unknown;
 }
 
+const EMPTY_ERRORS: readonly unknown[] = Object.freeze([]);
+
 export function createSyncActionPipeline<
   TActions extends Record<string, unknown> = Record<string, unknown>,
 >(name: string): SyncActionPipeline<TActions> {
@@ -152,16 +154,16 @@ export function createSyncActionPipeline<
       let aborted = false;
       let abortReason: string | undefined;
       let result: TResult | undefined;
-      const errors: unknown[] = [];
+      let errors: unknown[] | undefined;
 
       // Phase 1: Guards (admission checks & payload modifiers)
-      for (const entry of [...(guards.get(action) ?? [])]) {
-        consumeOnce(guards, action, entry);
-        let entryAborted = false;
+      // addEntry / unregister / consumeOnce replace bucket arrays via copy-on-write,
+      // so iterating the captured array reference is snapshot-safe with zero copies.
+      const guardList = guards.get(action);
+      if (guardList && guardList.length > 0) {
         const guardController: SyncGuardController<TActions[K]> = {
           abort(reason?: string) {
             aborted = true;
-            entryAborted = true;
             abortReason = reason;
           },
           modifyPayload(updater) {
@@ -174,20 +176,25 @@ export function createSyncActionPipeline<
             return currentPayload;
           },
         };
-        try {
-          entry.handler(currentPayload, guardController);
-        } catch (error) {
-          aborted = true;
-          abortReason = error instanceof Error ? error.message : String(error);
-          errors.push(error);
+        for (let i = 0; i < guardList.length; i++) {
+          const entry = guardList[i]!;
+          if (entry.once) consumeOnce(guards, action, entry);
+          try {
+            entry.handler(currentPayload, guardController);
+          } catch (error) {
+            aborted = true;
+            abortReason = error instanceof Error ? error.message : String(error);
+            if (!errors) errors = [];
+            errors.push(error);
+          }
+          if (aborted) break;
         }
-        if (aborted || entryAborted) break;
       }
 
       // Phase 2: Execution handlers
       if (!aborted) {
-        for (const entry of [...(handlers.get(action) ?? [])]) {
-          consumeOnce(handlers, action, entry);
+        const handlerList = handlers.get(action);
+        if (handlerList && handlerList.length > 0) {
           const execController: SyncResultController<TActions[K], TResult> = {
             abort(reason?: string) {
               aborted = true;
@@ -209,34 +216,43 @@ export function createSyncActionPipeline<
               return result;
             },
           };
-          try {
-            const ret = entry.handler(currentPayload, execController);
-            if (ret !== undefined) result = ret as TResult;
-          } catch (error) {
-            errors.push(error);
-            break;
+          for (let i = 0; i < handlerList.length; i++) {
+            const entry = handlerList[i]!;
+            if (entry.once) consumeOnce(handlers, action, entry);
+            try {
+              const ret = entry.handler(currentPayload, execController);
+              if (ret !== undefined) result = ret as TResult;
+            } catch (error) {
+              if (!errors) errors = [];
+              errors.push(error);
+              break;
+            }
+            if (aborted) break;
           }
-          if (aborted) break;
         }
       }
 
-      const success = !aborted && errors.length === 0;
+      const success = !aborted && !errors;
 
       // Phase 3: Observers
-      for (const entry of [...(observers.get(action) ?? [])]) {
-        if (entry.when === 'success' && !success) continue;
-        if (entry.when === 'failure' && success) continue;
-        consumeOnce(observers, action, entry);
-        try {
-          entry.handler(currentPayload, {
-            success,
-            aborted,
-            abortReason,
-            result,
-            errors: [...errors],
-          });
-        } catch {
-          // Observer errors do not invalidate prior committed results.
+      const observerList = observers.get(action);
+      if (observerList && observerList.length > 0) {
+        for (let i = 0; i < observerList.length; i++) {
+          const entry = observerList[i]!;
+          if (entry.when === 'success' && !success) continue;
+          if (entry.when === 'failure' && success) continue;
+          if (entry.once) consumeOnce(observers, action, entry);
+          try {
+            entry.handler(currentPayload, {
+              success,
+              aborted,
+              abortReason,
+              result,
+              errors: errors ? [...errors] : EMPTY_ERRORS,
+            });
+          } catch {
+            // Observer errors do not invalidate prior committed results.
+          }
         }
       }
 
@@ -246,7 +262,7 @@ export function createSyncActionPipeline<
         abortReason,
         payload: currentPayload,
         result,
-        errors,
+        errors: errors ?? EMPTY_ERRORS,
       };
     },
     destroy() {

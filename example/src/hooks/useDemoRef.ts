@@ -1,4 +1,4 @@
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // RefContext for DOM elements
 type DemoRefs = {

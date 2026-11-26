@@ -3,6 +3,7 @@ import { hydrateRoot, type Root } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { act } from '@testing-library/react';
 import { createStore } from '../../../src/stores/core/Store';
+import { createTimeTravelStoreContext } from '../../../src/stores/patterns/time-travel-store-pattern';
 import {
   useStoreValue,
   useStoreValues,
@@ -152,6 +153,35 @@ describe('useStoreValue server snapshots', () => {
     }
 
     expect(hydration?.recoverableErrors).toEqual([]);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('hydrates createTimeTravelStoreContext.useTimeTravelControls without React snapshot warnings', async () => {
+    const DocCtx = createTimeTravelStoreContext('SSRTimeTravelDoc', {
+      doc: { initialValue: { count: 1 }, maxHistory: 10 },
+    });
+
+    function ControlsView() {
+      const value = useStoreValue(DocCtx.useStore('doc'));
+      const controls = DocCtx.useTimeTravelControls('doc');
+      return (
+        <p>
+          {value.count}:{controls.position}/{controls.historyLength}:{String(controls.canUndo)}
+        </p>
+      );
+    }
+
+    const hydration = await renderAndHydrate(
+      <DocCtx.Provider>
+        <ControlsView />
+      </DocCtx.Provider>
+    );
+
+    expect(hydration.container.textContent).toBe('1:0/1:false');
+    await hydration.cleanup();
+
+    expect(hydration.recoverableErrors).toEqual([]);
     expect(consoleErrorSpy).not.toHaveBeenCalled();
     expect(consoleWarnSpy).not.toHaveBeenCalled();
   });

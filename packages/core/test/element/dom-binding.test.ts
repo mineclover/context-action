@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createElementBinding,
-  createPointerGestureSession,
-  createRovingFocusController,
   createSyncActionPipeline,
   toReactPartProps,
 } from '../../src/element.js';
@@ -362,85 +360,6 @@ describe('framework-neutral element binding', () => {
     const secondSuccess = pipeline.dispatch('submit', { ok: true });
     expect(secondSuccess.success).toBe(true);
     expect(calls).toEqual(['success:done']);
-  });
-
-  it('navigates items with createRovingFocusController while skipping disabled items', () => {
-    let activeId = 'tab-1';
-    const roving = createRovingFocusController({
-      orientation: 'horizontal',
-      loop: true,
-      getItems: () => [
-        { id: 'tab-1' },
-        { id: 'tab-2', disabled: true },
-        { id: 'tab-3' },
-      ],
-      getActiveId: () => activeId,
-      onFocusChange: nextId => {
-        activeId = nextId;
-      },
-    });
-
-    expect([roving.getTabIndex('tab-1'), roving.getTabIndex('tab-2'), roving.getTabIndex('tab-3')]).toEqual([0, -1, -1]);
-    const next = roving.handleKeyDown('tab-1', { key: 'ArrowRight' });
-    expect(next).toBe('tab-3');
-    expect(activeId).toBe('tab-3');
-
-    const wrapped = roving.handleKeyDown('tab-3', { key: 'ArrowRight' });
-    expect(wrapped).toBe('tab-1');
-    expect(roving.handleKeyDown('tab-1', { key: 'End' })).toBe('tab-3');
-    expect(roving.handleKeyDown('tab-3', { key: 'Home' })).toBe('tab-1');
-
-    const noLoop = createRovingFocusController({
-      orientation: 'vertical',
-      loop: false,
-      getItems: () => [{ id: 'a' }, { id: 'b' }],
-      getActiveId: () => 'b',
-    });
-    expect(noLoop.handleKeyDown('b', { key: 'ArrowDown' })).toBe('b');
-    expect(noLoop.handleKeyDown('b', { key: 'ArrowRight' })).toBeNull();
-  });
-
-  it('tracks capture, modifiers, commit, guard rejection, and Escape cancel in createPointerGestureSession', () => {
-    const events: string[] = [];
-    const target = {
-      setPointerCapture: vi.fn(),
-      releasePointerCapture: vi.fn(),
-    };
-
-    let rejectStart = true;
-    const session = createPointerGestureSession({
-      onStart: snap => {
-        events.push(`start:${snap.startX},${snap.startY}`);
-        return !rejectStart;
-      },
-      onMove: snap => events.push(`move:${snap.deltaX},${snap.deltaY}:shift=${snap.modifiers.shiftKey}`),
-      onCommit: snap => events.push(`commit:${snap.deltaX},${snap.deltaY}`),
-      onCancel: (_snap, reason) => events.push(`cancel:${reason}`),
-    });
-
-    expect(session.start({ pointerId: 1, button: 0, clientX: 10, clientY: 20, currentTarget: target })).toBe(false);
-    expect(session.isActive()).toBe(false);
-
-    rejectStart = false;
-    expect(session.start({ pointerId: 2, button: 0, clientX: 10, clientY: 20, currentTarget: target })).toBe(true);
-    expect(target.setPointerCapture).toHaveBeenCalledWith(2);
-    expect(session.move({ pointerId: 2, clientX: 35, clientY: 5, shiftKey: true })).toBe(true);
-    expect(session.commit({ pointerId: 2, clientX: 40, clientY: 10 })).toBe(true);
-    expect(target.releasePointerCapture).toHaveBeenCalledWith(2);
-    expect(session.isActive()).toBe(false);
-    expect(events).toEqual([
-      'start:10,20',
-      'start:10,20',
-      'move:25,-15:shift=true',
-      'commit:30,-10',
-    ]);
-
-    events.length = 0;
-    expect(session.start({ pointerId: 3, clientX: 0, clientY: 0, currentTarget: target })).toBe(true);
-    expect(session.handleKeyDown({ key: 'Escape' })).toBe(true);
-    expect(session.isActive()).toBe(false);
-    expect(target.releasePointerCapture).toHaveBeenCalledWith(3);
-    expect(events).toEqual(['start:0,0', 'cancel:escape']);
   });
 });
 

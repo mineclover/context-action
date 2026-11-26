@@ -140,23 +140,45 @@ const actionRegister = new ActionRegister<AppActions>({
 ### Configuration Options
 
 ```typescript
-interface ActionRegisterConfig {
+interface ActionRegisterConfig<T extends ActionPayloadMap = ActionPayloadMap> {
   /** Name identifier for this ActionRegister instance */
   name?: string;
-  
+
+  /** Contract-level per-action lane, queue, timeout, and trace defaults */
+  actions?: Partial<Record<ActionNames<T>, {
+    lane?: 'fast' | 'orchestrated';
+    queue?: 'serial' | 'immediate';
+    timeout?: number;
+    trace?: boolean;
+  }>>;
+
   /** Registry-specific configuration options */
   registry?: {
     /** Debug mode for registry operations */
     debug?: boolean;
-    
-    /** Auto-cleanup configuration for one-time handlers */
+
+    /** Auto-cleanup configuration for idle guards and one-time handlers */
     autoCleanup?: boolean;
-    
+
+    /** Default execution mode for actions ('sequential' | 'parallel' | 'race') */
+    defaultExecutionMode?: ExecutionMode;
+
+    /** Serialize independent dispatches through OperationQueue. Default: false */
+    useConcurrencyQueue?: boolean;
+
     /** Optional finite handler limit; defaults to Infinity and rejects overflow */
     maxHandlersPerAction?: number;
-    
-    /** Default execution mode for actions */
-    defaultExecutionMode?: ExecutionMode;
+
+    /** Maximum controller priority jumps in one dispatch. Default: 10 */
+    maxJumps?: number;
+
+    /** Global error handler invoked once with the original dispatch payload */
+    errorHandler?: (error: Error, context: unknown) => void | Promise<void>;
+
+    /** Optional schema map and dispatch validation policy */
+    schema?: Record<string, ActionSchemaLike>;
+    validateOnDispatch?: boolean;
+    validationMode?: 'strict' | 'warn' | 'silent';
   };
 }
 ```
@@ -164,18 +186,131 @@ interface ActionRegisterConfig {
 ### Pipeline Lifecycle
 
 ```typescript
-// 1. Handler Registration Phase
-actionRegister.register('updateUser', handler, config);
+// 1. Handler Registration Phase (role-based or compatibility register())
+actionRegister.registerGuard('updateUser', validateInput, { priority: 100 });
+actionRegister.registerCommand('updateUser', updateStore, { priority: 50 });
 
-// 2. Pipeline Dispatch Phase  
+// 2. Pipeline Dispatch Phase (dispatch() or dispatchWithResult())
 await actionRegister.dispatch('updateUser', payload);
 
 // 3. Pipeline Execution Phase (internal)
-//    - Priority sorting
-//    - Condition evaluation
-//    - Handler execution
-//    - Flow control
-//    - Cleanup
+//    - CompiledActionPipeline lookup (cached per action until pipeline mutates)
+//    - Fast sequential hot path vs full orchestration slow path
+//    - Guard preflight -> Result/Command handlers -> Terminal observers
+//    - Once claiming, cleanup, and drain tracking
+```
+
+### 2-Tier Dispatch Engine & Compiled Pipeline Cache
+
+`ActionRegister` lazily compiles and caches a `CompiledActionPipeline` per action (`guards`, `nonGuards`, `results`, `observers`, `hasOnce`, and timing guard limits `debounceMs`/`throttleMs`) and invalidates it only when handlers are registered, replaced, removed, or cleared.
+
+```text
+dispatch() / dispatchWithResult() / actions.* Proxy
+   │
+   ├─ Eligible default sequential dispatch() (and lane: 'fast'):
+   │    lane !== 'orchestrated' · no matching trace listener · no options or immediate-only ·
+   │    queue off/bypassed · no schema · no guards · no observers · no debounce/throttle · no once · mode='sequential'
+   │    └─► Fast Sequential Path (dispatchFastSequential → continueFastSequentialAsync)
+   │          • Zero PipelineContext / outcome / AbortController allocations
+   │          • Seamless sync-to-async transition on the first Promise return
+   │          • Enforces parity on cooperative abort/destroy, condition Error
+   │            normalization, original-payload errorHandler, and throwing .then getters
+   │
+   └─► Full Orchestration Path (_dispatchWithResult):
+        Admission (schema + ActionGuard) ─► OperationQueue ─► Guard Preflight ─►
+        Retry Loop (executeWithRetry) ─► Execution Mode (sequential/parallel/race) ─►
+        Result Aggregation ─► Terminal Observers ─► Dispatch Trace Settlement
+```
+
+### Role-Based Registration & Controller Surfaces
+
+Prefer explicit role-specific registration methods for production pipelines so admission, side effects, result generation, and post-result observation remain cleanly isolated:
+
+| Role | API | Phase | Controller Surface | Result Participation |
+|---|---|---|---|---|
+| `guard` | `registerGuard` | Preflight (`sequential`, `fatal`) | `signal`, `getPayload`, `modifyPayload`, `abort` | No |
+| `command` | `registerCommand` | Pipeline (Phase 2 void side effect) | `signal`, `getPayload`, `abort` | No |
+| `result` | `registerResult` | Pipeline (`TResultMap` typed value) | `signal`, `getPayload`, `abort`, `return`, `setResult`, `getResults`, `mergeResult` | Yes |
+| `legacy` | `register` | Pipeline (1.x compatibility) | All result controls + `modifyPayload`, `jumpToPriority` | Yes |
+| `observer` | `registerObserver` | Settlement (after terminal outcome) | None (`ActionObserverEvent` immutable snapshot) | No |
+
+<!-- @context-action-compile -->
+```typescript
+import {
+  ActionRegister,
+  isActionTimeoutError,
+  type ActionPayloadMap,
+  type ActionResultMap,
+} from '@context-action/core';
+
+interface OrderActions extends ActionPayloadMap {
+  submitOrder: { orderId: string; valid: boolean };
+  audit: { orderId: string };
+}
+
+interface OrderResults extends ActionResultMap<OrderActions> {
+  submitOrder: { receiptId: string };
+}
+
+const register = new ActionRegister<OrderActions, OrderResults>({
+  name: 'OrderPipeline',
+  actions: {
+    submitOrder: { lane: 'orchestrated', queue: 'serial', timeout: 5000 },
+    audit: { lane: 'fast' },
+  },
+  registry: {
+    errorHandler: (error, context) => {
+      console.error('Dispatch error:', error.message, context);
+    },
+  },
+});
+
+const stopTrace = register.subscribeDispatchTrace(
+  event => {
+    console.info(event.dispatchId, event.phase, event.status);
+  },
+  { actions: ['submitOrder'] },
+);
+
+// 1. Preflight guard: sequential & fatal
+register.registerGuard('submitOrder', payload => {
+  if (!payload.valid) throw new Error('Invalid order payload');
+}, { id: 'guard-valid' });
+
+// 2. Phase 2 void command: side effect without result arbitration
+register.registerCommand('submitOrder', payload => {
+  console.info('Recording audit intent for', payload.orderId);
+}, { id: 'command-audit', priority: 20 });
+
+// 3. Typed result handler
+register.registerResult('submitOrder', async payload => {
+  await Promise.resolve();
+  return { receiptId: `rcpt-${payload.orderId}` };
+}, { id: 'result-receipt', scheduling: 'await-before-next', errorPolicy: 'fatal' });
+
+// 4. Terminal observer: receives frozen outcome snapshot
+register.registerObserver('submitOrder', event => {
+  console.info('Settled:', event.outcome, event.result);
+}, { when: 'always' });
+
+async function submit() {
+  try {
+    const execution = await register.dispatchWithResult('submitOrder', {
+      orderId: 'ORD-1',
+      valid: true,
+    });
+    console.info(execution.outcome, execution.result);
+  } catch (error) {
+    if (isActionTimeoutError(error)) {
+      console.warn('Timeout after ms:', error.timeout);
+    }
+  } finally {
+    stopTrace();
+    await register.destroyAsync();
+  }
+}
+
+void submit;
 ```
 
 ## Handler Registration Patterns
@@ -1345,12 +1480,12 @@ The ActionPayloadMap and ActionRegister system provides a powerful, type-safe fo
 
 ### Latest Features Summary:
 
-- **Enhanced HandlerConfig** with timing controls, lifecycle options, and metadata
-- **Advanced Filtering System** for selective handler execution  
-- **Result Collection & Processing** with multiple strategies and custom mergers
-- **Auto AbortController Management** for better cancellation control
-- **Comprehensive ExecutionResult** with detailed execution information
-- **Registry Management APIs** for monitoring and statistics
-- **Performance Metrics** with timing and error collection
+- **Role-Based Pipeline Contract (`registerGuard`, `registerCommand`, `registerResult`, `registerObserver`)** with strictly scoped controller surfaces
+- **Compiled Pipeline Cache & 2-Tier Fast Sequential Execution** minimizing allocations and preserving full abort/error parity with `dispatchWithResult`
+- **Per-Action Policies (`actions[key].queue`, `actions[key].timeout`)** and **Dispatch Lifecycle Tracing (`subscribeDispatchTrace`)**
+- **Enhanced `HandlerConfig`** with explicit `scheduling`, `errorPolicy`, timing controls, `once` claiming, and metadata
+- **Advanced Filtering System** for selective handler execution without bypassing guards
+- **Result Collection & Processing** (`first` | `last` | `all` | `merge` | `custom`) and cooperative `ActionTimeoutError` cancellation
+- **Graceful Shutdown (`destroyAsync({ deferCleanup? })`)** draining active dispatches and started handlers before running cleanup
 
 For more advanced patterns and integration examples, see the [Context-Action Framework Documentation](../../../README.md) and other concept guides in this directory.

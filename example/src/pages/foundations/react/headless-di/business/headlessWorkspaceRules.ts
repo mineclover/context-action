@@ -22,6 +22,10 @@ export type HeadlessWorkspaceActions = {
   resetWorkspace: void;
 };
 
+export type HeadlessViewActions = {
+  setViewFilterTag: { filterTag: ViewLocalState['filterTag'] };
+};
+
 export interface WorkspaceValidationResult {
   valid: boolean;
   normalized: string;

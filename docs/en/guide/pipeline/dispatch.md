@@ -123,22 +123,31 @@ function AdvancedUserComponent() {
 
 ### Timeout Configuration
 
-Prevent indefinite hanging with timeouts:
+Prevent indefinite hanging with timeouts. Exceeding `timeout` aborts the dispatch signal and **rejects** the returned promise with `ActionTimeoutError` (detectable via `isActionTimeoutError(error)`), while internal work continues draining safely until settlement:
 
 ```typescript
-// Dispatch with timeout
-const result = await actionRegister.dispatchWithResult('longOperation', 
-  { data: 'large-dataset' },
-  { 
-        result: { collect: true },
-    timeout: 10000  // 10 second timeout
-  }
-);
+import { isActionTimeoutError } from '@context-action/core';
 
-if (result.terminated) {
-  console.log('Operation timed out');
+try {
+  const result = await actionRegister.dispatchWithResult(
+    'longOperation',
+    { data: 'large-dataset' },
+    {
+      result: { collect: true },
+      timeout: 10000, // 10 second wall-clock timeout (includes queue wait & retries)
+    },
+  );
+  console.log('Completed with outcome:', result.outcome, 'terminated early:', result.terminated);
+} catch (error) {
+  if (isActionTimeoutError(error)) {
+    console.log(`Action "${error.action}" timed out after ${error.timeout}ms`);
+  } else {
+    throw error;
+  }
 }
 ```
+
+> Note: `result.terminated === true` indicates that a handler explicitly ended the pipeline early via `controller.return(value)`, not a timeout.
 
 ### Result Collection Options
 
@@ -241,6 +250,8 @@ function BatchDispatcher() {
 ### Error Handling in Dispatch
 
 ```typescript
+import { isActionTimeoutError, isActionValidationError } from '@context-action/core';
+
 function ErrorHandlingDispatcher() {
   const { dispatchWithResult } = useActionDispatchWithResult();
   
@@ -254,23 +265,31 @@ function ErrorHandlingDispatcher() {
         }
       );
       
-      if (result.aborted) {
-        console.log('Operation was aborted:', result.abortReason);
-        // Handle abortion gracefully
-      } else if (result.terminated) {
-        console.log('Operation timed out');
-        // Handle timeout
-      } else if (result.success) {
-        console.log('Operation completed:', result.results);
-        // Handle success
-      } else {
-        console.log('Operation failed with errors');
-        // Handle general failure
+      switch (result.outcome) {
+        case 'cancelled':
+          console.log('Operation was aborted:', result.abortReason);
+          break;
+        case 'debounced':
+        case 'throttled':
+          console.log('Skipped by timing guard:', result.outcome);
+          break;
+        case 'completed':
+        case 'completed_with_errors':
+          console.log('Operation completed:', result.result, result.successResults);
+          break;
+        case 'failed':
+          console.log('Operation failed with fatal errors:', result.errors);
+          break;
       }
       
     } catch (error) {
-      console.error('Dispatch failed:', error);
-      // Handle dispatch-level errors
+      if (isActionTimeoutError(error)) {
+        console.error('Operation timed out:', error.timeout);
+      } else if (isActionValidationError(error)) {
+        console.error('Invalid payload:', error.issues);
+      } else {
+        console.error('Dispatch failed:', error);
+      }
     }
   };
   
@@ -280,88 +299,160 @@ function ErrorHandlingDispatcher() {
 
 ## Dispatch Result Structure
 
-### Success Result
+`dispatchWithResult()` resolves to `ExecutionResult<R>` (matching `packages/core/src/types.ts`). Caller timeouts (`ActionTimeoutError`), strict schema failures (`ActionValidationError`), and dispatches after shutdown (`ActionRegisterDestroyedError`) reject as errors rather than returning `ExecutionResult`.
 
 ```typescript
-interface DispatchResult<T = any> {
-  success: true;
-  aborted: false;
-  terminated: false;
-  results: T[];           // All handler return values
-  errors: never[];        // Empty for successful operations
+interface ExecutionResult<R = void> {
+  success: boolean;
+  aborted: boolean;
+  abortReason: string | undefined;
+  terminated: boolean; // True when ended early via controller.return()
+  outcome: 'completed' | 'completed_with_errors' | 'failed' | 'cancelled' | 'debounced' | 'throttled';
+  validation?: {
+    passed: boolean;
+    errors: string[];
+  };
+  result: R | R[] | undefined;   // Aggregated final result (by strategy)
+  successResults: R[];           // Non-undefined handler results
+  results: Array<R | undefined>; // Raw collected results
+  failedResults: Array<{
+    handlerId: string;
+    error: Error;
+    expectedType: string;
+  }>;
   execution: {
+    duration: number;
+    admissionDuration: number;
+    queueWaitDuration: number;
+    pipelineDuration: number;
+    retryDelayDuration?: number;
+    resultProcessingDuration?: number;
+    attempts?: Array<{
+      startTime: number;
+      endTime: number;
+      duration: number;
+      outcome: 'succeeded' | 'failed' | 'retried' | 'cancelled';
+    }>;
     handlersExecuted: number;
+    handlersSkipped: number;
+    handlersFailed: number;
     startTime: number;
     endTime: number;
-    duration: number;
-    mode: 'sequential' | 'parallel' | 'race';
   };
-  metadata?: {
-    handlerIds: string[];
-    priorities: number[];
-    payload: any;           // Final payload state
+  handlers: HandlerExecutionOutcome<R>[];
+  raceDiagnostics?: {
+    winnerId?: string;
+    winner?: HandlerExecutionOutcome<R>;
+    loserSnapshots: HandlerExecutionOutcome<R>[];
+    pendingLosersAtReturn: number;
+    observedLoserFailures: number;
   };
+  errors: HandlerError[];
 }
 ```
 
-### Aborted Result
+### Verified Dispatch & Outcome Handling Example
 
+<!-- @context-action-compile -->
 ```typescript
-interface AbortedResult {
-  success: false;
-  aborted: true;
-  terminated: false;
-  abortReason: string;     // Reason provided to controller.abort()
-  abortedBy: string;       // Handler ID that caused abort
-  results: any[];          // Results from handlers that executed before abort
-  errors: Error[];
-  execution: {
-    handlersExecuted: number;
-    startTime: number;
-    endTime: number;
-    duration: number;
-  };
-}
-```
+import {
+  ActionRegister,
+  isActionTimeoutError,
+  type ActionPayloadMap,
+  type ActionResultMap,
+  type ExecutionResult,
+} from '@context-action/core';
 
-### Timeout Result
-
-```typescript
-interface TimeoutResult {
-  success: false;
-  aborted: false;
-  terminated: true;
-  timeoutMs: number;       // Configured timeout value
-  results: any[];          // Partial results before timeout
-  errors: Error[];
-  execution: {
-    handlersExecuted: number;
-    startTime: number;
-    endTime: number;
-    duration: number;
-  };
+interface ApiActions extends ActionPayloadMap {
+  fetchUser: { userId: string };
+  notify: { message: string };
 }
+
+interface ApiResults extends ActionResultMap<ApiActions> {
+  fetchUser: { name: string };
+}
+
+const registry = new ActionRegister<ApiActions, ApiResults>({
+  name: 'DispatchGuide',
+  actions: {
+    fetchUser: { queue: 'serial', timeout: 5000 },
+    notify: { queue: 'immediate' },
+  },
+});
+
+registry.registerResult('fetchUser', async payload => {
+  await Promise.resolve();
+  return { name: `User-${payload.userId}` };
+});
+
+registry.registerCommand('notify', payload => {
+  console.info(payload.message);
+});
+
+async function runDispatchExamples() {
+  // Fast-path eligible sequential dispatch
+  await registry.dispatch('notify', { message: 'hello' });
+  await registry.actions.notify({ message: 'via-proxy' });
+
+  // Detailed execution result inspection
+  try {
+    const execution: ExecutionResult<{ name: string }> =
+      await registry.dispatchWithResult(
+        'fetchUser',
+        { userId: '123' },
+        { result: { collect: true, strategy: 'first' } },
+      );
+
+    switch (execution.outcome) {
+      case 'completed':
+      case 'completed_with_errors':
+        console.info(execution.result, execution.terminated);
+        break;
+      case 'cancelled':
+        console.warn('Aborted:', execution.abortReason);
+        break;
+      case 'debounced':
+      case 'throttled':
+        console.info('Skipped by timing guard:', execution.outcome);
+        break;
+      case 'failed':
+        console.error('Failed:', execution.errors);
+        break;
+    }
+  } catch (error) {
+    if (isActionTimeoutError(error)) {
+      console.error(`Action "${error.action}" timed out after ${error.timeout}ms`);
+    }
+  } finally {
+    await registry.destroyAsync();
+  }
+}
+
+void runDispatchExamples;
 ```
 
 ## Performance Optimization
 
-### Efficient Dispatching
+### Efficient Dispatching & 2-Tier Fast Path
+
+Reusing a long-lived `ActionRegister` instance preserves both the internal `CompiledActionPipeline` cache (skipping repeated handler sorting, role separation, and timing checks) and cached `actions` / `actionsWithResult` Proxy dispatchers.
+
+In addition, default `dispatch()` calls without trace listeners, options, queueing, schema validation, guards, observers, timing guards, or `once` handlers automatically run on the zero-allocation sequential fast path while keeping identical abort and error semantics to `dispatchWithResult()`:
 
 ```typescript
-// ✅ Good - reuse action register instance
+// ✅ Good - reuse ActionRegister to preserve CompiledActionPipeline & Proxy caches
 const register = new ActionRegister<MyActions>();
 
 function OptimizedComponent() {
   const handleMultipleActions = async () => {
-    // Reuse the same register for multiple dispatches
     await register.dispatch('action1', { data: 'a' });
-    await register.dispatch('action2', { data: 'b' });
+    await register.actions.action2({ data: 'b' });
     await register.dispatch('action3', { data: 'c' });
   };
 }
 
-// ❌ Avoid - creating new registers repeatedly
-function InfficientComponent() {
+// ❌ Avoid - creating new registers repeatedly discards compiled pipeline caches
+function InefficientComponent() {
   const handleAction = async () => {
     const newRegister = new ActionRegister<MyActions>(); // Expensive!
     await newRegister.dispatch('action', { data: 'test' });

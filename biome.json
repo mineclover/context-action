@@ -1,9 +1,10 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.8/schema.json",
   "files": {
     "includes": [
       "packages/core/src/**/*.ts",
       "packages/core/examples/element-hosts/**/*.ts",
+      "packages/interactions/src/**/*.ts",
       "packages/store-core/src/**/*.ts",
       "packages/tool-protocol/src/**/*.ts",
       "packages/webmcp/src/**/*.ts",
@@ -110,6 +111,25 @@
         "rules": {
           "suspicious": {
             "noTemplateCurlyInString": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "packages/react/src/actions/ActionContext.tsx",
+        "packages/react/src/actions/createScopedContext.tsx",
+        "packages/react/src/refs/createRefContext.ts",
+        "packages/react/src/refs/createRefCollection.tsx",
+        "packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx",
+        "packages/react/src/stores/patterns/time-travel-store-pattern.tsx",
+        "packages/react/src/tools/ToolContext.tsx",
+        "packages/preact-ui/examples/modular-signals-wc/**/*.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noComponentHookFactories": "off"
           }
         }
       }

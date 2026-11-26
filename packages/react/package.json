@@ -1,6 +1,6 @@
 {
   "name": "@context-action/react",
-  "version": "4.0.7",
+  "version": "5.0.0",
   "type": "module",
   "description": "React integration for @context-action/core - Context and hooks for type-safe action management",
   "main": "dist/index.cjs",
@@ -15,6 +15,36 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
+      }
+    },
+    "./refs": {
+      "import": {
+        "types": "./dist/refs.d.ts",
+        "default": "./dist/refs.js"
+      },
+      "require": {
+        "types": "./dist/refs.d.cts",
+        "default": "./dist/refs.cjs"
+      }
+    },
+    "./time-travel": {
+      "import": {
+        "types": "./dist/time-travel.d.ts",
+        "default": "./dist/time-travel.js"
+      },
+      "require": {
+        "types": "./dist/time-travel.d.cts",
+        "default": "./dist/time-travel.cjs"
+      }
+    },
+    "./transactions": {
+      "import": {
+        "types": "./dist/transactions.d.ts",
+        "default": "./dist/transactions.js"
+      },
+      "require": {
+        "types": "./dist/transactions.d.cts",
+        "default": "./dist/transactions.cjs"
       }
     },
     "./backend": {
@@ -123,38 +153,38 @@
     }
   },
   "dependencies": {
-    "@context-action/core": "^1.2.6",
+    "@context-action/core": "^2.0.0",
+    "@context-action/interactions": "^0.1.0",
     "@context-action/mutative": "^0.8.15",
-    "@context-action/store-core": "^0.1.3",
+    "@context-action/store-core": "^0.1.5",
     "react-compiler-runtime": "1.0.0"
   },
   "devDependencies": {
-    "@babel/core": "7.29.7",
+    "@babel/core": "8.1.3",
     "@context-action/tool-durable-operations": "workspace:*",
     "@context-action/tool-protocol": "workspace:*",
     "@context-action/webmcp": "workspace:*",
-    "@rolldown/plugin-babel": "0.2.4",
-    "@swc/core": "1.16.13",
-    "@swc/helpers": "0.5.23",
+    "@rolldown/plugin-babel": "0.3.1",
+    "@swc/core": "1.16.22",
+    "@swc/helpers": "0.5.24",
     "@swc/jest": "0.2.39",
-    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/jest-dom": "8.0.0",
     "@testing-library/react": "16.3.3",
-    "@testing-library/user-event": "14.6.7",
-    "@types/babel__core": "7.20.5",
+    "@testing-library/user-event": "14.6.13",
     "@types/jest": "^30.0.0",
-    "@types/node": "24.19.2",
-    "@types/react": "19.2.17",
-    "@types/react-dom": "19.2.3",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "babel-plugin-react-compiler": "1.0.0",
     "jest": "30.5.2",
     "jest-environment-jsdom": "30.5.2",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "rimraf": "^6.1.3",
-    "rolldown": "1.2.11",
-    "rollup-plugin-visualizer": "7.1.1",
-    "tsdown": "0.23.0",
-    "tslib": "^2.8.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "rimraf": "^6.1.4",
+    "rolldown": "1.3.3",
+    "rollup-plugin-visualizer": "7.1.3",
+    "tsdown": "0.23.7",
+    "tslib": "^2.9.1",
     "typescript": "6.0.3",
     "zod": "^4.6.7"
   },

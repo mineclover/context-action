@@ -5,8 +5,20 @@
  * Provides reactive access to canUndo, canRedo, position, and history.
  */
 
-import { useSyncExternalStore, useCallback, useMemo, useRef } from 'react';
-import { TimeTravelStore } from '../core/TimeTravelStore';
+import { useCallback, useDebugValue, useMemo, useRef, useSyncExternalStore } from 'react';
+import type { TimelineReader, TimelineWriter } from '../core/contracts';
+
+/** Structural store contract accepted by `useTimeTravelControls` (`TimeTravelStore` or `TimelineBackend`). */
+export type TimeTravelControlsStore<T = unknown> = TimelineReader<T> & TimelineWriter;
+
+function formatTimeTravelControlsDebugValue(state: {
+  position: number;
+  historyLength: number;
+  canUndo: boolean;
+  canRedo: boolean;
+}): string {
+  return `${state.position + 1}/${state.historyLength} (undo=${state.canUndo}, redo=${state.canRedo})`;
+}
 
 /**
  * Time travel control state (without functions)
@@ -63,10 +75,10 @@ const SERVER_SNAPSHOT: TimeTravelState = {
  * ```
  */
 export function useTimeTravelControls<T>(
-  store: TimeTravelStore<T>
+  store: TimeTravelControlsStore<T>
 ): TimeTravelControlsState {
-  // Cache for getSnapshot result - must return same reference if values haven't changed
-  const cacheRef = useRef<TimeTravelState | null>(null);
+  // Cache for getSnapshot result - must return same reference if values haven't changed for this store
+  const cacheRef = useRef<{ store: TimeTravelControlsStore<T>; state: TimeTravelState } | null>(null);
 
   // Subscribe to store changes
   const subscribe = useCallback(
@@ -83,21 +95,22 @@ export function useTimeTravelControls<T>(
     const position = store.getPosition();
     const historyLength = store.getHistoryLength();
 
-    // Return cached value if nothing changed
+    // Return cached value if nothing changed on the same store instance
     const cached = cacheRef.current;
     if (
       cached &&
-      cached.canUndo === canUndo &&
-      cached.canRedo === canRedo &&
-      cached.position === position &&
-      cached.historyLength === historyLength
+      cached.store === store &&
+      cached.state.canUndo === canUndo &&
+      cached.state.canRedo === canRedo &&
+      cached.state.position === position &&
+      cached.state.historyLength === historyLength
     ) {
-      return cached;
+      return cached.state;
     }
 
     // Create and cache new state
     const newState: TimeTravelState = { canUndo, canRedo, position, historyLength };
-    cacheRef.current = newState;
+    cacheRef.current = { store, state: newState };
     return newState;
   }, [store]);
 
@@ -106,6 +119,7 @@ export function useTimeTravelControls<T>(
 
   // Use useSyncExternalStore for React integration
   const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  useDebugValue(state, formatTimeTravelControlsDebugValue);
 
   // Memoize control functions
   const controls = useMemo(

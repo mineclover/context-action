@@ -209,7 +209,7 @@ describe('Store Class', () => {
       const batchedStore = createStore('batched-patches', {
         count: 0,
         name: 'initial'
-      });
+      }, { notificationMode: 'batched' });
       const patchListener = jest.fn();
       batchedStore.subscribeWithPatches(patchListener);
 
@@ -232,7 +232,9 @@ describe('Store Class', () => {
     });
 
     it('should preserve the current frame patches when a listener updates again', (done) => {
-      const batchedStore = createStore('batched-reentrant-patches', { count: 0 });
+      const batchedStore = createStore('batched-reentrant-patches', { count: 0 }, {
+        notificationMode: 'batched'
+      });
       const listener = jest.fn(() => {
         if (listener.mock.calls.length === 1) {
           batchedStore.setValue({ count: 2 });
@@ -500,19 +502,23 @@ describe('Store Class', () => {
 
   describe('Performance and Batching', () => {
     it('should batch multiple rapid updates in single frame', (done) => {
+      const batchedStore = createStore('batched-test', 'initial', {
+        notificationMode: 'batched',
+      });
       const listener = jest.fn();
-      store.subscribe(listener);
+      batchedStore.subscribe(listener);
 
       // Rapid updates
-      store.setValue('update1');
-      store.setValue('update2');
-      store.setValue('update3');
-      store.setValue('update4');
-      
+      batchedStore.setValue('update1');
+      batchedStore.setValue('update2');
+      batchedStore.setValue('update3');
+      batchedStore.setValue('update4');
+
       // Should only notify once per frame
       setTimeout(() => {
         expect(listener).toHaveBeenCalledTimes(1);
-        expect(store.getValue()).toBe('update4');
+        expect(batchedStore.getValue()).toBe('update4');
+        batchedStore.dispose();
         done();
       }, 50);
     });
@@ -682,14 +688,12 @@ describe('Store Options and Edge Cases', () => {
     const listener = jest.fn();
     store.subscribe(listener);
 
-    // Test skipComparison option
+    // Test skipComparison option (immediate mode notifies synchronously)
     store.setValue({ count: 0 }, { skipComparison: true });
-    
-    setTimeout(() => {
-      expect(listener).toHaveBeenCalled(); // Should notify even with same value
-      
-      store.dispose();
-    }, 20);
+
+    expect(listener).toHaveBeenCalledTimes(1); // Should notify even with same value
+
+    store.dispose();
   });
 
   it('should handle skipClone option correctly', () => {
@@ -966,17 +970,22 @@ describe('Manual Path Notification (notifyPath/notifyPaths)', () => {
     });
 
     it('should batch multiple notifyPaths calls within same frame', (done) => {
+      const batchedStore = createStore('batched-paths', {
+        ui: { loading: false, progress: 0 },
+        data: { count: 0 },
+      }, { notificationMode: 'batched' });
       const listener = jest.fn();
-      store.subscribe(listener);
+      batchedStore.subscribe(listener);
 
       // Rapid calls
-      store.notifyPaths([['ui', 'loading']]);
-      store.notifyPaths([['ui', 'progress']]);
-      store.notifyPaths([['data', 'count']]);
+      batchedStore.notifyPaths([['ui', 'loading']]);
+      batchedStore.notifyPaths([['ui', 'progress']]);
+      batchedStore.notifyPaths([['data', 'count']]);
 
       setTimeout(() => {
         // RAF batching should combine these
         expect(listener).toHaveBeenCalledTimes(1);
+        batchedStore.dispose();
         done();
       }, 50);
     });

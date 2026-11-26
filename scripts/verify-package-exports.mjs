@@ -12,6 +12,7 @@ const repositoryRoot = path.resolve(scriptDirectory, '..');
 const execFileAsync = promisify(execFile);
 const processlessRuntimePackages = new Set([
   '@context-action/core',
+  '@context-action/interactions',
   '@context-action/lit',
   '@context-action/lit-ui',
   '@context-action/mutative',

@@ -1,13 +1,11 @@
-import {
-  createActionContext,
-  createStoreContext,
-  createTimeTravelStoreContext,
-} from '@context-action/react';
+import { createActionContext, createStoreContext } from '@context-action/react';
+import { createTimeTravelStoreContext } from '@context-action/react/time-travel';
 import {
   createInitialDocumentState,
   createInitialSessionState,
   createInitialViewLocalState,
   type HeadlessSessionState,
+  type HeadlessViewActions,
   type HeadlessWorkspaceActions,
   type ViewLocalState,
   type WorkspaceDocumentState,
@@ -27,6 +25,12 @@ export const {
   useActionDispatch: useHeadlessWorkspaceDispatch,
   useActionObserver: useHeadlessWorkspaceObserver,
 } = createActionContext<HeadlessWorkspaceActions>('HeadlessWorkspaceActions');
+
+export const {
+  Provider: HeadlessViewActionProvider,
+  useActionDispatch: useHeadlessViewDispatch,
+  useActionCommandHandler: useHeadlessViewActionCommandHandler,
+} = createActionContext<HeadlessViewActions>('HeadlessViewActions');
 
 export const {
   Provider: HeadlessSessionStoreProvider,

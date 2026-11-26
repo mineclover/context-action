@@ -1,16 +1,27 @@
-import { createActionContext, createStoreContext } from '@context-action/react';
+import {
+  type ActionPayloadMap,
+  createActionContext,
+  createStoreContext,
+} from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
+import type { ReactNode } from 'react';
+import type { OrderActivityEvent } from '../business/orderActivity';
 import type { OrderDraft } from '../business/orderDraft';
-import type { OrderValidationIssue } from '../business/orderValidation';
 import type { OrderSubmissionState } from '../business/orderStateMachine';
+import type { OrderValidationIssue } from '../business/orderValidation';
 
 /**
- * Tier 1: Action Contracts
+ * Tier 1: Business vs Layout Action Contracts (No Mixed Payloads)
  */
-export interface OrderActions {
+export interface OrderBusinessActions extends ActionPayloadMap {
   updateDraft: Partial<OrderDraft>;
   resetDraft: void;
   submitOrder: void;
   retrySubmission: void;
+}
+
+export interface OrderLayoutActions extends ActionPayloadMap {
+  focusField: { field: keyof OrderDraft };
 }
 
 /**
@@ -20,14 +31,36 @@ export interface OrderStores {
   draft: OrderDraft;
   validationIssues: OrderValidationIssue[];
   submission: OrderSubmissionState;
-  activityLog: string[];
+  activityLog: OrderActivityEvent[];
+}
+
+/**
+ * Tier 3: Imperative Focus Ref Targets
+ */
+export interface OrderRefs {
+  productId: HTMLSelectElement;
+  quantity: HTMLInputElement;
+  shippingAddress: HTMLInputElement;
 }
 
 export const {
-  Provider: OrderActionProvider,
-  useActionDispatch: useOrderActionDispatch,
-  useActionHandler: useOrderActionHandler,
-} = createActionContext<OrderActions>('OrderActions');
+  Provider: OrderBusinessActionProvider,
+  useActionDispatch: useOrderBusinessDispatch,
+  useActionGuard: useOrderBusinessActionGuard,
+  useActionCommandHandler: useOrderBusinessActionCommandHandler,
+  useActionObserver: useOrderBusinessActionObserver,
+} = createActionContext<OrderBusinessActions>('OrderBusinessActions', {
+  actions: {
+    resetDraft: { queue: 'immediate' },
+    retrySubmission: { queue: 'immediate' },
+  },
+});
+
+export const {
+  Provider: OrderLayoutActionProvider,
+  useActionDispatch: useOrderLayoutDispatch,
+  useActionCommandHandler: useOrderLayoutActionCommandHandler,
+} = createActionContext<OrderLayoutActions>('OrderLayoutActions');
 
 export const {
   Provider: OrderStoreProvider,
@@ -43,15 +76,24 @@ export const {
   submission: {
     phase: 'idle',
     orderId: null,
-    errorMessage: null,
+    errorCode: null,
   },
-  activityLog: ['[시스템] 주문 워크스페이스가 초기화되었습니다.'],
+  activityLog: [{ type: 'workspace_initialized' }],
 });
 
-export function OrderContextProvider({ children }: { children: React.ReactNode }) {
+export const {
+  Provider: OrderRefProvider,
+  useRefHandler: useOrderRefHandler,
+} = createRefContext<OrderRefs>('OrderRefs');
+
+export function OrderContextProvider({ children }: { children: ReactNode }) {
   return (
-    <OrderActionProvider>
-      <OrderStoreProvider>{children}</OrderStoreProvider>
-    </OrderActionProvider>
+    <OrderBusinessActionProvider>
+      <OrderLayoutActionProvider>
+        <OrderStoreProvider>
+          <OrderRefProvider>{children}</OrderRefProvider>
+        </OrderStoreProvider>
+      </OrderLayoutActionProvider>
+    </OrderBusinessActionProvider>
   );
 }

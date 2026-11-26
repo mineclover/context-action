@@ -1,11 +1,10 @@
 import { ActionRegister } from '@context-action/core';
+import { createStore, type Store } from '@context-action/react';
 import {
-  createStore,
   createTimeTravelStore,
-  type Store,
   type TimeTravelStore,
   TimeTravelStoreManager,
-} from '@context-action/react';
+} from '@context-action/react/time-travel';
 import {
   createInitialDocumentState,
   createInitialSessionState,

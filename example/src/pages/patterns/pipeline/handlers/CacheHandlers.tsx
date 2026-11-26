@@ -1,4 +1,3 @@
-import { useStoreValue } from '@context-action/react';
 import { useCallback } from 'react';
 import {
   useCacheActionHandler,
@@ -17,7 +16,6 @@ export function CacheHandlers({
   onHandlerExecution,
 }: CacheHandlerProps) {
   const cacheStore = useFlowControlStore('cache');
-  const cache = useStoreValue(cacheStore);
 
   // Memory Cache Handler (P:100) - Highest priority cache
   const memoryCacheHandler = useCallback(
@@ -34,10 +32,14 @@ export function CacheHandlers({
       if (payload.bustCache) {
         console.log('💥 Cache bust requested, clearing memory cache');
 
-        // Use store.update() to modify cache following Context-Action conventions
+        // Use store.update() with cloned Maps so Store shallow reference changes properly
         cacheStore.update((currentCache) => {
-          currentCache.memoryCache.delete(payload.key);
-          return currentCache;
+          const memoryCache = new Map(currentCache.memoryCache);
+          memoryCache.delete(payload.key);
+          return {
+            ...currentCache,
+            memoryCache,
+          };
         });
 
         onExecutionStep('💥 Cache Busted - Skip Memory Cache');
@@ -45,7 +47,7 @@ export function CacheHandlers({
       }
 
       // Check memory cache
-      const cachedData = cache.memoryCache.get(payload.key);
+      const cachedData = cacheStore.getValue().memoryCache.get(payload.key);
       if (cachedData) {
         console.log('🎯 Memory cache HIT - Early return');
         onExecutionStep('🎯 Memory Cache HIT - Early Return');
@@ -63,7 +65,7 @@ export function CacheHandlers({
       onExecutionStep('❌ Memory Cache MISS - Continue');
       return; // Continue to next handler
     },
-    [onExecutionStep, onHandlerExecution, cache.memoryCache]
+    [onExecutionStep, onHandlerExecution, cacheStore]
   );
 
   // Redis Cache Handler (P:80) - Second priority cache
@@ -77,15 +79,19 @@ export function CacheHandlers({
       // Simulate network cache lookup delay
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      const cachedData = cache.redisCache.get(payload.key);
+      const cachedData = cacheStore.getValue().redisCache.get(payload.key);
       if (cachedData) {
         console.log('🎯 Redis cache HIT - Populate memory cache and return');
         onExecutionStep('🎯 Redis Cache HIT - Early Return');
 
-        // Populate memory cache for next time using store.update()
+        // Populate memory cache for next time using immutable Map update
         cacheStore.update((currentCache) => {
-          currentCache.memoryCache.set(payload.key, cachedData);
-          return currentCache;
+          const memoryCache = new Map(currentCache.memoryCache);
+          memoryCache.set(payload.key, cachedData);
+          return {
+            ...currentCache,
+            memoryCache,
+          };
         });
 
         // Early return - stop pipeline execution completely
@@ -101,7 +107,7 @@ export function CacheHandlers({
       onExecutionStep('❌ Redis Cache MISS - Continue');
       return; // Continue to database handler
     },
-    [onExecutionStep, onHandlerExecution, cache.memoryCache, cache.redisCache]
+    [onExecutionStep, onHandlerExecution, cacheStore]
   );
 
   // Database Handler (P:60) - Fallback to database
@@ -128,11 +134,16 @@ export function CacheHandlers({
       console.log('✅ Database fetch successful - Populating caches');
       onExecutionStep('✅ Database Fetch Complete - Populating Caches');
 
-      // Populate both cache levels using store.update()
+      // Populate both cache levels using immutable Map updates
       cacheStore.update((currentCache) => {
-        currentCache.memoryCache.set(payload.key, freshData);
-        currentCache.redisCache.set(payload.key, freshData);
-        return currentCache;
+        const memoryCache = new Map(currentCache.memoryCache);
+        const redisCache = new Map(currentCache.redisCache);
+        memoryCache.set(payload.key, freshData);
+        redisCache.set(payload.key, freshData);
+        return {
+          memoryCache,
+          redisCache,
+        };
       });
 
       controller.return({
@@ -141,7 +152,7 @@ export function CacheHandlers({
         timestamp: Date.now(),
       });
     },
-    [onExecutionStep, onHandlerExecution, cache.memoryCache, cache.redisCache]
+    [onExecutionStep, onHandlerExecution, cacheStore]
   );
 
   // Register handlers with priorities (higher numbers execute first)

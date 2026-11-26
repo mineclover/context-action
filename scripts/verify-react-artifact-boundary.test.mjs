@@ -3,7 +3,11 @@ import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { verifyBasicArtifactGraph } from './verify-react-artifact-boundary.mjs';
+import {
+  verifyBasicArtifactGraph,
+  verifyReachableGraphAbsent,
+  verifyReachableGraphContains,
+} from './verify-react-artifact-boundary.mjs';
 
 async function withArtifacts(files, run) {
   const directory = await mkdtemp(path.join(tmpdir(), 'react-artifact-boundary-'));
@@ -61,5 +65,45 @@ test('fails closed when a reachable declaration chunk is missing', async () => {
     const errors = await verifyBasicArtifactGraph(directory, ['index.d.ts']);
     assert.equal(errors.length, 1);
     assert.match(errors[0], /missing\.d\.ts: missing reachable artifact/);
+  });
+});
+
+test('verifyReachableGraphAbsent rejects forbidden imports buried in transitive chunks', async () => {
+  await withArtifacts({
+    'transactions.js': 'export * from "./chunks/bridge.js";',
+    'chunks/bridge.js': 'import "@context-action/mutative";',
+  }, async directory => {
+    const errors = await verifyReachableGraphAbsent(
+      directory,
+      ['transactions.js'],
+      /@context-action\/mutative/,
+      'forbidden mutative dependency',
+    );
+    assert.equal(errors.length, 1);
+    assert.match(errors[0], /chunks\/bridge\.js: forbidden mutative dependency/);
+  });
+});
+
+test('verifyReachableGraphContains verifies transitive compiler runtime across arbitrary chunk names', async () => {
+  await withArtifacts({
+    'index.js': 'export * from "./chunks/arbitrary-chunk.js";',
+    'chunks/arbitrary-chunk.js': 'import "react-compiler-runtime";',
+  }, async directory => {
+    const okErrors = await verifyReachableGraphContains(
+      directory,
+      ['index.js'],
+      /(?:react\/compiler-runtime|react-compiler-runtime)/,
+      'missing compiler runtime',
+    );
+    assert.deepEqual(okErrors, []);
+
+    const missingErrors = await verifyReachableGraphContains(
+      directory,
+      ['chunks/arbitrary-chunk.js'],
+      /nonexistent-runtime-token/,
+      'missing compiler runtime',
+    );
+    assert.equal(missingErrors.length, 1);
+    assert.match(missingErrors[0], /missing compiler runtime/);
   });
 });

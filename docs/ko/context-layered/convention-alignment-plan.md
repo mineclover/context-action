@@ -1,7 +1,7 @@
 # Context-Layered 컨벤션 정합성 계획
 
-**상태:** 직접 등록 인벤토리 종료, 잔여 구조 게이트 추적 중
-**최근 검토:** 2026-11-20
+**상태:** `example/src` 및 `packages/template-react/src` 대상 구조·승격 AST 게이트 상시 강제 중 (일상 작성 기준은 `convention-index.md` · `spec-to-code-authoring-guide.md`로 통합)
+**최근 검토:** 2026-11-21
 
 이 문서는 기존 예제와 문서를 Context-Layered 구조에 맞추기 위한 저장소 단위 결정을 기록합니다. 구현 표준 문서와 같은 위치에서 현재 상태 분류, Provider 중첩 순서, 컨벤션을 강제하기 위한 완료 조건을 관리합니다.
 
@@ -105,7 +105,8 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - 범용 `createObjectContextHooks` factory는 Action → Manager → Store 동기화를 `lib/patterns/handlers/ObjectContextHandlerRegistry.tsx`에 위임합니다. 내부 ActionRegister를 노출하는 대신 `ObjectContextManager.dispatch`를 도메인 경계의 안전한 bridge로 사용합니다.
 - 컨벤션 검사기는 object-context factory, Flow Control, API Blocking, memoization, priority, mouse-event 조합의 Provider 중첩도 검증합니다. `pnpm convention:check` 결과 Provider 순서 위반은 0건입니다.
 - 컨벤션 검사기는 저장소 구조에서 발견한 canonical root의 레이어 경로, 파일 명명, import 경계도 검증합니다. conditional permission, action-based mouse, context-store mouse, enhanced context-store mouse usecase의 Context-Action 경계를 `contexts/` 아래로 이동했고, implementation-playbook View의 packet·quote는 Data Hook에서 계산하며 레이어 경로·명명 위반은 0건입니다. 현재 root 수는 `pnpm convention:check`에서 확인합니다.
-- `tools/context-action-lint/layered-surface-classification.json`에는 유일하게 남은 비정형 `handlers/` 표면인 compatibility object-context root만 기록했습니다. 분류되지 않은 추가와 stale 분류는 `convention:check`를 실패시킵니다.
+- 컨벤션 검사기는 기본적으로 `example/src`와 `packages/template-react/src`를 함께 검사하고(`--root <dir>`로 외부 앱 검사 지원), 승격된 3대 AST 불변식(`no-deprecated-effect-handler`, `no-store-access-in-actions`, `no-store-subscription-in-handlers`)과 `scripts/check-context-layered-conventions.test.mjs` 단위 테스트를 함께 강제합니다.
+- `tools/context-action-lint/layered-surface-classification.json`은 모든 비정형 `handlers/` 표면(`advanced` live web-coding 통합 호스트 + `compatibility` object-context root)을 기록하고, `tools/context-action-lint/rule-exceptions.json`은 불가피한 AST 규칙 예외(예: `ComparisonHandlerRegistry.tsx`의 비메모이제이션 벤치마크 레인)를 관리하며, 미등록 추가와 stale 항목 모두 `convention:check`를 실패시킵니다.
 - `docs/en/concept/conventions.md`는 strict MVVM을 설명하므로 병렬 표준이 아니라 migration/legacy 안내로 연결해야 합니다.
 - 기존 문서와 예제에는 두 Provider 순서가 모두 존재합니다. 저장소 검색 결과 action-then-store 19건, store-then-action 20건이 확인되었으며, 이는 런타임 실패가 아닌 구조 인벤토리입니다.
 
@@ -147,4 +148,4 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - 영어·한국어 컨벤션 문서가 동일한 규칙을 설명합니다.
 - 구조적 drift가 발생하면 CI가 실패합니다.
 
-직접 등록, Provider 순서, canonical 레이어 경로·명명, 마이그레이션 분류 게이트는 완료되었습니다. advanced 비교 표면 인벤토리도 비어 있으므로, 남은 compatibility export를 문서화하고 Registry 모듈 밖에 새로운 handler 등록을 추가하지 않습니다.
+직접 등록, Provider 순서, canonical 레이어 경로·명명, 멀티 루트(`example/src` + `packages/template-react/src`) 및 승격된 AST 규칙 게이트가 활성화되어 있습니다. 불가피한 예외는 모두 `layered-surface-classification.json` 또는 `rule-exceptions.json`에 사유와 함께 기록하며, 일상적인 설계·도입·품질/의도 관리 절차는 [개발 컨벤션 인덱스](./convention-index.md)와 [스펙 기반 코드 작성 가이드](./spec-to-code-authoring-guide.md)에서 시작하세요.

@@ -29,7 +29,13 @@ export default defineConfig({
     // 워크스페이스 패키지들은 사전 번들링에서 제외
     exclude: [
       '@context-action/core',
+      '@context-action/interactions',
       '@context-action/react',
+      '@context-action/react/refs',
+      '@context-action/react/time-travel',
+      '@context-action/react/transactions',
+      '@context-action/react/advanced',
+      '@context-action/react/utils',
       '@context-action/react/tools',
       '@context-action/react/backend',
       '@context-action/react/webmcp',
@@ -71,7 +77,12 @@ export default defineConfig({
     alias: {
       // Core resolves through public package exports, including /element subpaths.
       '@context-action/react/tools': path.resolve(import.meta.dirname, '../packages/react/src/tools/index.ts'),
+      '@context-action/react/refs': path.resolve(import.meta.dirname, '../packages/react/src/refs.ts'),
+      '@context-action/react/time-travel': path.resolve(import.meta.dirname, '../packages/react/src/time-travel.ts'),
+      '@context-action/react/transactions': path.resolve(import.meta.dirname, '../packages/react/src/transactions.ts'),
       '@context-action/react/backend': path.resolve(import.meta.dirname, '../packages/react/src/backend.ts'),
+      '@context-action/react/advanced': path.resolve(import.meta.dirname, '../packages/react/src/advanced.ts'),
+      '@context-action/react/utils': path.resolve(import.meta.dirname, '../packages/react/src/utils.ts'),
       '@context-action/react/webmcp': path.resolve(import.meta.dirname, '../packages/react/src/webmcp.ts'),
       '@context-action/react': path.resolve(import.meta.dirname, '../packages/react/src/index.ts'),
       // Path mapping for refactored directories

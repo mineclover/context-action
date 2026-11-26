@@ -677,6 +677,38 @@ export interface PipelineContext<T = unknown, R = void> {
 }
 
 /**
+ * Per-action dispatch queue scheduling policy declared at ActionRegister construction time.
+ *
+ * @public
+ */
+export type ActionQueuePolicy = 'serial' | 'immediate';
+
+/**
+ * Execution lane policy declared per action at ActionRegister construction time.
+ * - `'fast'`: enforces fast-sequential eligibility (no serial queue, default timeout, trace, guards, observers, once, debounce, throttle, or non-sequential mode).
+ * - `'orchestrated'`: explicitly opts into the full pipeline orchestration path.
+ *
+ * @public
+ */
+export type ActionExecutionLane = 'fast' | 'orchestrated';
+
+/**
+ * Contract-level per-action lane, queue, timeout, and trace policies.
+ *
+ * @public
+ */
+export interface ActionPolicyConfig {
+  /** Execution lane classification for this action. */
+  lane?: ActionExecutionLane;
+  /** Queue mode for this action when caller does not specify `DispatchOptions.immediate`. */
+  queue?: ActionQueuePolicy;
+  /** Default wall-clock timeout (ms) when caller does not specify `DispatchOptions.timeout`. */
+  timeout?: number;
+  /** Whether dispatch lifecycle tracing is allowed for this action. Defaults to `false` when `lane === 'fast'`. */
+  trace?: boolean;
+}
+
+/**
  * Configuration options for ActionRegister initialization
  * 
  * Provides comprehensive configuration options for customizing ActionRegister
@@ -707,9 +739,17 @@ export interface PipelineContext<T = unknown, R = void> {
  * 
  * @public
  */
-export interface ActionRegisterConfig {
+export interface ActionRegisterConfig<
+  T extends ActionPayloadMap = ActionPayloadMap,
+> {
   /** Name identifier for this ActionRegister instance */
   name?: string;
+
+  /**
+   * Optional per-action contract policies (queue scheduling and timeout defaults).
+   * Explicit call-site `DispatchOptions` take precedence when provided.
+   */
+  actions?: Partial<Record<ActionNames<T>, ActionPolicyConfig>>;
   
   /** Registry-specific configuration options */
   registry?: {
@@ -944,6 +984,18 @@ export interface ActionDispatchTrace {
 }
 
 export type ActionDispatchTraceListener = (event: ActionDispatchTrace) => void;
+
+/**
+ * Options for subscribing to dispatch lifecycle traces for a subset of actions.
+ *
+ * @public
+ */
+export interface DispatchTraceSubscriptionOptions<
+  T extends ActionPayloadMap = ActionPayloadMap,
+> {
+  /** Limit trace delivery to specific action keys so unrelated fast-lane actions remain untraced. */
+  actions?: readonly ActionNames<T>[];
+}
 
 /**
  * Comprehensive result of pipeline execution with detailed execution information

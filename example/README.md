@@ -16,9 +16,9 @@ The application is organized into **5 specialized catalogs**, each designed for 
 
 ### 🏗️ **Foundations** (`/foundations/`)
 **Target**: New users, developers learning Context-Action basics
-- **Core** - ActionRegister, pipeline fundamentals, v1 role hooks (`useActionGuard`, `useActionEffectHandler`, `useActionObserver`)
-- **Store** - State management, declarative patterns, `Store Backend & Transactions` (`@context-action/store-core`, `@context-action/react/backend`, `StoreTransactionCoordinator`)
-- **React** - Context integration, v1 role-specific hooks (`useActionGuard`, `useActionResultHandler`, `useActionEffectHandler`, `useActionObserver`), providers
+- **Core** - ActionRegister, pipeline fundamentals, role hooks (`useActionGuard`, `useActionCommandHandler`, `useActionObserver`)
+- **Store** - State management, declarative patterns, `Store Backend & Transactions` (`@context-action/store-core`, `@context-action/react/backend`, `@context-action/react/transactions`)
+- **React** - Context integration, role-specific hooks (`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`), providers
 
 ### ⚡ **Performance** (`/performance/`) 
 **Target**: Developers solving performance problems
@@ -188,7 +188,7 @@ src/
 - **Memory Management**: Proper cleanup and lifecycle handling
 
 ### Business Logic Patterns
-- **Handler Registration**: v1 role-specific hooks (`useActionGuard`, `useActionResultHandler`, `useActionEffectHandler`, `useActionObserver`) and compatible `useActionHandler` + `useCallback` pattern
+- **Handler Registration**: role-specific hooks (`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`) and compatible `useActionHandler` + `useCallback` pattern
 - **Store Updates**: Reactive state management with `useStoreValue`
 - **Error Handling**: Pipeline controller abort and error management  
 - **Async Operations**: Async handler support with proper error boundaries

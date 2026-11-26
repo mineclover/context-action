@@ -4,8 +4,27 @@
  * Provides reactive subscription to isMounted state changes using useSyncExternalStore
  */
 
-import { useEffect, useSyncExternalStore, useCallback, useRef } from 'react';
+import {
+  useCallback,
+  useDebugValue,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useSyncExternalStore,
+} from 'react';
 import type { InternalRefState } from './useRefMount';
+
+const useIsomorphicLayoutEffect =
+  typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
+function formatRefMountStateDebugValue(state: {
+  isMounted: boolean;
+  isWaitingForMount: boolean;
+}): string {
+  if (state.isMounted) return 'mounted';
+  if (state.isWaitingForMount) return 'waiting';
+  return 'unmounted';
+}
 
 /**
  * Hook that subscribes to ref mount state changes using useSyncExternalStore
@@ -80,7 +99,9 @@ export function useRefMountState<T>(refState: InternalRefState<T>): {
   }, []);
   
   // Use React's useSyncExternalStore for reactive subscriptions
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  useDebugValue(state, formatRefMountStateDebugValue);
+  return state;
 }
 
 /**
@@ -93,14 +114,16 @@ export function useOnMountStateChange<T>(
 ): void {
   // Get the current mount state using our reactive hook
   const { isMounted, mountedTarget } = useRefMountState(refState);
-  
-  // Use a stable callback to avoid unnecessary re-subscriptions
-  const stableCallback = useCallback(callback, [callback]);
-  
-  // Call the callback when mount state changes
+
+  const callbackRef = useRef(callback);
+  useIsomorphicLayoutEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
+
+  // Call the callback only when mount state actually changes
   useEffect(() => {
-    stableCallback(isMounted, mountedTarget);
-  }, [isMounted, mountedTarget, stableCallback]);
+    callbackRef.current(isMounted, mountedTarget);
+  }, [isMounted, mountedTarget]);
 }
 
 /**

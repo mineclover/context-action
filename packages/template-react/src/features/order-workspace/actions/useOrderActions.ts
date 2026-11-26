@@ -1,13 +1,44 @@
-import { useOrderActionDispatch } from '../contexts/OrderContexts';
+import { useCallback } from 'react';
 import type { OrderDraft } from '../business/orderDraft';
+import {
+  useOrderBusinessDispatch,
+  useOrderLayoutDispatch,
+} from '../contexts/OrderContexts';
 
 export function useOrderActions() {
-  const dispatch = useOrderActionDispatch();
+  const businessDispatch = useOrderBusinessDispatch();
+  const layoutDispatch = useOrderLayoutDispatch();
+
+  const updateDraft = useCallback(
+    (updates: Partial<OrderDraft>) => businessDispatch('updateDraft', updates),
+    [businessDispatch]
+  );
+
+  const resetDraft = useCallback(
+    () => businessDispatch('resetDraft'),
+    [businessDispatch]
+  );
+
+  const submitOrder = useCallback(
+    () => businessDispatch('submitOrder'),
+    [businessDispatch]
+  );
+
+  const retrySubmission = useCallback(
+    () => businessDispatch('retrySubmission'),
+    [businessDispatch]
+  );
+
+  const focusField = useCallback(
+    (field: keyof OrderDraft) => layoutDispatch('focusField', { field }),
+    [layoutDispatch]
+  );
 
   return {
-    updateDraft: (updates: Partial<OrderDraft>) => dispatch('updateDraft', updates),
-    resetDraft: () => dispatch('resetDraft'),
-    submitOrder: () => dispatch('submitOrder'),
-    retrySubmission: () => dispatch('retrySubmission'),
+    updateDraft,
+    resetDraft,
+    submitOrder,
+    retrySubmission,
+    focusField,
   };
 }

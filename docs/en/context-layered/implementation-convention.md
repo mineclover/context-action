@@ -139,7 +139,9 @@ The current gate enforces:
   `use*ActionResultHandler`, `use*ActionObserver`, `use*ActionHandler`, and
   `use*ActionEffectHandler` calls outside `handlers/` / `*HandlerRegistry` are
   rejected.
-- `actions/` files use `*Actions` or `*ActionHandlers` names.
+- `actions/` files use `*Actions` / `*actions` (plus `index`) names and remain strictly free of runtime Store imports, `.getStore()`, `.setValue()`, or `.update()` calls (`no-store-access-in-actions`).
+- `handlers/` modules (and `*HandlerRegistry` files) must read stores lazily via `store.getValue()` and must not subscribe with `use*StoreValue` / `use*StoreSelector` / `use*StorePath` (`no-store-subscription-in-handlers`).
+- Deprecated `use*ActionEffectHandler` and `registerEffect` calls are forbidden across all scanned sources (`no-deprecated-effect-handler`).
 - `hooks/` files use `use*` names, with `index` and `types` entry points.
 - `views/` files use `*View`, `*Views`, or a named composite such as `*Grid`.
 - Context modules do not import downstream layer folders, and views do not
@@ -148,32 +150,25 @@ The current gate enforces:
 Derived business values belong in a hook or facade before they reach a view.
 For example, the implementation-playbook packet and quote previews are
 computed by their Data Hooks, while the views only render the returned model.
-Run the gate together with the usecase-specific checks:
+Run the gate together with the usecase-specific checks (by default `pnpm convention:check` scans both `example/src` and `packages/template-react/src`, and `node scripts/check-context-layered-conventions.mjs --root <dir>` supports external consumer projects):
 
 ```bash
 pnpm convention:check
+node scripts/check-context-layered-conventions.mjs --root packages/template-react/src
 pnpm --filter example check
 ```
 
-The gate discovers the current canonical roots from the repository structure and
-currently reports zero layer-path/name violations. Run `pnpm convention:check` for
-the current count; advanced and compatibility roots remain explicitly outside this
-automatic naming scope until their migration classification changes. Repository-wide package imports are governed
-separately by `pnpm package-boundary:check`.
+The gate discovers the current canonical roots across the scanned directories and
+currently reports zero violations across naming, import boundaries, Provider order, and promoted AST rules. Run `pnpm convention:check` for the live root and exception counts; `advanced` and `compatibility` roots remain explicitly outside this automatic naming scope until their migration classification changes. Repository-wide package imports are governed separately by `pnpm package-boundary:check`.
 
-Non-canonical `handlers/` directories are not silently ignored. Their current
-classification and rationale live in
-`tools/context-action-lint/layered-surface-classification.json`; the checker
-requires every such directory to be listed as either `advanced` or
-`compatibility`. The current manifest contains no advanced comparison surfaces
-and one compatibility object-context surface. The conditional permission,
+Non-canonical `handlers/` directories and rare intentional AST rule exceptions are never silently ignored. Non-canonical handler directories are cataloged with rationale in `tools/context-action-lint/layered-surface-classification.json` (each entry classified as `advanced` or `compatibility`; live counts reported by `pnpm convention:check`, currently 1 `advanced` integration surface and 1 `compatibility` object-context surface), and justified AST rule exemptions live fail-closed in `tools/context-action-lint/rule-exceptions.json` (requiring a valid rule, file, and non-empty `reason`, and failing if stale). The conditional permission,
 action-based mouse, context-store mouse, and enhanced context-store mouse
 usecases now expose canonical `contexts/` and `handlers/` surfaces. The
 enhanced context-store usecase also separates its semantic commands under
 `actions/`, pure transitions under `business/`, and provider composition under
 `providers/`. The memoization comparison has also migrated into canonical
 `contexts/` and `actions/` boundaries with its old model and hook paths
-retained as compatibility re-exports.
+retained as compatibility re-exports (and its non-memoized benchmark lane explicitly recorded in `rule-exceptions.json`).
 
 ## Explicit State Machine Rule
 

@@ -1,8 +1,8 @@
+import { useStoreValue } from '@context-action/react';
 import {
   createTimeTravelStore,
-  useStoreValue,
   useTimeTravelControls,
-} from '@context-action/react';
+} from '@context-action/react/time-travel';
 import { useCallback, useState } from 'react';
 import { Button, CodeBlock, DemoCard } from '@/components/ui';
 

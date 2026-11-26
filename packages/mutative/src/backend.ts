@@ -3,8 +3,8 @@ import { create, rawReturn } from '@context-action/mutative-core';
 import type {
   HistoryEntryId,
   ReadonlyStateSnapshot,
-  StateBackend,
   StateMutationMeta,
+  StateStore,
   TransactionBackend,
 } from '@context-action/store-core';
 import { safeGet, safeSet } from './immutable';
@@ -347,7 +347,7 @@ function freezeSnapshot<T>(value: T): T {
  * intentionally has no React dependency and can be wrapped by any UI layer.
  */
 export class MutativeStateBackend<T = unknown>
-  implements StateBackend<T, MutativePatch>
+  implements StateStore<T, MutativePatch>
 {
   public readonly name: string;
   public readonly capabilities;
@@ -405,6 +405,8 @@ export class MutativeStateBackend<T = unknown>
 
   getLastPatches = (): readonly MutativePatch[] | null => this.lastPatches;
 
+  getValue = (): T => this.snapshot.value;
+
   getSafeValue = (): T => safeGet(this.value, true);
 
   setValue = (value: T, _meta?: StateMutationMeta): void => {
@@ -439,6 +441,8 @@ export class MutativeStateBackend<T = unknown>
     this.publish(nextState, patches);
   };
 
+  isDisposed = (): boolean => this.disposed;
+
   isStoreDisposed = (): boolean => this.disposed;
 
   dispose = (): void => {
@@ -472,7 +476,7 @@ export class MutativeStateBackend<T = unknown>
  * StateBackend/TransactionBackend contract used by UI integrations.
  */
 export class MutativeTimelineBackend<T = unknown>
-  implements TransactionBackend<T, MutativePatch>
+  implements TransactionBackend<T, MutativePatch>, StateStore<T, MutativePatch>
 {
   public readonly name: string;
   public readonly capabilities;
@@ -485,12 +489,14 @@ export class MutativeTimelineBackend<T = unknown>
   private readonly options: Required<
     Pick<MutativeTimelineBackendOptions, 'readMode' | 'notificationMode' | 'cloneOnSet'>
   > & MutativeTimelineBackendOptions;
+  private notificationMode: MutativeNotificationMode;
   private snapshot: ReadonlyStateSnapshot<T>;
   private version = 0;
   private lastPatches: Patches | null = null;
   private lastTransitionMeta: TimeTravelTransitionMeta | undefined;
   private disposed = false;
   private pendingNotification = false;
+  private microtaskGeneration = 0;
   private pendingPatches: Patches | null = null;
   private notificationHoldDepth = 0;
   private notificationDeferred = false;
@@ -512,6 +518,7 @@ export class MutativeTimelineBackend<T = unknown>
       notificationMode: options.notificationMode ?? 'immediate',
       cloneOnSet: options.cloneOnSet ?? options.readMode === 'safe',
     };
+    this.notificationMode = this.options.notificationMode;
     const initial = this.options.cloneOnSet ? safeSet(initialValue, true) : initialValue;
     this.timeTravel = createTimeTravel(initial, {
       ...options,
@@ -569,6 +576,8 @@ export class MutativeTimelineBackend<T = unknown>
   };
 
   getLastPatches = (): readonly MutativePatch[] | null => this.lastPatches;
+
+  getValue = (): T => this.snapshot.value;
 
   getSafeValue = (): T => safeGet(this.timeTravel.getState(), true);
 
@@ -667,11 +676,30 @@ export class MutativeTimelineBackend<T = unknown>
     this.scheduleNotification();
   };
 
+  getNotificationMode = (): MutativeNotificationMode => this.notificationMode;
+
+  setNotificationMode = (mode: MutativeNotificationMode): void => {
+    if (this.disposed) return;
+    this.notificationMode = mode;
+    if (mode === 'immediate' && this.pendingNotification) {
+      this.microtaskGeneration += 1;
+      this.pendingNotification = false;
+      if (this.notificationHoldDepth === 0) {
+        this.notifyNow();
+      } else {
+        this.notificationDeferred = true;
+      }
+    }
+  };
+
+  isDisposed = (): boolean => this.disposed;
+
   isStoreDisposed = (): boolean => this.disposed;
 
   dispose = (): void => {
     if (this.disposed) return;
     this.disposed = true;
+    this.microtaskGeneration += 1;
     this.pendingNotification = false;
     this.pendingPatches = null;
     this.notificationHoldDepth = 0;
@@ -712,13 +740,15 @@ export class MutativeTimelineBackend<T = unknown>
         ? this.pendingPatches.concat(patches)
         : patches;
     }
-    if (this.options.notificationMode === 'immediate') {
+    if (this.notificationMode === 'immediate') {
       this.notifyNow();
       return;
     }
     if (this.pendingNotification) return;
     this.pendingNotification = true;
+    const generation = ++this.microtaskGeneration;
     queueMicrotask(() => {
+      if (generation !== this.microtaskGeneration) return;
       this.pendingNotification = false;
       if (!this.disposed) this.notifyNow();
     });
@@ -746,7 +776,7 @@ export function createMutativeStateBackend<T = unknown>(
   name: string,
   initialValue: T,
   options?: MutativeStateBackendOptions,
-): StateBackend<T, MutativePatch> {
+): StateStore<T, MutativePatch> {
   return new MutativeStateBackend(name, initialValue, options);
 }
 
@@ -754,6 +784,6 @@ export function createMutativeTimelineBackend<T = unknown>(
   name: string,
   initialValue: T,
   options?: MutativeTimelineBackendOptions,
-): TransactionBackend<T, MutativePatch> {
+): TransactionBackend<T, MutativePatch> & StateStore<T, MutativePatch> {
   return new MutativeTimelineBackend(name, initialValue, options);
 }

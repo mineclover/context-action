@@ -17,6 +17,6 @@ export type TaskStatus = {
 export const {
   Provider: ConcurrentActionsProvider,
   useActionDispatch: useConcurrentAction,
-  useActionDispatchWithResult: useConcurrentActionWithResult,
+  useActionScope: useConcurrentActionWithResult,
   useActionHandler: useConcurrentActionHandler,
 } = createActionContext<AppActions>('ConcurrentActionTest');

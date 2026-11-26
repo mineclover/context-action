@@ -23,16 +23,17 @@ const packageSourceDirectories = ['src', 'test', '__tests__', 'scripts', 'exampl
 // Development dependencies can exercise adapters without making them mandatory.
 const basicPackageDependencies = new Map([
   ['@context-action/core', new Set()],
+  ['@context-action/interactions', new Set()],
   ['@context-action/store-core', new Set()],
   ['@context-action/react', new Set([
-    '@context-action/core', '@context-action/store-core', '@context-action/mutative',
+    '@context-action/core', '@context-action/interactions', '@context-action/store-core', '@context-action/mutative',
   ])],
 ]);
 const basicPackageOptionalPeers = new Map([
   ['@context-action/react', new Set(['@context-action/webmcp', '@context-action/tool-protocol'])],
 ]);
 // ToolContext/Durable source is retained for its separate development track. It is
-// intentionally absent from the React 3 public artifact and standard example, so
+// intentionally absent from the `@context-action/react` public artifact and standard example, so
 // it must not be validated as a release dependency path.
 const developmentTrackSourceRoots = [
   'packages/react/src/tools/',

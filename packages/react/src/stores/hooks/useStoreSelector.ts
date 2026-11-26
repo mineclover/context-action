@@ -8,9 +8,13 @@
  * @module stores/hooks/useStoreSelector
  */
 
-import { useSyncExternalStore, useCallback, useRef } from 'react';
-import type { Store } from '../core/Store';
+import type { StateReader, StateSnapshot } from '@context-action/store-core';
+import { useCallback, useDebugValue, useRef, useSyncExternalStore } from 'react';
 import { equalityFunctions } from '../utils/sync-external-store-utils';
+
+function formatStoreSelectorDebugValue([storeName, value]: readonly [string, unknown]): string {
+  return `${storeName}: ${typeof value === 'object' && value !== null ? 'object' : String(value)}`;
+}
 
 // Re-export equality functions from utils
 export const defaultEqualityFn = equalityFunctions.smart; // 똑똑한 자동 동등성 함수
@@ -29,7 +33,7 @@ export const deepEqual = equalityFunctions.deep;
  * 
  * @param store - Store instance to subscribe to
  * @param selector - Function to extract needed data from store value
- * @param equalityFn - Function to compare previous and new values (default: Object.is)
+ * @param equalityFn - Function to compare previous and new values (default: `defaultEqualityFn` smart equality)
  * 
  * @returns The value returned by the selector function
  * 
@@ -38,13 +42,15 @@ export const deepEqual = equalityFunctions.deep;
  * @public
  */
 export function useStoreSelector<T, R>(
-  store: Store<T>,
+  store: StateReader<T, StateSnapshot<T>>,
   selector: (value: T) => R,
   equalityFn: (a: R, b: R) => boolean = defaultEqualityFn
 ): R {
   "use memo";
   // 동등성 비교를 위한 이전 값 추적
-  const previousValueRef = useRef<{ store: Store<T>; value: R } | undefined>(undefined);
+  const previousValueRef = useRef<
+    { store: StateReader<T, StateSnapshot<T>>; value: R } | undefined
+  >(undefined);
   
   // useSyncExternalStore를 사용한 구독
   const subscribe = useCallback((callback: () => void) => {
@@ -72,5 +78,7 @@ export function useStoreSelector<T, R>(
     }
   }, [store, selector, equalityFn]);
   
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const selected = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  useDebugValue([store.name, selected] as const, formatStoreSelectorDebugValue);
+  return selected;
 }

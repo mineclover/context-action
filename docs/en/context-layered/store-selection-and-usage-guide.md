@@ -19,13 +19,15 @@ Context-Action separates **write ownership** (`StoreWriter` / Action Handlers) f
 | Store / State Mechanism | Package Entry | Primary Use Case | Undo/Redo | React Dependency |
 | --- | --- | --- | --- | --- |
 | **`createStoreContext`** | `@context-action/react` | **Default choice.** Scope multiple domain stores cleanly to a React component subtree | No | Yes |
+| **`createScopedContext`** | `@context-action/react` | Single flat `Provider` uniting `ActionContext` + component-scoped `useStoreInstance` / `useRefRegistry` setup for self-contained widgets/features | No | Yes |
 | **`createStore` (`Store`)** | `@context-action/react` | Standalone module-level store, dependency-injected store, or unit tests | No | Yes (Mutative built in) |
-| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react` | Editors, form drafts, and canvas state needing undo/redo history navigation | **Yes (Mutative patches)** | Yes |
+| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react/time-travel` | Editors, form drafts, and canvas state needing undo/redo history navigation | **Yes (Mutative patches)** | Yes |
 | **`createStateStore`** | `@context-action/store-core` | Minimal framework-neutral reference store for Vanilla JS, Node, Preact, Lit, or XState | No | **No (0 deps)** |
-| **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | Bridge any user-owned `StateBackend` into React subscription hooks | Backend-dependent | Yes (wrapper only) |
-| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react` | Group mutations across multiple stores into one atomic commit, rollback, and single undo step | **Yes (atomic multi-store)** | Yes |
-| **`useLocalStore` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | Component-lifetime local store / memoized derived value / dynamic named store registry | No | Yes |
-| **`createRefContext`** | `@context-action/react` | **Non-reactive (Tier 3).** DOM elements, Canvas handles, and 120fps pointer coordinates with zero React re-renders | No | Yes |
+| **`createMutativeStateBackend` / `createMutativeTimelineBackend`** | `@context-action/mutative` | Framework-neutral Layer 1 Mutative draft/patch `StateStore` & `TimelineBackend` (`TransactionBackend`), usable standalone or injected natively into React/Lit/Preact | Optional (`TimelineBackend`) | **No** |
+| **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | Bridge any user-owned `StateBackend` into React subscription hooks (optional when using `createStoreContext().Provider stores={...}`) | Backend-dependent | Yes (wrapper only) |
+| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react/transactions` | Group mutations across multiple stores into one atomic commit, rollback, and single undo step | **Yes (atomic multi-store)** | Yes |
+| **`useLocalStore` / `useStoreInstance` / `useControlledStoreSync` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | Local subscribing store / zero-rerender local store owner / controlled prop sync / memoized projection / dynamic store registry | No | Yes |
+| **`useRefRegistry` / `useRefCollection` / `createRefCollectionContext` / `createRefContext`** | `@context-action/react/refs` | **Non-reactive (Tier 3).** Fixed local refs (`useRefRegistry`), dynamic string-keyed collections (`useRefCollection`), or shared tree refs (`createRefContext`) with zero React re-renders | No | Yes |
 | **`createActorStateReader`** | `@context-action/xstate` | **Closed statechart read-only projection.** Blocks external `setValue()`; transitions go through actor events only | No | **No** |
 | **`createSourceContext` / `fromStateReader` / `StoreController`** | `@context-action/preact`, `@context-action/lit` | Read-only Signals (`fromStateReader` bridges `StateReader`/`StoreReader` snapshots) or `ReactiveController` projections for Preact/Lit hosts | No | **No** |
 | **`createDurableOperationStore`** | `@context-action/tool-durable-operations` | **Not UI state.** Lease/claim idempotency and recovery records for external HTTP, queue, or filesystem side effects | No | **No** |
@@ -95,16 +97,20 @@ profileStore.update((prev) => ({
 }));
 
 export function UserNameLabel() {
-  // Re-renders only when ['user', 'name'] is affected by patches
-  const name = useStorePath<ProfileState, string>(profileStore, ['user', 'name']);
-  return <span>{name}</span>;
+  // Type-inferred literal path subscription; re-renders only when ['user', 'name'] changes
+  const name = useStorePath(profileStore, ['user', 'name']);
+  // Single-path derived boolean; re-renders only when the boolean result flips
+  const isLee = useStorePath(profileStore, ['user', 'name'], {
+    select: (nextName) => nextName === 'Lee',
+  });
+  return <span>{name} ({String(isLee)})</span>;
 }
 
 // Call dispose() when a standalone store's lifecycle ends
 profileStore.dispose();
 ```
 
-### 2.3 `createTimeTravelStoreContext` & `createTimeTravelStore` (`@context-action/react`) — Undo / Redo
+### 2.3 `createTimeTravelStoreContext` & `createTimeTravelStore` (`@context-action/react/time-travel`) — Undo / Redo
 
 Use `TimeTravelStore` whenever users need undo, redo, or bounded history navigation.
 
@@ -114,7 +120,7 @@ Use `TimeTravelStore` whenever users need undo, redo, or bounded history navigat
 
 <!-- @context-action-compile -->
 ```tsx
-import { createTimeTravelStoreContext } from '@context-action/react';
+import { createTimeTravelStoreContext } from '@context-action/react/time-travel';
 
 const DocStores = createTimeTravelStoreContext('Doc', {
   content: { initialValue: { text: '' }, maxHistory: 50 },
@@ -153,9 +159,50 @@ unsubscribe();
 counterStore.dispose?.();
 ```
 
-### 2.5 `createBackendStore` / `BackendStore` (`@context-action/react/backend`) — Custom Backend Bridge
+### 2.5 `createMutativeStateBackend` / `createMutativeTimelineBackend` & Native Interoperability (`@context-action/mutative` + `@context-action/react`)
 
-Use `createBackendStore` to expose any `@context-action/store-core` `StateBackend<T, Patch>` (such as `createStateStore`, `MutativeStateBackend`, or a custom persistence/sync backend) to React's `useSyncExternalStore` hooks (`useStoreValue`, `useStoreSelector`, and `useStorePath` if the backend supplies patches).
+Use `createMutativeStateBackend` (`StateStore`) and `createMutativeTimelineBackend` (`TransactionBackend & StateStore`) from `@context-action/mutative` when you want a framework-neutral Layer 1 Mutative engine with JSON patches, undo/redo timeline navigation, and mutable `setNotificationMode('immediate' | 'batched')` shared across React, Lit, Preact, or headless Node workers.
+
+React subscription hooks (`useStoreValue`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`) and Provider DI (`createStoreContext().Provider stores={...}`, `createTimeTravelStoreContext().Provider stores={...}`) accept `StateReader<T>`, `StateBackend<T>`, and `TimelineBackend<T>` **directly** without requiring manual `BackendStore` boilerplate (while `@context-action/react/backend` `createBackendStore` remains available for explicit standalone wrapping):
+
+<!-- @context-action-compile -->
+```tsx
+import { createStateStore } from '@context-action/store-core';
+import { createMutativeTimelineBackend } from '@context-action/mutative';
+import { createStoreContext, useStoreValue } from '@context-action/react';
+import {
+  createTimeTravelStoreContext,
+  useTimeTravelControls,
+} from '@context-action/react/time-travel';
+
+const sessionBackend = createStateStore('session', { step: 1 });
+const docTimeline = createMutativeTimelineBackend('doc', { title: 'v1' }, { maxHistory: 20 });
+
+const SessionStores = createStoreContext('Session', {
+  session: { step: 0 },
+});
+const DocStores = createTimeTravelStoreContext('Doc', {
+  doc: { initialValue: { title: '' }, maxHistory: 20 },
+});
+
+export function SessionAndDocView() {
+  const directStep = useStoreValue(sessionBackend);
+  const directTimeline = useTimeTravelControls(docTimeline);
+  return (
+    <SessionStores.Provider stores={{ session: sessionBackend }} ownership="shared">
+      <DocStores.Provider stores={{ doc: docTimeline }} ownership="shared">
+        <span>
+          Step {directStep.step} (undo={String(directTimeline.canUndo)})
+        </span>
+      </DocStores.Provider>
+    </SessionStores.Provider>
+  );
+}
+```
+
+### 2.5a `createBackendStore` / `BackendStore` (`@context-action/react/backend`) — Explicit Standalone Bridge
+
+Use `createBackendStore` when you want an explicit standalone `IStore` wrapper instance over any `@context-action/store-core` `StateBackend<T, Patch>` (such as `createStateStore`, `MutativeStateBackend`, or a custom persistence/sync backend):
 
 - `ownership: 'shared'` (default): disposing the `BackendStore` wrapper keeps the underlying backend alive.
 - `ownership: 'owned'`: disposing the wrapper also disposes the underlying backend.
@@ -175,7 +222,7 @@ export function SessionStep() {
 }
 ```
 
-### 2.6 `StoreTransactionCoordinator` & `bindActionTransactions` (`@context-action/react`) — Multi-Store Transactions
+### 2.6 `StoreTransactionCoordinator` & `bindActionTransactions` (`@context-action/react/transactions`) — Multi-Store Transactions
 
 Use `StoreTransactionCoordinator` when a single logical action must update multiple stores without exposing intermediate states and with atomic rollback + single-step undo.
 
@@ -185,7 +232,8 @@ Use `StoreTransactionCoordinator` when a single logical action must update multi
 
 <!-- @context-action-compile -->
 ```ts
-import { StoreTransactionCoordinator, createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
+import { StoreTransactionCoordinator } from '@context-action/react/transactions';
 
 const cart = createTimeTravelStore('cart', { items: [] as string[] });
 const totals = createTimeTravelStore('totals', { price: 0 });
@@ -209,9 +257,11 @@ export async function addItemWithRollback() {
 }
 ```
 
-### 2.7 `useLocalStore`, `useComputedStore`, and `StoreRegistry` (`@context-action/react/advanced`)
+### 2.7 `useLocalStore`, `useStoreInstance`, `useControlledStoreSync`, `useComputedStore`, and `StoreRegistry` (`@context-action/react/advanced`)
 
-- **`useLocalStore(initialValue, name?)`**: creates a component-scoped `Store` and automatically calls `dispose()` on unmount, returning `{ value, name, lastUpdate, store }`.
+- **`useLocalStore(initialValue, name?)`**: creates a component-scoped `Store`, **subscribes the calling component**, and automatically calls `dispose()` on unmount, returning `{ value, name, lastUpdate, store }`.
+- **`useStoreInstance(initialValue, name?, options?)`**: creates a component/scope-owned `Store` **without subscribing the owning component** (zero parent/Provider re-renders); pass the `store` into `createScopedContext()` or child components that read slices via `useStorePath()` / `useStoreValue()`.
+- **`useControlledStoreSync(store, path, controlledValue, isEqualOrOptions?)`**: synchronizes an optional controlled React prop into a `Store` path without feedback loops (`undefined` keeps the store uncontrolled; optional `onSync` derives dependent draft fields atomically).
 - **`useComputedStore(store, computeFn, config?)`**: derives and memoizes a computed projection from an upstream store with optional `equalityFn`, `initialValue`, `onError`, and `debounceMs`.
 - **`StoreRegistry`**: reserved for advanced dynamic store registration, lookup, and cleanup by string key.
 
@@ -270,7 +320,7 @@ export function HeadlessCartView() {
 }
 ```
 
-> Need to adapt an external framework-neutral `StateBackend` (e.g., `createStateStore` from `@context-action/store-core`, Redux/Zustand bridges, or storage backends) directly to React hooks? Use `createBackendStore('cart', cartBackend, { ownership: 'shared' })` from `@context-action/react/backend`. For a complete walkthrough connecting specs, intents, and headless DI, see the [Spec-to-Code Authoring Guide](./spec-to-code-authoring-guide.md).
+> You can pass `@context-action/store-core` `createStateStore()` or `@context-action/mutative` `createMutativeStateBackend()` directly into `createStoreContext().Provider stores={...}` (`StoreManager` adapts raw `StateBackend` entries automatically) or use `createBackendStore('cart', cartBackend, { ownership: 'shared' })` from `@context-action/react/backend`. For opt-in tree-shaking, specialized React surfaces are also exposed from `@context-action/react/refs`, `@context-action/react/time-travel`, and `@context-action/react/transactions` alongside root `@context-action/react`. For a complete walkthrough connecting specs, intents, and headless DI, see the [Spec-to-Code Authoring Guide](./spec-to-code-authoring-guide.md).
 
 ---
 
@@ -280,8 +330,8 @@ export function HeadlessCartView() {
 | --- | --- | --- |
 | **`useStoreValue(store, options?)`** | Whole store value (with optional `condition` render gate) | Primitives or small flat objects where most fields render together |
 | **`useStoreSelector(store, selector, equalityFn?)`** | Derived slice compared by `equalityFn` | Selecting a single field or computed projection from medium stores |
-| **`useStorePath(store, path, options?)`** | Patch-aware path tracking (array segments or RFC 6901 JSON Pointer) | Deeply nested `PatchAwareStore` objects where siblings update independently |
-| **`useStoreSelectorWithPaths(store, selector, { dependsOn, equalityFn })`** | Re-runs `selector` only when one of `dependsOn` paths was touched by patches | Expensive multi-field derived selectors over large nested trees |
+| **`useStorePath(store, path, { select?, equalityFn? })`** | Compile-time validated single path (`StorePathOf<T>`) with optional single-path `{ select }` projection | Deeply nested `PatchAwareStore` fields or 1-line derived flags (`selectedKey === id`) isolated from unrelated siblings |
+| **`useStoreSelectorWithPaths(store, selector, { dependsOn, equalityFn })`** | Re-runs `selector` only when one of compile-time validated `dependsOn` paths was touched by patches | Multi-field derived selectors combining two or more paths over large nested trees |
 
 ---
 
@@ -289,7 +339,10 @@ export function HeadlessCartView() {
 
 Do not force every stateful need into a reactive React `Store`:
 
-1. **`createRefContext` (`@context-action/react`) — Non-Reactive Tier 3 State**: Keep DOM nodes, HTML5 Canvas handles, animation timers, and 120fps pointer coordinates in `createRefContext` so frequent updates never trigger React re-renders.
+1. **`useRefRegistry` / `useRefCollection` / `createRefContext` (`@context-action/react/refs`) — Non-Reactive Tier 3 State**: Keep DOM nodes, HTML5 Canvas handles, animation timers, and 120fps pointer coordinates out of reactive stores so frequent updates never trigger React re-renders:
+   - `useRefRegistry<TRefs>()`: fixed compile-time named keys owned locally by a component or `createScopedContext`.
+   - `useRefCollection<TTarget>()` / `createRefCollectionContext(name)`: dynamically string-keyed collections (menu items, tabs, table rows).
+   - `createRefContext<TRefs>()`: fixed named keys shared across a Context subtree with optional reactive mount-state hooks (`useRefMountState`).
 2. **`createActorStateReader` (`@context-action/xstate`) — Closed Statechart Projection**: Unlike open `StateStore` instances, an XState actor does not allow arbitrary external `setValue()` writes. Route intents through `ActionRegister` / `SyncActionPipeline` (`bindActorToActionRegister` / `bindActorToSyncPipeline`) and read monotonic versioned snapshots via `createActorStateReader(actor, { select, equals })`.
 3. **Preact & Lit Read-Only Adapters**:
    - **Preact** (`@context-action/preact`): wrap any `ReadableSource` with `connectSourceSignal(store)` — or adapt snapshot-envelope `StateReader`/`StoreReader` stores explicitly via `fromStateReader(store)` first — and pass it down via `createSourceContext`, projecting slices with `useProjection(signal, selector)`.

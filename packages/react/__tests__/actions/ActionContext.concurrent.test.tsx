@@ -196,7 +196,7 @@ describe('ActionContext concurrent React lifecycle', () => {
         `ActivityEnhanced${dispatchKind}`
       );
       const Activity = ActivityBoundary!;
-      let api: ReturnType<typeof Actions.useActionDispatchWithResult> | undefined;
+      let api: ReturnType<typeof Actions.useActionScope> | undefined;
       let handlerSignal: AbortSignal | undefined;
       let markHandlerStarted!: () => void;
       let releaseHandler!: () => void;
@@ -208,7 +208,7 @@ describe('ActionContext concurrent React lifecycle', () => {
       });
 
       function Consumer() {
-        api = Actions.useActionDispatchWithResult();
+        api = Actions.useActionScope();
         Actions.useActionResultHandler('run', async (_payload, controller) => {
           handlerSignal = controller.signal;
           markHandlerStarted();
@@ -270,7 +270,7 @@ describe('ActionContext concurrent React lifecycle', () => {
     const Actions = createActionContext<{ run: void }, { run: string }>(
       'EnhancedConsumerUnmountActions'
     );
-    let api: ReturnType<typeof Actions.useActionDispatchWithResult> | undefined;
+    let api: ReturnType<typeof Actions.useActionScope> | undefined;
     let handlerSignal: AbortSignal | undefined;
     let markHandlerStarted!: () => void;
     const handlerStarted = new Promise<void>(resolve => {
@@ -278,7 +278,7 @@ describe('ActionContext concurrent React lifecycle', () => {
     });
 
     function Consumer() {
-      api = Actions.useActionDispatchWithResult();
+      api = Actions.useActionScope();
       Actions.useActionResultHandler('run', (_payload, controller) => {
         handlerSignal = controller.signal;
         markHandlerStarted();

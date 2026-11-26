@@ -83,18 +83,20 @@
             "executeRace",
             "executeSequential",
             "ActionTimeoutError",
-            "ActionValidationError"
+            "ActionValidationError",
+            "ActionQueuePolicy",
+            "ActionPolicyConfig",
+            "ActionExecutionLane",
+            "DispatchTraceSubscriptionOptions"
           ]
         },
         {
           "subpath": "./element",
-          "purpose": "Framework-neutral DOM binding, attribute/style reconciliation, imperative facades, SyncActionPipeline, roving focus, and pointer gesture primitives.",
+          "purpose": "Framework-neutral DOM binding, attribute/style reconciliation, imperative facades, SyncActionPipeline, and React prop projection.",
           "keySymbols": [
             "createElementFacade",
             "createElementBinding",
             "createSyncActionPipeline",
-            "createRovingFocusController",
-            "createPointerGestureSession",
             "toReactPartProps"
           ]
         },
@@ -117,6 +119,43 @@
         "docs/en/context-layered/decisions/CA-ELEMENT-INTEROP-001.md"
       ],
       "verificationGate": "pnpm --filter @context-action/core test && pnpm verify:element-unit && pnpm verify:element-interop"
+    },
+    {
+      "id": "api-interactions",
+      "packageName": "@context-action/interactions",
+      "directory": "packages/interactions",
+      "layer": "foundation",
+      "visibility": "public",
+      "stability": "public-preview",
+      "summary": {
+        "en": "Zero-dependency framework-neutral headless UI and ARIA interaction primitives (roving focus + typeahead, pointer gesture sessions, LIFO document dismiss layers).",
+        "ko": "Zero-dependency 프레임워크 중립 헤드리스 UI 및 ARIA 인터랙션 프리미티브(roving focus + typeahead, pointer gesture 세션, LIFO document dismiss layer)입니다."
+      },
+      "nonGoals": [
+        "ActionRegister orchestration or Store reactivity ownership",
+        "React hooks or framework-specific component adapters"
+      ],
+      "exports": [
+        {
+          "subpath": ".",
+          "purpose": "Composite roving focus/typeahead controller, pointer gesture session manager, and LIFO dismiss layer stack.",
+          "keySymbols": [
+            "createRovingFocusController",
+            "createPointerGestureSession",
+            "createDismissLayer",
+            "RovingFocusController",
+            "PointerGestureSession",
+            "DismissLayerHandle"
+          ]
+        }
+      ],
+      "workspaceDependencies": [],
+      "workspacePeerDependencies": [],
+      "readme": "packages/interactions/README.md",
+      "authoritativeDocs": [
+        "packages/interactions/README.md"
+      ],
+      "verificationGate": "pnpm --filter @context-action/interactions test && pnpm package-boundary:check"
     },
     {
       "id": "api-lit",
@@ -291,7 +330,9 @@
             "TimeTravel",
             "createTimeTravel",
             "MutativeStateBackend",
-            "MutativeTimelineBackend"
+            "MutativeTimelineBackend",
+            "createMutativeStateBackend",
+            "createMutativeTimelineBackend"
           ]
         }
       ],
@@ -502,27 +543,92 @@
       "exports": [
         {
           "subpath": ".",
-          "purpose": "createActionContext, createStoreContext, createTimeTravelStoreContext, createRefContext, Store hooks, transactions, and ErrorBoundary.",
+          "purpose": "Essential daily React surface: createActionContext, createStoreContext, Store, store hooks, and StoreErrorBoundary.",
           "keySymbols": [
             "createActionContext",
+            "createScopedContext",
             "createStoreContext",
-            "createTimeTravelStoreContext",
-            "createRefContext",
+            "StoreManager",
+            "asStoreValue",
             "createStore",
+            "Store",
+            "StoreNotificationMode",
+            "StoreOptions",
             "useStoreValue",
             "useStoreSelector",
             "useStorePath",
-            "StoreTransactionCoordinator",
-            "bindActionTransactions",
+            "PathValue",
+            "StorePathOf",
+            "UseStorePathSelectOptions",
+            "useStoreSelectorWithPaths",
+            "SubscribableStore",
+            "StoreReader",
+            "StoreWriter",
+            "StoreErrorBoundary",
             "ActionProviderProps",
+            "ActionScopeReturn",
+            "ScopedContextReturn",
+            "ScopedProviderProps",
             "ProviderShutdownOptions",
+            "ExternalStoreInput",
             "ExternalStoresMap",
             "StoreManagerOptions",
             "StoreProviderProps",
-            "StoreContextReturn",
+            "StoreContextReturn"
+          ]
+        },
+        {
+          "subpath": "./refs",
+          "purpose": "Standalone RefContext and dynamic RefCollection surface for Tier 3 imperative DOM and 60fps reference control without Store or Mutative dependencies.",
+          "keySymbols": [
+            "createRefContext",
+            "createRefCollectionContext",
+            "useRefCollection",
+            "useRefRegistry",
+            "CreateRefContextOptions",
+            "RefContextReturn",
+            "RefController",
+            "RefCollection",
+            "RefCollectionContextReturn",
+            "RefCollectionItemHandle",
+            "RefRegistry",
+            "UseRefRegistryOptions",
+            "RefTarget",
+            "RefOperation",
+            "RefOperationOptions",
+            "RefOperationResult"
+          ]
+        },
+        {
+          "subpath": "./time-travel",
+          "purpose": "Standalone undo/redo timeline store, declarative time-travel context, and timeline path/control hooks.",
+          "keySymbols": [
+            "createTimeTravelStore",
+            "createTimeTravelStoreContext",
+            "TimeTravelStore",
+            "TimeTravelStoreManager",
+            "useTimeTravelControls",
+            "useTimeTravelPath",
+            "UseTimeTravelPathSelectOptions",
+            "useTimeTravelSelector",
+            "TimeTravelControlsStore",
+            "TimeTravelPathStore",
+            "ExternalTimeTravelStoreInput",
             "ExternalTimeTravelStoresMap",
             "TimeTravelStoreManagerOptions",
             "TimeTravelStoreProviderProps"
+          ]
+        },
+        {
+          "subpath": "./transactions",
+          "purpose": "Standalone multi-store atomic transaction coordinator, core dispatch bridge, and DevTools inspector hook.",
+          "keySymbols": [
+            "StoreTransactionCoordinator",
+            "bindActionTransactions",
+            "useStoreTransactionInspector",
+            "StoreTransactionMeta",
+            "StoreTransactionOptions",
+            "StoreTransactionParticipant"
           ]
         },
         {
@@ -538,24 +644,42 @@
         },
         {
           "subpath": "./advanced",
-          "purpose": "StoreRegistry, dynamic/local/computed store hooks, error handlers, and React utilities.",
+          "purpose": "StoreRegistry, scoped/local/computed/controlled store hooks, React element pipeline hooks, error handlers, and React utilities.",
           "keySymbols": [
             "StoreRegistry",
+            "createScopedContext",
+            "ScopedContextReturn",
+            "ScopedProviderProps",
+            "useRefRegistry",
+            "RefRegistry",
+            "UseRefRegistryOptions",
+            "useRefCollection",
+            "RefCollection",
             "useComputedStore",
             "useLocalStore",
+            "useStoreInstance",
+            "useControlledStoreSync",
+            "useDismissLayer",
+            "useSyncActionPipeline",
+            "useRovingFocus",
+            "usePointerGesture",
+            "createDismissLayer",
             "ContextActionError",
             "StoreErrorBoundary"
           ]
         },
         {
           "subpath": "./utils",
-          "purpose": "Deep clone, safe property access, Mutative helpers, and configurable equality comparison utilities.",
+          "purpose": "Deep clone, safe property access, Mutative helpers, prop/ref composition, and configurable equality comparison utilities.",
           "keySymbols": [
             "deepClone",
             "safeGet",
             "safeSet",
             "MutativeUtils",
-            "compareValues"
+            "compareValues",
+            "composeProviders",
+            "mergeProps",
+            "mergeRefs"
           ]
         },
         {
@@ -569,6 +693,7 @@
       ],
       "workspaceDependencies": [
         "@context-action/core",
+        "@context-action/interactions",
         "@context-action/mutative",
         "@context-action/store-core"
       ],
@@ -693,10 +818,11 @@
       "workspacePeerDependencies": [],
       "readme": "packages/template-react/README.md",
       "authoritativeDocs": [
+        "docs/en/context-layered/spec-to-code-authoring-guide.md",
         "docs/en/context-layered/decisions/CA-SPEC-EVIDENCE-001.md",
         "docs/en/context-layered/triad-evidence-sync-guide.md"
       ],
-      "verificationGate": "pnpm --filter @context-action/template-react type-check && pnpm --filter @context-action/template-react build"
+      "verificationGate": "pnpm convention:check && pnpm --filter @context-action/template-react type-check && pnpm --filter @context-action/template-react build"
     },
     {
       "id": "api-tool-durable-operations",

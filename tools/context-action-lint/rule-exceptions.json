@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "exceptions": [
+    {
+      "rule": "no-store-subscription-in-handlers",
+      "file": "example/src/pages/performance/memoization/handlers/ComparisonHandlerRegistry.tsx",
+      "reason": "Intentional non-memoized benchmark lane: subscribes to nonMemoizedStore inside the Registry specifically to reproduce handler re-registration churn against the memoized lane."
+    }
+  ]
+}

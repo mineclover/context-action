@@ -5,17 +5,17 @@
 
 import type { Store } from '@context-action/react';
 import {
+  type MouseStateData,
+  useMouseActionHandler,
+} from '../contexts/MouseActionContexts';
+import {
   createMouseClickHandler,
   createMouseEnterHandler,
   createMouseLeaveHandler,
   createMouseMoveHandler,
   createMoveEndHandler,
   createResetHandler,
-} from '../actions/MouseActionHandlers';
-import {
-  type MouseStateData,
-  useMouseActionHandler,
-} from '../contexts/MouseActionContexts';
+} from './MouseActionHandlerDefinitions';
 
 export function MouseActionHandlerRegistry({
   mouseStateStore,

@@ -1257,8 +1257,8 @@ export function BillingFeature({ children }: { children: React.ReactNode }) {
 ===================[ DOC: ko/context-layered/convention-alignment-plan.md ]===================
 # Context-Layered 컨벤션 정합성 계획
 
-**상태:** 직접 등록 인벤토리 종료, 잔여 구조 게이트 추적 중
-**최근 검토:** 2026-11-20
+**상태:** `example/src` 및 `packages/template-react/src` 대상 구조·승격 AST 게이트 상시 강제 중 (일상 작성 기준은 `convention-index.md` · `spec-to-code-authoring-guide.md`로 통합)
+**최근 검토:** 2026-11-21
 
 이 문서는 기존 예제와 문서를 Context-Layered 구조에 맞추기 위한 저장소 단위 결정을 기록합니다. 구현 표준 문서와 같은 위치에서 현재 상태 분류, Provider 중첩 순서, 컨벤션을 강제하기 위한 완료 조건을 관리합니다.
 
@@ -1362,7 +1362,8 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - 범용 `createObjectContextHooks` factory는 Action → Manager → Store 동기화를 `lib/patterns/handlers/ObjectContextHandlerRegistry.tsx`에 위임합니다. 내부 ActionRegister를 노출하는 대신 `ObjectContextManager.dispatch`를 도메인 경계의 안전한 bridge로 사용합니다.
 - 컨벤션 검사기는 object-context factory, Flow Control, API Blocking, memoization, priority, mouse-event 조합의 Provider 중첩도 검증합니다. `pnpm convention:check` 결과 Provider 순서 위반은 0건입니다.
 - 컨벤션 검사기는 저장소 구조에서 발견한 canonical root의 레이어 경로, 파일 명명, import 경계도 검증합니다. conditional permission, action-based mouse, context-store mouse, enhanced context-store mouse usecase의 Context-Action 경계를 `contexts/` 아래로 이동했고, implementation-playbook View의 packet·quote는 Data Hook에서 계산하며 레이어 경로·명명 위반은 0건입니다. 현재 root 수는 `pnpm convention:check`에서 확인합니다.
-- `tools/context-action-lint/layered-surface-classification.json`에는 유일하게 남은 비정형 `handlers/` 표면인 compatibility object-context root만 기록했습니다. 분류되지 않은 추가와 stale 분류는 `convention:check`를 실패시킵니다.
+- 컨벤션 검사기는 기본적으로 `example/src`와 `packages/template-react/src`를 함께 검사하고(`--root <dir>`로 외부 앱 검사 지원), 승격된 3대 AST 불변식(`no-deprecated-effect-handler`, `no-store-access-in-actions`, `no-store-subscription-in-handlers`)과 `scripts/check-context-layered-conventions.test.mjs` 단위 테스트를 함께 강제합니다.
+- `tools/context-action-lint/layered-surface-classification.json`은 모든 비정형 `handlers/` 표면(`advanced` live web-coding 통합 호스트 + `compatibility` object-context root)을 기록하고, `tools/context-action-lint/rule-exceptions.json`은 불가피한 AST 규칙 예외(예: `ComparisonHandlerRegistry.tsx`의 비메모이제이션 벤치마크 레인)를 관리하며, 미등록 추가와 stale 항목 모두 `convention:check`를 실패시킵니다.
 - `docs/en/concept/conventions.md`는 strict MVVM을 설명하므로 병렬 표준이 아니라 migration/legacy 안내로 연결해야 합니다.
 - 기존 문서와 예제에는 두 Provider 순서가 모두 존재합니다. 저장소 검색 결과 action-then-store 19건, store-then-action 20건이 확인되었으며, 이는 런타임 실패가 아닌 구조 인벤토리입니다.
 
@@ -1404,12 +1405,34 @@ Biome는 파싱, 포맷, import 정리, 일반 lint rule처럼 언어 수준의 
 - 영어·한국어 컨벤션 문서가 동일한 규칙을 설명합니다.
 - 구조적 drift가 발생하면 CI가 실패합니다.
 
-직접 등록, Provider 순서, canonical 레이어 경로·명명, 마이그레이션 분류 게이트는 완료되었습니다. advanced 비교 표면 인벤토리도 비어 있으므로, 남은 compatibility export를 문서화하고 Registry 모듈 밖에 새로운 handler 등록을 추가하지 않습니다.
+직접 등록, Provider 순서, canonical 레이어 경로·명명, 멀티 루트(`example/src` + `packages/template-react/src`) 및 승격된 AST 규칙 게이트가 활성화되어 있습니다. 불가피한 예외는 모두 `layered-surface-classification.json` 또는 `rule-exceptions.json`에 사유와 함께 기록하며, 일상적인 설계·도입·품질/의도 관리 절차는 [개발 컨벤션 인덱스](./convention-index.md)와 [스펙 기반 코드 작성 가이드](./spec-to-code-authoring-guide.md)에서 시작하세요.
 
 ===================[ DOC: ko/context-layered/convention-index.md ]===================
 # 개발 컨벤션 인덱스
 
 이 문서는 Context-Action 저장소에서 implementation-playbook 계열 개발 컨벤션을 굳히기 위해 가장 먼저 봐야 할 중심 인덱스입니다. 문서가 많아졌기 때문에, 어떤 문서가 “원칙”, 어떤 문서가 “예제”, 어떤 문서가 “검증”인지 한 번에 묶어보는 용도로 씁니다.
+
+## 아키텍처·품질·의도 관리 체계 한눈에 보기
+
+Context-Action은 **핵심 3축**을 중심으로 도메인 크기에 맞게 **3단계로 점진 도입**하며, 규칙을 **CI 자동 차단 게이트**와 **권고·리뷰 규율**로 명확히 나누어 관리합니다:
+
+- **핵심 3축 (Core 3 Axes)**:
+  1. **Action Pipeline** (`@context-action/core`, `ActionContext`) — 승인(`Guard`) → 실행·결과(`Command`/`Result`) → 정산 후 관찰(`Observer`) 4-역할 파이프라인.
+  2. **Reactive Store** (`@context-action/store-core`, `Store`, `TimeTravelStore`) — `handlers/`에서는 `store.getValue()`로 지연 읽기만 수행하고, `hooks/`에서 선언적으로 구독(`useStoreValue` / `useStoreSelector` / `useStorePath`).
+  3. **Imperative Ref** (`RefContext`) — 고빈도 DOM, 캔버스, 커스텀 엘리먼트 제어를 리렌더 없이 수행.
+- **3단계 점진 도입 사다리 (Progressive Adoption)**:
+  - **Level 1 · Lite**: 단일 도메인의 `createActionContext` + `createStoreContext` + 로컬 Registry 내 `useActionHandler`.
+  - **Level 2 · Headless-First Symmetric DI**: 순수 `business/` + 프레임워크 중립 `runtime/`(`ActionRegister` + `createStore` / `createStateStore`) 조립 후 React에서 `ownership="shared"`로 주입(`/foundations/react/headless-di`).
+  - **Level 3 · Full 6-Layer**: `contexts / business / runtime(선택) / handlers / actions / hooks / views` 분리, `Business` vs. `Layout` 인텐트 분리, 도메인 코드·이벤트 및 명시적 상태 머신([packages/template-react](../../../packages/template-react/README.md) 스타터 및 `/patterns/implementation-playbook`).
+- **CI 자동 차단 7대 규칙 (`pnpm convention:check` — `example/src` + `packages/template-react/src` 기본 검사, 외부 앱은 `--root <dir>`)**:
+  1. 핸들러 등록 위치 제한 (`handlers/` 또는 `*HandlerRegistry` 바깥 등록 차단)
+  2. Provider 중첩 순서 고정 (`Action → Store → Ref → HandlerRegistry`)
+  3. 정식 레이어 파일명 및 단방향 import 경계 (`contexts / business / runtime / handlers / actions / hooks / views`)
+  4. 비정형 `handlers/` 표면 명시 분류 (`tools/context-action-lint/layered-surface-classification.json`)
+  5. `no-deprecated-effect-handler` (deprecated `use*ActionEffectHandler` / `registerEffect` 호출 차단)
+  6. `no-store-access-in-actions` (`actions/` 내 런타임 Store import 및 `use*Store` / `getStore` / `setValue` / `update` 직접 변이 차단)
+  7. `no-store-subscription-in-handlers` (`handlers/` 및 `*HandlerRegistry` 내 `use*StoreValue` / `use*StoreSelector` / `use*StorePath` 반응형 구독 차단; 의도적 예외는 `tools/context-action-lint/rule-exceptions.json`에 사유를 등록하고 stale/미등록 시 fail-closed)
+- **권고 / 크로스-레포 규율**: 4-역할 핸들러 훅 우선 사용, `BusinessActionIntent` vs. `LayoutActionIntent` 분리(`No Mixed Payloads`), 핸들러 `useCallback` 안정화, `hooks/`에서 도메인 코드·이벤트 문자열 번역, IIC(`CA-IIC-*`), 2-Second State Rule(`CA-SPEC-EVIDENCE-001`), 통합 트라이어드(`ttsc-ex` · `oa-sdk`) 잠금.
 
 ## 작업별 시작점
 
@@ -1460,7 +1483,9 @@ PR 전 로컬 우선 검증 및 영수증 발급([Local-First Verification Polic
 - [상호작용 의도 계약에서 구현까지의 흐름](/ko/context-layered/interaction-intent-implementation-flow)
   - Context-Action 레이어별 설계·구현 매핑과 집중 evidence gate
 - [아키텍처 결정 기록](/ko/context-layered/decisions/)
-  - package, protocol, persistence, compatibility 결정을 위한 지속 위치와 형식 ([CA-SPEC-EVIDENCE-001](/ko/context-layered/decisions/CA-SPEC-EVIDENCE-001) 포함)
+  - package, protocol, persistence, compatibility 결정을 위한 지속 위치와 형식 ([CA-SPEC-EVIDENCE-001](/ko/context-layered/decisions/CA-SPEC-EVIDENCE-001) 및 승인된 vNext 청사진 [CA-VNEXT-ARCHITECTURE-001](/ko/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001) 포함)
+- [Phase 2 (`v5`) 마이그레이션 및 준비 가이드](/ko/context-layered/v5-migration-readiness)
+  - `4.x` 무중단 사전 준비 레시피, `pnpm audit:v5-readiness` AST 기준선 및 Phase 2(`v5` 메이저) 진입 게이트
 - [통합 트라이어드(`ttsc-ex` · `oa-sdk`) 책임 분리 및 자율 동기화 가이드](/ko/context-layered/triad-evidence-sync-guide)
   - 3대 워크스페이스 책임 경계, 생성 계약 `@evidenceReview` 잠금, 인텐트 분리 및 자율 Pull 절차
 - [Tool Calling Web Studio 컨벤션](/ko/context-layered/usecase-tool-calling-web-studio)
@@ -1526,8 +1551,8 @@ pnpm convention:check
 
 | 구분 | 해당 컨벤션 | 검증 방식 |
 | --- | --- | --- |
-| **레포 내 CI 강제 (`CI-Enforced`)** | `package-boundary-convention`, `repository-surface-catalog` (`CA-SURFACE-CATALOG-001`), `documentation-development-conventions`, `implementation-convention`, `change-management-convention`, `LOCAL_FIRST_VERIFICATION_POLICY` | 자동 스크립트 및 PR CI: `pnpm package-boundary:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`, `pnpm verify:doc-snippets`, `pnpm change:traceability`, `pnpm verify:quick` / `pnpm verify:receipt` |
-| **권고 / 크로스-레포 (`Advisory / Cross-Repo`)** | `interaction-intent-contract`(IIC 체크리스트), `triad-evidence-sync-guide`(`ttsc-ex` · `oa-sdk` 연동 잠금), `usecase-panel-layout`(패널 UX 휴리스틱) | 설계·PR 리뷰 가이드 및 인접 워크스페이스 도구 기준; `context-action` 로컬 CI는 저장소 내 문서/컨벤션 정합성만 검증 |
+| **레포 내 CI 강제 (`CI-Enforced`)** | `package-boundary-convention`, `repository-surface-catalog` (`CA-SURFACE-CATALOG-001`), `documentation-development-conventions`, `implementation-convention` (`example/src` + `packages/template-react/src` 대상 7대 구조·AST 규칙 및 fail-closed `layered-surface-classification.json` / `rule-exceptions.json`), `change-management-convention`, `LOCAL_FIRST_VERIFICATION_POLICY` | 자동 스크립트 및 PR CI: `pnpm package-boundary:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`(외부 소비자는 `--root <dir>`), `pnpm docs:check`, `pnpm verify:doc-snippets`, `pnpm change:traceability`, `pnpm verify:quick` / `pnpm verify:receipt` |
+| **권고 / 크로스-레포 (`Advisory / Cross-Repo`)** | 4-역할 훅(`Guard`/`Command`/`Observer`/`Result`), `BusinessActionIntent` vs. `LayoutActionIntent` 분리, 도메인 이벤트, `interaction-intent-contract`(IIC 체크리스트), 2-Second State Rule(`CA-SPEC-EVIDENCE-001`), `triad-evidence-sync-guide`(`ttsc-ex` · `oa-sdk`), `usecase-panel-layout` | 설계·PR 리뷰 가이드, `packages/template-react` 표준 스타터 참조 및 인접 워크스페이스 도구 기준; `context-action` 로컬 CI는 저장소 내 문서/컨벤션 정합성만 검증 |
 
 ## 팀 컨벤션으로 굳힐 때 읽는 순서
 
@@ -1569,14 +1594,16 @@ participant를 가진 transaction을 시작합니다.
 4. [Tool-calling Editor Architecture](/ko/concept/tool-calling-editor-architecture)
 5. [Standalone Web Studio README](../../../demos/bolt-style-editor/README.md)
 
-## 코드와 같이 볼 때
+## 스타터 템플릿 및 예제 앱과 같이 볼 때
 
-문서만 보지 말고 예제 앱도 같이 보는 것이 가장 좋습니다.
+문서만 보지 말고 표준 스타터 템플릿과 라이브 예제 앱도 함께 확인하는 것이 좋습니다.
 
+- `@context-action/template-react` 표준 스타터 (`packages/template-react/src/features/order-workspace/`)
 - `/patterns/implementation-playbook`
 - `/patterns/implementation-playbook/access-request`
 - `/patterns/implementation-playbook/incident-escalation`
 - `/patterns/implementation-playbook/renewal-risk-review`
+- `/foundations/react/headless-di`
 - standalone `/web-coding/` release
 
 ## 한 줄 요약
@@ -1844,6 +1871,280 @@ XState 없이 Effect 전용(`Schema`, `EffectRunnerPort`, `TransactionCoordinato
 
 패키지 계층, 안정성 등급 또는 문서 권한 분류 체계가 호환되지 않게 바뀔 때는 스키마 버전(`*.v2.json`)을 올립니다. 패키지가 폐기되거나 `tracked-partial` 영역의 한영 번역이 100% 완료되면 해당 항목을 갱신하고 `strict-paired`로 승격합니다.
 
+===================[ DOC: ko/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001.md ]===================
+# CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, 상태 계층 통합 및 React 표면 슬림화 청사진
+
+**상태:** accepted — Phase 1 (`M0–M4`, 4.x 무중단 정렬) 및 Phase 2 (`v5` React 호환성 정리 및 기본값 통일) `stage` 구현 완료 (패키지 버전 범프·npm 배포는 동결 유지, 롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32`)  
+**소유자:** Framework Core & React Runtime  
+**관련 이슈/스펙:** `CA-VNEXT-ARCHITECTURE-001` ([CA-SURFACE-CATALOG-001](./CA-SURFACE-CATALOG-001.md), [CA-ELEMENT-INTEROP-001](./CA-ELEMENT-INTEROP-001.md), [CA-STATECHART-EFFECT-001](./CA-STATECHART-EFFECT-001.md), [CA-SPEC-EVIDENCE-001](./CA-SPEC-EVIDENCE-001.md) 기반)  
+**기준선(Baseline):** `stage` (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`, 프리릴리스 기간 중 패키지 버전 동결)
+
+---
+
+## 1. 맥락 및 단계별 반영 원칙
+
+연계 프로젝트 및 후속 배포가 예측 가능한 단계로 마이그레이션할 수 있도록 본 아키텍처 전환은 두 단계로 구분됩니다:
+
+1. **Phase 1 (`M0–M4` — 4.x 무중단 / Additive 정렬, `stage` 구현 완료):** 기존 루트 `.` export와 4.x 기본값을 100% 보존한 채 React 훅·Provider의 `StateReader`/`StateBackend`/`TimelineBackend` 네이티브 수용(`M1a`/`M1b`), Core 계약 레벨 `actions` 큐·타임아웃 정책(`M2`), Layer 1 `@context-action/mutative` `StateStore` 및 동적 `notificationMode` 정합(`M3`), opt-in 서브패스(`./refs`, `./time-travel`, `./transactions`)와 대칭 디스패치 훅(`useActionResultDispatch()`, `useActionScope()`) (`M4`)을 반영했습니다.
+2. **Phase 2 (`v5` React 호환성 정리 및 기본값 통일, `checkpoint/pre-phase2-v4` @ `240b2b32` 이후 `stage` 구현 완료):** `@context-action/react` 루트 `.`를 일상 핵심 표면(`createActionContext`, `createStoreContext`, `Store`, 스토어 훅, `StoreErrorBoundary`)으로 슬림화하고 `./refs`·`./time-travel`·`./transactions`·`./backend`·`./advanced`·`./utils`·`./webmcp`를 독립 서브패스로 분리했습니다. Deprecated React API(`useActionDispatchWithResult`, `useActionEffectHandler`, `compareStrategy`, `StoreSchema`, 레거시 React `TransactionBackend` 파사드)를 제거했고(`@context-action/core`의 `registerEffect`는 `1.x` 호환을 위해 유지), `Store` 기본 `notificationMode`를 `'immediate'`로, `createActionContext` 기본 `useConcurrencyQueue`를 `false`로 통일했습니다. 패키지 버전 범프 및 배포는 정식 릴리스 승인 전까지 계속 동결됩니다.
+
+---
+
+## 2. 검증된 1차 출처(Primary-Source) 근거 인벤토리
+
+본 청사진의 모든 문제 진단과 수치는 안정화된 `stage` (`d21aff4a`) 코드베이스에서 직접 확인한 근거에 기반합니다:
+
+| 분석 축 | 관찰 사실 및 구조적 긴장 | 실제 코드 출처 (검증됨) |
+|---|---|---|
+| **패키지 규모·표면 비대칭** | `@context-action/core`는 zero-dependency 액션 제어 평면(`ActionRegister.ts`: 3,394줄)과 격리된 서브패스(`.`, `./element`, `./element/react`)로 유지됩니다. 후속 어댑터인 `@context-action/lit`(31줄, 컨트롤러 3종)과 `@context-action/preact`(6줄, 프리미티브 4종)은 매우 얇은 반면, `@context-action/react`는 5개 서브패스(`.`, `./backend`, `./advanced`, `./utils`, `./webmcp`), 102줄 루트 배럴, 그리고 구체 `Store`(1,057줄)와 `BackendStore`(376줄)를 함께 품고 있습니다. | `catalog/repository-surface/api-surface.v1.json`, `packages/core/package.json`, `packages/core/src/ActionRegister.ts`, `packages/react/package.json`, `packages/react/src/index.ts:1-102`, `packages/react/src/stores/core/Store.ts:1-1057`, `packages/react/src/stores/core/BackendStore.ts:1-376`, `packages/lit/src/index.ts:1-31`, `packages/preact/src/index.ts:1-6` |
+| **축 1: 상태 프리미티브·어댑터 계보 파편화** | `@context-action/store-core`(구현 92줄, 계약 102줄)가 이미 프레임워크 중립 계약(`StateReader<T>`, `StateWriter<T>`, `StateBackend<T>`, `StateStore<T>`, `TimelineBackend<T>`, `TransactionBackend<T>`)을 정의하고 있습니다. 그럼에도 `@context-action/react`의 `useStoreValue`는 `IStore<any>`를, `createStoreContext().Provider stores={...}`(`ExternalStoresMap<T>`)는 `@context-action/mutative`에 결합된 구체 `Store<T[K]>`를 요구해 `store-core`의 `StateStore<T>`를 직접 주입할 수 없습니다(`@context-action/react/backend`의 376줄 `BackendStore` 어댑터가 별도로 필요). 한편 Lit은 `ReadableStore<T>`, Preact는 `ReadableSource<T>`·`SnapshotStateReader<T>`·`fromStateReader()`를 자체 정의합니다. | `packages/store-core/src/contracts.ts:36-95`, `packages/store-core/src/index.ts:28-92`, `packages/react/src/stores/core/contracts.ts:12-38`, `packages/react/docs/state-contracts.md:62-97`, `packages/react/src/stores/hooks/useStoreValue.ts:60-92`, `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:145-147`, `packages/react/src/stores/core/Store.ts:1,105,874`, `packages/react/src/backend.ts:1-30`, `packages/lit/src/types.ts:29-51`, `packages/preact/src/source-signal.ts:19-40` |
+| **축 1b: 동기 알림 vs RAF 배칭 기본값 불일치** | `store-core`의 `createStateStore()`는 동기 commit 및 즉시 listener 알림을 수행하지만, `@context-action/react`의 `Store<T>`는 `notificationMode` 기본값이 `'batched'`(16ms `requestAnimationFrame` 스케줄링)로 설정되어 있어 헤드리스/테스트 환경에서도 16ms RAF 틱 또는 `waitFor()` 대기가 필요합니다. | `packages/react/src/stores/core/Store.ts:105,874`, `packages/store-core/src/index.ts:50-61`, `example/src/pages/performance/action-guard/scroll/ScrollHandlerRegistry.test.tsx:88-140` |
+| **축 2: Core vs React 큐 기본값 역전 및 교착 위험** | `ActionRegister`는 `config.registry?.useConcurrencyQueue === true`일 때만 직렬 큐를 켜고 재진입 규칙을 명시(`packages/core/docs/action-contracts.md`)하지만, `@context-action/react`의 `createActionContext`는 `?? true`로 기본값을 뒤집습니다. 실제로 `stage` 안정화(`c07882b1`) 중 `template-react`의 `resetDraft`/`retrySubmission`과 `FlowControlActions`의 `recordExecutionStep`/`recordHandlerExecution`에서 교착이 확인되어 호출부에 `{ immediate: true }`와 `void` 페이로드용 `undefined` 자리 채우기를 수동 추가해야 했습니다. | `packages/core/src/ActionRegister.ts:322`, `packages/core/src/types.ts` (`DispatchArgs`), `packages/core/docs/action-contracts.md:43-60`, `packages/react/src/actions/ActionContext.tsx:314`, `packages/template-react/src/features/order-workspace/actions/useOrderActions.ts:17-30`, `example/src/pages/patterns/pipeline/actions/FlowControlActions.tsx:30-39` |
+| **축 2b: 디스패치 훅 비대칭 & Level 1↔2 2중 선언** | `useActionDispatch()`는 단일 함수를 반환하는 반면 `useActionDispatchWithResult()`는 `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }` 4개 필드 객체를 반환해 API 형태가 비대칭입니다. 또한 Level 1 Lite에서 Level 2 Headless-First Symmetric DI로 전환할 때 `ActionRegister`+`createStore` 선언과 `createActionContext`+`createStoreContext` 선언을 중복 작성하고 `ownership="shared"` Provider를 중첩 배선해야 합니다. | `packages/react/src/actions/ActionContext.types.ts:123,177-182`, `packages/react/__tests__/patterns/right-sized-adoption.integration.test.tsx:186-248,310-323` |
+| **축 3: `@context-action/react` 루트 표면 비대화 및 Legacy 잔존** | `packages/react/src/index.ts` 루트(`.`)에 Action, Store, TimeTravel, Transactions(`StoreTransactionCoordinator`, `ActionTransactionBridge`), `StoreErrorBoundary`, `RefContext`, `ActionRegister`, React 헬퍼와 deprecated 심볼(`useActionEffectHandler`, `StoreConfig.compareStrategy`, `StoreSchema`, 레거시 `TransactionBackend`)이 한데 혼재해 있습니다. | `packages/react/src/index.ts:1-102`, `packages/react/src/actions/ActionContext.types.ts:137-150`, `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:53,136`, `packages/react/src/stores/core/contracts.ts:26-38` |
+
+### 2.1 교차 프로젝트 소비자 감사 근거 (7개 실사용 저장소)
+
+`@context-action/*`를 실제 소비 중인 워크스페이스 7곳을 읽기 전용으로 감사해 위 구조적 긴장과 대조한 결과입니다:
+
+| 소비자 저장소 | 의존 패키지 / 버전 | 실사용 패턴 및 마찰 근거 (검증됨) |
+|---|---|---|
+| **`browser-studio`** | `@context-action/core@^1.3.1`, `@context-action/store-core@^0.1.4`, `@context-action/xstate@^0.1.0` *(React 미사용)* | • `TimeTravelStore`가 `@context-action/react`에 묶여 있어 `createStateStore()` 위에 수동 `history[]` + `historyCursor` + `structuredClone` Undo/Redo를 직접 구현 중입니다 (`browser-studio/packages/blueprint-core/src/blueprint-graph-context.ts:125-126,588-619,1489-1561`).<br>• `SyncActionPipeline` + `StateStore` 조합을 위해 커스텀 `SyncCommandMethods`·`defineEditorContextSpec` 글루를 자체 구성했습니다 (`browser-studio/packages/editor-platform-core/src/contexts/shared.ts:86-90`). |
+| **`google-tools`** (`video-prompt-book-studio`, `video-prompt-book-ui`) | `@context-action/core@^1.3.1`, `@context-action/store-core@^0.1.4`, `@context-action/lit@^0.1.4`, `@context-action/lit-ui@^0.1.4` | • 프레임워크 중립 `{ store: StateStore, actions: ActionRegister, dispose }` 런타임을 `@context-action/lit-ui`(`createStoreContext` + `ContextStoreController`)에 직결합니다. Lit은 `StateStore`를 네이티브 수용하는 반면 React는 `BackendStore` 래퍼가 필요한 비대칭이 확인되었습니다 (`src/domain/runtime.ts:1-24`, `src/components/studio-context.ts:1-30`). |
+| **`macrostructure-first-reference-v0.4.0`** | `@context-action/core@^1.1.0`, `@context-action/react@3.0.0`, `@context-action/lit@^0.1.3`, `@context-action/lit-ui@^0.1.3` | • React `useStoreValue`가 `StateReader<T>`를 직접 받지 못해 `useRef`에 미러 `createStore`를 만들고 `useEffect`로 스냅샷을 수동 복사하는 우회 코드를 사용 중입니다 (`src/runtime/interface-intent-runtime-react.ts:15-32`).<br>• `lit@0.1.3`·`lit-ui@0.1.3` 기준 SSR/hydration 요청은 모두 종결되었습니다 (`docs/proposals/context-action-lit-hydration-request.md:159`). |
+| **`houdini-flow`** | `@context-action/core@^1.3.0` | • React 없이 순수 `ActionRegister<PayloadMap, ResultMap>` + 커스텀 `HoudiniFlowStore`로 동작하며 Layer 0 Core의 zero-dep 순수성이 필수임을 뒷받침합니다 (`src/pipeline/actions.ts:7-88`). |
+| **`clip-spike-react/packages/ae-editor`** | `@context-action/core@^0.8.6`, `@context-action/react@^0.8.6` | • `src/context/contexts.ts:1,189,198`에서 `@context-action/react` 루트(`.`)로부터 `createActionContext`, `createStoreContext`, `createTimeTravelStoreContext`를 import하며, 순수 Node `.mjs` 모델 테스트(`test/editor-history-model.test.mjs:5`, `test/clip-authoring-store-model.test.mjs:5`)에서도 `createTimeTravelStore`를 `@context-action/react`에서 가져다 씁니다. |
+| **`iframe-gsap-studio/packages/iframe-demo`** & **`webs/packages/graph-hub`** | `@context-action/react@^0.8.3` / `latest` | • `createActionContext`, `createStoreContext`, `useStoreValue`, `ActionPayloadMap`을 모두 `@context-action/react` 루트(`.`)에서 직접 import하므로 4.x 기간 동안 루트 호환성 유지가 필수입니다. |
+| **병행 `packages/react` 4.x 작업 (진행 중)** | `@context-action/react` 4.x 미출시 작업 | • `'batched'` 기본값을 깨지 않으면서 `notificationMode?: 'batched' | 'immediate'`(`StoreOptions`/`StoreNotificationMode`), `useRefController`, `useDebugValue`, `useLocalStore` 내 `useId()`를 무중단으로 추가 중입니다 (`packages/react/UNRELEASED.md:6-10`). |
+
+---
+
+## 3. 목표 아키텍처: 대칭형 Hub-and-Spoke 구조
+
+vNext 목표 구조는 **액션 파이프라인과 상태 읽기/쓰기 계약을 프레임워크 중립 Layer 0 허브에 배치**하고, 선택적 스냅샷/타임라인 엔진을 Layer 1에 분리한 뒤, React·Preact·Lit이 동일한 계약을 얇게 어댑팅하는 대칭형 Hub-and-Spoke 모델입니다.
+
+```mermaid
+flowchart TB
+  subgraph L0["Layer 0: Zero-Dep 런타임 허브 (프레임워크 중립)"]
+    CORE["@context-action/core (ActionRegister, Policy, ./element)"]
+    SC["@context-action/store-core (StateReader, StateBackend, StateStore, TimelineBackend)"]
+  end
+
+  subgraph L1["Layer 1: 선택적 상태 엔진 (프레임워크 중립)"]
+    SM["Mutative & Timeline Store Engine (Patches, Undo/Redo, Transactions)"]
+  end
+
+  subgraph L2["Layer 2: 대칭형 얇은 UI 어댑터"]
+    REACT["@context-action/react (Slim Root + ./refs, ./time-travel, ./transactions, ./backend, ./webmcp)"]
+    PREACT["@context-action/preact (Signals + SourceContext + Projection)"]
+    LIT["@context-action/lit (StoreController + ActionController + ControllerScope)"]
+  end
+
+  subgraph L3["Layer 3: 통합 어댑터 및 도구"]
+    INT["@context-action/ai-sdk · webmcp · xstate · tool-protocol"]
+  end
+
+  CORE --> REACT
+  CORE --> PREACT
+  CORE --> LIT
+  SC --> SM
+  SC --> REACT
+  SC --> PREACT
+  SC --> LIT
+  SM --> REACT
+  SM --> PREACT
+  SM --> LIT
+  CORE --> INT
+  SC --> INT
+```
+
+| 계층 | 소유 책임 | 명시적 비목표 (Non-Goals) |
+|---|---|---|
+| **Layer 0: 런타임 허브** | 프레임워크 중립 `ActionRegister` 파이프라인, `DispatchArgs`/정책 계약, DOM 인터롭(`./element`), 정규 `StateReader` / `StateBackend` / `StateStore` / `TimelineBackend` / `TransactionParticipantBackend` 계약 | 기본 `.` 엔트리에 React·Preact·Lit·DOM 런타임 의존성 유입 금지 ([CA-ELEMENT-INTEROP-001](./CA-ELEMENT-INTEROP-001.md)) |
+| **Layer 1: 상태 엔진** | 선택적 불변 패치 생성, CoW 구조 공유, undo/redo 타임라인, `StateBackend`·`TimelineBackend` 기반 원자적 멀티 스토어 트랜잭션 | React `useSyncExternalStore`나 컴포넌트 트리에 직접 결합 금지 |
+| **Layer 2: UI 어댑터** | 프레임워크 생명주기 바인딩(`Provider`, `ReactiveController`, `SignalConnection`), DI 소유권(`ownership="shared" | "owned"`), 훅/프로젝션 연결 | 다른 프레임워크에서 재사용 불가능한 독점 Store 구현체 소유 지양 |
+| **Layer 3: 통합 및 도구** | XState, WebMCP, AI SDK v7, Zod 기반 도구 프로토콜 어댑팅 ([CA-STATECHART-EFFECT-001](./CA-STATECHART-EFFECT-001.md), [CA-SURFACE-CATALOG-001](./CA-SURFACE-CATALOG-001.md)) | Action 승인 단계 우회 또는 Provider SDK 타입의 Core 유출 금지 |
+
+---
+
+## 4. 검토한 선택지 및 트랙별 상세 청사진
+
+> **참고:** 섹션 4의 TypeScript 예제는 후보 API를 보여주기 위한 **비규범적 설계 스케치**이며, 현재 배포/빌드된 패키지에 존재하지 않습니다.
+
+### 4.1 트랙 A — State / Store 계약 통합 설계
+
+#### 선택지 A1 *(우선 권장 기반)*: React 훅과 `createStoreContext`에서 `StateReader<T>` / `StateBackend<T>` 직접 수용
+- `useStoreValue`, `useStoreSelector`, `ExternalStoresMap<T>`의 입력 제약을 구체 React `Store` / `IStore`에서 **`StateReader<T>` / `StateBackend<T>` 계약**으로 확장하여 `@context-action/store-core`, `@context-action/react`, `@context-action/lit`(`ReadableStore`), `@context-action/preact`(`SnapshotStateReader`)를 하나의 구조적 능력 사다리(`StateReader` → `StateBackend` → `TimelineBackend`)로 통합합니다.
+- 효과: `createStateStore()`로 만든 zero-dep 헤드리스 스토어를 수동 `BackendStore` 래핑 없이 React `createStoreContext().Provider`와 구독 훅에 바로 주입할 수 있습니다.
+
+#### 선택지 A2 *(구조적 추출)*: Mutative `Store` 및 `TimeTravelStore`를 React에서 탈결합
+- `packages/react/src/stores/core/` 내부의 Mutative/TimeTravel 엔진을 프레임워크 중립 Layer 1 모듈 또는 `@context-action/mutative` 측으로 분리해 Lit·Preact와 공유하고, `@context-action/react`에서는 하위 호환 re-export를 유지하는 방향입니다.
+- **기각된 대안:** `@context-action/store-core`를 폐기하고 `@context-action/react`를 단일 상태 패키지로 통합. Lit·Preact·Vanilla JS·Worker 환경은 React 18/19 peer 의존성이 없는 상태 계약이 필수적이므로 기각했습니다.
+
+#### 핵심 트레이드오프: 기본 알림 모드(`'batched'` RAF vs. `'immediate'`)
+- **`'batched'`(16ms RAF) 기본값 유지:** 연속 업데이트를 자동 프레임 스로틀링해 기존 대시보드 패턴을 깨지 않지만, 헤드리스/테스트에서도 RAF 대기가 필요한 비직관성이 남습니다 ([모범 사례](../../guide/best-practices.md)).
+- **`'immediate'` 기본값 전환 + 명시적 `'raf'` / `RefContext` 분리:** `createStateStore()`와 동일한 동기 commit/알림을 기본으로 두고, React 배칭은 React 18/19에 맡기며, 60fps 고빈도 DOM 제어는 `RefContext`([Store 선택 가이드](../store-selection-and-usage-guide.md))로 유도합니다. 전환 시 **semver-major 행위 변경**으로 다뤄야 합니다.
+
+---
+
+### 4.2 트랙 B — Authoring DX 및 액션 정책 선언 설계
+
+#### B1. Action 계약 레벨의 큐/스케줄링 정책 선언
+
+호출부마다 `dispatch('resetDraft', undefined, { immediate: true })`를 기억하게 하는 대신, 레지스트리 계약에 액션별 스케줄링 정책을 선언하는 방향입니다.
+
+```ts
+// 비규범적 설계 스케치 (현재 미구현)
+const register = new ActionRegister<OrderActions, OrderResults>({
+  name: 'OrderBusiness',
+  actions: {
+    submitOrder:     { queue: 'serial', timeout: 10_000 },
+    resetDraft:      { queue: 'immediate' },
+    retrySubmission: { queue: 'immediate' },
+    recordStep:      { queue: 'immediate' },
+  },
+});
+
+// 호출부: void 페이로드 자리 채우기 및 옵션 누락 위험 제거
+await dispatch('resetDraft');
+```
+
+- **기본값 정합성 과제:** `@context-action/core`(`useConcurrencyQueue` 기본 `false`)와 `@context-action/react`의 `createActionContext`(`useConcurrencyQueue` 기본 `true`) 간 역전을 맞추면 헤드리스 테스트와 React 마운트 환경 간 동작 차이를 없앨 수 있습니다.
+
+#### B2. Dispatch 훅 시그니처 대칭화
+- **선택지 B2-a *(함수형 대칭 권장)*:** `useActionDispatch()`는 `dispatch` 함수를, 신규 `useActionResultDispatch()`는 `dispatchWithResult` 함수를 반환해 1:1 함수형으로 통일(`useActionDispatchWithResult()`는 4.x deprecated 유지)하고, 취소 제어는 `useActionScope()` (`{ abortAll, resetAbortScope }`)로 분리합니다.
+- **선택지 B2-b *(호출 가능 객체 확장)*:** `dispatch.withResult(...)` 형태로 단일 훅에 메서드를 부착합니다. 간결하지만 TypeScript 모킹 및 훅 린트 관습과 충돌 소지가 있습니다.
+
+#### B3. Level 1 ↔ Level 2 전환 비용을 줄이는 선택적 통합 바인딩 (`defineRuntime` / `bindReactRuntime`)
+
+```tsx
+// 비규범적 설계 스케치 (현재 미구현)
+const CouponRuntime = defineRuntime({
+  name: 'Coupon',
+  actions: defineActions<CouponActions, CouponResults>({
+    clearCoupon: { queue: 'immediate' },
+  }),
+  stores: {
+    subtotal: () => createStateStore('subtotal', 100),
+    quote: () => createStateStore<CouponQuote>('quote', initialQuote),
+  },
+});
+
+const Coupon = bindReactRuntime(CouponRuntime);
+
+// Level 1 (Provider가 생명주기 소유)
+<Coupon.Provider>
+  <CouponWidget />
+</Coupon.Provider>
+
+// Level 2 (헤드리스 엔진 주입 — 뷰/핸들러 코드 수정 없음)
+const engine = CouponRuntime.create();
+<Coupon.Provider runtime={engine} ownership="shared">
+  <CouponWidget />
+</Coupon.Provider>
+```
+
+- **주의할 과추상화 방지 원칙:** `defineRuntime`을 도입하더라도 이는 **독립된 `ActionRegister` + `StateStore` 묶음을 얇게 조립하는 선택적 문법 설탕**에 그쳐야 합니다. Level 3 6-Layer 워크스페이스에서 `BusinessActionIntent`와 `LayoutActionIntent`를 두 개의 분리된 경계로 두는 원칙을 훼손해서는 안 됩니다.
+
+---
+
+### 4.3 트랙 C — `@context-action/react` 표면 슬림화 및 단계적 로드맵
+
+| Entrypoint | 목표 책임 | 포함 심볼 (안) |
+|---|---|---|
+| `@context-action/react` (`.`) | **일상 필수 React 표면 (~12개 심볼)** | `createActionContext`, `createStoreContext`, `useStoreValue`, `useStoreSelector`, `useStorePath`, `createStore`, `ActionRegister`, `(선택) bindReactRuntime`, 핵심 타입 |
+| `@context-action/react/refs` *(신규 서브패스)* | 비반응형 Tier 3 DOM / 60fps 제어 | `createRefContext`, `RefContextReturn`, `RefTarget`, `RefOperationOptions`, `RefOperationResult` |
+| `@context-action/react/time-travel` *(신규 서브패스)* | Undo/Redo 타임라인 및 훅 | `createTimeTravelStore`, `createTimeTravelStoreContext`, `TimeTravelStore`, `useTimeTravelControls`, `useTimeTravelPath`, `useTimeTravelSelector` |
+| `@context-action/react/transactions` *(신규 서브패스)* | 멀티 스토어 원자적 트랜잭션·인스펙터 | `StoreTransactionCoordinator`, `bindActionTransactions`, `useStoreTransactionInspector` |
+| `@context-action/react/backend` *(기존)* | `store-core` 백엔드 브리지 및 계약 | `BackendStore`, `createBackendStore`, `store-core` 프로토콜 타입 |
+| `@context-action/react/webmcp` *(기존)* | WebMCP 브라우저 도구 격리 노출 | 현행 격리 표면 유지 |
+
+#### 단계별 호환성 로드맵
+
+1. **Phase 1 — `4.x` 무중단(Additive / Non-Breaking) 개선**
+   - `ActionRegister`에 액션별 스케줄링 정책(`queue: 'serial' | 'immediate'`) 옵션 추가 (기존 기본값 유지).
+   - `useStoreValue` 및 `ExternalStoresMap`이 `StateReader<T>` / `StateBackend<T>`를 직접 수용하도록 타입·런타임 호환 확장 (`IStore` / `Store` 완전 호환 유지).
+   - `@context-action/react/refs`, `/time-travel`, `/transactions` 서브패스 추가 및 루트 `.` re-export 병행 (구현 시 `catalog/repository-surface/api-surface.v1.json` 및 경계 게이트 동시 갱신).
+   - 선택적 `defineRuntime` 도입의 실효성 검증.
+2. **Phase 2 — `v5` 메이저 정식 정리 (Breaking)**
+   - 기존 deprecated 심볼 제거: `useActionEffectHandler`, `StoreConfig.compareStrategy`, `StoreSchema`, 레거시 React `TransactionBackend` 파사드.
+   - `@context-action/react` 루트 `.`를 핵심 프리미티브로 축소하고 특수 기능은 서브패스(`/refs`, `/time-travel`, `/transactions`)로 분리.
+   - `Store` 기본 알림 모드(`immediate` vs `batched`), Core/React `useConcurrencyQueue` 기본값, `useActionDispatchWithResult` 시그니처 일관화 확정.
+
+---
+
+## 5. 결과 및 불변 조건 (Consequences & Invariants)
+
+향후 본 청사진 중 일부를 실제 구현으로 승격하더라도 다음 저장소 불변 조건은 반드시 유지되어야 합니다:
+
+- **Core 순수성 ([CA-ELEMENT-INTEROP-001](./CA-ELEMENT-INTEROP-001.md)):** `@context-action/core` 기본(`.`) 엔트리는 React, DOM, Mutative, Store 런타임 의존성을 갖지 않습니다.
+- **스냅샷 버전 및 방어 읽기 보장 (`packages/react/docs/state-contracts.md`):** 상태를 소유하는 `StateBackend`는 `ReadonlyStateSnapshot<T>`에서 단조 증가 `version`을 필수 보장합니다. 버전 없는 스냅샷 허용은 명시적 호환 파사드로만 제한합니다.
+- **표면 카탈로그 일치성 ([CA-SURFACE-CATALOG-001](./CA-SURFACE-CATALOG-001.md)):** 모든 신규 서브패스, 패키지 분리, export 변경은 `catalog/repository-surface/api-surface.v1.json`, 패키지 문서, `pnpm package-boundary:check` 테스트와 함께 갱신합니다.
+- **독립 프리미티브 조합성:** Level 1/2 편의 팩토리를 도입하더라도 `ActionRegister`가 Store 트랜잭션 소유권을 암묵적으로 추론해서는 안 됩니다 (`packages/core/docs/action-contracts.md:20-23`).
+- **불필요한 React 래퍼 지양 원칙 (Non-Wrapper React Built-in Hook Discipline):** 기존 Context-Action 프리미티브와 React 18/19 기본 훅의 조합만으로 해결되는 영역에는 얇은 전용 React 래퍼 API를 추가하지 않습니다 ([코드 패턴](../../guide/code-patterns.md)의 OOP × React 기본 Hook 5유형 및 `packages/react/__tests__/patterns/oop-react-hooks-patterns.integration.test.tsx`, `9/9` 통과 기준).
+
+---
+
+## 6. 미확정 피드백 의사결정 및 실증 기반 권고 해법
+
+섹션 2.1의 7개 실사용 저장소 감사 근거를 바탕으로 4가지 게이트 각각에 대한 Phase 1 권고 해법을 도출했습니다 (최종 승인 대기):
+
+1. **기본 Store 알림 모드 (`Store.ts:105`):**
+   - *질문:* `Store` 기본 `notificationMode`를 `'batched'`(16ms RAF)에서 동기 `'immediate'`로 바꿀지, 현행 유지할지?
+   - *권고 해법:* **4.x에서는 `'batched'` 기본값을 유지하고 무중단 opt-in `notificationMode?: 'batched' | 'immediate'` 제공** (`packages/react/UNRELEASED.md:6-10`에서 병행 반영 중, `iframe-demo`·`graph-hub`·`ae-editor` 호환성 보호). 기본값의 `'immediate'` 전환은 **Phase 2 (v5 Major)** 로 유보합니다.
+2. **`defineRuntime` + `bindReactRuntime` 도입 vs. 순수 분리 철학:**
+   - *질문:* Level 1 → Level 2 보일러플레이트 절감용 통합 팩토리를 둘지, `Action`·`Store`·`Ref` 독립 선언 명시성을 유지할지?
+   - *권고 해법:* **독립 `ActionRegister` + `StateStore` 프리미티브를 1원칙으로 유지**합니다 (`houdini-flow` 및 Level 3 6-Layer 인텐트 분리 필수 요건). M1(`StateReader`/`StateBackend` 직결)과 M3(`TimeTravel` 추출)가 `google-tools`·`browser-studio`의 구조적 래핑 마찰을 해소한 뒤에 선택적 Level 1↔2 조합 헬퍼 필요성을 재평가합니다.
+3. **`StateBackend` 수용 및 Mutative / TimeTravel 배치:**
+   - *질문:* `Store`·`TimeTravelStore`를 프레임워크 중립 Layer 1 패키지로 추출할지, Phase 1에서는 React의 `StateBackend` 직접 수용까지만 멈출지?
+   - *권고 해법:* **무중단 마일스톤으로 순차 분리 실행합니다:** **M1 (P0)** 에서 React 훅과 `createStoreContext`가 `StateReader<T>`/`StateBackend<T>`를 직접 수용하도록 확장해 `macrostructure`의 `useEffect` 미러 Store 우회를 제거하고, **M3 (P1)** 에서 `TimeTravelStore`/`TimelineBackend` 엔진을 Layer 1로 추출하되 `@context-action/react` 루트 `.` re-export를 유지해 `browser-studio`와 순수 Node `ae-editor` `.mjs` 테스트 요구를 모두 충족합니다.
+4. **Semver 우선순위:**
+   - *질문:* 4.x 무중단(Additive) 경로를 우선할지, v5 메이저 재설계를 먼저 고정할지?
+   - *권고 해법:* **Phase 1 (`M0–M4`)은 전면 4.x 무중단(Additive) 진화로 확정**해 기존 `@context-action/react` 루트(`.`) 소비자들을 100% 보호하고, deprecated 제거 및 루트 슬림화는 **Phase 2 (v5 Major)** 로 분리합니다.
+
+---
+
+## 7. 검증 근거 및 권위 참조 문서
+
+- **검증된 안정화 기준선 (`stage`):**
+  - `28a9e83e` — Context-Layered 거버넌스 게이트 강화, 컨벤션 인덱스, `template-react` 레퍼런스 정렬
+  - `c07882b1` — 런타임 안정화 수정(`{ immediate: true }` 큐 우회, `draft_edited` 상태 복귀, 불변 `Map` 캐시 복제, Promise 정착), 통합/동작 검증 테스트 4종 추가(`@context-action/react` `84/84` suites / `957` tests, `example` Vitest `24/24` files / `65` tests), 한/영 [모범 사례](../../guide/best-practices.md) 현대화
+  - `d21aff4a` — 17단계 전체 로컬 검증(`pnpm verify`) 통과 및 RFC 8785 서명 영수증(`pnpm verify:receipt` `✔ [VALID]`)
+  - OOP × React 기본 Hook 문서화 및 통합 검증 — [코드 패턴](../../guide/code-patterns.md)에 연결된 5개 페어링 패턴 가이드, `packages/react/__tests__/patterns/oop-react-hooks-patterns.integration.test.tsx` (`9/9` 통과), `71`개 컴파일 스니펫(`pnpm verify:doc-snippets`) 통과
+- **권위 계약 및 참조 문서:**
+  - [vNext 아키텍처 & 타 프로젝트 핸드오프 가이드](../vnext-architecture-handoff.md)
+  - [Phase 2 (`v5`) 마이그레이션 및 준비 가이드](../v5-migration-readiness.md)
+  - [아키텍처 결정 기록 인덱스](./index.md) · [개발 컨벤션 인덱스](../convention-index.md) · [코드 패턴](../../guide/code-patterns.md)
+  - [Core Action Contracts](../../../../packages/core/docs/action-contracts.md)
+  - [Core Element Interop 가이드](../../../../packages/core/docs/element-interop.md)
+  - [React State Contracts](../../../../packages/react/docs/state-contracts.md)
+  - [Store별 선택 및 사용법 가이드](../store-selection-and-usage-guide.md)
+  - [패키지 경계 및 코드베이스 관리](../package-boundary-convention.md)
+  - [저장소 표면 카탈로그](../repository-surface-catalog.md) · [다음 작업과 문서 소유권](../next-work.md)
+
+---
+
+## 8. 승격 및 되돌림 조건 (Admission & Reversal Conditions)
+
+1. 현재 `@context-action/*` 공개 API에 의존하는 타 프로젝트·연계 워크스페이스의 병행 수정이 안정화되어 동기화 윈도우가 열리기 전에는 서브패스 추가나 패키지 분리를 적용하지 않습니다.
+2. 이 초안의 항목을 실제 구현으로 승격할 때는 섹션 6의 결정 게이트를 확정한 뒤 본 문서를 `accepted`로 갱신하거나 영역별 후속 `CA-*` 결정 기록으로 대체하고, `catalog/repository-surface/api-surface.v1.json`과 packed ESM/CJS·React 18/19 호환성 게이트(`pnpm verify:all`)를 모두 통과해야 합니다.
+3. 위 절차가 완료되기 전까지 현행 4.x / 1.x / 0.x 공개 계약이 유일한 기준선으로 유지됩니다.
+
+---
+
+## 9. Phase 1 (4.x 무중단) 계약 우선 구현 계획 및 이행 현황 (`M0–M4`)
+
+아래 마일스톤은 모두 **4.x 하위 호환을 100% 보장하는 무중단(Additive) 단계**로 설계되어 `@context-action/core`·`store-core`·`mutative`·`react`의 기존 루트(`.`) export를 그대로 보존합니다. 5개 Phase 1 마일스톤(`M0–M4`)은 모두 `stage`에 구현 및 검증이 완료되었습니다(패키지 버전 범프·npm 배포는 계속 동결, Phase 2 `v5` 정리는 유보).
+
+| 마일스톤 | 상태 및 트랙 | 반영 대상 파일 / 표면 | 계약 목표 및 소비자 마찰 해소 | 인수 테스트 및 검증 게이트 |
+|---|---|---|---|---|
+| **M0 — 기준선 동기화 선행** | **완료** (`e1bdf4a7`) · 병행 4.x 정렬 | `packages/react/UNRELEASED.md`, `StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP 문서, 기준선 영수증 | M1 착수 전 병행 4.x 개선 변경과 기준선 영수증을 `stage`에 안정 커밋했습니다. | `pnpm verify:quick && pnpm verify:receipt` (`✔ [VALID]`) |
+| **M1a & M1b — P0: React `StateReader` / `StateBackend` / `TimelineBackend` 네이티브 수용** | **완료** · 트랙 A1 | `useStoreValue.ts`, `useStoreSelector.ts`, `useStorePath.ts`, `useTimeTravelControls.ts`, `useTimeTravelPath.ts`, `declarative-store-pattern-v2.tsx`, `time-travel-store-pattern.tsx`, `packages/react/src/index.ts` | React 구독·타임라인 훅(`SubscribableStore`, `TimeTravelControlsStore`, `TimeTravelPathStore`)과 Provider DI(`ExternalStoreInput`, `ExternalTimeTravelStoreInput`)가 `StateReader`/`StateBackend`/`TimelineBackend`를 직접 수용하도록 확장하고, 래핑된 `BackendStore` 리스너 누수 방지·`ownership` 정책을 정리했습니다. | `state-reader-native-acceptance.test.tsx`, `vnext-phase1-alignment.integration.test.tsx`, `pnpm verify:react-artifact-boundary`, `pnpm package-boundary:check` |
+| **M2 — P1: Core 계약 레벨 액션 큐 정책** | **완료** · 트랙 B1 | `packages/core/src/types.ts`, `packages/core/src/index.ts`, `packages/core/src/ActionRegister.ts`, `ActionContext.types.ts`, `ActionContext.tsx`, `packages/core/docs/action-contracts.md` | 제네릭 `ActionRegisterConfig<T>.actions`(`ActionQueuePolicy`, `ActionPolicyConfig`: `{ queue?: 'serial' \| 'immediate'; timeout?: number }`) 및 `ActionContext` 전달을 4.x 기본값·호출부 옵션 우선순위 유지 상태로 구현했습니다. | `packages/core/__tests__/unit/action-policy-config.test.ts`, `@context-action/core` 전체 Jest/Vitest 스위트, `pnpm verify:core-artifact-parity` |
+| **M3 — P1: Layer 1 Mutative & Timeline 정합** | **완료** · 트랙 A2 | `packages/mutative/src/backend.ts`, `packages/mutative/__tests__/backend-state-store-parity.test.ts`, `catalog/repository-surface/api-surface.v1.json`, `docs/{en,ko}/context-layered/store-selection-and-usage-guide.md` | 19번째 패키지를 신설하지 않고 `@context-action/mutative` Layer 1 `MutativeStateBackend`와 `MutativeTimelineBackend`를 `StateStore`/`TransactionBackend`(`getValue()`, `isDisposed()`, 동적 `getNotificationMode()`/`setNotificationMode()`)로 정합화하고 React 타임라인 컨텍스트·훅과 직결했습니다. | `backend-state-store-parity.test.ts`, `@context-action/mutative` 전체 Vitest 스위트, `vnext-phase1-alignment.integration.test.tsx` |
+| **M4a & M4b — P2: Opt-In React 서브패스 및 대칭 디스패치 훅** | **완료** · 트랙 C1 & B2 | `packages/react/src/{refs,time-travel,transactions}.ts`, `package.json`, `tsdown.config.ts`, `jest.config.cjs`, `ActionContext.{types.ts,tsx}`, `catalog/repository-surface/api-surface.v1.json`, `scripts/verify-react-artifact-boundary.mjs`, `scripts/verify-doc-snippets.mjs` | 루트 `.` export를 100% 보존한 채 opt-in 서브패스 `./refs`(Mutative 독립)·`./time-travel`·`./transactions`와 대칭 훅 `useActionResultDispatch()`, `useActionScope()`(`ActionScopeReturn`)를 추가했고 `useActionDispatchWithResult()` 호환성을 유지했습니다. | `pnpm verify:surface-catalog`, `pnpm verify:package-exports`, `pnpm verify:react-artifact-boundary`, `pnpm --filter @context-action/react test`, `pnpm docs:check`, `pnpm verify:quick && pnpm verify:receipt` |
+| **Phase 2 (`v5`) — 메이저 React 표면 정리 및 기본값 통일** | **`stage` 구현 완료** (체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32`) | `packages/react/src/{index.ts,actions/ActionContext*,stores/core/Store.ts,stores/core/contracts.ts,stores/core/StoreTransactionCoordinator.ts,stores/patterns/declarative-store-pattern-v2.tsx}`, `catalog/repository-surface/api-surface.v1.json`, `scripts/verify-react-{artifact-boundary,compatibility}.mjs` | `@context-action/react` 루트 `.` 배럴을 슬림화(`./refs`·`./time-travel`·`./transactions` 독립 서브패스화)하고 Deprecated React API(`useActionEffectHandler`, `useActionDispatchWithResult`, `compareStrategy`, `StoreSchema`, 레거시 React `TransactionBackend` 파사드)를 제거했습니다(`@context-action/core`의 `registerEffect`는 `1.x` 호환을 위해 유지). `Store` 기본 `notificationMode`는 `'immediate'`, `createActionContext` 기본 `useConcurrencyQueue`는 `false`로 통일했습니다. | `pnpm --filter @context-action/react test`, `pnpm verify:react-artifact-boundary`, `pnpm verify:react-compatibility`, `pnpm verify:doc-snippets`, `pnpm docs:check`, `pnpm verify && pnpm verify:receipt` |
+
 ===================[ DOC: ko/context-layered/decisions/index.md ]===================
 # 아키텍처 결정 기록
 
@@ -1907,6 +2208,10 @@ persistence·privacy 동작, 임시 compatibility 예외가 바뀌면 기록을 
 - [CA-SPEC-EVIDENCE-001: TypeSpec Evidence 결합 및 프론트엔드 상태 계층화(State Tiering) 거버넌스](./CA-SPEC-EVIDENCE-001.md)
 - [CA-SURFACE-CATALOG-001: 저장소 API·예제·문서 표면 카탈로그 거버넌스](./CA-SURFACE-CATALOG-001.md)
 - [PostgreSQL Durable Operation Adapter](../architecture/postgres-durable-operation-adapter.md)
+
+## 제안 / 초안 청사진
+
+- [CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, 상태 계층 통합 및 React 표면 슬림화 청사진 (제안 초안)](./CA-VNEXT-ARCHITECTURE-001.md)
 
 ===================[ DOC: ko/context-layered/implementation-convention.md ]===================
 # Implementation Playbook 표준 컨벤션
@@ -2048,7 +2353,9 @@ compatibility 표면에는 canonical 명명 규칙을 일괄 적용하지 않습
   `handlers/` 또는 `*HandlerRegistry` 바깥의 `use*ActionGuard`,
   `use*ActionCommandHandler`, `use*ActionResultHandler`, `use*ActionObserver`,
   `use*ActionHandler`, `use*ActionEffectHandler` 직접 호출을 차단합니다.
-- `actions/` 파일은 `*Actions` 또는 `*ActionHandlers`로 이름 짓습니다.
+- `actions/` 파일은 `*Actions` / `*actions`(또는 `index`)로 이름 지으며, 런타임 Store import와 `.getStore()` · `.setValue()` · `.update()` 직접 호출을 금지합니다(`no-store-access-in-actions`).
+- `handlers/` 모듈(및 `*HandlerRegistry` 파일)은 `store.getValue()`로 지연 읽기만 수행하며 `use*StoreValue` · `use*StoreSelector` · `use*StorePath` 반응형 구독을 금지합니다(`no-store-subscription-in-handlers`).
+- deprecated된 `use*ActionEffectHandler`와 `registerEffect` 호출은 전체 검사 대상에서 차단합니다(`no-deprecated-effect-handler`).
 - `hooks/` 파일은 `use*` 명명을 사용하며 `index`, `types` 진입점을
   허용합니다.
 - `views/` 파일은 `*View`, `*Views` 또는 `*Grid` 같은 명시적 composite
@@ -2059,30 +2366,23 @@ compatibility 표면에는 canonical 명명 규칙을 일괄 적용하지 않습
 파생 business 값은 View에 도달하기 전에 Hook 또는 Facade에서 계산합니다.
 예를 들어 implementation-playbook의 packet과 quote preview는 Data Hook이
 계산하고 View는 반환된 model만 렌더링합니다. usecase 전용 검사와 함께 다음
-게이트를 실행합니다.
+게이트를 실행합니다(`pnpm convention:check`는 기본적으로 `example/src`와 `packages/template-react/src`를 함께 스캔하며, 외부 앱은 `node scripts/check-context-layered-conventions.mjs --root <dir>`로 검증합니다):
 
 ```bash
 pnpm convention:check
+node scripts/check-context-layered-conventions.mjs --root packages/template-react/src
 pnpm --filter example check
 ```
 
-현재 게이트는 저장소 구조에서 canonical root를 발견하며 레이어 경로·명명
-위반은 0건입니다. 현재 root 수는 `pnpm convention:check` 출력으로 확인하고,
-advanced 및 compatibility root는 마이그레이션 분류가 바뀔 때까지 이 자동
-명명 범위에서 명시적으로 제외합니다. 저장소 전체 package
-import는 별도로 `pnpm package-boundary:check`가 관리합니다.
+현재 게이트는 스캔 대상 전반에서 canonical root를 자동 발견하며 레이어 경로·명명, import 경계, Provider 순서, 승격된 3대 AST 규칙 위반 모두 0건입니다. 실시간 root 수와 예외 건수는 `pnpm convention:check` 출력이 source of truth이며, `advanced` 및 `compatibility` root는 마이그레이션 분류가 바뀔 때까지 자동 명명 범위에서 명시적으로 제외합니다. 저장소 전체 package import는 별도로 `pnpm package-boundary:check`가 관리합니다.
 
-비정형 `handlers/` 디렉터리를 조용히 무시하지 않습니다. 현재 분류와 근거는
-`tools/context-action-lint/layered-surface-classification.json`에 두며, 검사기는
-모든 비정형 디렉터리가 `advanced` 또는 `compatibility` 중 하나로 등록되어
-있는지 확인합니다. 현재 manifest에는 advanced 비교 표면이 없고
-compatibility object-context 표면 1곳이 있습니다. conditional permission,
+비정형 `handlers/` 디렉터리와 불가피한 AST 규칙 예외는 조용히 무시하지 않습니다. 비정형 `handlers/` 분류와 근거는 `tools/context-action-lint/layered-surface-classification.json`에 `advanced` 또는 `compatibility`로 등록하고(실시간 카운트는 `pnpm convention:check` 출력 기준, 현재 `advanced` 통합 표면 1곳 및 `compatibility` object-context 표면 1곳), 불가피한 AST 규칙 예외는 `tools/context-action-lint/rule-exceptions.json`에 사유(`reason`)와 함께 fail-closed로 등록하며 더 이상 트리거되지 않으면(stale) 게이트가 실패합니다. conditional permission,
 action-based mouse, context-store mouse, enhanced context-store mouse
 usecase는 canonical `contexts/`와 `handlers/` 표면에 편입되었습니다.
 enhanced context-store usecase는 semantic command를 `actions/`, 순수 전이를
 `business/`, Provider 조합을 `providers/`에서 분리합니다. memoization 비교도
 canonical `contexts/`와 `actions/` 경계로 이동했으며 기존 model과 hook 경로는
-compatibility re-export로 유지합니다.
+compatibility re-export로 유지합니다(비메모이제이션 비교 레인은 `rule-exceptions.json`에 사유를 명시적으로 등록).
 
 ## 명시적 상태 머신 규칙
 
@@ -3440,8 +3740,8 @@ stateDiagram-v2
 
 이 문서는 저장소 내 세 가지 핵심 표면의 **원칙**, **기본 규격(스키마·분류·검증 규칙)**, 그리고 **전체 목록**을 정의합니다.
 
-1. **API 전체 구성**: 18개 워크스페이스 패키지(`packages/*`), 공개 `exports` 서브패스, 워크스페이스 의존성, 안정성 등급
-2. **예제가 설명하는 것**: `example/` 앱 내 13개 의미 그룹(77개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 5개 패키지 로컬 `examples/`, 9개 내러티브 예제 문서
+1. **API 전체 구성**: 19개 워크스페이스 패키지(`packages/*`), 공개 `exports` 서브패스, 워크스페이스 의존성, 안정성 등급
+2. **예제가 설명하는 것**: `example/` 앱 내 13개 의미 그룹(77개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 6개 패키지 로컬 `examples/`, 9개 내러티브 예제 문서
 3. **관리되는 문서 구조**: 9개 루트 마크다운 문서, 12개 관리 문서 영역(권한 등급·한영 쌍 정책·추적 중인 번역 공백), 파생 LLMS 번들 산출물
 
 관련 기준 문서는 [패키지 경계 및 코드베이스 관리 컨벤션](/ko/context-layered/package-boundary-convention), [스펙·이슈·문서 관리 컨벤션](/ko/context-layered/change-management-convention), [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions), ADR [CA-SURFACE-CATALOG-001](/ko/context-layered/decisions/CA-SURFACE-CATALOG-001)입니다.
@@ -3464,7 +3764,7 @@ stateDiagram-v2
 
 | 계층 (`layer`) | 역할 | 사용 안정성 등급 (`stability`) |
 | --- | --- | --- |
-| `foundation` | Zero/최소 의존성 코어 계약 및 엔진 (`core`, `store-core`, `mutative-core`, `tool-protocol`, `tool-durable-operations`) | `stable`, `public-preview` |
+| `foundation` | Zero/최소 의존성 코어 계약 및 엔진 (`core`, `interactions`, `store-core`, `mutative-core`, `tool-protocol`, `tool-durable-operations`) | `stable`, `public-preview` |
 | `framework-adapter` | 프레임워크 바인딩 (`react`, `mutative`, `lit`, `preact`) | `stable`, `public-preview` |
 | `ui-runtime` | DOM 루트 소유권, 웹 컴포넌트, FACE, SSR/하이드레이션 (`lit-ui`, `preact-ui`) | `public-preview` |
 | `integration-adapter` | 외부 프로토콜·런타임 어댑터 (`ai-sdk`, `webmcp`, `xstate`) | `public-preview` |
@@ -3499,18 +3799,19 @@ stateDiagram-v2
 
 ---
 
-## 3. 표면 1: 레포지토리 API 전체 구성 (18개 패키지)
+## 3. 표면 1: 레포지토리 API 전체 구성 (19개 패키지)
 
-`packages/*/package.json` 기준 전체 18개 워크스페이스 패키지 목록입니다 (`package.json`이 없는 로컬 잔여 디렉터리는 제외).
+`packages/*/package.json` 기준 전체 19개 워크스페이스 패키지 목록입니다 (`package.json`이 없는 로컬 잔여 디렉터리는 제외).
 
 | 패키지 | 계층 | 공개성 / 안정성 | 공개 `exports` | 워크스페이스 의존성 (+Peer) | 권위 참조 문서 |
 | --- | --- | --- | --- | --- | --- |
 | `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | 없음 | `packages/core/README.md`, `action-contracts.md`, `element-interop.md` |
+| `@context-action/interactions` (`0.1.0`) | `foundation` | `public` / `public-preview` | `.` | 없음 | `packages/interactions/README.md` |
 | `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/store-core/README.md`, `store-selection-and-usage-guide.md` |
 | `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/mutative-core/README.md`, `mutative-core-history.md` |
 | `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/tool-protocol/README.md`, `tool-calling-editor-architecture.md` |
 | `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | 없음 | `packages/tool-durable-operations/README.md`, `durable-operation-operations.md` |
-| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
+| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `interactions`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
 | `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | `packages/mutative/README.md`, `time-travel-specialization.md` |
 | `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/lit/README.md`, `01-controller-scope.md` |
 | `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/preact/README.md`, `spec-to-code-authoring-guide.md` |
@@ -3529,8 +3830,8 @@ stateDiagram-v2
 
 ### 3.1 계층별 패키지 용도 요약
 
-- **Foundation (`5`)**: `core`(액션 파이프라인 + 선택적 `./element` DOM/호스트 전송), `store-core`(프레임워크 중립 상태/타임라인/트랜잭션 계약 + `createStateStore`), `mutative-core`(`mutative@2.0.2` 호환 불변 draft·patch 엔진), `tool-protocol`(Zod/JSON Schema 도구, MCP/프로바이더 어댑터, 승인 큐, 멱등성, 관측 정책), `tool-durable-operations`(lease/claim 부작용 복구 + IndexedDB/Redis/PostgreSQL 기준 백엔드).
-- **Framework Adapters (`4`)**: `react`(React 18/19 Action/Store/TimeTravel/Ref 컨텍스트, 훅, 트랜잭션, `./backend`, `./advanced`, `./webmcp`), `mutative`(`TimeTravel` + `MutativeStateBackend`/`MutativeTimelineBackend`), `lit`(`StoreController`, `ActionController`, `ControllerScope`), `preact`(`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`).
+- **Foundation (`6`)**: `core`(액션 파이프라인, 0ms `createSyncActionPipeline` + 선택적 `./element` DOM/호스트 전송), `interactions`(Zero-dependency 헤드리스 ARIA roving focus/typeahead, 포인터 제스처, LIFO dismiss layer), `store-core`(프레임워크 중립 상태/타임라인/트랜잭션 계약 + `createStateStore`), `mutative-core`(`mutative@2.0.2` 호환 불변 draft·patch 엔진), `tool-protocol`(Zod/JSON Schema 도구, MCP/프로바이더 어댑터, 승인 큐, 멱등성, 관측 정책), `tool-durable-operations`(lease/claim 부작용 복구 + IndexedDB/Redis/PostgreSQL 기준 백엔드).
+- **Framework Adapters (`4`)**: `react`(React 18/19 Action/Store/TimeTravel/Ref 컨텍스트, 훅, 트랜잭션, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./webmcp`), `mutative`(`TimeTravel` + `MutativeStateBackend`/`MutativeTimelineBackend`), `lit`(`StoreController`, `ActionController`, `ControllerScope`), `preact`(`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`).
 - **UI Runtimes (`2`)**: `lit-ui`(Lit 웹 컴포넌트, W3C Context Protocol, FACE, `./react-bridge`, `./ssr`, `./hydrate`), `preact-ui`(소유된 Preact DOM 루트, `mountPreact`/`hydratePreact`, `createDisposalScope`, `./react-bridge`, `./ssr`).
 - **Integration Adapters (`3`)**: `xstate`(`.`의 XState v5/v6 액터 브리지 + `./effect`의 Effect v4 / `@xstate/effect` / Standard Schema v1 / 트랜잭션 스코프), `ai-sdk`(AI SDK v7 턴 범위 `ToolSet` 어댑터), `webmcp`(allowlist 기반 `document.modelContext` 브라우저 어댑터).
 - **Tooling (`1`)**: `style-testing`(비공개 Playwright 스타일 추출 및 Babel 플러그인).
@@ -3562,13 +3863,14 @@ stateDiagram-v2
 | `ex-app-integrations` | `/integrations/action-lifecycle`, `react-aria-reference`, `preact-web-components`, `lit-web-components`, `xstate-statechart`, `webmcp-scope`, `ai-sdk-tools`, `business/chat`, `advanced/form-builder`, `advanced/concurrent-actions` (**10**) | Action Lifecycle Workbench, React Aria 계층형 하이드레이션, Preact/Lit 웹 컴포넌트 브리지, XState/Effect, WebMCP, AI SDK v7 도구 스코프, 실시간 채팅, 동적 폼 빌더, 동시성 격리 | `ActionRegister`, `@context-action/core/element`, `preact-ui/react-bridge`, `lit-ui/react-bridge`, `@context-action/xstate`, `@context-action/webmcp`, `@context-action/ai-sdk` | `pnpm verify:react-aria-reference-hydration && pnpm verify:element-interop && pnpm --filter example test` |
 | `ex-app-utilities` | `/utilities/dev-tools/{logger,toast-config,warning-demo,store-scenarios}`, `source-directory`, `testing/enhanced-search` (**6**) | LogMonitor 트레이싱, 토스트 설정, 경고 진단, 스토어 비교 벤치마크, 소스 링크 디렉터리, 취소형 검색 테스트 하네스 | `ActionRegister`, `createStoreContext`, `createActionContext` | `pnpm --filter example check && pnpm --filter example build` |
 
-### 4.2 독립 데모 (2종) 및 패키지 로컬 예제 (5종)
+### 4.2 독립 데모 (2종) 및 패키지 로컬 예제 (6종)
 
 | 구분 | 경로 | 상태 | 설명하는 내용 | 검증 게이트 |
 | --- | --- | --- | --- | --- |
 | 독립 데모 | `demos/bolt-style-editor` | `verified` | Tool-Calling Web Studio (`tool-protocol`, `tool-durable-operations`, `live-code-editor`, IndexedDB, 승인 큐, 제한된 트레이스, iframe 미리보기) | `pnpm web-coding:verify` |
 | 독립 데모 | `examples/vanilla-js` | `reference` | React나 번들러 없이 `@context-action/core` + `@context-action/store-core`를 사용하는 순수 HTML/JS 카운터·XSS-safe Todo 예제 | `pnpm build:core && pnpm --filter @context-action/store-core build` |
 | 패키지 예제 | `packages/core/examples` | `verified` | 코어 `ActionRegister` 데모 및 `./element` 기반 Vue·Svelte·Angular 호스트 복사형 예제 | `pnpm verify:element-hosts && pnpm verify:element-interop` |
+| 패키지 예제 | `packages/interactions/examples` | `verified` | `@context-action/interactions`와 `ActionRegister`를 결합한 캔버스 화이트보드(포인터 제스처) 및 커맨드 툴바(roving focus) 데모 | `pnpm --filter @context-action/interactions test` |
 | 패키지 예제 | `packages/lit-ui/examples` | `verified` | DSD SSR 하이드레이션 검증 하네스 및 ElementInternals FACE 예외 진단 플레이그라운드 | `pnpm --filter @context-action/lit-ui test:browser` |
 | 패키지 예제 | `packages/preact-ui/examples` | `verified` | Projected Order 6계층 워크스페이스, Layer Panel 계약 재사용, 모듈형 Signals 웹 컴포넌트, SSR | `pnpm --filter @context-action/preact-ui test:browser` |
 | 패키지 예제 | `packages/react/examples` | `verified` | 패키지 수준 훅, RefContext(`GameUI`/`SimpleForm`), 선언적/통합 Store 패턴 예제 | `pnpm --filter @context-action/react exec tsc --noEmit -p tsconfig.examples.json && pnpm --filter @context-action/react test` |
@@ -3890,10 +4192,34 @@ export const preactSession = connectSourceSignal(fromStateReader(sharedSessionSt
 
 ---
 
-## 6. 대표 라이브 예제 및 PR 전 검증 체크리스트
+## 6. 점진적 도입, 결함 예방 효과 및 부채 거버넌스
 
-저장소 내 다음 라이브 경로에서 각 아키텍처 패턴의 실제 구현을 확인할 수 있습니다:
+단순 위젯에 과도한 보일러플레이트를 강제하지 않으면서도, 워크플로가 커질 때 핵심 불변식을 자동으로 보장하도록 설계되어 있습니다.
 
+### 6.1 3단계 점진적 도입 기준
+
+| 도입 단계 | 최소 폴더 구성 | 핵심 프리미티브 | 다음 단계로 승격할 시점 |
+| --- | --- | --- | --- |
+| **Level 1 · Lite** | `contexts/`, `handlers/`, `views/` | `createActionContext` + `createStoreContext` + `useActionHandler` | 검증 규칙·비동기 전이를 React 바깥에서 단독 단위 테스트하고 싶을 때 |
+| **Level 2 · Headless-First Symmetric DI** | `business/`, 순수 TS `runtime/` 추가 | `ActionRegister` + `createStateStore`/`createStore` + `ownership="shared"` Provider | 여러 뷰·호스트(`React`, `Preact`, `Lit`, Worker)가 동일 엔진을 공유할 때 |
+| **Level 3 · Full 6-Layer** | `contexts / business / runtime(선택) / handlers / actions / hooks / views` | 분리된 `Business` vs. `Layout` ActionContext, `RefContext`, 4-역할 훅, 명시적 FSM/이벤트 | 장기 계약, IIC 추적성, TypeSpec Evidence 거버넌스를 적용할 때 (`packages/template-react` 스타터 기준) |
+
+### 6.2 각 코드 패턴이 유도하는 품질·의도 보장 효과
+
+- **핸들러 지연 읽기(`no-store-subscription-in-handlers`) + `useCallback`**: stale closure 오동작, 핸들러 불필요 재등록(churn), 순환 리렌더를 원천 차단합니다.
+- **`actions/`의 순수 `dispatch` 위임(`no-store-access-in-actions`)**: UI 계층이 Guard/Observer 파이프라인을 우회해 `store.setValue()`를 직접 호출하지 못하도록 커밋 권한을 `handlers/`로 단일화합니다.
+- **`BusinessActionIntent` vs. `LayoutActionIntent` 분리**: 패널 열기·포커스 이동 같은 UI 제어가 비즈니스 감사 로그·Undo 히스토리·원격 동기화에 섞이는 현상을 막습니다.
+- **`business/` 도메인 코드·이벤트 → `hooks/` 문구 번역**: UI 문구 수정이나 다국어화가 비즈니스 로직 테스트와 분석 이벤트를 깨뜨리지 않도록 격리합니다.
+- **Fail-Closed 부채 장부(`layered-surface-classification.json` & `rule-exceptions.json`)**: 불가피한 예외는 비어 있지 않은 사유(`reason`)와 함께 명시적으로 등록하며, 해결 후에도 방치되면(stale) 즉시 게이트를 실패시켜 기술 부채가 조용히 누적되는 것을 막습니다.
+
+---
+
+## 7. 대표 라이브 예제 및 PR 전 검증 체크리스트
+
+저장소 내 다음 스타터 템플릿과 라이브 경로에서 각 아키텍처 패턴의 실제 구현을 확인할 수 있습니다:
+
+- **표준 React 스타터 템플릿 (`OrderWorkspace`, 6-Layer + Core 3축 + 4-Role 파이프라인):**
+  - `@context-action/template-react` (`packages/template-react/src/features/order-workspace/`)
 - **Enterprise 6-Layer Playbook (React HandlerRegistry + 순수 business + 명시적 FSM + IIC):**
   - `/patterns/implementation-playbook` (`example/src/pages/patterns/implementation-playbook/`)
   - `/patterns/implementation-playbook/access-request`
@@ -3904,10 +4230,11 @@ export const preactSession = connectSourceSignal(fromStateReader(sharedSessionSt
 - **도구 호출형 AI 워크스페이스 (`tool-protocol` + `ai-sdk` + `webmcp` + `tool-durable-operations`):**
   - 독립 데모 `/web-coding/` (`demos/bolt-style-editor/`)
 
-PR을 올리기 전에는 루트에서 다음 게이트들을 실행해 스펙·문서·코드 경계가 모두 맞물리는지 확인하세요:
+PR을 올리기 전(또는 `--root`로 외부 소비자 앱을 점검할 때) 루트에서 다음 게이트들을 실행해 스펙·문서·코드 경계가 모두 맞물리는지 확인하세요:
 
 ```bash
 pnpm convention:check
+node scripts/check-context-layered-conventions.mjs --root packages/template-react/src
 pnpm package-boundary:check
 pnpm verify:surface-catalog
 pnpm verify:doc-snippets
@@ -4131,13 +4458,15 @@ Context-Action은 **쓰기 경계(`StoreWriter` / Action Handler)** 와 **읽기
 | Store / 상태 수단 | 패키지 진입점 | 핵심 용도 | Undo/Redo | React 의존 |
 | --- | --- | --- | --- | --- |
 | **`createStoreContext`** | `@context-action/react` | **기본 권장.** 도메인별 다중 스토어를 React 트리 스코프로 격리 | 없음 | 예 |
+| **`createScopedContext`** | `@context-action/react` | 위젯·피처 단위로 `ActionContext` + 스코프 `useStoreInstance` / `useRefRegistry` 설정을 단일 평탄 `Provider`로 묶을 때 | 없음 | 예 |
 | **`createStore` (`Store`)** | `@context-action/react` | Provider 밖의 단일 독립 스토어 (모듈 공유·DI·단위 테스트) | 없음 | 예 (Mutative 내장) |
-| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react` | Undo/Redo·히스토리 탐색이 필요한 에디터, 폼 드래프트, 캔버스 상태 | **예 (Mutative 패치)** | 예 |
+| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react/time-travel` | Undo/Redo·히스토리 탐색이 필요한 에디터, 폼 드래프트, 캔버스 상태 | **예 (Mutative 패치)** | 예 |
 | **`createStateStore`** | `@context-action/store-core` | Vanilla JS, Node, Preact, Lit, XState 공용 Zero-dependency 최소 참조 스토어 | 없음 | **아니오 (0 deps)** |
-| **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | 사용자 소유의 커스텀 `StateBackend`를 React 훅에 연결 | 백엔드 기능에 따름 | 예 (래퍼만) |
-| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react` | 여러 Store의 변경을 하나의 원자적 커밋·롤백·단일 Undo 단위로 묶을 때 | **예 (다중 스토어 원자 Undo)** | 예 |
-| **`useLocalStore` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | 컴포넌트 수명 로컬 스토어 / 메모이즈된 파생 계산 / 동적 스토어 등록 | 없음 | 예 |
-| **`createRefContext`** | `@context-action/react` | **비반응형 (Tier 3).** DOM, Canvas, 120fps 포인터 좌표 등 리렌더 0회 상태 | 없음 | 예 |
+| **`createMutativeStateBackend` / `createMutativeTimelineBackend`** | `@context-action/mutative` | React/Lit/Preact·순수 Node 간 공유 가능한 프레임워크 중립 Layer 1 Mutative `StateStore` 및 `TimelineBackend`(`TransactionBackend`) 엔진 | 선택 (`TimelineBackend`) | **아니오** |
+| **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | 사용자 소유의 커스텀 `StateBackend`를 명시적으로 `IStore`로 브리지 (`createStoreContext().Provider stores={...}` 사용 시 생략 가능) | 백엔드 기능에 따름 | 예 (래퍼만) |
+| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react/transactions` | 여러 Store의 변경을 하나의 원자적 커밋·롤백·단일 Undo 단위로 묶을 때 | **예 (다중 스토어 원자 Undo)** | 예 |
+| **`useLocalStore` / `useStoreInstance` / `useControlledStoreSync` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | 로컬 구독 스토어 / 리렌더 없는 로컬 소유 / 제어 prop 동기화 / 메모이즈 파생 계산 / 동적 스토어 등록 | 없음 | 예 |
+| **`useRefRegistry` / `useRefCollection` / `createRefCollectionContext` / `createRefContext`** | `@context-action/react/refs` | **비반응형 (Tier 3).** 고정 로컬 ref(`useRefRegistry`), 동적 문자열 키 컬렉션(`useRefCollection`), 트리 공유(`createRefContext`) — 리렌더 0회 | 없음 | 예 |
 | **`createActorStateReader`** | `@context-action/xstate` | **닫힌 상태 머신 읽기 전용 투영.** 외부 `setValue()` 차단, 전이는 이벤트로만 | 없음 | **아니오** |
 | **`createSourceContext` / `fromStateReader` / `StoreController`** | `@context-action/preact`, `@context-action/lit` | 외부 Store를 Preact Signals(`fromStateReader`로 `StateReader`/`StoreReader` 스냅샷 변환) 또는 Lit `ReactiveController`에 읽기 전용 투영 | 없음 | **아니오** |
 | **`createDurableOperationStore`** | `@context-action/tool-durable-operations` | **UI 상태 아님.** 외부 HTTP·큐·파일시스템 부작용의 멱등성·복구 레코드 저장소 | 없음 | **아니오** |
@@ -4207,16 +4536,20 @@ profileStore.update((prev) => ({
 }));
 
 export function UserNameLabel() {
-  // 패치가 ['user', 'name'] 경로에 영향을 줄 때만 리렌더
-  const name = useStorePath<ProfileState, string>(profileStore, ['user', 'name']);
-  return <span>{name}</span>;
+  // 타입 추론 기반 리터럴 경로 구독 — ['user', 'name'] 패치 시에만 리렌더
+  const name = useStorePath(profileStore, ['user', 'name']);
+  // 단일 경로 파생 불리언 구독 — select 결과가 바뀔 때만 리렌더
+  const isLee = useStorePath(profileStore, ['user', 'name'], {
+    select: (nextName) => nextName === 'Lee',
+  });
+  return <span>{name} ({String(isLee)})</span>;
 }
 
 // 독립 생성한 스토어는 수명이 끝나면 반드시 정리합니다
 profileStore.dispose();
 ```
 
-### 2.3 `createTimeTravelStoreContext` & `createTimeTravelStore` (`@context-action/react`) — Undo / Redo
+### 2.3 `createTimeTravelStoreContext` & `createTimeTravelStore` (`@context-action/react/time-travel`) — Undo / Redo
 
 사용자가 실행 취소(Undo), 다시 실행(Redo), 히스토리 위치 탐색을 해야 할 때 사용합니다.
 
@@ -4226,7 +4559,7 @@ profileStore.dispose();
 
 <!-- @context-action-compile -->
 ```tsx
-import { createTimeTravelStoreContext } from '@context-action/react';
+import { createTimeTravelStoreContext } from '@context-action/react/time-travel';
 
 const DocStores = createTimeTravelStoreContext('Doc', {
   content: { initialValue: { text: '' }, maxHistory: 50 },
@@ -4265,9 +4598,50 @@ unsubscribe();
 counterStore.dispose?.();
 ```
 
-### 2.5 `createBackendStore` / `BackendStore` (`@context-action/react/backend`) — 커스텀 백엔드 연결
+### 2.5 `createMutativeStateBackend` / `createMutativeTimelineBackend` 및 네이티브 상호운용 (`@context-action/mutative` + `@context-action/react`)
 
-`@context-action/store-core`의 `StateBackend<T, Patch>`(`createStateStore`, `MutativeStateBackend`, 또는 사용자 정의 영속/동기화 백엔드)를 React의 `useSyncExternalStore` 훅(`useStoreValue`, `useStoreSelector`, 패치 지원 시 `useStorePath`)에 그대로 연결합니다.
+React, Lit, Preact 또는 헤드리스 Node 워커 사이에서 JSON 패치, Undo/Redo 타임라인, 동적 `setNotificationMode('immediate' | 'batched')`를 공유하는 프레임워크 중립 Layer 1 Mutative 엔진이 필요하다면 `@context-action/mutative`의 `createMutativeStateBackend`(`StateStore`) 및 `createMutativeTimelineBackend`(`TransactionBackend & StateStore`)를 사용합니다.
+
+React 구독 훅(`useStoreValue`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`)과 Provider DI(`createStoreContext().Provider stores={...}`, `createTimeTravelStoreContext().Provider stores={...}`)는 수동 `BackendStore` 래핑 없이도 `StateReader<T>`, `StateBackend<T>`, `TimelineBackend<T>`를 **직접** 수용합니다 (`@context-action/react/backend`의 `createBackendStore`는 독립 명시 래퍼가 필요할 때 계속 사용할 수 있습니다):
+
+<!-- @context-action-compile -->
+```tsx
+import { createStateStore } from '@context-action/store-core';
+import { createMutativeTimelineBackend } from '@context-action/mutative';
+import { createStoreContext, useStoreValue } from '@context-action/react';
+import {
+  createTimeTravelStoreContext,
+  useTimeTravelControls,
+} from '@context-action/react/time-travel';
+
+const sessionBackend = createStateStore('session', { step: 1 });
+const docTimeline = createMutativeTimelineBackend('doc', { title: 'v1' }, { maxHistory: 20 });
+
+const SessionStores = createStoreContext('Session', {
+  session: { step: 0 },
+});
+const DocStores = createTimeTravelStoreContext('Doc', {
+  doc: { initialValue: { title: '' }, maxHistory: 20 },
+});
+
+export function SessionAndDocView() {
+  const directStep = useStoreValue(sessionBackend);
+  const directTimeline = useTimeTravelControls(docTimeline);
+  return (
+    <SessionStores.Provider stores={{ session: sessionBackend }} ownership="shared">
+      <DocStores.Provider stores={{ doc: docTimeline }} ownership="shared">
+        <span>
+          Step {directStep.step} (undo={String(directTimeline.canUndo)})
+        </span>
+      </DocStores.Provider>
+    </SessionStores.Provider>
+  );
+}
+```
+
+### 2.5a `createBackendStore` / `BackendStore` (`@context-action/react/backend`) — 명시적 독립 브리지
+
+선언적 `createStoreContext` Provider 밖에서 `@context-action/store-core`의 `StateBackend<T, Patch>`(`createStateStore`, `MutativeStateBackend`, 또는 커스텀 영속/동기화 백엔드)를 명시적인 `IStore` 래퍼 인스턴스로 다룰 때 사용합니다:
 
 - `ownership: 'shared'` (기본값): 래퍼가 `dispose()`되어도 원본 백엔드는 살아 있습니다.
 - `ownership: 'owned'`: 래퍼를 `dispose()`할 때 원본 백엔드도 함께 정리합니다.
@@ -4287,7 +4661,7 @@ export function SessionStep() {
 }
 ```
 
-### 2.6 `StoreTransactionCoordinator` & `bindActionTransactions` (`@context-action/react`) — 다중 Store 원자적 트랜잭션
+### 2.6 `StoreTransactionCoordinator` & `bindActionTransactions` (`@context-action/react/transactions`) — 다중 Store 원자적 트랜잭션
 
 하나의 논리 액션이 **2개 이상의 스토어를 함께 수정**하며 중간 상태 노출 방지, 예외 시 롤백, 단일 Undo가 필요할 때 사용합니다.
 
@@ -4297,7 +4671,8 @@ export function SessionStep() {
 
 <!-- @context-action-compile -->
 ```ts
-import { StoreTransactionCoordinator, createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
+import { StoreTransactionCoordinator } from '@context-action/react/transactions';
 
 const cart = createTimeTravelStore('cart', { items: [] as string[] });
 const totals = createTimeTravelStore('totals', { price: 0 });
@@ -4321,9 +4696,11 @@ export async function addItemWithRollback() {
 }
 ```
 
-### 2.7 `useLocalStore`, `useComputedStore`, `StoreRegistry` (`@context-action/react/advanced`)
+### 2.7 `useLocalStore`, `useStoreInstance`, `useControlledStoreSync`, `useComputedStore`, `StoreRegistry` (`@context-action/react/advanced`)
 
-- **`useLocalStore(initialValue, name?)`**: 컴포넌트 마운트 수명에 묶인 로컬 `Store`를 생성해 언마운트 시 자동 `dispose()`하며 `{ value, name, lastUpdate, store }`를 반환합니다.
+- **`useLocalStore(initialValue, name?)`**: 컴포넌트 마운트 수명에 묶인 로컬 `Store`를 생성해 **호출 컴포넌트 자체를 구독**하며 언마운트 시 자동 `dispose()`하고 `{ value, name, lastUpdate, store }`를 반환합니다.
+- **`useStoreInstance(initialValue, name?, options?)`**: **소유 컴포넌트를 구독하지 않고(리렌더 0회)** 스코프 수명 `Store` 인스턴스만 생성합니다. `createScopedContext()`나 Provider/Shell에서 생성해 하위 Leaf가 `useStorePath()` / `useStoreValue()`로 구독할 때 사용합니다.
+- **`useControlledStoreSync(store, path, controlledValue, isEqualOrOptions?)`**: 외부 제어 React prop을 피드백 루프 없이 `Store` 경로에 동기화합니다(`undefined`이면 비제어 상태 유지, `onSync`로 동일 커밋 내 파생 필드 갱신 가능).
 - **`useComputedStore(store, computeFn, config?)`**: 다른 스토어에서 파생된 계산 값을 `equalityFn`, `initialValue`, `onError`, `debounceMs` 옵션으로 메모이즈 구독합니다.
 - **`StoreRegistry`**: 문자열 키 기반으로 동적 스토어를 등록·조회·정리해야 하는 고급 시나리오에만 사용합니다.
 
@@ -4382,7 +4759,7 @@ export function HeadlessCartView() {
 }
 ```
 
-> 외부 프레임워크 중립 `StateBackend`(`@context-action/store-core`의 `createStateStore`, 외부 상태 라이브러리/영속 스토리지 백엔드)를 React 훅에 직접 어댑팅해야 한다면 `@context-action/react/backend`의 `createBackendStore('cart', cartBackend, { ownership: 'shared' })`를 사용하세요. 스펙, 인텐트 분리, 헤드리스 DI를 한 번에 연결하는 전체 작성 예시는 [스펙 기반 코드 작성 가이드](./spec-to-code-authoring-guide.md)를 참고하세요.
+> `@context-action/store-core`의 `createStateStore()`나 `@context-action/mutative`의 `createMutativeStateBackend()`는 `createStoreContext().Provider stores={...}`에 직접 전달해도 `StoreManager`가 내부적으로 `BackendStore` 어댑팅과 정리를 처리하며, 명시적 독립 래퍼가 필요할 때는 `@context-action/react/backend`의 `createBackendStore('cart', cartBackend, { ownership: 'shared' })`를 사용할 수 있습니다. 또한 특수 표면은 루트 `@context-action/react`와 100% 호환되는 opt-in 서브패스(`@context-action/react/refs`, `@context-action/react/time-travel`, `@context-action/react/transactions`)로도 임포트할 수 있습니다. 스펙, 인텐트 분리, 헤드리스 DI를 한 번에 연결하는 전체 작성 예시는 [스펙 기반 코드 작성 가이드](./spec-to-code-authoring-guide.md)를 참고하세요.
 
 ---
 
@@ -4392,8 +4769,8 @@ export function HeadlessCartView() {
 | --- | --- | --- |
 | **`useStoreValue(store, options?)`** | 스토어 값 전체 (`condition` 렌더링 게이트 지원) | 원시값 또는 대부분 필드를 함께 그리는 작은 스토어 |
 | **`useStoreSelector(store, selector, equalityFn?)`** | `equalityFn`으로 비교한 파생 슬라이스 | 중간 크기 스토어에서 단일 필드·계산값만 구독할 때 |
-| **`useStorePath(store, path, options?)`** | 패치 기반 경로 추적 (배열 경로 또는 RFC 6901 JSON Pointer) | 깊은 중첩 `PatchAwareStore`에서 다른 브랜치 변경을 무시해야 할 때 |
-| **`useStoreSelectorWithPaths(store, selector, { dependsOn, equalityFn })`** | `dependsOn` 경로가 패치로 변경된 경우에만 `selector` 재실행 | 큰 중첩 트리에서 여러 경로를 조합하는 무거운 파생 셀렉터 |
+| **`useStorePath(store, path, { select?, equalityFn? })`** | 컴파일 타임 검증 경로(`StorePathOf<T>`) 추적 + 선택적 단일 경로 `{ select }` 파생 | 깊은 중첩 `PatchAwareStore` 필드나 `selectedKey === id` 같은 단일 경로 파생 플래그를 형제 변경과 격리해 구독할 때 |
+| **`useStoreSelectorWithPaths(store, selector, { dependsOn, equalityFn })`** | 컴파일 타임 검증 `dependsOn` 경로가 패치로 변경된 경우에만 `selector` 재실행 | 큰 중첩 트리에서 2개 이상의 경로를 조합하는 파생 셀렉터 |
 
 ---
 
@@ -4401,7 +4778,10 @@ export function HeadlessCartView() {
 
 모든 상태를 React 반응형 `Store`에 넣을 필요는 없습니다.
 
-1. **`createRefContext` (`@context-action/react`) — 비반응형 Tier 3 상태**: DOM 엘리먼트, HTML5 Canvas, 애니메이션 타이머, 120fps 마우스 좌표처럼 React 리렌더를 유발하면 안 되는 휘발성 상태는 `createRefContext`에 둡니다.
+1. **`useRefRegistry` / `useRefCollection` / `createRefContext` (`@context-action/react/refs`) — 비반응형 Tier 3 상태**: DOM 엘리먼트, HTML5 Canvas, 애니메이션 타이머, 120fps 마우스 좌표처럼 React 리렌더를 유발하면 안 되는 휘발성 상태는 Ref 계층에 둡니다:
+   - `useRefRegistry<TRefs>()`: 고정된 이름 키를 컴포넌트·`createScopedContext` 내부에서 로컬 관리할 때 사용합니다.
+   - `useRefCollection<TTarget>()` / `createRefCollectionContext(name)`: 메뉴 아이템, 탭, 테이블 행처럼 동적 문자열 키를 다룰 때 사용합니다.
+   - `createRefContext<TRefs>()`: 고정된 이름 키를 하위 Context 트리와 공유하거나 `useRefMountState` 구독이 필요할 때 사용합니다.
 2. **`createActorStateReader` (`@context-action/xstate`) — 닫힌 상태 머신 읽기 전용 투영**: 열린 `StateStore`와 달리 XState 액터는 외부 `setValue()`가 차단됩니다. 의도는 `ActionRegister` / `SyncActionPipeline`(`bindActorToActionRegister` / `bindActorToSyncPipeline`)으로만 전달하고, UI는 `createActorStateReader(actor, { select, equals })`의 단조 증가 `version` 스냅샷만 구독합니다.
 3. **Preact & Lit 읽기 전용 어댑터**:
    - **Preact** (`@context-action/preact`): `connectSourceSignal(store)`로 외부 `ReadableSource`를 `ReadonlySignal`로 연결하거나(`StateReader`/`StoreReader` 기반 스토어는 `fromStateReader(store)`로 스냅샷 래퍼를 명시 변환 후 연결), `createSourceContext`로 전달해 `useProjection(signal, selector)`로 투영합니다.
@@ -6162,6 +6542,324 @@ Definition of Ready 항목 수를 맞춰야 하지만 문장 번역 자체를 �
 하나라도 거짓이면 올바른 릴리스 판정은 `NOT READY`다. 다음 작업은 버전 상승이 아니라
 가장 작은 gate-clearing task여야 한다.
 
+===================[ DOC: ko/context-layered/v5-migration-readiness.md ]===================
+# Phase 2 (`v5`) 마이그레이션 및 준비 가이드
+
+이 문서는 [`CA-VNEXT-ARCHITECTURE-001`](./decisions/CA-VNEXT-ARCHITECTURE-001.md)의 **Phase 2 (`v5` 메이저 호환성 정리)** 를 대비해 애플리케이션 팀, 스타터 템플릿, 외부 소비자가 사전에 준비할 수 있는 절차를 정리합니다. 여기에 포함된 모든 준비 단계는 기존 루트 import나 `4.x` 호환성을 깨지 않고 현재 `4.x` 브랜치에서 점진적으로 적용할 수 있습니다.
+
+- **상태:** **`stage`에 Phase 2 (`v5`) 구현 완료** (롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32`; `packages/template-react/src` 및 `example/src` 차단 항목 `0`; 패키지 버전 범프는 릴리스 승인 시점까지 동결 유지). 외부 `4.x -> v5` 소비자는 계속 `pnpm audit:v5-readiness`로 점진적 전환을 점검할 수 있습니다.
+- **선행 기준선:** [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) (`stage`에 `M0–M4` 및 Phase 2 완료) · [vNext 아키텍처 핸드오프 가이드](./vnext-architecture-handoff.md)
+
+## 1. Phase 1 (`4.x` 무중단) vs. Phase 2 (`v5` 메이저) 경계
+
+Phase 1은 기존 `4.x` 소비자를 깨뜨리지 않고 전환 프리미티브를 먼저 제공했고, Phase 2는 `stage`에서 `@context-action/react` 루트 표면 정리와 기본값 통일을 완료했습니다 (`@context-action/core`의 `registerEffect`는 `1.x` 호환을 위해 유지됨):
+
+| 영역 | `4.x` 준비 단계 (무중단 Opt-In) | Phase 2 (`v5` `stage` 적용 완료) |
+| :--- | :--- | :--- |
+| React 진입점 | 루트 `.` re-export를 유지한 채 `@context-action/react/{refs,time-travel,transactions,backend}` 서브패스 제공 | 특화 API(`createRefContext`, `createTimeTravelStore*`, `StoreTransactionCoordinator`, `createBackendStore` 등)를 전용 서브패스로만 제공 |
+| Dispatch 훅 대칭성 및 deprecation 제거 | `useActionResultDispatch()`와 `useActionScope()`를 주력 API로 승격, `useActionDispatchWithResult()`에 `@deprecated` 표기 | React의 `useActionDispatchWithResult`, `useActionEffectHandler`, `StoreSchema`, `compareStrategy`, 레거시 `TransactionBackend` 파사드 제거 (`@context-action/core` `registerEffect`는 `1.x` 호환 유지) |
+| 액션 큐 정책 | `ActionRegister` / `createActionContext`의 계약 단위 `actions: { [name]: { queue, timeout } }` 정책 및 `{ immediate: false }` 지연 큐 할당 | `createActionContext` 기본 `useConcurrencyQueue`를 Core와 동일한 `false`로 통일 (직렬 큐가 필요하면 `actions: { [name]: { queue: 'serial' } }` 또는 `{ registry: { useConcurrencyQueue: true } }` opt-in) |
+| 스토어 알림 모드 | `Store`, `TimeTravelStore`, `createStoreContext`, `createTimeTravelStoreContext`에 명시적 `notificationMode?: 'batched' \| 'immediate'` 추가 | `Store` 기본 `notificationMode`를 `'immediate'`로 통일 (`createStateStore()`·React 18/19 자동 배칭과 정합, 명시적 RAF 코얼레싱이 필요할 때 `'batched'` opt-in) |
+
+## 2. 소비자 마이그레이션 레시피 (`4.x` 호환 & `v5` 준비)
+
+### 2.1 Ref · Time-Travel · Transaction · Backend Import를 서브패스로 이동
+
+변경 전 (`4.x` 루트 배럴):
+
+```ts
+import {
+  createActionContext,
+  createRefContext,
+  createTimeTravelStoreContext,
+  StoreTransactionCoordinator,
+} from '@context-action/react';
+```
+
+변경 후 (`4.x` 호환 & `v5` 준비 완료):
+
+<!-- @context-action-compile -->
+```ts
+import {
+  createActionContext,
+  createStoreContext,
+  type ActionPayloadMap,
+} from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
+import {
+  createTimeTravelStore,
+  createTimeTravelStoreContext,
+} from '@context-action/react/time-travel';
+import { StoreTransactionCoordinator } from '@context-action/react/transactions';
+
+export interface WorkspaceActions extends ActionPayloadMap {
+  submitOrder: { orderId: string };
+  resetDraft: void;
+  retrySubmission: void;
+}
+
+export const {
+  Provider: WorkspaceActionProvider,
+  useActionDispatch: useWorkspaceDispatch,
+  useActionResultDispatch: useWorkspaceResultDispatch,
+  useActionScope: useWorkspaceScope,
+} = createActionContext<
+  WorkspaceActions,
+  { submitOrder: { accepted: boolean } }
+>('WorkspaceActions', {
+  actions: {
+    resetDraft: { queue: 'immediate' },
+    retrySubmission: { queue: 'immediate', timeout: 5_000 },
+  },
+});
+
+export const {
+  Provider: WorkspaceStoreProvider,
+  useStore: useWorkspaceStore,
+} = createStoreContext('WorkspaceStores', {
+  status: { initialValue: 'idle' as 'idle' | 'submitting', notificationMode: 'batched' },
+  pendingCount: { initialValue: 0, notificationMode: 'immediate' },
+});
+
+export const WorkspaceRefs = createRefContext<{ focusInput: HTMLInputElement }>('WorkspaceRefs');
+export const timelineStore = createTimeTravelStore(
+  'workspace-timeline',
+  { step: 0 },
+  { maxHistory: 20, notificationMode: 'batched' }
+);
+export const TimeTravelCtx = createTimeTravelStoreContext('WorkspaceTimeTravel', {
+  history: { initialValue: { step: 0 }, notificationMode: 'batched' },
+});
+export const coordinator = new StoreTransactionCoordinator();
+```
+
+### 2.2 `useActionDispatchWithResult()` 및 호출부 `{ immediate: true }` 대체
+
+Provider 단위 결과 수집에는 `useActionResultDispatch()`를(컴포넌트 언마운트 시 abort 스코프가 필요할 때는 `useActionScope()`를) 사용하고, UI 호출부마다 `{ immediate: true }`를 넘기는 대신 `actions` 정책 맵에 `{ queue: 'immediate' }`를 선언합니다:
+
+<!-- @context-action-compile -->
+```tsx
+import { type ActionPayloadMap, createActionContext } from '@context-action/react';
+
+interface SearchActions extends ActionPayloadMap {
+  runSearch: { query: string };
+  cancelDraft: void;
+}
+
+interface SearchResults {
+  runSearch: string[];
+}
+
+export const {
+  useActionDispatch,
+  useActionResultDispatch,
+  useActionScope,
+} = createActionContext<SearchActions, SearchResults>('SearchActions', {
+  actions: {
+    cancelDraft: { queue: 'immediate' },
+  },
+});
+
+export function SearchControls() {
+  const dispatch = useActionDispatch();
+  const dispatchResult = useActionResultDispatch();
+  const scope = useActionScope();
+
+  const handleRun = async (query: string) => dispatchResult('runSearch', { query });
+  const handleScopedRun = async (query: string) => scope.dispatchWithResult('runSearch', { query });
+  const handleCancel = () => dispatch('cancelDraft');
+
+  return (
+    <div>
+      <button type="button" onClick={() => void handleRun('context-action')}>Search</button>
+      <button type="button" onClick={() => void handleScopedRun('scoped')}>Scoped</button>
+      <button type="button" onClick={handleCancel}>Cancel</button>
+    </div>
+  );
+}
+```
+
+### 2.3 전역 동시성 큐 없이 특정 디스패치만 직렬화하기
+
+`useConcurrencyQueue`가 생략되었거나 비활성화된 상태에서도 `{ immediate: false }`를 명시하면 `ActionRegister`가 내부 `dispatchQueue`를 지연 초기화하여 해당 호출을 직렬 실행합니다:
+
+<!-- @context-action-compile -->
+```ts
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+
+interface QueueActions extends ActionPayloadMap {
+  syncItem: { id: string };
+}
+
+export async function dispatchSeriallyWithoutGlobalQueue() {
+  const register = new ActionRegister<QueueActions>({
+    name: 'LazySerialExample',
+  });
+
+  register.register('syncItem', async ({ id }) => {
+    await Promise.resolve(id);
+  });
+
+  await Promise.all([
+    register.dispatch('syncItem', { id: 'first' }, { immediate: false }),
+    register.dispatch('syncItem', { id: 'second' }, { immediate: false }),
+  ]);
+
+  await register.destroyAsync({ deferCleanup: true });
+}
+```
+
+## 3. 자동 준비도 감사기 (`pnpm audit:v5-readiness`)
+
+저장소에 포함된 TypeScript AST 기반 감사기(`scripts/audit-v5-readiness.mjs`)는 주석·문자열 리터럴의 오탐 없이 소비자 코드를 분류합니다:
+
+```bash
+pnpm audit:v5-readiness                       # template-react 및 example 요약 리포트 출력
+pnpm audit:v5-readiness -- --strict-template   # packages/template-react/src 내 blocking 항목 시 실패
+pnpm audit:v5-readiness -- --strict-all        # 전체 스캔 스코프 내 blocking 항목 시 실패
+pnpm audit:v5-readiness -- --json              # 파일/라인/컬럼 단위 JSON 리포트 출력
+pnpm audit:v5-readiness -- --root ../my-app    # 외부 소비자 앱 경로 스캔
+pnpm test:v5-readiness                         # AST 픽스처 및 스타터 템플릿 준수 테스트 실행
+```
+
+### 감사 분류 기준
+
+| 분류 (`category`) | 게이트 역할 | 탐지 대상 |
+| :--- | :--- | :--- |
+| `deprecatedApis` | 차단 (`--strict-template`, `--strict-all`) | `useActionDispatchWithResult`, `useActionEffectHandler`, `registerEffect`, `StoreSchema`, `defineStoreSchema`, `compareStrategy` |
+| `rootSubpathImports` | 차단 (`--strict-template`, `--strict-all`) | `./refs`, `./time-travel`, `./transactions`, `./backend` 서브패스 소속인데 루트 `@context-action/react`에서 가져온 심볼 |
+| `manualImmediateDispatches` | 차단 (`--strict-template`, `--strict-all`) | 계약 단위 `actions: { <action>: { queue: 'immediate' } }` 대신 호출부에서 넘긴 `{ immediate: true }` |
+| `implicitStoreNotificationMode` | 참고용 인벤토리 | 명시적 `notificationMode` 없이 기본값에 의존하는 `createStore*` / `createTimeTravelStore*` 선언 |
+
+### `stage` 기준선 실측 결과 (Phase 2 직전 체크포인트)
+
+| 스코프 | 스캔 파일 수 | 차단 합계 (`blockingTotal`) | 세부 내역 (`deprecatedApis` / `rootSubpathImports` / `manualImmediateDispatches`) | 참고 (`implicitStoreNotificationMode`) | 비고 |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| `packages/template-react/src` | 21 | **0** | `0 / 0 / 0` | 5 | `--strict-template` · `--strict-all` 통과; `@context-action/react/refs` 및 계약 단위 `actions` 정책 적용 완료 |
+| `example/src` | 540 | **0** | `0 / 0 / 0` | 213 | `--strict-all` 통과 완료; 모든 서브패스 import · `useActionScope` · 계약 단위 액션 큐 정책 전환 완료 |
+
+## 4. Phase 2 (`v5`) 완료 현황 및 릴리스 체크리스트
+
+Phase 2의 React breaking 정리와 기본값 통일은 `stage`에 구현되었습니다 (롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32` 보존). 정식 `v5` 릴리스 PR에서 패키지 버전 범프나 태그를 진행하기 전 아래 항목을 확인합니다:
+
+1. `pnpm audit:v5-readiness -- --strict-template`, `pnpm audit:v5-readiness -- --strict-all` 및 `pnpm test:v5-readiness`가 지속 통과할 것 (`packages/template-react/src` 및 `example/src` 차단 항목 `0` 유지).
+2. `4.x`에서 업그레이드하는 외부 소비자 앱의 `pnpm audit:v5-readiness -- --root <app>` 차단 항목(`deprecatedApis`, `rootSubpathImports`, `manualImmediateDispatches`) 정리가 완료될 것.
+3. 전체 검증 게이트(`pnpm release:check`, `pnpm verify && pnpm verify:receipt`) 및 [릴리스 거버넌스](../../../releases/RELEASE.md) 승인이 완료될 것.
+
+===================[ DOC: ko/context-layered/vnext-architecture-handoff.md ]===================
+# vNext 아키텍처 & 타 프로젝트 핸드오프 가이드
+
+**상태:** Phase 1 (`M0–M4`) 및 Phase 2 (`v5` React 호환성 정리 및 기본값 통일) `stage` 구현 완료 (롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32`, 패키지 버전 범프·npm 배포 동결 유지)  
+**기준선(Baseline):** `stage` 브랜치 (`@context-action/core@1.3.1`, `@context-action/store-core@0.1.4`, `@context-action/mutative-core@0.8.14`, `@context-action/mutative@0.8.15`, `@context-action/react@4.0.7`, `@context-action/lit@0.1.4`, `@context-action/preact@0.1.3`, 프리릴리스 기간 패키지 버전 동결)
+
+이 문서는 연계 프로젝트 또는 후속 세션이 현재 `stage` 계약에 맞춰 협업·마이그레이션할 수 있도록 **기준선 규칙 · 필독 지도 · `stage`에 반영된 Phase 1/Phase 2 범위 · 설계 경계 · 재사용 프롬프트 키트**를 정리한 레퍼런스입니다.
+
+---
+
+## 1. 기준선 및 동결 원칙
+
+- **작업 브랜치:** `stage` (롤백 체크포인트 `checkpoint/pre-phase2-v4` @ `240b2b32` 보존; 정식 릴리스 승인 전까지 `main` 직접 병합·버전 범프·배포 금지).
+- **버전 동결 및 `stage` Phase 2 기준선:** 패키지 버전 및 npm 배포는 동결을 유지합니다. 현재 `stage`에는 **Phase 2 (`v5` React 표면 정리)** 가 반영되어 루트 `.` export 슬림화(`./refs`·`./time-travel`·`./transactions` 독립 서브패스), Deprecated React API 제거, `Store` 기본 `notificationMode: 'immediate'`, `createActionContext` 기본 `useConcurrencyQueue: false`가 적용되어 있으며, `@context-action/core`의 `registerEffect`는 `1.x` 호환을 위해 유지됩니다.
+- **불필요한 React 훅 래퍼 지양 원칙:** Context-Action은 5가지 OOP × React 기본 Hook 조합 패턴(`useImperativeHandle`, `useLocalStore`/`useReducer`, `useDeferredValue`, React 19 `useOptimistic`/`useTransition`/`useActionState`, isomorphic `useLayoutEffect`/`useEffect`)을 얇은 전용 래퍼 API로 추가하지 않고 **조합 사용 패턴 문서**로 관리합니다.
+
+---
+
+## 2. 필독 문서 지도 (저장소 경로)
+
+설계 피드백을 작성하거나 소비자 코드를 점검할 때 아래 페어링 문서를 순서대로 확인하세요:
+
+1. **vNext 아키텍처 청사진 및 1차 출처 근거 (`accepted` · Phase 2 준비):**
+   - [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) — Hub-and-Spoke 목표 구조, 트랙 A/B/C 후보안, 파일·라인 단위 실증 근거, 4.x / v5 단계적 로드맵.
+   - [Phase 2 (`v5`) 마이그레이션 및 준비 가이드](./v5-migration-readiness.md) — `4.x` 무중단 사전 준비 레시피, `pnpm audit:v5-readiness` AST 기준선, Phase 2 진입 승인 체크리스트.
+2. **작성 기준 및 단계별 적정 구현:**
+   - [모범 사례 (Best Practices)](../guide/best-practices.md) — Level 1(Lite) / Level 2(Headless-First Symmetric DI) / Level 3(Full 6-Layer) 선택 기준 및 CI 강제 7대 규칙(`pnpm convention:check`).
+   - [개발 컨벤션 인덱스](./convention-index.md) — 전체 아키텍처·거버넌스 문서 진입점.
+3. **코드 패턴 및 OOP × React 기본 Hook 5유형:**
+   - [코드 패턴 (Code Patterns)](../guide/code-patterns.md) — 검증된 OOP × React 기본 Hook 패턴 5종 통합 인덱스 (`packages/react/__tests__/patterns/oop-react-hooks-patterns.integration.test.tsx` 검증 연계):
+     - [Imperative Handle Facade](../guide/patterns/ref/imperative-handle-facade.md)
+     - [로컬 상태 캡슐화 핸들](../guide/patterns/ref/local-state-imperative-handle.md)
+     - [지연 뷰 구독 (`useDeferredValue`)](../guide/patterns/store/deferred-view-subscription.md)
+     - [낙관적 UI & 전환 (React 19)](../guide/patterns/async/optimistic-and-transition-ui.md)
+     - [외부 OOP 라이프사이클 브릿지](../guide/patterns/ref/external-oop-lifecycle.md)
+4. **정규 런타임·상태 계약:**
+   - [Store별 선택 및 사용법 가이드](./store-selection-and-usage-guide.md)
+   - [Core Action Contracts](../../../packages/core/docs/action-contracts.md)
+   - [React State Contracts](../../../packages/react/docs/state-contracts.md)
+
+---
+
+## 3. 구현 전 피드백이 필요한 4가지 의사결정 게이트
+
+타 프로젝트 사용 경험을 반영해 [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) 섹션 6의 4가지 질문에 대한 입장을 먼저 정리해 주세요:
+
+1. **기본 `Store` 알림 모드 (`packages/react/src/stores/core/Store.ts:105`):** 구체 `Store` 기본 `notificationMode`를 `'batched'`(16ms RAF)에서 동기 `'immediate'`(`createStateStore()` 및 React 18/19 자동 배칭과 정합, `'raf'` + `RefContext`는 명시적 opt-in)로 바꿀지, 현행 `'batched'`를 유지할지?
+2. **`defineRuntime` + `bindReactRuntime` 도입 vs. 순수 분리 철학:** Level 1↔2 전환 보일러플레이트를 줄이는 얇은 통합 팩토리를 도입할지, Action·Store·Ref 독립 선언 명시성을 끝까지 유지할지?
+3. **Mutative / TimeTravel 배치:** `Store`·`TimeTravelStore`를 프레임워크 중립 Layer 1 패키지로 분리해 Lit/Preact와 공유할지, Phase 1에서는 `@context-action/react`가 `StateReader<T>` / `StateBackend<T>`를 직접 수용하는 수준으로 멈출지?
+4. **Semver 우선순위:** **4.x 무중단(Additive) 확장**을 1차 목표로 잡을지, **v5 메이저 재설계**까지 함께 확정할지?
+
+### 3.1 교차 프로젝트 감사 요약 및 권고 해법 (7개 소비자 저장소)
+
+| 의사결정 게이트 | 7개 실사용 저장소 감사 근거 | 권고 해법 |
+|---|---|---|
+| **1. 기본 `Store` 알림 모드** | `packages/react/UNRELEASED.md:6-10`에서 4.x 무중단 opt-in `notificationMode?: 'batched' | 'immediate'`가 이미 도입 중이며, 기존 소비자(`iframe-demo`, `graph-hub`, `ae-editor`)의 RAF 타이밍을 보존합니다. | **4.x에서는 `'batched'` 기본 유지** + opt-in `'immediate'` 제공, 기본값 전환은 **v5**에서만 검토 |
+| **2. `defineRuntime` / `bindReactRuntime`** | `google-tools`(`runtime.ts:1-24`)·`browser-studio`(`shared.ts:86-90`)는 `{ store, actions, dispose }` 런타임을 반복 래핑하나, `houdini-flow`와 Level 3 앱은 독립 분리를 유지합니다. | **독립 프리미티브 우선 유지** — M1/M3 완료 후 얇은 Level 1↔2 헬퍼 필요성 재평가 |
+| **3. `StateBackend` & TimeTravel 위치** | `macrostructure`(`interface-intent-runtime-react.ts:15-32`)는 React 미지원 탓에 `useRef`+`useEffect` 미러 Store를 쓰며, `google-tools`는 Lit만 `StateStore`를 직접 받는 비대칭을 보입니다. `browser-studio`·`ae-editor`(`.mjs`)는 비-React `TimeTravelStore` 수요를 증명합니다. | **M1 (P0):** React 훅·`createStoreContext`의 `StateReader<T>`/`StateBackend<T>` 네이티브 수용<br>**M3 (P1):** Layer 1 프레임워크 중립 타임라인 추출(React `.` re-export 유지) |
+| **4. Semver 우선순위** | `ae-editor`, `iframe-demo`, `graph-hub`, `macrostructure`가 `@context-action/react` 루트(`.`)에 직접 의존했습니다. | **Phase 1 = 4.x 무중단(Additive) 완료** 후 체크포인트(`checkpoint/pre-phase2-v4` @ `240b2b32`)를 거쳐 **Phase 2 = `v5` 루트 슬림화·기본값 통일을 `stage`에 적용 완료**했습니다. |
+
+### 3.2 Phase 1 (`M0–M4`) & Phase 2 (`v5`) `stage` 구현 완료 요약
+
+세부 대상 파일, 계약 목표, 검증 명령은 [CA-VNEXT-ARCHITECTURE-001](./decisions/CA-VNEXT-ARCHITECTURE-001.md) 섹션 9를 따르며, 5개 Phase 1 마일스톤(`M0–M4`)과 Phase 2 (`v5` React 호환성 정리)가 모두 `stage`에 반영·검증되었습니다:
+
+- **M0 (`완료` · 기준선 동기화):** `packages/react` 4.x 개선(`StoreNotificationMode`, `useRefController`, `useDebugValue`, OOP 문서) 및 기준선 영수증(`e1bdf4a7`) 커밋.
+- **M1a & M1b (`완료` · P0 · 트랙 A1):** `useStoreValue`, `useStoreValues`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`, `useTimeTravelSelector`, `ExternalStoresMap`(`ExternalStoreInput`), `ExternalTimeTravelStoresMap`(`ExternalTimeTravelStoreInput`)가 `StateReader<T>`/`StateBackend<T>`/`TimelineBackend<T>`를 수동 `BackendStore` 래핑 없이 직접 수용.
+- **M2 (`완료` · P1 · 트랙 B1):** `@context-action/core` 제네릭 `ActionRegisterConfig<T>.actions`(`ActionQueuePolicy`, `ActionPolicyConfig`: `queue: 'serial' | 'immediate'`, `timeout?: number`) 및 React `createActionContext` 전달을 4.x 기본값 유지 상태로 구현.
+- **M3 (`완료` · P1 · 트랙 A2):** 신규 패키지 증설 없이 `@context-action/mutative` Layer 1 `MutativeStateBackend`/`MutativeTimelineBackend`를 `StateStore`, `TransactionBackend`, 동적 `getNotificationMode()`/`setNotificationMode()`로 정합화하고 React/비-React 상호운용 완성.
+- **M4a & M4b (`완료` · P2 · 트랙 C1 & B2):** opt-in React 서브패스(`./refs`[Mutative 독립], `./time-travel`, `./transactions`)와 대칭 디스패치 훅(`useActionResultDispatch()`, `useActionScope()`, `ActionScopeReturn`)을 루트 `.` 100% 보존·`api-surface.v1.json`/경계 게이트 동기화와 함께 반영.
+
+---
+
+## 4. 바로 복사해 지시할 수 있는 프롬프트 키트
+
+### 프롬프트 1 — 타 프로젝트 / 소비자 코드 감사 및 피드백 수집용
+
+```text
+현재 이 프로젝트(소비자/연계 워크스페이스)가 `@context-action/*`(`ActionRegister`, `createActionContext`, `createStoreContext`, `createStore`, `StateBackend`/`store-core`, `createRefContext`, `TimeTravelStore`, OOP 브릿지)를 실제로 어떻게 쓰고 있는지 전수 점검해 줘.
+
+아래 context-action `stage` 기준 문서를 대조해서 피드백 리포트를 작성해 줘:
+1. `docs/ko/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001.md` (트랙 A/B/C 및 미확정 게이트 4가지)
+2. `docs/ko/guide/best-practices.md` (Level 1/2/3 적정 구현 기준)
+3. `docs/ko/guide/code-patterns.md` 및 OOP × React 기본 Hook 5가지 패턴
+
+주의: 아직 context-action 라이브러리 계약은 바꾸지 말고, 아래 내용을 구체적으로 정리해 줘:
+- 현재 사용 중인 패키지 버전, 서브패스 import, legacy/deprecated 심볼(`useActionEffectHandler`, `compareStrategy` 등) 사용 현황
+- 실사용 중 겪은 마찰점(직렬 큐 `{ immediate: true }` 누락 교착, Store `'batched'` RAF 지연 vs 동기 커밋 차이, Level 1->2 이중 선언 보일러플레이트, `store-core` `BackendStore` 래핑, OOP ref 연동 등)
+- 4가지 의사결정 게이트 각각에 대한 우리 프로젝트 기준 권장안 및 사전에 조율이 필요한 breaking-change 위험 요소
+```
+
+### 프롬프트 2 — `context-action` 최종 설계 확정 및 ADR 승인(`accepted`)용
+
+```text
+`context-action` 저장소의 `stage` 브랜치(`docs/ko/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001.md`, `docs/ko/context-layered/vnext-architecture-handoff.md`)를 이어받아 진행해 줘.
+
+수집된 타 프로젝트 피드백을 반영해서:
+1. `CA-VNEXT-ARCHITECTURE-001` 섹션 6의 4가지 의사결정 게이트를 최종 결정하고 근거를 보강해 줘.
+2. `CA-VNEXT-ARCHITECTURE-001` 상태를 `accepted`로 승격(또는 트랙별 `CA-*` ADR로 분할)하고, 구체 TypeScript 계약·비목표·deprecation 일정을 확정해 줘.
+3. 4.x 무중단(Additive) Phase 1부터 착수할 수 있도록 계약 우선(Contract-First) 구현 계획을 수립해 줘 (`catalog/repository-surface/api-surface.v1.json` 및 한/영 문서 동시 갱신 포함).
+승인된 릴리스 계획 없이 `main` 병합이나 버전 범프/배포는 진행하지 마.
+```
+
+### 프롬프트 3 — 실제 구현 착수 시 검증·거버넌스 가드레일 (후속 작업용)
+
+```text
+`stage`에서 Phase 1 또는 vNext 코드 변경을 커밋하기 전 아래 규칙을 반드시 준수해 줘:
+- 계약 변경 시 `catalog/repository-surface/api-surface.v1.json`, `packages/*/README.md`, `packages/*/docs/*.md`를 함께 갱신할 것.
+- 한/영 문서 페어링을 유지하고 아래 문서·컨벤션·경계 게이트를 전부 통과할 것:
+  pnpm docs:llms && pnpm docs:check && pnpm verify:doc-snippets && pnpm convention:check && pnpm package-boundary:check
+- 의존성 순서대로 전체 빌드·테스트(`pnpm build && pnpm test`)와 공개 export/타입 변경 시 React 18/19 호환성 게이트를 검증할 것.
+- 클린 트리에서 `pnpm verify:quick`(또는 `pnpm verify`)로 `.verification/local-receipt.json`을 갱신하고 `pnpm verify:receipt`가 `✔ [VALID]`를 출력하는지 확인할 것.
+- 커밋 메시지에 `CA-SURFACE-CATALOG-001` 및 승인된 `CA-*` ID를 명시하고, `main` 직접 푸시나 직접 배포는 절대 하지 말 것.
+```
+
 ===================[ DOC: ko/concept/action-pipeline-guide.md ]===================
 # Context-Action 액션 파이프라인 시스템 가이드
 
@@ -6188,11 +6886,132 @@ interface MyActions extends ActionPayloadMap {
 
 const actionRegister = new ActionRegister<MyActions>({
   name: 'MyAppActions',
+  actions: {
+    authenticate: { lane: 'orchestrated', queue: 'serial', timeout: 5000 },
+  },
   registry: {
     debug: false,
-    defaultExecutionMode: 'sequential'
-  }
+    autoCleanup: true,
+    defaultExecutionMode: 'sequential',
+    maxJumps: 10,
+    errorHandler: (error, context) => {
+      console.error('처리되지 않은 액션 오류:', error.message, context);
+    },
+  },
 });
+```
+
+### 2단계 디스패치 엔진과 컴파일된 파이프라인 캐시
+
+`ActionRegister`는 첫 디스패치 시 액션별 `CompiledActionPipeline`(`guards`, `nonGuards`, `results`, `observers`, `hasOnce`, `debounceMs`/`throttleMs`)을 지연 컴파일해 캐싱하며, 핸들러 등록·교체·제거·초기화(`register*`, `unregister`, `clearAction`, `clearAll`) 시점에만 캐시를 무효화합니다.
+
+```text
+dispatch() / dispatchWithResult() / actions.* Proxy
+   │
+   ├─ 기본 순차 dispatch() Fast Path 진입 조건 충족 시 (`lane: 'fast'` 포함):
+   │    lane !== 'orchestrated' · 해당 액션의 trace 리스너 없음 · options 없음 또는 immediate 전용 ·
+   │    큐 미사용/우회 · 스키마 검증 없음 · guard/observer/debounce/throttle/once 없음 · mode='sequential'
+   │    └─► Fast Sequential Path (dispatchFastSequential → continueFastSequentialAsync)
+   │          • PipelineContext / outcome / AbortController 할당 생략
+   │          • 첫 Promise 반환 시 동기 루프 → 비동기 루프로 무중단 전이
+   │          • 중단/종료 시 취소 처리, condition Error 정규화,
+   │            원본 payload errorHandler 전달, .then getter 예외 방어 모두 Slow Path와 동일 보장
+   │
+   └─► Full Orchestration Path (_dispatchWithResult):
+        Admission (스키마 검증 + ActionGuard) ─► OperationQueue ─► Guard Preflight ─►
+        재시도 루프 (executeWithRetry) ─► 실행 모드 (sequential/parallel/race) ─►
+        결과 집계 (processResults) ─► Terminal Observers ─► Trace 정산
+```
+
+### 역할(Role) 기반 등록 API와 컨트롤러 표면
+
+프로덕션 파이프라인에서는 역할별 등록 메서드를 사용해 검증, 부수효과, 결과 생성, 후행 관찰을 명확히 분리하는 것을 권장합니다:
+
+| 역할(Role) | 등록 메서드 | 실행 단계 | 컨트롤러 노출 멤버 (`createRoleController`) | 결과 참여 |
+|---|---|---|---|---|
+| `guard` | `registerGuard` | Preflight (`sequential`, `fatal` 고정) | `signal`, `getPayload`, `modifyPayload`, `abort` | 불가 |
+| `command` | `registerCommand` | 본 파이프라인 (Phase 2 `void` 부수효과) | `signal`, `getPayload`, `abort` | 불가 |
+| `result` | `registerResult` | 본 파이프라인 (`TResultMap` 결과 반환) | `signal`, `getPayload`, `abort`, `return`, `setResult`, `getResults`, `mergeResult` | 참여 |
+| `legacy` | `register` | 본 파이프라인 (1.x 호환 범용) | 위 전부 + `modifyPayload`, `jumpToPriority` | 참여 |
+| `observer` | `registerObserver` | Settlement (최종 불변 스냅샷 수신) | 컨트롤러 없음 (`ActionObserverEvent` 전달) | 불가 |
+
+<!-- @context-action-compile -->
+```typescript
+import {
+  ActionRegister,
+  isActionTimeoutError,
+  type ActionPayloadMap,
+  type ActionResultMap,
+} from '@context-action/core';
+
+interface OrderActions extends ActionPayloadMap {
+  submitOrder: { orderId: string; valid: boolean };
+  audit: { orderId: string };
+}
+
+interface OrderResults extends ActionResultMap<OrderActions> {
+  submitOrder: { receiptId: string };
+}
+
+const register = new ActionRegister<OrderActions, OrderResults>({
+  name: 'OrderPipeline',
+  actions: {
+    submitOrder: { lane: 'orchestrated', queue: 'serial', timeout: 5000 },
+    audit: { lane: 'fast' },
+  },
+  registry: {
+    errorHandler: (error, context) => {
+      console.error('디스패치 오류:', error.message, context);
+    },
+  },
+});
+
+const stopTrace = register.subscribeDispatchTrace(
+  event => {
+    console.info(event.dispatchId, event.phase, event.status);
+  },
+  { actions: ['submitOrder'] },
+);
+
+// 1. 사전 검증 Guard (항상 순차/fatal)
+register.registerGuard('submitOrder', payload => {
+  if (!payload.valid) throw new Error('유효하지 않은 주문 페이로드');
+}, { id: 'guard-valid' });
+
+// 2. Phase 2 void Command (결과 경합에 참여하지 않는 부수효과)
+register.registerCommand('submitOrder', payload => {
+  console.info('감사 의도 기록:', payload.orderId);
+}, { id: 'command-audit', priority: 20 });
+
+// 3. 타입 지정 Result 핸들러
+register.registerResult('submitOrder', async payload => {
+  await Promise.resolve();
+  return { receiptId: `rcpt-${payload.orderId}` };
+}, { id: 'result-receipt', scheduling: 'await-before-next', errorPolicy: 'fatal' });
+
+// 4. 사후 Observer (불변 스냅샷 수신)
+register.registerObserver('submitOrder', event => {
+  console.info('정산 결과:', event.outcome, event.result);
+}, { when: 'always' });
+
+async function submit() {
+  try {
+    const execution = await register.dispatchWithResult('submitOrder', {
+      orderId: 'ORD-1',
+      valid: true,
+    });
+    console.info(execution.outcome, execution.result);
+  } catch (error) {
+    if (isActionTimeoutError(error)) {
+      console.warn('타임아웃(ms):', error.timeout);
+    }
+  } finally {
+    stopTrace();
+    await register.destroyAsync();
+  }
+}
+
+void submit;
 ```
 
 ### 핸들러 등록
@@ -6264,11 +7083,17 @@ await actionRegister.dispatch('processData', { data: 'test' });
 ```typescript
 actionRegister.register('uploadFile', handler, {
   id: 'file-processor',           // 고유 식별자
-  priority: 50,                   // 실행 우선순위
-  once: false,                    // 여러 번 실행
-  blocking: true,                 // 완료 대기
+  priority: 50,                   // 실행 우선순위 (높을수록 먼저)
+  once: false,                    // 등록당 최대 1회 실행
+  scheduling: 'await-before-next',// 'await-before-next' | 'start-and-continue'
+  errorPolicy: 'collect',         // 'collect' (기본값, 비차단 수집) | 'fatal' (즉시 중단)
+  blocking: true,                 // 1.x 호환 단축 옵션 (true -> await-before-next + fatal)
+  debounce: 300,                  // 디바운스 지연 (ms)
+  throttle: 1000,                 // 스로틀 간격 (ms)
+  replaceExisting: true,          // 동일 ID 핸들러 교체 (기본값: true)
+  cleanup: () => {},              // 등록 해제 또는 destroyAsync 완료 시 정리 콜백
   condition: (payload) => payload.filename.endsWith('.pdf'), // 조건부 실행
-  metadata: {                     // 사용자 정의 메타데이터
+  metadata: {                     // 실행 결과에 복사되는 진단 메타데이터
     description: 'PDF 파일 처리기',
     version: '1.0.0'
   }
@@ -6403,24 +7228,25 @@ console.log(result);
 
 ## 에러 처리
 
-개별 핸들러가 실패해도 파이프라인은 계속 실행됩니다:
+기본 정책(`errorPolicy: 'collect'`, 생략 시 기본값)에서는 개별 핸들러가 예외를 던져도 오류를 수집하고 후속 핸들러가 계속 실행됩니다(`outcome: 'completed_with_errors'`). 치명적 실패로 즉시 중단하려면 `errorPolicy: 'fatal'`(또는 호환 단축 옵션 `blocking: true`)을 지정하세요. 이 경우 `registry.errorHandler`가 **원본 디스패치 `payload`**와 함께 호출되며 `dispatch()`는 reject되고 `dispatchWithResult()`는 `outcome: 'failed'`를 반환합니다. (`registerGuard`는 항상 `fatal`로 동작합니다.)
 
 ```typescript
 actionRegister.register('processData', () => {
-  throw new Error('핸들러 1 실패');
-}, { priority: 100 });
+  throw new Error('핸들러 1 실패 (collect)');
+}, { priority: 100 }); // errorPolicy 기본값: 'collect'
 
 actionRegister.register('processData', () => {
   return { success: true, step: '복구' };
 }, { priority: 50 });
 
-const result = await actionRegister.dispatchWithResult('processData', 
+const result = await actionRegister.dispatchWithResult('processData',
   { data: 'test' },
   { result: { collect: true } }
 );
 
-// result.success: true (파이프라인 성공)
-// result.results: [{ success: true, step: '복구' }] (성공한 결과만)
+// result.success: true, result.outcome: 'completed_with_errors'
+// result.results: [{ success: true, step: '복구' }]
+// result.errors / result.failedResults에서 핸들러 1 오류 확인 가능
 ```
 
 ## 실제 예제: 인증 플로우
@@ -6495,13 +7321,19 @@ function AuthComponent() {
 }
 ```
 
+## 핵심 정책 · 추적 · 종료 API
+
+- **액션별 레인 & 정책 (`ActionRegisterConfig.actions`)**: `lane?: 'fast' | 'orchestrated'`, `queue?: 'serial' | 'immediate'`, `timeout?: number`, `trace?: boolean` 기본값을 선언하고 `getActionPolicy(action)`로 조회합니다. `lane: 'fast'`는 직렬 큐·타임아웃·트레이스·Guard/Observer·`once`/`debounce`/`throttle`·비순차 모드를 생성·등록 시점에 fail-closed 차단합니다.
+- **액션 스코프 디스패치 추적 (`subscribeDispatchTrace`)**: 전역 구독뿐 아니라 `{ actions: [...] }`로 특정 액션만 추적해 `bindActionTransactions`와 연동할 때도 비-트랜잭션 `fast` 레인 액션이 그대로 Fast Path를 유지합니다(`started` / `settled`: `'completed' | 'completed_with_errors' | 'failed' | 'cancelled' | 'debounced' | 'throttled'`).
+- **우아한 종료 (`destroy` / `destroyAsync`)**: 호출 즉시 신규 등록과 디스패치를 `ActionRegisterDestroyedError`로 차단하고, 이미 시작된 디스패치와 핸들러가 모두 정산될 때까지 drain한 뒤 등록된 `cleanup` 콜백을 실행합니다(`destroyAsync({ deferCleanup: true })` 지원).
+
 ## 모범 사례
 
-1. **우선순위 설계**: 논리적 실행 순서에 따라 우선순위 할당
-2. **에러 처리**: 적절한 에러 처리와 복구 메커니즘 구현
-3. **결과 수집**: 복잡한 워크플로에 대해 결과 수집 사용
-4. **성능 최적화**: 적절한 실행 모드 선택
-5. **타입 안전성**: TypeScript와 함께 사용하여 타입 안전성 확보
+1. **역할 분리**: 검증은 `registerGuard`, 부수효과는 `registerCommand`, 타입 결과는 `registerResult`, 로깅·트랜잭션 정산은 `registerObserver`로 분리
+2. **우선순위 및 정책 설계**: 논리적 실행 순서에 따라 우선순위를 부여하고 `scheduling`과 `errorPolicy`를 명시
+3. **에러 및 타임아웃 처리**: 치명적 실패는 `errorPolicy: 'fatal'` + `registry.errorHandler`로, 타임아웃은 `isActionTimeoutError()`로 일관 처리
+4. **레지스터 인스턴스 재사용**: `CompiledActionPipeline` 캐시와 `actions` Proxy 캐시를 유지해 Fast Path 이점을 극대화
+5. **타입 안전성 및 종료 보장**: `ActionPayloadMap` / `ActionResultMap`을 정의하고 종료 시 `destroyAsync()`로 백그라운드 작업을 안전하게 drain
 
 ===================[ DOC: ko/concept/architecture-guide.md ]===================
 # Context-Action 아키텍처 및 핵심 철학
@@ -9786,15 +10618,18 @@ const user = useStoreValue(userStore);
 
 ### 🎯 Action 유틸리티 훅
 
-#### `useActionDispatchWithResult()`
-결과 수집이 필요한 액션을 위한 **유틸리티 훅**.
-- **목적**: 액션을 디스패치하고 핸들러 결과 수집
-- **사용 사례**: 핸들러로부터 반환 값이 필요한 경우
+#### `useActionResultDispatch()` & `useActionScope()`
+결과 수집이나 Provider 단위 취소 스코프 제어가 필요한 액션을 위한 **유틸리티 훅**입니다.
+- **목적**: 액션을 디스패치하고 핸들러 결과를 수집(`useActionResultDispatch()`)하거나 `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }` 전체 스코프를 제어(`useActionScope()`)
+- **사용 사례**: 핸들러로부터 반환 값이나 중단 스코프가 필요한 경우
 - **고급**: 핸들러 응답이 필요한 복잡한 워크플로우용
 
 ```tsx
-const { dispatchWithResult } = useActionDispatchWithResult();
+const dispatchWithResult = useActionResultDispatch();
 const result = await dispatchWithResult('login', credentials);
+
+// 또는 전체 스코프 훅 사용:
+const { dispatchWithResult: scopedDispatch, abortAll, resetAbortScope } = useActionScope();
 ```
 
 #### `useActionRegister()`
@@ -9882,10 +10717,10 @@ JSON 패치를 사용한 **경로 기반 구독**.
 
 #### 액션 처리
 - **필수**: `useActionDispatch`, `useActionHandler`
-- **유틸리티**: `useActionDispatchWithResult`, `useActionRegister`
+- **유틸리티**: `useActionResultDispatch`, `useActionScope`, `useActionRegister`
 
 #### DOM 조작 및 성능
-- **필수**: `useRefHandler` (RefContext에서)
+- **필수**: `useRefHandler` (`@context-action/react/refs`)
 - **유틸리티**: `useWaitForRefs`, `useGetAllRefs`
 
 #### 고급/메타
@@ -9905,7 +10740,8 @@ JSON 패치를 사용한 **경로 기반 구독**.
 
 #### 낮은 빈도 (컴포넌트의 20% 미만)
 - `useComputedStore`
-- `useActionDispatchWithResult`
+- `useActionResultDispatch`
+- `useActionScope`
 
 ---
 
@@ -9968,7 +10804,7 @@ function OptimizedUserProfile() {
   });
   
   // 유틸리티: 결과 수집
-  const { dispatchWithResult } = useActionDispatchWithResult();
+  const dispatchWithResult = useActionResultDispatch();
   
   return <div>{displayName}</div>;
 }
@@ -10220,7 +11056,8 @@ function CriticalComponent() {
 - `useActionDispatch()` - 디스패치 함수 가져오기
 - `useActionHandler(action, handler, config?)` - 핸들러 등록
 - `useActionRegister()` - ActionRegister 인스턴스 가져오기
-- `useActionDispatchWithResult()` - 결과 수집과 함께 디스패치
+- `useActionResultDispatch()` - 결과 수집과 함께 디스패치
+- `useActionScope()` - Provider 스코프 `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }` 반환
 
 ---
 
@@ -10250,7 +11087,8 @@ function CriticalComponent() {
 #### 액션 시스템
 - `useActionDispatch` - 액션 디스패치
 - `useActionHandler` - 핸들러 등록
-- `useActionDispatchWithResult` - 결과와 함께 디스패치
+- `useActionResultDispatch` - 결과와 함께 디스패치
+- `useActionScope` - Provider 스코프 디스패치 + 중단 번들
 - `useActionRegister` - 레지스터 액세스
 - `useActionContext` - 컴텍스트 액세스
 
@@ -10268,13 +11106,13 @@ function CriticalComponent() {
 ## 요약
 
 ### 필수 훅 (반드시 학습)
-- **팩토리 함수**: `createActionContext`, `createStoreContext`, `createRefContext`
+- **팩토리 함수**: `createActionContext`, `createStoreContext`, `createRefContext` (`@context-action/react/refs`)
 - **핵심 훅**: `useStoreValue`, `useActionDispatch`, `useActionHandler`, `useStore`, `useRefHandler`
 
 ### 유틸리티 훅 (필요에 따라 학습)
 - **성능**: `useStoreSelector`, `useComputedStore`
 - **편의성**: `useLocalStore`
-- **고급**: `useActionDispatchWithResult`
+- **고급**: `useActionResultDispatch`, `useActionScope`
 
 ### 전문 훅 (특정 경우용)
 - **다중 스토어**: `useMultiStoreSelector`, `useMultiComputedStore`, `useStoreValues`
@@ -14407,881 +15245,483 @@ ecommerceExample().catch(console.error);
 Actions 기반 디스패칭은 기존 접근 방식의 모든 힘과 유연성을 유지하면서 Context-Action으로 작업하는 더 직관적이고 개발자 친화적인 방법을 제공합니다.
 
 ===================[ DOC: ko/guide/best-practices.md ]===================
-# 모범 사례
+# 모범 사례 (Best Practices)
 
-Context-Action 프레임워크를 사용할 때 따라야 할 컨벤션과 모범 사례입니다.
+유지보수 가능한 **Context-Action** 애플리케이션을 설계하기 위한 팀 컨벤션, 런타임 안전 가드레일, 단계별 적정 구현(Right-Sized Adoption) 예제 모음입니다.
 
-## 🧭 빠른 팀 요약
+> 전체 6-Layer 거버넌스 규격이나 스토어 프리미티브 선택 기준은 [아키텍처 컨벤션](../concept/conventions.md), [컨벤션 인덱스](../context-layered/convention-index.md), [스토어 선택 및 사용 가이드](../context-layered/store-selection-and-usage-guide.md)를 함께 참고하세요.
 
-팀에서 “이 프레임워크를 권장 방식대로 어떻게 개발해야 하는가”만 빠르게 맞추고 싶다면 아래 규칙부터 공유하면 됩니다.
+---
 
-1. `contexts`에서 액션/스토어/리프 컨텍스트 경계를 먼저 정의합니다.
-2. 비즈니스 규칙과 계산은 `business` 또는 순수 함수로 분리합니다.
-3. 최신 store 값 읽기, side effect, API 호출은 `handlers`가 담당합니다.
-4. `actions`는 view에서 직접 dispatch 문자열을 쓰지 않도록 helper를 제공합니다.
-5. `hooks`는 `useStoreValue()` 중심으로 구독과 파생 값을 노출합니다.
-6. `views`는 렌더링과 사용자 입력 전달만 담당하고 business logic을 넣지 않습니다.
-7. action handler에서는 컴포넌트 스코프 값을 쓰지 말고 항상 `store.getValue()`로 최신 값을 읽습니다.
-8. handler는 `useCallback`으로 안정화하고, 에러 처리는 `try/catch` 또는 `controller.abort()`로 명시합니다.
-9. DOM 이벤트 객체나 무거운 참조 객체는 store에 그대로 저장하지 않습니다.
-10. 새 기능을 추가할 때는 “문서 → 예제 → 테스트” 순서로 최소 검증 루프를 남깁니다.
+## ⚡ 빠른 팀 요약
 
-### 바로 연결되는 문서
+팀에서 “Context-Action을 권장 방식대로 어떻게 개발해야 하는가”를 빠르게 맞출 때 아래 6가지 규칙부터 공유하면 됩니다:
 
-- 전체 규칙 원문: [컨벤션](../concept/conventions.md)
-- 권장 레이어 구조: [Context-Layered 개요](../context-layered/context-layered-guide.md)
-- 실제 구현 예제: [Canonical Order Form 예제](../examples/canonical-order-form.md)
-- 안정성 관점 테스트: [안정성 테스트 사이클](../context-layered/stability-test-cycle.md)
+1. **UI보다 경계를 먼저 정의합니다**: 뷰 컴포넌트를 작성하기 전에 타입이 선언된 `actions/` + `contexts/` 계약과 순수 도메인 헬퍼(`business/`)를 먼저 세웁니다.
+2. **핸들러에서는 지연 조회(`store.getValue()`), 뷰에서만 구독합니다**: `handlers/` 내부에서는 항상 `store.getValue()`를 호출하고, `useStoreValue`, `useStoreSelector`, `useStorePath`는 절대 사용하지 않습니다.
+3. **`actions/`는 dispatch 전용으로 유지하고 반환값은 명시적으로 받습니다**: `actions/` 훅은 `dispatch` / `dispatchWithResult` 호출만 감쌉니다. 핸들러 반환값이나 중단 사유(`abortReason`)가 필요하면 반드시 `dispatchWithResult()`를 사용하세요 (`dispatch()`는 `Promise<void>`를 반환합니다).
+4. **취소·리셋·실시간 텔레메트리 액션은 `{ immediate: true }`로 직렬 큐를 우회합니다**: `createActionContext`는 기본으로 `useConcurrencyQueue: true`를 사용하므로, 비동기 핸들러 실행 중 호출되는 취소/리셋/스텝 기록 액션에는 `{ immediate: true }`를 넘겨 교착을 방지합니다.
+5. **Store 업데이트는 항상 불변(Immutable)으로 수행합니다**: `store.update(...)` 콜백 내부에서 기존 `Map`, `Set`, 배열을 직접 변경하지 말고 얕은 복제(`new Map(prev.map)`, `[...prev.items]`) 후 새 루트 객체를 반환합니다.
+6. **단순한 화면에 과도한 6계층을 강제하지 않습니다**: 기능 복잡도에 맞춰 **Level 1(Lite)**, **Level 2(Headless-First Symmetric DI)**, **Level 3(Full 6-Layer)** 중 적정 수준을 선택합니다.
 
-### 이 문서를 언제 읽으면 좋은가
+---
 
-- 팀 온보딩 직후 공통 규칙을 맞출 때
-- PR 리뷰 기준을 짧게 합의할 때
-- 새 기능을 어떤 레이어에 넣어야 할지 빠르게 판단할 때
+## 적정 구현(Right-Sized Adoption) 의사결정 매트릭스
 
-## 🔧 보안 및 성능 가이드라인
+소유권이 명확하고 테스트가 빠르면서도 불필요한 보일러플레이트가 없는 가장 가벼운 구조를 선택하세요:
 
-### 이벤트 객체 처리
-DOM 이벤트 객체를 스토어에 저장하지 마세요. 메모리 누수를 유발할 수 있습니다:
+| 단계 | 적합한 상황 | 구성 모듈 / 프리미티브 | 검증 초점 | 과잉 설계를 피해야 할 때 |
+|---|---|---|---|---|
+| **로컬 React 상태** | 단일 컴포넌트 hover, 아코디언 토글, 임시 입력 UI 플래그 | React `useState` / `useReducer` | 컴포넌트 단위 테스트 | 단순 드롭다운이나 탭 토글 하나 때문에 Action/Store를 만들지 마세요 |
+| **Level 1 · Lite** | 단일 도메인 위젯, 쿠폰/계산기, 간단한 폼 검증 및 파생 상태 | `createActionContext` 1개, `createStoreContext` 1개, `Registry` 컴포넌트 + `View` | React Testing Library 동작 테스트 | 도메인 로직이나 다중 패널 조율이 커지기 전까지 6개 폴더로 쪼개지 마세요 |
+| **Level 2 · Headless-First Symmetric DI** | React 마운트와 무관하게 실행돼야 하는 공유 엔진, SSR/Worker, 언마운트 후에도 유지되는 작업 공간 상태 | 순수 TS `ActionRegister` + `createStore`, `registerGuard/Result/Observer`, React `Provider ownership="shared"` | 순수 Node/Vitest/Jest 엔진 테스트 + 얇은 React 마운트/언마운트 DI 테스트 | 단일 응집 엔진 API로 충분하면 6계층 라우트 폴더를 강제하지 마세요 |
+| **Level 3 · Full 6-Layer** | 다중 관심사가 얽힌 제품 피처, 비동기 워크플로우, 비즈니스/레이아웃 인텐트 분리, 팀 공동 소유 라우트 | `contexts / business / handlers / actions / hooks / views` + `BusinessActionIntent` vs `LayoutActionIntent` | `pnpm convention:check`, 순수 `business/` 단위 테스트, 통합 플로우 테스트 | 작은 팝오버나 단일 위젯에는 과합니다 |
 
-```tsx
-// ❌ 잘못된 방법: 메모리 누수 유발
-function BadHandler() {
-  useActionHandler('handleClick', async (event) => {
-    // 오류가 발생하고 저장이 차단됩니다
-    store.setValue({ clickEvent: event }); 
-  });
-}
+---
 
-// ✅ 올바른 방법: 필요한 데이터만 추출
-function GoodHandler() {
-  useActionHandler('handleClick', async (event) => {
-    const clickData = {
-      clientX: event.clientX,
-      clientY: event.clientY,
-      target: event.target?.tagName,
-      timestamp: Date.now()
-    };
-    store.setValue({ clickData });
-  });
-}
-```
+## CI 강제 규칙 vs 권장 설계 가이드
 
-### 메모리 관리
-프레임워크가 메모리 집약적 객체를 자동으로 처리합니다:
+Context-Action은 스크립트가 자동으로 차단하는 규칙(`pnpm convention:check`, `pnpm verify:surface-catalog`, `pnpm package-boundary:check`)과 코드 리뷰로 관리하는 설계 원칙을 명확히 구분합니다.
 
-```tsx
-// EventBus가 자동으로 메모리 누수를 방지하는 방법:
-// 1. DOM 요소 및 React 컴포넌트 감지
-// 2. 전체 객체 대신 필수 메타데이터만 저장
-// 3. 문제가 될 수 있는 참조 자동 정리
-```
+### CI에서 자동 강제되는 규칙 (`pnpm convention:check` 및 경계 게이트)
 
-### 오류 처리
-중앙화된 오류 처리 시스템을 사용하세요:
+1. **핸들러 내 스토어 구독 금지 (`no-store-subscription-in-handlers`)**: `handlers/**` 내부에서 직접 호출되거나 별칭으로 import된 `useStoreValue`, `useStoreSelector`, `useStorePath`를 정적 분석으로 차단합니다. 콜백 내부에서 `store.getValue()`를 호출하세요.
+2. **핸들러에서 `actions/` import 금지 (`no-actions-import-in-handlers`)**: 핸들러가 React 액션 디스패치 래퍼에 결합되지 않도록 차단합니다. UI 콜백 주입이나 순수 `business/` 헬퍼를 사용하세요.
+3. **인텐트 페이로드 분리 (`no-mixed-intent-payloads`)**: `BusinessActionIntent`(검증, API 제출, 상태 전이)와 `LayoutActionIntent`(포커스 이동, 스크롤, 뷰포트 레이아웃)를 한 액션 맵에 섞지 않습니다.
+4. **dispatch 전용 `actions/` 훅 (`actions-dispatch-only`)**: `actions/` 모듈은 `useCallback`으로 감싼 `dispatch` / `dispatchWithResult` 래퍼만 노출하며, 도메인 분기나 스토어 구독을 포함하지 않습니다.
+5. **Store 내 원시 DOM 객체·이벤트 저장 금지**: 반응형 Store에는 직렬화 가능한 도메인 상태만 담고, DOM 엘리먼트(`HTMLInputElement`, 스크롤 컨테이너 등)는 `RefContext`로 분리합니다.
+6. **단일 상태 소유자(Single-Source Owner)**: 동일한 가변 도메인 필드를 여러 Store나 React `useState`에 중복 미러링하지 않습니다.
+7. **정규 패키지 경계 준수**: 워크스페이스 소비자는 `pnpm package-boundary:check`가 검증하는 공개 엔트리포인트와 서브패스만 import합니다.
+
+### 리뷰 기반 권장(Advisory) 원칙
+
+- **엄격한 6-Layer 디렉터리 분리 (`Level 3`)**: 규모가 큰 멀티 개발자 피처에 권장되며, Level 1/2 소규모 위젯에는 강제하지 않습니다.
+- **Observer `{ when: 'always' }`**: 검증 실패, 중단(`cancelled`) 이력, 감사 로그를 빠짐없이 남겨야 할 때 권장됩니다.
+- **큐 선점(`{ immediate: true }`)**: 실행 중인 비동기 핸들러를 취소하거나 실시간 진행 스텝을 발행하는 액션 여부에 따라 설계자가 결정합니다.
+
+---
+
+## 실전 Do / Don't 체크리스트
+
+### 1. 핸들러에서는 항상 `store.getValue()`로 지연 조회하세요
+
+핸들러 레지스트리에서 Store를 구독하면 상태가 바뀔 때마다 핸들러가 재등록되고 오래된 클로저(Stale Closure) 버그가 발생합니다.
 
 ```tsx
-// 프레임워크가 제공하는 ErrorHandlers:
-// - 스토어 작업 오류
-// - 이벤트 핸들러 실패
-// - Ref 마운트 콜백 오류  
-// - 적절한 컨텍스트가 포함된 비동기 작업 실패
+// ❌ Don't: draft 변경마다 핸들러 레지스트리가 재구독·재등록됨
+const draft = useStoreValue(draftStore);
+useActionCommandHandler('submitOrder', useCallback(async () => {
+  await submit(draft);
+}, [draft]));
+
+// ✅ Do: 핸들러 실행 시점에 최신 스냅샷을 지연 조회
+useActionCommandHandler('submitOrder', useCallback(async () => {
+  const latestDraft = draftStore.getValue();
+  await submit(latestDraft);
+}, [draftStore]));
 ```
 
-## 네이밍 컨벤션
+### 2. `dispatch()`와 `dispatchWithResult()`를 목적에 맞게 구분하세요
 
-### 도메인 기반 리네이밍 패턴
+`dispatch()`는 `Promise<void>`를 반환합니다. 핸들러가 `controller.return(value)`로 반환한 결과나 `controller.abort(reason)` 정보를 호출자가 받아야 한다면 반드시 `dispatchWithResult()`를 사용해야 합니다.
 
-핵심 컨벤션은 명확한 컨텍스트 분리를 위한 **도메인별 리네이밍**입니다.
+- **`dispatch(action, payload)`**: 결과가 Store 업데이트로만 흘러가는 fire-and-forget UI 명령에 사용합니다.
+- **`dispatchWithResult(action, payload)`**: 캐시 히트 여부, 다단계 폴백 결과, 중단 사유(`execution.outcome`, `execution.result`, `execution.abortReason`)를 호출자가 직접 다룰 때 사용합니다.
 
-#### 스토어 패턴 리네이밍
+### 3. 직렬 큐 교착을 막기 위해 `{ immediate: true }`를 활용하세요
+
+`createActionContext`는 기본적으로 `useConcurrencyQueue: true`가 활성화되어 동일 컨텍스트의 액션을 순서대로 실행합니다. 아래 두 경우는 반드시 `{ immediate: true }`를 지정하세요:
+
+1. **취소·리셋·재시도 액션**: 느린 비동기 `submitOrder` 실행 도중 사용자가 누르는 초기화/취소 버튼 (`{ immediate: true }`가 없으면 앞선 제출이 끝날 때까지 영원히 대기합니다).
+2. **실행 중 핸들러 내부에서 발행하는 실시간 텔레메트리/스텝 기록 액션**: 부모 액션이 끝나기 전에 UI 진행 표시와 로그를 즉시 반영해야 할 때 필요합니다.
+
 ```tsx
-// ✅ 권장: 도메인별 리네이밍
-const {
-  Provider: UserStoreProvider,
-  useStore: useUserStore,
-  useStoreManager: useUserStoreManager
-} = createStoreContext('User', {...});
-
-// ❌ 지양: 직접 객체 접근
-const UserStores = createStoreContext('User', {...});
-const userStore = UserStores.useStore('profile'); // 도메인이 불분명
+const resetDraft = useCallback(
+  () => businessDispatch('resetDraft', undefined, { immediate: true }),
+  [businessDispatch]
+);
 ```
 
-#### 액션 패턴 리네이밍
-```tsx
-// ✅ 권장: 명시적 타입을 가진 도메인별 리네이밍
-const {
-  Provider: UserActionProvider,
-  useActionDispatch: useUserAction,
-  useActionHandler: useUserActionHandler
-} = createActionContext<UserActions>('UserActions');
+### 4. `store.update(...)`에서 `Map` · `Set` · 배열을 불변으로 복제하세요
 
-// ❌ 지양: 제네릭 이름
-const {
-  Provider,
-  useActionDispatch,
-  useActionHandler
-} = createActionContext<UserActions>('UserActions');
-```
+`Store`는 `Object.is` 참조 비교로 구독자 알림을 결정합니다. 기존 `Map`이나 배열을 제자리(in-place)에서 수정한 뒤 같은 참조를 반환하면 UI가 갱신되지 않습니다.
 
-### 컨텍스트 네이밍 규칙
+```ts
+// ❌ Don't: 기존 Map 인스턴스를 직접 변형하여 참조가 동일함
+cacheStore.update((prev) => {
+  prev.entries.set(key, entry);
+  return prev;
+});
 
-#### 도메인 기반 네이밍
-```tsx
-// ✅ 권장: 명확한 도메인 구분
-'UserProfile'     // 사용자 프로필 관련
-'ShoppingCart'    // 쇼핑카트 관련  
-'ProductCatalog'  // 상품 카탈로그 관련
-'OrderManagement' // 주문 관리 관련
-'AuthSystem'      // 인증 시스템 관련
-
-// ❌ 지양: 모호한 이름
-'Data'           // 너무 포괄적
-'State'          // 구체적이지 않음
-'App'            // 범위가 불분명 (루트 레벨에서만 사용)
-'Manager'        // 역할이 불분명
-```
-
-#### 액션 vs 스토어 구분
-```tsx
-// 액션 컨텍스트 (행동/이벤트 중심)
-'UserActions'         // 사용자 액션
-'PaymentActions'      // 결제 액션
-'NavigationActions'   // 내비게이션 액션
-
-// 스토어 컨텍스트 (데이터/상태 중심)  
-'UserData'           // 사용자 데이터
-'PaymentData'        // 결제 데이터
-'AppSettings'        // 애플리케이션 설정
-```
-
-## 파일 구조
-
-### 권장 디렉토리 구조
-```
-src/
-├── contexts/
-│   ├── user/
-│   │   ├── UserActions.tsx     # 액션 컨텍스트
-│   │   ├── UserStores.tsx      # 스토어 컨텍스트
-│   │   └── types.ts            # 사용자 관련 타입
-│   ├── payment/
-│   │   ├── PaymentActions.tsx
-│   │   ├── PaymentStores.tsx
-│   │   └── types.ts
-│   └── index.ts                # 모든 컨텍스트 내보내기
-├── components/
-├── pages/
-└── utils/
-```
-
-### 컨텍스트 파일 구성
-```tsx
-// contexts/user/UserActions.tsx
-import { createActionContext } from '@context-action/react';
-import type { UserActions } from './types';
-
-export const {
-  Provider: UserActionProvider,
-  useActionDispatch: useUserAction,
-  useActionHandler: useUserActionHandler
-} = createActionContext<UserActions>('UserActions');
-
-// contexts/user/UserStores.tsx
-import { createStoreContext } from '@context-action/react';
-import type { UserStoreConfig } from './types';
-
-export const {
-  Provider: UserStoreProvider,
-  useStore: useUserStore,
-  useStoreManager: useUserStoreManager
-} = createStoreContext('User', userStoreConfig);
-```
-
-## 패턴 사용법
-
-### 액션 패턴 모범 사례
-
-#### 핸들러 등록
-```tsx
-// ✅ 권장: 안정적인 핸들러를 위해 useCallback 사용
-function UserComponent() {
-  useUserActionHandler('updateProfile', useCallback(async (payload) => {
-    try {
-      await updateUserProfile(payload);
-      console.log('프로필이 성공적으로 업데이트되었습니다');
-    } catch (error) {
-      console.error('프로필 업데이트 실패:', error);
-    }
-  }, [])); // 안정적인 핸들러를 위한 빈 의존성 배열
-}
-
-// ❌ 지양: 인라인 핸들러 (재등록 발생)
-function UserComponent() {
-  useUserActionHandler('updateProfile', async (payload) => {
-    await updateUserProfile(payload); // 매 렌더링마다 재등록
-  });
-}
-```
-
-#### 에러 핸들링
-```tsx
-// ✅ 권장: 적절한 에러 핸들링을 위해 controller.abort 사용
-useActionHandler('riskyAction', (payload, controller) => {
-  try {
-    // 실패할 수 있는 비즈니스 로직
-    processData(payload);
-  } catch (error) {
-    controller.abort('처리 실패', error);
-  }
+// ✅ Do: Map을 복제한 뒤 새로운 루트 상태 객체 반환
+cacheStore.update((prev) => {
+  const nextEntries = new Map(prev.entries);
+  nextEntries.set(key, entry);
+  return { ...prev, entries: nextEntries };
 });
 ```
 
-### 스토어 패턴 모범 사례
+### 5. 취소 가능한 비동기 Promise 정착과 완료 후 편집 복귀 처리
 
-#### 스토어 접근
+- 대기 중인 비동기 작업(`pendingResolveRef`)은 취소·리셋·언마운트 정리 시점에 즉시 `resolve(false)` 등으로 정착시켜 dangling promise와 지연된 상태 덮어쓰기를 차단합니다.
+- 순수 상태 머신에 사용자 재편집 전이(예: `{ type: 'draft_edited' }`)를 명시해 `'success'` 또는 `'failed'` 상태에서 입력을 고치면 자동으로 `'idle'` 상태로 복귀하도록 설계하세요.
+
+### 6. 비즈니스 인텐트와 레이아웃 인텐트를 분리하고 DOM은 `RefContext`로 제어하세요
+
+검증·제출(`businessDispatch('submitOrder')`)과 유효성 오류 필드 포커스·스크롤(`layoutDispatch('focusField', { field })`)을 혼합하지 마세요. 고빈도 DOM 좌표 제어는 Store가 아니라 `createRefContext`로 처리합니다. 또한 `Store`의 기본 `batched` 모드는 `requestAnimationFrame`(약 16ms) 단위로 React 알림을 묶어 보내므로, fake timer 기반 테스트에서는 `16ms` 틱 진행 또는 `waitFor`로 렌더링 반영을 기다려야 합니다.
+
+---
+
+## 검증된 단계별 적정 구현(Right-Sized) 예제
+
+아래 TypeScript 코드는 `pnpm verify:doc-snippets` 게이트에서 실제 패키지 선언과 함께 컴파일 검증됩니다 (`<!-- @context-action-compile -->`).
+
+### Level 1 · Lite (단일 도메인 쿠폰 위젯)
+
+단일 React 서브트리 안에서 동작하는 계산기, 쿠폰 바, 필터 패널에 적합합니다. 복잡도가 커지기 전까지 `business/`나 `actions/` 폴더를 미리 만들지 않고 1파일 또는 2파일로 간결하게 유지합니다.
+
+<!-- @context-action-compile -->
 ```tsx
-// ✅ 권장: 특정 스토어 구독
-function UserProfile() {
-  const profileStore = useUserStore('profile');
-  const profile = useStoreValue(profileStore);
-  
-  return <div>{profile.name}</div>;
+import { useCallback } from 'react';
+import type { ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+
+interface CouponQuote {
+  readonly appliedCode: string | null;
+  readonly totalAmount: number;
+  readonly errorCode: 'empty_code' | 'unknown_coupon' | null;
 }
 
-// ❌ 지양: 불필요한 스토어 접근
-function UserProfile() {
-  const profileStore = useUserStore('profile');
-  const settingsStore = useUserStore('settings'); // 사용되지 않음
-  const profile = useStoreValue(profileStore);
-  
-  return <div>{profile.name}</div>;
-}
-```
+const VALID_COUPONS: Record<string, number> = { SAVE10: 10, TEAM25: 25 };
 
-#### 스토어 업데이트
-```tsx
-// ✅ 권장: 복잡한 변경을 위한 함수형 업데이트
-const { updateStore } = useUserStoreManager();
-
-const updateProfile = (changes: Partial<UserProfile>) => {
-  updateStore('profile', prevProfile => ({
-    ...prevProfile,
-    ...changes,
-    updatedAt: Date.now()
-  }));
-};
-
-// ✅ 허용: 간단한 변경을 위한 직접 업데이트
-const setUserName = (name: string) => {
-  updateStore('profile', { ...currentProfile, name });
-};
-```
-
-## 타입 정의
-
-### 액션 타입
-```tsx
-// ✅ 권장: ActionPayloadMap 확장
-interface UserActions extends ActionPayloadMap {
-  updateProfile: { name: string; email: string };
-  deleteAccount: { confirmationCode: string };
-  logout: void; // 페이로드 없는 액션
-}
-
-// ❌ 지양: 순수 인터페이스
-interface UserActions {
-  updateProfile: { name: string; email: string }; // ActionPayloadMap 누락
-}
-```
-
-### 스토어 타입
-```tsx
-// ✅ 권장: 명확한 타입 정의
-interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: number;
-  updatedAt: number;
-}
-
-interface UserSettings {
-  theme: 'light' | 'dark';
-  notifications: boolean;
-  language: string;
-}
-
-const userStoreConfig = {
-  profile: { 
-    initialValue: {
-      id: '',
-      name: '',
-      email: '',
-      createdAt: 0,
-      updatedAt: 0
-    } as UserProfile
-  },
-  settings: { 
-    initialValue: {
-      theme: 'light',
-      notifications: true,
-      language: 'en'
-    } as UserSettings
+function evaluateCoupon(rawCode: string, subtotal: number): CouponQuote {
+  const code = rawCode.trim().toUpperCase();
+  if (!code) return { appliedCode: null, totalAmount: subtotal, errorCode: 'empty_code' };
+  const pct = VALID_COUPONS[code];
+  if (pct === undefined) {
+    return { appliedCode: null, totalAmount: subtotal, errorCode: 'unknown_coupon' };
   }
-};
-```
+  return {
+    appliedCode: code,
+    totalAmount: Math.round(subtotal * (1 - pct / 100)),
+    errorCode: null,
+  };
+}
 
-## 성능 가이드라인
+interface LiteCouponActions extends ActionPayloadMap {
+  applyCoupon: { code: string };
+  clearCoupon: void;
+}
 
-### 핸들러 최적화
-```tsx
-// ✅ 권장: 메모이제이션된 핸들러
-const optimizedHandler = useCallback(async (payload: UserActions['updateProfile']) => {
-  await updateUserProfile(payload);
-}, []);
+const {
+  Provider: LiteCouponActionProvider,
+  useActionDispatch: useLiteCouponDispatch,
+  useActionCommandHandler: useLiteCouponCommand,
+} = createActionContext<LiteCouponActions>('LiteCouponActions');
 
-useUserActionHandler('updateProfile', optimizedHandler);
-```
+const {
+  Provider: LiteCouponStoreProvider,
+  useStore: useLiteCouponStore,
+} = createStoreContext('LiteCouponStores', {
+  subtotal: 100,
+  quote: { appliedCode: null, totalAmount: 100, errorCode: null } as CouponQuote,
+});
 
-### 스토어 구독 최적화
-```tsx
-// ✅ 권장: 특정 값 구독
-const userName = useStoreValue(profileStore)?.name;
+function LiteCouponRegistry() {
+  const subtotalStore = useLiteCouponStore('subtotal');
+  const quoteStore = useLiteCouponStore('quote');
 
-// ❌ 지양: 부분 데이터만 필요할 때 불필요한 전체 객체 구독
-const fullProfile = useStoreValue(profileStore);
-const userName = fullProfile.name; // 프로필의 모든 변경에 대해 재렌더링
-```
-
-## 패턴 조합
-
-### Provider 계층구조
-```tsx
-// ✅ 권장: 논리적 provider 순서
-function App() {
-  return (
-    <UserStoreProvider>      {/* 데이터 레이어 먼저 */}
-      <UserActionProvider>   {/* 액션 레이어 두 번째 */}
-        <PaymentStoreProvider>
-          <PaymentActionProvider>
-            <AppContent />
-          </PaymentActionProvider>
-        </PaymentStoreProvider>
-      </UserActionProvider>
-    </UserStoreProvider>
+  useLiteCouponCommand(
+    'applyCoupon',
+    useCallback(
+      ({ code }) => {
+        quoteStore.setValue(evaluateCoupon(code, subtotalStore.getValue()));
+      },
+      [quoteStore, subtotalStore]
+    )
   );
-}
-```
 
-### 교차 패턴 통신
-```tsx
-// ✅ 권장: 액션이 스토어를 업데이트
-function UserComponent() {
-  const { updateStore } = useUserStoreManager();
-  
-  useUserActionHandler('updateProfile', useCallback(async (payload) => {
-    try {
-      const updatedProfile = await updateUserProfile(payload);
-      updateStore('profile', updatedProfile); // API 호출 후 스토어 업데이트
-    } catch (error) {
-      console.error('프로필 업데이트 실패:', error);
-    }
-  }, [updateStore]));
-}
-```
+  useLiteCouponCommand(
+    'clearCoupon',
+    useCallback(() => {
+      quoteStore.setValue({
+        appliedCode: null,
+        totalAmount: subtotalStore.getValue(),
+        errorCode: null,
+      });
+    }, [quoteStore, subtotalStore])
+  );
 
-## 일반적인 함정
-
-### 이런 패턴은 피하세요
-```tsx
-// ❌ 하지 마세요: 액션 디스패치와 직접 스토어 업데이트 혼용
-function BadComponent() {
-  const dispatch = useUserAction();
-  const { updateStore } = useUserStoreManager();
-  
-  const handleUpdate = () => {
-    updateStore('profile', newProfile);  // 직접 스토어 업데이트
-    dispatch('updateProfile', newProfile); // 그리고 액션 디스패치 - 중복!
-  };
+  return null;
 }
 
-// ❌ 하지 마세요: 컴포넌트 내부에서 컨텍스트 생성
-function BadComponent() {
-  const { Provider } = createActionContext<UserActions>('User'); // 잘못됨!
-  return <Provider>...</Provider>;
-}
+export function LiteCouponWidget() {
+  const quote = useStoreValue(useLiteCouponStore('quote'));
+  const dispatch = useLiteCouponDispatch();
 
-// ❌ 하지 마세요: 자주 변경되는 의존성으로 핸들러 등록
-function BadComponent({ userId }: { userId: string }) {
-  useUserActionHandler('updateProfile', async (payload) => {
-    await updateUserProfile(userId, payload); // userId 클로저가 자주 변경됨
-  }); // useCallback과 deps의 userId 누락
-}
-```
-
-## 고급 베스트 프랙티스
-
-### 액션 핸들러 상태 접근
-
-#### ⚠️ 중요: 스토어 값 클로저 함정 피하기
-
-액션 핸들러 내부에서 스토어 값에 접근할 때, **컴포넌트 스코프의 값을 절대 사용하지 마세요**. 클로저 함정이 발생합니다:
-
-```tsx
-// ❌ 잘못됨: 핸들러에서 컴포넌트 스코프 값 사용
-function UserComponent() {
-  const userStore = useUserStore('profile');
-  const user = useStoreValue(userStore); // 이 값이 클로저에 갇힘!
-  
-  useUserActionHandler('updateUser', async (payload) => {
-    // 🚨 버그: 이 'user'는 핸들러 등록 시점의 값, 현재 시점이 아님!
-    if (user.isActive) {  // 오래된 값!
-      await updateUserAPI(payload);
-    }
-  });
-}
-
-// ✅ 올바름: 핸들러 내부에서 스토어 값에 직접 접근
-function UserComponent() {
-  const userStore = useUserStore('profile');
-  const user = useStoreValue(userStore); // 컴포넌트 렌더링용으로만 사용
-  
-  useUserActionHandler('updateUser', useCallback(async (payload) => {
-    // ✅ 항상 스토어에서 최신 상태를 가져옴
-    const currentUser = userStore.getValue(); // 실시간 값!
-    
-    if (currentUser.isActive) {
-      await updateUserAPI(payload);
-    }
-  }, [userStore])); // 의존성에는 스토어 참조만 포함
-}
-```
-
-#### 실시간 상태 접근 패턴
-
-```tsx
-// ✅ 패턴 1: 간단한 확인을 위한 직접 store getValue()
-useActionHandler('conditionalAction', async (payload) => {
-  const currentState = someStore.getValue();
-  
-  if (currentState.isReady) {
-    // 액션 실행
-  }
-});
-
-// ✅ 패턴 2: 여러 스토어 조정
-useActionHandler('complexAction', async (payload) => {
-  const userState = userStore.getValue();
-  const settingsState = settingsStore.getValue();
-  const uiState = uiStore.getValue();
-  
-  // 모든 현재 상태를 사용하여 의사결정
-  if (userState.isLoggedIn && settingsState.apiEnabled && !uiState.isLoading) {
-    // 복잡한 로직 실행
-  }
-});
-
-// ✅ 패턴 3: 상태 검증 및 업데이트
-useActionHandler('validateAndUpdate', async (payload) => {
-  const current = dataStore.getValue();
-  
-  // 현재 상태 검증
-  if (current.version !== payload.expectedVersion) {
-    throw new Error('버전 불일치');
-  }
-  
-  // 현재 상태를 기준으로 업데이트
-  dataStore.setValue({
-    ...current,
-    ...payload.updates,
-    version: current.version + 1
-  });
-});
-```
-
-### useEffect 의존성 베스트 프랙티스
-
-#### 스토어와 Dispatch 참조는 안정적
-
-Context-Action 프레임워크는 스토어 인스턴스와 dispatch 함수가 안정적인 참조를 갖도록 보장합니다:
-
-```tsx
-// ✅ 이것들은 useEffect 의존성에서 생략해도 안전
-function MyComponent() {
-  const userStore = useUserStore('profile');  // 안정적인 참조
-  const dispatch = useUserAction();           // 안정적인 참조
-  const user = useStoreValue(userStore);
-  
-  useEffect(() => {
-    if (user.needsSync) {
-      dispatch('syncUser', { id: user.id });
-      userStore.setValue({ ...user, lastSyncAttempt: Date.now() });
-    }
-  }, [user.needsSync, user.id]); // userStore나 dispatch 포함하지 않음
-  
-  // 대안: 명시적으로 포함해도 됨 (해롭지 않음)
-  useEffect(() => {
-    if (user.needsSync) {
-      dispatch('syncUser', { id: user.id });
-    }
-  }, [user.needsSync, user.id, dispatch, userStore]); // 이것도 괜찮음
-}
-```
-
-#### 의존성 배열 가이드라인
-
-```tsx
-// ✅ 포함: 실제로 변경되고 동작에 영향을 주는 값들
-useEffect(() => {
-  if (user.isActive) {
-    startPolling();
-  }
-}, [user.isActive]); // 파생된 값들 포함
-
-// ✅ 생략: 안정적인 참조들 (하지만 포함해도 해롭지 않음)
-const stableRef = userStore;
-const stableDispatch = dispatch;
-
-useEffect(() => {
-  // 이것들은 deps에 포함할 필요 없지만, 포함해도 됨
-  stableRef.setValue(newValue);
-  stableDispatch('action', payload);
-}, []); // 빈 deps 괜찮음
-
-// ❌ 피하기: 특정 속성만 중요할 때 전체 객체 포함
-useEffect(() => {
-  updateUI();
-}, [user]); // 모든 user 변경에 재실행
-
-// ✅ 더 좋음: 관련된 속성만 포함
-useEffect(() => {
-  updateUI();
-}, [user.theme, user.language]); // 이것들이 변경될 때만 재실행
-```
-
-### 상태 이슈 디버깅
-
-#### 상태 모니터링 기법
-
-```tsx
-// ✅ 상태 변경을 추적하기 위한 디버그 로깅 추가
-useActionHandler('debugAction', async (payload) => {
-  const beforeState = store.getValue();
-  console.log('이전:', beforeState);
-  
-  // 업데이트 수행
-  store.setValue(newValue);
-  
-  const afterState = store.getValue();
-  console.log('이후:', afterState);
-  
-  // 상태 변경 확인
-  if (beforeState === afterState) {
-    console.warn('상태가 예상대로 변경되지 않았습니다!');
-  }
-});
-
-// ✅ 복잡한 상태 추적을 위한 디버그 유틸리티 생성
-const createStateLogger = (storeName: string, store: Store<any>) => ({
-  logCurrent: () => console.log(`${storeName}:`, store.getValue()),
-  logChange: (action: string) => {
-    const before = store.getValue();
-    return (after: any) => {
-      console.log(`${storeName} ${action}:`, { before, after });
-    };
-  }
-});
-```
-
-#### 일반적인 디버깅 시나리오
-
-```tsx
-// 🔍 디버그: 상태 변경 시 컴포넌트가 리렌더링되지 않음
-function DebuggingComponent() {
-  const store = useStore('data');
-  const value = useStoreValue(store);
-  
-  // 구독을 확인하기 위한 로깅 추가
-  useEffect(() => {
-    console.log('컴포넌트 리렌더링됨, 값:', value);
-  });
-  
-  // 스토어 업데이트가 작동하는지 확인
-  const testUpdate = () => {
-    console.log('업데이트 전:', store.getValue());
-    store.setValue({ ...store.getValue(), timestamp: Date.now() });
-    console.log('업데이트 후:', store.getValue());
-  };
-  
   return (
     <div>
-      <div>현재 값: {JSON.stringify(value)}</div>
-      <button onClick={testUpdate}>업데이트 테스트</button>
-    </div>
-  );
-}
-
-// 🔍 디버그: 액션 핸들러가 실행되지 않음
-function DebuggingActions() {
-  useActionHandler('testAction', useCallback(async (payload) => {
-    console.log('핸들러가 페이로드로 실행됨:', payload);
-    
-    // 에러를 캐치하기 위한 try-catch 추가
-    try {
-      // 여기에 로직
-    } catch (error) {
-      console.error('핸들러 에러:', error);
-      throw error; // 에러 전파를 유지하기 위해 재throw
-    }
-  }, []));
-  
-  const dispatch = useActionDispatch();
-  
-  const testDispatch = () => {
-    console.log('testAction 디스패치 중...');
-    dispatch('testAction', { test: true });
-  };
-  
-  return <button onClick={testDispatch}>액션 테스트</button>;
-}
-```
-
-### 프로덕션 디버깅 및 컴포넌트 생명주기 관리
-
-#### 치명적 이슈: 중복 액션 핸들러 등록
-
-**문제**: 동일한 액션 핸들러를 여러 번 등록하면 예측할 수 없는 동작이 발생합니다.
-
-```tsx
-// ❌ 잘못된 예: 중복 핸들러 등록
-useActionHandler('updateResults', async (payload) => {
-  store.setValue(payload.data);
-});
-useActionHandler('updateResults', async (payload) => {  // 중복!
-  store.setValue(payload.data);  // 첫 번째 핸들러를 덮어씁니다
-});
-
-// ✅ 올바른 예: 단일 핸들러 등록
-const updateResultsHandler = useCallback(async (payload) => {
-  store.setValue(payload.data);
-}, [store]);
-useActionHandler('updateResults', updateResultsHandler);
-```
-
-**디버깅 팁**: `grep -n "useActionHandler.*'actionName'" src/**/*.tsx`
-
-#### 처리 상태로 경쟁 조건 방지하기
-
-**문제**: 빠른 버튼 클릭으로 인한 경쟁 조건과 상태 불일치가 발생합니다.
-
-```tsx
-// ✅ 경쟁 조건을 방지하기 위한 처리 상태 추가
-const stores = createStoreContext('Demo', {
-  data: initialData,
-  isProcessing: false  // 처리 상태 추가
-});
-
-const criticalActionHandler = useCallback(async (payload) => {
-  const currentProcessing = isProcessingStore.getValue();
-  
-  if (currentProcessing) {
-    console.warn('액션이 이미 진행 중입니다. 요청을 무시합니다');
-    return; // 조기 반환으로 경쟁 조건 방지
-  }
-  
-  isProcessingStore.setValue(true);
-  try {
-    await performCriticalOperation(payload);
-  } finally {
-    isProcessingStore.setValue(false); // 항상 처리 상태 해제
-  }
-}, [isProcessingStore]);
-
-useActionHandler('criticalAction', criticalActionHandler);
-
-// ✅ 처리 상태를 반영하는 UI
-function ActionButton() {
-  const isProcessing = useStoreValue(isProcessingStore);
-  const dispatch = useActionDispatch();
-  
-  return (
-    <button
-      onClick={() => dispatch('criticalAction', payload)}
-      disabled={isProcessing}
-    >
-      {isProcessing ? '⏳ 처리 중...' : '액션 실행'}
-    </button>
-  );
-}
-```
-
-#### RefContext를 사용한 안전한 컴포넌트 언마운트
-
-**문제**: 컴포넌트 언마운트가 수동 ref 정리와 충돌합니다.
-
-```tsx
-// ❌ 잘못된 예: 컴포넌트 useEffect에서 수동 ref 정리
-function Component() {
-  const elementRef = useRefHandler('element');
-  
-  useEffect(() => {
-    return () => {
-      elementRef.setRef(null); // 이는 액션 핸들러 정리와 충돌합니다
-    };
-  }, []);
-  
-  return <div ref={elementRef.setRef} />;
-}
-
-// ✅ 올바른 예: 관심사 분리 - React는 DOM을, 액션은 상태를 처리
-function Component() {
-  const elementRef = useRefHandler('element');
-  
-  useEffect(() => {
-    console.log('컴포넌트 마운트됨');
-    return () => console.log('컴포넌트 언마운트 중');
-    // React가 DOM 정리를 자동으로 처리하도록 함
-  }, []);
-  
-  return <div ref={elementRef.setRef} />;
-}
-
-// ✅ 액션 핸들러가 상태와 ref 조정을 관리
-const unmountElementHandler = useCallback(async () => {
-  const isCurrentlyMounted = isMountedStore.getValue();
-  
-  if (isCurrentlyMounted) {
-    isMountedStore.setValue(false); // 먼저 상태 업데이트
-    
-    // React가 컴포넌트를 언마운트한 후 ref 상태 확인
-    setTimeout(() => {
-      const currentRef = elementRef.target;
-      if (currentRef) {
-        elementRef.setRef(null); // 필요한 경우에만 수동 정리
-      }
-    }, 50);
-  }
-}, [isMountedStore, elementRef]);
-
-useActionHandler('unmountElement', unmountElementHandler);
-```
-
-#### 프로덕션 디버깅 기법
-
-**상태 모니터링**: 프로덕션 이슈 진단을 위한 포괄적 상태 모니터링:
-
-```tsx
-// ✅ 다차원 상태 모니터링
-const debugStores = createStoreContext('Debug', {
-  actionLog: [] as string[],
-  errorCount: 0,
-  operationTimes: {} as Record<string, number>
-});
-
-const addLogHandler = useCallback(async ({ message }) => {
-  const timestamp = new Date().toLocaleTimeString();
-  const logEntry = `[${timestamp}] ${message}`;
-  
-  actionLogStore.update(prev => [
-    ...prev.slice(-49), // 최근 50개 항목 유지
-    logEntry
-  ]);
-}, [actionLogStore]);
-
-useActionHandler('addLog', addLogHandler);
-```
-
-**에러 복구**: 자동 재시도 로직으로 우아한 에러 복구:
-
-```tsx
-// ✅ 지수 백오프를 사용한 자동 재시도
-const reliableActionHandler = useCallback(async (payload) => {
-  const maxRetries = 3;
-  let attempt = 0;
-  
-  while (attempt < maxRetries) {
-    try {
-      await performOperation(payload);
-      return; // 성공
-    } catch (error) {
-      attempt++;
-      if (attempt >= maxRetries) throw error; // 최종 실패
-      
-      const delay = 100 * Math.pow(2, attempt - 1); // 지수 백오프
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-}, []);
-
-useActionHandler('reliableAction', reliableActionHandler);
-```
-
-**스트레스 테스트**: 간헐적 이슈를 재현하기 위해 프로덕션 조건을 시뮬레이션:
-
-```tsx
-// ✅ 간단한 스트레스 테스트 헬퍼
-function StressTester({ children }: { children: ReactNode }) {
-  const [isStressTesting, setIsStressTesting] = useState(false);
-  
-  useEffect(() => {
-    if (!isStressTesting) return;
-    
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) { // 사이클당 30% 확률
-        // 빠른 사용자 행동을 시뮬레이션하는 랜덤 액션 트리거
-        const actions = ['mount', 'unmount', 'waitForRef'];
-        const randomAction = actions[Math.floor(Math.random() * actions.length)];
-        console.log(`🎯 스트레스 테스트: ${randomAction}`);
-      }
-    }, 100);
-    
-    return () => clearInterval(interval);
-  }, [isStressTesting]);
-  
-  return (
-    <div>
-      <button onClick={() => setIsStressTesting(!isStressTesting)}>
-        {isStressTesting ? '🛑 중지' : '🎯 시작'} 스트레스 테스트
+      <span>{quote.totalAmount}</span>
+      <button type="button" onClick={() => void dispatch('applyCoupon', { code: 'SAVE10' })}>
+        Apply SAVE10
       </button>
-      {children}
+      <button type="button" onClick={() => void dispatch('clearCoupon')}>
+        Clear
+      </button>
     </div>
   );
 }
+
+export function LiteCouponFeature() {
+  return (
+    <LiteCouponActionProvider>
+      <LiteCouponStoreProvider>
+        <LiteCouponRegistry />
+        <LiteCouponWidget />
+      </LiteCouponStoreProvider>
+    </LiteCouponActionProvider>
+  );
+}
 ```
+
+### Level 2 · Headless-First Symmetric DI (`ActionRegister` + `createStore` + Shared Provider)
+
+도메인 파이프라인이 **React 마운트 없이도**(순수 단위 테스트, SSR 프리페치, 워커, 탭 언마운트/재마운트 간 상태 유지) 동일하게 동작해야 할 때 적합합니다. `ownership="shared"`로 헤드리스 인스턴스를 React 트리에 주입합니다.
+
+<!-- @context-action-compile -->
+```tsx
+import { useCallback } from 'react';
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createStore,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+
+interface QuoteResult {
+  readonly appliedCode: string | null;
+  readonly totalAmount: number;
+  readonly errorCode: 'unknown_coupon' | null;
+}
+
+interface HeadlessCouponActions extends ActionPayloadMap {
+  applyCoupon: { code: string; subtotal: number };
+}
+
+interface HeadlessCouponResultMap {
+  applyCoupon: QuoteResult;
+}
+
+export function createCouponEngine() {
+  const register = new ActionRegister<HeadlessCouponActions, HeadlessCouponResultMap>({
+    name: 'CouponEngine',
+  });
+  const quoteStore = createStore<QuoteResult>('couponQuote', {
+    appliedCode: null,
+    totalAmount: 200,
+    errorCode: null,
+  });
+  const auditStore = createStore<string[]>('couponAudit', []);
+
+  register.registerGuard(
+    'applyCoupon',
+    ({ code, subtotal }, controller) => {
+      if (code.trim().toUpperCase() !== 'TEAM25') {
+        quoteStore.setValue({ appliedCode: null, totalAmount: subtotal, errorCode: 'unknown_coupon' });
+        controller.abort('unknown_coupon');
+      }
+    },
+    { id: 'coupon-guard', priority: 100 }
+  );
+
+  register.registerResult(
+    'applyCoupon',
+    ({ code, subtotal }) => {
+      const next: QuoteResult = {
+        appliedCode: code.trim().toUpperCase(),
+        totalAmount: Math.round(subtotal * 0.75),
+        errorCode: null,
+      };
+      quoteStore.setValue(next);
+      return next;
+    },
+    { id: 'coupon-result', priority: 10 }
+  );
+
+  register.registerObserver(
+    'applyCoupon',
+    (event) => {
+      auditStore.update((prev) => [...prev, `${event.outcome}:${event.payload.code.toUpperCase()}`]);
+    },
+    { id: 'coupon-audit', priority: 1, when: 'always' }
+  );
+
+  const CouponActions = createActionContext<HeadlessCouponActions, HeadlessCouponResultMap>(
+    'CouponActions'
+  );
+  const CouponStores = createStoreContext('CouponStores', {
+    couponQuote: { appliedCode: null, totalAmount: 200, errorCode: null } as QuoteResult,
+  });
+
+  return { register, quoteStore, auditStore, CouponActions, CouponStores };
+}
+
+export async function runHeadlessCouponCheck() {
+  const engine = createCouponEngine();
+  const execution = await engine.register.dispatchWithResult('applyCoupon', {
+    code: 'team25',
+    subtotal: 200,
+  });
+  return { execution, quote: engine.quoteStore.getValue(), audit: engine.auditStore.getValue() };
+}
+
+export function MountedCouponPanel({ engine }: { engine: ReturnType<typeof createCouponEngine> }) {
+  function TelemetryObserver() {
+    engine.CouponActions.useActionObserver(
+      'applyCoupon',
+      useCallback((event) => {
+        void event.outcome;
+      }, []),
+      { id: 'react-ui-observer', when: 'always' }
+    );
+    return null;
+  }
+
+  function View() {
+    const dispatch = engine.CouponActions.useActionDispatch();
+    const quote = useStoreValue(engine.CouponStores.useStore('couponQuote'));
+    return (
+      <button
+        type="button"
+        onClick={() => void dispatch('applyCoupon', { code: 'TEAM25', subtotal: 200 })}
+      >
+        Total: {quote.totalAmount}
+      </button>
+    );
+  }
+
+  return (
+    <engine.CouponActions.Provider register={engine.register} ownership="shared">
+      <engine.CouponStores.Provider stores={{ couponQuote: engine.quoteStore }} ownership="shared">
+        <TelemetryObserver />
+        <View />
+      </engine.CouponStores.Provider>
+    </engine.CouponActions.Provider>
+  );
+}
+```
+
+### Level 3 · Full 6-Layer 피처 아키텍처
+
+다단계 비동기 제출, 초안 검증, 포커스·스크롤 레이아웃 인텐트, 테마 토큰, 감사 로그가 여러 뷰에 걸쳐 결합된 대규모 기능에 사용합니다:
+
+- `contexts / business / handlers / actions / hooks / views` 구조로 분리하며, 취소/리셋 액션에는 `{ immediate: true }`, 핸들러에는 4-역할 훅(`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`)을 배치합니다.
+- 실제 안정화 레퍼런스는 `packages/template-react/src/features/order-workspace/` 및 아래 문서를 참고하세요:
+  - [표준 주문 폼 예제 (Canonical Order Form)](../examples/canonical-order-form.md)
+  - [Spec-to-Code 작성 가이드](../context-layered/spec-to-code-authoring-guide.md)
+  - [Context-Layered 아키텍처 가이드](../context-layered/context-layered-guide.md)
+
+---
+
+## 관련 문서
+
+- [코드 패턴 빠른 참조](./code-patterns.md)
+- [액션 파이프라인 가이드](../concept/action-pipeline-guide.md)
+- [훅 레퍼런스](../concept/hooks-reference.md)
+- [Handler Registry 아키텍처](../context-layered/architecture/handler-registry.md)
+- [안정성 및 테스트 사이클](../context-layered/stability-test-cycle.md)
+- [문제 해결 (Troubleshooting)](./troubleshooting.md)
 
 ===================[ DOC: ko/guide/code-patterns.md ]===================
-# 코드 패턴
+# 코드 패턴 (Code Patterns)
 
-Context-Action 프레임워크의 RefContext와 useWaitForRefs 핵심 기능 패턴입니다.
+설정, 액션 디스패치, 스토어 반응성, 비동기 파이프라인, 고빈도 DOM `RefContext` 전반을 다루는 Context-Action 패턴 디렉터리 및 적정 구현 레시피 안내입니다.
 
-자세한 예제와 구현 가이드라인은 정리된 패턴 모음을 참조하세요:
+> 언제 **Level 1 Lite**, **Level 2 Headless-First Symmetric DI**, **Level 3 Full 6-Layer**를 고를지와 CI가 강제하는 컨벤션은 [모범 사례](./best-practices.md)에서 먼저 확인하세요.
 
-## 📁 [패턴 모음](./patterns/setup/index.md)
+---
 
-### 핵심 패턴
-- **[RefContext 설정](./patterns/setup/ref-context-setup.md)** - TypeScript 타입을 포함한 기본 설정
-- **[조건부 대기](./patterns/async/index.md)** - 핵심 useWaitForRefs 동작
-- **[대기 후 실행](./patterns/async/wait-then-execute.md)** - 안전한 DOM 조작
-- **[실시간 상태 접근](./patterns/async/real-time-state-access.md)** - 클로저 함정 방지
-- **[타임아웃 보호](./patterns/async/index.md)** - 무한 대기 방지
+## 상황별 적정 패턴 선택표
 
-## 빠른 참조
+| 필요한 동작 | 권장 패턴 / 레시피 | 참고 문서 |
+|---|---|---|
+| 단일 도메인 React 위젯 (`1` Action + `1` Store + `Registry`) | Level 1 · Lite | [모범 사례 — Level 1](./best-practices.md#level-1--lite-단일-도메인-쿠폰-위젯) · [기본 설정 예제](../examples/basic-setup.md) |
+| React 없이도 실행되고 언마운트/재마운트 간 상태를 유지하는 엔진 | Level 2 · Headless-First Symmetric DI (`ownership="shared"`) | [모범 사례 — Level 2](./best-practices.md#level-2--headless-first-symmetric-di-actionregister--createstore--shared-provider) |
+| `BusinessActionIntent`와 `LayoutActionIntent`가 분리된 복합 피처 | Level 3 · Full 6-Layer (`contexts/business/handlers/actions/hooks/views`) | [표준 주문 폼 예제](../examples/canonical-order-form.md) |
+| 조기 캐시 히트 반환, 검증 결과, 중단 사유(`abortReason`) 수신 | `dispatchWithResult()` + `controller.return(...)` / `controller.abort(...)` | [디스패치 패턴](./patterns/action/dispatch-patterns.md) |
+| 실행 중인 비동기 핸들러 취소·리셋 또는 실시간 진행 스텝 기록 | `dispatch(..., { immediate: true })` 큐 선점 | [모범 사례 — 큐 우회](./best-practices.md#_3-직렬-큐-교착을-막기-위해--immediate-true-를-활용하세요) |
+| Store 리렌더 없이 포커스·60fps 스크롤·DOM 직접 제어 | `createRefContext` (`useWaitForRefs`) | [RefContext 설정](./patterns/setup/ref-context-setup.md) · [Ref 기본 사용법](./patterns/ref/basic-usage.md) |
 
-### 필수 규칙
+---
 
-#### ✅ 해야 할 것
-- useWaitForRefs가 포함된 핸들러에서 `useCallback` 사용
-- `store.getValue()`로 실시간 상태 접근
-- try-catch로 에러 처리
-- 마운트/언마운트 시나리오 모두 테스트
+## OOP × React 기본 Hook 활용 패턴
 
-#### ❌ 하지 말 것
-- 직접 DOM 쿼리 사용 (`document.getElementById`)
-- 핸들러에서 컴포넌트 스코프 값에 의존
-- 에러 처리 무시
-- 중요한 경로에서 타임아웃 보호 생략
+> [!NOTE]
+> 아래 5가지 유형은 불필요한 래퍼 API를 늘리지 않고 `react: ^18.0.0 || ^19.0.0` 호환성을 지키기 위해, Context-Action 프리미티브와 React 기본 훅을 조합하는 **사용 패턴**으로 정의되어 있습니다.
+
+| 유형 | React 지원 범위 | Context-Action + 기본 Hook 조합 | 참고 문서 |
+|---|---|---|---|
+| **1. 캡슐화된 OOP 위젯 제어** | React 18 / 19 | `createRefContext` (`useRefController`) + `ActionContext` + `useImperativeHandle` (`[]` deps + `Object.freeze`) | [Imperative Handle Facade](./patterns/ref/imperative-handle-facade.md) |
+| **2. 로컬 스토어/리듀서 캡슐화** | React 18 / 19 | `useLocalStore` 또는 `useReducer` + `useImperativeHandle` | [로컬 상태 캡슐화 핸들](./patterns/ref/local-state-imperative-handle.md) |
+| **3. 고빈도 Store → 비차단 파생 뷰** | React 18 / 19 | `useStorePath` / `useStoreValue` (`'batched'` 또는 `'immediate'`) + `useDeferredValue` + `React.memo` | [지연 뷰 구독 (useDeferredValue)](./patterns/store/deferred-view-subscription.md) |
+| **4. 확정 Store + 낙관적/폼 전환 UI** | React 19+ | `StoreConfig` (`notificationMode: 'immediate'`) + `useStoreValue` + `dispatchWithResult` + `useOptimistic` / `useTransition` / `useActionState` | [낙관적 UI & 전환 (React 19)](./patterns/async/optimistic-and-transition-ui.md) |
+| **5. 외부 명령형 OOP 런타임 브릿지** | React 18 / 19 | `createRefContext` (`useRefController` `setRef`) + isomorphic `useLayoutEffect` / `useEffect` | [외부 OOP 라이프사이클 브릿지](./patterns/ref/external-oop-lifecycle.md) |
+
+---
+
+## 카테고리별 패턴 모음
+
+### 설정 및 컨텍스트 경계 (Setup)
+- [설정 개요](./patterns/setup/index.md) — 프로바이더 선택 및 경계 구성
+- [기본 액션 설정](./patterns/setup/basic-action-setup.md) — `createActionContext`로 타입 안전한 액션 계약 구성
+- [기본 스토어 설정](./patterns/setup/basic-store-setup.md) — `createStoreContext`로 도메인 스토어 번들 구성
+- [RefContext 설정](./patterns/setup/ref-context-setup.md) — 명령형 DOM 및 외부 핸들 컨테이너
+- [다중 컨텍스트 설정](./patterns/setup/multi-context-setup.md) — 비즈니스와 레이아웃 컨텍스트 조합
+- [Provider 조합 설정](./patterns/setup/provider-composition-setup.md) — `composeProviders`를 활용한 깔끔한 루트 구성
+
+### 액션 파이프라인 및 핸들러 등록 (Action)
+- [액션 패턴 개요](./patterns/action/index.md)
+- [기본 액션 사용법](./patterns/action/basic-usage.md) — 페이로드 맵 정의 및 기본 디스패치
+- [디스패치 접근 패턴](./patterns/action/dispatch-access.md) — `useActionDispatch`, `useActionDispatchWithResult`, 4-역할 핸들러 훅
+- [디스패치 패턴](./patterns/action/dispatch-patterns.md) — 우선순위 실행, `dispatchWithResult()`, 동시성 옵션
+- [핸들러 상태 접근](./patterns/action/handler-state-access.md) — 오래된 클로저 없는 지연 조회(`store.getValue()`)
+- [등록 패턴](./patterns/action/register-patterns.md) — 핸들러 등록 및 생명주기 정리
+- [타입 시스템](./patterns/action/type-system.md) — `ActionPayloadMap`, 결과 타입 추론 및 제네릭 활용
+- [고급 패턴](./patterns/action/advanced-patterns.md) — 가드, 우선순위 점프(`controller.jumpToPriority`), 중단 처리
+
+### 스토어 반응성 및 구독 (Store)
+- [기본 스토어 사용법](./patterns/store/basic-usage.md) — Store 생성, 조회 및 불변 업데이트
+- [useStoreValue 패턴](./patterns/store/useStoreValue-patterns.md) — 뷰 컴포넌트에서의 안전한 셀렉터 구독
+- [경로 기반 구독](./patterns/store/path-based-subscription.md) — `useStorePath`를 통한 세밀한 부분 구독
+- [지연 뷰 구독 (useDeferredValue)](./patterns/store/deferred-view-subscription.md) — `useDeferredValue`로 즉시 Store 읽기와 무거운 파생 렌더 분리
+- [useStoreManager API](./patterns/store/useStoreManager-api.md) — 핸들러 설정 계층에서 스토어 레지스트리 접근
+- [스토어 설정](./patterns/store/store-configuration.md) — 비교기, 동등성 검사, `batched` vs `immediate` 알림 모드
+
+### 비동기 실행 및 동시성 (Async)
+- [비동기 패턴 개요](./patterns/async/index.md)
+- [실시간 상태 접근](./patterns/async/real-time-state-access.md) — `await` 경계를 넘는 최신 Store 스냅샷 조회
+- [대기 후 실행](./patterns/async/wait-then-execute.md) — 디바운스, Ref 대기, 취소 가능한 비동기 흐름
+- [낙관적 UI & 전환 (React 19)](./patterns/async/optimistic-and-transition-ui.md) — 확정 Store + `useOptimistic`, `useTransition`, `useActionState` 조합
+
+### 명령형 DOM 및 RefContext (Ref)
+- [RefContext 기본 사용법](./patterns/ref/basic-usage.md) — `useRefHandler`, `waitForRefs`, 비반응형 애니메이션·스크롤 루프
+- [Imperative Handle Facade](./patterns/ref/imperative-handle-facade.md) — 동결된 `useImperativeHandle` Facade를 `createRefContext` + `ActionContext`에 연결
+- [로컬 상태 캡슐화 핸들](./patterns/ref/local-state-imperative-handle.md) — `useLocalStore` / `useReducer`를 안전한 명령형 핸들 뒤로 은닉
+- [외부 OOP 라이프사이클 브릿지](./patterns/ref/external-oop-lifecycle.md) — 비-React OOP 엔진의 멱등 `useLayoutEffect` / `useEffect` 마운트·해제 브릿지
+- [React Refs 아키텍처 가이드](../concept/react-refs-guide.md) — `RefContext`와 `Store` 선택 기준
+
+---
+
+## 런타임 테스트 체크리스트
+
+- **Store의 기본 RAF 배칭(`batched` 모드)을 고려하세요**: Fake timer 테스트에서는 `16ms` 틱으로 RAF 배치를 플러시하고, 실제 타이머 통합 테스트에서는 `waitFor(...)`로 화면 반영을 확인한 뒤 다음 클릭으로 진행하세요. ([안정성 및 테스트 사이클](../context-layered/stability-test-cycle.md))
+- **Guard 중단·검증 실패 추적은 `{ when: 'always' }`** 옵션을 지정한 Observer로 단언하세요.
+- **`business/` 순수 전이 함수부터 헤드리스로 검증**한 뒤 React 통합 테스트를 올리면 원인 추적이 훨씬 빨라집니다.
 
 ===================[ DOC: ko/guide/getting-started.md ]===================
 # 시작하기
@@ -15477,7 +15917,7 @@ export function HeadlessCounterApp() {
 ```tsx
 import type React from 'react';
 import { useCallback, useRef } from 'react';
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // 1. Ref 구조 정의
 type MouseRefs = {
@@ -18361,6 +18801,326 @@ function CompleteAsyncComponent() {
 
 자세한 구현 예제와 고급 사용 사례는 개별 패턴 문서를 참조하세요.
 
+===================[ DOC: ko/guide/patterns/async/optimistic-and-transition-ui.md ]===================
+# 확정 Store 기반 낙관적 UI & 전환 (React 19)
+
+Context-Action의 **확정(committed) Store 상태**와 **`dispatchWithResult`** 위에 React 19의 `useOptimistic`, 비동기 `useTransition`, `useActionState`를 겹쳐 쓰는 패턴입니다.
+
+> [!NOTE]
+> **React 19+ 전용 사용 패턴:** `useOptimistic`, `useActionState`, 비동기 `startTransition`은 **React 19 이상**에서 동작합니다. `@context-action/react`는 `react: ^18.0.0 || ^19.0.0` peer 호환성을 유지하므로, 이러한 훅을 코어 래퍼 API로 감싸지 않고 사용 패턴으로 제공합니다. React 18 환경에서는 `useState`로 pending/error를 로컬 관리하고 `dispatchWithResult`와 조합하세요.
+
+- **경계 역할**: `Store`는 **확정된 도메인 진실(committed truth)** 만 보유하고, 임시 낙관적 상태와 폼 제출 피드백은 React의 일시적 전환/폼 레이어에서 관리해 액션이 Guard로 중단되거나 실패하면 자동 롤백되게 합니다.
+
+## 사전 요구사항
+
+- [비동기 패턴 개요](./index.md)
+- [실시간 상태 접근](./real-time-state-access.md)
+- [React 19.2 Activity](../../react-19-activity.md)
+
+---
+
+## Pattern A: 확정 Store + `useOptimistic` + 비동기 `useTransition`
+
+`Store`에 롤백용 임시 상태를 섞지 않고 UI 경계에서만 낙관적 오버레이를 유지합니다:
+
+1. `useStoreValue(store)`로 확정된 값을 구독합니다.
+2. 그 위에 `useOptimistic(committed, reducer)`를 얹습니다.
+3. `startTransition(async () => { ... })` 안에서 `addOptimistic(...)`를 호출하고 `await dispatchWithResult(...)`를 실행합니다.
+4. 핸들러가 성공했을 때만 `store.setValue(...)`로 커밋합니다. `useActionGuard`가 중단하거나 오류가 나면 React가 전환 종료 시점에 자동으로 낙관적 상태를 버리고 `committed`로 복원합니다.
+
+> [!TIP]
+> **`notificationMode: 'immediate'`로 1프레임 RAF 플리커 제거:** Context-Action의 기본 `Store`는 구독자 알림을 다음 `requestAnimationFrame`(약 16ms)에 배칭 전달합니다. 낙관적/전환 UI와 결합하는 Store는 `{ initialValue, notificationMode: 'immediate' }`로 설정해 `articleStore.setValue(committed)`가 `startTransition` 종료 전에 React로 즉시 전달되도록 하세요. 기본 `'batched'` 모드를 유지해야 하는 Store라면 아래 Pattern B처럼 `startTransition` / `useActionState`가 끝나기 전에 `await waitForNextFrame()`으로 1프레임을 맞춰 주면 됩니다.
+
+<!-- @context-action-compile -->
+```tsx
+import React, { useCallback, useOptimistic, useTransition } from 'react';
+import type { ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+
+export interface ArticleState {
+  readonly liked: boolean;
+  readonly count: number;
+}
+
+interface LikeActions extends ActionPayloadMap {
+  toggleLike: { nextLiked: boolean; simulateReject?: boolean };
+}
+
+interface LikeResultMap {
+  toggleLike: ArticleState;
+}
+
+const {
+  Provider: LikeActionProvider,
+  useActionGuard: useLikeGuard,
+  useActionResultHandler: useLikeResultHandler,
+  useActionResultDispatch: useLikeResultDispatch,
+} = createActionContext<LikeActions, LikeResultMap>('OptimisticLikeActions');
+
+const {
+  Provider: LikeStoreProvider,
+  useStore: useLikeStore,
+} = createStoreContext('OptimisticLikeStore', {
+  article: {
+    initialValue: { liked: false, count: 10 } as ArticleState,
+    notificationMode: 'immediate' as const,
+  },
+});
+
+function LikeHandlers({ children }: { children: React.ReactNode }) {
+  const articleStore = useLikeStore('article');
+
+  useLikeGuard(
+    'toggleLike',
+    useCallback(({ simulateReject }, controller) => {
+      if (simulateReject) {
+        controller.abort('Permission denied');
+      }
+    }, []),
+  );
+
+  useLikeResultHandler(
+    'toggleLike',
+    useCallback(
+      async ({ nextLiked }) => {
+        await Promise.resolve();
+        const current = articleStore.getValue();
+        const committed: ArticleState = {
+          liked: nextLiked,
+          count: current.liked === nextLiked
+            ? current.count
+            : current.count + (nextLiked ? 1 : -1),
+        };
+        articleStore.setValue(committed);
+        return committed;
+      },
+      [articleStore],
+    ),
+  );
+
+  return <>{children}</>;
+}
+
+function LikeButtonPanel() {
+  const articleStore = useLikeStore('article');
+  const committed = useStoreValue(articleStore);
+  const dispatchWithResult = useLikeResultDispatch();
+  const [isPending, startTransition] = useTransition();
+
+  const [optimisticArticle, applyOptimisticLike] = useOptimistic<
+    ArticleState,
+    boolean
+  >(committed, (state, nextLiked) => ({
+    liked: nextLiked,
+    count: state.liked === nextLiked ? state.count : state.count + (nextLiked ? 1 : -1),
+  }));
+
+  const handleToggle = (simulateReject = false) => {
+    const nextLiked = !committed.liked;
+    startTransition(async () => {
+      applyOptimisticLike(nextLiked);
+      await dispatchWithResult('toggleLike', {
+        nextLiked,
+        simulateReject,
+      });
+    });
+  };
+
+  return (
+    <div>
+      <span>Likes: {optimisticArticle.count}</span>
+      <button type="button" disabled={isPending} onClick={() => handleToggle(false)}>
+        {optimisticArticle.liked ? 'Unlike' : 'Like'}
+      </button>
+    </div>
+  );
+}
+
+export function OptimisticLikeFeature() {
+  return (
+    <LikeActionProvider>
+      <LikeStoreProvider>
+        <LikeHandlers>
+          <LikeButtonPanel />
+        </LikeHandlers>
+      </LikeStoreProvider>
+    </LikeActionProvider>
+  );
+}
+```
+
+---
+
+## Pattern B: `<form action={...}>` + `useActionState` + `dispatchWithResult`
+
+React 19의 `useActionState`와 `dispatchWithResult`를 결합하면, 검증(`useActionGuard`)과 저장(`useActionResultHandler`)은 Context-Action 파이프라인에 유지한 채 표준 `<form>` 제출과 `isPending` 상태를 자연스럽게 연동할 수 있습니다.
+
+> [!NOTE]
+> **React 19 자동 폼 리셋 대응:** `<form action={...}>` 완료 후 React 19는 비제어 입력을 `defaultValue`로 자동 초기화합니다. Guard 검증 실패 시 입력값이 날아가지 않게 `draftName`을 반환하고, 성공 시에도 RAF 배칭된 Store 커밋이 반영되도록 `waitForNextFrame()` 후 `${submitState.revision}:${committedName}` 키로 `<input>`을 동기화합니다.
+
+<!-- @context-action-compile -->
+```tsx
+import React, { useActionState, useCallback } from 'react';
+import type { ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+
+function waitForNextFrame(): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => resolve());
+    } else {
+      setTimeout(resolve, 0);
+    }
+  });
+}
+
+interface ProfileFormActions extends ActionPayloadMap {
+  saveDisplayName: { displayName: string };
+}
+
+interface ProfileFormResultMap {
+  saveDisplayName: { displayName: string };
+}
+
+interface FormSubmitState {
+  readonly status: 'idle' | 'saved' | 'error';
+  readonly message: string;
+  readonly draftName: string;
+  readonly revision: number;
+}
+
+const {
+  Provider: ProfileActionProvider,
+  useActionGuard: useProfileGuard,
+  useActionResultHandler: useProfileResult,
+  useActionResultDispatch: useProfileResultDispatch,
+} = createActionContext<ProfileFormActions, ProfileFormResultMap>('ProfileFormActions');
+
+const {
+  Provider: ProfileStoreProvider,
+  useStore: useProfileStore,
+} = createStoreContext('ProfileFormStore', {
+  displayName: 'Anonymous',
+});
+
+function ProfileFormHandlers({ children }: { children: React.ReactNode }) {
+  const displayNameStore = useProfileStore('displayName');
+
+  useProfileGuard(
+    'saveDisplayName',
+    useCallback(({ displayName }, controller) => {
+      if (displayName.trim().length < 2) {
+        controller.abort('Display name must be at least 2 characters.');
+      }
+    }, []),
+  );
+
+  useProfileResult(
+    'saveDisplayName',
+    useCallback(
+      async ({ displayName }) => {
+        const trimmed = displayName.trim();
+        displayNameStore.setValue(trimmed);
+        return { displayName: trimmed };
+      },
+      [displayNameStore],
+    ),
+  );
+
+  return <>{children}</>;
+}
+
+function ProfileNameForm() {
+  const committedName = useStoreValue(useProfileStore('displayName'));
+  const dispatchWithResult = useProfileResultDispatch();
+
+  const [submitState, formAction, isPending] = useActionState<
+    FormSubmitState,
+    FormData
+  >(
+    async (prevState, formData) => {
+      const rawName = String(formData.get('displayName') ?? '');
+      const execution = await dispatchWithResult('saveDisplayName', {
+        displayName: rawName,
+      });
+
+      if (execution.aborted || !execution.success) {
+        return {
+          status: 'error',
+          message: execution.abortReason ?? 'Save failed.',
+          draftName: rawName,
+          revision: prevState.revision + 1,
+        };
+      }
+
+      const saved = Array.isArray(execution.result)
+        ? execution.result[0]
+        : execution.result;
+
+      await waitForNextFrame();
+
+      const nextName = saved?.displayName ?? rawName.trim();
+      return {
+        status: 'saved',
+        message: `Saved ${nextName}`,
+        draftName: nextName,
+        revision: prevState.revision + 1,
+      };
+    },
+    { status: 'idle', message: '', draftName: '', revision: 0 },
+  );
+
+  const displayedDefault =
+    submitState.status === 'error' ? submitState.draftName : committedName;
+
+  return (
+    <form action={formAction}>
+      <p>Committed: {committedName}</p>
+      <input
+        key={`${submitState.revision}:${committedName}`}
+        name="displayName"
+        defaultValue={displayedDefault}
+      />
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Saving...' : 'Save'}
+      </button>
+      {submitState.status !== 'idle' && (
+        <p role="status">{submitState.message}</p>
+      )}
+    </form>
+  );
+}
+
+export function ProfileFormWithActionState() {
+  return (
+    <ProfileActionProvider>
+      <ProfileStoreProvider>
+        <ProfileFormHandlers>
+          <ProfileNameForm />
+        </ProfileFormHandlers>
+      </ProfileStoreProvider>
+    </ProfileActionProvider>
+  );
+}
+```
+
+---
+
+## 핵심 불변식
+
+- **`Store`는 확정된 진실만 보관**: `useOptimistic`이 일시 UI 오버레이와 자동 롤백을 처리해 주므로, 영속 도메인 `Store`에 임시 롤백 플래그를 넣지 않습니다.
+- **`execution.aborted`와 `execution.success` 확인**: `useActionState` 내부에서는 반드시 `dispatch`가 아닌 `dispatchWithResult`를 사용해 `useActionGuard`의 중단 사유(`abortReason`)를 결정론적인 폼 피드백으로 변환합니다.
+- **`Store` 커밋과 React 전환 타이밍 맞추기**: `StoreConfig` 또는 `createStore` 옵션에서 `notificationMode: 'immediate'`를 설정해 `startTransition` 종료 전 확정 스냅샷이 즉시 반영되게 하거나, 기본 `'batched'` Store에서는 커밋 후 `waitForNextFrame()`으로 1프레임을 맞춰 주세요.
+- **`<form action>` 중단 시 사용자 입력 보존**: 검증 실패 시 `draftName`을 반환하고 `defaultValue` 키를 갱신해 React 19의 자동 폼 리셋으로 사용자 초안이 지워지지 않게 합니다.
+
 ===================[ DOC: ko/guide/patterns/async/real-time-state-access.md ]===================
 # 실시간 상태 접근 패턴
 
@@ -19089,6 +19849,687 @@ function AdvancedUIManager() {
 3. **관심사 분리**: 비즈니스 로직을 위해 커스텀 훅 사용
 4. **타입 안전성**: 적절한 HTML 요소 타입으로 명확한 ref 타입 인터페이스 정의
 5. **성능 우선**: 편의성보다 60fps 성능 우선
+
+===================[ DOC: ko/guide/patterns/ref/external-oop-lifecycle.md ]===================
+# 외부 OOP 라이프사이클 브릿지 (`createRefContext` + `useLayoutEffect` / `useEffect`)
+
+Canvas/WebGL/Three.js 렌더러, Monaco/CodeMirror 에디터, Chart.js, 지도 SDK, 미디어 컨트롤러처럼 React 외부에 존재하는 명령형 OOP 엔진을 `createRefContext`, isomorphic `useLayoutEffect`, `ActionContext`와 결합해 안전하게 마운트·제어·해제하는 패턴입니다.
+
+- **React 호환성**: React 18 / 19 (React 19.2 `useEffectEvent` 참고 안내 포함)
+- **경계 역할**: 원시 DOM 노드나 직렬화 불가능한 OOP 인스턴스를 `Store`에 넣지 않고 `RefContext` 수명 주기에 연결합니다.
+- **래퍼 API 대신 패턴으로 유지하는 이유**: 외부 엔진마다 초기화 타이밍(페인트 전 동기 레이아웃 결합 vs 수동 구독)과 정리(`dispose`/`destroy`) 규칙이 다릅니다. 수명 주기 연결 코드를 명시적 패턴으로 유지해야 `<StrictMode>` 이중 실행과 `<Activity>` hide/reveal 동작을 명확히 제어할 수 있습니다.
+
+## 사전 요구사항
+
+- [Ref 기본 사용법](./basic-usage.md)
+- [Imperative Handle Facade](./imperative-handle-facade.md)
+- [React 19.2 Activity](../../react-19-activity.md)
+
+---
+
+## Effect 경계 규칙: 라이브러리 Provider vs 애플리케이션 OOP 브릿지
+
+| 계층 | 사용하는 Effect 훅 | 이유 |
+|---|---|---|
+| **Context-Action Provider** (`ActionContext`, `StoreContext`, `RefContext`) | `useInsertionEffect` (내부 구현) | React 19.2 `<Activity>`가 passive/layout effect를 끊는 동안에도 Provider 소유 레지스트리·매니저를 보존하고 실제 unmount 시에만 정리합니다. |
+| **애플리케이션 DOM & 외부 OOP 엔진** | `useLayoutEffect` (isomorphic) / `useEffect` | 애플리케이션 코드는 DOM ref나 외부 OOP 인스턴스에 `useInsertionEffect`를 쓰면 **절대 안 됩니다**(DOM 참조·상태 업데이트 금지). 페인트 전 동기 연결/측정에는 `useLayoutEffect`, 수동 구독/리스너에는 `useEffect`를 사용하세요. |
+
+> [!IMPORTANT]
+> React 19.2 `<Activity mode="hidden">`에서는 숨김 시 `useLayoutEffect` / `useEffect` cleanup이 실행되고 다시 보일 때 effect가 재실행됩니다(`<StrictMode>`의 이중 호출과 동일). 엔진의 `생성 + setRef`와 `setRef(null) + dispose()` 쌍이 **엄격히 멱등(idempotent)** 하도록 작성해야 인스턴스 누수가 발생하지 않습니다.
+
+---
+
+## 표준 패턴: 멱등 Attach/Dispose + 최신 콜백 Ref 우회
+
+<!-- @context-action-compile -->
+```tsx
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+} from 'react';
+import type { ActionPayloadMap } from '@context-action/core';
+import { createActionContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
+
+const useIsomorphicLayoutEffect =
+  typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
+export interface ViewportEngineHandle {
+  readonly focusRegion: (regionId: string) => void;
+  readonly resize: () => void;
+}
+
+/** 외부 서드파티 OOP 런타임 예시 (Canvas / Editor / Map SDK) */
+class ViewportEngine {
+  private disposed = false;
+
+  constructor(
+    private readonly hostElement: HTMLElement,
+    private readonly onFocusRegion?: (regionId: string) => void,
+  ) {
+    this.hostElement.dataset.engineMounted = 'true';
+  }
+
+  focusRegion(regionId: string): void {
+    if (this.disposed) return;
+    this.hostElement.dataset.activeRegion = regionId;
+    this.onFocusRegion?.(regionId);
+  }
+
+  resize(): void {
+    if (this.disposed) return;
+    this.hostElement.dataset.resizedAt = String(Date.now());
+  }
+
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    delete this.hostElement.dataset.engineMounted;
+  }
+}
+
+interface ViewportActions extends ActionPayloadMap {
+  focusRegion: { regionId: string };
+}
+
+const {
+  Provider: ViewportActionProvider,
+  useActionDispatch: useViewportDispatch,
+  useActionCommandHandler: useViewportCommand,
+} = createActionContext<ViewportActions>('ViewportEngineActions');
+
+const {
+  Provider: ViewportRefProvider,
+  useRefController: useViewportController,
+} = createRefContext<{ engine: ViewportEngineHandle }>('ViewportEngineRefs');
+
+function ViewportCanvas({
+  onRegionFocused,
+}: {
+  onRegionFocused?: (regionId: string) => void;
+}) {
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const { setRef } = useViewportController('engine');
+
+  // React 18/19 공통 최신 콜백 우회 패턴:
+  // 부모가 인라인 콜백을 넘기더라도 무거운 OOP 엔진이 재생성되지 않게 보호합니다.
+  // (React 19.2+ 전용 환경에서는 Effect 내부 콜백에 한해 useEffectEvent로 대체할 수 있습니다.)
+  const onRegionFocusedRef = useRef(onRegionFocused);
+  useIsomorphicLayoutEffect(() => {
+    onRegionFocusedRef.current = onRegionFocused;
+  }, [onRegionFocused]);
+
+  useIsomorphicLayoutEffect(() => {
+    const hostElement = hostRef.current;
+    if (!hostElement) return;
+
+    const instance = new ViewportEngine(hostElement, (regionId) => {
+      onRegionFocusedRef.current?.(regionId);
+    });
+
+    // 원시 instance.dispose()를 숨기고 동결된 능력 Facade만 노출
+    const facade: ViewportEngineHandle = Object.freeze({
+      focusRegion: (regionId: string) => instance.focusRegion(regionId),
+      resize: () => instance.resize(),
+    });
+
+    setRef(facade);
+
+    return () => {
+      setRef(null);
+      instance.dispose();
+    };
+  }, [setRef]);
+
+  return <div ref={hostRef} data-testid="viewport-host" />;
+}
+
+function ViewportCoordinator({ children }: { children: React.ReactNode }) {
+  const { withTarget } = useViewportController('engine');
+
+  useViewportCommand(
+    'focusRegion',
+    useCallback(
+      async ({ regionId }) => {
+        await withTarget((engine) => {
+          engine.focusRegion(regionId);
+        });
+      },
+      [withTarget],
+    ),
+  );
+
+  return <>{children}</>;
+}
+
+function ViewportControls() {
+  const dispatch = useViewportDispatch();
+
+  return (
+    <button
+      type="button"
+      onClick={() => void dispatch('focusRegion', { regionId: 'hero' })}
+    >
+      Focus Hero Region
+    </button>
+  );
+}
+
+export function ExternalOopViewport({
+  onRegionFocused,
+}: {
+  onRegionFocused?: (regionId: string) => void;
+}) {
+  return (
+    <ViewportActionProvider>
+      <ViewportRefProvider>
+        <ViewportCoordinator>
+          <ViewportCanvas onRegionFocused={onRegionFocused} />
+          <ViewportControls />
+        </ViewportCoordinator>
+      </ViewportRefProvider>
+    </ViewportActionProvider>
+  );
+}
+```
+
+---
+
+## 핵심 불변식
+
+1. **엔진 호스트·코디네이터에는 `useRefController` 사용**: `useRefController`는 `isMounted` 변경을 구독하지 않고 안정된 `setRef`·`withTarget`을 제공하므로, `ViewportCanvas`에서 `setRef(facade)`를 연결할 때 마운트 리렌더링이 **전혀** 발생하지 않습니다.
+2. **마운트 상태 UI는 별도 구독**: 로딩 스피너·연결 배지 등 반응형 상태 표시가 필요한 UI 컴포넌트에서만 `useRefMountState('engine')`(또는 `useRefHandler('engine')`)을 호출하세요.
+3. **`instance.dispose()` 전에 `setRef(null)` 먼저 호출**: `RefContext` 핸들을 먼저 비워 대기 중이던 `withTarget` 작업이 이미 해제된 인스턴스를 호출하지 않게 보호합니다.
+4. **`RefContext` 소비자에게 `dispose()` 숨기기**: 동결된 `ViewportEngineHandle`만 등록하면 `ActionContext` 핸들러는 도메인 명령(`focusRegion`, `resize`)만 실행하고, 실제 해제는 소유 Effect가 전담합니다.
+5. **React 19.2 `useEffectEvent` 참고**: React 19.2 이상만 지원한다면 Effect 내부 콜백에 `onRegionFocusedRef` 대신 `useEffectEvent`를 쓸 수 있습니다. 반면 React 18 호환이 필요하거나 Effect 밖(`ActionRegister` 핸들러 등)에서 호출되는 콜백에는 기존 ref 패턴을 유지하세요.
+
+===================[ DOC: ko/guide/patterns/ref/imperative-handle-facade.md ]===================
+# Imperative Handle Facade (`useImperativeHandle` + `createRefContext`)
+
+React 위젯에서 `useImperativeHandle`로 **동결(frozen)되고 캡슐화된 OOP 명령 Facade**를 노출하고, 이를 `createRefContext`에 연결한 뒤 `ActionContext` 핸들러의 `withTarget`으로 제어하는 패턴입니다.
+
+- **React 호환성**: React 18 / 19 (`react: ^18.0.0 || ^19.0.0` peer 호환을 위해 `forwardRef` 유지)
+- **경계 역할**: **Tier 3 명령형 프레젠테이션 경계** — 도메인 상태는 `Store` + `ActionContext`에 두고, 컴포넌트 경계를 넘는 명령형 제어(`focus`, `validate`, `reset`, `getValue`)만 `RefContext`로 전달합니다.
+- **래퍼 API 대신 패턴으로 유지하는 이유**: `forwardRef` + `useImperativeHandle` + `Object.freeze`는 표준 React 조합입니다. 별도 래퍼 API로 숨기지 않고 패턴으로 두면 React ref 수명 주기를 투명하게 유지하면서도 `RefContext`의 안정성 불변식을 명확히 지킬 수 있습니다.
+
+## 사전 요구사항
+
+- [RefContext 설정](../setup/ref-context-setup.md)
+- [Ref 기본 사용법](./basic-usage.md)
+- [코드 패턴](../../code-patterns.md)
+
+---
+
+## 핵심 함정: `useImperativeHandle` 의존성 배열에 상태 넣기
+
+`useImperativeHandle`을 `createRefContext`와 함께 사용할 때, 반응형 React 상태를 `useImperativeHandle`의 의존성 배열에 넣으면 **절대 안 됩니다**:
+
+```tsx
+// ❌ 안티패턴: deps에 value가 들어가면 키 입력마다 ref가 해제 후 재등록됨
+const BadInput = forwardRef<FieldHandle, Props>((props, ref) => {
+  const [value, setValue] = useState('');
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getValue: () => value,
+      validate: () => value.trim().length > 0,
+      focus: () => inputRef.current?.focus(),
+      reset: () => setValue(''),
+    }),
+    [value], // 💥 변경마다 fieldRef.setRef(null) -> fieldRef.setRef(nextHandle) 호출!
+  );
+  // ...
+});
+```
+
+### `createRefContext`에서 왜 문제가 되는가
+
+`deps`가 바뀔 때마다 React는 콜백 ref(`fieldRef.setRef`)를 `null`로 한 번 호출한 뒤 새 핸들 객체로 다시 호출합니다. 이 동작은 `createRefContext` 내부에서 다음 문제를 일으킵니다.
+
+1. 입력값이 바뀔 때마다 `isMounted`가 `true → false → true`로 깜빡입니다.
+2. 등록된 `onMount` 콜백이 중복 실행됩니다.
+3. `useRefMountState` 구독자에게 불필요한 `useSyncExternalStore` 알림이 발생합니다.
+
+---
+
+## 표준 패턴: 동결된 안정 Facade (`deps: []`) + 지연 조회 Ref
+
+노출되는 핸들 객체의 아이덴티티는 **마운트 수명 동안 고정**(`[]` deps)하고 `Object.freeze(...)`로 동결합니다. 내부 최신 상태는 동기화된 `ref`(또는 `store.getValue()`)로 지연 조회하고, 원시 DOM 노드는 컴포넌트 내부로 완전히 은닉합니다.
+
+<!-- @context-action-compile -->
+```tsx
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
+import type { ActionPayloadMap } from '@context-action/core';
+import { createActionContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
+
+const useIsomorphicLayoutEffect =
+  typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
+export interface FieldHandle {
+  readonly focus: () => void;
+  readonly validate: () => boolean;
+  readonly reset: () => void;
+  readonly getValue: () => string;
+}
+
+interface EncapsulatedFieldProps {
+  label: string;
+  required?: boolean;
+}
+
+export const EncapsulatedField = forwardRef<FieldHandle, EncapsulatedFieldProps>(
+  function EncapsulatedField({ label, required = false }, ref) {
+    const [value, setValue] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const inputRef = useRef<HTMLInputElement | null>(null);
+
+    // React 19 동시성 / React Compiler 순수성 규칙을 지키기 위해
+    // 렌더 본문이 아닌 layout effect에서 커밋된 최신 값을 동기화합니다.
+    const latestRef = useRef({ value, label, required });
+    useIsomorphicLayoutEffect(() => {
+      latestRef.current = { value, label, required };
+    }, [value, label, required]);
+
+    useImperativeHandle(
+      ref,
+      () =>
+        Object.freeze({
+          focus: () => {
+            inputRef.current?.focus();
+          },
+          validate: () => {
+            const current = latestRef.current;
+            const valid = !current.required || current.value.trim().length > 0;
+            setError(valid ? null : `${current.label} is required`);
+            return valid;
+          },
+          reset: () => {
+            latestRef.current = { ...latestRef.current, value: '' };
+            setValue('');
+            setError(null);
+          },
+          getValue: () => latestRef.current.value,
+        }),
+      [],
+    );
+
+    return (
+      <label>
+        <span>{label}</span>
+        <input
+          ref={inputRef}
+          value={value}
+          onChange={(event) => {
+            const next = event.target.value;
+            latestRef.current = { ...latestRef.current, value: next };
+            setValue(next);
+            if (error) setError(null);
+          }}
+        />
+        {error && <span role="alert">{error}</span>}
+      </label>
+    );
+  },
+);
+
+interface FormActions extends ActionPayloadMap {
+  submitForm: void;
+  resetForm: void;
+}
+
+const {
+  Provider: FormActionProvider,
+  useActionDispatch: useFormDispatch,
+  useActionCommandHandler: useFormCommand,
+} = createActionContext<FormActions>('FormFacadeActions');
+
+const {
+  Provider: FormRefProvider,
+  useRefController: useFormRefController,
+} = createRefContext<{ emailField: FieldHandle }>('FormFacadeRefs');
+
+function FormCoordinator({ children }: { children: React.ReactNode }) {
+  // `useRefController`는 마운트 상태를 구독하지 않으며 마운트 변경에도 안정적인 핸들을 반환합니다.
+  const { withTarget } = useFormRefController('emailField');
+
+  useFormCommand(
+    'submitForm',
+    useCallback(async () => {
+      await withTarget((handle) => {
+        if (!handle.validate()) {
+          handle.focus();
+        }
+      });
+    }, [withTarget]),
+  );
+
+  useFormCommand(
+    'resetForm',
+    useCallback(async () => {
+      await withTarget((handle) => {
+        handle.reset();
+      });
+    }, [withTarget]),
+  );
+
+  return <>{children}</>;
+}
+
+function ProfileFormContent() {
+  const emailField = useFormRefController('emailField');
+  const dispatch = useFormDispatch();
+
+  return (
+    <>
+      <EncapsulatedField ref={emailField.setRef} label="Work Email" required />
+      <button type="button" onClick={() => void dispatch('submitForm')}>
+        Validate &amp; Submit
+      </button>
+      <button type="button" onClick={() => void dispatch('resetForm')}>
+        Reset
+      </button>
+    </>
+  );
+}
+
+export function ProfileFormSection() {
+  return (
+    <FormActionProvider>
+      <FormRefProvider>
+        <FormCoordinator>
+          <ProfileFormContent />
+        </FormCoordinator>
+      </FormRefProvider>
+    </FormActionProvider>
+  );
+}
+```
+
+---
+
+## 핵심 불변식
+
+1. **`useImperativeHandle` 의존성은 빈 배열(`[]`) 유지**: 마운트 전체 수명 동안 `setRef`가 단 하나의 안정된 핸들 참조만 받도록 보장합니다.
+2. **Facade 동결 (`Object.freeze`)**: `RefContext`를 통해 전달받은 소비자가 노출 메서드를 변조하거나 임의 프로퍼티를 덮어쓰지 못하게 보호합니다.
+3. **커밋 시점·이벤트 내부에서의 ref 동기화**: 동시성 렌더링·React Compiler 순수성을 지키기 위해 `latestRef` 동기화는 `useIsomorphicLayoutEffect`에서 수행하고, `handle.reset(); handle.getValue();` 같은 동일 턴 연속 호출을 지원할 때는 `onChange`/`reset` 핸들러 내부에서도 `latestRef`를 즉시 갱신합니다.
+4. **명령 전용 등록자·코디네이터에는 `useRefController` 우선 사용**: `useRefController`는 마운트 상태 구독 **없이** 참조가 안정적인 `{ setRef, withTarget, waitForMount, onMount, executeIfMounted, checkMountState, target }` 핸들을 반환합니다. `useRefMountState`(또는 `useRefHandler`)는 `isMounted` / `isWaitingForMount` UI 배지를 실제로 렌더링하는 컴포넌트에만 사용하세요.
+5. **원시 DOM 노드 비노출 및 `forwardRef` 유지**: 부모나 `ActionContext` 핸들러는 `HTMLInputElement`가 아닌 `FieldHandle` 계약만 다루고, React 18·19 호환을 위해 `forwardRef`를 유지합니다.
+
+## 관련 패턴
+
+- [로컬 상태 캡슐화 핸들](./local-state-imperative-handle.md) — `useLocalStore` / `useReducer` 기반 위젯 내부 상태 은닉
+- [외부 OOP 라이프사이클 브릿지](./external-oop-lifecycle.md) — `useLayoutEffect` + `createRefContext`로 비-React OOP 엔진 수명 관리
+- [통합 트라이어드 자율 동기화 가이드](../../../context-layered/triad-evidence-sync-guide.md) — 명령형 핸들이 Tier 3 휘발성 프레젠테이션 경계로 분류되는 이유
+
+===================[ DOC: ko/guide/patterns/ref/local-state-imperative-handle.md ]===================
+# 로컬 상태 캡슐화 핸들 (`useLocalStore` / `useReducer` + `useImperativeHandle`)
+
+재사용 가능한 위젯 내부에 반응형 `Store` (`useLocalStore`) 또는 결정론적 상태 머신 (`useReducer`)을 소유하면서도, 외부(부모/컨트롤러)에는 `useImperativeHandle`로 **도메인에 한정된 안전한 명령만 노출**하는 캡슐화 패턴입니다.
+
+- **React 호환성**: React 18 / 19
+- **래퍼 API 대신 패턴으로 유지하는 이유**: 내부 상태 소유 방식과 외부 명령 경계를 분리하는 설계 결정이며, `@context-action/react/advanced`의 `useLocalStore`와 React의 `useReducer` 자체가 이미 `useImperativeHandle` 안정성에 필요한 불변 참조(`store` / `dispatch`)를 제공합니다.
+
+## 사전 요구사항
+
+- [Imperative Handle Facade](./imperative-handle-facade.md)
+- [Store별 선택 및 사용법 가이드](../../../context-layered/store-selection-and-usage-guide.md)
+
+---
+
+## Variant A vs Variant B 선택 기준
+
+| 비교 축 | Variant A: `useLocalStore` + `useImperativeHandle` | Variant B: `useReducer` + `useImperativeHandle` |
+|---|---|---|
+| **내부 상태 소유자** | 컴포넌트 스코프 `Store<T>` (`@context-action/react/advanced`) | React `useReducer` 상태 머신 |
+| **하위 트리 세분화 구독** | ✅ 하위 뷰에서 `useStoreSelector` / `useStorePath` 활용 가능 | props 전달 또는 로컬 Context 필요 |
+| **같은 턴 쓰기 직후 동기 읽기** | ✅ `store.getValue()`로 즉시 반영 조회 | ❌ 커밋 완료된 스냅샷만 조회 (`stateRef`는 커밋 시 동기화) |
+| **반드시 은닉할 항목** | `store.dispose()`, 임의 `store.setValue(...)` | 원시 `dispatch(action)` 유니온 |
+| **`useImperativeHandle` 의존성** | `[store]` (컴포넌트 마운트 수명 동안 고정) | `[]` (`dispatch`는 React가 영구 안정성 보장) |
+| **적합한 위젯** | 스테퍼, 필터 패널, `cmd(); getSnapshot()` 동기 API | fire-and-forget 명령형 타이머/재생 상태 머신 |
+
+---
+
+## Variant A: `useLocalStore` + `useImperativeHandle`
+
+`useLocalStore`는 마운트당 1회 생성되고 언마운트 시 자동 정리되는 `{ value, store }`를 반환합니다. 이를 `useImperativeHandle`로 감싸면 `store.dispose()`와 원시 `store.setValue()`는 외부에서 호출할 수 없게 숨기고, 범위 제한(clamp)이 보장된 도메인 명령과 `getSnapshot()`만 노출할 수 있습니다.
+
+<!-- @context-action-compile -->
+```tsx
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+} from 'react';
+import { useLocalStore } from '@context-action/react/advanced';
+
+const useIsomorphicLayoutEffect =
+  typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
+export interface StepperState {
+  readonly count: number;
+  readonly min: number;
+  readonly max: number;
+  readonly step: number;
+}
+
+export interface StepperHandle {
+  readonly increment: () => void;
+  readonly decrement: () => void;
+  readonly reset: () => void;
+  readonly getSnapshot: () => StepperState;
+}
+
+interface EncapsulatedStepperProps {
+  initialCount?: number;
+  min?: number;
+  max?: number;
+  step?: number;
+}
+
+function clampCount(next: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, next));
+}
+
+export const EncapsulatedStepper = forwardRef<StepperHandle, EncapsulatedStepperProps>(
+  function EncapsulatedStepper(
+    { initialCount = 0, min = 0, max = 10, step = 1 },
+    ref,
+  ) {
+    const initialCountRef = useRef(initialCount);
+    useIsomorphicLayoutEffect(() => {
+      initialCountRef.current = initialCount;
+    }, [initialCount]);
+
+    const initialState: StepperState = {
+      count: clampCount(initialCount, min, max),
+      min,
+      max,
+      step,
+    };
+    const { value, store } = useLocalStore<StepperState>(
+      initialState,
+      'encapsulated-stepper',
+    );
+
+    useImperativeHandle(
+      ref,
+      () =>
+        Object.freeze({
+          increment: () => {
+            store.update((prev) => ({
+              ...prev,
+              count: clampCount(prev.count + prev.step, prev.min, prev.max),
+            }));
+          },
+          decrement: () => {
+            store.update((prev) => ({
+              ...prev,
+              count: clampCount(prev.count - prev.step, prev.min, prev.max),
+            }));
+          },
+          reset: () => {
+            store.update((prev) => ({
+              ...prev,
+              count: clampCount(initialCountRef.current, prev.min, prev.max),
+            }));
+          },
+          getSnapshot: () => store.getValue(),
+        }),
+      [store],
+    );
+
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={() =>
+            store.update((prev) => ({
+              ...prev,
+              count: clampCount(prev.count - prev.step, prev.min, prev.max),
+            }))
+          }
+        >
+          -
+        </button>
+        <output>{value.count}</output>
+        <button
+          type="button"
+          onClick={() =>
+            store.update((prev) => ({
+              ...prev,
+              count: clampCount(prev.count + prev.step, prev.min, prev.max),
+            }))
+          }
+        >
+          +
+        </button>
+      </div>
+    );
+  },
+);
+```
+
+> [!TIP]
+> `store.getValue()`는 `value`를 `useImperativeHandle` 의존성 배열에 넣지 않고도 단일 진실 공급원에서 최신 상태를 즉시 조회합니다. 단, `useLocalStore`는 최초 마운트 시점의 `initialState`만 캡처하므로 `min`·`max`·`step` prop이 런타임에 동적으로 바뀔 수 있는 위젯이라면 effect에서 store나 ref를 별도로 동기화하세요.
+
+---
+
+## Variant B: `useReducer` + `useImperativeHandle`
+
+`Store` 구독이나 같은 턴의 쓰기 직후 동기 읽기가 필요 없고 **fire-and-forget 명령 + 마지막 커밋 스냅샷 조회**만 필요한 순수 로컬 UI 상태 머신이라면 `useReducer`로 `useImperativeHandle` 의존성을 완전히 빈 배열(`[]`)로 유지할 수 있습니다.
+
+<!-- @context-action-compile -->
+```tsx
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useReducer,
+  useRef,
+} from 'react';
+
+const useIsomorphicLayoutEffect =
+  typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
+export type RunnerStatus = 'idle' | 'running' | 'paused';
+
+interface RunnerState {
+  readonly status: RunnerStatus;
+  readonly cycles: number;
+}
+
+type RunnerAction =
+  | { type: 'start' }
+  | { type: 'pause' }
+  | { type: 'tick' }
+  | { type: 'reset' };
+
+function runnerReducer(state: RunnerState, action: RunnerAction): RunnerState {
+  switch (action.type) {
+    case 'start':
+      return state.status === 'running' ? state : { ...state, status: 'running' };
+    case 'pause':
+      return state.status === 'running' ? { ...state, status: 'paused' } : state;
+    case 'tick':
+      return state.status === 'running' ? { ...state, cycles: state.cycles + 1 } : state;
+    case 'reset':
+      return { status: 'idle', cycles: 0 };
+  }
+}
+
+export interface RunnerHandle {
+  readonly start: () => void;
+  readonly pause: () => void;
+  readonly tick: () => void;
+  readonly reset: () => void;
+  readonly getStatus: () => RunnerStatus;
+  readonly getCycles: () => number;
+}
+
+export const EncapsulatedRunner = forwardRef<RunnerHandle>(
+  function EncapsulatedRunner(_props, ref) {
+    const [state, dispatch] = useReducer(runnerReducer, {
+      status: 'idle',
+      cycles: 0,
+    });
+
+    // 렌더 중 ref 대입이나 핸들러 내 리듀서 이중 실행을 피하기 위해
+    // layout effect에서 커밋된 최신 상태를 동기화합니다.
+    const stateRef = useRef(state);
+    useIsomorphicLayoutEffect(() => {
+      stateRef.current = state;
+    }, [state]);
+
+    // useReducer의 dispatch는 참조가 영구 안정하므로
+    // useImperativeHandle 의존성 배열을 []로 유지할 수 있습니다.
+    useImperativeHandle(
+      ref,
+      () =>
+        Object.freeze({
+          start: () => dispatch({ type: 'start' }),
+          pause: () => dispatch({ type: 'pause' }),
+          tick: () => dispatch({ type: 'tick' }),
+          reset: () => dispatch({ type: 'reset' }),
+          getStatus: () => stateRef.current.status,
+          getCycles: () => stateRef.current.cycles,
+        }),
+      [],
+    );
+
+    return (
+      <div>
+        <span>Status: {state.status}</span>
+        <span>Cycles: {state.cycles}</span>
+      </div>
+    );
+  },
+);
+```
+
+---
+
+## 핵심 불변식
+
+- **원시 `Store`와 원시 `dispatch`를 핸들로 노출하지 않기**: 부모는 `increment()`, `start()`, `pause()` 같은 도메인 유효 명령만 호출해 범위 제한과 전이 규칙을 지킵니다.
+- **읽기 타이밍 기준으로 Variant A와 B 구분**:
+  - `handle.increment(); handle.getSnapshot();`처럼 같은 턴의 쓰기 직후 동기 읽기가 필요하면 `Store`의 `store.getValue()`가 단일 진실을 보장하는 **Variant A (`useLocalStore`)**를 사용하세요.
+  - fire-and-forget 명령과 커밋 후 상태 조회만 필요하다면 리듀서 이중 실행이나 내부 UI 버튼과의 상태 불일치 위험이 없는 **Variant B (`useReducer`)**가 깔끔합니다.
+- **`Object.freeze` 적용**: 노출된 핸들이 읽기 전용 능력 객체(capability object) 계약으로 동작하도록 보장합니다.
 
 ===================[ DOC: ko/guide/patterns/setup/basic-action-setup.md ]===================
 # 기본 액션 설정
@@ -22366,6 +23807,178 @@ const currentTheme = useStoreValue(useUserStore('preferences')).theme; // 테마
 // 특정 값만 필요한 경우 모든 스토어를 구독하지 마세요
 ```
 
+===================[ DOC: ko/guide/patterns/store/deferred-view-subscription.md ]===================
+# 지연 뷰 구독 (`useStorePath` / `useStoreValue` + `useDeferredValue`)
+
+`useStorePath` 또는 `useStoreValue`의 **즉시(urgent) 외부 Store 읽기**와 무거운 파생 UI(대용량 필터링 리스트, 차트, 코드 프리뷰)의 **비차단 렌더링**을 React 기본 훅 `useDeferredValue`로 분리하는 패턴입니다.
+
+- **React 호환성**: React 18 / 19
+- **래퍼 API 대신 패턴으로 유지하는 이유**: `useDeferredValue`는 렌더 비용이 존재하는 **뷰 경계**에서 선택하는 표준 React 스케줄링 프리미티브입니다. Store 구독은 tear-free 일관성을 위해 즉시성을 유지하고, 무거운 파생 뷰 prop만 지연 처리하면 커스텀 Store 스케줄러 API 없이도 입력 반응성을 지킬 수 있습니다.
+
+## 사전 요구사항
+
+- [useStoreValue 패턴](./useStoreValue-patterns.md)
+- [경로 기반 구독](./path-based-subscription.md)
+- [코드 패턴](../../code-patterns.md)
+
+---
+
+## `useSyncExternalStore` 환경에서 `useDeferredValue`가 필요한 이유
+
+Context-Action의 Store 구독 훅(`useStoreValue`, `useStoreSelector`, `useStorePath`)은 모두 `useSyncExternalStore`를 사용합니다. React의 계약상 외부 Store 알림은 화면 불일치(tearing)를 막기 위해 알림 시점에 동기/긴급 업데이트로 처리되므로, Store 변경 자체를 `startTransition`으로 감싸도 렌더가 중단 가능하게 전환되지 않습니다.
+
+동시에 기본 `Store`는 구독자 알림을 **RAF 배칭(`notificationMode: 'batched'`, 약 16ms)** 으로 처리합니다. 따라서 제어 `<input value={query} />`를 RAF 배칭 `Store`에 직접 묶으면 입력 반영이 1프레임 지연되어 실제 브라우저에서 **커서 점프**나 **한글 IME 조합 깨짐**이 발생할 수 있습니다.
+
+입력 반응성과 무거운 파생 뷰의 비차단 렌더링을 모두 지키려면:
+
+1. 제어 `<input>`은 로컬 `useState`로 동기 제어해 공유 `Store`에 반영하거나(`batched` 모드 유지 시 권장), Store 자체를 `notificationMode: 'immediate'`로 설정해(`createStoreContext`의 `StoreConfig` 또는 `createStore(name, initial, { notificationMode: 'immediate' })`) 직접 바인딩된 입력이 즉시 반영되게 합니다.
+2. 결과 뷰는 `useStorePath` 또는 `useStoreValue`로 `Store` 값을 구독합니다.
+3. 무거운 하위 컴포넌트로 내릴 값만 `useDeferredValue(query)`로 감싸고, 하위 컴포넌트를 `React.memo(...)`로 감싸 새 입력이 들어올 때 백그라운드 렌더가 안전하게 양보하도록 합니다.
+
+---
+
+## 표준 패턴: 동기 입력 제어 + 메모이제이션된 지연 하위 트리
+
+<!-- @context-action-compile -->
+```tsx
+import React, { memo, useDeferredValue, useMemo, useState } from 'react';
+import {
+  createStoreContext,
+  useStorePath,
+} from '@context-action/react';
+
+export interface CatalogItem {
+  readonly id: string;
+  readonly name: string;
+  readonly category: string;
+}
+
+export interface CatalogFilterState {
+  query: string;
+  items: CatalogItem[];
+}
+
+const {
+  Provider: CatalogStoreProvider,
+  useStore: useCatalogStore,
+} = createStoreContext('DeferredCatalog', {
+  filterState: {
+    query: '',
+    items: [
+      { id: '1', name: 'ActionRegister Pipeline', category: 'core' },
+      { id: '2', name: 'Store Path Subscription', category: 'react' },
+      { id: '3', name: 'TimeTravel Snapshot', category: 'mutative' },
+    ],
+  } as CatalogFilterState,
+});
+
+interface HeavyCatalogListProps {
+  readonly query: string;
+  readonly items: readonly CatalogItem[];
+}
+
+// React.memo가 필수입니다: query가 갱신될 때 HeavyCatalogList는
+// 이전 deferredQuery 결과를 유지한 채 새 지연 렌더를 백그라운드로 미룹니다.
+const HeavyCatalogList = memo(function HeavyCatalogList({
+  query,
+  items,
+}: HeavyCatalogListProps) {
+  const filtered = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return items;
+    return items.filter(
+      (item) =>
+        item.name.toLowerCase().includes(normalized) ||
+        item.category.toLowerCase().includes(normalized),
+    );
+  }, [items, query]);
+
+  return (
+    <ul aria-label="Catalog results">
+      {filtered.map((item) => (
+        <li key={item.id}>
+          {item.name} ({item.category})
+        </li>
+      ))}
+    </ul>
+  );
+});
+
+function CatalogSearchBar() {
+  const filterStore = useCatalogStore('filterState');
+  // 기본 Store의 RAF 배칭(16ms)과 무관하게 제어 <input> 입력·IME 조합이
+  // 매 키 입력마다 즉시 반영되도록 로컬 state로 동기 제어합니다.
+  const [draftQuery, setDraftQuery] = useState('');
+
+  return (
+    <input
+      aria-label="Filter catalog"
+      value={draftQuery}
+      onChange={(event) => {
+        const nextQuery = event.target.value;
+        setDraftQuery(nextQuery);
+        // 루트 객체 교체 대신 Mutative draft를 수정해야 `useStorePath`가
+        // 루트 패치가 아닌 세분화된 `['query']` 패치만 수신합니다.
+        filterStore.update((draft) => {
+          draft.query = nextQuery;
+        });
+      }}
+    />
+  );
+}
+
+function CatalogResultsView() {
+  const filterStore = useCatalogStore('filterState');
+
+  // 세밀한 경로 기반 Store 구독
+  const query = useStorePath<CatalogFilterState, string>(filterStore, ['query']);
+  const items = useStorePath<CatalogFilterState, readonly CatalogItem[]>(
+    filterStore,
+    ['items'],
+  );
+
+  // 무거운 파생 계산을 위한 비차단 지연 값
+  const deferredQuery = useDeferredValue(query);
+  const isStale = query !== deferredQuery;
+
+  return (
+    <div>
+      {isStale && <span aria-live="polite">Updating results...</span>}
+      <div style={{ opacity: isStale ? 0.7 : 1 }}>
+        <HeavyCatalogList query={deferredQuery} items={items} />
+      </div>
+    </div>
+  );
+}
+
+export function DeferredCatalogScreen() {
+  return (
+    <CatalogStoreProvider>
+      <section>
+        <CatalogSearchBar />
+        <CatalogResultsView />
+      </section>
+    </CatalogStoreProvider>
+  );
+}
+```
+
+---
+
+## 선택 기준: `useDeferredValue` vs 타이밍 제어 (`debounce` / `throttle` / `ActionGuard`)
+
+| 상황 | 권장 방식 | 이유 |
+|---|---|---|
+| **클라이언트 측 순수 렌더 부하** (수천 행 필터링, 문법 강조, 차트/레이아웃 재계산) | `useStorePath` / `useStoreValue` + `useDeferredValue` + `React.memo` | 고정 타이머 지연 없이 기기 성능에 맞춰 동작하며, 후속 키 입력이 들어오면 즉시 중단·재스케줄링됩니다. |
+| **네트워크 API 요청이나 무거운 핸들러 실행 억제** | 핸들러 `debounce` / `throttle` 옵션 또는 `ActionGuard` | `useDeferredValue`는 React 렌더링 스케줄링만 지연시킬 뿐, 액션 디스패치 자체의 부수효과 실행을 막지 않습니다. |
+| **고빈도 외부 스트림의 UI 반영 빈도 상한 제한** (예: WebSocket 텔레메트리) | `useStoreValue(store, { throttle: 100 })` 또는 `debounce` | 초당 수십~수백 회 밀려오는 외부 상태 푸시의 커밋 주기를 명시적으로 제한합니다. |
+
+## 핵심 불변식
+
+- **지연 하위 트리를 `React.memo`로 감싸기**: `React.memo`(또는 `deferredQuery`에 키잉된 `useMemo`)가 없으면 긴급 렌더 시 무거운 계산이 그대로 다시 실행됩니다.
+- **제어 `<input>`은 항상 동기 상태에 바인딩**: RAF 배칭 `Store`(`notificationMode: 'batched'`)에 `<input value>`를 직접 연결하지 말고 로컬 `useState`로 동기 제어하거나 `StoreConfig` / `createStore(..., { notificationMode: 'immediate' })`를 설정한 뒤 `useStorePath`와 연결하세요. `<input value>`에 `deferredQuery`를 연결해서도 안 됩니다.
+- **불안정한 인라인 객체/배열 prop 지양**: `items`처럼 Store에서 안정 참조로 읽은 슬라이스를 함께 전달해야 `React.memo`의 얕은 비교가 불필요하게 깨지지 않습니다.
+
 ===================[ DOC: ko/guide/patterns/store/path-based-subscription.md ]===================
 # 경로 기반 구독 (Path-Based Subscription)
 
@@ -25203,22 +26816,31 @@ function AdvancedUserComponent() {
 
 ### 타임아웃 구성
 
-타임아웃으로 무한 대기를 방지합니다:
+타임아웃으로 무한 대기를 방지합니다. `timeout`을 초과하면 실행 신호가 abort되고 반환된 Promise는 `ActionTimeoutError`로 **reject**(`isActionTimeoutError(error)`로 판별)되며, 내부 핸들러 작업은 정산될 때까지 안전하게 drain됩니다:
 
 ```typescript
-// 타임아웃과 함께 디스패치
-const result = await actionRegister.dispatchWithResult('longOperation', 
-  { data: 'large-dataset' },
-  { 
-    result: { collect: true },
-    timeout: 10000  // 10초 타임아웃
-  }
-);
+import { isActionTimeoutError } from '@context-action/core';
 
-if (result.terminated) {
-  console.log('작업 시간 초과');
+try {
+  const result = await actionRegister.dispatchWithResult(
+    'longOperation',
+    { data: 'large-dataset' },
+    {
+      result: { collect: true },
+      timeout: 10000, // 10초 wall-clock 타임아웃 (큐 대기 및 재시도 지연 포함)
+    },
+  );
+  console.log('완료 상태:', result.outcome, '조기 종료 여부:', result.terminated);
+} catch (error) {
+  if (isActionTimeoutError(error)) {
+    console.log(`"${error.action}" 작업이 ${error.timeout}ms 후 시간 초과되었습니다`);
+  } else {
+    throw error;
+  }
 }
 ```
+
+> 참고: `result.terminated === true`는 타임아웃이 아니라 핸들러가 `controller.return(value)`로 파이프라인을 조기 종료했음을 의미합니다.
 
 ### 결과 수집 옵션
 
@@ -25321,6 +26943,8 @@ function BatchDispatcher() {
 ### 디스패치에서의 오류 처리
 
 ```typescript
+import { isActionTimeoutError, isActionValidationError } from '@context-action/core';
+
 function ErrorHandlingDispatcher() {
   const { dispatchWithResult } = useActionDispatchWithResult();
   
@@ -25334,23 +26958,31 @@ function ErrorHandlingDispatcher() {
         }
       );
       
-      if (result.aborted) {
-        console.log('작업이 중단되었습니다:', result.abortReason);
-        // 중단을 우아하게 처리
-      } else if (result.terminated) {
-        console.log('작업 시간 초과');
-        // 타임아웃 처리
-      } else if (result.success) {
-        console.log('작업 완료:', result.results);
-        // 성공 처리
-      } else {
-        console.log('작업이 오류와 함께 실패');
-        // 일반적인 실패 처리
+      switch (result.outcome) {
+        case 'cancelled':
+          console.log('작업이 중단되었습니다:', result.abortReason);
+          break;
+        case 'debounced':
+        case 'throttled':
+          console.log('타이밍 가드에 의해 건너뛰어짐:', result.outcome);
+          break;
+        case 'completed':
+        case 'completed_with_errors':
+          console.log('작업 완료:', result.result, result.successResults);
+          break;
+        case 'failed':
+          console.log('치명적 오류로 작업 실패:', result.errors);
+          break;
       }
       
     } catch (error) {
-      console.error('디스패치 실패:', error);
-      // 디스패치 수준 오류 처리
+      if (isActionTimeoutError(error)) {
+        console.error('작업 시간 초과:', error.timeout);
+      } else if (isActionValidationError(error)) {
+        console.error('페이로드 검증 실패:', error.issues);
+      } else {
+        console.error('디스패치 실패:', error);
+      }
     }
   };
   
@@ -25360,87 +26992,159 @@ function ErrorHandlingDispatcher() {
 
 ## 디스패치 결과 구조
 
-### 성공 결과
+`dispatchWithResult()`는 `packages/core/src/types.ts`의 `ExecutionResult<R>` 객체를 반환합니다. 반면 타임아웃(`ActionTimeoutError`), 엄격 스키마 검증 실패(`ActionValidationError`), 종료 이후 호출(`ActionRegisterDestroyedError`)은 Promise rejection으로 전달됩니다.
 
 ```typescript
-interface DispatchResult<T = any> {
-  success: true;
-  aborted: false;
-  terminated: false;
-  results: T[];           // 모든 핸들러 반환값
-  errors: never[];        // 성공한 작업에 대해서는 비어있음
+interface ExecutionResult<R = void> {
+  success: boolean;
+  aborted: boolean;
+  abortReason: string | undefined;
+  terminated: boolean; // controller.return()으로 조기 종료된 경우 true
+  outcome: 'completed' | 'completed_with_errors' | 'failed' | 'cancelled' | 'debounced' | 'throttled';
+  validation?: {
+    passed: boolean;
+    errors: string[];
+  };
+  result: R | R[] | undefined;   // 결과 전략에 따라 집계된 최종 결과
+  successResults: R[];           // undefined가 아닌 성공 결과 배열
+  results: Array<R | undefined>; // 수집된 원시 결과 배열
+  failedResults: Array<{
+    handlerId: string;
+    error: Error;
+    expectedType: string;
+  }>;
   execution: {
+    duration: number;
+    admissionDuration: number;
+    queueWaitDuration: number;
+    pipelineDuration: number;
+    retryDelayDuration?: number;
+    resultProcessingDuration?: number;
+    attempts?: Array<{
+      startTime: number;
+      endTime: number;
+      duration: number;
+      outcome: 'succeeded' | 'failed' | 'retried' | 'cancelled';
+    }>;
     handlersExecuted: number;
+    handlersSkipped: number;
+    handlersFailed: number;
     startTime: number;
     endTime: number;
-    duration: number;
-    mode: 'sequential' | 'parallel' | 'race';
   };
-  metadata?: {
-    handlerIds: string[];
-    priorities: number[];
-    payload: any;           // 최종 페이로드 상태
+  handlers: HandlerExecutionOutcome<R>[];
+  raceDiagnostics?: {
+    winnerId?: string;
+    winner?: HandlerExecutionOutcome<R>;
+    loserSnapshots: HandlerExecutionOutcome<R>[];
+    pendingLosersAtReturn: number;
+    observedLoserFailures: number;
   };
+  errors: HandlerError[];
 }
 ```
 
-### 중단된 결과
+### 검증된 디스패치 및 결과 분기 예제
 
+<!-- @context-action-compile -->
 ```typescript
-interface AbortedResult {
-  success: false;
-  aborted: true;
-  terminated: false;
-  abortReason: string;     // controller.abort()에 제공된 이유
-  abortedBy: string;       // 중단을 일으킨 핸들러 ID
-  results: any[];          // 중단 전에 실행된 핸들러의 결과
-  errors: Error[];
-  execution: {
-    handlersExecuted: number;
-    startTime: number;
-    endTime: number;
-    duration: number;
-  };
-}
-```
+import {
+  ActionRegister,
+  isActionTimeoutError,
+  type ActionPayloadMap,
+  type ActionResultMap,
+  type ExecutionResult,
+} from '@context-action/core';
 
-### 타임아웃 결과
-
-```typescript
-interface TimeoutResult {
-  success: false;
-  aborted: false;
-  terminated: true;
-  timeoutMs: number;       // 구성된 타임아웃 값
-  results: any[];          // 타임아웃 전의 부분 결과
-  errors: Error[];
-  execution: {
-    handlersExecuted: number;
-    startTime: number;
-    endTime: number;
-    duration: number;
-  };
+interface ApiActions extends ActionPayloadMap {
+  fetchUser: { userId: string };
+  notify: { message: string };
 }
+
+interface ApiResults extends ActionResultMap<ApiActions> {
+  fetchUser: { name: string };
+}
+
+const registry = new ActionRegister<ApiActions, ApiResults>({
+  name: 'DispatchGuide',
+  actions: {
+    fetchUser: { queue: 'serial', timeout: 5000 },
+    notify: { queue: 'immediate' },
+  },
+});
+
+registry.registerResult('fetchUser', async payload => {
+  await Promise.resolve();
+  return { name: `User-${payload.userId}` };
+});
+
+registry.registerCommand('notify', payload => {
+  console.info(payload.message);
+});
+
+async function runDispatchExamples() {
+  // Fast Path 대상 순차 디스패치
+  await registry.dispatch('notify', { message: 'hello' });
+  await registry.actions.notify({ message: 'via-proxy' });
+
+  // 상세 실행 결과 분기
+  try {
+    const execution: ExecutionResult<{ name: string }> =
+      await registry.dispatchWithResult(
+        'fetchUser',
+        { userId: '123' },
+        { result: { collect: true, strategy: 'first' } },
+      );
+
+    switch (execution.outcome) {
+      case 'completed':
+      case 'completed_with_errors':
+        console.info(execution.result, execution.terminated);
+        break;
+      case 'cancelled':
+        console.warn('중단 사유:', execution.abortReason);
+        break;
+      case 'debounced':
+      case 'throttled':
+        console.info('타이밍 가드로 건너뜀:', execution.outcome);
+        break;
+      case 'failed':
+        console.error('실패:', execution.errors);
+        break;
+    }
+  } catch (error) {
+    if (isActionTimeoutError(error)) {
+      console.error(`"${error.action}" 타임아웃(${error.timeout}ms)`);
+    }
+  } finally {
+    await registry.destroyAsync();
+  }
+}
+
+void runDispatchExamples;
 ```
 
 ## 성능 최적화
 
-### 효율적인 디스패치
+### 효율적인 디스패치와 2단계 Fast Path
+
+장기 수명의 `ActionRegister` 인스턴스를 재사용하면 액션별 `CompiledActionPipeline` 캐시(핸들러 정렬·역할 분리·타이밍 판별 재사용)와 캐시된 `actions` / `actionsWithResult` Proxy 디스패처가 그대로 유지됩니다.
+
+또한 트레이스 리스너, 호출 옵션, 큐, 스키마 검증, Guard, Observer, 타이밍 가드, `once` 핸들러가 없는 기본 순차 `dispatch()`는 `dispatchWithResult()`와 동일한 중단/오류 계약을 유지하면서 무할당 Fast Path로 자동 라우팅됩니다:
 
 ```typescript
-// ✅ 좋음 - 액션 레지스터 인스턴스 재사용
+// ✅ 좋음 - ActionRegister를 재사용해 CompiledActionPipeline & Proxy 캐시 활용
 const register = new ActionRegister<MyActions>();
 
 function OptimizedComponent() {
   const handleMultipleActions = async () => {
-    // 여러 디스패치에 동일한 레지스터 재사용
     await register.dispatch('action1', { data: 'a' });
-    await register.dispatch('action2', { data: 'b' });
+    await register.actions.action2({ data: 'b' });
     await register.dispatch('action3', { data: 'c' });
   };
 }
 
-// ❌ 피해야 할 것 - 반복적으로 새 레지스터 생성
+// ❌ 피해야 할 것 - 호출마다 새 레지스터를 생성하면 파이프라인 캐시가 무효화됨
 function InefficientComponent() {
   const handleAction = async () => {
     const newRegister = new ActionRegister<MyActions>(); // 비용이 많이 듦!
@@ -26443,11 +28147,12 @@ Store와 Action 계층은 상태 소유권, 구독, 액션 핸들링의 경계�
 
 | 패키지 | 버전 | 의미 |
 | --- | --- | --- |
-| `@context-action/core` | `1.3.1` | 안정화된 액션 lifecycle·dispatch trace·observer 의미론 |
-| `@context-action/store-core` | `0.1.4` | framework-neutral state·patch·timeline backend 계약 |
+| `@context-action/core` | `2.0.0` | 안정화된 액션 lifecycle·dispatch trace·observer 의미론 |
+| `@context-action/interactions` | `0.1.0` | 프레임워크 중립 roving focus, pointer gesture, LIFO dismiss 레이어 |
+| `@context-action/store-core` | `0.1.5` | framework-neutral state·patch·timeline backend 계약 |
 | `@context-action/mutative-core` | `0.8.14` | upstream `mutative@2.0.2` 호환성 기준과 유지보수 fork 수정 |
 | `@context-action/mutative` | `0.8.15` | defensive collection snapshot, immutable update, timeline batch |
-| `@context-action/react` | `4.0.7` | React lifecycle·backend notification·declaration·SSR 계약 |
+| `@context-action/react` | `5.0.0` | React lifecycle·backend notification·declaration·SSR 계약 |
 
 upstream 기준과 scoped package 버전은 별도 계약입니다. `mutative@2.0.2`은
 인수한 source baseline이며 runtime dependency나 scoped adapter 버전이 아닙니다.
@@ -26470,7 +28175,7 @@ Durable Operations 0.2와 연계된 tool protocol 작업은 적극 개발 중이
 | 관심사 | 소유자 | 기능 | 명시적으로 책임지지 않는 것 |
 | --- | --- | --- | --- |
 | 액션 실행 | `@context-action/core` | 핸들러 등록·실행 순서, 취소, 타임아웃, 결과, observer lifecycle을 제공합니다. | React 렌더링, 상태 영속화, tool schema, provider 호출, 인가 |
-| React 상태·합성 | `@context-action/react` 4.0 | Store/Action context를 만들고 React 구독을 연결하며 검증된 React 18/19·SSR lifecycle 계약을 제공합니다. | DB 기반 작업, 프로세스 간 복구, provider/tool runtime |
+| React 상태·합성 | `@context-action/react` 5.0 | Store/Action context를 만들고 React 구독을 연결하며 검증된 React 18/19·SSR lifecycle 계약을 제공합니다. | DB 기반 작업, 프로세스 간 복구, provider/tool runtime |
 | 애플리케이션 도메인 | 애플리케이션 | 상태 모양, 비즈니스 규칙, 인가, API client, 성공·실패의 의미를 정의합니다. | 일반 Store나 action registry에 비즈니스 정책을 위임하는 일 |
 | Tool protocol — 개발 트랙 | `@context-action/tool-protocol` | provider 중립 tool schema, 직렬화, 승인, 관측 가능한 protocol metadata를 정의합니다. | React 상태 lifecycle이나 durable persistence |
 | Durable mutation 복구 — 개발 트랙 | `@context-action/tool-durable-operations` | record, lease, full fence, 명시적 `unknown` 상태로 하나의 외부 mutation을 조율합니다. | 외부 provider의 exactly-once 보장, 애플리케이션 인가, 도메인 reconciliation 정책 |
@@ -26487,7 +28192,7 @@ I/O와 인가에 사용하십시오. provider-tool 상호운용성이나 프로�
 
 이 문제는 클라이언트 상태 관리와 다른 운영 경계를 가집니다. 실제 persistence service, provider·도메인 상태 조회, 명확한 reconciliation 정책이 필요합니다. 이를 개발 트랙에 두면 데이터베이스와 provider 복구 계약이 core 상태 관리 배포의 우발적인 요구 사항이 되는 일을 막을 수 있습니다.
 
-소스에는 개발용 `@context-action/react/tools`가 남아 있지만, Durable 0.2를 보류하는 동안 React 4 artifact에서는 이 subpath를 의도적으로 제외합니다. 일반 React root entry는 이 개발 트랙과 독립적입니다.
+소스에는 개발용 `@context-action/react/tools`가 남아 있지만, Durable 0.2를 보류하는 동안 React 5 artifact에서는 이 subpath를 의도적으로 제외합니다. 일반 React root entry는 이 개발 트랙과 독립적입니다.
 
 ## Durable operation의 운영 경계
 
@@ -26507,7 +28212,7 @@ if (claim.status === 'owner') {
 
 ## 프로덕션 도입 체크리스트
 
-- Core `1.3.1`, Store Core `0.1.4`, Mutative Core `0.8.14`, scoped adapter `0.8.15`, React `4.0.7`을 함께 고정하고 테스트합니다.
+- Core `2.0.0`, Interactions `0.1.0`, Store Core `0.1.5`, Mutative Core `0.8.14`, scoped adapter `0.8.15`, React `5.0.0`을 함께 고정하고 테스트합니다.
 - 정확한 후보 커밋에서 `pnpm release:check`를 실행합니다.
 - workspace 테스트만이 아니라 패킹 소비자·React 호환성 검사를 릴리즈 게이트로 사용합니다.
 - 이 cohort는 일반적인 애플리케이션 canary·rollback 절차로 점진 배포합니다.
@@ -26774,7 +28479,7 @@ React Aria 날짜 객체 대신 직렬화 가능한 ISO 날짜를 store에 저�
   키보드 Table 선택, 정렬, 키보드 Calendar 선택, 그 결과의 도메인 action audit
   entry를 검증합니다.
 - `pnpm verify:react-aria-reference-hydration`은 레퍼런스를 번들하고 현재 로컬
-  Core·React 후보 artifact를 설치한 상태에서 React 19.2.0·19.2.8 hydration을
+  Core·React 후보 artifact를 설치한 상태에서 React 19.2.0·19.3.1 hydration을
   검증합니다. hydration recovery error나 후보 버전 불일치가 있으면 실패합니다.
 
 더 자세한 React Aria 상태 계약은 공식 React Aria 및 React Stately 문서를

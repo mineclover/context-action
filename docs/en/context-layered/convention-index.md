@@ -2,6 +2,28 @@
 
 This document is the central entry point for the implementation-playbook style conventions in the Context-Action repository. The docs have grown enough that it helps to group which documents define the rules, which ones demonstrate the pattern, and which ones lock the verification model.
 
+## Architecture & Quality System at a Glance
+
+Context-Action organizes applications around **three core axes**, adopts structure progressively by domain size, and splits governance cleanly between **CI-enforced invariants** and **advisory architecture practices**:
+
+- **Core 3 Axes**:
+  1. **Action Pipeline** (`@context-action/core`, `ActionContext`) — sequential admission (`Guard`), execution (`Command`/`Result`), and post-settlement observation (`Observer`).
+  2. **Reactive Store** (`@context-action/store-core`, `Store`, `TimeTravelStore`) — explicit snapshots read lazily in `handlers/` (`store.getValue()`) and subscribed declaratively in `hooks/` (`useStoreValue` / `useStoreSelector` / `useStorePath`).
+  3. **Imperative Ref** (`RefContext`) — high-frequency DOM, canvas, or element-host operations without React re-renders.
+- **3-Level Progressive Adoption Ladder**:
+  - **Level 1 · Lite**: Single-domain `createActionContext` + `createStoreContext` + `useActionHandler` inside a local Registry.
+  - **Level 2 · Headless-First Symmetric DI**: Pure domain `business/` + framework-neutral `runtime/` (`ActionRegister` + `createStore` / `createStateStore`), injected into React via `ownership="shared"` Providers (`/foundations/react/headless-di`).
+  - **Level 3 · Full 6-Layer**: Strict `contexts / business / runtime (optional) / handlers / actions / hooks / views` split with separated `Business` vs. `Layout` intents, domain codes/events, and explicit state machines ([packages/template-react](../../../packages/template-react/README.md) starter & `/patterns/implementation-playbook`).
+- **7 CI-Enforced Rules (`pnpm convention:check`, scanning `example/src` + `packages/template-react/src`, or external consumer `--root <dir>`)**:
+  1. Handler registration placement (`handlers/` or `*HandlerRegistry` only)
+  2. Fixed Provider nesting (`Action -> Store -> Ref -> HandlerRegistry`)
+  3. Canonical layer file names & import boundaries (`contexts / business / runtime / handlers / actions / hooks / views`)
+  4. Explicit non-canonical `handlers/` classification (`tools/context-action-lint/layered-surface-classification.json`)
+  5. `no-deprecated-effect-handler` (blocks deprecated `use*ActionEffectHandler` / `registerEffect`)
+  6. `no-store-access-in-actions` (blocks runtime store imports and `use*Store` / `getStore` / `setValue` / `update` in canonical `actions/`)
+  7. `no-store-subscription-in-handlers` (blocks `use*StoreValue` / `use*StoreSelector` / `use*StorePath` in `handlers/` & `*HandlerRegistry`; justifies rare intentional exceptions fail-closed via `tools/context-action-lint/rule-exceptions.json`)
+- **Advisory / Cross-Repo Discipline**: 4-role handler hooks, `BusinessActionIntent` vs. `LayoutActionIntent` separation (`No Mixed Payloads`), `useCallback` stability, domain codes/events translated in `hooks/`, IIC (`CA-IIC-*`), 2-Second State Rule (`CA-SPEC-EVIDENCE-001`), and Unified Triad (`ttsc-ex` · `oa-sdk`) locks.
+
 ## Start Here by Task
 
 Choose the path that matches the change; do not read the whole library before
@@ -51,7 +73,9 @@ For local pre-PR receipt verification ([Local-First Verification Policy](../../L
 - [Interaction Intent to Implementation Flow](/en/context-layered/interaction-intent-implementation-flow)
   - design-to-code mapping across Context-Action layers and focused evidence gates
 - [Architecture Decision Records](/en/context-layered/decisions/)
-  - durable home and template for package, protocol, persistence, and compatibility decisions (including [CA-SPEC-EVIDENCE-001](/en/context-layered/decisions/CA-SPEC-EVIDENCE-001))
+  - durable home and template for package, protocol, persistence, and compatibility decisions (including [CA-SPEC-EVIDENCE-001](/en/context-layered/decisions/CA-SPEC-EVIDENCE-001) and accepted vNext blueprint [CA-VNEXT-ARCHITECTURE-001](/en/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001))
+- [Phase 2 (`v5`) Migration & Readiness Guide](/en/context-layered/v5-migration-readiness)
+  - `4.x` non-breaking preparation recipes, `pnpm audit:v5-readiness` AST baseline, and Phase 2 (`v5` major) admission gates
 - [Unified Triad (`ttsc-ex` · `oa-sdk`) Responsibility Split and Self-Serve Sync Guide](/en/context-layered/triad-evidence-sync-guide)
   - 3-workspace responsibility boundaries, generated contract `@evidenceReview` locks, intent separation, and self-serve pull workflow
 - [Tool-Calling Web Studio Convention](/en/context-layered/usecase-tool-calling-web-studio)
@@ -117,8 +141,8 @@ Not every rule in this index has the same enforcement mechanism:
 
 | Scope | Conventions Covered | How It Is Checked |
 | --- | --- | --- |
-| **CI-Enforced in this repo** | `package-boundary-convention`, `repository-surface-catalog` (`CA-SURFACE-CATALOG-001`), `documentation-development-conventions`, `implementation-convention`, `change-management-convention`, `LOCAL_FIRST_VERIFICATION_POLICY` | Automated scripts & PR CI: `pnpm package-boundary:check`, `pnpm verify:surface-catalog`, `pnpm convention:check`, `pnpm docs:check`, `pnpm verify:doc-snippets`, `pnpm change:traceability`, `pnpm verify:quick` / `pnpm verify:receipt` |
-| **Advisory / Cross-Repo** | `interaction-intent-contract` (IIC checklists), `triad-evidence-sync-guide` (`ttsc-ex` · `oa-sdk` companion locks), `usecase-panel-layout` (panel UX heuristics) | Design/PR review guidance and optional sibling-workspace tooling; local `context-action` CI checks repo-local docs/convention parity only |
+| **CI-Enforced in this repo** | `package-boundary-convention`, `repository-surface-catalog` (`CA-SURFACE-CATALOG-001`), `documentation-development-conventions`, `implementation-convention` (all 7 structural & AST rules + fail-closed `layered-surface-classification.json` / `rule-exceptions.json` across `example/src` and `packages/template-react/src`), `change-management-convention`, `LOCAL_FIRST_VERIFICATION_POLICY` | Automated scripts & PR CI: `pnpm package-boundary:check`, `pnpm verify:surface-catalog`, `pnpm convention:check` (`--root <dir>` for external consumers), `pnpm docs:check`, `pnpm verify:doc-snippets`, `pnpm change:traceability`, `pnpm verify:quick` / `pnpm verify:receipt` |
+| **Advisory / Cross-Repo** | 4-role hooks (`Guard`/`Command`/`Result`/`Observer`), `BusinessActionIntent` vs. `LayoutActionIntent` split, domain events, `interaction-intent-contract` (IIC checklists), 2-Second State Rule (`CA-SPEC-EVIDENCE-001`), `triad-evidence-sync-guide` (`ttsc-ex` · `oa-sdk`), `usecase-panel-layout` | Design/PR review guidance, `packages/template-react` starter reference, and optional sibling-workspace tooling; local `context-action` CI checks repo-local docs/convention parity only |
 
 ## Reading Paths by Goal
 
@@ -160,14 +184,16 @@ explicit transaction with named participants.
 4. [Tool-Calling Editor Architecture](/en/concept/tool-calling-editor-architecture)
 5. [Standalone Web Studio README](../../../demos/bolt-style-editor/README.md)
 
-## Read Alongside the Example App
+## Read Alongside the Starter Template & Example App
 
-The docs make more sense when paired with the live demos:
+The docs make more sense when paired with the canonical starter template and live demos:
 
+- `@context-action/template-react` starter (`packages/template-react/src/features/order-workspace/`)
 - `/patterns/implementation-playbook`
 - `/patterns/implementation-playbook/access-request`
 - `/patterns/implementation-playbook/incident-escalation`
 - `/patterns/implementation-playbook/renewal-risk-review`
+- `/foundations/react/headless-di`
 - standalone `/web-coding/` release
 
 ## One-Line Summary

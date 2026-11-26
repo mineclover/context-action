@@ -1,9 +1,6 @@
 import type { ActionPayloadMap } from '@context-action/core';
-import {
-  createActionContext,
-  createRefContext,
-  createStoreContext,
-} from '@context-action/react';
+import { createActionContext, createStoreContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 export interface UseRefMountStateStores {
   renderCounts: Record<string, number>;

@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
 import {
   useHeadlessDocumentControls,
-  useHeadlessSessionStore,
+  useHeadlessViewDispatch,
   useHeadlessWorkspaceDispatch,
 } from '../contexts/HeadlessDiContexts';
 
 export function useHeadlessDiActions() {
   const dispatch = useHeadlessWorkspaceDispatch();
-  const viewLocalStore = useHeadlessSessionStore('viewLocal');
+  const viewDispatch = useHeadlessViewDispatch();
   const controls = useHeadlessDocumentControls('document');
 
   const updateTitle = useCallback(
@@ -34,12 +34,9 @@ export function useHeadlessDiActions() {
 
   const setViewFilterTag = useCallback(
     (filterTag: 'all' | 'react' | 'headless') => {
-      viewLocalStore.update((draft) => {
-        draft.filterTag = filterTag;
-        return undefined;
-      });
+      void viewDispatch('setViewFilterTag', { filterTag });
     },
-    [viewLocalStore]
+    [viewDispatch]
   );
 
   return {

@@ -1,19 +1,21 @@
 import { useCallback } from 'react';
-import { useSecurityActionHandler } from '../contexts/FlowControlContexts';
+import {
+  useFlowControlStore,
+  useSecurityActionHandler,
+} from '../contexts/FlowControlContexts';
 
 // import type { SecurityResult } from '../scenarios/types';
 
 interface SecurityHandlerProps {
   onExecutionStep: (step: string) => void;
   onHandlerExecution: () => void;
-  isBusinessHours: boolean;
 }
 
 export function SecurityHandlers({
   onExecutionStep,
   onHandlerExecution,
-  isBusinessHours,
 }: SecurityHandlerProps) {
+  const demoStateStore = useFlowControlStore('demoState');
   // Standard Security Handler (P:1000) - Highest priority, runs first
   const standardSecurityHandler = useCallback(
     async (payload: any, controller: any): Promise<void> => {
@@ -60,6 +62,7 @@ export function SecurityHandlers({
       onExecutionStep('🔐 Elevated Security Handler (P:50)');
       onHandlerExecution();
 
+      const { isBusinessHours } = demoStateStore.getValue();
       console.log('🔐 Elevated Security Check:', {
         userId: payload.userId,
         role: payload.role,
@@ -99,7 +102,7 @@ export function SecurityHandlers({
         });
       }
     },
-    [onExecutionStep, onHandlerExecution, isBusinessHours]
+    [demoStateStore, onExecutionStep, onHandlerExecution]
   );
 
   // Register handlers with appropriate priorities

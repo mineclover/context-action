@@ -20,20 +20,24 @@ describe('Store concurrency contracts', () => {
   });
 
   test('delivers the final snapshot for rapid batched setValue calls', async () => {
+    const batchedStore = createStore('batched-rapid-store', { counter: 0, data: [] as string[] }, {
+      notificationMode: 'batched',
+    });
     const receivedValues: number[] = [];
-    const unsubscribe = store.subscribe(() => {
-      receivedValues.push(store.getSnapshot().value.counter);
+    const unsubscribe = batchedStore.subscribe(() => {
+      receivedValues.push(batchedStore.getSnapshot().value.counter);
     });
 
     const updates = Array.from({ length: 100 }, (_, index) => index + 1);
     updates.forEach(counter => {
-      store.setValue({ counter, data: [] });
+      batchedStore.setValue({ counter, data: [] });
     });
     await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 
     expect(receivedValues).toEqual([100]);
-    expect(store.getValue().counter).toBe(100);
+    expect(batchedStore.getValue().counter).toBe(100);
     unsubscribe();
+    batchedStore.dispose();
   });
 
   test('serializes concurrent update calls without lost increments', async () => {

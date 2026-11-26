@@ -33,7 +33,7 @@ const files = {
   business:
     'example/src/pages/performance/mouse-events/context-store-action-based/business/mouse-rules.ts',
   actionHandlers:
-    'example/src/pages/performance/mouse-events/context-store-action-based/actions/MouseActionHandlers.ts',
+    'example/src/pages/performance/mouse-events/context-store-action-based/handlers/MouseActionHandlerDefinitions.ts',
   registry:
     'example/src/pages/performance/mouse-events/context-store-action-based/handlers/MouseActionHandlerRegistry.tsx',
   container:
@@ -140,6 +140,8 @@ assertContains(
 console.log('Context-store action-based mouse convention check');
 console.log('- contexts: Action + Store contracts and Provider boundary');
 console.log('- business: pure path, velocity, and activity calculations');
-console.log('- actions: typed handler factories using business rules');
+console.log(
+  '- handlers: typed handler definitions and six action registrations in one Registry'
+);
 console.log('- handlers: six action registrations in one Registry');
 console.log('- compatibility: legacy store path re-export retained');

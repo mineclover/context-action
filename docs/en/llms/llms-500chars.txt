@@ -38,13 +38,13 @@ A comprehensive architecture pattern for Context-Action framework applications, 
 # Context-Layered Convention Alignment Plan
 Sections: Decisions | Lint and convention enforcement | Current-State Classification | Migration Sequence | Remaining Direct-Registration Inventory | Completion Gates
 
-Status: Direct-registration inventory closed; remaining structural gates tracked Last reviewed: 2026-11-20 This document records the repository-level decision for aligning existing examples and documentation with the Context-Layered architecture. It sits beside the implementation convention because it describes the current-state classification, the fixed provider composition, and the migration gates needed to make the convention enforceable. New scenarios use these layers: Strict MVVM materia...
+Status: Structural & promoted AST gates enforced across example/src + packages/template-react/src; ongoing guidance centralized in convention-index.md and spec-to-code-authoring-guide.md Last reviewed: 2026-11-21 This document records the repository-level decision for aligning existing examples and documentation with the Context-Layered architecture. It sits beside the implementation convention because it describes the current-state classification, the fixed provider composition, and the migr...
 
 ===================[ DOC: en/context-layered/convention-index.md ]===================
 # Convention Index
-Sections: Start Here by Task | Grouped by Role | Enforcement Scope: CI-Enforced vs. Advisory / Cross-Repo | Reading Paths by Goal | Read Alongside the Example App | One-Line Summary
+Sections: Architecture & Quality System at a Glance | Start Here by Task | Grouped by Role | Enforcement Scope: CI-Enforced vs. Advisory / Cross-Repo | Reading Paths by Goal | Read Alongside the Starter Template & Example App | One-Line Summary
 
-This document is the central entry point for the implementation-playbook style conventions in the Context-Action repository. The docs have grown enough that it helps to group which documents define the rules, which ones demonstrate the pattern, and which ones lock the verification model. Choose the path that matches the change; do not read the whole library before you know which artifact you own. | If you are changing… | Read first | Then use | | --- | --- | --- | | a feature end-to-end from...
+This document is the central entry point for the implementation-playbook style conventions in the Context-Action repository. The docs have grown enough that it helps to group which documents define the rules, which ones demonstrate the pattern, and which ones lock the verification model. Context-Action organizes applications around three core axes, adopts structure progressively by domain size, and splits governance cleanly between CI-enforced invariants and advisory architecture practices: -...
 
 ===================[ DOC: en/context-layered/decisions/CA-ELEMENT-INTEROP-001.md ]===================
 # CA-ELEMENT-INTEROP-001: Core subpaths and host-neutral Element bindings
@@ -70,9 +70,15 @@ Sections: Context | Options considered | Decision | Consequences and invariants 
 
 Status: accepted Owner: Framework Architecture & Documentation Governance Related issue/spec: CA-SURFACE-CATALOG-001 (Repository Surface Catalog, Package Boundary Convention, Specification, Issue, and Documentation Management) The repository spans workspace packages (packages/), canonical example routes inside example/, standalone demos (demos/bolt-style-editor, examples/vanilla-js), package-local examples/ suites, narrative example walkthroughs, root markdown files, bilingual documentation t...
 
+===================[ DOC: en/context-layered/decisions/CA-VNEXT-ARCHITECTURE-001.md ]===================
+# CA-VNEXT-ARCHITECTURE-001: vNext Hub-and-Spoke API, State Unification, and React Surface Blueprint
+Sections: Context & Rollout Staging Note | Verified Primary-Source Evidence Inventory | Hub-and-Spoke Target Architecture | Options Considered & Detailed Track Blueprints | Consequences, Invariants & Non-Goals | Open Feedback Decisions & Evidence-Backed Resolutions | Verification Evidence & Authoritative References | Admission & Reversal Conditions
+
+Status: accepted — Phase 1 (M0–M4, 4.x additive alignment) & Phase 2 (v5 React breaking cleanup & default harmonization) implemented on stage (package versions & npm publish remain frozen; rollback checkpoint checkpoint/pre-phase2-v4 @ 240b2b32) Owner: Framework Core & React Runtime Related issue/spec: CA-VNEXT-ARCHITECTURE-001 (builds on CA-SURFACE-CATALOG-001, CA-ELEMENT-INTEROP-001, CA-STATECHART-EFFECT-001, CA-SPEC-EVIDENCE-001) Baseline: stage (@context-action/core@1.3.1, @context-action...
+
 ===================[ DOC: en/context-layered/decisions/index.md ]===================
 # Architecture Decision Records
-Sections: What belongs where | When to create one | Required shape | Existing reference decisions
+Sections: What belongs where | When to create one | Required shape | Existing reference decisions | Proposed / Draft Blueprints
 
 Decision records keep durable architectural choices close to the conventions that govern them. They are not a runtime registry and do not duplicate a package README or public guide. | Artifact | Owns | Does not replace | | --- | --- | --- | | Decision record | why a durable boundary was chosen, alternatives, invariants, and reversal conditions | implementation details or consumer usage | | Package README | discovery, public entry points, and a quickstart | the complete behavior or architectur...
 
@@ -132,13 +138,13 @@ An explicit state machine is a pattern that fixes an async workflow as state + e
 
 ===================[ DOC: en/context-layered/repository-surface-catalog.md ]===================
 # Repository Surface Catalog (API, Examples, and Managed Documents)
-Sections: Five Organizing Principles | Base Specification | Surface 1: Full Repository API Architecture (18 Packages) | Surface 2: What Examples Explain | Surface 3: Managed Documentation Architecture | Verification Commands
+Sections: Five Organizing Principles | Base Specification | Surface 1: Full Repository API Architecture (19 Packages) | Surface 2: What Examples Explain | Surface 3: Managed Documentation Architecture | Verification Commands
 
-Status: Active Spec / Decision ID: CA-SURFACE-CATALOG-001 Owner: Framework Architecture & Documentation Governance Canonical JSON Catalogs: - catalog/repository-surface/api-surface.v1.json - catalog/repository-surface/example-surface.v1.json - catalog/repository-surface/document-surface.v1.json This specification defines the principles, schema standards, and complete inventory for three repository surfaces: 1. Full Repository API Architecture: all 18 workspace packages (packages/), their publ...
+Status: Active Spec / Decision ID: CA-SURFACE-CATALOG-001 Owner: Framework Architecture & Documentation Governance Canonical JSON Catalogs: - catalog/repository-surface/api-surface.v1.json - catalog/repository-surface/example-surface.v1.json - catalog/repository-surface/document-surface.v1.json This specification defines the principles, schema standards, and complete inventory for three repository surfaces: 1. Full Repository API Architecture: all 19 workspace packages (packages/), their publ...
 
 ===================[ DOC: en/context-layered/spec-to-code-authoring-guide.md ]===================
 # Spec-to-Code Authoring Guide
-Sections: End-to-End Spec-to-Code Pipeline | Spec-to-Layer-to-Gate Mapping Matrix | Recommended 4-Role Action API Hierarchy | End-to-End Authoring Walkthrough (Spec -> Headless Runtime -> React DI) | Multi-Host Store Reader Bridges (React · Preact · Lit) | Canonical Live Examples & Verification Checklist
+Sections: End-to-End Spec-to-Code Pipeline | Spec-to-Layer-to-Gate Mapping Matrix | Recommended 4-Role Action API Hierarchy | End-to-End Authoring Walkthrough (Spec -> Headless Runtime -> React DI) | Multi-Host Store Reader Bridges (React · Preact · Lit) | Progressive Adoption, Defect Prevention & Debt Governance | Canonical Live Examples & Verification Checklist
 
 Status: Active Spec / Decision IDs: CA-SURFACE-CATALOG-001, CA-SPEC-EVIDENCE-001, CA-STATECHART-EFFECT-001, CA-ELEMENT-INTEROP-001 Owner: Framework Core, React Runtime & Architecture Governance Related Specifications: - Convention Index - Implementation Convention - Store Selection and Usage Guide - Core Action Contracts - React State Contracts - Interaction Intent to Implementation Flow - Unified Triad Self-Serve Sync Guide Context-Action is designed so that specification intent, domain stat...
 
@@ -183,6 +189,18 @@ This document turns the standalone web-coding demo into a reusable Context-Actio
 Sections: Outcome and planning rule | Historical baseline and final outcome | Operating model and issue states | Scope decision checkpoint | Contract registry and freeze ladder | Workstreams and milestone dependency graph | Gate and evidence matrix | Release train and manifest
 
 status: completed canonical: false translationOf: docs/ko/context-layered/v1-release-roadmap.md translationRevision: v1-r3 syncedAtCommit: b21284fff2c6253eb2ce43634a1baffbc52163e2 roadmapRevision: v1-r3 artifactCommit: 63f790a521e3428a7a2825677747338f8f05ccf3 promotionRun: 31347327623 completedAt: 2026-08-10 releaseStatus: promoted Release principle: v1.0.0 is a contract freeze, not a version-number change. The v1.0.0 release is ready only when Context-Action can make, and keep through the 1....
+
+===================[ DOC: en/context-layered/v5-migration-readiness.md ]===================
+# Phase 2 (v5) Migration & Readiness Guide
+Sections: Phase 1 (4.x Non-Breaking) vs. Phase 2 (v5 Major) Boundary | Consumer Migration Recipes (Safe in 4.x, Ready for v5) | Automated Readiness Auditor (pnpm audit:v5-readiness) | Phase 2 (v5) Completion & Release Governance Checklist
+
+This guide prepares application teams, template starters, and external consumers for Phase 2 (v5 major breaking cleanup) under CA-VNEXT-ARCHITECTURE-001. Every preparation step in this document runs on top of the current 4.x release line without breaking existing root imports or freezing active development. - Status: Phase 2 (v5) implemented on stage (rollback checkpoint checkpoint/pre-phase2-v4 @ 240b2b32; packages/template-react/src and example/src compliant with 0 blocking findings; packag...
+
+===================[ DOC: en/context-layered/vnext-architecture-handoff.md ]===================
+# vNext Architecture & Cross-Project Handoff Guide
+Sections: Baseline & Freeze Rules | Required Reading Map | Open Feedback Decision Gates (Resolve Before Implementation) | Copy-Pasteable Instruction / Prompt Kit
+
+Status: Phase 1 (M0–M4) & Phase 2 (v5 React breaking cleanup & default harmonization) implemented on stage (rollback checkpoint checkpoint/pre-phase2-v4 @ 240b2b32; package versions & npm publish remain frozen) Baseline: stage branch (@context-action/core@1.3.1, @context-action/store-core@0.1.4, @context-action/mutative-core@0.8.14, @context-action/mutative@0.8.15, @context-action/react@4.0.7, @context-action/lit@0.1.4, @context-action/preact@0.1.3; package versions frozen on stage) This docu...
 
 ===================[ DOC: en/concept/action-pipeline-guide.md ]===================
 # Action Pipeline Guide: ActionPayloadMap & ActionRegister
@@ -258,15 +276,15 @@ Action-based dispatching provides a more intuitive and function-like approach to
 
 ===================[ DOC: en/guide/best-practices.md ]===================
 # Best Practices
-Sections: 📚 Comprehensive Pattern Documentation | ⚠️ Critical Best Practices | 📋 Quick Reference | 📖 Detailed Documentation | 🚨 Common Pitfalls | 🎯 Migration Guide | 📚 Additional Resources
+Sections: ⚡ Quick Team Summary | Right-Sized Adoption Matrix | CI-Enforced Rules vs Advisory Conventions | Production Do / Don't Checklist | Verified Right-Sized Implementation Examples | Related Resources
 
-Essential best practices for Context-Action framework development. This document provides quick references and links to comprehensive pattern guides. This guide has been reorganized for better maintainability. For detailed implementations, see the Pattern Collection: - Action Patterns - Pure action dispatching without state management - Store Patterns - Type-safe state management (Recommended) - RefContext Patterns - Direct DOM manipulation with zero re-renders - Architecture Patterns - Syste...
+Engineering conventions, runtime safety guardrails, and right-sized adoption examples for building maintainable Context-Action applications. > Looking for the full 6-layer governance specification or store primitive matrix? See Conventions, Convention Index, and Store Selection and Usage Guide. Share these 6 rules first when aligning a team on Context-Action: 1. Define boundaries before UI: Declare typed actions/ + contexts/ contracts and pure domain helpers (business/) before writing view co...
 
 ===================[ DOC: en/guide/code-patterns.md ]===================
 # Code Patterns
-Sections: 🎯 Core Framework Patterns | 🏗️ Architecture Patterns | ⚡ Advanced Patterns | Quick Reference
+Sections: Right-Sized Recipe Selector | OOP × React Built-in Hook Patterns | Pattern Collection by Category | Testing Checklist for Runtime Recipes
 
-📁 For comprehensive patterns and implementation guides, visit: Pattern Collection This section has been reorganized into the dedicated patterns directory with clear categorization: - Action Only Pattern - Pure action dispatching - Store Only Pattern - Type-safe state management - RefContext Pattern - Zero re-render DOM manipulation - Pattern Composition - Combining patterns for complex apps - MVVM Architecture - Single domain architectural layers - Domain Context Architecture - Multi-domain...
+Catalog of core Context-Action patterns across setup, action dispatch, store reactivity, async pipelines, and high-frequency refs — paired with right-sized recipes. > Need guidance on when to pick Level 1 Lite vs Level 2 Headless-First Symmetric DI vs Level 3 6-Layer, and which rules CI enforces? Start with Best Practices. | Need | Recommended Recipe | Reference | |---|---|---| | Single-domain React widget (1 Action + 1 Store + Registry) | Level 1 · Lite | Best Practices — Level 1 & Basic Set...
 
 ===================[ DOC: en/guide/getting-started.md ]===================
 # Getting Started
@@ -334,6 +352,12 @@ Sections: Prerequisites | Setup Overview | Async Pattern Specifications | Setup-
 
 Complete setup guide for handling asynchronous operations, element waiting, and DOM safety patterns in the Context-Action framework. - Basic Action Setup - Action context setup for async handlers - Basic Store Setup - Store context for async state management - RefContext Setup - Ref context for DOM element tracking - Multi-Context Setup - Complex async architectures with multiple contexts Async patterns require coordinated setup across three main contexts for optimal safety and performance: F...
 
+===================[ DOC: en/guide/patterns/async/optimistic-and-transition-ui.md ]===================
+# Optimistic & Transition UI with Committed Stores (React 19)
+Sections: Prerequisites | Pattern A: Committed Store + useOptimistic + Async useTransition | Pattern B: <form action={...}> + useActionState + dispatchWithResult | Key Invariants
+
+Layer React 19's useOptimistic, async useTransition, and useActionState on top of Context-Action's committed Store state and dispatchWithResult. > [!NOTE] > React 19+ Usage Pattern: useOptimistic, useActionState, and async startTransition require React 19+. Because @context-action/react supports react: ^18.0.0 || ^19.0.0, these integrations intentionally live as usage patterns rather than package wrapper APIs. On React 18, track pending/optimistic UI locally via useState paired with dispatchW...
+
 ===================[ DOC: en/guide/patterns/async/real-time-state-access.md ]===================
 # Real-time State Access Pattern
 Sections: Prerequisites | The Problem: Closure Traps | The Solution: Real-time Access | Complete Example | Advanced Patterns | Key Benefits
@@ -351,6 +375,24 @@ Pattern for safely executing DOM operations after ensuring element availability.
 Sections: Import | Features | Prerequisites | Setup Pattern | Basic Usage Example | Custom Hooks Pattern | Available Hooks | Real-World Examples
 
 Fundamental RefContext pattern with type-safe ref management and zero re-renders. - ✅ Zero React re-renders for DOM manipulation - ✅ Hardware-accelerated transforms - ✅ Type-safe ref management - ✅ Automatic lifecycle management - ✅ Perfect separation of concerns - ✅ Memory efficient with automatic cleanup Required Reading: RefContext Setup Guide This document demonstrates usage patterns using standardized setup patterns: - Type definitions → DOM Element Refs - Context creation → Basic RefCon...
+
+===================[ DOC: en/guide/patterns/ref/external-oop-lifecycle.md ]===================
+# External OOP Runtime Lifecycle Bridge (createRefContext + useLayoutEffect / useEffect)
+Sections: Prerequisites | Effect Boundary Rule: Library Providers vs Application OOP Bridges | Canonical Pattern: Idempotent Attach/Dispose + Latest-Callback Ref | Key Invariants
+
+Mount, synchronize, and deterministically dispose non-React imperative OOP engines (Canvas/WebGL/Three.js renderers, Monaco/CodeMirror editors, Chart.js, Map SDKs, media players) using createRefContext, isomorphic useLayoutEffect, and ActionContext. - React Compatibility: React 18 / 19 (note on React 19.2 useEffectEvent included below) - Boundary Role: Bridges external mutable OOP object lifecycles into Context-Action's RefContext without storing raw DOM nodes or non-serializable engine insta...
+
+===================[ DOC: en/guide/patterns/ref/imperative-handle-facade.md ]===================
+# Imperative Handle Facade (useImperativeHandle + createRefContext)
+Sections: Prerequisites | The Critical Pitfall: State Dependencies in useImperativeHandle | Canonical Pattern: Frozen Stable Facade (deps: []) + Lazy Read Ref | Key Invariants | Related Patterns
+
+Expose a frozen, encapsulated OOP command facade from a React widget using useImperativeHandle, connect it to createRefContext, and orchestrate commands from ActionContext handlers via withTarget. - React Compatibility: React 18 / 19 (forwardRef preserved for react: ^18.0.0 || ^19.0.0 peer compatibility) - Boundary Role: Tier 3 Imperative Presentation Boundary — domain state stays in Store + ActionContext; imperative commands (focus, validate, reset, getValue) cross component boundaries via R...
+
+===================[ DOC: en/guide/patterns/ref/local-state-imperative-handle.md ]===================
+# Local State Encapsulation + Imperative Handle (useLocalStore / useReducer)
+Sections: Prerequisites | Choosing Variant A vs Variant B | Variant A: useLocalStore + useImperativeHandle | Variant B: useReducer + useImperativeHandle | Key Invariants
+
+Encapsulate an internal reactive Store (useLocalStore) or deterministic state machine (useReducer) inside a reusable widget, while exposing only safe, domain-scoped imperative commands via useImperativeHandle. - React Compatibility: React 18 / 19 - Why a Usage Pattern (not a Wrapper API): Exposing a restricted command surface over internal state is an architectural boundary choice. Both useLocalStore (from @context-action/react/advanced) and React's useReducer already provide referentially st...
 
 ===================[ DOC: en/guide/patterns/setup/basic-action-setup.md ]===================
 # Basic Action Setup
@@ -394,6 +436,12 @@ Sections: Import | Key Features | Prerequisites | Usage Patterns | Provider Setu
 
 Fundamental Store Only pattern with excellent type inference and simplified API. - ✅ Excellent type inference without manual type annotations - ✅ Simplified API focused on store management - ✅ Direct value or configuration object support - ✅ No need for separate createStore calls For complete setup instructions including store definitions, context creation, and provider configuration, see Basic Store Setup. This document demonstrates usage patterns using the store setup: - Store definitions →...
 
+===================[ DOC: en/guide/patterns/store/deferred-view-subscription.md ]===================
+# Deferred View Subscription (useStorePath / useStoreValue + useDeferredValue)
+Sections: Prerequisites | Why useDeferredValue Is Needed with useSyncExternalStore | Canonical Pattern: Synchronous Input Control + Deferred Subtree | Decision Guide: useDeferredValue vs Timing Controls (debounce / throttle / ActionGuard) | Key Invariants
+
+Separate urgent external Store reads (input controls, live store snapshots) from non-blocking derived UI rendering (large filtered lists, heavy charts, markdown/code previews) by layering React's useDeferredValue on top of useStorePath or useStoreValue. - React Compatibility: React 18 / 19 - Why a Usage Pattern (not a Wrapper API): useDeferredValue is a standard React scheduling primitive that belongs at the view boundary where render cost exists — not inside the Store runtime. Keeping Store...
+
 ===================[ DOC: en/guide/patterns/store/path-based-subscription.md ]===================
 # Path-Based Subscription
 Sections: Overview | Core APIs | Comparison with Selectors | When to Use Each | Path Format Reference | How Path Matching Works | Array Operations and Patches | Custom Equality
@@ -428,7 +476,7 @@ Powerful handler filtering capabilities for precise action execution control in 
 # Dispatch Methods
 Sections: Core Dispatch Methods | React Integration Dispatch | Dispatch Options | Advanced Dispatch Patterns | Dispatch Result Structure | Performance Optimization | Dispatch Patterns by Use Case | Live Example: Result Collection with Dispatch
 
-Different ways to trigger action pipelines with varying levels of control and result collection. Simple action execution without result collection: Comprehensive execution with detailed results: Basic dispatching in React components: Result collection in React components: Prevent indefinite hanging with timeouts: Control what results are collected: See comprehensive dispatch patterns in the UseActionWithResult Demo: This example demonstrates real-world usage of dispatchWithResult with compreh...
+Different ways to trigger action pipelines with varying levels of control and result collection. Simple action execution without result collection: Comprehensive execution with detailed results: Basic dispatching in React components: Result collection in React components: Prevent indefinite hanging with timeouts. Exceeding timeout aborts the dispatch signal and rejects the returned promise with ActionTimeoutError (detectable via isActionTimeoutError(error)), while internal work continues drai...
 
 ===================[ DOC: en/guide/pipeline/index.md ]===================
 # Pipeline System

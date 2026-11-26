@@ -26,8 +26,11 @@ function validateHistoryPosition(value: number): void {
 }
 
 import { ErrorHandlers } from '../utils/error-handling';
+import type { StorePathSegment } from '../utils/patch-affects-path';
+import { PathSubscriptionIndex } from '../utils/path-subscription-index';
 import { TypeGuards } from '../utils/type-guards';
 import { type FrameHandle, scheduleFrame } from './frame-scheduler';
+import type { StoreNotificationMode } from './Store';
 
 /**
  * Configuration options for TimeTravelStore
@@ -45,7 +48,7 @@ export interface TimeTravelStoreOptions<T> {
   /** Custom equality function */
   isEqual?: (a: T, b: T) => boolean;
   /** Notification mode: 'batched' uses RAF, 'immediate' notifies synchronously (default: 'immediate') */
-  notificationMode?: 'batched' | 'immediate';
+  notificationMode?: StoreNotificationMode;
   /** Public read policy. Reference preserves legacy structural-sharing reads. */
   readMode?: 'reference' | 'safe';
 }
@@ -69,12 +72,15 @@ export interface TimeTravelStoreOptions<T> {
  * const { canUndo, canRedo, position, history } = store.getTimeTravelControls();
  * ```
  */
+const TIME_TRAVEL_STORE_BRAND = Symbol.for('context-action.react.time-travel-store');
+
 export class TimeTravelStore<T = unknown> implements IStore<T> {
   public readonly name: string;
 
   private timeTravel: TimeTravel<T, false, true>;
   private listeners = new Set<Listener>();
   private patchAwareListeners = new Set<PatchAwareListener>();
+  private pathIndex = new PathSubscriptionIndex();
   private _snapshot: Snapshot<T>;
   private _lastPatches: Patches | null = null;
   private _lastTransitionMeta: TimeTravelTransitionMeta | undefined;
@@ -85,7 +91,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   private cloningEnabled = false;
 
   // RAF-based notification batching
-  private notificationMode: 'batched' | 'immediate' = 'immediate';
+  private notificationMode: StoreNotificationMode = 'immediate';
   private pendingNotification = false;
   private animationFrameId: FrameHandle | null = null;
   private pendingPatches: Patches | null = null;
@@ -100,6 +106,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   ) {
     this.name = name;
     this.customComparator = options.isEqual;
+    Object.defineProperty(this, TIME_TRAVEL_STORE_BRAND, { value: true });
     this.notificationMode = options.notificationMode ?? 'immediate';
     this.cloningEnabled = options.readMode === 'safe';
 
@@ -166,6 +173,21 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
 
     this.patchAwareListeners.add(listener);
     return () => this.patchAwareListeners.delete(listener);
+  };
+
+  /**
+   * Subscribes to one or more concrete store paths using the internal prefix-trie index.
+   */
+  subscribePaths = (
+    paths: readonly (readonly StorePathSegment[])[],
+    listener: Listener,
+  ): Unsubscribe => {
+    if (this.isDisposed) {
+      console.warn(`Cannot subscribe to disposed store "${this.name}"`);
+      return () => {};
+    }
+
+    return this.pathIndex.subscribe(paths, listener);
   };
 
   /**
@@ -292,12 +314,13 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
   }
 
   getListenerCount(): number {
-    return this.listeners.size + this.patchAwareListeners.size;
+    return this.listeners.size + this.patchAwareListeners.size + this.pathIndex.size;
   }
 
   clearListeners(): void {
     this.listeners.clear();
     this.patchAwareListeners.clear();
+    this.pathIndex.clear();
   }
 
   dispose(): void {
@@ -327,6 +350,7 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.cleanupTasks.clear();
     this.listeners.clear();
     this.patchAwareListeners.clear();
+    this.pathIndex.clear();
   }
 
   registerCleanup(task: () => void): () => void {
@@ -548,6 +572,27 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
     this.customComparator = comparator;
   }
 
+  getNotificationMode(): StoreNotificationMode {
+    return this.notificationMode;
+  }
+
+  setNotificationMode(mode: StoreNotificationMode): void {
+    if (this.isDisposed) return;
+    this.notificationMode = mode;
+    if (mode === 'immediate' && this.pendingNotification) {
+      if (this.animationFrameId !== null) {
+        this.animationFrameId.cancel();
+        this.animationFrameId = null;
+      }
+      this.pendingNotification = false;
+      if (this.notificationHoldDepth === 0) {
+        this._executeNotification();
+      } else {
+        this.notificationDeferred = true;
+      }
+    }
+  }
+
   // ============================================================================
   // Private Methods
   // ============================================================================
@@ -637,6 +682,24 @@ export class TimeTravelStore<T = unknown> implements IStore<T> {
         }
       }
     }
+
+    // Notify only path-indexed subscribers matching the transition patches
+    if (!this.isDisposed && this.pathIndex.size > 0) {
+      const affected = this.pathIndex.collectAffected(notifiedPatches);
+      for (const entry of affected) {
+        if (this.isDisposed) return;
+        if (!entry.active) continue;
+        try {
+          entry.listener();
+        } catch {
+          try {
+            ErrorHandlers.store('Path-indexed listener error', { storeName: this.name });
+          } catch {
+            // Listener failure reporting must not abort remaining subscribers.
+          }
+        }
+      }
+    }
   }
 
   private _areEqual(a: T, b: T): boolean {
@@ -662,5 +725,10 @@ export function createTimeTravelStore<T>(
  * Type guard to check if a store is a TimeTravelStore
  */
 export function isTimeTravelStore<T>(store: IStore<T>): store is TimeTravelStore<T> {
-  return store instanceof TimeTravelStore;
+  return (
+    store instanceof TimeTravelStore ||
+    (typeof store === 'object' &&
+      store !== null &&
+      (store as unknown as Record<PropertyKey, unknown>)[TIME_TRAVEL_STORE_BRAND] === true)
+  );
 }

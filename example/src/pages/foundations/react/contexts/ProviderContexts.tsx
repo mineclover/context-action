@@ -15,6 +15,11 @@ export interface ProviderStores {
   activities: string[];
 }
 
+export interface ScopedNoteActionsMap extends ActionPayloadMap {
+  saveNote: { text: string };
+  resetNote: void;
+}
+
 export const ProviderActionContext = createActionContext<ProviderActions>(
   'ReactProviderDemo-actions'
 );
@@ -25,4 +30,7 @@ export const ProviderStoreContext = createStoreContext<ProviderStores>(
     message: { initialValue: 'Hello from Provider!' },
     activities: { initialValue: [] as string[], strategy: 'reference' },
   }
+);
+export const ScopedNoteActions = createActionContext<ScopedNoteActionsMap>(
+  'ReactProviderDemo-scopedNote'
 );

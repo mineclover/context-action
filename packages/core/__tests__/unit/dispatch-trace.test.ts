@@ -118,4 +118,79 @@ describe('dispatch trace contract', () => {
     expect(events).toEqual([]);
     register.destroy();
   });
+
+  it('scopes trace delivery via { actions } and honors trace: false / lane: "fast" boundaries', async () => {
+    interface MultiActions extends ActionPayloadMap {
+      save: { id: string };
+      audit: { id: string };
+      metric: { n: number };
+      muted: { n: number };
+    }
+
+    const register = new ActionRegister<MultiActions>({
+      name: 'ScopedTraceTest',
+      actions: {
+        metric: { lane: 'fast' },
+        muted: { trace: false },
+      },
+    });
+    register.register('save', () => undefined);
+    register.register('audit', () => undefined);
+    register.registerCommand('metric', () => undefined);
+    register.registerCommand('muted', () => undefined);
+
+    const scopedEvents: ActionDispatchTrace[] = [];
+    const globalEvents: ActionDispatchTrace[] = [];
+    const sharedListener = (event: ActionDispatchTrace) => globalEvents.push(event);
+
+    const unsubScoped = register.subscribeDispatchTrace(
+      event => scopedEvents.push(event),
+      { actions: ['save', 'save'] },
+    );
+    // Registering the same listener both globally and scoped deduplicates per event
+    const unsubGlobal = register.subscribeDispatchTrace(sharedListener);
+    const unsubDup = register.subscribeDispatchTrace(sharedListener, { actions: ['save'] });
+
+    await register.dispatch('save', { id: '1' });
+    await register.dispatch('audit', { id: '2' });
+    await register.dispatch('metric', { n: 10 });
+    await register.dispatch('muted', { n: 20 });
+
+    expect(scopedEvents.map(event => `${event.action}:${event.phase}`)).toEqual([
+      'save:started',
+      'save:settled',
+    ]);
+    // Global listener observes 'save' once per phase and 'audit', while skipping 'metric' and 'muted'
+    expect(globalEvents.map(event => `${event.action}:${event.phase}`)).toEqual([
+      'save:started',
+      'save:settled',
+      'audit:started',
+      'audit:settled',
+    ]);
+
+    unsubScoped();
+    unsubGlobal();
+    unsubDup();
+    scopedEvents.length = 0;
+
+    await register.dispatch('save', { id: '3' });
+    expect(scopedEvents).toEqual([]);
+
+    // Invalid scoped filter inputs fail closed with TypeError
+    expect(() => register.subscribeDispatchTrace(() => undefined, { actions: [] })).toThrow(TypeError);
+    expect(() => register.subscribeDispatchTrace(() => undefined, { actions: 'save' as never })).toThrow(
+      TypeError,
+    );
+    expect(() => register.subscribeDispatchTrace(() => undefined, { actions: ['' as 'save'] })).toThrow(
+      TypeError,
+    );
+    expect(() => register.subscribeDispatchTrace(() => undefined, { actions: ['metric'] })).toThrow(
+      TypeError,
+    );
+    expect(() => register.subscribeDispatchTrace(() => undefined, { actions: ['muted'] })).toThrow(
+      TypeError,
+    );
+
+    await register.destroyAsync();
+  });
 });

@@ -1,6 +1,6 @@
 {
 	"root": false,
-	"$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.6.8/schema.json",
 	"linter": {
 		"enabled": true,
 		"rules": {
@@ -48,12 +48,24 @@
 				"noAccumulatingSpread": "warn",
 				"noReExportAll": "off",
 				"noNamespaceImport": "error"
-			},
-			"nursery": {
-				"useSortedClasses": "off"
 			}
 		}
 	},
+	"overrides": [
+		{
+			"includes": [
+				"src/lib/patterns/createObjectContextHooks.tsx",
+				"src/pages/integrations/preact-web-components/hooks/usePreactWebComponentsViewModel.ts"
+			],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noComponentHookFactories": "off"
+					}
+				}
+			}
+		}
+	],
 	"formatter": {
 		"enabled": true,
 		"formatWithErrors": false,

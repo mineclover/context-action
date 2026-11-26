@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, renderHook } from '@testing-library/react';
-import { createRefContext, createStore } from '@context-action/react';
+import { createStore } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 function setup() {
   const Refs = createRefContext<{ element: HTMLDivElement }>('CleanupRefs', { defaultMountTimeout: 100 });

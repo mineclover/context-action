@@ -1,5 +1,6 @@
 // @vitest-environment node
-import { isTimeTravelStore, StoreManager } from '@context-action/react';
+import { StoreManager } from '@context-action/react';
+import { isTimeTravelStore } from '@context-action/react/time-travel';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   createHeadlessWorkspace,

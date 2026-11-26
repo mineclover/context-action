@@ -45,3 +45,9 @@ export {
 export type {
   ProviderComponent
 } from './stores/utils/provider-composition';
+
+// Headless prop and ref merging utilities
+export {
+  mergeProps,
+  mergeRefs
+} from './stores/utils/merge-props';

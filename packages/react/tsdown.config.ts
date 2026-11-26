@@ -4,11 +4,14 @@ import reactCompiler from 'babel-plugin-react-compiler'
 
 export default defineConfig({
   entry: [
-    'src/index.ts',      // Main entry point
-    'src/backend.ts',    // User-owned backend adapter entry point
-    'src/advanced.ts',   // Advanced features
-    'src/utils.ts',      // Utility functions
-    'src/webmcp.ts', // Experimental browser adapter entry point
+    'src/index.ts',        // Main entry point
+    'src/refs.ts',         // Opt-in RefContext subpath entry point
+    'src/time-travel.ts',  // Opt-in TimeTravel subpath entry point
+    'src/transactions.ts', // Opt-in Transaction subpath entry point
+    'src/backend.ts',      // User-owned backend adapter entry point
+    'src/advanced.ts',     // Advanced features
+    'src/utils.ts',        // Utility functions
+    'src/webmcp.ts',       // Experimental browser adapter entry point
   ],
   format: ['esm', 'cjs'],
   dts: true,

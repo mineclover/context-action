@@ -137,7 +137,9 @@ compatibility 표면에는 canonical 명명 규칙을 일괄 적용하지 않습
   `handlers/` 또는 `*HandlerRegistry` 바깥의 `use*ActionGuard`,
   `use*ActionCommandHandler`, `use*ActionResultHandler`, `use*ActionObserver`,
   `use*ActionHandler`, `use*ActionEffectHandler` 직접 호출을 차단합니다.
-- `actions/` 파일은 `*Actions` 또는 `*ActionHandlers`로 이름 짓습니다.
+- `actions/` 파일은 `*Actions` / `*actions`(또는 `index`)로 이름 지으며, 런타임 Store import와 `.getStore()` · `.setValue()` · `.update()` 직접 호출을 금지합니다(`no-store-access-in-actions`).
+- `handlers/` 모듈(및 `*HandlerRegistry` 파일)은 `store.getValue()`로 지연 읽기만 수행하며 `use*StoreValue` · `use*StoreSelector` · `use*StorePath` 반응형 구독을 금지합니다(`no-store-subscription-in-handlers`).
+- deprecated된 `use*ActionEffectHandler`와 `registerEffect` 호출은 전체 검사 대상에서 차단합니다(`no-deprecated-effect-handler`).
 - `hooks/` 파일은 `use*` 명명을 사용하며 `index`, `types` 진입점을
   허용합니다.
 - `views/` 파일은 `*View`, `*Views` 또는 `*Grid` 같은 명시적 composite
@@ -148,30 +150,23 @@ compatibility 표면에는 canonical 명명 규칙을 일괄 적용하지 않습
 파생 business 값은 View에 도달하기 전에 Hook 또는 Facade에서 계산합니다.
 예를 들어 implementation-playbook의 packet과 quote preview는 Data Hook이
 계산하고 View는 반환된 model만 렌더링합니다. usecase 전용 검사와 함께 다음
-게이트를 실행합니다.
+게이트를 실행합니다(`pnpm convention:check`는 기본적으로 `example/src`와 `packages/template-react/src`를 함께 스캔하며, 외부 앱은 `node scripts/check-context-layered-conventions.mjs --root <dir>`로 검증합니다):
 
 ```bash
 pnpm convention:check
+node scripts/check-context-layered-conventions.mjs --root packages/template-react/src
 pnpm --filter example check
 ```
 
-현재 게이트는 저장소 구조에서 canonical root를 발견하며 레이어 경로·명명
-위반은 0건입니다. 현재 root 수는 `pnpm convention:check` 출력으로 확인하고,
-advanced 및 compatibility root는 마이그레이션 분류가 바뀔 때까지 이 자동
-명명 범위에서 명시적으로 제외합니다. 저장소 전체 package
-import는 별도로 `pnpm package-boundary:check`가 관리합니다.
+현재 게이트는 스캔 대상 전반에서 canonical root를 자동 발견하며 레이어 경로·명명, import 경계, Provider 순서, 승격된 3대 AST 규칙 위반 모두 0건입니다. 실시간 root 수와 예외 건수는 `pnpm convention:check` 출력이 source of truth이며, `advanced` 및 `compatibility` root는 마이그레이션 분류가 바뀔 때까지 자동 명명 범위에서 명시적으로 제외합니다. 저장소 전체 package import는 별도로 `pnpm package-boundary:check`가 관리합니다.
 
-비정형 `handlers/` 디렉터리를 조용히 무시하지 않습니다. 현재 분류와 근거는
-`tools/context-action-lint/layered-surface-classification.json`에 두며, 검사기는
-모든 비정형 디렉터리가 `advanced` 또는 `compatibility` 중 하나로 등록되어
-있는지 확인합니다. 현재 manifest에는 advanced 비교 표면이 없고
-compatibility object-context 표면 1곳이 있습니다. conditional permission,
+비정형 `handlers/` 디렉터리와 불가피한 AST 규칙 예외는 조용히 무시하지 않습니다. 비정형 `handlers/` 분류와 근거는 `tools/context-action-lint/layered-surface-classification.json`에 `advanced` 또는 `compatibility`로 등록하고(실시간 카운트는 `pnpm convention:check` 출력 기준, 현재 `advanced` 통합 표면 1곳 및 `compatibility` object-context 표면 1곳), 불가피한 AST 규칙 예외는 `tools/context-action-lint/rule-exceptions.json`에 사유(`reason`)와 함께 fail-closed로 등록하며 더 이상 트리거되지 않으면(stale) 게이트가 실패합니다. conditional permission,
 action-based mouse, context-store mouse, enhanced context-store mouse
 usecase는 canonical `contexts/`와 `handlers/` 표면에 편입되었습니다.
 enhanced context-store usecase는 semantic command를 `actions/`, 순수 전이를
 `business/`, Provider 조합을 `providers/`에서 분리합니다. memoization 비교도
 canonical `contexts/`와 `actions/` 경계로 이동했으며 기존 model과 hook 경로는
-compatibility re-export로 유지합니다.
+compatibility re-export로 유지합니다(비메모이제이션 비교 레인은 `rule-exceptions.json`에 사유를 명시적으로 등록).
 
 ## 명시적 상태 머신 규칙
 

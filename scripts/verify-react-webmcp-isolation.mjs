@@ -27,7 +27,7 @@ const manifest = JSON.parse(manifestSource);
 assert.equal(
   manifest.exports?.['./tools'],
   undefined,
-  'React 3 must not export the development-only ToolContext subpath.',
+  '@context-action/react must not export the development-only ToolContext subpath.',
 );
 assert.ok(manifest.exports?.['./webmcp'], 'Experimental WebMCP subpath must be exported.');
 assert.doesNotMatch(
@@ -39,7 +39,7 @@ assert.doesNotMatch(toolsSource, /WebMCP/, 'The development-only ToolContext sou
 assert.match(
   toolsReadmeSource,
   /not\s+an installable `@context-action\/react\/tools` entry/u,
-  'The ToolContext source track must document that it is not an installable React 3 entry.',
+  'The ToolContext source track must document that it is not an installable @context-action/react entry.',
 );
 assert.match(
   toolContextSource,
@@ -49,7 +49,7 @@ assert.match(
 assert.doesNotMatch(
   toolContextSource,
   /from '@context-action\/react\/tools'/u,
-  'ToolContext source examples must not recommend an unavailable React 3 package import.',
+  'ToolContext source examples must not recommend an unavailable @context-action/react package import.',
 );
 assert.match(webmcpSource, /useWebMCPToolScope/, 'Experimental subpath must expose the lifecycle hook.');
 assert.match(webmcpSource, /experimental/i, 'Experimental status must be documented at the entry point.');
@@ -59,4 +59,4 @@ assert.match(
   'The public WebMCP adapter must document its registry-agnostic boundary.',
 );
 
-console.log('React 3 excludes the development-only ToolContext track and isolates WebMCP behind @context-action/react/webmcp.');
+console.log('@context-action/react excludes the development-only ToolContext track and isolates WebMCP behind @context-action/react/webmcp.');

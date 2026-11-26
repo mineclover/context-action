@@ -168,15 +168,18 @@ const user = useStoreValue(userStore);
 
 ### 🎯 Action 유틸리티 훅
 
-#### `useActionDispatchWithResult()`
-결과 수집이 필요한 액션을 위한 **유틸리티 훅**.
-- **목적**: 액션을 디스패치하고 핸들러 결과 수집
-- **사용 사례**: 핸들러로부터 반환 값이 필요한 경우
+#### `useActionResultDispatch()` & `useActionScope()`
+결과 수집이나 Provider 단위 취소 스코프 제어가 필요한 액션을 위한 **유틸리티 훅**입니다.
+- **목적**: 액션을 디스패치하고 핸들러 결과를 수집(`useActionResultDispatch()`)하거나 `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }` 전체 스코프를 제어(`useActionScope()`)
+- **사용 사례**: 핸들러로부터 반환 값이나 중단 스코프가 필요한 경우
 - **고급**: 핸들러 응답이 필요한 복잡한 워크플로우용
 
 ```tsx
-const { dispatchWithResult } = useActionDispatchWithResult();
+const dispatchWithResult = useActionResultDispatch();
 const result = await dispatchWithResult('login', credentials);
+
+// 또는 전체 스코프 훅 사용:
+const { dispatchWithResult: scopedDispatch, abortAll, resetAbortScope } = useActionScope();
 ```
 
 #### `useActionRegister()`
@@ -264,10 +267,10 @@ JSON 패치를 사용한 **경로 기반 구독**.
 
 #### 액션 처리
 - **필수**: `useActionDispatch`, `useActionHandler`
-- **유틸리티**: `useActionDispatchWithResult`, `useActionRegister`
+- **유틸리티**: `useActionResultDispatch`, `useActionScope`, `useActionRegister`
 
 #### DOM 조작 및 성능
-- **필수**: `useRefHandler` (RefContext에서)
+- **필수**: `useRefHandler` (`@context-action/react/refs`)
 - **유틸리티**: `useWaitForRefs`, `useGetAllRefs`
 
 #### 고급/메타
@@ -287,7 +290,8 @@ JSON 패치를 사용한 **경로 기반 구독**.
 
 #### 낮은 빈도 (컴포넌트의 20% 미만)
 - `useComputedStore`
-- `useActionDispatchWithResult`
+- `useActionResultDispatch`
+- `useActionScope`
 
 ---
 
@@ -350,7 +354,7 @@ function OptimizedUserProfile() {
   });
   
   // 유틸리티: 결과 수집
-  const { dispatchWithResult } = useActionDispatchWithResult();
+  const dispatchWithResult = useActionResultDispatch();
   
   return <div>{displayName}</div>;
 }
@@ -602,7 +606,8 @@ function CriticalComponent() {
 - `useActionDispatch()` - 디스패치 함수 가져오기
 - `useActionHandler(action, handler, config?)` - 핸들러 등록
 - `useActionRegister()` - ActionRegister 인스턴스 가져오기
-- `useActionDispatchWithResult()` - 결과 수집과 함께 디스패치
+- `useActionResultDispatch()` - 결과 수집과 함께 디스패치
+- `useActionScope()` - Provider 스코프 `{ dispatch, dispatchWithResult, abortAll, resetAbortScope }` 반환
 
 ---
 
@@ -632,7 +637,8 @@ function CriticalComponent() {
 #### 액션 시스템
 - `useActionDispatch` - 액션 디스패치
 - `useActionHandler` - 핸들러 등록
-- `useActionDispatchWithResult` - 결과와 함께 디스패치
+- `useActionResultDispatch` - 결과와 함께 디스패치
+- `useActionScope` - Provider 스코프 디스패치 + 중단 번들
 - `useActionRegister` - 레지스터 액세스
 - `useActionContext` - 컴텍스트 액세스
 
@@ -650,13 +656,13 @@ function CriticalComponent() {
 ## 요약
 
 ### 필수 훅 (반드시 학습)
-- **팩토리 함수**: `createActionContext`, `createStoreContext`, `createRefContext`
+- **팩토리 함수**: `createActionContext`, `createStoreContext`, `createRefContext` (`@context-action/react/refs`)
 - **핵심 훅**: `useStoreValue`, `useActionDispatch`, `useActionHandler`, `useStore`, `useRefHandler`
 
 ### 유틸리티 훅 (필요에 따라 학습)
 - **성능**: `useStoreSelector`, `useComputedStore`
 - **편의성**: `useLocalStore`
-- **고급**: `useActionDispatchWithResult`
+- **고급**: `useActionResultDispatch`, `useActionScope`
 
 ### 전문 훅 (특정 경우용)
 - **다중 스토어**: `useMultiStoreSelector`, `useMultiComputedStore`, `useStoreValues`

@@ -1,21 +1,27 @@
-import { useInsertionEffect, useRef } from 'react';
-import { createStore, Store } from '../core/Store';
+import { useId, useInsertionEffect, useRef } from 'react';
+import { createStore, Store, type StoreOptions } from '../core/Store';
 import type { Snapshot } from '../core/types';
 import { useStoreValue } from './useStoreValue';
 
-// Counter for generating unique store names (more efficient than Date.now + Math.random)
-let localStoreCounter = 0;
-
+/**
+ * Creates a component-lifetime `Store<T>` and **subscribes the calling component**
+ * to its updates, returning `{ value, name, lastUpdate, store }` (disposed on unmount).
+ *
+ * Unlike `useStoreInstance()`, every store update re-renders the owning component.
+ * Use `useStoreInstance()` when passing a store into `createScopedContext()` or child
+ * components that subscribe selectively via `useStorePath()` / `useStoreValue()`.
+ */
 export function useLocalStore<T>(
   initialValue: T,
-  name?: string
+  name?: string,
+  options?: StoreOptions
 ): Snapshot<T> & { store: Store<T> } {
+  const storeId = useId();
   const storeRef = useRef<Store<T> | null>(null);
 
   if (!storeRef.current) {
-    // Use a simple counter for store naming instead of expensive Date.now() + Math.random()
-    const storeName = name || `localStore_${++localStoreCounter}`;
-    storeRef.current = createStore(storeName, initialValue);
+    const storeName = name || `localStore_${storeId}`;
+    storeRef.current = createStore(storeName, initialValue, options);
   }
 
   const store = storeRef.current;

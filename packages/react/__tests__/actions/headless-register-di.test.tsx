@@ -39,11 +39,11 @@ describe('Headless ActionRegister DI on createActionContext.Provider', () => {
 
     const OrderContext = createActionContext<OrderActions, OrderResults>('OrderContext');
     let resolvedRegister: ActionRegister<OrderActions, OrderResults> | null = null;
-    let dispatchApi: ReturnType<typeof OrderContext.useActionDispatchWithResult> | undefined;
+    let dispatchApi: ReturnType<typeof OrderContext.useActionScope> | undefined;
 
     function Consumer() {
       resolvedRegister = OrderContext.useActionRegister();
-      dispatchApi = OrderContext.useActionDispatchWithResult();
+      dispatchApi = OrderContext.useActionScope();
 
       OrderContext.useActionGuard('submit', (payload, controller) => {
         if (!payload.valid) {

@@ -2,6 +2,12 @@
 
 All notable changes to this package will be documented in this file.
 
+## [0.1.1] (2026-11-26)
+
+### Compatibility
+
+- Widen `@context-action/core` dependency range to `^1.3.1 || ^2.0.0` for Core 2.0 compatibility.
+
 ## [0.1.0] (2026-11-19)
 
 ### Features

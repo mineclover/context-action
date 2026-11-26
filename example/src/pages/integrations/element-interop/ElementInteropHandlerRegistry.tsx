@@ -1,6 +1,7 @@
 /** @evidenceExclude Tier 3 imperative-handle test fixture, not a durable domain model. */
 
-import { createActionContext, createRefContext } from '@context-action/react';
+import { createActionContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 import { type ReactNode, useCallback } from 'react';
 
 export interface CounterInput {

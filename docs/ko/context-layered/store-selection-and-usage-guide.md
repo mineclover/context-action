@@ -19,13 +19,15 @@ Context-Action은 **쓰기 경계(`StoreWriter` / Action Handler)** 와 **읽기
 | Store / 상태 수단 | 패키지 진입점 | 핵심 용도 | Undo/Redo | React 의존 |
 | --- | --- | --- | --- | --- |
 | **`createStoreContext`** | `@context-action/react` | **기본 권장.** 도메인별 다중 스토어를 React 트리 스코프로 격리 | 없음 | 예 |
+| **`createScopedContext`** | `@context-action/react` | 위젯·피처 단위로 `ActionContext` + 스코프 `useStoreInstance` / `useRefRegistry` 설정을 단일 평탄 `Provider`로 묶을 때 | 없음 | 예 |
 | **`createStore` (`Store`)** | `@context-action/react` | Provider 밖의 단일 독립 스토어 (모듈 공유·DI·단위 테스트) | 없음 | 예 (Mutative 내장) |
-| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react` | Undo/Redo·히스토리 탐색이 필요한 에디터, 폼 드래프트, 캔버스 상태 | **예 (Mutative 패치)** | 예 |
+| **`createTimeTravelStoreContext` / `createTimeTravelStore`** | `@context-action/react/time-travel` | Undo/Redo·히스토리 탐색이 필요한 에디터, 폼 드래프트, 캔버스 상태 | **예 (Mutative 패치)** | 예 |
 | **`createStateStore`** | `@context-action/store-core` | Vanilla JS, Node, Preact, Lit, XState 공용 Zero-dependency 최소 참조 스토어 | 없음 | **아니오 (0 deps)** |
-| **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | 사용자 소유의 커스텀 `StateBackend`를 React 훅에 연결 | 백엔드 기능에 따름 | 예 (래퍼만) |
-| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react` | 여러 Store의 변경을 하나의 원자적 커밋·롤백·단일 Undo 단위로 묶을 때 | **예 (다중 스토어 원자 Undo)** | 예 |
-| **`useLocalStore` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | 컴포넌트 수명 로컬 스토어 / 메모이즈된 파생 계산 / 동적 스토어 등록 | 없음 | 예 |
-| **`createRefContext`** | `@context-action/react` | **비반응형 (Tier 3).** DOM, Canvas, 120fps 포인터 좌표 등 리렌더 0회 상태 | 없음 | 예 |
+| **`createMutativeStateBackend` / `createMutativeTimelineBackend`** | `@context-action/mutative` | React/Lit/Preact·순수 Node 간 공유 가능한 프레임워크 중립 Layer 1 Mutative `StateStore` 및 `TimelineBackend`(`TransactionBackend`) 엔진 | 선택 (`TimelineBackend`) | **아니오** |
+| **`createBackendStore` (`BackendStore`)** | `@context-action/react/backend` | 사용자 소유의 커스텀 `StateBackend`를 명시적으로 `IStore`로 브리지 (`createStoreContext().Provider stores={...}` 사용 시 생략 가능) | 백엔드 기능에 따름 | 예 (래퍼만) |
+| **`StoreTransactionCoordinator` + `bindActionTransactions`** | `@context-action/react/transactions` | 여러 Store의 변경을 하나의 원자적 커밋·롤백·단일 Undo 단위로 묶을 때 | **예 (다중 스토어 원자 Undo)** | 예 |
+| **`useLocalStore` / `useStoreInstance` / `useControlledStoreSync` / `useComputedStore` / `StoreRegistry`** | `@context-action/react/advanced` | 로컬 구독 스토어 / 리렌더 없는 로컬 소유 / 제어 prop 동기화 / 메모이즈 파생 계산 / 동적 스토어 등록 | 없음 | 예 |
+| **`useRefRegistry` / `useRefCollection` / `createRefCollectionContext` / `createRefContext`** | `@context-action/react/refs` | **비반응형 (Tier 3).** 고정 로컬 ref(`useRefRegistry`), 동적 문자열 키 컬렉션(`useRefCollection`), 트리 공유(`createRefContext`) — 리렌더 0회 | 없음 | 예 |
 | **`createActorStateReader`** | `@context-action/xstate` | **닫힌 상태 머신 읽기 전용 투영.** 외부 `setValue()` 차단, 전이는 이벤트로만 | 없음 | **아니오** |
 | **`createSourceContext` / `fromStateReader` / `StoreController`** | `@context-action/preact`, `@context-action/lit` | 외부 Store를 Preact Signals(`fromStateReader`로 `StateReader`/`StoreReader` 스냅샷 변환) 또는 Lit `ReactiveController`에 읽기 전용 투영 | 없음 | **아니오** |
 | **`createDurableOperationStore`** | `@context-action/tool-durable-operations` | **UI 상태 아님.** 외부 HTTP·큐·파일시스템 부작용의 멱등성·복구 레코드 저장소 | 없음 | **아니오** |
@@ -95,16 +97,20 @@ profileStore.update((prev) => ({
 }));
 
 export function UserNameLabel() {
-  // 패치가 ['user', 'name'] 경로에 영향을 줄 때만 리렌더
-  const name = useStorePath<ProfileState, string>(profileStore, ['user', 'name']);
-  return <span>{name}</span>;
+  // 타입 추론 기반 리터럴 경로 구독 — ['user', 'name'] 패치 시에만 리렌더
+  const name = useStorePath(profileStore, ['user', 'name']);
+  // 단일 경로 파생 불리언 구독 — select 결과가 바뀔 때만 리렌더
+  const isLee = useStorePath(profileStore, ['user', 'name'], {
+    select: (nextName) => nextName === 'Lee',
+  });
+  return <span>{name} ({String(isLee)})</span>;
 }
 
 // 독립 생성한 스토어는 수명이 끝나면 반드시 정리합니다
 profileStore.dispose();
 ```
 
-### 2.3 `createTimeTravelStoreContext` & `createTimeTravelStore` (`@context-action/react`) — Undo / Redo
+### 2.3 `createTimeTravelStoreContext` & `createTimeTravelStore` (`@context-action/react/time-travel`) — Undo / Redo
 
 사용자가 실행 취소(Undo), 다시 실행(Redo), 히스토리 위치 탐색을 해야 할 때 사용합니다.
 
@@ -114,7 +120,7 @@ profileStore.dispose();
 
 <!-- @context-action-compile -->
 ```tsx
-import { createTimeTravelStoreContext } from '@context-action/react';
+import { createTimeTravelStoreContext } from '@context-action/react/time-travel';
 
 const DocStores = createTimeTravelStoreContext('Doc', {
   content: { initialValue: { text: '' }, maxHistory: 50 },
@@ -153,9 +159,50 @@ unsubscribe();
 counterStore.dispose?.();
 ```
 
-### 2.5 `createBackendStore` / `BackendStore` (`@context-action/react/backend`) — 커스텀 백엔드 연결
+### 2.5 `createMutativeStateBackend` / `createMutativeTimelineBackend` 및 네이티브 상호운용 (`@context-action/mutative` + `@context-action/react`)
 
-`@context-action/store-core`의 `StateBackend<T, Patch>`(`createStateStore`, `MutativeStateBackend`, 또는 사용자 정의 영속/동기화 백엔드)를 React의 `useSyncExternalStore` 훅(`useStoreValue`, `useStoreSelector`, 패치 지원 시 `useStorePath`)에 그대로 연결합니다.
+React, Lit, Preact 또는 헤드리스 Node 워커 사이에서 JSON 패치, Undo/Redo 타임라인, 동적 `setNotificationMode('immediate' | 'batched')`를 공유하는 프레임워크 중립 Layer 1 Mutative 엔진이 필요하다면 `@context-action/mutative`의 `createMutativeStateBackend`(`StateStore`) 및 `createMutativeTimelineBackend`(`TransactionBackend & StateStore`)를 사용합니다.
+
+React 구독 훅(`useStoreValue`, `useStoreSelector`, `useStorePath`, `useTimeTravelControls`, `useTimeTravelPath`)과 Provider DI(`createStoreContext().Provider stores={...}`, `createTimeTravelStoreContext().Provider stores={...}`)는 수동 `BackendStore` 래핑 없이도 `StateReader<T>`, `StateBackend<T>`, `TimelineBackend<T>`를 **직접** 수용합니다 (`@context-action/react/backend`의 `createBackendStore`는 독립 명시 래퍼가 필요할 때 계속 사용할 수 있습니다):
+
+<!-- @context-action-compile -->
+```tsx
+import { createStateStore } from '@context-action/store-core';
+import { createMutativeTimelineBackend } from '@context-action/mutative';
+import { createStoreContext, useStoreValue } from '@context-action/react';
+import {
+  createTimeTravelStoreContext,
+  useTimeTravelControls,
+} from '@context-action/react/time-travel';
+
+const sessionBackend = createStateStore('session', { step: 1 });
+const docTimeline = createMutativeTimelineBackend('doc', { title: 'v1' }, { maxHistory: 20 });
+
+const SessionStores = createStoreContext('Session', {
+  session: { step: 0 },
+});
+const DocStores = createTimeTravelStoreContext('Doc', {
+  doc: { initialValue: { title: '' }, maxHistory: 20 },
+});
+
+export function SessionAndDocView() {
+  const directStep = useStoreValue(sessionBackend);
+  const directTimeline = useTimeTravelControls(docTimeline);
+  return (
+    <SessionStores.Provider stores={{ session: sessionBackend }} ownership="shared">
+      <DocStores.Provider stores={{ doc: docTimeline }} ownership="shared">
+        <span>
+          Step {directStep.step} (undo={String(directTimeline.canUndo)})
+        </span>
+      </DocStores.Provider>
+    </SessionStores.Provider>
+  );
+}
+```
+
+### 2.5a `createBackendStore` / `BackendStore` (`@context-action/react/backend`) — 명시적 독립 브리지
+
+선언적 `createStoreContext` Provider 밖에서 `@context-action/store-core`의 `StateBackend<T, Patch>`(`createStateStore`, `MutativeStateBackend`, 또는 커스텀 영속/동기화 백엔드)를 명시적인 `IStore` 래퍼 인스턴스로 다룰 때 사용합니다:
 
 - `ownership: 'shared'` (기본값): 래퍼가 `dispose()`되어도 원본 백엔드는 살아 있습니다.
 - `ownership: 'owned'`: 래퍼를 `dispose()`할 때 원본 백엔드도 함께 정리합니다.
@@ -175,7 +222,7 @@ export function SessionStep() {
 }
 ```
 
-### 2.6 `StoreTransactionCoordinator` & `bindActionTransactions` (`@context-action/react`) — 다중 Store 원자적 트랜잭션
+### 2.6 `StoreTransactionCoordinator` & `bindActionTransactions` (`@context-action/react/transactions`) — 다중 Store 원자적 트랜잭션
 
 하나의 논리 액션이 **2개 이상의 스토어를 함께 수정**하며 중간 상태 노출 방지, 예외 시 롤백, 단일 Undo가 필요할 때 사용합니다.
 
@@ -185,7 +232,8 @@ export function SessionStep() {
 
 <!-- @context-action-compile -->
 ```ts
-import { StoreTransactionCoordinator, createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
+import { StoreTransactionCoordinator } from '@context-action/react/transactions';
 
 const cart = createTimeTravelStore('cart', { items: [] as string[] });
 const totals = createTimeTravelStore('totals', { price: 0 });
@@ -209,9 +257,11 @@ export async function addItemWithRollback() {
 }
 ```
 
-### 2.7 `useLocalStore`, `useComputedStore`, `StoreRegistry` (`@context-action/react/advanced`)
+### 2.7 `useLocalStore`, `useStoreInstance`, `useControlledStoreSync`, `useComputedStore`, `StoreRegistry` (`@context-action/react/advanced`)
 
-- **`useLocalStore(initialValue, name?)`**: 컴포넌트 마운트 수명에 묶인 로컬 `Store`를 생성해 언마운트 시 자동 `dispose()`하며 `{ value, name, lastUpdate, store }`를 반환합니다.
+- **`useLocalStore(initialValue, name?)`**: 컴포넌트 마운트 수명에 묶인 로컬 `Store`를 생성해 **호출 컴포넌트 자체를 구독**하며 언마운트 시 자동 `dispose()`하고 `{ value, name, lastUpdate, store }`를 반환합니다.
+- **`useStoreInstance(initialValue, name?, options?)`**: **소유 컴포넌트를 구독하지 않고(리렌더 0회)** 스코프 수명 `Store` 인스턴스만 생성합니다. `createScopedContext()`나 Provider/Shell에서 생성해 하위 Leaf가 `useStorePath()` / `useStoreValue()`로 구독할 때 사용합니다.
+- **`useControlledStoreSync(store, path, controlledValue, isEqualOrOptions?)`**: 외부 제어 React prop을 피드백 루프 없이 `Store` 경로에 동기화합니다(`undefined`이면 비제어 상태 유지, `onSync`로 동일 커밋 내 파생 필드 갱신 가능).
 - **`useComputedStore(store, computeFn, config?)`**: 다른 스토어에서 파생된 계산 값을 `equalityFn`, `initialValue`, `onError`, `debounceMs` 옵션으로 메모이즈 구독합니다.
 - **`StoreRegistry`**: 문자열 키 기반으로 동적 스토어를 등록·조회·정리해야 하는 고급 시나리오에만 사용합니다.
 
@@ -270,7 +320,7 @@ export function HeadlessCartView() {
 }
 ```
 
-> 외부 프레임워크 중립 `StateBackend`(`@context-action/store-core`의 `createStateStore`, 외부 상태 라이브러리/영속 스토리지 백엔드)를 React 훅에 직접 어댑팅해야 한다면 `@context-action/react/backend`의 `createBackendStore('cart', cartBackend, { ownership: 'shared' })`를 사용하세요. 스펙, 인텐트 분리, 헤드리스 DI를 한 번에 연결하는 전체 작성 예시는 [스펙 기반 코드 작성 가이드](./spec-to-code-authoring-guide.md)를 참고하세요.
+> `@context-action/store-core`의 `createStateStore()`나 `@context-action/mutative`의 `createMutativeStateBackend()`는 `createStoreContext().Provider stores={...}`에 직접 전달해도 `StoreManager`가 내부적으로 `BackendStore` 어댑팅과 정리를 처리하며, 명시적 독립 래퍼가 필요할 때는 `@context-action/react/backend`의 `createBackendStore('cart', cartBackend, { ownership: 'shared' })`를 사용할 수 있습니다. 또한 특수 표면은 루트 `@context-action/react`와 100% 호환되는 opt-in 서브패스(`@context-action/react/refs`, `@context-action/react/time-travel`, `@context-action/react/transactions`)로도 임포트할 수 있습니다. 스펙, 인텐트 분리, 헤드리스 DI를 한 번에 연결하는 전체 작성 예시는 [스펙 기반 코드 작성 가이드](./spec-to-code-authoring-guide.md)를 참고하세요.
 
 ---
 
@@ -280,8 +330,8 @@ export function HeadlessCartView() {
 | --- | --- | --- |
 | **`useStoreValue(store, options?)`** | 스토어 값 전체 (`condition` 렌더링 게이트 지원) | 원시값 또는 대부분 필드를 함께 그리는 작은 스토어 |
 | **`useStoreSelector(store, selector, equalityFn?)`** | `equalityFn`으로 비교한 파생 슬라이스 | 중간 크기 스토어에서 단일 필드·계산값만 구독할 때 |
-| **`useStorePath(store, path, options?)`** | 패치 기반 경로 추적 (배열 경로 또는 RFC 6901 JSON Pointer) | 깊은 중첩 `PatchAwareStore`에서 다른 브랜치 변경을 무시해야 할 때 |
-| **`useStoreSelectorWithPaths(store, selector, { dependsOn, equalityFn })`** | `dependsOn` 경로가 패치로 변경된 경우에만 `selector` 재실행 | 큰 중첩 트리에서 여러 경로를 조합하는 무거운 파생 셀렉터 |
+| **`useStorePath(store, path, { select?, equalityFn? })`** | 컴파일 타임 검증 경로(`StorePathOf<T>`) 추적 + 선택적 단일 경로 `{ select }` 파생 | 깊은 중첩 `PatchAwareStore` 필드나 `selectedKey === id` 같은 단일 경로 파생 플래그를 형제 변경과 격리해 구독할 때 |
+| **`useStoreSelectorWithPaths(store, selector, { dependsOn, equalityFn })`** | 컴파일 타임 검증 `dependsOn` 경로가 패치로 변경된 경우에만 `selector` 재실행 | 큰 중첩 트리에서 2개 이상의 경로를 조합하는 파생 셀렉터 |
 
 ---
 
@@ -289,7 +339,10 @@ export function HeadlessCartView() {
 
 모든 상태를 React 반응형 `Store`에 넣을 필요는 없습니다.
 
-1. **`createRefContext` (`@context-action/react`) — 비반응형 Tier 3 상태**: DOM 엘리먼트, HTML5 Canvas, 애니메이션 타이머, 120fps 마우스 좌표처럼 React 리렌더를 유발하면 안 되는 휘발성 상태는 `createRefContext`에 둡니다.
+1. **`useRefRegistry` / `useRefCollection` / `createRefContext` (`@context-action/react/refs`) — 비반응형 Tier 3 상태**: DOM 엘리먼트, HTML5 Canvas, 애니메이션 타이머, 120fps 마우스 좌표처럼 React 리렌더를 유발하면 안 되는 휘발성 상태는 Ref 계층에 둡니다:
+   - `useRefRegistry<TRefs>()`: 고정된 이름 키를 컴포넌트·`createScopedContext` 내부에서 로컬 관리할 때 사용합니다.
+   - `useRefCollection<TTarget>()` / `createRefCollectionContext(name)`: 메뉴 아이템, 탭, 테이블 행처럼 동적 문자열 키를 다룰 때 사용합니다.
+   - `createRefContext<TRefs>()`: 고정된 이름 키를 하위 Context 트리와 공유하거나 `useRefMountState` 구독이 필요할 때 사용합니다.
 2. **`createActorStateReader` (`@context-action/xstate`) — 닫힌 상태 머신 읽기 전용 투영**: 열린 `StateStore`와 달리 XState 액터는 외부 `setValue()`가 차단됩니다. 의도는 `ActionRegister` / `SyncActionPipeline`(`bindActorToActionRegister` / `bindActorToSyncPipeline`)으로만 전달하고, UI는 `createActorStateReader(actor, { select, equals })`의 단조 증가 `version` 스냅샷만 구독합니다.
 3. **Preact & Lit 읽기 전용 어댑터**:
    - **Preact** (`@context-action/preact`): `connectSourceSignal(store)`로 외부 `ReadableSource`를 `ReadonlySignal`로 연결하거나(`StateReader`/`StoreReader` 기반 스토어는 `fromStateReader(store)`로 스냅샷 래퍼를 명시 변환 후 연결), `createSourceContext`로 전달해 `useProjection(signal, selector)`로 투영합니다.

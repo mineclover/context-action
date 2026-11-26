@@ -10,8 +10,8 @@
 
 이 문서는 저장소 내 세 가지 핵심 표면의 **원칙**, **기본 규격(스키마·분류·검증 규칙)**, 그리고 **전체 목록**을 정의합니다.
 
-1. **API 전체 구성**: 18개 워크스페이스 패키지(`packages/*`), 공개 `exports` 서브패스, 워크스페이스 의존성, 안정성 등급
-2. **예제가 설명하는 것**: `example/` 앱 내 13개 의미 그룹(77개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 5개 패키지 로컬 `examples/`, 9개 내러티브 예제 문서
+1. **API 전체 구성**: 19개 워크스페이스 패키지(`packages/*`), 공개 `exports` 서브패스, 워크스페이스 의존성, 안정성 등급
+2. **예제가 설명하는 것**: `example/` 앱 내 13개 의미 그룹(77개 정식 라우트 전체), 독립 데모 2종(`demos/bolt-style-editor`, `examples/vanilla-js`), 6개 패키지 로컬 `examples/`, 9개 내러티브 예제 문서
 3. **관리되는 문서 구조**: 9개 루트 마크다운 문서, 12개 관리 문서 영역(권한 등급·한영 쌍 정책·추적 중인 번역 공백), 파생 LLMS 번들 산출물
 
 관련 기준 문서는 [패키지 경계 및 코드베이스 관리 컨벤션](/ko/context-layered/package-boundary-convention), [스펙·이슈·문서 관리 컨벤션](/ko/context-layered/change-management-convention), [문서 및 개발 관리 컨벤션](/ko/concept/documentation-development-conventions), ADR [CA-SURFACE-CATALOG-001](/ko/context-layered/decisions/CA-SURFACE-CATALOG-001)입니다.
@@ -34,7 +34,7 @@
 
 | 계층 (`layer`) | 역할 | 사용 안정성 등급 (`stability`) |
 | --- | --- | --- |
-| `foundation` | Zero/최소 의존성 코어 계약 및 엔진 (`core`, `store-core`, `mutative-core`, `tool-protocol`, `tool-durable-operations`) | `stable`, `public-preview` |
+| `foundation` | Zero/최소 의존성 코어 계약 및 엔진 (`core`, `interactions`, `store-core`, `mutative-core`, `tool-protocol`, `tool-durable-operations`) | `stable`, `public-preview` |
 | `framework-adapter` | 프레임워크 바인딩 (`react`, `mutative`, `lit`, `preact`) | `stable`, `public-preview` |
 | `ui-runtime` | DOM 루트 소유권, 웹 컴포넌트, FACE, SSR/하이드레이션 (`lit-ui`, `preact-ui`) | `public-preview` |
 | `integration-adapter` | 외부 프로토콜·런타임 어댑터 (`ai-sdk`, `webmcp`, `xstate`) | `public-preview` |
@@ -69,18 +69,19 @@
 
 ---
 
-## 3. 표면 1: 레포지토리 API 전체 구성 (18개 패키지)
+## 3. 표면 1: 레포지토리 API 전체 구성 (19개 패키지)
 
-`packages/*/package.json` 기준 전체 18개 워크스페이스 패키지 목록입니다 (`package.json`이 없는 로컬 잔여 디렉터리는 제외).
+`packages/*/package.json` 기준 전체 19개 워크스페이스 패키지 목록입니다 (`package.json`이 없는 로컬 잔여 디렉터리는 제외).
 
 | 패키지 | 계층 | 공개성 / 안정성 | 공개 `exports` | 워크스페이스 의존성 (+Peer) | 권위 참조 문서 |
 | --- | --- | --- | --- | --- | --- |
 | `@context-action/core` (`1.3.1`) | `foundation` | `public` / `stable` | `.`, `./element`, `./element/react` | 없음 | `packages/core/README.md`, `action-contracts.md`, `element-interop.md` |
+| `@context-action/interactions` (`0.1.0`) | `foundation` | `public` / `public-preview` | `.` | 없음 | `packages/interactions/README.md` |
 | `@context-action/store-core` (`0.1.4`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/store-core/README.md`, `store-selection-and-usage-guide.md` |
 | `@context-action/mutative-core` (`0.8.14`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/mutative-core/README.md`, `mutative-core-history.md` |
 | `@context-action/tool-protocol` (`1.0.2`) | `foundation` | `public` / `stable` | `.` | 없음 | `packages/tool-protocol/README.md`, `tool-calling-editor-architecture.md` |
 | `@context-action/tool-durable-operations` (`0.2.0`) | `foundation` | `public` / `public-preview` | `.` | 없음 | `packages/tool-durable-operations/README.md`, `durable-operation-operations.md` |
-| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
+| `@context-action/react` (`4.0.7`) | `framework-adapter` | `public` / `stable` | `.`, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, `./webmcp` | `core`, `interactions`, `mutative`, `store-core` (+peer: `tool-protocol`, `webmcp`) | `packages/react/README.md`, `state-contracts.md`, `hooks-reference.md` |
 | `@context-action/mutative` (`0.8.15`) | `framework-adapter` | `public` / `stable` | `.` | `mutative-core`, `store-core` | `packages/mutative/README.md`, `time-travel-specialization.md` |
 | `@context-action/lit` (`0.1.4`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/lit/README.md`, `01-controller-scope.md` |
 | `@context-action/preact` (`0.1.3`) | `framework-adapter` | `public` / `public-preview` | `.` | `core` | `packages/preact/README.md`, `spec-to-code-authoring-guide.md` |
@@ -99,8 +100,8 @@
 
 ### 3.1 계층별 패키지 용도 요약
 
-- **Foundation (`5`)**: `core`(액션 파이프라인 + 선택적 `./element` DOM/호스트 전송), `store-core`(프레임워크 중립 상태/타임라인/트랜잭션 계약 + `createStateStore`), `mutative-core`(`mutative@2.0.2` 호환 불변 draft·patch 엔진), `tool-protocol`(Zod/JSON Schema 도구, MCP/프로바이더 어댑터, 승인 큐, 멱등성, 관측 정책), `tool-durable-operations`(lease/claim 부작용 복구 + IndexedDB/Redis/PostgreSQL 기준 백엔드).
-- **Framework Adapters (`4`)**: `react`(React 18/19 Action/Store/TimeTravel/Ref 컨텍스트, 훅, 트랜잭션, `./backend`, `./advanced`, `./webmcp`), `mutative`(`TimeTravel` + `MutativeStateBackend`/`MutativeTimelineBackend`), `lit`(`StoreController`, `ActionController`, `ControllerScope`), `preact`(`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`).
+- **Foundation (`6`)**: `core`(액션 파이프라인, 0ms `createSyncActionPipeline` + 선택적 `./element` DOM/호스트 전송), `interactions`(Zero-dependency 헤드리스 ARIA roving focus/typeahead, 포인터 제스처, LIFO dismiss layer), `store-core`(프레임워크 중립 상태/타임라인/트랜잭션 계약 + `createStateStore`), `mutative-core`(`mutative@2.0.2` 호환 불변 draft·patch 엔진), `tool-protocol`(Zod/JSON Schema 도구, MCP/프로바이더 어댑터, 승인 큐, 멱등성, 관측 정책), `tool-durable-operations`(lease/claim 부작용 복구 + IndexedDB/Redis/PostgreSQL 기준 백엔드).
+- **Framework Adapters (`4`)**: `react`(React 18/19 Action/Store/TimeTravel/Ref 컨텍스트, 훅, 트랜잭션, `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./webmcp`), `mutative`(`TimeTravel` + `MutativeStateBackend`/`MutativeTimelineBackend`), `lit`(`StoreController`, `ActionController`, `ControllerScope`), `preact`(`createDispatchContext`, `connectSourceSignal`, `createSourceContext`, `useProjection`).
 - **UI Runtimes (`2`)**: `lit-ui`(Lit 웹 컴포넌트, W3C Context Protocol, FACE, `./react-bridge`, `./ssr`, `./hydrate`), `preact-ui`(소유된 Preact DOM 루트, `mountPreact`/`hydratePreact`, `createDisposalScope`, `./react-bridge`, `./ssr`).
 - **Integration Adapters (`3`)**: `xstate`(`.`의 XState v5/v6 액터 브리지 + `./effect`의 Effect v4 / `@xstate/effect` / Standard Schema v1 / 트랜잭션 스코프), `ai-sdk`(AI SDK v7 턴 범위 `ToolSet` 어댑터), `webmcp`(allowlist 기반 `document.modelContext` 브라우저 어댑터).
 - **Tooling (`1`)**: `style-testing`(비공개 Playwright 스타일 추출 및 Babel 플러그인).
@@ -132,13 +133,14 @@
 | `ex-app-integrations` | `/integrations/action-lifecycle`, `react-aria-reference`, `preact-web-components`, `lit-web-components`, `xstate-statechart`, `webmcp-scope`, `ai-sdk-tools`, `business/chat`, `advanced/form-builder`, `advanced/concurrent-actions` (**10**) | Action Lifecycle Workbench, React Aria 계층형 하이드레이션, Preact/Lit 웹 컴포넌트 브리지, XState/Effect, WebMCP, AI SDK v7 도구 스코프, 실시간 채팅, 동적 폼 빌더, 동시성 격리 | `ActionRegister`, `@context-action/core/element`, `preact-ui/react-bridge`, `lit-ui/react-bridge`, `@context-action/xstate`, `@context-action/webmcp`, `@context-action/ai-sdk` | `pnpm verify:react-aria-reference-hydration && pnpm verify:element-interop && pnpm --filter example test` |
 | `ex-app-utilities` | `/utilities/dev-tools/{logger,toast-config,warning-demo,store-scenarios}`, `source-directory`, `testing/enhanced-search` (**6**) | LogMonitor 트레이싱, 토스트 설정, 경고 진단, 스토어 비교 벤치마크, 소스 링크 디렉터리, 취소형 검색 테스트 하네스 | `ActionRegister`, `createStoreContext`, `createActionContext` | `pnpm --filter example check && pnpm --filter example build` |
 
-### 4.2 독립 데모 (2종) 및 패키지 로컬 예제 (5종)
+### 4.2 독립 데모 (2종) 및 패키지 로컬 예제 (6종)
 
 | 구분 | 경로 | 상태 | 설명하는 내용 | 검증 게이트 |
 | --- | --- | --- | --- | --- |
 | 독립 데모 | `demos/bolt-style-editor` | `verified` | Tool-Calling Web Studio (`tool-protocol`, `tool-durable-operations`, `live-code-editor`, IndexedDB, 승인 큐, 제한된 트레이스, iframe 미리보기) | `pnpm web-coding:verify` |
 | 독립 데모 | `examples/vanilla-js` | `reference` | React나 번들러 없이 `@context-action/core` + `@context-action/store-core`를 사용하는 순수 HTML/JS 카운터·XSS-safe Todo 예제 | `pnpm build:core && pnpm --filter @context-action/store-core build` |
 | 패키지 예제 | `packages/core/examples` | `verified` | 코어 `ActionRegister` 데모 및 `./element` 기반 Vue·Svelte·Angular 호스트 복사형 예제 | `pnpm verify:element-hosts && pnpm verify:element-interop` |
+| 패키지 예제 | `packages/interactions/examples` | `verified` | `@context-action/interactions`와 `ActionRegister`를 결합한 캔버스 화이트보드(포인터 제스처) 및 커맨드 툴바(roving focus) 데모 | `pnpm --filter @context-action/interactions test` |
 | 패키지 예제 | `packages/lit-ui/examples` | `verified` | DSD SSR 하이드레이션 검증 하네스 및 ElementInternals FACE 예외 진단 플레이그라운드 | `pnpm --filter @context-action/lit-ui test:browser` |
 | 패키지 예제 | `packages/preact-ui/examples` | `verified` | Projected Order 6계층 워크스페이스, Layer Panel 계약 재사용, 모듈형 Signals 웹 컴포넌트, SSR | `pnpm --filter @context-action/preact-ui test:browser` |
 | 패키지 예제 | `packages/react/examples` | `verified` | 패키지 수준 훅, RefContext(`GameUI`/`SimpleForm`), 선언적/통합 Store 패턴 예제 | `pnpm --filter @context-action/react exec tsc --noEmit -p tsconfig.examples.json && pnpm --filter @context-action/react test` |

@@ -5,11 +5,8 @@
  * instead of Context Store pattern for direct DOM manipulation and performance optimization.
  */
 
-import {
-  createRefContext,
-  createStoreContext,
-  useStoreValue,
-} from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 

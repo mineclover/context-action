@@ -1,4 +1,5 @@
-import { createTimeTravelStore, StoreTransactionCoordinator } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
+import { StoreTransactionCoordinator } from '@context-action/react/transactions';
 import type { TransactionBatchControl } from '@context-action/react/backend';
 
 function fixture(name: string) {

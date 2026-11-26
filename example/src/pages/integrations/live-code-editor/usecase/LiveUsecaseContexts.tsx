@@ -55,6 +55,6 @@ export const {
 export const {
   Provider: LiveUsecaseActionProvider,
   useActionDispatch: useLiveUsecaseDispatch,
-  useActionDispatchWithResult: useLiveUsecaseDispatchWithResult,
+  useActionScope: useLiveUsecaseDispatchWithResult,
   useActionHandler: useLiveUsecaseActionHandler,
 } = createActionContext<LiveUsecaseActions>('LiveCodeEditorUsecaseActions');

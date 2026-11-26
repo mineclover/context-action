@@ -9,12 +9,12 @@ which are not reachable from the default runtime or declaration graph.
 
 | Category | Contract | Owner |
 |---|---|---|
-| Registration | action key, handler role, priority, lifecycle | `ActionRegister` |
-| Admission | guard, abort, payload validation, timeout | `ActionGuard` / pipeline controller |
-| Execution | sequential, parallel, race, scheduling | execution modes |
-| Results | typed result collection and error policy | result handlers / `dispatchWithResult` |
-| Observation | success/failure/always observers | observer handlers |
-| Lifecycle | closing, destroyed, active dispatch cleanup | `ActionRegister` |
+| Registration | action key, handler role (`guard`/`command`/`result`/`observer`/`legacy`), priority, compiled pipeline cache (`CompiledActionPipeline`) | `ActionRegister` |
+| Admission | guard, abort, payload normalization/validation, timeout, debounce/throttle | `ActionGuard` / `ActionRegister` |
+| Execution | 2-tier fast sequential dispatch (`dispatchFastSequential`), plus general sequential, parallel, and race orchestration | `ActionRegister` / `execution-modes` |
+| Results | typed result collection (`result`/`legacy`), aggregation strategies, and `errorPolicy` | result handlers / `dispatchWithResult` |
+| Observation | immutable terminal `ActionObserverEvent` (`success`/`failure`/`always`) and `subscribeDispatchTrace` | observer handlers / `ActionRegister` |
+| Lifecycle | closing, destroyed, active dispatch & handler promise draining, deferred cleanup | `ActionRegister` |
 | State commit | snapshot, store mutation, undo/redo | `@context-action/react` store layer |
 
 Handlers should express intent and domain work. A handler may call a Store
@@ -52,12 +52,15 @@ register.register('outer', async () => {
 });
 ```
 
-Without `immediate: true`, the nested dispatch waits behind the outer handler
+Without `immediate: true` (or a contract-level `actions: { inner: { queue: 'immediate' } }`
+policy on `ActionRegister`), the nested dispatch waits behind the outer handler
 while the outer handler waits for the nested promise, so the two operations
-cannot settle. `queuePriority` only orders work that is already waiting; it
-does not make an awaited nested dispatch re-entrant. Use an explicit immediate
-dispatch for nested orchestration, or dispatch the follow-up after the outer
-action has settled.
+cannot settle. Explicit call-site `DispatchOptions.immediate` / `timeout` take
+precedence over contract-level `actions[key]` defaults when supplied. `queuePriority`
+only orders work that is already waiting; it does not make an awaited nested
+dispatch re-entrant. Use a contract-level `queue: 'immediate'` policy or an
+explicit immediate dispatch for nested orchestration, or dispatch the follow-up
+after the outer action has settled.
 
 ## Maintenance rule
 
@@ -69,10 +72,54 @@ React store contracts and must not be hidden as ActionRegister refactors.
 
 ## Dispatch trace bridge
 
-`subscribeDispatchTrace()` emits exactly one `started` and one `settled` event
-per public dispatch. The event carries a stable `dispatchId`, action name,
-terminal status, timing, and optional trace metadata from `DispatchOptions.trace`.
-Core does not create or mutate Store transactions. The React adapter can bind
-these events to explicit Store participants with `bindActionTransactions()`.
+`subscribeDispatchTrace(listener, options?)` emits `started` and `settled` events
+per traced dispatch (excluding `trace: false` / `lane: 'fast'` actions, or limited
+to `options.actions` when scoped). The event carries a stable `dispatchId`, action
+name, terminal status, timing, and optional trace metadata from `DispatchOptions.trace`.
+Core does not create or mutate Store transactions. Both React (`bindActionTransactions()`)
+and XState (`bindActionDispatchTransactions()`) can pass `actions: [...]` to bind
+transactions only to intended business actions without turning off the fast path for
+sibling fast-lane actions.
 This keeps the dependency direction `core → trace contract ← store adapter` and
 prevents Core from importing React or Store classes.
+
+## 2-Tier dispatch execution and parity invariant
+
+`ActionRegister` maintains a per-action `CompiledActionPipeline` cache built lazily
+on first dispatch and invalidated whenever handlers are registered, replaced,
+removed, or cleared (`_performRegistrationSync`, `removeRegistration`,
+`clearAction`, `clearAll`).
+
+Actions may also declare an explicit contract lane via `ActionRegisterConfig.actions[key].lane`:
+- `lane: 'fast'` fails closed on construction/registration if combined with
+  `queue: 'serial'`, default `timeout`, `trace: true`, dispatch `schema`, `guard`/`observer`
+  handlers, `once`, `debounce`/`throttle`, or non-`'sequential'` execution mode.
+- `lane: 'orchestrated'` opts explicitly into the full orchestration path (`_dispatchWithResult()`).
+
+When an active `dispatch()` call has:
+- `policy?.lane !== 'orchestrated'`
+- `!hasTraceListenersForAction(actionKey)` (no active global/matching scoped trace listener for a traceable action)
+- `options === undefined` or `immediate: true`-only options (including `actions[key].queue: 'immediate'` / `lane: 'fast'` without a timeout)
+- queueing disabled for the action (or bypassed via `immediate: true`)
+- no schema validation configured for the action
+- zero guards, zero observers, no timing guards (`debounce`/`throttle`), and no `once` handlers
+- `sequential` execution mode
+
+it executes directly via the zero-allocation sequential fast path
+(`dispatchFastSequential` / `continueFastSequentialAsync`), transitioning cleanly
+to asynchronous continuation only if a handler returns a promise-like value.
+
+Every fast-path optimization MUST remain observationally indistinguishable from
+the canonical `_dispatchWithResult()` orchestration path with respect to:
+- **Cooperative cancellation**: `state.aborted || lifecycleSignal.aborted` settles as
+  cancelled (resolving `dispatch()` cleanly without invoking `errorHandler`), even if a
+  cooperative handler throws or rejects (`AbortError`, etc.), while still draining any
+  started `start-and-continue` promises.
+- **Error normalization & original payload delivery**: thrown non-`Error` values from
+  `condition` or handlers are normalized into `Error` instances, and global `errorHandler`
+  receives the original dispatch `payload` rather than an intermediate mutated payload.
+- **Role-scoped controller surfaces**: `createRoleController()` constructs exact
+  own-property surfaces per role (`guard`, `command`, `result`, `legacy`) identically on
+  both paths.
+- **Thenable safety**: inspecting `.then` on a handler return value executes inside the
+  handler's `errorPolicy` boundary so throwing `.then` getters cannot escape synchronously.

@@ -56,4 +56,50 @@ describe('bindActionTransactions', () => {
     store.dispose();
     await register.destroyAsync();
   });
+
+  it('scopes transaction bridging via options.actions while preserving fast-lane siblings and failing closed on lane: "fast"', async () => {
+    const register = new ActionRegister<{ save: { value: number }; metric: { count: number } }>({
+      name: 'ScopedBridgeTest',
+      actions: {
+        save: { lane: 'orchestrated' },
+        metric: { lane: 'fast' },
+      },
+    });
+    const store = createTimeTravelStore('scoped', { value: 0 });
+    const coordinator = new StoreTransactionCoordinator();
+    let seenMetric = 0;
+
+    register.register('save', payload => {
+      store.update(draft => { draft.value = payload.value; });
+    });
+    register.registerCommand('metric', payload => {
+      seenMetric += payload.count;
+    });
+
+    const getParticipantsMock = jest.fn(() => [{ name: 'scoped', store }]);
+    const unbind = bindActionTransactions(register, coordinator, {
+      actions: ['save'],
+      getParticipants: getParticipantsMock,
+    });
+
+    await register.dispatch('metric', { count: 5 });
+    expect(seenMetric).toBe(5);
+    expect(getParticipantsMock).not.toHaveBeenCalled();
+
+    await register.dispatch('save', { value: 42 }, { trace: { origin: 'user', label: 'ScopedSave' } });
+    expect(store.getValue()).toEqual({ value: 42 });
+    expect(getParticipantsMock).toHaveBeenCalledTimes(1);
+    expect(coordinator.getHistory()[0]?.meta.label).toBe('ScopedSave');
+
+    expect(() =>
+      bindActionTransactions(register, coordinator, {
+        actions: ['metric'],
+        getParticipants: () => [{ name: 'scoped', store }],
+      }),
+    ).toThrow(TypeError);
+
+    unbind();
+    store.dispose();
+    await register.destroyAsync();
+  });
 });

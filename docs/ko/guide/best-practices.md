@@ -1,843 +1,391 @@
-# 모범 사례
+# 모범 사례 (Best Practices)
 
-Context-Action 프레임워크를 사용할 때 따라야 할 컨벤션과 모범 사례입니다.
+유지보수 가능한 **Context-Action** 애플리케이션을 설계하기 위한 팀 컨벤션, 런타임 안전 가드레일, 단계별 적정 구현(Right-Sized Adoption) 예제 모음입니다.
 
-## 🧭 빠른 팀 요약
+> 전체 6-Layer 거버넌스 규격이나 스토어 프리미티브 선택 기준은 [아키텍처 컨벤션](../concept/conventions.md), [컨벤션 인덱스](../context-layered/convention-index.md), [스토어 선택 및 사용 가이드](../context-layered/store-selection-and-usage-guide.md)를 함께 참고하세요.
 
-팀에서 “이 프레임워크를 권장 방식대로 어떻게 개발해야 하는가”만 빠르게 맞추고 싶다면 아래 규칙부터 공유하면 됩니다.
+---
 
-1. `contexts`에서 액션/스토어/리프 컨텍스트 경계를 먼저 정의합니다.
-2. 비즈니스 규칙과 계산은 `business` 또는 순수 함수로 분리합니다.
-3. 최신 store 값 읽기, side effect, API 호출은 `handlers`가 담당합니다.
-4. `actions`는 view에서 직접 dispatch 문자열을 쓰지 않도록 helper를 제공합니다.
-5. `hooks`는 `useStoreValue()` 중심으로 구독과 파생 값을 노출합니다.
-6. `views`는 렌더링과 사용자 입력 전달만 담당하고 business logic을 넣지 않습니다.
-7. action handler에서는 컴포넌트 스코프 값을 쓰지 말고 항상 `store.getValue()`로 최신 값을 읽습니다.
-8. handler는 `useCallback`으로 안정화하고, 에러 처리는 `try/catch` 또는 `controller.abort()`로 명시합니다.
-9. DOM 이벤트 객체나 무거운 참조 객체는 store에 그대로 저장하지 않습니다.
-10. 새 기능을 추가할 때는 “문서 → 예제 → 테스트” 순서로 최소 검증 루프를 남깁니다.
+## ⚡ 빠른 팀 요약
 
-### 바로 연결되는 문서
+팀에서 “Context-Action을 권장 방식대로 어떻게 개발해야 하는가”를 빠르게 맞출 때 아래 6가지 규칙부터 공유하면 됩니다:
 
-- 전체 규칙 원문: [컨벤션](../concept/conventions.md)
-- 권장 레이어 구조: [Context-Layered 개요](../context-layered/context-layered-guide.md)
-- 실제 구현 예제: [Canonical Order Form 예제](../examples/canonical-order-form.md)
-- 안정성 관점 테스트: [안정성 테스트 사이클](../context-layered/stability-test-cycle.md)
+1. **UI보다 경계를 먼저 정의합니다**: 뷰 컴포넌트를 작성하기 전에 타입이 선언된 `actions/` + `contexts/` 계약과 순수 도메인 헬퍼(`business/`)를 먼저 세웁니다.
+2. **핸들러에서는 지연 조회(`store.getValue()`), 뷰에서만 구독합니다**: `handlers/` 내부에서는 항상 `store.getValue()`를 호출하고, `useStoreValue`, `useStoreSelector`, `useStorePath`는 절대 사용하지 않습니다.
+3. **`actions/`는 dispatch 전용으로 유지하고 반환값은 명시적으로 받습니다**: `actions/` 훅은 `dispatch` / `dispatchWithResult` 호출만 감쌉니다. 핸들러 반환값이나 중단 사유(`abortReason`)가 필요하면 반드시 `dispatchWithResult()`를 사용하세요 (`dispatch()`는 `Promise<void>`를 반환합니다).
+4. **취소·리셋·실시간 텔레메트리 액션은 `{ immediate: true }`로 직렬 큐를 우회합니다**: `createActionContext`는 기본으로 `useConcurrencyQueue: true`를 사용하므로, 비동기 핸들러 실행 중 호출되는 취소/리셋/스텝 기록 액션에는 `{ immediate: true }`를 넘겨 교착을 방지합니다.
+5. **Store 업데이트는 항상 불변(Immutable)으로 수행합니다**: `store.update(...)` 콜백 내부에서 기존 `Map`, `Set`, 배열을 직접 변경하지 말고 얕은 복제(`new Map(prev.map)`, `[...prev.items]`) 후 새 루트 객체를 반환합니다.
+6. **단순한 화면에 과도한 6계층을 강제하지 않습니다**: 기능 복잡도에 맞춰 **Level 1(Lite)**, **Level 2(Headless-First Symmetric DI)**, **Level 3(Full 6-Layer)** 중 적정 수준을 선택합니다.
 
-### 이 문서를 언제 읽으면 좋은가
+---
 
-- 팀 온보딩 직후 공통 규칙을 맞출 때
-- PR 리뷰 기준을 짧게 합의할 때
-- 새 기능을 어떤 레이어에 넣어야 할지 빠르게 판단할 때
+## 적정 구현(Right-Sized Adoption) 의사결정 매트릭스
 
-## 🔧 보안 및 성능 가이드라인
+소유권이 명확하고 테스트가 빠르면서도 불필요한 보일러플레이트가 없는 가장 가벼운 구조를 선택하세요:
 
-### 이벤트 객체 처리
-DOM 이벤트 객체를 스토어에 저장하지 마세요. 메모리 누수를 유발할 수 있습니다:
+| 단계 | 적합한 상황 | 구성 모듈 / 프리미티브 | 검증 초점 | 과잉 설계를 피해야 할 때 |
+|---|---|---|---|---|
+| **로컬 React 상태** | 단일 컴포넌트 hover, 아코디언 토글, 임시 입력 UI 플래그 | React `useState` / `useReducer` | 컴포넌트 단위 테스트 | 단순 드롭다운이나 탭 토글 하나 때문에 Action/Store를 만들지 마세요 |
+| **Level 1 · Lite** | 단일 도메인 위젯, 쿠폰/계산기, 간단한 폼 검증 및 파생 상태 | `createActionContext` 1개, `createStoreContext` 1개, `Registry` 컴포넌트 + `View` | React Testing Library 동작 테스트 | 도메인 로직이나 다중 패널 조율이 커지기 전까지 6개 폴더로 쪼개지 마세요 |
+| **Level 2 · Headless-First Symmetric DI** | React 마운트와 무관하게 실행돼야 하는 공유 엔진, SSR/Worker, 언마운트 후에도 유지되는 작업 공간 상태 | 순수 TS `ActionRegister` + `createStore`, `registerGuard/Result/Observer`, React `Provider ownership="shared"` | 순수 Node/Vitest/Jest 엔진 테스트 + 얇은 React 마운트/언마운트 DI 테스트 | 단일 응집 엔진 API로 충분하면 6계층 라우트 폴더를 강제하지 마세요 |
+| **Level 3 · Full 6-Layer** | 다중 관심사가 얽힌 제품 피처, 비동기 워크플로우, 비즈니스/레이아웃 인텐트 분리, 팀 공동 소유 라우트 | `contexts / business / handlers / actions / hooks / views` + `BusinessActionIntent` vs `LayoutActionIntent` | `pnpm convention:check`, 순수 `business/` 단위 테스트, 통합 플로우 테스트 | 작은 팝오버나 단일 위젯에는 과합니다 |
 
-```tsx
-// ❌ 잘못된 방법: 메모리 누수 유발
-function BadHandler() {
-  useActionHandler('handleClick', async (event) => {
-    // 오류가 발생하고 저장이 차단됩니다
-    store.setValue({ clickEvent: event }); 
-  });
-}
+---
 
-// ✅ 올바른 방법: 필요한 데이터만 추출
-function GoodHandler() {
-  useActionHandler('handleClick', async (event) => {
-    const clickData = {
-      clientX: event.clientX,
-      clientY: event.clientY,
-      target: event.target?.tagName,
-      timestamp: Date.now()
-    };
-    store.setValue({ clickData });
-  });
-}
-```
+## CI 강제 규칙 vs 권장 설계 가이드
 
-### 메모리 관리
-프레임워크가 메모리 집약적 객체를 자동으로 처리합니다:
+Context-Action은 스크립트가 자동으로 차단하는 규칙(`pnpm convention:check`, `pnpm verify:surface-catalog`, `pnpm package-boundary:check`)과 코드 리뷰로 관리하는 설계 원칙을 명확히 구분합니다.
 
-```tsx
-// EventBus가 자동으로 메모리 누수를 방지하는 방법:
-// 1. DOM 요소 및 React 컴포넌트 감지
-// 2. 전체 객체 대신 필수 메타데이터만 저장
-// 3. 문제가 될 수 있는 참조 자동 정리
-```
+### CI에서 자동 강제되는 규칙 (`pnpm convention:check` 및 경계 게이트)
 
-### 오류 처리
-중앙화된 오류 처리 시스템을 사용하세요:
+1. **핸들러 내 스토어 구독 금지 (`no-store-subscription-in-handlers`)**: `handlers/**` 내부에서 직접 호출되거나 별칭으로 import된 `useStoreValue`, `useStoreSelector`, `useStorePath`를 정적 분석으로 차단합니다. 콜백 내부에서 `store.getValue()`를 호출하세요.
+2. **핸들러에서 `actions/` import 금지 (`no-actions-import-in-handlers`)**: 핸들러가 React 액션 디스패치 래퍼에 결합되지 않도록 차단합니다. UI 콜백 주입이나 순수 `business/` 헬퍼를 사용하세요.
+3. **인텐트 페이로드 분리 (`no-mixed-intent-payloads`)**: `BusinessActionIntent`(검증, API 제출, 상태 전이)와 `LayoutActionIntent`(포커스 이동, 스크롤, 뷰포트 레이아웃)를 한 액션 맵에 섞지 않습니다.
+4. **dispatch 전용 `actions/` 훅 (`actions-dispatch-only`)**: `actions/` 모듈은 `useCallback`으로 감싼 `dispatch` / `dispatchWithResult` 래퍼만 노출하며, 도메인 분기나 스토어 구독을 포함하지 않습니다.
+5. **Store 내 원시 DOM 객체·이벤트 저장 금지**: 반응형 Store에는 직렬화 가능한 도메인 상태만 담고, DOM 엘리먼트(`HTMLInputElement`, 스크롤 컨테이너 등)는 `RefContext`로 분리합니다.
+6. **단일 상태 소유자(Single-Source Owner)**: 동일한 가변 도메인 필드를 여러 Store나 React `useState`에 중복 미러링하지 않습니다.
+7. **정규 패키지 경계 준수**: 워크스페이스 소비자는 `pnpm package-boundary:check`가 검증하는 공개 엔트리포인트와 서브패스만 import합니다.
+
+### 리뷰 기반 권장(Advisory) 원칙
+
+- **엄격한 6-Layer 디렉터리 분리 (`Level 3`)**: 규모가 큰 멀티 개발자 피처에 권장되며, Level 1/2 소규모 위젯에는 강제하지 않습니다.
+- **Observer `{ when: 'always' }`**: 검증 실패, 중단(`cancelled`) 이력, 감사 로그를 빠짐없이 남겨야 할 때 권장됩니다.
+- **큐 선점(`{ immediate: true }`)**: 실행 중인 비동기 핸들러를 취소하거나 실시간 진행 스텝을 발행하는 액션 여부에 따라 설계자가 결정합니다.
+
+---
+
+## 실전 Do / Don't 체크리스트
+
+### 1. 핸들러에서는 항상 `store.getValue()`로 지연 조회하세요
+
+핸들러 레지스트리에서 Store를 구독하면 상태가 바뀔 때마다 핸들러가 재등록되고 오래된 클로저(Stale Closure) 버그가 발생합니다.
 
 ```tsx
-// 프레임워크가 제공하는 ErrorHandlers:
-// - 스토어 작업 오류
-// - 이벤트 핸들러 실패
-// - Ref 마운트 콜백 오류  
-// - 적절한 컨텍스트가 포함된 비동기 작업 실패
+// ❌ Don't: draft 변경마다 핸들러 레지스트리가 재구독·재등록됨
+const draft = useStoreValue(draftStore);
+useActionCommandHandler('submitOrder', useCallback(async () => {
+  await submit(draft);
+}, [draft]));
+
+// ✅ Do: 핸들러 실행 시점에 최신 스냅샷을 지연 조회
+useActionCommandHandler('submitOrder', useCallback(async () => {
+  const latestDraft = draftStore.getValue();
+  await submit(latestDraft);
+}, [draftStore]));
 ```
 
-## 네이밍 컨벤션
+### 2. `dispatch()`와 `dispatchWithResult()`를 목적에 맞게 구분하세요
 
-### 도메인 기반 리네이밍 패턴
+`dispatch()`는 `Promise<void>`를 반환합니다. 핸들러가 `controller.return(value)`로 반환한 결과나 `controller.abort(reason)` 정보를 호출자가 받아야 한다면 반드시 `dispatchWithResult()`를 사용해야 합니다.
 
-핵심 컨벤션은 명확한 컨텍스트 분리를 위한 **도메인별 리네이밍**입니다.
+- **`dispatch(action, payload)`**: 결과가 Store 업데이트로만 흘러가는 fire-and-forget UI 명령에 사용합니다.
+- **`dispatchWithResult(action, payload)`**: 캐시 히트 여부, 다단계 폴백 결과, 중단 사유(`execution.outcome`, `execution.result`, `execution.abortReason`)를 호출자가 직접 다룰 때 사용합니다.
 
-#### 스토어 패턴 리네이밍
+### 3. 직렬 큐 교착을 막기 위해 `{ immediate: true }`를 활용하세요
+
+`createActionContext`는 기본적으로 `useConcurrencyQueue: true`가 활성화되어 동일 컨텍스트의 액션을 순서대로 실행합니다. 아래 두 경우는 반드시 `{ immediate: true }`를 지정하세요:
+
+1. **취소·리셋·재시도 액션**: 느린 비동기 `submitOrder` 실행 도중 사용자가 누르는 초기화/취소 버튼 (`{ immediate: true }`가 없으면 앞선 제출이 끝날 때까지 영원히 대기합니다).
+2. **실행 중 핸들러 내부에서 발행하는 실시간 텔레메트리/스텝 기록 액션**: 부모 액션이 끝나기 전에 UI 진행 표시와 로그를 즉시 반영해야 할 때 필요합니다.
+
 ```tsx
-// ✅ 권장: 도메인별 리네이밍
-const {
-  Provider: UserStoreProvider,
-  useStore: useUserStore,
-  useStoreManager: useUserStoreManager
-} = createStoreContext('User', {...});
-
-// ❌ 지양: 직접 객체 접근
-const UserStores = createStoreContext('User', {...});
-const userStore = UserStores.useStore('profile'); // 도메인이 불분명
+const resetDraft = useCallback(
+  () => businessDispatch('resetDraft', undefined, { immediate: true }),
+  [businessDispatch]
+);
 ```
 
-#### 액션 패턴 리네이밍
-```tsx
-// ✅ 권장: 명시적 타입을 가진 도메인별 리네이밍
-const {
-  Provider: UserActionProvider,
-  useActionDispatch: useUserAction,
-  useActionHandler: useUserActionHandler
-} = createActionContext<UserActions>('UserActions');
+### 4. `store.update(...)`에서 `Map` · `Set` · 배열을 불변으로 복제하세요
 
-// ❌ 지양: 제네릭 이름
-const {
-  Provider,
-  useActionDispatch,
-  useActionHandler
-} = createActionContext<UserActions>('UserActions');
-```
+`Store`는 `Object.is` 참조 비교로 구독자 알림을 결정합니다. 기존 `Map`이나 배열을 제자리(in-place)에서 수정한 뒤 같은 참조를 반환하면 UI가 갱신되지 않습니다.
 
-### 컨텍스트 네이밍 규칙
+```ts
+// ❌ Don't: 기존 Map 인스턴스를 직접 변형하여 참조가 동일함
+cacheStore.update((prev) => {
+  prev.entries.set(key, entry);
+  return prev;
+});
 
-#### 도메인 기반 네이밍
-```tsx
-// ✅ 권장: 명확한 도메인 구분
-'UserProfile'     // 사용자 프로필 관련
-'ShoppingCart'    // 쇼핑카트 관련  
-'ProductCatalog'  // 상품 카탈로그 관련
-'OrderManagement' // 주문 관리 관련
-'AuthSystem'      // 인증 시스템 관련
-
-// ❌ 지양: 모호한 이름
-'Data'           // 너무 포괄적
-'State'          // 구체적이지 않음
-'App'            // 범위가 불분명 (루트 레벨에서만 사용)
-'Manager'        // 역할이 불분명
-```
-
-#### 액션 vs 스토어 구분
-```tsx
-// 액션 컨텍스트 (행동/이벤트 중심)
-'UserActions'         // 사용자 액션
-'PaymentActions'      // 결제 액션
-'NavigationActions'   // 내비게이션 액션
-
-// 스토어 컨텍스트 (데이터/상태 중심)  
-'UserData'           // 사용자 데이터
-'PaymentData'        // 결제 데이터
-'AppSettings'        // 애플리케이션 설정
-```
-
-## 파일 구조
-
-### 권장 디렉토리 구조
-```
-src/
-├── contexts/
-│   ├── user/
-│   │   ├── UserActions.tsx     # 액션 컨텍스트
-│   │   ├── UserStores.tsx      # 스토어 컨텍스트
-│   │   └── types.ts            # 사용자 관련 타입
-│   ├── payment/
-│   │   ├── PaymentActions.tsx
-│   │   ├── PaymentStores.tsx
-│   │   └── types.ts
-│   └── index.ts                # 모든 컨텍스트 내보내기
-├── components/
-├── pages/
-└── utils/
-```
-
-### 컨텍스트 파일 구성
-```tsx
-// contexts/user/UserActions.tsx
-import { createActionContext } from '@context-action/react';
-import type { UserActions } from './types';
-
-export const {
-  Provider: UserActionProvider,
-  useActionDispatch: useUserAction,
-  useActionHandler: useUserActionHandler
-} = createActionContext<UserActions>('UserActions');
-
-// contexts/user/UserStores.tsx
-import { createStoreContext } from '@context-action/react';
-import type { UserStoreConfig } from './types';
-
-export const {
-  Provider: UserStoreProvider,
-  useStore: useUserStore,
-  useStoreManager: useUserStoreManager
-} = createStoreContext('User', userStoreConfig);
-```
-
-## 패턴 사용법
-
-### 액션 패턴 모범 사례
-
-#### 핸들러 등록
-```tsx
-// ✅ 권장: 안정적인 핸들러를 위해 useCallback 사용
-function UserComponent() {
-  useUserActionHandler('updateProfile', useCallback(async (payload) => {
-    try {
-      await updateUserProfile(payload);
-      console.log('프로필이 성공적으로 업데이트되었습니다');
-    } catch (error) {
-      console.error('프로필 업데이트 실패:', error);
-    }
-  }, [])); // 안정적인 핸들러를 위한 빈 의존성 배열
-}
-
-// ❌ 지양: 인라인 핸들러 (재등록 발생)
-function UserComponent() {
-  useUserActionHandler('updateProfile', async (payload) => {
-    await updateUserProfile(payload); // 매 렌더링마다 재등록
-  });
-}
-```
-
-#### 에러 핸들링
-```tsx
-// ✅ 권장: 적절한 에러 핸들링을 위해 controller.abort 사용
-useActionHandler('riskyAction', (payload, controller) => {
-  try {
-    // 실패할 수 있는 비즈니스 로직
-    processData(payload);
-  } catch (error) {
-    controller.abort('처리 실패', error);
-  }
+// ✅ Do: Map을 복제한 뒤 새로운 루트 상태 객체 반환
+cacheStore.update((prev) => {
+  const nextEntries = new Map(prev.entries);
+  nextEntries.set(key, entry);
+  return { ...prev, entries: nextEntries };
 });
 ```
 
-### 스토어 패턴 모범 사례
+### 5. 취소 가능한 비동기 Promise 정착과 완료 후 편집 복귀 처리
 
-#### 스토어 접근
+- 대기 중인 비동기 작업(`pendingResolveRef`)은 취소·리셋·언마운트 정리 시점에 즉시 `resolve(false)` 등으로 정착시켜 dangling promise와 지연된 상태 덮어쓰기를 차단합니다.
+- 순수 상태 머신에 사용자 재편집 전이(예: `{ type: 'draft_edited' }`)를 명시해 `'success'` 또는 `'failed'` 상태에서 입력을 고치면 자동으로 `'idle'` 상태로 복귀하도록 설계하세요.
+
+### 6. 비즈니스 인텐트와 레이아웃 인텐트를 분리하고 DOM은 `RefContext`로 제어하세요
+
+검증·제출(`businessDispatch('submitOrder')`)과 유효성 오류 필드 포커스·스크롤(`layoutDispatch('focusField', { field })`)을 혼합하지 마세요. 고빈도 DOM 좌표 제어는 Store가 아니라 `createRefContext`로 처리합니다. 또한 `Store`의 기본 `batched` 모드는 `requestAnimationFrame`(약 16ms) 단위로 React 알림을 묶어 보내므로, fake timer 기반 테스트에서는 `16ms` 틱 진행 또는 `waitFor`로 렌더링 반영을 기다려야 합니다.
+
+---
+
+## 검증된 단계별 적정 구현(Right-Sized) 예제
+
+아래 TypeScript 코드는 `pnpm verify:doc-snippets` 게이트에서 실제 패키지 선언과 함께 컴파일 검증됩니다 (`<!-- @context-action-compile -->`).
+
+### Level 1 · Lite (단일 도메인 쿠폰 위젯)
+
+단일 React 서브트리 안에서 동작하는 계산기, 쿠폰 바, 필터 패널에 적합합니다. 복잡도가 커지기 전까지 `business/`나 `actions/` 폴더를 미리 만들지 않고 1파일 또는 2파일로 간결하게 유지합니다.
+
+<!-- @context-action-compile -->
 ```tsx
-// ✅ 권장: 특정 스토어 구독
-function UserProfile() {
-  const profileStore = useUserStore('profile');
-  const profile = useStoreValue(profileStore);
-  
-  return <div>{profile.name}</div>;
+import { useCallback } from 'react';
+import type { ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+
+interface CouponQuote {
+  readonly appliedCode: string | null;
+  readonly totalAmount: number;
+  readonly errorCode: 'empty_code' | 'unknown_coupon' | null;
 }
 
-// ❌ 지양: 불필요한 스토어 접근
-function UserProfile() {
-  const profileStore = useUserStore('profile');
-  const settingsStore = useUserStore('settings'); // 사용되지 않음
-  const profile = useStoreValue(profileStore);
-  
-  return <div>{profile.name}</div>;
-}
-```
+const VALID_COUPONS: Record<string, number> = { SAVE10: 10, TEAM25: 25 };
 
-#### 스토어 업데이트
-```tsx
-// ✅ 권장: 복잡한 변경을 위한 함수형 업데이트
-const { updateStore } = useUserStoreManager();
-
-const updateProfile = (changes: Partial<UserProfile>) => {
-  updateStore('profile', prevProfile => ({
-    ...prevProfile,
-    ...changes,
-    updatedAt: Date.now()
-  }));
-};
-
-// ✅ 허용: 간단한 변경을 위한 직접 업데이트
-const setUserName = (name: string) => {
-  updateStore('profile', { ...currentProfile, name });
-};
-```
-
-## 타입 정의
-
-### 액션 타입
-```tsx
-// ✅ 권장: ActionPayloadMap 확장
-interface UserActions extends ActionPayloadMap {
-  updateProfile: { name: string; email: string };
-  deleteAccount: { confirmationCode: string };
-  logout: void; // 페이로드 없는 액션
-}
-
-// ❌ 지양: 순수 인터페이스
-interface UserActions {
-  updateProfile: { name: string; email: string }; // ActionPayloadMap 누락
-}
-```
-
-### 스토어 타입
-```tsx
-// ✅ 권장: 명확한 타입 정의
-interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: number;
-  updatedAt: number;
-}
-
-interface UserSettings {
-  theme: 'light' | 'dark';
-  notifications: boolean;
-  language: string;
-}
-
-const userStoreConfig = {
-  profile: { 
-    initialValue: {
-      id: '',
-      name: '',
-      email: '',
-      createdAt: 0,
-      updatedAt: 0
-    } as UserProfile
-  },
-  settings: { 
-    initialValue: {
-      theme: 'light',
-      notifications: true,
-      language: 'en'
-    } as UserSettings
+function evaluateCoupon(rawCode: string, subtotal: number): CouponQuote {
+  const code = rawCode.trim().toUpperCase();
+  if (!code) return { appliedCode: null, totalAmount: subtotal, errorCode: 'empty_code' };
+  const pct = VALID_COUPONS[code];
+  if (pct === undefined) {
+    return { appliedCode: null, totalAmount: subtotal, errorCode: 'unknown_coupon' };
   }
-};
-```
+  return {
+    appliedCode: code,
+    totalAmount: Math.round(subtotal * (1 - pct / 100)),
+    errorCode: null,
+  };
+}
 
-## 성능 가이드라인
+interface LiteCouponActions extends ActionPayloadMap {
+  applyCoupon: { code: string };
+  clearCoupon: void;
+}
 
-### 핸들러 최적화
-```tsx
-// ✅ 권장: 메모이제이션된 핸들러
-const optimizedHandler = useCallback(async (payload: UserActions['updateProfile']) => {
-  await updateUserProfile(payload);
-}, []);
+const {
+  Provider: LiteCouponActionProvider,
+  useActionDispatch: useLiteCouponDispatch,
+  useActionCommandHandler: useLiteCouponCommand,
+} = createActionContext<LiteCouponActions>('LiteCouponActions');
 
-useUserActionHandler('updateProfile', optimizedHandler);
-```
+const {
+  Provider: LiteCouponStoreProvider,
+  useStore: useLiteCouponStore,
+} = createStoreContext('LiteCouponStores', {
+  subtotal: 100,
+  quote: { appliedCode: null, totalAmount: 100, errorCode: null } as CouponQuote,
+});
 
-### 스토어 구독 최적화
-```tsx
-// ✅ 권장: 특정 값 구독
-const userName = useStoreValue(profileStore)?.name;
+function LiteCouponRegistry() {
+  const subtotalStore = useLiteCouponStore('subtotal');
+  const quoteStore = useLiteCouponStore('quote');
 
-// ❌ 지양: 부분 데이터만 필요할 때 불필요한 전체 객체 구독
-const fullProfile = useStoreValue(profileStore);
-const userName = fullProfile.name; // 프로필의 모든 변경에 대해 재렌더링
-```
-
-## 패턴 조합
-
-### Provider 계층구조
-```tsx
-// ✅ 권장: 논리적 provider 순서
-function App() {
-  return (
-    <UserStoreProvider>      {/* 데이터 레이어 먼저 */}
-      <UserActionProvider>   {/* 액션 레이어 두 번째 */}
-        <PaymentStoreProvider>
-          <PaymentActionProvider>
-            <AppContent />
-          </PaymentActionProvider>
-        </PaymentStoreProvider>
-      </UserActionProvider>
-    </UserStoreProvider>
+  useLiteCouponCommand(
+    'applyCoupon',
+    useCallback(
+      ({ code }) => {
+        quoteStore.setValue(evaluateCoupon(code, subtotalStore.getValue()));
+      },
+      [quoteStore, subtotalStore]
+    )
   );
-}
-```
 
-### 교차 패턴 통신
-```tsx
-// ✅ 권장: 액션이 스토어를 업데이트
-function UserComponent() {
-  const { updateStore } = useUserStoreManager();
-  
-  useUserActionHandler('updateProfile', useCallback(async (payload) => {
-    try {
-      const updatedProfile = await updateUserProfile(payload);
-      updateStore('profile', updatedProfile); // API 호출 후 스토어 업데이트
-    } catch (error) {
-      console.error('프로필 업데이트 실패:', error);
-    }
-  }, [updateStore]));
-}
-```
+  useLiteCouponCommand(
+    'clearCoupon',
+    useCallback(() => {
+      quoteStore.setValue({
+        appliedCode: null,
+        totalAmount: subtotalStore.getValue(),
+        errorCode: null,
+      });
+    }, [quoteStore, subtotalStore])
+  );
 
-## 일반적인 함정
-
-### 이런 패턴은 피하세요
-```tsx
-// ❌ 하지 마세요: 액션 디스패치와 직접 스토어 업데이트 혼용
-function BadComponent() {
-  const dispatch = useUserAction();
-  const { updateStore } = useUserStoreManager();
-  
-  const handleUpdate = () => {
-    updateStore('profile', newProfile);  // 직접 스토어 업데이트
-    dispatch('updateProfile', newProfile); // 그리고 액션 디스패치 - 중복!
-  };
+  return null;
 }
 
-// ❌ 하지 마세요: 컴포넌트 내부에서 컨텍스트 생성
-function BadComponent() {
-  const { Provider } = createActionContext<UserActions>('User'); // 잘못됨!
-  return <Provider>...</Provider>;
-}
+export function LiteCouponWidget() {
+  const quote = useStoreValue(useLiteCouponStore('quote'));
+  const dispatch = useLiteCouponDispatch();
 
-// ❌ 하지 마세요: 자주 변경되는 의존성으로 핸들러 등록
-function BadComponent({ userId }: { userId: string }) {
-  useUserActionHandler('updateProfile', async (payload) => {
-    await updateUserProfile(userId, payload); // userId 클로저가 자주 변경됨
-  }); // useCallback과 deps의 userId 누락
-}
-```
-
-## 고급 베스트 프랙티스
-
-### 액션 핸들러 상태 접근
-
-#### ⚠️ 중요: 스토어 값 클로저 함정 피하기
-
-액션 핸들러 내부에서 스토어 값에 접근할 때, **컴포넌트 스코프의 값을 절대 사용하지 마세요**. 클로저 함정이 발생합니다:
-
-```tsx
-// ❌ 잘못됨: 핸들러에서 컴포넌트 스코프 값 사용
-function UserComponent() {
-  const userStore = useUserStore('profile');
-  const user = useStoreValue(userStore); // 이 값이 클로저에 갇힘!
-  
-  useUserActionHandler('updateUser', async (payload) => {
-    // 🚨 버그: 이 'user'는 핸들러 등록 시점의 값, 현재 시점이 아님!
-    if (user.isActive) {  // 오래된 값!
-      await updateUserAPI(payload);
-    }
-  });
-}
-
-// ✅ 올바름: 핸들러 내부에서 스토어 값에 직접 접근
-function UserComponent() {
-  const userStore = useUserStore('profile');
-  const user = useStoreValue(userStore); // 컴포넌트 렌더링용으로만 사용
-  
-  useUserActionHandler('updateUser', useCallback(async (payload) => {
-    // ✅ 항상 스토어에서 최신 상태를 가져옴
-    const currentUser = userStore.getValue(); // 실시간 값!
-    
-    if (currentUser.isActive) {
-      await updateUserAPI(payload);
-    }
-  }, [userStore])); // 의존성에는 스토어 참조만 포함
-}
-```
-
-#### 실시간 상태 접근 패턴
-
-```tsx
-// ✅ 패턴 1: 간단한 확인을 위한 직접 store getValue()
-useActionHandler('conditionalAction', async (payload) => {
-  const currentState = someStore.getValue();
-  
-  if (currentState.isReady) {
-    // 액션 실행
-  }
-});
-
-// ✅ 패턴 2: 여러 스토어 조정
-useActionHandler('complexAction', async (payload) => {
-  const userState = userStore.getValue();
-  const settingsState = settingsStore.getValue();
-  const uiState = uiStore.getValue();
-  
-  // 모든 현재 상태를 사용하여 의사결정
-  if (userState.isLoggedIn && settingsState.apiEnabled && !uiState.isLoading) {
-    // 복잡한 로직 실행
-  }
-});
-
-// ✅ 패턴 3: 상태 검증 및 업데이트
-useActionHandler('validateAndUpdate', async (payload) => {
-  const current = dataStore.getValue();
-  
-  // 현재 상태 검증
-  if (current.version !== payload.expectedVersion) {
-    throw new Error('버전 불일치');
-  }
-  
-  // 현재 상태를 기준으로 업데이트
-  dataStore.setValue({
-    ...current,
-    ...payload.updates,
-    version: current.version + 1
-  });
-});
-```
-
-### useEffect 의존성 베스트 프랙티스
-
-#### 스토어와 Dispatch 참조는 안정적
-
-Context-Action 프레임워크는 스토어 인스턴스와 dispatch 함수가 안정적인 참조를 갖도록 보장합니다:
-
-```tsx
-// ✅ 이것들은 useEffect 의존성에서 생략해도 안전
-function MyComponent() {
-  const userStore = useUserStore('profile');  // 안정적인 참조
-  const dispatch = useUserAction();           // 안정적인 참조
-  const user = useStoreValue(userStore);
-  
-  useEffect(() => {
-    if (user.needsSync) {
-      dispatch('syncUser', { id: user.id });
-      userStore.setValue({ ...user, lastSyncAttempt: Date.now() });
-    }
-  }, [user.needsSync, user.id]); // userStore나 dispatch 포함하지 않음
-  
-  // 대안: 명시적으로 포함해도 됨 (해롭지 않음)
-  useEffect(() => {
-    if (user.needsSync) {
-      dispatch('syncUser', { id: user.id });
-    }
-  }, [user.needsSync, user.id, dispatch, userStore]); // 이것도 괜찮음
-}
-```
-
-#### 의존성 배열 가이드라인
-
-```tsx
-// ✅ 포함: 실제로 변경되고 동작에 영향을 주는 값들
-useEffect(() => {
-  if (user.isActive) {
-    startPolling();
-  }
-}, [user.isActive]); // 파생된 값들 포함
-
-// ✅ 생략: 안정적인 참조들 (하지만 포함해도 해롭지 않음)
-const stableRef = userStore;
-const stableDispatch = dispatch;
-
-useEffect(() => {
-  // 이것들은 deps에 포함할 필요 없지만, 포함해도 됨
-  stableRef.setValue(newValue);
-  stableDispatch('action', payload);
-}, []); // 빈 deps 괜찮음
-
-// ❌ 피하기: 특정 속성만 중요할 때 전체 객체 포함
-useEffect(() => {
-  updateUI();
-}, [user]); // 모든 user 변경에 재실행
-
-// ✅ 더 좋음: 관련된 속성만 포함
-useEffect(() => {
-  updateUI();
-}, [user.theme, user.language]); // 이것들이 변경될 때만 재실행
-```
-
-### 상태 이슈 디버깅
-
-#### 상태 모니터링 기법
-
-```tsx
-// ✅ 상태 변경을 추적하기 위한 디버그 로깅 추가
-useActionHandler('debugAction', async (payload) => {
-  const beforeState = store.getValue();
-  console.log('이전:', beforeState);
-  
-  // 업데이트 수행
-  store.setValue(newValue);
-  
-  const afterState = store.getValue();
-  console.log('이후:', afterState);
-  
-  // 상태 변경 확인
-  if (beforeState === afterState) {
-    console.warn('상태가 예상대로 변경되지 않았습니다!');
-  }
-});
-
-// ✅ 복잡한 상태 추적을 위한 디버그 유틸리티 생성
-const createStateLogger = (storeName: string, store: Store<any>) => ({
-  logCurrent: () => console.log(`${storeName}:`, store.getValue()),
-  logChange: (action: string) => {
-    const before = store.getValue();
-    return (after: any) => {
-      console.log(`${storeName} ${action}:`, { before, after });
-    };
-  }
-});
-```
-
-#### 일반적인 디버깅 시나리오
-
-```tsx
-// 🔍 디버그: 상태 변경 시 컴포넌트가 리렌더링되지 않음
-function DebuggingComponent() {
-  const store = useStore('data');
-  const value = useStoreValue(store);
-  
-  // 구독을 확인하기 위한 로깅 추가
-  useEffect(() => {
-    console.log('컴포넌트 리렌더링됨, 값:', value);
-  });
-  
-  // 스토어 업데이트가 작동하는지 확인
-  const testUpdate = () => {
-    console.log('업데이트 전:', store.getValue());
-    store.setValue({ ...store.getValue(), timestamp: Date.now() });
-    console.log('업데이트 후:', store.getValue());
-  };
-  
   return (
     <div>
-      <div>현재 값: {JSON.stringify(value)}</div>
-      <button onClick={testUpdate}>업데이트 테스트</button>
-    </div>
-  );
-}
-
-// 🔍 디버그: 액션 핸들러가 실행되지 않음
-function DebuggingActions() {
-  useActionHandler('testAction', useCallback(async (payload) => {
-    console.log('핸들러가 페이로드로 실행됨:', payload);
-    
-    // 에러를 캐치하기 위한 try-catch 추가
-    try {
-      // 여기에 로직
-    } catch (error) {
-      console.error('핸들러 에러:', error);
-      throw error; // 에러 전파를 유지하기 위해 재throw
-    }
-  }, []));
-  
-  const dispatch = useActionDispatch();
-  
-  const testDispatch = () => {
-    console.log('testAction 디스패치 중...');
-    dispatch('testAction', { test: true });
-  };
-  
-  return <button onClick={testDispatch}>액션 테스트</button>;
-}
-```
-
-### 프로덕션 디버깅 및 컴포넌트 생명주기 관리
-
-#### 치명적 이슈: 중복 액션 핸들러 등록
-
-**문제**: 동일한 액션 핸들러를 여러 번 등록하면 예측할 수 없는 동작이 발생합니다.
-
-```tsx
-// ❌ 잘못된 예: 중복 핸들러 등록
-useActionHandler('updateResults', async (payload) => {
-  store.setValue(payload.data);
-});
-useActionHandler('updateResults', async (payload) => {  // 중복!
-  store.setValue(payload.data);  // 첫 번째 핸들러를 덮어씁니다
-});
-
-// ✅ 올바른 예: 단일 핸들러 등록
-const updateResultsHandler = useCallback(async (payload) => {
-  store.setValue(payload.data);
-}, [store]);
-useActionHandler('updateResults', updateResultsHandler);
-```
-
-**디버깅 팁**: `grep -n "useActionHandler.*'actionName'" src/**/*.tsx`
-
-#### 처리 상태로 경쟁 조건 방지하기
-
-**문제**: 빠른 버튼 클릭으로 인한 경쟁 조건과 상태 불일치가 발생합니다.
-
-```tsx
-// ✅ 경쟁 조건을 방지하기 위한 처리 상태 추가
-const stores = createStoreContext('Demo', {
-  data: initialData,
-  isProcessing: false  // 처리 상태 추가
-});
-
-const criticalActionHandler = useCallback(async (payload) => {
-  const currentProcessing = isProcessingStore.getValue();
-  
-  if (currentProcessing) {
-    console.warn('액션이 이미 진행 중입니다. 요청을 무시합니다');
-    return; // 조기 반환으로 경쟁 조건 방지
-  }
-  
-  isProcessingStore.setValue(true);
-  try {
-    await performCriticalOperation(payload);
-  } finally {
-    isProcessingStore.setValue(false); // 항상 처리 상태 해제
-  }
-}, [isProcessingStore]);
-
-useActionHandler('criticalAction', criticalActionHandler);
-
-// ✅ 처리 상태를 반영하는 UI
-function ActionButton() {
-  const isProcessing = useStoreValue(isProcessingStore);
-  const dispatch = useActionDispatch();
-  
-  return (
-    <button
-      onClick={() => dispatch('criticalAction', payload)}
-      disabled={isProcessing}
-    >
-      {isProcessing ? '⏳ 처리 중...' : '액션 실행'}
-    </button>
-  );
-}
-```
-
-#### RefContext를 사용한 안전한 컴포넌트 언마운트
-
-**문제**: 컴포넌트 언마운트가 수동 ref 정리와 충돌합니다.
-
-```tsx
-// ❌ 잘못된 예: 컴포넌트 useEffect에서 수동 ref 정리
-function Component() {
-  const elementRef = useRefHandler('element');
-  
-  useEffect(() => {
-    return () => {
-      elementRef.setRef(null); // 이는 액션 핸들러 정리와 충돌합니다
-    };
-  }, []);
-  
-  return <div ref={elementRef.setRef} />;
-}
-
-// ✅ 올바른 예: 관심사 분리 - React는 DOM을, 액션은 상태를 처리
-function Component() {
-  const elementRef = useRefHandler('element');
-  
-  useEffect(() => {
-    console.log('컴포넌트 마운트됨');
-    return () => console.log('컴포넌트 언마운트 중');
-    // React가 DOM 정리를 자동으로 처리하도록 함
-  }, []);
-  
-  return <div ref={elementRef.setRef} />;
-}
-
-// ✅ 액션 핸들러가 상태와 ref 조정을 관리
-const unmountElementHandler = useCallback(async () => {
-  const isCurrentlyMounted = isMountedStore.getValue();
-  
-  if (isCurrentlyMounted) {
-    isMountedStore.setValue(false); // 먼저 상태 업데이트
-    
-    // React가 컴포넌트를 언마운트한 후 ref 상태 확인
-    setTimeout(() => {
-      const currentRef = elementRef.target;
-      if (currentRef) {
-        elementRef.setRef(null); // 필요한 경우에만 수동 정리
-      }
-    }, 50);
-  }
-}, [isMountedStore, elementRef]);
-
-useActionHandler('unmountElement', unmountElementHandler);
-```
-
-#### 프로덕션 디버깅 기법
-
-**상태 모니터링**: 프로덕션 이슈 진단을 위한 포괄적 상태 모니터링:
-
-```tsx
-// ✅ 다차원 상태 모니터링
-const debugStores = createStoreContext('Debug', {
-  actionLog: [] as string[],
-  errorCount: 0,
-  operationTimes: {} as Record<string, number>
-});
-
-const addLogHandler = useCallback(async ({ message }) => {
-  const timestamp = new Date().toLocaleTimeString();
-  const logEntry = `[${timestamp}] ${message}`;
-  
-  actionLogStore.update(prev => [
-    ...prev.slice(-49), // 최근 50개 항목 유지
-    logEntry
-  ]);
-}, [actionLogStore]);
-
-useActionHandler('addLog', addLogHandler);
-```
-
-**에러 복구**: 자동 재시도 로직으로 우아한 에러 복구:
-
-```tsx
-// ✅ 지수 백오프를 사용한 자동 재시도
-const reliableActionHandler = useCallback(async (payload) => {
-  const maxRetries = 3;
-  let attempt = 0;
-  
-  while (attempt < maxRetries) {
-    try {
-      await performOperation(payload);
-      return; // 성공
-    } catch (error) {
-      attempt++;
-      if (attempt >= maxRetries) throw error; // 최종 실패
-      
-      const delay = 100 * Math.pow(2, attempt - 1); // 지수 백오프
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-}, []);
-
-useActionHandler('reliableAction', reliableActionHandler);
-```
-
-**스트레스 테스트**: 간헐적 이슈를 재현하기 위해 프로덕션 조건을 시뮬레이션:
-
-```tsx
-// ✅ 간단한 스트레스 테스트 헬퍼
-function StressTester({ children }: { children: ReactNode }) {
-  const [isStressTesting, setIsStressTesting] = useState(false);
-  
-  useEffect(() => {
-    if (!isStressTesting) return;
-    
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) { // 사이클당 30% 확률
-        // 빠른 사용자 행동을 시뮬레이션하는 랜덤 액션 트리거
-        const actions = ['mount', 'unmount', 'waitForRef'];
-        const randomAction = actions[Math.floor(Math.random() * actions.length)];
-        console.log(`🎯 스트레스 테스트: ${randomAction}`);
-      }
-    }, 100);
-    
-    return () => clearInterval(interval);
-  }, [isStressTesting]);
-  
-  return (
-    <div>
-      <button onClick={() => setIsStressTesting(!isStressTesting)}>
-        {isStressTesting ? '🛑 중지' : '🎯 시작'} 스트레스 테스트
+      <span>{quote.totalAmount}</span>
+      <button type="button" onClick={() => void dispatch('applyCoupon', { code: 'SAVE10' })}>
+        Apply SAVE10
       </button>
-      {children}
+      <button type="button" onClick={() => void dispatch('clearCoupon')}>
+        Clear
+      </button>
     </div>
   );
 }
+
+export function LiteCouponFeature() {
+  return (
+    <LiteCouponActionProvider>
+      <LiteCouponStoreProvider>
+        <LiteCouponRegistry />
+        <LiteCouponWidget />
+      </LiteCouponStoreProvider>
+    </LiteCouponActionProvider>
+  );
+}
 ```
+
+### Level 2 · Headless-First Symmetric DI (`ActionRegister` + `createStore` + Shared Provider)
+
+도메인 파이프라인이 **React 마운트 없이도**(순수 단위 테스트, SSR 프리페치, 워커, 탭 언마운트/재마운트 간 상태 유지) 동일하게 동작해야 할 때 적합합니다. `ownership="shared"`로 헤드리스 인스턴스를 React 트리에 주입합니다.
+
+<!-- @context-action-compile -->
+```tsx
+import { useCallback } from 'react';
+import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createStore,
+  createStoreContext,
+  useStoreValue,
+} from '@context-action/react';
+
+interface QuoteResult {
+  readonly appliedCode: string | null;
+  readonly totalAmount: number;
+  readonly errorCode: 'unknown_coupon' | null;
+}
+
+interface HeadlessCouponActions extends ActionPayloadMap {
+  applyCoupon: { code: string; subtotal: number };
+}
+
+interface HeadlessCouponResultMap {
+  applyCoupon: QuoteResult;
+}
+
+export function createCouponEngine() {
+  const register = new ActionRegister<HeadlessCouponActions, HeadlessCouponResultMap>({
+    name: 'CouponEngine',
+  });
+  const quoteStore = createStore<QuoteResult>('couponQuote', {
+    appliedCode: null,
+    totalAmount: 200,
+    errorCode: null,
+  });
+  const auditStore = createStore<string[]>('couponAudit', []);
+
+  register.registerGuard(
+    'applyCoupon',
+    ({ code, subtotal }, controller) => {
+      if (code.trim().toUpperCase() !== 'TEAM25') {
+        quoteStore.setValue({ appliedCode: null, totalAmount: subtotal, errorCode: 'unknown_coupon' });
+        controller.abort('unknown_coupon');
+      }
+    },
+    { id: 'coupon-guard', priority: 100 }
+  );
+
+  register.registerResult(
+    'applyCoupon',
+    ({ code, subtotal }) => {
+      const next: QuoteResult = {
+        appliedCode: code.trim().toUpperCase(),
+        totalAmount: Math.round(subtotal * 0.75),
+        errorCode: null,
+      };
+      quoteStore.setValue(next);
+      return next;
+    },
+    { id: 'coupon-result', priority: 10 }
+  );
+
+  register.registerObserver(
+    'applyCoupon',
+    (event) => {
+      auditStore.update((prev) => [...prev, `${event.outcome}:${event.payload.code.toUpperCase()}`]);
+    },
+    { id: 'coupon-audit', priority: 1, when: 'always' }
+  );
+
+  const CouponActions = createActionContext<HeadlessCouponActions, HeadlessCouponResultMap>(
+    'CouponActions'
+  );
+  const CouponStores = createStoreContext('CouponStores', {
+    couponQuote: { appliedCode: null, totalAmount: 200, errorCode: null } as QuoteResult,
+  });
+
+  return { register, quoteStore, auditStore, CouponActions, CouponStores };
+}
+
+export async function runHeadlessCouponCheck() {
+  const engine = createCouponEngine();
+  const execution = await engine.register.dispatchWithResult('applyCoupon', {
+    code: 'team25',
+    subtotal: 200,
+  });
+  return { execution, quote: engine.quoteStore.getValue(), audit: engine.auditStore.getValue() };
+}
+
+export function MountedCouponPanel({ engine }: { engine: ReturnType<typeof createCouponEngine> }) {
+  function TelemetryObserver() {
+    engine.CouponActions.useActionObserver(
+      'applyCoupon',
+      useCallback((event) => {
+        void event.outcome;
+      }, []),
+      { id: 'react-ui-observer', when: 'always' }
+    );
+    return null;
+  }
+
+  function View() {
+    const dispatch = engine.CouponActions.useActionDispatch();
+    const quote = useStoreValue(engine.CouponStores.useStore('couponQuote'));
+    return (
+      <button
+        type="button"
+        onClick={() => void dispatch('applyCoupon', { code: 'TEAM25', subtotal: 200 })}
+      >
+        Total: {quote.totalAmount}
+      </button>
+    );
+  }
+
+  return (
+    <engine.CouponActions.Provider register={engine.register} ownership="shared">
+      <engine.CouponStores.Provider stores={{ couponQuote: engine.quoteStore }} ownership="shared">
+        <TelemetryObserver />
+        <View />
+      </engine.CouponStores.Provider>
+    </engine.CouponActions.Provider>
+  );
+}
+```
+
+### Level 3 · Full 6-Layer 피처 아키텍처
+
+다단계 비동기 제출, 초안 검증, 포커스·스크롤 레이아웃 인텐트, 테마 토큰, 감사 로그가 여러 뷰에 걸쳐 결합된 대규모 기능에 사용합니다:
+
+- `contexts / business / handlers / actions / hooks / views` 구조로 분리하며, 취소/리셋 액션에는 `{ immediate: true }`, 핸들러에는 4-역할 훅(`useActionGuard`, `useActionCommandHandler`, `useActionResultHandler`, `useActionObserver`)을 배치합니다.
+- 실제 안정화 레퍼런스는 `packages/template-react/src/features/order-workspace/` 및 아래 문서를 참고하세요:
+  - [표준 주문 폼 예제 (Canonical Order Form)](../examples/canonical-order-form.md)
+  - [Spec-to-Code 작성 가이드](../context-layered/spec-to-code-authoring-guide.md)
+  - [Context-Layered 아키텍처 가이드](../context-layered/context-layered-guide.md)
+
+---
+
+## 관련 문서
+
+- [코드 패턴 빠른 참조](./code-patterns.md)
+- [액션 파이프라인 가이드](../concept/action-pipeline-guide.md)
+- [훅 레퍼런스](../concept/hooks-reference.md)
+- [Handler Registry 아키텍처](../context-layered/architecture/handler-registry.md)
+- [안정성 및 테스트 사이클](../context-layered/stability-test-cycle.md)
+- [문제 해결 (Troubleshooting)](./troubleshooting.md)
