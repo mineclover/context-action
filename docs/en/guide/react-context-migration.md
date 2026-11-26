@@ -517,7 +517,7 @@ function UndoRedoProvider({ children }) {
 
 **Context-Action (Built-in TimeTravelStore):**
 ```tsx
-import { createTimeTravelStoreContext, useTimeTravelControls } from '@context-action/react';
+import { createTimeTravelStoreContext, useTimeTravelControls } from '@context-action/react/time-travel';
 
 // Create time-travel enabled store
 const { Provider, useStore } = createTimeTravelStoreContext('Editor', {

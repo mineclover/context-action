@@ -111,3 +111,9 @@ The runnable reference has two complementary checks:
 For deeper React Aria state contracts, use the official React Aria and React
 Stately documentation. Context-Action owns the application workflow around the
 component, not its accessibility state machine.
+
+## React Aria vs. `@context-action/interactions`
+
+- Use **React Aria / React Stately** for full accessible widget systems (Table, Calendar, DatePicker, ComboBox collection/selection models).
+- Use **`@context-action/interactions`** (or its React hooks `useDismissLayer`, `useRovingFocus`, `usePointerGesture` in `@context-action/react/advanced`) when building lightweight custom overlays, roving keyboard toolbars, or pointer gesture surfaces without pulling in React Aria.
+- In both cases, preserve the core architectural boundary: keep high-frequency DOM/keyboard interaction loops local and forward only semantic intent commits to domain Action handlers and Stores.

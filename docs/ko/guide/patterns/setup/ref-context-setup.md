@@ -4,7 +4,7 @@ Context-Action 프레임워크에서 직접 DOM 조작 및 싱글톤 객체 관�
 
 ## 임포트
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 ```
 
 ## 개요

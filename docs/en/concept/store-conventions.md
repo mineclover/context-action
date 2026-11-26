@@ -136,7 +136,7 @@ function UserComponent() {
 Store with built-in undo/redo functionality powered by history management.
 
 ```typescript
-import { createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 
 const editorStore = createTimeTravelStore('editor',
   { content: '', cursor: 0 },
@@ -178,7 +178,8 @@ reported only through `notifyPath()` require a path or selector subscription;
 they do not create a new root value reference.
 
 ```typescript
-import { useStorePath, useTimeTravelControls } from '@context-action/react';
+import { useStorePath } from '@context-action/react';
+import { useTimeTravelControls } from '@context-action/react/time-travel';
 
 function Editor() {
   const editorStore = useEditorStore('document');
@@ -263,7 +264,7 @@ snapshots contain serializable metadata and positions, never live Store objects.
 This pattern provides **structural sharing** and **high performance** without the overhead of history tracking, while still maintaining the technical capability.
 
 ```typescript
-import { createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 
 // MutableStore Pattern: TimeTravelStore without using undo/redo
 const dashboardStore = createTimeTravelStore('dashboard', {

@@ -106,3 +106,9 @@ React Aria 날짜 객체 대신 직렬화 가능한 ISO 날짜를 store에 저�
 더 자세한 React Aria 상태 계약은 공식 React Aria 및 React Stately 문서를
 참조합니다. Context-Action은 컴포넌트의 접근성 상태 머신이 아니라 그 주변의
 애플리케이션 워크플로를 소유합니다.
+
+## React Aria vs. `@context-action/interactions`
+
+- Table, Calendar, DatePicker, ComboBox처럼 완전한 접근성·컬렉션 상태 머신이 필요한 컴포넌트에는 **React Aria / React Stately**를 사용합니다.
+- React Aria 없이 가벼운 커스텀 오버레이(LIFO dismiss), 키보드 roving focus 툴바, 포인터 제스처 표면을 직접 구현할 때는 **`@context-action/interactions`**(또는 `@context-action/react/advanced`의 `useDismissLayer`, `useRovingFocus`, `usePointerGesture`)를 사용합니다.
+- 어느 쪽을 사용하더라도 핵심 경계는 동일합니다. 고빈도 DOM·키보드 루프는 UI/인터랙션 레이어에 두고 의미 있는 확정 intent만 도메인 Action 핸들러와 Store로 전달하세요.

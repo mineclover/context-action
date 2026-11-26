@@ -166,7 +166,7 @@ function UserComponent() {
 
 ### 임포트
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 ```
 
 ### 특징

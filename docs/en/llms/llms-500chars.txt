@@ -504,7 +504,7 @@ Sections: Use it for resumable UI | Provider and withProvider() placement | What
 
 ===================[ DOC: en/guide/react-aria-integration.md ]===================
 # React Aria Integration Boundary
-Sections: Official component references | Ownership model | Table boundary | Calendar boundary | Verification checklist
+Sections: Official component references | Ownership model | Table boundary | Calendar boundary | Verification checklist | React Aria vs. @context-action/interactions
 
 Context-Action integrates with React Aria at the domain boundary. It is not a replacement for React Stately's component-local interaction state. The runnable reference is available in the example application at /integrations/react-aria-reference. It uses react-aria-components for a sortable, multi-select table and a calendar, then uses Context-Action actions and stores for the product-facing decisions those components emit. The reference deliberately follows the component contracts rather tha...
 

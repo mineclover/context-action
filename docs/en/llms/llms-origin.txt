@@ -9442,10 +9442,11 @@ export function BillingFeature(): React.JSX.Element {
 ### Architecture Implementation Layers
 
 - **Domain Engine (Headless)**: `ActionRegister` (`@context-action/core`) + `Store` / `StoreManager` / `createStateStore` (`@context-action/store-core`)
-- **Action Context (ViewModel DI Boundary)**: `createActionContext` (wraps or injects `ActionRegister`)
-- **Declarative Store Context (Model DI Boundary)**: `createStoreContext` (wraps or injects `StoreManager` / `stores`)
-- **RefContext (Zero Re-render Performance Layer)**: `createRefContext` (direct DOM/Canvas/Three.js references)
-- **Selective Subscription**: `useStoreValue`, `useStoreSelector`, `useStorePath`, `useStoreSelectorWithPaths`
+- **Headless Interaction Layer (Zero-Dep)**: `createDismissLayer`, `createRovingFocusController`, `createPointerGestureSession` (`@context-action/interactions`)
+- **Action & Scoped Context (ViewModel DI Boundary)**: `createActionContext` (wraps or injects `ActionRegister`), plus `createScopedContext` for self-contained widget/feature scopes (keep separate domain Providers for full 6-layer boundaries)
+- **Declarative Store & Transaction Context (Model DI Boundary)**: `createStoreContext`, `createTimeTravelStoreContext` (`@context-action/react/time-travel`), `StoreTransactionCoordinator` (`@context-action/react/transactions`)
+- **Ref Layer (Zero Re-render Performance Layer)**: `useRefRegistry`, `useRefCollection`, `createRefContext` (`@context-action/react/refs`) for direct DOM/Canvas/Three.js references
+- **Selective Subscription**: `useStoreValue`, `useStoreSelector`, `useStorePath` (with `{ select }`), `useStoreSelectorWithPaths`
 - **Presentation (View Layer)**: Pure React/Lit/Preact components forwarding intents and rendering subscribed state
 
 ### Context Separation Strategy
@@ -12209,7 +12210,7 @@ userStore.update(draft => { draft.name = 'Jane'; });
 Store with built-in undo/redo functionality and history management.
 
 ```typescript
-import { createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 
 const editorStore = createTimeTravelStore('editor',
   { content: '', cursor: 0 },
@@ -12271,7 +12272,7 @@ const cursor = useStorePath(store, ['cursor']);
 #### Basic Usage - TimeTravelStore Mutable Mode
 
 ```typescript
-import { createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 
 const appStore = createTimeTravelStore('app', {
   user: { name: 'John', settings: { theme: 'dark' } },
@@ -12294,7 +12295,8 @@ appStore.update(draft => { draft.user.name = 'Jane'; });
 **Revolutionary Feature**: Control React re-renders WITHOUT changing store values through manual path notifications.
 
 ```typescript
-import { createStore, createTimeTravelStore } from '@context-action/react';
+import { createStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 
 const dashboardStore = createTimeTravelStore('dashboard', {
   user: { name: 'John', status: 'idle' },
@@ -13701,13 +13703,25 @@ These hooks are fundamental to using the Context-Action framework. Most applicat
 
 ### 🔧 RefContext Hooks (Performance)
 
+All Ref primitives live under `@context-action/react/refs`:
+
+- `useRefRegistry<TRefs>()`: component/scope-local registry for fixed compile-time keys (zero re-renders, no Provider required).
+- `useRefCollection<TTarget>()` / `createRefCollectionContext<TTarget>()`: dynamic string-keyed collections such as menus or rows (zero re-renders).
+- `createRefContext<T>()`: shared Context subtree refs with `{ Provider, useRefHandler, useWaitForRefs, useGetAllRefs }`.
+
 #### `createRefContext<T>()`
-**Factory function** that creates all ref-related hooks for high-performance DOM manipulation.
+**Factory function** exported from `@context-action/react/refs` that creates all ref-related hooks for high-performance DOM manipulation.
 - **Purpose**: Creates type-safe direct DOM manipulation system with zero React re-renders
 - **Returns**: `{ Provider, useRefHandler, useWaitForRefs, useGetAllRefs }`
 - **Essential for**: Performance-critical UI, animations, real-time interactions
 
 ```tsx
+import {
+  createRefContext,
+  useRefRegistry,
+  useRefCollection,
+} from '@context-action/react/refs';
+
 const {
   Provider: MouseRefsProvider,
   useRefHandler: useMouseRef
@@ -13763,16 +13777,21 @@ function ComplexComponent() {
 #### `createActionContext<T>()`
 **Factory function** that creates all action-related hooks for a specific action context.
 - **Purpose**: Creates type-safe action dispatch and handler system
-- **Returns**: `{ Provider, useActionDispatch, useActionHandler, useActionRegister }`
+- **Returns**: `{ Provider, useActionDispatch, useActionResultDispatch, useActionScope, useActionHandler, useActionGuard, useActionCommandHandler, useActionResultHandler, useActionObserver, useActionRegister, useActionContextInfo }`
 - **Essential for**: Any action-based logic
 
 ```tsx
 const { 
   Provider: UserActionProvider,
   useActionDispatch: useUserAction,
-  useActionHandler: useUserActionHandler
+  useActionCommandHandler: useUserCommandHandler
 } = createActionContext<UserActions>('UserActions');
 ```
+
+#### `createScopedContext()` & `@context-action/react/advanced`
+**Flat widget/feature helper** pairing an `ActionContextReturn` with a `useSetup` hook under one `Provider` without a nested bridge component.
+- **Returns**: `{ ...actionContext, Provider, useScope, contextName, scopeContext }` (`useScope()` reads the shallow-stabilized setup object returned by `useSetup`).
+- **Scope-local store, sync & interaction primitives (`@context-action/react/advanced`)**: pair with `useStoreInstance`, `useControlledStoreSync`, `useDismissLayer`, `useRovingFocus`, and `usePointerGesture` (backed by `@context-action/interactions`) inside `useSetup`.
 
 #### `useActionDispatch()`
 **Primary hook** for dispatching actions to handlers.
@@ -14941,7 +14960,7 @@ The refs system is built around `createRefContext()`, which provides a clean, de
 
 #### 1. Simple Type Definition (Legacy)
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // Simple type specification
 const GameRefs = createRefContext<{
@@ -15070,7 +15089,7 @@ const videoPlayer = useMediaRefHandler('videoPlayer');
 ### Setting Up Refs
 
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // ✅ Recommended: Renaming Pattern for refs
 const {
@@ -15511,7 +15530,7 @@ RefContext enables high-performance mouse tracking with zero React re-renders th
 ### Key Concept
 
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // 1. Create RefContext for DOM elements
 const {
@@ -15605,7 +15624,7 @@ RefContext simplifies complex object lifecycle management in games and 3D applic
 ### Key Pattern
 
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 import * as THREE from 'three';
 
 // 1. Create RefContext with cleanup configuration
@@ -16296,7 +16315,7 @@ function UserComponent() {
 Store with built-in undo/redo functionality powered by history management.
 
 ```typescript
-import { createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 
 const editorStore = createTimeTravelStore('editor',
   { content: '', cursor: 0 },
@@ -16338,7 +16357,8 @@ reported only through `notifyPath()` require a path or selector subscription;
 they do not create a new root value reference.
 
 ```typescript
-import { useStorePath, useTimeTravelControls } from '@context-action/react';
+import { useStorePath } from '@context-action/react';
+import { useTimeTravelControls } from '@context-action/react/time-travel';
 
 function Editor() {
   const editorStore = useEditorStore('document');
@@ -16423,7 +16443,7 @@ snapshots contain serializable metadata and positions, never live Store objects.
 This pattern provides **structural sharing** and **high performance** without the overhead of history tracking, while still maintaining the technical capability.
 
 ```typescript
-import { createTimeTravelStore } from '@context-action/react';
+import { createTimeTravelStore } from '@context-action/react/time-travel';
 
 // MutableStore Pattern: TimeTravelStore without using undo/redo
 const dashboardStore = createTimeTravelStore('dashboard', {
@@ -23368,7 +23388,7 @@ Fundamental RefContext pattern with type-safe ref management and zero re-renders
 
 ## Import
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 ```
 
 ## Features
@@ -23394,7 +23414,7 @@ This document demonstrates usage patterns using standardized setup patterns:
 ### Basic Setup
 
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // Using the UIRefs pattern from setup guide
 const {
@@ -23431,7 +23451,7 @@ function MyComponent() {
 
 ```tsx
 // 1. Import UIRefs from setup guide
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 
 // UIRefs from setup specification
 interface UIRefs {
@@ -26807,7 +26827,7 @@ Shared RefContext setup patterns for direct DOM manipulation and singleton objec
 
 ## Import
 ```typescript
-import { createRefContext } from '@context-action/react';
+import { createRefContext } from '@context-action/react/refs';
 ```
 
 ## Overview
@@ -32360,6 +32380,12 @@ For deeper React Aria state contracts, use the official React Aria and React
 Stately documentation. Context-Action owns the application workflow around the
 component, not its accessibility state machine.
 
+## React Aria vs. `@context-action/interactions`
+
+- Use **React Aria / React Stately** for full accessible widget systems (Table, Calendar, DatePicker, ComboBox collection/selection models).
+- Use **`@context-action/interactions`** (or its React hooks `useDismissLayer`, `useRovingFocus`, `usePointerGesture` in `@context-action/react/advanced`) when building lightweight custom overlays, roving keyboard toolbars, or pointer gesture surfaces without pulling in React Aria.
+- In both cases, preserve the core architectural boundary: keep high-frequency DOM/keyboard interaction loops local and forward only semantic intent commits to domain Action handlers and Stores.
+
 ===================[ DOC: en/guide/react-context-migration.md ]===================
 # React Context to Context-Action Migration Guide
 
@@ -32880,7 +32906,7 @@ function UndoRedoProvider({ children }) {
 
 **Context-Action (Built-in TimeTravelStore):**
 ```tsx
-import { createTimeTravelStoreContext, useTimeTravelControls } from '@context-action/react';
+import { createTimeTravelStoreContext, useTimeTravelControls } from '@context-action/react/time-travel';
 
 // Create time-travel enabled store
 const { Provider, useStore } = createTimeTravelStoreContext('Editor', {
