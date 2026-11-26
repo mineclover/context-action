@@ -88,9 +88,9 @@
   </div>
 
   <script type="module">
-    // Import pinned versions from CDN (or use local workspace build)
-    import { ActionRegister } from 'https://esm.sh/@context-action/core@1.3.1';
-    import { createStateStore } from 'https://esm.sh/@context-action/store-core@0.1.4';
+    // Import pinned v2/v0.1 versions from CDN (or use local workspace build)
+    import { ActionRegister } from 'https://esm.sh/@context-action/core@2.0.0';
+    import { createStateStore } from 'https://esm.sh/@context-action/store-core@0.1.5';
 
     // Create framework-neutral reference store via @context-action/store-core
     const counterStore = createStateStore('counter', { count: 0 });
@@ -118,43 +118,52 @@
       }
     }
 
-    // Register action handlers
-    actions.register('increment', (payload, controller) => {
-      const current = counterStore.getValue();
-      counterStore.setValue({ count: current.count + 1 });
-
-      log(`Incremented: ${current.count} → ${current.count + 1}`);
-      controller.setResult({ count: current.count + 1 });
+    // Register 4-role action handlers (Result & Observer)
+    actions.registerResult('increment', () => {
+      const prevCount = counterStore.getValue().count;
+      const nextCount = prevCount + 1;
+      counterStore.setValue({ count: nextCount });
+      return { action: 'Incremented', prevCount, nextCount };
     }, { priority: 100 });
 
-    actions.register('decrement', (payload, controller) => {
-      const current = counterStore.getValue();
-      counterStore.setValue({ count: current.count - 1 });
-
-      log(`Decremented: ${current.count} → ${current.count - 1}`);
-      controller.setResult({ count: current.count - 1 });
+    actions.registerResult('decrement', () => {
+      const prevCount = counterStore.getValue().count;
+      const nextCount = prevCount - 1;
+      counterStore.setValue({ count: nextCount });
+      return { action: 'Decremented', prevCount, nextCount };
     }, { priority: 100 });
 
-    actions.register('reset', (payload, controller) => {
-      const current = counterStore.getValue();
+    actions.registerResult('reset', () => {
+      const prevCount = counterStore.getValue().count;
       counterStore.setValue({ count: 0 });
-
-      log(`Reset: ${current.count} → 0`);
-      controller.setResult({ count: 0 });
+      return { action: 'Reset', prevCount, nextCount: 0 };
     }, { priority: 100 });
 
-    actions.register('asyncIncrement', async (payload, controller) => {
+    actions.registerResult('asyncIncrement', async () => {
       log('Starting async increment (+10)...');
 
       // Simulate async operation
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      const current = counterStore.getValue();
-      counterStore.setValue({ count: current.count + 10 });
+      const prevCount = counterStore.getValue().count;
+      const nextCount = prevCount + 10;
+      counterStore.setValue({ count: nextCount });
 
-      log(`Async completed: ${current.count} → ${current.count + 10}`);
-      controller.setResult({ count: current.count + 10 });
+      return { action: 'Async completed', prevCount, nextCount };
     }, { priority: 100 });
+
+    for (const actionName of ['increment', 'decrement', 'reset', 'asyncIncrement']) {
+      actions.registerObserver(
+        actionName,
+        (event) => {
+          const entry = Array.isArray(event.result) ? event.result[0] : event.result;
+          if (entry) {
+            log(`${entry.action}: ${entry.prevCount} → ${entry.nextCount}`);
+          }
+        },
+        { when: 'success' }
+      );
+    }
 
     // Subscribe to store changes and render initial state
     function renderCounter() {

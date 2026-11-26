@@ -41,6 +41,23 @@ const demos: DemoItem[] = [
     estimatedTime: '5-10분',
   },
   {
+    path: '/integrations/headless-interactions',
+    title: 'Headless Interactions (React v5)',
+    emoji: '🎛️',
+    description:
+      'useRovingFocus, useDismissLayer, usePointerGesture와 Dual-Lane fast/orchestrated를 결합한 v5 헤드리스 UI 데모.',
+    tags: ['v5', 'useDismissLayer', 'useRovingFocus', 'usePointerGesture'],
+    category: 'interaction',
+    complexity: 'Intermediate',
+    features: [
+      'Controlled tabs + roving focus',
+      'LIFO Escape dismiss + action guard',
+      'Zero-re-render pointer scrub',
+      'Modular v5 subpath imports',
+    ],
+    estimatedTime: '5-10분',
+  },
+  {
     path: '/integrations/preact-web-components',
     title: 'Preact Web Components & Micro-Frontend Bridge',
     emoji: '🧩',

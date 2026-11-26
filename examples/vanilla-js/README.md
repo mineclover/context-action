@@ -1,16 +1,16 @@
 # Vanilla JavaScript Examples
 
-This directory contains examples of using `@context-action/core` with vanilla JavaScript (no framework required).
+This directory contains examples of using `@context-action/core`, `@context-action/store-core`, and `@context-action/interactions` with vanilla JavaScript (no framework required).
 
 ## 📁 Examples
 
 ### 1. Basic Counter (`basic-counter.html`)
 
 A simple counter application demonstrating:
-- Creating an ActionRegister
-- Registering action handlers
+- Creating an `ActionRegister` (`@context-action/core@2.0.0`)
+- Separating 4-role execution and logging via `registerResult` + `registerObserver`
 - Dispatching actions
-- State management with `@context-action/store-core` (`createStateStore`)
+- State management with `@context-action/store-core@0.1.5` (`createStateStore`)
 - Async operations
 
 **Features:**
@@ -34,7 +34,7 @@ npx serve .
 
 A full-featured todo application demonstrating:
 - Multiple stores (`createStateStore` for todos + filter state)
-- Priority-based action handlers
+- 4-role action handlers (`registerGuard` validation + `registerResult` + `registerCommand`)
 - Result collection and error handling
 - Filtering and state composition
 - XSS-safe DOM updates via `document.createElement` and `textContent`
@@ -56,6 +56,20 @@ npx serve .
 # Then visit: http://localhost:3000/todo-app.html
 ```
 
+### 3. Interactive Toolbar & Dismiss Layer (`interactive-toolbar.html`)
+
+A zero-bundler interactive toolbar demonstrating:
+- Headless roving tabindex keyboard navigation (`createRovingFocusController` from `@context-action/interactions@0.1.0`) with horizontal arrow keys, `Home`/`End`, loop, typeahead, and skipped disabled items
+- Escape & outside-pointer popover dismissal via `createDismissLayer`
+- Dual-Lane `ActionRegister` separation (`focusItem` on `lane: 'fast'`, `runCommand` on `lane: 'orchestrated'`)
+- XSS-safe DOM updates without a framework
+
+**Run it:**
+```bash
+npx serve .
+# Then visit: http://localhost:3000/interactive-toolbar.html
+```
+
 ## 🎯 Key Patterns Demonstrated
 
 ### 1. Framework-Neutral Store Pattern (`@context-action/store-core`)
@@ -63,7 +77,7 @@ npx serve .
 `createStateStore` provides a minimal reference store with `getValue()`, `setValue()`, `update()`, and zero-arg `subscribe(() => void)` listeners (render once initially after subscribing):
 
 ```javascript
-import { createStateStore } from 'https://esm.sh/@context-action/store-core@0.1.4';
+import { createStateStore } from 'https://esm.sh/@context-action/store-core@0.1.5';
 
 const counterStore = createStateStore('counter', { count: 0 });
 
@@ -98,24 +112,23 @@ actions.register('actionName', (payload, controller) => {
 ### 3. Action Pipeline
 
 ```javascript
-// High priority - validation
-actions.register('submitForm', (payload, controller) => {
+// High priority guard - validation
+actions.registerGuard('submitForm', (payload, controller) => {
   if (!isValid(payload)) {
     controller.abort('Validation failed');
     return;
   }
 }, { priority: 100 });
 
-// Medium priority - business logic
-actions.register('submitForm', async (payload, controller) => {
-  const result = await processData(payload);
-  controller.setResult(result);
+// Medium priority result - business logic
+actions.registerResult('submitForm', async (payload) => {
+  return await processData(payload);
 }, { priority: 50 });
 
-// Low priority - side effects
-actions.register('submitForm', (payload, controller) => {
+// Observer - post-success side effects
+actions.registerObserver('submitForm', () => {
   analytics.track('form_submitted');
-}, { priority: 10 });
+}, { when: 'success' });
 ```
 
 ## 🚀 Using in Your Project
@@ -124,8 +137,9 @@ actions.register('submitForm', (payload, controller) => {
 
 ```html
 <script type="module">
-  import { ActionRegister } from 'https://esm.sh/@context-action/core@1.3.1';
-  import { createStateStore } from 'https://esm.sh/@context-action/store-core@0.1.4';
+  import { ActionRegister } from 'https://esm.sh/@context-action/core@2.0.0';
+  import { createStateStore } from 'https://esm.sh/@context-action/store-core@0.1.5';
+  import { createRovingFocusController } from 'https://esm.sh/@context-action/interactions@0.1.0';
 
   const countStore = createStateStore('count', 0);
   const actions = new ActionRegister({ name: 'MyApp' });
@@ -136,7 +150,7 @@ actions.register('submitForm', (payload, controller) => {
 ### Option 2: NPM (Production)
 
 ```bash
-pnpm add @context-action/core @context-action/store-core
+pnpm add @context-action/core @context-action/store-core @context-action/interactions
 ```
 
 ```javascript

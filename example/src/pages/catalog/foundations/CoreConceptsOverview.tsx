@@ -115,7 +115,7 @@ const coreConcepts: CoreConcept[] = [
     id: 'backend-transactions',
     title: 'Backend & Atomic Transactions',
     description:
-      'Framework-neutral StateBackend adaptation and multi-store atomic transactions with rollback',
+      'Framework-neutral StateBackend adaptation (@context-action/react/backend) and multi-store atomic transactions with rollback (/transactions)',
     path: '/foundations/store/backend-transactions',
     category: 'integration',
     concepts: [
@@ -130,16 +130,16 @@ const coreConcepts: CoreConcept[] = [
   },
   {
     id: 'provider',
-    title: 'React Provider',
+    title: 'React Provider & createScopedContext',
     description:
-      'React integration with unified provider patterns and context management architecture',
+      'React v5 Provider patterns combining separated contexts, Activity compatibility, and single-Provider createScopedContext',
     path: '/foundations/react/provider',
     category: 'integration',
     concepts: [
+      'createScopedContext',
+      'useRefRegistry',
       'Provider Patterns',
       'Context Integration',
-      'Unified Architecture',
-      'Component Isolation',
     ],
     difficulty: 'Intermediate',
     order: 8,
@@ -166,14 +166,14 @@ const coreConcepts: CoreConcept[] = [
     id: 'hooks',
     title: 'React Hooks',
     description:
-      'Essential React hooks for Context-Action integration and comprehensive state management',
+      'Essential React v5 hooks including useStoreValue, useStoreSelector, and useStorePath({ select })',
     path: '/foundations/react/hooks',
     category: 'integration',
     concepts: [
       'useActionDispatch',
       'useStoreValue',
       'useStoreSelector',
-      'useStorePath',
+      'useStorePath({ select })',
     ],
     difficulty: 'Basic',
     order: 10,
@@ -198,12 +198,17 @@ const coreConcepts: CoreConcept[] = [
   },
   {
     id: 'imperative-ref',
-    title: 'ImperativeRef + Ref Context',
+    title: 'ImperativeRef + Ref Context (/refs)',
     description:
-      'Combine createRefContext and useImperativeHandle for zero-re-render DOM control boundaries',
+      'Combine @context-action/react/refs (createRefContext) and useImperativeHandle for zero-re-render DOM control boundaries',
     path: '/foundations/react/imperativeRef',
     category: 'patterns',
-    concepts: ['createRefContext', 'useRefHandler', 'useImperativeHandle'],
+    concepts: [
+      'createRefContext',
+      'useRefHandler',
+      'useRefRegistry',
+      'useImperativeHandle',
+    ],
     difficulty: 'Advanced',
     order: 12,
     icon: '🎯',

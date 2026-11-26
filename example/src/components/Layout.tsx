@@ -95,6 +95,13 @@ const NAV_ITEMS: NavItem[] = [
       'Keep React Aria interaction state local while Context-Action owns domain actions',
   },
   {
+    path: '/integrations/headless-interactions',
+    label: '🎛️ Headless Interactions (v5)',
+    category: 'architecture',
+    description:
+      'createScopedContext, useDismissLayer, useRovingFocus, usePointerGesture & Dual-Lane fast/orchestrated',
+  },
+  {
     path: '/integrations/preact-web-components',
     label: '🧩 Preact Web Components',
     category: 'architecture',

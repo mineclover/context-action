@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context-Action Vanilla JS - Interactive Toolbar &amp; Dismiss Layer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      padding: 32px 20px;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+    }
+    h1 { font-size: 22px; margin-bottom: 8px; }
+    .subtitle { color: #475569; font-size: 14px; margin-bottom: 20px; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      margin-bottom: 16px;
+    }
+    .tool-btn {
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .tool-btn[aria-disabled="true"] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      border-style: dashed;
+    }
+    .tool-btn:focus {
+      outline: 2px solid #4f46e5;
+      outline-offset: 2px;
+    }
+    .popover-anchor { position: relative; margin-bottom: 18px; }
+    .popover {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid #818cf8;
+      background: #eef2ff;
+      display: none;
+    }
+    .popover.open { display: block; }
+    .status-box {
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      font-size: 13px;
+      color: #334155;
+      margin-bottom: 16px;
+    }
+    .log {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 12px;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .log-entry { padding: 3px 0; border-bottom: 1px solid #1e293b; }
+    .log-entry:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎛️ Context-Action Vanilla JS Interactive Toolbar</h1>
+    <p class="subtitle">
+      Combines <code>@context-action/core@2.0.0</code> Dual-Lane <code>ActionRegister</code>,
+      <code>@context-action/store-core@0.1.5</code>, and <code>@context-action/interactions@0.1.0</code>
+      (<code>createRovingFocusController</code> + <code>createDismissLayer</code>).
+    </p>
+
+    <div class="toolbar" id="toolbar" role="toolbar" aria-label="Editor commands"></div>
+
+    <div class="popover-anchor">
+      <button type="button" class="tool-btn" id="popoverTrigger" aria-expanded="false">
+        ⚙️ Open Quick Settings Popover (Esc / Outside Click)
+      </button>
+      <div class="popover" id="settingsPopover" role="dialog" aria-label="Quick Settings">
+        <strong>Quick Settings Popover</strong>
+        <p style="font-size: 13px; margin: 6px 0 10px;">
+          Managed by <code>createDismissLayer</code>. Press Escape or click outside to dismiss.
+        </p>
+        <button type="button" class="tool-btn" id="closePopoverBtn">Close Popover</button>
+      </div>
+    </div>
+
+    <div class="status-box" id="statusBox"></div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <script type="module">
+    import { ActionRegister } from 'https://esm.sh/@context-action/core@2.0.0';
+    import { createStateStore } from 'https://esm.sh/@context-action/store-core@0.1.5';
+    import {
+      createDismissLayer,
+      createRovingFocusController
+    } from 'https://esm.sh/@context-action/interactions@0.1.0';
+
+    const COMMANDS = [
+      { id: 'bold', label: 'Bold' },
+      { id: 'italic', label: 'Italic' },
+      { id: 'locked-export', label: 'Export (Locked)', disabled: true },
+      { id: 'align-left', label: 'Align Left' },
+      { id: 'publish', label: 'Publish Draft' }
+    ];
+
+    const uiStore = createStateStore('toolbar-ui', {
+      activeFocusId: 'bold',
+      lastExecuted: 'none',
+      popoverOpen: false
+    });
+
+    const actions = new ActionRegister({
+      name: 'VanillaToolbarActions',
+      actions: {
+        focusItem: { lane: 'fast' },
+        runCommand: { lane: 'orchestrated', queue: 'serial' },
+        setPopoverOpen: { lane: 'orchestrated', queue: 'serial' }
+      }
+    });
+
+    const logEl = document.getElementById('log');
+    function appendLog(message) {
+      const row = document.createElement('div');
+      row.className = 'log-entry';
+      row.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logEl.insertBefore(row, logEl.firstChild);
+      while (logEl.children.length > 20) {
+        logEl.removeChild(logEl.lastChild);
+      }
+    }
+
+    // 4-Role pipeline handlers
+    actions.registerCommand('focusItem', ({ id }) => {
+      uiStore.setValue({ ...uiStore.getValue(), activeFocusId: id });
+    });
+
+    actions.registerGuard('runCommand', ({ id }, controller) => {
+      const cmd = COMMANDS.find((item) => item.id === id);
+      if (!cmd || cmd.disabled) {
+        controller.abort(`Command "${id}" is disabled`);
+      }
+    });
+
+    actions.registerResult('runCommand', ({ id }) => {
+      const state = uiStore.getValue();
+      uiStore.setValue({ ...state, activeFocusId: id, lastExecuted: id });
+      return { id, ranAt: Date.now() };
+    });
+
+    actions.registerObserver('runCommand', (event) => {
+      appendLog(`Executed orchestrated command: ${event.payload.id}`);
+    }, { when: 'success' });
+
+    actions.registerCommand('setPopoverOpen', ({ open }) => {
+      uiStore.setValue({ ...uiStore.getValue(), popoverOpen: open });
+    });
+
+    const buttonRefs = new Map();
+    const rovingFocus = createRovingFocusController({
+      orientation: 'horizontal',
+      loop: true,
+      typeahead: true,
+      getItems: () => COMMANDS,
+      getActiveId: () => uiStore.getValue().activeFocusId,
+      onFocusChange(nextId) {
+        void actions.dispatch('focusItem', { id: nextId });
+        buttonRefs.get(nextId)?.focus();
+      }
+    });
+
+    const toolbarEl = document.getElementById('toolbar');
+    const popoverTrigger = document.getElementById('popoverTrigger');
+    const settingsPopover = document.getElementById('settingsPopover');
+    const closePopoverBtn = document.getElementById('closePopoverBtn');
+    const statusBox = document.getElementById('statusBox');
+
+    for (const cmd of COMMANDS) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tool-btn';
+      btn.textContent = cmd.label;
+      btn.setAttribute('aria-disabled', cmd.disabled ? 'true' : 'false');
+      btn.addEventListener('click', () => {
+        if (!cmd.disabled) {
+          void actions.dispatch('runCommand', { id: cmd.id });
+        }
+      });
+      btn.addEventListener('focus', () => {
+        if (!cmd.disabled) {
+          void actions.dispatch('focusItem', { id: cmd.id });
+        }
+      });
+      buttonRefs.set(cmd.id, btn);
+      toolbarEl.appendChild(btn);
+    }
+
+    toolbarEl.addEventListener('keydown', (event) => {
+      rovingFocus.handleKeyDown(uiStore.getValue().activeFocusId, event);
+    });
+
+    const dismissLayer = createDismissLayer({
+      enabled: false,
+      dismissOnEscape: true,
+      dismissOnOutsidePointer: true,
+      getContainers: () => [settingsPopover, popoverTrigger],
+      onDismiss(reason) {
+        appendLog(`Popover dismissed via ${reason}`);
+        void actions.dispatch('setPopoverOpen', { open: false });
+      }
+    });
+
+    popoverTrigger.addEventListener('click', () => {
+      const nextOpen = !uiStore.getValue().popoverOpen;
+      void actions.dispatch('setPopoverOpen', { open: nextOpen });
+    });
+
+    closePopoverBtn.addEventListener('click', () => {
+      void actions.dispatch('setPopoverOpen', { open: false });
+    });
+
+    function render() {
+      const { activeFocusId, lastExecuted, popoverOpen } = uiStore.getValue();
+      for (const cmd of COMMANDS) {
+        const btn = buttonRefs.get(cmd.id);
+        if (btn) {
+          btn.tabIndex = rovingFocus.getTabIndex(cmd.id);
+        }
+      }
+      settingsPopover.classList.toggle('open', popoverOpen);
+      popoverTrigger.setAttribute('aria-expanded', String(popoverOpen));
+      if (popoverOpen) {
+        dismissLayer.activate();
+      } else {
+        dismissLayer.deactivate();
+      }
+      statusBox.textContent =
+        `Focused item: ${activeFocusId} | Last executed command: ${lastExecuted} | Popover: ${popoverOpen ? 'open' : 'closed'}`;
+    }
+
+    uiStore.subscribe(render);
+    render();
+    appendLog('Initialized @context-action/core@2.0.0 + interactions@0.1.0');
+  </script>
+</body>
+</html>

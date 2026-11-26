@@ -137,7 +137,7 @@ export default function FoundationsOverview() {
                 to="/foundations/react/provider"
                 className="text-blue-600 hover:underline"
               >
-                Provider Pattern
+                Provider &amp; Scoped Context (v5)
               </Link>
             </li>
             <li>
@@ -153,7 +153,7 @@ export default function FoundationsOverview() {
                 to="/foundations/react/hooks"
                 className="text-blue-600 hover:underline"
               >
-                Hooks Usage
+                Hooks &amp; useStorePath(&#123; select &#125;)
               </Link>
             </li>
             <li>
@@ -169,7 +169,7 @@ export default function FoundationsOverview() {
                 to="/foundations/react/imperativeRef"
                 className="text-blue-600 hover:underline"
               >
-                ImperativeRef + Ref Context
+                ImperativeRef + /refs Context
               </Link>
             </li>
             <li>

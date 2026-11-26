@@ -52,6 +52,28 @@ export default function IntegrationsOverview() {
           </Link>
         </div>
 
+        <div className="category-card bg-white border border-indigo-200 p-6 rounded-lg shadow-sm md:col-span-2">
+          <div className="inline-flex rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-indigo-800">
+            React v5 + Interactions v0.1
+          </div>
+          <h3 className="text-xl font-semibold text-slate-900 mb-3 mt-3">
+            🎛️ Headless UI Primitives &amp; Dual-Lane Interactions
+          </h3>
+          <p className="text-sm text-slate-700 mb-4">
+            <code>createScopedContext</code>, <code>useRovingFocus</code>,{' '}
+            <code>useDismissLayer</code>, <code>usePointerGesture</code>,{' '}
+            <code>useRefCollection</code>, <code>useControlledStoreSync</code>와
+            Dual-Lane(<code>fast</code> / <code>orchestrated</code>)
+            파이프라인을 실시간으로 체험합니다.
+          </p>
+          <Link
+            to="/integrations/headless-interactions"
+            className="inline-flex items-center rounded-md bg-indigo-700 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-800"
+          >
+            Headless Interactions 열기 →
+          </Link>
+        </div>
+
         <div className="category-card bg-indigo-50 border border-indigo-200 p-6 rounded-lg shadow-sm md:col-span-2">
           <h3 className="text-xl font-semibold mb-4">
             🧩 MCP / Function Calling Catalog
@@ -106,7 +128,7 @@ export default function IntegrationsOverview() {
               >
                 ⚙️ Action Lifecycle Workbench
               </Link>
-              <span className="text-xs text-gray-500 ml-2">v1 Role Hooks</span>
+              <span className="text-xs text-gray-500 ml-2">4-Role Hooks</span>
             </li>
             <li>
               <Link
