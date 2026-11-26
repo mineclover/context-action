@@ -89,3 +89,5 @@ adapter 계약을 대체하는 것이 아니라 공개 composition이 사용할 
    smoke가 그 route를 검증하게 한다.
 4. 공유 runtime module이 바뀌면 모든 공개 예제가 그 계약에 의존하므로 더 넓은
    smoke 선택을 받아들인다.
+
+표준 4계층 테스트 분류(`T1`–`T4`)와 6대 표준 소비자 테스트 시나리오(`S1`–`S6`)는 [테스트 컨벤션 및 재사용 가능 테스트 시나리오 표준](/ko/context-layered/testing-convention)을 참고하세요.

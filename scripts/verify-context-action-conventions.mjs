@@ -33,6 +33,8 @@ const checks = [
   ['Mutative upstream verifier tests', 'scripts/verify-mutative-upstream.test.mjs', ['--test']],
   ['repository surface catalog', 'scripts/verify-repository-surface-catalog.mjs'],
   ['repository surface catalog tests', 'scripts/verify-repository-surface-catalog.test.mjs', ['--test']],
+  ['testing convention', 'scripts/verify-testing-convention.mjs'],
+  ['testing convention tests', 'scripts/verify-testing-convention.test.mjs', ['--test']],
 ];
 
 for (const [label, relativeScript, argumentsList = []] of checks) {

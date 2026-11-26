@@ -19,6 +19,7 @@ Context-Action is a TypeScript monorepo separating application logic into framew
   - [Package Boundary Convention](docs/en/context-layered/package-boundary-convention.md) — Cross-package import, export, and ownership rules
   - [Store Selection and Usage Guide](docs/en/context-layered/store-selection-and-usage-guide.md) — State/store primitive selection across packages
   - [Spec-to-Code Authoring Guide](docs/en/context-layered/spec-to-code-authoring-guide.md) — Contract-first authoring workflow across layers
+  - [Testing Convention & Scenarios](docs/en/context-layered/testing-convention.md) — Standardized `T1`–`T4` test tiers, `S1`–`S6` scenarios, and hygiene gate (`CA-TESTING-CONVENTION-001`)
   - [Change Management Convention](docs/en/context-layered/change-management-convention.md) — Spec/issue/PR traceability (`CA-*` / `#issue`)
 
 ## Development Commands

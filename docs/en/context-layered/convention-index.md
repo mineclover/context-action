@@ -41,6 +41,7 @@ you know which artifact you own.
 | UX behavior, implicit agreement, or design-accessibility trade-off | [Interaction Intent Contract (IIC)](/en/context-layered/interaction-intent-contract) | intent, discoverability, and follow-up UI evidence |
 | `ttsc-ex` · `oa-sdk` contract locks, intent separation, or layout hierarchy sync | [Unified Triad Self-Serve Sync Guide](/en/context-layered/triad-evidence-sync-guide) | `pnpm docs:management && pnpm llms:check && pnpm convention:check` |
 | a canonical example/usecase | [Implementation Convention](/en/context-layered/implementation-convention) | `pnpm convention:check` and example checks |
+| standardized test tiers (`T1`–`T4`) and user scenarios (`S1`–`S6`) | [Testing Convention & Scenarios](/en/context-layered/testing-convention) | `pnpm convention:check` and boundary test suites |
 
 For local pre-PR receipt verification ([Local-First Verification Policy](../../LOCAL_FIRST_VERIFICATION_POLICY.md)), run `pnpm verify:quick` (fast smoke) or `pnpm verify` (full 17-step local suite) and verify with `pnpm verify:receipt`. For a full release candidate preflight, use `pnpm verify:all`; it composes the repository checks rather than replacing focused evidence.
 
@@ -124,6 +125,8 @@ For local pre-PR receipt verification ([Local-First Verification Policy](../../L
   - single local entrypoints (`pnpm verify`, `pnpm verify:quick`) and RFC 8785 cryptographic receipt rules (`pnpm verify:receipt`)
 - [Stability Test Cycle](/en/context-layered/stability-test-cycle)
   - how to split contract tests, scenario tests, and stress validation
+- [Testing Convention & Scenarios](/en/context-layered/testing-convention)
+  - standardized `T1`–`T4` testing tiers, `S1`–`S6` canonical scenarios, and `CA-TESTING-CONVENTION-001` proof matrix
 - [Next Work and Documentation Ownership](/en/context-layered/next-work)
   - the single backlog and source-of-truth map for follow-up work
 

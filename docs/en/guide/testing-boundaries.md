@@ -89,3 +89,5 @@ composition reaches a usable baseline.
    and let the impact smoke verify the route.
 4. If a shared runtime module changes, accept the broader smoke selection: every
    public example depends on that contract.
+
+For standardized 4-tier test classification (`T1`–`T4`) and canonical consumer scenarios (`S1`–`S6`), see [Testing Convention & Reusable Test Scenarios](/en/context-layered/testing-convention).

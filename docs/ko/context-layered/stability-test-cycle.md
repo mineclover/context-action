@@ -38,6 +38,7 @@ flowchart LR
 아키텍처의 복잡도가 실제로 정당화되는지 판단하려면 다음 문서와 함께 읽는 것이 가장 좋습니다.
 
 - [Canonical Order Form 예제](/ko/examples/canonical-order-form)
+- [테스트 컨벤션 및 시나리오 표준](/ko/context-layered/testing-convention) (`T1`–`T4` & `S1`–`S6`)
 - [Context-Layered 개요](/ko/context-layered/context-layered-guide)
 
 ### 1. 계약 테스트
@@ -126,9 +127,9 @@ flowchart LR
 
 ## 현재 릴리즈 정책과 게이트
 
-워크스페이스 패키지는 단일 pre-1.0 일괄 버전이 아니라 독립 시맨틱 버저닝을 따릅니다 (예: Core `1.3.x`, Store Core `0.1.x`, Mutative Core `0.8.x`, Mutative `0.8.x`, React `4.0.x`, XState `0.1.x`, Lit `0.1.x`, Preact `0.1.x`/`0.2.x`; [저장소 표면 카탈로그](/ko/context-layered/repository-surface-catalog) 및 [`releases/RELEASE.md`](../../../releases/RELEASE.md) 참고). API 이동이나 제거는 해당 패키지 changelog에 breaking 변경으로 기록하고 migration 문서에 대체 import를 명시하며 release gate가 결과 패키지를 검증할 때만 허용합니다.
+워크스페이스 패키지는 단일 pre-1.0 일괄 버전이 아니라 독립 시맨틱 버저닝을 따릅니다 (예: Core `2.0.x`, Interactions `0.1.x`, Store Core `0.1.x`, Mutative Core `0.8.x`, Mutative `0.8.x`, React `5.0.x`, XState `0.1.x`, Lit `0.1.x`, Preact `0.1.x`/`0.2.x`; [저장소 표면 카탈로그](/ko/context-layered/repository-surface-catalog) 및 [`releases/RELEASE.md`](../../../releases/RELEASE.md) 참고). API 이동이나 제거는 해당 패키지 changelog에 breaking 변경으로 기록하고 migration 문서에 대체 import를 명시하며 release gate가 결과 패키지를 검증할 때만 허용합니다.
 
-React 4에서 공개 `@context-action/react` 패키지는 root 외에 `./backend`, `./advanced`, `./utils`, `./webmcp` subpath만 노출합니다. 기본 entry는 Durable/tool protocol runtime 의존성 없이 유지되며, `@context-action/react/tools`는 Durable 0.2가 보류되는 동안 독립 데모 개발용 워크스페이스 경로로만 남겨 둡니다.
+React 5에서 공개 `@context-action/react` 패키지는 root 스토어/액션 외에 독립 서브패스 `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, `./webmcp`를 노출합니다(`@context-action/core` `2.0.x` 및 `@context-action/interactions` `0.1.x` 기반). 기본 entry는 Durable/tool protocol runtime 의존성 없이 유지됩니다.
 
 PR 전 로컬 우선 검증 및 서명 영수증 발급([Local-First Verification Policy](../../LOCAL_FIRST_VERIFICATION_POLICY.md))에는 다음을 실행합니다:
 

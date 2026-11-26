@@ -160,6 +160,12 @@ Sections: Store Selection Matrix | Store Usage Patterns | Choosing the Right Rea
 
 Status: Active Spec / Decision ID: CA-SURFACE-CATALOG-001 Owner: Framework Core & React Runtime Related Specifications: - Store and Time-Travel Contracts - Store Conventions - Repository Surface Catalog - Spec-to-Code Authoring Guide - CA-STATECHART-EFFECT-001 Context-Action separates write ownership (StoreWriter / Action Handlers) from read ownership (StoreReader / reactive hooks or framework controllers). Every state mutation belongs inside an Action Handler following the three-step flow: r...
 
+===================[ DOC: en/context-layered/testing-convention.md ]===================
+# Testing Convention & Reusable Test Scenarios
+Sections: Four-Tier Testing Standard (T1–T4) | Six Canonical Test Scenarios (S1–S6) | Compile-Checked Harness Patterns (Core 2.0 / React 5.0) | Repository Executable Proof Matrix | Hygiene & Anti-Pattern Guardrails
+
+Status: Active Spec / Decision ID: CA-TESTING-CONVENTION-001 Owner: Framework Architecture & Verification Governance Related Specs & Guides: - Testing Context-Action by Boundary - React UI Testing with act - Stability Test Cycle - Implementation Convention - Local-First Verification Policy This document standardizes how Context-Action packages, Context-Layered applications, and consumer repositories verify correctness on Core 2.0.x, Interactions 0.1.x, and React 5.0.x. Instead of rewriting ad...
+
 ===================[ DOC: en/context-layered/triad-evidence-sync-guide.md ]===================
 # Unified Triad (ttsc-ex · oa-sdk · context-action) Responsibility Split and Self-Serve Sync Guide
 Sections: Purpose and Three-Workspace Responsibility Boundaries (Zero-Dependency Principle) | Cross-Workspace Reference and Convention Map | Five Core Self-Serve Adoption Guidelines for context-action | Four-Step Self-Serve Pull Update Workflow and Local Verification
