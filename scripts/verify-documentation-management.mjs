@@ -167,6 +167,18 @@ assertContains(
   /\/ko\/context-layered\/spec-to-code-authoring-guide/,
   'the spec-to-code authoring guide discovery link'
 );
+assertContains(
+  'docs/en/context-layered/convention-index.md',
+  englishConventionIndex,
+  /\/en\/context-layered\/testing-convention/,
+  'the testing convention discovery link'
+);
+assertContains(
+  'docs/ko/context-layered/convention-index.md',
+  koreanConventionIndex,
+  /\/ko\/context-layered\/testing-convention/,
+  'the testing convention discovery link'
+);
 
 for (const [locale, relativePath] of [
   ['en', 'docs/en/context-layered/change-management-convention.md'],

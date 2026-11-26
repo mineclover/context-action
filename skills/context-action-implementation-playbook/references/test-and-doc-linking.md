@@ -2,13 +2,17 @@
 
 Use this after the scenario structure exists.
 
-## Minimum verification
+## Minimum verification (`S1`–`S6` · `CA-TESTING-CONVENTION-001`)
 
-- invalid flow blocks submission
-- valid flow reaches success
-- post-success draft change invalidates stale result
-- reset restores baseline
+- `S1` invalid flow blocks submission in Guard and moves focus via Ref
+- `S2` valid flow reaches success cleanly through deterministic FSM transitions
+- `S3` post-success draft change invalidates stale result
+- `S4` mid-flight reset / unmount restores baseline with zero stale timer leaks or `act()` warnings
+- `S5` selective subscriptions (`useStorePath(..., { select })`) and fast-lane gestures avoid unnecessary re-renders
+- `S6` scoped isolation (`createScopedContext`), controlled sync, `ownership="shared"` DI, and atomic transaction rollback behave deterministically
 - optional `@aspectOf` storage failure degrades gracefully (`Promise.allSettled`) without blocking the root view
+
+See [Testing Convention & Scenarios](../../../docs/en/context-layered/testing-convention.md) ([한국어](../../../docs/ko/context-layered/testing-convention.md)).
 
 ## Recommended commands
 

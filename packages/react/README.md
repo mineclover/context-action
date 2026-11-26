@@ -542,7 +542,7 @@ const UserComponent = UserStores.withProvider(() => {
 
 ## Testing
 
-See the [public API functional validation map](./docs/api-functional-validation.md)
+See the [Testing Convention & Scenarios](../../docs/en/context-layered/testing-convention.md) (`T1`–`T4` & `S1`–`S6`) and [public API functional validation map](./docs/api-functional-validation.md)
 for behavioral coverage, installed-package checks, and explicit limitations.
 
 Run the package lifecycle tests through the workspace instead of relying on a
@@ -587,8 +587,9 @@ The Context-Action framework follows MVVM principles:
 
 ## Documentation
 
-- [Hooks Reference](docs/HOOKS_REFERENCE.md) - Complete hook documentation
-- [Framework Guide](../../CLAUDE.md) - Overall architecture
+- [Testing Convention & Scenarios](../../docs/en/context-layered/testing-convention.md) - Standard test tiers (`T1`–`T4`) and scenarios (`S1`–`S6`)
+- [Hooks Reference](../../docs/en/concept/hooks-reference.md) - Complete hook documentation
+- [Framework Guide](../../AGENTS.md) - Workspace architecture and verification guide
 
 ## TypeScript Support
 

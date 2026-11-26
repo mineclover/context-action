@@ -160,6 +160,12 @@ Sections: Store 선택 매트릭스 | Store별 상세 사용법 | React 구독 �
 
 상태: Active 스펙 / 결정 ID: CA-SURFACE-CATALOG-001 소유자: Framework Core & React Runtime 관련 기준 문서: - Store and Time-Travel Contracts - Store 컨벤션 - 저장소 표면 카탈로그 - 스펙 기반 코드 작성 가이드 - CA-STATECHART-EFFECT-001 Context-Action은 쓰기 경계(StoreWriter / Action Handler) 와 읽기 경계(StoreReader / 구독 훅·컨트롤러) 를 분리합니다. 모든 상태 변경은 Action Handler 내부에서 store.getValue()로 현재 값을 읽고, 순수 비즈니스 로직으로 다음 값을 계산한 뒤, store.setValue() 또는 store.update()로 커밋하는 3단계 흐름을 따릅니다. | Store / 상태 수단 | 패키지 진입점 | 핵심 용도 | Undo/Redo | React 의존 | | --- |...
 
+===================[ DOC: ko/context-layered/testing-convention.md ]===================
+# 테스트 컨벤션 및 재사용 가능 테스트 시나리오 표준
+Sections: 4계층 테스트 표준 (T1–T4) | 6대 표준 테스트 시나리오 (S1–S6) | 컴파일 검증 테스트 하네스 패턴 (Core 2.0 / React 5.0) | 저장소 실행 증명 매트릭스 | 위생 및 안티패턴 가드레일
+
+상태: Active 스펙 / 결정 ID: CA-TESTING-CONVENTION-001 소유자: Framework Architecture & Verification Governance 관련 규격 및 가이드: - 경계별 Context-Action 테스트 - act를 활용한 React UI 테스트 - 안정성 테스트 사이클 - 표준 구현 컨벤션 - Local-First 검증 정책 이 문서는 Core 2.0.x, Interactions 0.1.x, React 5.0.x 환경에서 패키지·Context-Layered 앱·소비자 프로젝트가 준수해야 할 표준 테스트 규격과 재사용 가능한 시나리오를 정의합니다. 화면마다 임의의 단언을 작성하는 대신, 모든 검증을 4개 테스트 계층(T1–T4)으로 분류하고 6대 표준 테스트 시나리오(S1–S6)로 증명합니다. | 계층 | 대상 및 파일 위치 | 실행 환경 및 설정 | 증명하는 계약 | | --- | --- | --- | --- | | T1 · 순...
+
 ===================[ DOC: ko/context-layered/triad-evidence-sync-guide.md ]===================
 # 통합 트라이어드(ttsc-ex · oa-sdk · context-action) 책임 분리 및 자율 동기화 가이드
 Sections: 목적 및 3대 워크스페이스 책임 경계 (Zero-Dependency 보존 원칙) | 양방향 참조 문서 및 컨벤션 연결 지도 | context-action 자율 흡수(Pull) 5대 핵심 가이드라인 | 4단계 자율 Pull 업데이트 흐름 및 로컬 검증 절차

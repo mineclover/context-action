@@ -39,6 +39,7 @@ flowchart LR
 If you want to evaluate whether the architecture earns its complexity, read this guide together with:
 
 - [Canonical Order Form Example](/en/examples/canonical-order-form)
+- [Testing Convention & Scenarios](/en/context-layered/testing-convention) (`T1`–`T4` & `S1`–`S6`)
 - [Context-Layered Architecture Guide](/en/context-layered/context-layered-guide)
 
 ### 1. Contract Tests
@@ -127,9 +128,9 @@ Use multiple lanes instead of one monolithic pipeline.
 
 ## Current Release Policy and Gate
 
-Workspace packages follow independent semantic versioning rather than a single pre-1.0 lockstep line (for example Core `1.3.x`, Store Core `0.1.x`, Mutative Core `0.8.x`, Mutative `0.8.x`, React `4.0.x`, XState `0.1.x`, Lit `0.1.x`, Preact `0.1.x`/`0.2.x`; see [Repository Surface Catalog](/en/context-layered/repository-surface-catalog) and [`releases/RELEASE.md`](../../../releases/RELEASE.md)). An API move or removal is allowed only when its package changelog marks it as breaking, migration documentation names the replacement import, and the release gate tests the resulting packed artifact.
+Workspace packages follow independent semantic versioning rather than a single pre-1.0 lockstep line (for example Core `2.0.x`, Interactions `0.1.x`, Store Core `0.1.x`, Mutative Core `0.8.x`, Mutative `0.8.x`, React `5.0.x`, XState `0.1.x`, Lit `0.1.x`, Preact `0.1.x`/`0.2.x`; see [Repository Surface Catalog](/en/context-layered/repository-surface-catalog) and [`releases/RELEASE.md`](../../../releases/RELEASE.md)). An API move or removal is allowed only when its package changelog marks it as breaking, migration documentation names the replacement import, and the release gate tests the resulting packed artifact.
 
-For React 4, the published `@context-action/react` entry exposes root stores/actions/refs plus `./backend`, `./advanced`, `./utils`, and `./webmcp`. The default `@context-action/react` entry remains free of Durable/tool protocol runtime dependencies, while `@context-action/react/tools` stays workspace-only for standalone development demos while Durable 0.2 is withheld.
+For React 5, the published `@context-action/react` entry exposes root stores/actions alongside standalone `./refs`, `./time-travel`, `./transactions`, `./backend`, `./advanced`, `./utils`, and `./webmcp` subpaths (backed by `@context-action/core` `2.0.x` and `@context-action/interactions` `0.1.x`). The default `@context-action/react` entry remains free of Durable/tool protocol runtime dependencies.
 
 For local pre-PR and local-first receipt verification ([Local-First Verification Policy](../../LOCAL_FIRST_VERIFICATION_POLICY.md)), run:
 
